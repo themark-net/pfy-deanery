@@ -13,4 +13,15 @@ Detect order (first live wins):
 3. llama-server `:8080`
 4. Ollama `:11434` last
 
-`./pfy start continue` remains **STUB** exit 2. Docker/binary is not ready. Do not exec the IDE from pfy.
+`./pfy start continue` remains **STUB** exit 2. It does not exec the IDE. It writes `$PFY_STATE_DIR/continue-config.json` with `apiBase` taken from `$LOCAL_OPENAI_BASE_URL` (append `/v1` when missing). With no live engine the file uses `http://127.0.0.1:1919/v1` and says so.
+
+## Where the IDE opens
+
+pfy prints `filesystem: direct` or `filesystem: cage` and exports `PFY_FS` / `PFY_FS_ROOT`.
+
+| Mode | What the harness sees | What it is not |
+|------|------------------------|----------------|
+| `direct` | The repo you launched from (`PFY_FS_ROOT`) | The cage tree |
+| `cage` | `/workspace/pfy-mentat` inside the lab. Grok reads that tree through the filesystem MCP | Your host path |
+
+The cage copy on the host is `~/.agentcage/workspace/pfy-mentat`, bind-mounted at `/workspace/pfy-mentat`. Those are two trees. Move commits with `make cage-code-sync`. Open Continue on `PFY_FS_ROOT` for the mode you are in.

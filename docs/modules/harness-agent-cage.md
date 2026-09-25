@@ -66,6 +66,17 @@ make cage-test                 # policy tests (stack up)
 make smoke-write-guard         # optional tool smokes
 ```
 
+## Harness filesystem
+
+`./pfy start` prints one of two modes and exports `PFY_FS` and `PFY_FS_ROOT` into the child.
+
+| `PFY_FS` | Root the harness should use | Navigation |
+|----------|-----------------------------|------------|
+| `direct` | The host repo (`PFY_FS_ROOT`, normally the catalog checkout) | The process sees that directory. No proxy. |
+| `cage` | `/workspace/pfy-mentat` when the process is already under `/workspace` | Bind mount of `~/.agentcage/workspace/pfy-mentat`. Grok uses the filesystem MCP on that tree. Host paths are a different directory. |
+
+Host and cage are not one filesystem. `make cage-code-sync` copies commits between them. Docker on PATH does not switch the mode.
+
 ## Not yet
 
 - `./pfy start agent-cage` (always STUB exit 2). Docker on PATH is **not** ready.

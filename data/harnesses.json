@@ -242,7 +242,7 @@
       "detect": [],
       "github": "https://github.com/continuedev/continue",
       "catalog": "Continue.dev",
-      "issue_stub": "Continue local-openai recipe",
+      "issue_stub": "IDE recipe only. start writes continue-config.json and prints direct vs cage filesystem. Does not exec the IDE.",
       "github_issue": 61
     },
     {

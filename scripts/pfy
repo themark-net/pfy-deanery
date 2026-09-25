@@ -1087,16 +1087,79 @@ grok_unauth() {
   return 1
 }
 
+print_fs_nav() {
+  # Host start sees the repo directly. The cage tree is a bind mount, not this directory.
+  local mode root_fs cage_dir
+  if [[ "${PFY_FS:-}" == "direct" || "${PFY_FS:-}" == "cage" ]]; then
+    mode="$PFY_FS"
+  elif [[ "$ROOT" == /workspace || "$ROOT" == /workspace/* ]]; then
+    mode="cage"
+  else
+    mode="direct"
+  fi
+  if [[ "$mode" == "cage" ]]; then
+    root_fs="$ROOT"
+    [[ "$root_fs" == /workspace || "$root_fs" == /workspace/* ]] || root_fs="/workspace/pfy-mentat"
+  else
+    root_fs="$ROOT"
+  fi
+  cage_dir="${AGENTCAGE_DIR:-$HOME/.agentcage}/workspace/pfy-mentat"
+  export PFY_FS="$mode"
+  export PFY_FS_ROOT="$root_fs"
+  echo "filesystem: $mode"
+  echo "  root: $PFY_FS_ROOT"
+  if [[ "$mode" == "direct" ]]; then
+    echo "  cage copy: $cage_dir bind-mounted at /workspace/pfy-mentat. Not this directory. Sync: make cage-code-sync"
+  else
+    echo "  host mirror: $cage_dir. Host paths are a different tree. Sync: make cage-code-sync"
+    echo "  grok navigates this tree through the filesystem MCP"
+  fi
+}
+
+write_continue_config() {
+  local base="${LOCAL_OPENAI_BASE_URL:-}" note=""
+  if [[ -z "$base" ]]; then
+    base="http://127.0.0.1:1919/v1"
+    note=" (example — no live engine; ./pfy up)"
+  elif [[ "$base" != */v1 ]]; then
+    base="${base%/}/v1"
+  fi
+  mkdir -p "$STATE_DIR"
+  python3 - "$STATE_DIR/continue-config.json" "$base" <<'PY'
+import json, sys
+path, base = sys.argv[1], sys.argv[2]
+doc = {"models": [{
+    "title": "Local OpenAI-compat (ADR-0014)",
+    "provider": "openai",
+    "model": "local-coder",
+    "apiBase": base,
+    "apiKey": "local",
+}]}
+with open(path, "w", encoding="utf-8") as f:
+    json.dump(doc, f, indent=2)
+    f.write("\n")
+PY
+  echo "  config: $STATE_DIR/continue-config.json"
+  echo "  apiBase: ${base}${note}"
+  echo "  open: ${PFY_FS_ROOT:-$ROOT}"
+}
+
 stub_harness() {
   local id="$1"
   local issue
   issue="$(json_field github_issue "$id" 2>/dev/null || true)"
+  print_fs_nav
   echo "STUB harness: $id"
   if [[ -n "$issue" ]]; then
     echo "  https://github.com/themark-net/pfy-mentat/issues/${issue}"
   fi
   case "$id" in
-    continue|agent-cage)
+    continue)
+      echo "  recipe: bootstrap/continue/README.md"
+      write_continue_config
+      echo "  pfy harness use grok"
+      ;;
+    agent-cage)
       echo "  pfy harness use grok"
       ;;
   esac
@@ -1179,6 +1242,7 @@ exec_harness() {
   local live
   live="$(detect_status "$id" 2>/dev/null || echo missing)"
   echo "==> start harness: $id (live=$live)"
+  print_fs_nav
   local rt engine st base
   rt=$(local_runtime)
   python3 -c "import json,sys; print('local runtime:', json.loads(sys.argv[1]))" "$rt"
