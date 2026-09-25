@@ -13,11 +13,10 @@ Inference via `LOCAL_OPENAI_BASE_URL` from the ADR-0014 detector when ready (`OP
 
 Detect: `$ROOT/exo.sh` or `$HOME/exo/exo.sh` (executable) or `command -v exo.sh`. Docker on PATH is **not** ready.
 
-Missing script: `STUB harness: exo`, issue #60, official setup one-liner, exit 2. No fake ready.
+Missing script: `STUB harness: exo`, issue #60, installer from `data/harnesses.json` `setup`, exit 2. `./pfy start exo` does not run the installer. No fake ready. Docker on PATH is not ready. `default_harness` stays grok.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/exoharness/exo/main/setup.sh -o setup.sh
-bash setup.sh
+curl -fsSL https://raw.githubusercontent.com/exoharness/exo/main/setup.sh -o setup.sh && bash setup.sh
 ```
 
 git and Docker are required by upstream setup. `setup.sh` is first-time install only. After that, `./exo.sh`.

@@ -223,13 +223,13 @@
       "role": "harness",
       "status": "partial",
       "summary": "Optional lab: exec exo.sh when present (not default; not Grok replacement)",
-      "setup": "curl -fsSL https://raw.githubusercontent.com/exoharness/exo/main/setup.sh -o setup.sh; bash setup.sh. git+Docker required. Day-to-day ./exo.sh. Pin https://github.com/exoharness/exo. Docker on PATH is not ready.",
+      "setup": "curl -fsSL https://raw.githubusercontent.com/exoharness/exo/main/setup.sh -o setup.sh && bash setup.sh",
       "detect": [
         "exo.sh"
       ],
       "github": "https://github.com/exoharness/exo",
       "catalog": "Exo (exoharness)",
-      "issue_stub": "Optional Exo lab path",
+      "issue_stub": "Optional lab installer is setup; start does not run it. Docker on PATH is not ready.",
       "github_issue": 60
     },
     {

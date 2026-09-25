@@ -1422,9 +1422,10 @@ exec_harness() {
         exec "$ebin"
       else
         echo "STUB harness: exo"
-        echo "  https://github.com/themark-net/pfy-mentat/issues/60"
-        echo "  curl -fsSL https://raw.githubusercontent.com/exoharness/exo/main/setup.sh -o setup.sh"
-        echo "  bash setup.sh"
+        issue=$(json_field github_issue exo || true)
+        echo "  https://github.com/themark-net/pfy-mentat/issues/${issue:-60}"
+        inst=$(json_field setup exo || true)
+        [[ -n "$inst" ]] && echo "  $inst"
         exit 2
       fi
       ;;
