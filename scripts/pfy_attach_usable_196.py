@@ -20,6 +20,7 @@ SESSION_FILE = _P["session_file"]
 TERMINAL_PID_FILE = _P["terminal_pid_file"]
 ATTACH_BASE_FILE = _P["attach_base_file"]
 SESSION_REACH_OK = _P["session_reach_ok"]
+NEXT_INSTALL = _P["next_install"]
 inspect_models = attach.inspect_models
 
 

@@ -159,13 +159,13 @@
       "role": "harness",
       "status": "partial",
       "summary": "Runtime adapter: exec claude; optional skills-external is docs-only",
-      "setup": "curl -fsSL https://claude.ai/install.sh | bash; claude (login owner-only)",
+      "setup": "curl -fsSL https://claude.ai/install.sh | bash",
       "detect": [
         "claude"
       ],
       "github": "https://docs.anthropic.com/en/docs/claude-code",
       "catalog": "claude-code-unified-agents",
-      "issue_stub": "Claude Code runtime adapter",
+      "issue_stub": "Claude installer is setup / attach.next_install; start does not run it",
       "github_issue": 57,
       "attach": {
         "session_id": "claude",
@@ -173,7 +173,7 @@
         "issue": 221,
         "script": "pfy_attach_usable_221",
         "bin_fallbacks": [],
-        "next_install": "npm install -g @anthropic-ai/claude-code",
+        "next_install": "curl -fsSL https://claude.ai/install.sh | bash",
         "config_dir": {"env": "CLAUDE_CONFIG_DIR", "default": "~/.claude"}
       }
     },

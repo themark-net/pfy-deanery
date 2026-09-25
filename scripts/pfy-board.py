@@ -1526,7 +1526,7 @@ def codex_stub_line():
 
 def claude_stub_line():
     rec = next((h for h in (load_registry().get("harnesses") or []) if h.get("id") == "claude-code"), {}) or {}
-    return one_liner("claude-code", rec) or "npm install -g @anthropic-ai/claude-code"
+    return one_liner("claude-code", rec) or "curl -fsSL https://claude.ai/install.sh | bash"
 
 def grok_path_live():
     return "ready" if which_bin("grok") else "missing"

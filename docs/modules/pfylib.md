@@ -111,7 +111,7 @@ data/toolsets.json ─┐                         data/harnesses.json (role=harn
 |---------|------------|-------|--------|-------------------|--------------|------------|
 | grok | grok | Grok | `pfy_attach_usable_202` | `grok` | — | `GROK_HOME` → `~/.grok` |
 | hermes | hermes | Hermes | `pfy_attach_usable_196` | `hermes`, `hermes-agent` | — | none |
-| claude-code | **claude** | Claude | `pfy_attach_usable_221` | `claude` | `npm install -g @anthropic-ai/claude-code` | `CLAUDE_CONFIG_DIR` → `~/.claude` |
+| claude-code | **claude** | Claude | `pfy_attach_usable_221` | `claude` | `curl -fsSL https://claude.ai/install.sh | bash` | `CLAUDE_CONFIG_DIR` → `~/.claude` |
 | codex | codex | Codex | `pfy_attach_usable_220` | `codex` then `~/.local/bin/codex` | `curl -fsSL https://chatgpt.com/codex/install.sh \| sh` | `CODEX_HOME` → `~/.codex` |
 
 Shared body (FreeToken-first probe, child env via #205/#208, models+smoke prove, FAIL+next) is `pfylib/attach.py` once. Regression contract: `tests/test_attach.py` (`EXPECTED` captured at de0da83).
