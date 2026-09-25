@@ -16,7 +16,7 @@ OpenAI + Anthropic APIs on **:1919**. Desktop: [flashml.ai](https://www.flashml.
 1. **freetoken** (`ft` / `freetoken`) — :1919
 2. **llama-swap** — :9292
 3. **llama-server** — :8080
-4. **Ollama** — :11434 adapter (not the spine)
+4. **Ollama** — :11434 adapter (not the spine). `./pfy start ollama` checks health and the default model (`PFY_OLLAMA_MODEL`, then `LOCAL_CODER_MODEL`, then `OLLAMA_MODEL`) even if another engine is already up.
 5. **Shimmy** — optional last, not preferred
 
 ```bash

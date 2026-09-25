@@ -14,7 +14,7 @@
 | ID | Item | Status |
 |----|------|--------|
 | T-0100 | Epic: `./pfy` simple surface + harness registry | **done** (MVP) · [#53](https://github.com/themark-net/pfy-mentat/issues/53) |
-| T-0101 | Ollama adapter complete in `pfy start` (health, default model) | open · [#54](https://github.com/themark-net/pfy-mentat/issues/54) |
+| T-0101 | Ollama adapter complete in `pfy start` (health, default model) | **done** · [#54](https://github.com/themark-net/pfy-mentat/issues/54) |
 | T-0102 | OpenCode host adapter (skill path + local OpenAI-compat base_url) | **done** · [#55](https://github.com/themark-net/pfy-mentat/issues/55) |
 | T-0103 | Hermes integrated installer adapter | open · [#56](https://github.com/themark-net/pfy-mentat/issues/56) |
 | T-0104 | Claude Code adapter | open · [#57](https://github.com/themark-net/pfy-mentat/issues/57) |
@@ -89,7 +89,7 @@ Active work is also tracked as issues: https://github.com/themark-net/pfy-mentat
 | ID | Priority | Status | Item | Open questions | Depends | Notes |
 |----|----------|--------|------|----------------|---------|-------|
 
-| T-0110 | P1 | doing | **Pluggable local runtime** (OpenAI-compat: llama-swap / Shimmy / Ollama) | — | ADR-0014 | [#76](https://github.com/themark-net/pfy-mentat/issues/76) stays OPEN · detector + registry + shimmy last in `./pfy up`; T-0101 Ollama adapter remains open · [#202](https://github.com/themark-net/pfy-mentat/issues/202) Attach Grok usable slice |
+| T-0110 | P1 | doing | **Pluggable local runtime** (OpenAI-compat: llama-swap / Shimmy / Ollama) | — | ADR-0014 | [#76](https://github.com/themark-net/pfy-mentat/issues/76) stays OPEN · detector + registry + shimmy last in `./pfy up`; T-0101 Ollama named start done · [#202](https://github.com/themark-net/pfy-mentat/issues/202) Attach Grok usable slice |
 | T-0091 | P1 | doing | **Voice path** polish (session sticky / MCP deep) | — | ADR-0012 | [#2](https://github.com/themark-net/pfy-mentat/issues/2) · Orchestrator shipped; optional TTS |
 | T-0092 | P1 | done | Voice auto-agent local opencode path | — | T-0091 4b | still: `VOICE_AUTO_AGENT=opencode` |
 | T-0093 | P1 | done | Tools-capable Ollama select + tool-split | — | T-0080 | `eval-select-tools-model` |

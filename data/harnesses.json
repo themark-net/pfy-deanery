@@ -71,7 +71,7 @@
       ],
       "github": "https://github.com/ollama/ollama",
       "catalog": "Ollama",
-      "issue_stub": "Complete Ollama adapter",
+      "issue_stub": "Named ./pfy start ollama runs health + default model; exit 2 unless :11434 is ready",
       "github_issue": 54
     },
     {

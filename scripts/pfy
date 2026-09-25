@@ -1233,7 +1233,26 @@ exec_harness() {
       fi
       exec "$gbin"
       ;;
-    freetoken|ollama|shimmy|llama-swap|llama-server|llama.cpp)
+    ollama)
+      # T-0101: this id is the Ollama adapter, not "whatever engine is already ready".
+      if ! ollama_health; then
+        echo "honest stub: ollama not healthy"
+        echo "  ollama serve"
+        exit 2
+      fi
+      export LOCAL_OPENAI_BASE_URL="http://127.0.0.1:11434/v1"
+      export OPENAI_BASE_URL="$LOCAL_OPENAI_BASE_URL"
+      local omodel
+      omodel="$(ollama_default_model)"
+      if [[ -n "$omodel" ]]; then
+        echo "default model: $omodel"
+      else
+        echo "default model: (installed tags)"
+      fi
+      echo "inference spine: ollama  LOCAL_OPENAI_BASE_URL=$LOCAL_OPENAI_BASE_URL"
+      return 0
+      ;;
+    freetoken|shimmy|llama-swap|llama-server|llama.cpp)
       echo "inference spine: $id  LOCAL_OPENAI_BASE_URL=${LOCAL_OPENAI_BASE_URL:-}"
       if [[ "$st" != "ready" ]]; then echo "honest stub: $id not healthy"; exit 2; fi
       return 0
@@ -1410,7 +1429,12 @@ attach_operator_harness() {
   fi
 
   case "$preferred" in
-    freetoken|ollama|shimmy|llama-swap|llama-server|llama.cpp)
+    ollama)
+      ensure_ollama_adapter || exit 2
+      exec_harness ollama
+      return 0
+      ;;
+    freetoken|shimmy|llama-swap|llama-server|llama.cpp)
       exec_harness "$preferred"
       return 0
       ;;
