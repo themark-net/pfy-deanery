@@ -1,6 +1,6 @@
 {
-  "version": "1.1",
-  "last_updated": "2026-07-31",
+  "version": "1.2",
+  "last_updated": "2026-09-25",
   "policy": "docs/ops/integration-stages.md",
   "default_stage": "I1",
   "tools": {
@@ -357,8 +357,30 @@
         "unattended_full_RSI",
         "subtree_embed"
       ]
+    },
+    "llama.cpp ngram-mod": {
+      "integration_stage": "I1",
+      "intent": "catalog_default",
+      "github": "https://github.com/ggerganov/llama.cpp",
+      "next_gate": "fill uses, features, potential, non-goals"
+    },
+    "kanbots": {
+      "integration_stage": "I1",
+      "intent": "catalog_default",
+      "github": "https://github.com/leodavinci1/kanbots",
+      "next_gate": "fill uses, features, potential, non-goals"
+    },
+    "multi-agent-generator": {
+      "integration_stage": "I0",
+      "intent": "watch",
+      "github": "https://github.com/aakriti1318/multi-agent-generator",
+      "notes_doc": "sources/entries/079-multi-agent-generator.md",
+      "non_goals": [
+        "pipeline hard dependency"
+      ],
+      "next_gate": "stay I0 unless a smoke shows a gap the current orchestrators do not fill"
     }
   },
   "probe_path": "tools/_probe/",
-  "coverage": "49 tools registered"
+  "coverage": "54 tools registered"
 }

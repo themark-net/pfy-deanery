@@ -1160,6 +1160,7 @@ stub_harness() {
       echo "  pfy harness use grok"
       ;;
     agent-cage)
+      echo "  next: ./pfy stage --lab"
       echo "  pfy harness use grok"
       ;;
   esac
@@ -1629,8 +1630,16 @@ cmd_start() {
 }
 
 lab_stage() {
+  print_fs_nav
   echo "lab: optional personal cage lab (doctor → setup → up-mcp)"
   echo "lab: not product-ready; do not sell cage"
+  if [[ "${PFY_FS:-}" == "cage" ]]; then
+    echo "lab: this process is already in the cage tree ($PFY_FS_ROOT)"
+    echo "lab: run ./pfy stage --lab on the host checkout, not inside /workspace"
+    return 1
+  fi
+  echo "lab: the lab navigates ${AGENTCAGE_DIR:-$HOME/.agentcage}/workspace/pfy-mentat mounted at /workspace/pfy-mentat"
+  echo "lab: that is not $ROOT"
   if ! have docker; then
     echo "lab: Docker is missing"
     echo "lab: lab skipped (not product-ready)"

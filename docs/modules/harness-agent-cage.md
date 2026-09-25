@@ -7,9 +7,12 @@
 From **catalog repo root**:
 
 ```bash
-./pfy stage --lab          # make cage-doctor → cage-setup → cage-up-mcp
+./pfy stage --lab          # host only: make cage-doctor → cage-setup → cage-up-mcp
+# Names the cage bind (~/.agentcage/workspace/pfy-mentat → /workspace/pfy-mentat). That is not the host checkout.
+# Already under /workspace: refuses. Run it on the host.
 # Missing Docker: honest skip (lab skipped, not product-ready). Exit 0 on skip.
 # Docker present but a make step fails: non-zero; prints which step / target.
+# ./pfy start agent-cage stays STUB exit 2 and points at ./pfy stage --lab.
 
 export PATH="$HOME/.local/bin:$PATH"
 make cage-doctor

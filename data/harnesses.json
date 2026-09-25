@@ -257,7 +257,7 @@
       ],
       "github": "https://github.com/pnnl/agent-cage",
       "catalog": "agent-cage (PNNL)",
-      "issue_stub": "Fold cage into pfy stage --lab",
+      "issue_stub": "Lab is ./pfy stage --lab on the host. It uses the cage bind, not the host checkout. ./pfy start agent-cage stays STUB.",
       "github_issue": 62
     }
   ],
