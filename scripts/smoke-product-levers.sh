@@ -12,6 +12,16 @@ trap 'rm -rf "$TMP"' EXIT
   echo "date: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo "tmp: $TMP"
 } >"$OUT"
+help_out=$(make help)
+printf '%s\n' "$help_out" | grep -q 'make product-ship' || { echo "FAIL help missing product-ship"; exit 1; }
+printf '%s\n' "$help_out" | grep -q 'make help-platform' || { echo "FAIL help missing help-platform"; exit 1; }
+if printf '%s\n' "$help_out" | grep -E -q 'cage-grok|eval-structural|smoke-'; then
+  echo "FAIL help still lists platform targets"
+  exit 1
+fi
+plat_out=$(make help-platform)
+printf '%s\n' "$plat_out" | grep -q 'cage-grok' || { echo "FAIL help-platform missing cage-grok"; exit 1; }
+printf '%s\n' "$plat_out" | grep -q 'eval-structural' || { echo "FAIL help-platform missing eval-structural"; exit 1; }
 chmod +x scripts/product-onboard.sh
 DIR="$TMP" ./scripts/product-onboard.sh "$TMP" | tee -a "$OUT"
 python3 examples/eval-harness/run_structural.py --write-md pipelines/eval/structural.latest.md

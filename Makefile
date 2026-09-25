@@ -9,7 +9,7 @@ SHELL := /bin/bash
 HARNESS := harness/agent-cage
 LITELLM_EXAMPLE := examples/litellm-ollama
 
-.PHONY: help cage-doctor cage-setup cage-init cage-up cage-up-mcp cage-down \
+.PHONY: help help-platform cage-doctor cage-setup cage-init cage-up cage-up-mcp cage-down \
 	cage-shell cage-status cage-test cage-logs cage-smoke-host catalog-json \
 	env-init env-check cage-grok-install cage-grok-build cage-grok-up \
 	cage-grok-smoke cage-grok-ready cage-grok-uninstall cage-grok-auth-import \
@@ -29,6 +29,20 @@ LITELLM_EXAMPLE := examples/litellm-ollama
 
 help:
 	@echo "pfy-mentat"
+	@echo ""
+	@echo "Product:"
+	@echo "  ./pfy setup                 attach this stack to a project"
+	@echo "  ./pfy stage                 local env check"
+	@echo "  ./pfy ship                  verify; push if PRODUCT_REMOTE is set"
+	@echo "  make project-onboard DIR=path"
+	@echo "  make env-stage"
+	@echo "  make product-ship"
+	@echo ""
+	@echo "Also: ./pfy status · ./pfy start"
+	@echo "Platform (cage, smoke, eval): make help-platform"
+
+help-platform:
+	@echo "pfy-mentat — platform"
 	@echo ""
 	@echo "Environment (secrets never in git):"
 	@echo "  make env-init         Create .env from bootstrap/env/env.example if missing (idempotent)"
@@ -109,12 +123,7 @@ help:
 	@echo "  make model-pool-inventory  soft 250GB probe (GAP-16)"
 	@echo "  make smoke-contract-lint   examples smoke contract (GAP-05)"
 	@echo ""
-	@echo "Product levers (end-user — T-0090):"
-	@echo "  ./pfy setup|status|start       # G8 simple surface (ADR-0012)"
-	@echo "  make pfy ARGS='status'         # same via make"
-	@echo "  make project-onboard DIR=path  # attach process + .env example"
-	@echo "  make env-stage                 # env-check + eval-structural (+ optional Ollama)"
-	@echo "  make product-ship              # verify; push if PRODUCT_REMOTE set"
+	@echo "Product surface: make help"
 	@echo ""
 	@echo "Profiles: local-only | balanced | max-performance  (DEPLOY_PROFILE)"
 	@echo "  see config/profiles/ and docs/ops/deployment-profiles.md"

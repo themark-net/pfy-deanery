@@ -140,7 +140,7 @@ One-shot design: [docs/ops/one-shot-workflow.md](docs/ops/one-shot-workflow.md) 
 
 **Next steps** (authoritative: [docs/TODO.md](docs/TODO.md) · GitHub issues):
 
-1. ~~Cage smokes + tool integrations~~ (done) — see `make help`  
+1. ~~Cage smokes + tool integrations~~ (done) — see `make help-platform`  
 2. Write-guard MCP implement — T-0031  
 3. Skill ports (mattpocock / marketing-council / gstack patterns) — T-0011  
 4. Eval harness prototype — T-0003 / [OQ-0002](docs/open-questions/OQ-0002-eval-harness-shape.md)  
@@ -182,7 +182,7 @@ Bare `./pfy` opens the native window (Tauri if built, else already-on-box webkit
 | `./pfy stage` / `./pfy eval` / `./pfy ship` | Green checks + catalog gates + product verify |
 
 Design: **G8** · [ADR-0012](docs/adr/0012-simple-harness-agnostic-launch.md) · [simple-launch.md](docs/ops/simple-launch.md).  
-Platform builders: full `make help`. Product surface still maps to onboard/stage/ship.
+Platform builders: `make help-platform`. Product surface is `make help` (onboard / stage / ship).
 
 ### 1. Clone + environment profiles (advanced / same as before)
 

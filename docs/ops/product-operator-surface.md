@@ -1,7 +1,7 @@
 # Product operator surface (end-user simplicity)
 
-**Status:** Implemented 2026-07-30 (T-0090 MVP) · local runtime pluggable 2026-08-24 (ADR-0014 / T-0110)  
-**Related:** ADR-0011 · ADR-0014 · [local-cloud-split.md](local-cloud-split.md) · TODO **T-0090** (surface unchanged)
+**Status:** Implemented 2026-07-30 (T-0090 MVP) · help split 2026-09-25 · local runtime pluggable 2026-08-24 (ADR-0014 / T-0110)  
+**Related:** ADR-0011 · ADR-0014 · [local-cloud-split.md](local-cloud-split.md) · TODO **T-0090** done
 
 ## Two audiences
 
@@ -32,7 +32,7 @@ Suggested final names (implementation: T-0090):
 | stage | `make env-stage` | `scripts/env-stage.sh` — env-check + eval-structural; local runtime soft |
 | ship | `make product-ship` | structural + golden; push if `PRODUCT_REMOTE` set |
 
-Everything else is **platform development** (`make help` full list) and may stay advanced/docs-only.
+Everything else is **platform development** (`make help-platform`) and stays off the default `make help`.
 
 ## Local bulk vs cloud monitor (target behavior)
 
@@ -74,7 +74,7 @@ Pick runtime: `./scripts/detect-local-runtime.sh` / `./pfy status` (ADR-0014). N
 | `DEPLOY_PROFILE` | 20+ EVAL_* knobs |
 | One local model default from `eval-select-models` | Full matrix debugging |
 
-Audit checkpoint: count public Make targets aimed at product users; goal **≤ 5**.
+Audit checkpoint (2026-09-25): default `make help` lists three product Make targets (`project-onboard`, `env-stage`, `product-ship`). Cage, smoke, and eval are on `make help-platform`.
 
 ## Related TODOs
 
@@ -97,7 +97,7 @@ Public product surface:
 | ship | `./pfy ship` | `product-ship` |
 | eval | `./pfy eval` | `eval-integration-change` |
 
-Platform remains on `make help`. Harness registry: `data/harnesses.json`.
+Platform remains on `make help-platform`. Harness registry: `data/harnesses.json`.
 
 
 ## Eval gates (product relevance)

@@ -78,9 +78,9 @@
       "id": "shimmy",
       "name": "Shimmy",
       "role": "inference",
-      "status": "stub",
-      "summary": "Tiny Rust OpenAI-compat server; optional, not the X engine",
-      "setup": "STUB \\u2014 optional detect only",
+      "status": "partial",
+      "summary": "Tiny Rust OpenAI-compat server; optional last, not the X engine",
+      "setup": "shimmy serve --bind 127.0.0.1:11435. Optional GGUF: --model-path or SHIMMY_BASE_GGUF. Not preferred over FreeToken.",
       "detect": [
         "shimmy"
       ],

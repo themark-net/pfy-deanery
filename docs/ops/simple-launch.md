@@ -61,7 +61,7 @@ When the detector selects llama-server (or `PFY_LOCAL_RUNTIME=llama-server`), sa
 | `pfy stage --lab` | `make cage-doctor` then `cage-setup` then `cage-up-mcp` (missing Docker: honest skip) |
 | `pfy ship` | `make product-ship` |
 | `pfy eval` | `make eval-integration-change` |
-| Platform deep dives | `make help` (cage, smokes, matrix) |
+| Platform deep dives | `make help-platform` (cage, smokes, matrix) |
 
 ## Harness status legend
 

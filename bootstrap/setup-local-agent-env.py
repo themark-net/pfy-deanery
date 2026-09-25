@@ -185,7 +185,7 @@ def main() -> int:
             print(f"[WARN] unknown component: {comp}")
 
     print("\n=== Done ===")
-    print("Authoritative commands: make help | make cage-grok | make eval-v02")
+    print("Authoritative commands: make help | make help-platform | make cage-grok | make eval-v02")
     if AGENTS_MD.is_file():
         print(f"Agent router: {AGENTS_MD}")
     return 0

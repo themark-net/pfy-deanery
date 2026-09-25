@@ -19,3 +19,4 @@ Probe: `GET /v1/models`, `/health`, or `/api/tags`.
 
 - Auto-install of any engine
 - Ollama override distinguishing missing vs partial is queued with the adapter complete work; auto-detect already: API → ready, PATH-only → partial
+- `./pfy up` starts shimmy only after FreeToken, llama-swap, llama-server, and Ollama are not healthy (`shimmy serve --bind 127.0.0.1:11435`)

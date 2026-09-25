@@ -445,6 +445,56 @@ ensure_llama_server() {
   return 1
 }
 
+shimmy_health() {
+  curl -sf --max-time 2 http://127.0.0.1:11435/v1/models >/dev/null 2>&1 \
+    || curl -sf --max-time 2 http://127.0.0.1:11435/health >/dev/null 2>&1 \
+    || curl -sf --max-time 2 http://127.0.0.1:11435/api/tags >/dev/null 2>&1
+}
+
+wait_shimmy_health() {
+  local i
+  for i in $(seq 1 12); do
+    shimmy_health && return 0
+    sleep 0.5
+  done
+  return 1
+}
+
+shimmy_model_path() {
+  local p="${PFY_LLAMA_MODEL:-${SHIMMY_BASE_GGUF:-}}"
+  if [[ -n "$p" && -f "$p" ]]; then
+    echo "$p"
+  fi
+}
+
+ensure_shimmy() {
+  # Optional last (ADR-0014). Return 0 only when :11435 answers. Do not prefer over FreeToken.
+  local model args
+  if ! have shimmy; then
+    echo "STUB: shimmy not on PATH. One-liner:"
+    echo "  shimmy serve --bind 127.0.0.1:11435"
+    return 1
+  fi
+  if shimmy_health; then
+    echo "shimmy API healthy"
+    return 0
+  fi
+  args=(serve --bind 127.0.0.1:11435)
+  model="$(shimmy_model_path)"
+  if [[ -n "$model" ]]; then
+    args+=(--model-path "$model")
+  fi
+  echo "starting shimmy in background (wait for /v1/models or /health on :11435)…"
+  (shimmy "${args[@]}" >>"$STATE_DIR/shimmy.log" 2>&1 &) || true
+  if wait_shimmy_health; then
+    echo "shimmy API healthy"
+    return 0
+  fi
+  echo "note: shimmy launched but API not healthy (partial/timeout) — not fake ready"
+  echo "  shimmy serve --bind 127.0.0.1:11435"
+  return 1
+}
+
 print_live_models() {
   # #187: list live engine models; strip trailing /v1 so probe is not /v1/v1/models
   local base="${1:-}"
@@ -838,7 +888,7 @@ cmd_status() {
   done
   echo ""
   echo "next: pfy setup   |   pfy   |   pfy start grok   |   pfy harness list"
-  echo "override: PFY_LOCAL_RUNTIME=freetoken|llama-swap|llama-server|ollama"
+  echo "override: PFY_LOCAL_RUNTIME=freetoken|llama-swap|llama-server|ollama|shimmy"
 }
 
 cmd_setup() {
@@ -905,10 +955,7 @@ ensure_inference() {
       llama-swap) ensure_llama_swap || true ;;
       llama-server|llama.cpp) ensure_llama_server || true ;;
       ollama) ensure_ollama_adapter || true ;;
-      shimmy)
-        echo "STUB: shimmy HTTP not up. One-liner:"
-        echo "  shimmy"
-        ;;
+      shimmy) ensure_shimmy || true ;;
       *)
         echo "note: unknown PFY_LOCAL_RUNTIME=$pref — install FreeToken / llama-swap / llama-server / ollama or ./pfy up"
         ;;
@@ -919,9 +966,7 @@ ensure_inference() {
       llama-swap) ensure_llama_swap || true ;;
       llama-server|llama.cpp) ensure_llama_server || true ;;
       freetoken|ft) ensure_freetoken || true ;;
-      shimmy)
-        echo "inference already up (shimmy)"
-        ;;
+      shimmy) ensure_shimmy || true ;;
       *)
         echo "inference already up"
         ;;
@@ -942,6 +987,9 @@ ensure_inference() {
     if [[ "$started" -eq 0 ]] && have ollama; then
       if ensure_ollama_adapter; then started=1; fi
     fi
+    if [[ "$started" -eq 0 ]] && have shimmy; then
+      if ensure_shimmy; then started=1; fi
+    fi
   fi
 
   rt=$(local_runtime)
@@ -959,7 +1007,7 @@ ensure_inference() {
 
   if [[ "$st" != "ready" ]]; then
     echo "FAIL: no local engine"
-    echo "next: install FreeToken / llama-swap / llama-server / ollama or ./pfy up"
+    echo "next: install FreeToken / llama-swap / llama-server / ollama / shimmy or ./pfy up"
     return 1
   fi
   return 0
