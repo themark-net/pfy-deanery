@@ -207,14 +207,14 @@
       "role": "harness",
       "status": "partial",
       "summary": "Runtime adapter: exec gemini/gemini-cli",
-      "setup": "npm install -g @google/gemini-cli; gemini (login owner-only)",
+      "setup": "npm install -g @google/gemini-cli",
       "detect": [
         "gemini",
         "gemini-cli"
       ],
       "github": "https://github.com/google-gemini/gemini-cli",
       "catalog": null,
-      "issue_stub": "Gemini runtime adapter",
+      "issue_stub": "Gemini installer is setup; start does not run it",
       "github_issue": 59
     },
     {

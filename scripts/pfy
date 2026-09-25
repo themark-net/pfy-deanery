@@ -1402,9 +1402,10 @@ exec_harness() {
         exec "$bin"
       else
         echo "STUB harness: gemini"
-        echo "  https://github.com/themark-net/pfy-mentat/issues/59"
-        echo "  npm install -g @google/gemini-cli"
-        echo "  gemini   # login in the CLI; credentials/2FA are owner-only"
+        issue=$(json_field github_issue gemini || true)
+        echo "  https://github.com/themark-net/pfy-mentat/issues/${issue:-59}"
+        inst=$(json_field setup gemini || true)
+        [[ -n "$inst" ]] && echo "  $inst"
         exit 2
       fi
       ;;

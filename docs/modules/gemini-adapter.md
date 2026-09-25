@@ -11,7 +11,7 @@
 
 Detect: `gemini` or `gemini-cli` on PATH.
 
-Missing binary: `STUB harness: gemini`, issue #59, official installer, exit 2. No fake ready. Credentials/2FA are owner-only.
+Missing binary: `STUB harness: gemini`, issue #59, installer from `data/harnesses.json` `setup`, exit 2. `./pfy start gemini` does not run the installer. No fake ready. Credentials/2FA are owner-only. Gemini has no Attach profile.
 
 ```bash
 npm install -g @google/gemini-cli

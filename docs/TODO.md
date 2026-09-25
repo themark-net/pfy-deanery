@@ -19,7 +19,7 @@
 | T-0103 | Hermes integrated installer adapter | **done** · [#56](https://github.com/themark-net/pfy-mentat/issues/56) |
 | T-0104 | Claude Code adapter | **done** · [#57](https://github.com/themark-net/pfy-mentat/issues/57) |
 | T-0105 | Codex adapter | **done** · [#58](https://github.com/themark-net/pfy-mentat/issues/58) |
-| T-0106 | Gemini / Google harness adapter | open · [#59](https://github.com/themark-net/pfy-mentat/issues/59) |
+| T-0106 | Gemini / Google harness adapter | **done** · [#59](https://github.com/themark-net/pfy-mentat/issues/59) |
 | T-0107 | Exo optional lab path | open · [#60](https://github.com/themark-net/pfy-mentat/issues/60) |
 | T-0108 | Continue + Ollama recipe | open · [#61](https://github.com/themark-net/pfy-mentat/issues/61) |
 | T-0109 | Fold agent-cage into `pfy stage --lab` | open · [#62](https://github.com/themark-net/pfy-mentat/issues/62) |
