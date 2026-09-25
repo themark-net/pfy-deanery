@@ -12,6 +12,7 @@ body{margin:0;font:14px/1.4 ui-sans-serif,system-ui,sans-serif;background:#0e111
 .pane h3{margin:0 0 8px;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:#8b97a8}
 .pane .hero{font-size:22px;font-weight:700;margin:4px 0 8px}
 .lede{max-width:42rem;margin:0 0 14px;color:#c5ced9}
+.plan{font-size:16px;font-weight:650;margin:0 0 8px;max-width:42rem}
 .why{color:#8b97a8;font-size:13px;margin:4px 0 10px;max-width:42rem}
 .step{margin:20px 0 8px}
 .step h3{margin:0 0 4px;font-size:14px}
@@ -73,16 +74,11 @@ noscript .fail{padding:16px;display:block}
   <p id=fail class=fail></p>
   <section class="view on" id=view-loop>
     <h2>LOOP</h2>
-    <p class=lede>This screen runs the catalog tools we gathered. Pick how hard the work is, click which tools ride along, then Launch session. A grok or OpenCode window opens with those tools loaded. <b>That window is the proof they work together.</b></p>
-    <ol class=why style="padding-left:1.2rem">
-      <li>See where work can run (your machine vs cloud credits).</li>
-      <li>Pick a work class so cheap jobs stay local.</li>
-      <li>Click modules to include. Stub tiles are not wired yet.</li>
-      <li>Launch session. Launch env only starts the local model — no coding session.</li>
-    </ol>
+    <p class=plan id=loop-plan>Open grok with no toolsets yet</p>
+    <p class=lede>Pick where work runs, which agent receives the toolsets, then open that agent. The agent window is the proof.</p>
     <div class=step>
       <h3>1. Where work runs</h3>
-      <p class=why>Left is this machine (preferred when a model is answering). Right is paid cloud credits (only when local cannot, or the work is hard).</p>
+      <p class=why>Left is this machine. Right is paid cloud credits. The buttons under the panes choose how hard this session is.</p>
     </div>
     <div class=split>
       <div class=pane id=pane-local>
@@ -107,31 +103,38 @@ noscript .fail{padding:16px;display:block}
     </div>
     <div class=route id=hedge-route>Checking where this session can run…</div>
     <div class=next id=hedge-next></div>
-    <div class=row>this session <span id=hedge-copy class=live></span></div>
-    <div class=step>
-      <h3>2. How hard is this session?</h3>
-      <p class=why id=hedge-task-help>Why this exists: cheap bulk stays on this machine; hard review may spend a cloud credit.</p>
-    </div>
+    <p class=why id=hedge-task-help>Cheap bulk stays on this machine. Hard review may spend a cloud credit.</p>
     <div class=acts>
       <button type=button data-task=bulk title="Cheap bulk work. Stays on this machine when local is ON.">Bulk — stay on this machine</button>
       <button type=button data-task=interactive title="Normal work. Local first.">Interactive — local first</button>
       <button type=button data-task=hard title="Hard review. May spend a cloud credit.">Hard — allow cloud</button>
     </div>
     <div class=step>
-      <h3>3. Which gathered tools go into the session?</h3>
-      <p class=why>Why this exists: these are the catalog tools we scored and wired. Click to include in the next Launch. <b>wired</b> = ready to apply. <b>partial</b> = env/brief only. <b>not wired</b> = cannot enable yet.</p>
+      <h3>2. Which agent receives the toolsets</h3>
+      <p class=why>One agent is selected. Tiles below show wired, partial, or not wired for that agent only.</p>
     </div>
-    <h3>MODULES</h3>
+    <div class=acts id=agent-row>
+      <button type=button data-agent=grok class=on>grok</button>
+      <button type=button data-agent=opencode>OpenCode</button>
+      <button type=button data-agent=hermes>Hermes</button>
+      <button type=button data-agent=codex>Codex</button>
+      <button type=button data-agent=claude>Claude</button>
+      <button type=button data-agent=gab>Gab</button>
+    </div>
+    <div class=step>
+      <h3>3. Toolsets for <span id=toolset-for>grok</span></h3>
+      <p class=why><b>wired</b> writes the agent's own config. <b>partial</b> writes an env and a brief only. <b>not wired</b> cannot be included for this agent.</p>
+    </div>
     <div class=mods id=mod-list></div>
     <div class=row>enabled <b id=mod-enabled>(none)</b></div>
     <div class=row>env <span id=loop-env class=live>SKIP</span> · session <b id=loop-session>(none)</b></div>
     <div class=step>
-      <h3>4. Open the session</h3>
-      <p class=why>Launch session starts grok or OpenCode with the enabled modules. Launch env only brings up the local model. Copy endpoint / status are for a terminal you already have open.</p>
+      <h3>4. Open that agent</h3>
+      <p class=why>The button names the agent and the toolsets it will receive. Start local model only brings up the endpoint. It does not open an agent.</p>
     </div>
     <div class=acts>
-      <button type=button class=primary id=btnlaunchsess title="Open grok/OpenCode with enabled modules">Launch session</button>
-      <button type=button id=btnlaunch title="Start local inference only — no coding session">Launch env</button>
+      <button type=button class=primary id=btnlaunchsess title="Open the selected agent with the included toolsets" disabled>Open grok with no toolsets yet</button>
+      <button type=button id=btnlaunch title="Start local inference only — no coding session">Start local model only</button>
       <button type=button class=primary id=btncopyendpoint title="Copy the local OpenAI-compat URL">Copy endpoint</button>
       <button type=button class=primary id=btncopystatus title="Copy ./pfy status output">Copy ./pfy status</button>
     </div>
@@ -186,26 +189,28 @@ noscript .fail{padding:16px;display:block}
   </section>
   <section class=view id=view-attach>
     <h2>ATTACH</h2>
-    <p class=lede>Open grok or OpenCode right now, without composing modules. Use Loop → Launch session when you want the gathered tools loaded into that window.</p>
+    <p class=lede>Open an agent with no toolsets loaded. Loop is where toolsets are written into an agent.</p>
     <div class=row>NOW attached <b id=att-now>(none)</b> · last <b id=att-last>(none)</b></div>
     <div class=row>session <b id=att-session>(none)</b></div>
     <div class=row>using: <b id=att-using>bare</b> <span class=muted id=att-mode-when></span></div>
     <div class=row>graph <b id=att-graph>(none)</b> <span class=muted id=att-graph-when></span></div>
     <div class=chips id=att-rail></div>
     <div class=acts>
-      <button type=button data-mode=bare>bare</button>
-      <button type=button data-mode=orchestration>orchestration</button>
-      <button type=button data-mode=code-graph>code-graph</button>
-      <button type=button class=primary id=att-grok>Attach grok</button>
-      <button type=button class=primary id=att-open>Attach opencode</button>
-      <button type=button class=primary id=att-hermes>Attach hermes</button>
-      <button type=button class=primary id=att-codex>Attach codex</button>
-      <button type=button class=primary id=att-claude>Attach claude</button>
-      <button type=button class=primary id=att-gab>Attach gab</button>
-      <button type=button class=primary id=btnsi>Space Invaders</button>
+      <button type=button class=primary id=att-grok>Open grok</button>
+      <button type=button class=primary id=att-open>Open OpenCode</button>
+      <button type=button class=primary id=att-hermes>Open Hermes</button>
+      <button type=button class=primary id=att-codex>Open Codex</button>
+      <button type=button class=primary id=att-claude>Open Claude</button>
+      <button type=button class=primary id=att-gab>Open Gab</button>
       <button type=button class=primary id=btncopy>Copy stub one-liner</button>
     </div>
+    <p class=why id=att-empty-note>Opened agents on this tab have no toolsets loaded.</p>
     <span id=attresult class=attach-result></span>
+    <details>
+      <summary class=muted>Session proof file</summary>
+      <div class=acts>
+        <button type=button class=primary id=btnsi>Space Invaders</button>
+      </div>
     <span id=simsg class=attach-result></span>
     <div class=row>abs <span id=siabs class=copy></span></div>
     <div class=row>rel <span id=sirel class=copy></span></div>
@@ -217,6 +222,7 @@ noscript .fail{padding:16px;display:block}
     </div>
     <span id=siopenmsg class=attach-result></span>
     <pre id=sipreview class=copy style="white-space:pre-wrap;max-height:160px;overflow:auto"></pre>
+    </details>
     <span id=copymsg class=attach-result></span>
   </section>
   <section class=view id=view-tools>

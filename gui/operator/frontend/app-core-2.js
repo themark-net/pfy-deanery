@@ -324,6 +324,25 @@ function paintHedge(s){
     help.textContent=helps[task]||h.task_help||'Why this exists: cheap bulk stays on this machine; hard review may spend a cloud credit.';
   }
   document.querySelectorAll('[data-task]').forEach(b=>b.classList.toggle('on', b.getAttribute('data-task')===task));
+  paintPlan(s);
+}
+function paintPlan(s){
+  s=s||{};
+  const agent=s.modules_agent||'grok';
+  const agents=s.agents||[];
+  const hit=agents.find(a=>a.id===agent);
+  const label=(hit&&hit.label)||agent;
+  const plan=s.plan||('Open '+label+' with no toolsets yet');
+  const planEl=document.getElementById('loop-plan');
+  if(planEl) planEl.textContent=plan;
+  const forEl=document.getElementById('toolset-for');
+  if(forEl) forEl.textContent=label;
+  const btn=document.getElementById('btnlaunchsess');
+  if(btn){
+    btn.textContent=plan;
+    btn.disabled=!s.launch_ready;
+  }
+  document.querySelectorAll('[data-agent]').forEach(b=>b.classList.toggle('on', b.getAttribute('data-agent')===agent));
 }
 function paintModules(s){
   const box=document.getElementById('mod-list');
@@ -336,13 +355,15 @@ function paintModules(s){
   mods.forEach(m=>{
     const b=document.createElement('button');
     b.type='button';
-    b.className='mod'+(m.enabled?' on':'')+(m.stub?' stub':'');
+    const stub=m.agent_stub!=null?!!m.agent_stub:!!m.stub;
+    b.className='mod'+(m.enabled?' on':'')+(stub?' stub':'');
     b.setAttribute('data-module', m.id);
-    b.disabled=!!m.stub && !m.enabled;
-    const st=m.stub?'not wired':(m.status==='implemented'?'wired':(m.status||''));
-    const use=m.stub?'cannot enable':(m.enabled?'in next session':'click to include');
-    b.innerHTML='<b>'+m.id+'</b><span class="st '+cls(m.status)+'">'+st+'</span><small>'+(m.title||'')+'</small><span class="use">'+use+'</span>';
-    b.title=(m.how||m.title||m.id)+' — '+(m.stub?'not wired yet, cannot enable':(m.enabled?'included in Launch session':'click to include in Launch session'));
+    b.disabled=!!stub && !m.enabled;
+    const st=m.agent_paint||(stub?'not wired':(m.status==='implemented'?'wired':(m.status||'')));
+    const use=stub?'cannot include':(m.enabled?'included':'click to include');
+    const how=m.agent_how||m.how||m.title||m.id;
+    b.innerHTML='<b>'+m.id+'</b><span class="st '+cls(m.agent_status||m.status)+'">'+st+'</span><small>'+(how)+'</small><span class="use">'+use+'</span>';
+    b.title=how;
     b.addEventListener('click',()=>runModule(m.id, !m.enabled));
     box.appendChild(b);
   });
@@ -373,6 +394,20 @@ async function runModule(id, on){
 async function runLoopTask(task){
   const j=await postLoopTask(task);
   paintLaunch(j.copy||j.error||'task', j.ok?'ok':'fail');
+  await tick();
+}
+async function postLoopAgent(agent){
+  try{
+    if(noLiveApi()) return {ok:false,error:'FAIL',copy:'FAIL agent',live:'FAIL'};
+    const r=await fetch(apiRoot()+'/loop/agent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({agent})});
+    try{return await r.json();}catch(e){return {ok:false,error:String(e),copy:'FAIL agent',live:'FAIL'};}
+  }catch(e){
+    return {ok:false,error:String(e),copy:'FAIL agent',live:'FAIL'};
+  }
+}
+async function runLoopAgent(agent){
+  const j=await postLoopAgent(agent);
+  paintLaunch(j.copy||j.error||'agent', j.ok?'ok':'fail');
   await tick();
 }
 async function postWizard(step, value){

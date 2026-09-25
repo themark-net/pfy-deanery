@@ -20,10 +20,12 @@ def honest(v):
     return s if s in LIVE else "missing"
 
 def module_paint_status(m):
-    """Operator chrome only (HTML paintModules): implemented→wired, stub→not wired; keep partial."""
-    if m.get("stub"):
+    """Operator chrome: per-agent paint when present, else implemented→wired."""
+    if m.get("agent_paint"):
+        return m["agent_paint"]
+    if m.get("agent_stub") or m.get("stub"):
         return "not wired"
-    st = m.get("status") or ""
+    st = m.get("agent_status") or m.get("status") or ""
     if st == "implemented":
         return "wired"
     return st
@@ -61,8 +63,10 @@ def loop_text(s, env_live, att, reach, verb, when):
     lines = [
         "LOOP",
         "Run gathered catalog tools on this machine or on cloud credits.",
-        "HOW TO  1 see where work can run  2 pick work class  3 click modules  4 Launch session",
-        "        Launch env starts the local engine only (no coding session).",
+        "HOW TO  1 where work runs  2 which agent  3 toolsets for that agent  4 open that agent",
+        "        Start local model only brings up the endpoint.",
+        "PLAN      %s" % (s.get("plan") or "Open %s with no toolsets yet" % (s.get("modules_agent") or "grok")),
+        "AGENT     %s" % (s.get("modules_agent") or "grok"),
         "LOCAL COMPUTE",
         "  why       your machine — preferred when a model is answering",
         "  lane      %s" % ("ON" if local_ready else "OFF"),
@@ -99,8 +103,8 @@ def loop_text(s, env_live, att, reach, verb, when):
     lines += ["WORK CLASS  %s" % task]
     if task_help:
         lines.append("  %s" % task_help)
-    lines.append("MODULES")
-    lines.append("  why       catalog tools we gathered — ON means loaded into Launch session")
+    lines.append("TOOLSETS")
+    lines.append("  why       status is for the selected agent — ON means included in Open")
     mods = list(s.get("modules") or [])
     if not mods:
         lines.append("  (none)")
@@ -114,7 +118,7 @@ def loop_text(s, env_live, att, reach, verb, when):
         "env       %s" % env_live,
         "session   %s" % reach,
         "attached  %s" % att,
-        "NEXT      Launch session opens grok/OpenCode with enabled modules. That window is the proof.",
+        "NEXT      Open the agent named in PLAN. That window is the proof.",
     ]
     proof = str(s.get("loop_copy") or "").strip()
     if proof:
@@ -328,6 +332,9 @@ class Win:
         self.bbulk = ttk.Button(self.acts, text="Bulk — stay on this machine", command=lambda: self.set_loop_task("bulk"))
         self.binteractive = ttk.Button(self.acts, text="Interactive — local first", command=lambda: self.set_loop_task("interactive"))
         self.bhard = ttk.Button(self.acts, text="Hard — allow cloud", command=lambda: self.set_loop_task("hard"))
+        self.bagents = {}
+        for aid, label in (("grok", "grok"), ("opencode", "OpenCode"), ("hermes", "Hermes"), ("codex", "Codex"), ("claude", "Claude"), ("gab", "Gab")):
+            self.bagents[aid] = ttk.Button(self.acts, text=label, command=lambda a=aid: self.set_loop_agent(a))
         self.blocal = ttk.Button(self.acts, text="local", command=lambda: self.wizard_step("lane", "local"))
         self.bcloud = ttk.Button(self.acts, text="cloud/subscription", command=lambda: self.wizard_step("lane", "cloud/subscription"))
         self.bofree = ttk.Button(self.acts, text="OpenCode free", command=lambda: self.wizard_step("lane", "opencode-free"))
@@ -369,6 +376,19 @@ class Win:
         else:
             self.paint_attach("using: "+self._attach_mode, False)
         self.render()
+
+    def set_loop_agent(self, agent):
+        self.paint_attach("agent "+agent+"…", False)
+        def work():
+            try:
+                if self.board and hasattr(self.board, "set_loop_agent"):
+                    res = self.board.set_loop_agent(agent)
+                else:
+                    res = {"ok": True, "copy": "READY agent %s" % agent, "agent": agent}
+            except Exception as e:
+                res = {"ok": False, "copy": "FAIL agent", "error": str(e)}
+            self.root.after(0, lambda r=res: self.done_loop_cmd(r))
+        threading.Thread(target=work, daemon=True).start()
 
     def set_loop_task(self, task):
         self.paint_attach("task "+task+"…", False)
@@ -1160,6 +1180,7 @@ class Win:
     def pack_acts(self, names):
         forget = [self.bgrok, self.bopen, self.bhermes, self.bcodex, self.bclaude, self.bgab, self.bbare, self.borch, self.bgraph, self.bsi, self.bsiopen, self.bsifold, self.bsitask, self.bcopyep, self.bcopyst, self.brefresh, self.bcopy, self.bstage, self.benv, self.bpull, self.btest, self.breco, self.btry, self.pullname, self.sst, self.est, self.pst, self.rst, self.tst, self.ast, self.cst, self.sist, self.siabs, self.sirel, self.sitask, self.ewhat, self.siopenst, self.toolst, self.recst, self.tryst, self.catname, self.bask, self.bqueue, self.bcatcopy, self.catst, self.bsess, self.bbulk, self.binteractive, self.bhard, self.blocal, self.bcloud, self.bofree, self.bcatalog, self.bhopenc, self.bhgrok, self.bhhermes, self.bhcodex, self.bhclaude, self.bhgab, self.bdecoff, self.bdeccua, self.bdects, self.bdecmj]
         forget.extend(self.tool_btns.values())
+        forget.extend(self.bagents.values())
         for w in forget:
             try: w.pack_forget()
             except Exception: pass
@@ -1167,6 +1188,8 @@ class Win:
             "grok": self.bgrok, "open": self.bopen, "hermes": self.bhermes, "codex": self.bcodex, "claude": self.bclaude, "gab": self.bgab,
             "bare": self.bbare, "orch": self.borch, "graph": self.bgraph,
             "sess": self.bsess, "bulk": self.bbulk, "interactive": self.binteractive, "hard": self.bhard,
+            "agrok": self.bagents["grok"], "aopen": self.bagents["opencode"], "ahermes": self.bagents["hermes"],
+            "acodex": self.bagents["codex"], "aclaude": self.bagents["claude"], "agab": self.bagents["gab"],
             "local": self.blocal, "cloud": self.bcloud, "ofree": self.bofree, "catalog": self.bcatalog,
             "hopenc": self.bhopenc, "hgrok": self.bhgrok, "hhermes": self.bhhermes, "hcodex": self.bhcodex, "hclaude": self.bhclaude, "hgab": self.bhgab,
             "decoff": self.bdecoff, "deccua": self.bdeccua, "dects": self.bdects, "decmj": self.bdecmj,
@@ -1239,7 +1262,7 @@ class Win:
                 txt += "\nwhat       " + what
             if stub: txt += f"\nFAIL       {s.get('blocked_copy') or GROK_USE}"
             if self.msg: txt += "\n" + self.msg
-            self.pack_acts(["bulk", "interactive", "hard", "sess", "env", "copyep", "copyst", "est", "ast"])
+            self.pack_acts(["bulk", "interactive", "hard", "agrok", "aopen", "ahermes", "acodex", "aclaude", "agab", "sess", "env", "copyep", "copyst", "est", "ast"])
         elif self.view == "engine":
             u = s.get("usage") if isinstance(s.get("usage"), dict) else {}
             sr = s.get("status_runtime") or {}
@@ -1305,7 +1328,7 @@ class Win:
             mode_when = str(s.get("attach_mode_when") or "")
             graph_ev = str(s.get("graph_copy") or "").strip() or "(none)"
             graph_when = str(s.get("graph_when") or "")
-            txt = f"ATTACH\nOpen grok/OpenCode now without composing modules. Loop → Launch session loads gathered tools.\nNOW     attached {attached} · last {verb}\nsession {reach}\nusing: {using}" + (f"  {mode_when}" if mode_when else "") + f"\ngraph      {graph_ev}" + (f"  {graph_when}" if graph_when else "")
+            txt = f"ATTACH\nOpen an agent with no toolsets loaded. Loop writes toolsets into the agent you pick there.\nNOW     attached {attached} · last {verb}\nsession {reach}\nusing: {using}" + (f"  {mode_when}" if mode_when else "") + f"\ngraph      {graph_ev}" + (f"  {graph_when}" if graph_when else "")
             si = getattr(self, "_last_si", {}) or {}
             abs_p = str(si.get("abs_path") or "")
             rel_p = str(si.get("rel") or si.get("path") or "")
@@ -1516,6 +1539,9 @@ def run_tk(board, selftest=False) -> bool:
             and w.bbulk.cget("text") == "Bulk — stay on this machine"
             and w.binteractive.cget("text") == "Interactive — local first"
             and w.bhard.cget("text") == "Hard — allow cloud"
+            and w.bagents["grok"].cget("text") == "grok"
+            and w.bagents["opencode"].cget("text") == "OpenCode"
+            and w.bagents["gab"].cget("text") == "Gab"
             and w.blocal.cget("text") == "local"
             and w.bcloud.cget("text") == "cloud/subscription"
             and w.bofree.cget("text") == "OpenCode free"
@@ -1545,8 +1571,8 @@ def run_tk(board, selftest=False) -> bool:
         w.set_view("loop")
         body = w.body.cget("text") or ""
         mod_chrome = ""
-        if "MODULES" in body:
-            mod_chrome = body.split("MODULES", 1)[1]
+        if "TOOLSETS" in body:
+            mod_chrome = body.split("TOOLSETS", 1)[1]
             if "\nenabled" in mod_chrome:
                 mod_chrome = mod_chrome.split("\nenabled", 1)[0]
         chip_st = []
@@ -1559,8 +1585,9 @@ def run_tk(board, selftest=False) -> bool:
             and "HOW TO" in body
             and "LOCAL COMPUTE" in body
             and "CLOUD ORCHESTRATION" in body
-            and "MODULES" in body
-            and "Launch session" in body
+            and "TOOLSETS" in body
+            and "AGENT" in body
+            and "PLAN" in body
             and "jev" in body
             and "wired" in body
             and "wired" in mod_chrome

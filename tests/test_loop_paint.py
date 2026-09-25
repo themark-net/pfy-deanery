@@ -98,6 +98,25 @@ class LoopPaintTests(unittest.TestCase):
         f = loop_paint.fields(state=self.state, root_dir=ROOT, local={"engine": "none", "base_url": "", "status": "missing"})
         self.assertEqual(f["modules_task"], "hard")
 
+    def test_agent_paint_is_for_the_selected_agent(self):
+        loop_paint.set_agent("grok", state=self.state)
+        f = loop_paint.fields(state=self.state, root_dir=ROOT, local={"engine": "none", "base_url": "", "status": "missing"})
+        by = {m["id"]: m for m in f["modules"]}
+        self.assertEqual(by["jev"]["agent_paint"], "wired")
+        self.assertEqual(f["plan"], "Open grok with no toolsets yet")
+        self.assertFalse(f["launch_ready"])
+        loop_paint.toggle("jev", True, state=self.state, root_dir=ROOT)
+        loop_paint.set_agent("hermes", state=self.state)
+        f = loop_paint.fields(state=self.state, root_dir=ROOT, local={"engine": "none", "base_url": "", "status": "missing"})
+        by = {m["id"]: m for m in f["modules"]}
+        self.assertEqual(by["jev"]["agent_paint"], "partial")
+        self.assertIn("Open Hermes with jev", f["plan"])
+        self.assertTrue(f["launch_ready"])
+        loop_paint.set_agent("gab", state=self.state)
+        f = loop_paint.fields(state=self.state, root_dir=ROOT, local={"engine": "none", "base_url": "", "status": "missing"})
+        self.assertIn("not wired for Gab", f["plan"])
+        self.assertFalse(f["launch_ready"])
+
     def test_apply_enabled_empty_is_noop(self):
         out = loop_paint.apply_enabled(hid="grok", state=self.state, root_dir=ROOT, yes=True)
         self.assertEqual(out, [])

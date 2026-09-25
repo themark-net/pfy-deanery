@@ -1,13 +1,12 @@
-"""Loop paint: catalog modules + live local/cloud hedge (ADR-0017).
+"""Loop paint: toolsets for one agent + live local/cloud hedge (ADR-0017).
 
-The operator window's front door is not a harness picker. It shows:
+The operator window's front door shows:
 
-  * which **modules** (toolsets from ``data/toolsets.json``) are gathered and
-    whether they are implementable (best cell across harnesses)
-  * whether **local compute** is up and whether **cloud credits** can run
-    (hedge for bulk / interactive / hard)
+  * where work runs (local compute vs cloud credits)
+  * which agent receives the toolsets (grok, OpenCode, Hermes, Codex, Claude, Gab)
+  * each toolset's status for that agent (wired / partial / not wired)
 
-Harness attach is pudding-proof behind Launch session, not a Loop control.
+Launch session writes the enabled toolsets into the selected agent.
 """
 from __future__ import annotations
 
@@ -29,6 +28,16 @@ TASK_HELP = {
     "interactive": "Normal work. Local first; cloud only if local is down and budget remains.",
     "hard": "Hard review. May spend a cloud credit even if local is up.",
 }
+AGENTS = (
+    ("grok", "grok"),
+    ("opencode", "OpenCode"),
+    ("hermes", "Hermes"),
+    ("codex", "Codex"),
+    ("claude", "Claude"),
+    ("gab", "Gab"),
+)
+_AGENT_IDS = frozenset(a[0] for a in AGENTS)
+_IMPL_KEY = {"claude": "claude-code"}
 
 
 def story(hedge_frag: dict) -> dict:
@@ -82,9 +91,18 @@ def modules_path(state: Path | None = None) -> Path:
     return _state(state) / MODULES_FILE
 
 
+def normalize_agent(raw: str) -> str:
+    s = str(raw or "").strip().lower().replace("_", "-")
+    if s in ("claude-code",):
+        return "claude"
+    if s in ("open",):
+        return "opencode"
+    return s if s in _AGENT_IDS else "grok"
+
+
 def load_selection(state: Path | None = None) -> dict:
     path = modules_path(state)
-    empty = {"enabled": [], "task": "interactive"}
+    empty = {"enabled": [], "task": "interactive", "agent": "grok"}
     if not path.is_file():
         return empty
     try:
@@ -97,13 +115,17 @@ def load_selection(state: Path | None = None) -> dict:
     task = str(data.get("task") or "interactive").strip().lower()
     if task not in TASKS:
         task = "interactive"
-    return {"enabled": enabled, "task": task}
+    return {"enabled": enabled, "task": task, "agent": normalize_agent(data.get("agent"))}
 
 
 def save_selection(sel: dict, state: Path | None = None) -> Path:
     path = modules_path(state)
     path.parent.mkdir(parents=True, exist_ok=True)
-    payload = {"enabled": list(sel.get("enabled") or []), "task": sel.get("task") or "interactive"}
+    payload = {
+        "enabled": list(sel.get("enabled") or []),
+        "task": sel.get("task") or "interactive",
+        "agent": normalize_agent(sel.get("agent")),
+    }
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     return path
 
@@ -118,11 +140,32 @@ def _best_status(impl: dict) -> str:
     return "stub"
 
 
-def _module_row(t: dict, enabled: set[str]) -> dict:
+def paint_word(status: str, stub: bool = False) -> str:
+    if stub or status == "stub":
+        return "not wired"
+    if status == "implemented":
+        return "wired"
+    return status or "not wired"
+
+
+def agent_cell(impl: dict, agent: str) -> dict:
+    """Status of one toolset for one agent. Missing cell is not wired."""
+    key = _IMPL_KEY.get(agent, agent)
+    cell = (impl or {}).get(key) or {}
+    status = str(cell.get("status") or "stub")
+    how = str(cell.get("how") or "")
+    stub = (not cell) or status == "stub"
+    if stub and not how:
+        how = "not wired for this agent"
+    return {"status": status, "how": how, "stub": stub, "paint": paint_word(status, stub)}
+
+
+def _module_row(t: dict, enabled: set[str], agent: str = "grok") -> dict:
     tid = str(t.get("id") or "")
     impl = t.get("implementation") or {}
     status = _best_status(impl)
     how = next((str((c or {}).get("how") or "") for c in impl.values() if (c or {}).get("how")), "")
+    cell = agent_cell(impl, agent)
     return {
         "id": tid,
         "title": str(t.get("title") or tid),
@@ -133,7 +176,25 @@ def _module_row(t: dict, enabled: set[str]) -> dict:
         "enabled": tid in enabled,
         "stub": status == "stub",
         "wizard_mode": WIZARD_MODE.get(tid),
+        "agent_status": cell["status"],
+        "agent_how": cell["how"],
+        "agent_stub": cell["stub"],
+        "agent_paint": cell["paint"],
     }
+
+
+def plan_line(agent: str, modules: list) -> tuple[str, bool]:
+    """Button sentence and whether Launch may run."""
+    label = dict(AGENTS).get(agent, agent)
+    blockers = [m for m in modules if m.get("enabled") and m.get("agent_stub")]
+    ready = [str(m.get("id") or "") for m in modules if m.get("enabled") and not m.get("agent_stub")]
+    if blockers:
+        b = blockers[0]
+        how = str(b.get("agent_how") or "not wired for this agent")
+        return ("%s is not wired for %s. %s" % (b.get("id") or "toolset", label, how), False)
+    if not ready:
+        return ("Open %s with no toolsets yet" % label, False)
+    return ("Open %s with %s" % (label, ", ".join(ready)), True)
 
 
 def toggle(tid: str, on: bool, *, state: Path | None = None, root_dir: Path | None = None) -> dict:
@@ -146,16 +207,17 @@ def toggle(tid: str, on: bool, *, state: Path | None = None, root_dir: Path | No
             "next_step": "pick one of: %s" % ", ".join(registry.toolset_ids(root_dir)),
             "copy": "FAIL module -- unknown %s" % tid,
         }
-    status = _best_status(t.get("implementation") or {})
-    if on and status == "stub":
-        stub_how = next((str((c or {}).get("how") or "") for c in (t.get("implementation") or {}).values() if (c or {}).get("status") == "stub"), "no config surface wired")
+    sel = load_selection(state)
+    cell = agent_cell(t.get("implementation") or {}, sel["agent"])
+    status = cell["status"]
+    if on and cell["stub"]:
         return {
             "ok": False, "live": "STUB", "id": tid, "status": status,
-            "error": "module %s is stub" % tid,
-            "next_step": stub_how,
-            "copy": "STUB module %s — not implementable yet" % tid,
+            "agent": sel["agent"],
+            "error": "toolset %s is not wired for %s" % (tid, sel["agent"]),
+            "next_step": cell["how"],
+            "copy": "STUB %s for %s — %s" % (tid, sel["agent"], cell["how"]),
         }
-    sel = load_selection(state)
     have = [x for x in sel["enabled"] if x != tid]
     if on:
         have.append(tid)
@@ -165,7 +227,8 @@ def toggle(tid: str, on: bool, *, state: Path | None = None, root_dir: Path | No
         "ok": True, "live": "READY", "id": tid, "on": on, "status": status,
         "enabled": have, "task": sel["task"],
         "wizard_mode": WIZARD_MODE.get(tid) if on else None,
-        "copy": "READY module %s %s" % (tid, "on" if on else "off"),
+        "agent": sel["agent"],
+        "copy": "READY toolset %s %s for %s" % (tid, "on" if on else "off", sel["agent"]),
     }
 
 
@@ -180,7 +243,25 @@ def set_task(task: str, *, state: Path | None = None) -> dict:
     sel = load_selection(state)
     sel["task"] = task
     save_selection(sel, state)
-    return {"ok": True, "live": "READY", "task": task, "enabled": sel["enabled"], "copy": "READY task %s" % task}
+    return {"ok": True, "live": "READY", "task": task, "enabled": sel["enabled"], "agent": sel["agent"], "copy": "READY task %s" % task}
+
+
+def set_agent(agent: str, *, state: Path | None = None) -> dict:
+    raw = str(agent or "").strip().lower().replace("_", "-")
+    if raw == "claude-code":
+        raw = "claude"
+    elif raw == "open":
+        raw = "opencode"
+    if raw not in _AGENT_IDS:
+        return {
+            "ok": False, "live": "FAIL", "error": "unknown agent %r" % (agent or ""),
+            "next_step": "use %s" % "|".join(a[0] for a in AGENTS),
+            "copy": "FAIL agent -- use %s" % "|".join(a[0] for a in AGENTS),
+        }
+    sel = load_selection(state)
+    sel["agent"] = raw
+    save_selection(sel, state)
+    return {"ok": True, "live": "READY", "agent": raw, "enabled": sel["enabled"], "copy": "READY agent %s" % raw}
 
 
 def fields(
@@ -192,7 +273,9 @@ def fields(
     """Snapshot fragment for Loop: modules + hedge for the selected task class."""
     sel = load_selection(state)
     enabled = set(sel["enabled"])
-    modules = [_module_row(t, enabled) for t in registry.toolset_rows(root_dir)]
+    agent = sel["agent"]
+    modules = [_module_row(t, enabled, agent) for t in registry.toolset_rows(root_dir)]
+    plan, launch_ready = plan_line(agent, modules)
     # Reuse one detector pass for all three task classes so the split is comparable.
     local = dict(local) if local is not None else hedge.detect_local(root_dir)
     routes = {task: hedge.decide(task, local=local, state=state, root_dir=root_dir) for task in TASKS}
@@ -227,6 +310,10 @@ def fields(
         "modules": modules,
         "modules_enabled": list(sel["enabled"]),
         "modules_task": sel["task"],
+        "modules_agent": agent,
+        "agents": [{"id": i, "label": lab} for i, lab in AGENTS],
+        "plan": plan,
+        "launch_ready": launch_ready,
         "task_help": TASK_HELP,
         "hedge": hedge_frag,
     }

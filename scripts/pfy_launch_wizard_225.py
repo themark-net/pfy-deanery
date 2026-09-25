@@ -501,9 +501,11 @@ def set_toolset(STATE, toolset, ROOT=None, which=None, live_openai_base=None):
         st, nxt = _catalog_status(STATE, ROOT)
         if st != "ready":
             comp = load_comp(STATE)
-            comp["toolsets"] = ""
-            comp["mode"] = "bare"
-            save_comp(STATE, comp)
+            prior = str(comp.get("toolsets") or "").strip()
+            if prior in ("", "catalog"):
+                comp["toolsets"] = ""
+                comp["mode"] = "bare"
+                save_comp(STATE, comp)
             return skip(
                 "toolsets",
                 "catalog not ready",
@@ -664,6 +666,45 @@ def apply_step(STATE, step, value="", ROOT=None, which=None, live_openai_base=No
     else:
         rec = fail("wizard", "unknown step %s" % (step or "(empty)"), NEXT_REVIEW)
     return _decorate_compose(STATE, rec)
+
+
+def ensure_compose_defaults(
+    STATE,
+    toolsets=("bare",),
+    harness="grok",
+    live_openai_base=None,
+    ROOT=None,
+    which=None,
+):
+    """Fill toolsets and harness when Loop Launch has no picker for them.
+
+    Tries ``toolsets`` in order, then ``bare``. Does not overwrite a field
+    that is already set. OpenCode-free lane forces harness OpenCode.
+    """
+    comp = load_comp(STATE)
+    if not str(comp.get("toolsets") or "").strip():
+        order = [str(t).strip() for t in (toolsets or ("bare",)) if str(t).strip()]
+        if "bare" not in order:
+            order.append("bare")
+        rec = None
+        for toolset in order:
+            rec = set_toolset(
+                STATE,
+                toolset,
+                ROOT=ROOT,
+                which=which,
+                live_openai_base=live_openai_base,
+            )
+            if rec.get("ok"):
+                break
+        if not rec or not rec.get("ok"):
+            return rec or fail("toolsets", "toolsets not set", NEXT_TOOL)
+    comp = load_comp(STATE)
+    if not str(comp.get("harness") or "").strip():
+        lane = normalize_lane(comp.get("lane") or "")
+        hid = "opencode" if lane == "opencode-free" else (harness or "grok")
+        return set_harness(STATE, hid, live_openai_base=live_openai_base)
+    return {"ok": True, "live": "READY", "copy": "READY compose defaults"}
 
 
 def launch_session(

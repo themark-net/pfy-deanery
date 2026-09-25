@@ -1016,18 +1016,46 @@ def set_loop_task(task):
         return {"ok": False, "live": "FAIL", "copy": "FAIL task -- %s" % str(e)[:160], "error": str(e)[:160]}
 
 
+def set_loop_agent(agent):
+    try:
+        from pfylib import loop_paint
+        return loop_paint.set_agent(str(agent or ""), state=STATE)
+    except Exception as e:
+        return {"ok": False, "live": "FAIL", "copy": "FAIL agent -- %s" % str(e)[:160], "error": str(e)[:160]}
+
+
+def _loop_agent():
+    try:
+        from pfylib import loop_paint
+        return loop_paint.load_selection(STATE).get("agent") or "grok"
+    except Exception:
+        return "grok"
+
+
+def _loop_toolset_order():
+    """Session mode from enabled Loop modules. Later module wins, then bare."""
+    try:
+        from pfylib import loop_paint
+        enabled = list(loop_paint.load_selection(STATE).get("enabled") or [])
+    except Exception:
+        return ["bare"]
+    modes = []
+    for tid in enabled:
+        mode = loop_paint.WIZARD_MODE.get(str(tid))
+        if mode in ("orchestration", "code-graph") and mode not in modes:
+            modes.append(mode)
+    return list(reversed(modes)) + ["bare"]
+
+
 def _apply_loop_modules_before_launch():
     """Write enabled modules into the session Launch will spawn (proof, not a harness picker)."""
     try:
         from pfylib import loop_paint
     except Exception as e:
         return [{"live": "FAIL", "copy": "pfylib.loop_paint missing: %s" % str(e)[:120]}]
-    wiz = wizard_fields()
-    hid = str(wiz.get("wizard_harness") or "grok").strip() or "grok"
+    hid = _loop_agent()
     if hid == "claude":
         hid = "claude-code"
-    if hid == "gab":
-        hid = "opencode"
     return loop_paint.apply_enabled(hid=hid, state=STATE, root_dir=ROOT, yes=True)
 
 
@@ -1154,6 +1182,29 @@ def launch_wizard_session():
     if mod is None:
         return {"ok": False, "live": "FAIL", "copy": "FAIL launch -- module missing", "error": err or "missing", "usable": False, "next_step": "./pfy setup", "session_reach": "FAIL"}
     STATE.mkdir(parents=True, exist_ok=True)
+    try:
+        from pfylib import loop_paint
+        snap = loop_paint.fields(state=STATE, root_dir=ROOT)
+    except Exception:
+        snap = {}
+    if snap and not snap.get("launch_ready"):
+        plan = snap.get("plan") or "Choose an agent and a toolset"
+        return {
+            "ok": False, "live": "FAIL", "copy": plan, "error": plan,
+            "usable": False, "next_step": plan, "session_reach": "FAIL",
+            "modules_applied": [],
+        }
+    filled = mod.ensure_compose_defaults(
+        STATE,
+        toolsets=_loop_toolset_order(),
+        harness=(snap or {}).get("modules_agent") or _loop_agent(),
+        live_openai_base=live_openai_base,
+        ROOT=ROOT,
+        which=which_bin,
+    )
+    if not filled.get("ok"):
+        filled["modules_applied"] = []
+        return filled
     applied = _apply_loop_modules_before_launch()
 
     def _start(hid, mode=None):
@@ -2281,6 +2332,17 @@ class Handler(BaseHTTPRequestHandler):
             except json.JSONDecodeError:
                 body = {}
             result = set_loop_task(str((body or {}).get("task") or (body or {}).get("value") or ""))
+            code = 200 if result.get("ok") else 400
+            self._send(code, json.dumps(result).encode("utf-8"), "application/json; charset=utf-8")
+            return
+        if path == "/loop/agent":
+            length = int(self.headers.get("Content-Length") or 0)
+            raw = self.rfile.read(length) if length else b"{}"
+            try:
+                body = json.loads(raw.decode() or "{}")
+            except json.JSONDecodeError:
+                body = {}
+            result = set_loop_agent(str((body or {}).get("agent") or (body or {}).get("id") or ""))
             code = 200 if result.get("ok") else 400
             self._send(code, json.dumps(result).encode("utf-8"), "application/json; charset=utf-8")
             return

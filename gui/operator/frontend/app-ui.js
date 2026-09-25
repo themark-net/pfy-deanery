@@ -28,6 +28,7 @@ document.getElementById('btnstage').addEventListener('click',()=>runStage());
 document.getElementById('btnlaunch').addEventListener('click',()=>runEnv());
 document.getElementById('btnlaunchsess')&&document.getElementById('btnlaunchsess').addEventListener('click',()=>runLaunchSession());
 document.querySelectorAll('[data-task]').forEach(el=>el.addEventListener('click',()=>runLoopTask(el.getAttribute('data-task'))));
+document.querySelectorAll('[data-agent]').forEach(el=>el.addEventListener('click',()=>runLoopAgent(el.getAttribute('data-agent'))));
 document.querySelectorAll('[data-lane]').forEach(el=>el.addEventListener('click',()=>runWizard('lane', el.getAttribute('data-lane'))));
 document.querySelectorAll('[data-toolset]').forEach(el=>el.addEventListener('click',()=>runWizard('toolsets', el.getAttribute('data-toolset'))));
 document.querySelectorAll('[data-harness]').forEach(el=>el.addEventListener('click',()=>runWizard('harness', el.getAttribute('data-harness'))));

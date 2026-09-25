@@ -35,16 +35,20 @@ class LoopTkPaintTests(unittest.TestCase):
     def test_loop_text_modules_use_operator_labels(self):
         s = {
             "modules": [
-                {"id": "jev", "status": "implemented", "enabled": True, "stub": False},
-                {"id": "code-graph", "status": "partial", "enabled": False, "stub": False},
-                {"id": "ghost", "status": "stub", "enabled": False, "stub": True},
+                {"id": "jev", "status": "implemented", "enabled": True, "stub": False, "agent_paint": "wired", "agent_stub": False},
+                {"id": "code-graph", "status": "partial", "enabled": False, "stub": False, "agent_paint": "partial", "agent_stub": False},
+                {"id": "ghost", "status": "stub", "enabled": False, "stub": True, "agent_paint": "not wired", "agent_stub": True},
             ],
             "modules_enabled": ["jev"],
             "modules_task": "interactive",
+            "modules_agent": "grok",
+            "plan": "Open grok with jev",
             "hedge": {},
         }
         body = self.gui.loop_text(s, "SKIP", "(none)", "(none)", "gui", "")
-        mods = body.split("MODULES", 1)[1]
+        self.assertIn("Open grok with jev", body)
+        self.assertIn("AGENT     grok", body)
+        mods = body.split("TOOLSETS", 1)[1]
         self.assertIn("wired", mods)
         self.assertIn("partial", mods)
         self.assertIn("not wired", mods)

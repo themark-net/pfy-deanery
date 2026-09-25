@@ -14,7 +14,7 @@ The compose wizard (#225) still runs under Launch (runtime health, child env, re
 | 2 model lane | `local` \| `cloud/subscription` \| `OpenCode free` | FAIL + pick lane. OpenCode free needs OpenCode. cloud/subscription needs Grok\|Claude\|Codex. LIVE_HARD_OFF: pfy does not call cloud APIs. |
 | 3 toolsets/skills/modes | `bare` · `orchestration` · `code-graph` · `catalog` | orchestration missing skill → FAIL + `./pfy setup`. code-graph missing Axon and codebase-memory → FAIL + `pip install axoniq`. catalog without prompt / HOLD 70–75 → honest SKIP (not auto-lifted). |
 | 4 harness/TUI | OpenCode \| Grok \| Hermes \| Codex \| Claude | FAIL + pick harness. Reuses attach-usable paths (#193/#196/#202/#220/#221). |
-| 5 review paint | `runtime · lane · toolsets · harness` | Incomplete → FAIL + complete wizard |
+| 5 review paint | `runtime · lane · toolsets · harness` | Incomplete → FAIL + complete wizard. Loop Launch fills an empty toolset from enabled modules (`orchestration` or `code-graph`, else `bare`) and an empty harness from the agent selected on Loop (default grok; OpenCode when the lane is OpenCode free). |
 | decision (optional, #230) | `off` \| `CUA-S1-FORMS` \| `TypeSafe` \| `mini-jev` | Off does not block Launch. TypeSafe without key → FAIL+next. `conf low` → no silent auto-act. |
 
 Primary CTA **Launch session** → enterable TUI with composed env **or** FAIL+next. Child inherits `LOCAL_OPENAI_BASE_URL` / `OPENAI_BASE_URL` via attach-usable. Mode handoff via #208. Catalog prompt via #209 when toolset is catalog. Session compose **#224** paints honest lane labels (`local FreeToken-first` · `cloud/subscription (Grok-sub)` · `OpenCode free`) and enabled toolsets (SKIP/FAIL if not wired), and writes the in-session AGENTS/prompt brief on Launch.
