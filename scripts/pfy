@@ -1368,9 +1368,12 @@ exec_harness() {
       cbin="$(codex_bin || true)"
       if [[ -z "$cbin" ]]; then
         echo "FAIL attach -- codex missing"
-        echo "  next: curl -fsSL https://chatgpt.com/codex/install.sh | sh"
+        issue=$(json_field github_issue codex || true)
+        echo "  https://github.com/themark-net/pfy-mentat/issues/${issue:-58}"
+        inst=$(json_field setup codex || true)
+        [[ -n "$inst" ]] && echo "  next: $inst"
         echo "  equiv: ./pfy models"
-        return 1
+        exit 2
       fi
       # #220: FAIL+next before exec — no false attached without provider + prove
       if [[ "$st" != "ready" || -z "${LOCAL_OPENAI_BASE_URL:-}" ]]; then

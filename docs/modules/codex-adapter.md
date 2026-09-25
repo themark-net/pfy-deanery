@@ -20,7 +20,7 @@ CLI `./pfy start codex` uses the same honesty: no live engine → FAIL + next (d
 
 **Attach mode (#208 / #213 / #215):** `bare` hands off prompt/env. `orchestration` starts a multi-step local loop (`/agent-loops` + prove + monitor evidence). `code-graph` needs Axon CLI (`AXON_BIN`); MCP-only is unwired for Codex → FAIL + `pip install axoniq` / Attach grok or opencode. [attach-mode.md](../ops/attach-mode.md) · [code-graph.md](code-graph.md).
 
-Missing binary: FAIL attach -- codex missing, official installer, exit 1. No fake ready. Credentials/2FA are owner-only and never painted.
+Missing binary: FAIL attach -- codex missing, issue #58, installer from `data/harnesses.json` `setup` (also `attach.next_install`), exit 2. `./pfy start codex` does not run the installer. No fake ready. Credentials/2FA are owner-only and never painted.
 
 ```bash
 curl -fsSL https://chatgpt.com/codex/install.sh | sh

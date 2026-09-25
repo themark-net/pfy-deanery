@@ -183,13 +183,13 @@
       "role": "harness",
       "status": "partial",
       "summary": "Runtime adapter: exec codex; OpenAI Codex CLI",
-      "setup": "curl -fsSL https://chatgpt.com/codex/install.sh | sh; codex (login owner-only)",
+      "setup": "curl -fsSL https://chatgpt.com/codex/install.sh | sh",
       "detect": [
         "codex"
       ],
       "github": "https://github.com/openai/codex",
       "catalog": null,
-      "issue_stub": "Codex runtime adapter",
+      "issue_stub": "Codex installer is setup / attach.next_install; start does not run it",
       "github_issue": 58,
       "attach": {
         "session_id": "codex",
