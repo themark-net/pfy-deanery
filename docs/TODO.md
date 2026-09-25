@@ -16,7 +16,7 @@
 | T-0100 | Epic: `./pfy` simple surface + harness registry | **done** (MVP) · [#53](https://github.com/themark-net/pfy-mentat/issues/53) |
 | T-0101 | Ollama adapter complete in `pfy start` (health, default model) | **done** · [#54](https://github.com/themark-net/pfy-mentat/issues/54) |
 | T-0102 | OpenCode host adapter (skill path + local OpenAI-compat base_url) | **done** · [#55](https://github.com/themark-net/pfy-mentat/issues/55) |
-| T-0103 | Hermes integrated installer adapter | open · [#56](https://github.com/themark-net/pfy-mentat/issues/56) |
+| T-0103 | Hermes integrated installer adapter | **done** · [#56](https://github.com/themark-net/pfy-mentat/issues/56) |
 | T-0104 | Claude Code adapter | open · [#57](https://github.com/themark-net/pfy-mentat/issues/57) |
 | T-0105 | Codex adapter | open · [#58](https://github.com/themark-net/pfy-mentat/issues/58) |
 | T-0106 | Gemini / Google harness adapter | open · [#59](https://github.com/themark-net/pfy-mentat/issues/59) |

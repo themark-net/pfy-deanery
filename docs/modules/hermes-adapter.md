@@ -19,7 +19,7 @@ CLI `./pfy start hermes` uses the same honesty: no live engine → FAIL + next (
 
 **Attach mode (#208 / #213 / #215):** `bare` hands off prompt/env. `orchestration` starts a multi-step local loop (`/agent-loops` + prove two turns + monitor evidence). `code-graph` needs Axon CLI (`AXON_BIN`); MCP-only is unwired for Hermes → FAIL + `pip install axoniq` / Attach grok or opencode. [attach-mode.md](../ops/attach-mode.md) · [code-graph.md](code-graph.md).
 
-Missing binary: `STUB harness: hermes`, issue #56, installer one-liner, exit 2. No fake ready.
+Missing binary: `STUB harness: hermes`, issue #56, and the installer from `data/harnesses.json` `setup` (also `attach.next_install`). Attach prints that same line as `next_step`. `./pfy start hermes` does not run the installer. No fake ready.
 
 ```bash
 curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash

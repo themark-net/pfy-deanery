@@ -194,6 +194,14 @@ elif cmd=="detects":
     for h in reg["harnesses"]:
         if h["id"]==arg:
             print("\n".join(h.get("detect") or [])); break
+elif cmd=="setup":
+    for h in reg["harnesses"]:
+        if h["id"]==arg:
+            setup=(h.get("setup") or "").strip()
+            print(setup.splitlines()[0] if setup else "")
+            break
+    else:
+        sys.exit(1)
 elif cmd=="github_issue":
     for h in reg["harnesses"]:
         if h["id"]==arg:
@@ -1296,8 +1304,10 @@ exec_harness() {
         exec "$bin"
       else
         echo "STUB harness: hermes"
-        echo "  https://github.com/themark-net/pfy-mentat/issues/56"
-        echo "  curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash"
+        issue=$(json_field github_issue hermes || true)
+        echo "  https://github.com/themark-net/pfy-mentat/issues/${issue:-56}"
+        inst=$(json_field setup hermes || true)
+        [[ -n "$inst" ]] && echo "  $inst"
         exit 2
       fi
       ;;

@@ -141,7 +141,7 @@
       ],
       "github": "https://github.com/NousResearch/hermes-agent",
       "catalog": "Hermes Agent (feedback loops)",
-      "issue_stub": "Hermes runtime adapter",
+      "issue_stub": "Hermes installer is setup / attach.next_install; start does not run it",
       "github_issue": 56,
       "attach": {
         "session_id": "hermes",
@@ -149,7 +149,7 @@
         "issue": 196,
         "script": "pfy_attach_usable_196",
         "bin_fallbacks": [],
-        "next_install": null,
+        "next_install": "curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash",
         "config_dir": null
       }
     },
