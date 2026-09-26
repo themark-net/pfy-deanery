@@ -127,6 +127,18 @@ At least two of:
 
 ---
 
+## How to move a card
+
+Facts are recomputed. Judgments are not.
+
+```bash
+python3 scripts/catalog_stage_eval.py          # one line per tool: stage, ceiling, potential, evidence
+python3 scripts/catalog_stage_eval.py --apply  # write facts + data/catalog_stage_handoff.json onto the cards
+python3 scripts/catalog_check.py               # every TOOLS.md row still has a card
+```
+
+`potential`, `uses`, `features`, `non_goals`, and `next_gate` come from the handoff file. Tier, scores, posture phrases, Makefile/path evidence, and the tier ceiling are computed from `TOOLS.md` and the repo. The ceiling is a cap, not a promotion. Edit the handoff and apply again to change a judgment. Do not flip `integration_stage` just because the ceiling allows it.
+
 ## Agent rules
 
 1. New X/catalog entries start at **I1** (or I0 if Stage 0 fails).

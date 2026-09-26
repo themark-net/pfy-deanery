@@ -15,8 +15,40 @@
       ],
       "non_goals": [
         "pipeline hard dependency",
-        "symbolic submodule now"
-      ]
+        "symbolic submodule now",
+        "subtree now",
+        "pipeline dependency"
+      ],
+      "catalog_tier": "A",
+      "catalog_overall": "82",
+      "catalog_tags": [
+        "#agentic",
+        "#graph",
+        "#dag",
+        "#planning",
+        "#parallelism",
+        "#failure-repair",
+        "#paper-based",
+        "#prototype",
+        "#I1"
+      ],
+      "catalog_github": "Prototype: https://github.com/themark-net/atg-framework (paper: https://arxiv.org/abs/2607.01942)",
+      "posture": [
+        "i1_stay",
+        "docs_only"
+      ],
+      "evidence": [
+        "notes_doc:docs/ops/atg-coupling.md"
+      ],
+      "tier_ceiling": "I1",
+      "uses": "Paper task-graph prototype. No runnable core in this repo.",
+      "features": [
+        "dag",
+        "repair"
+      ],
+      "potential": "ambiguous",
+      "next_gate": "Stay I1 until a runnable core exists.",
+      "handoff_by": "llm"
     },
     "Antigravity-Manager": {
       "integration_stage": "I1",
@@ -29,8 +61,34 @@
       ],
       "non_goals": [
         "default install",
-        "make smoke requiring Tauri"
-      ]
+        "make smoke requiring Tauri",
+        "Tauri smoke"
+      ],
+      "catalog_tier": "A",
+      "catalog_overall": "86",
+      "catalog_tags": [
+        "#proxy",
+        "#account-pool",
+        "#tauri",
+        "#openai-shim",
+        "#I1",
+        "#low-pri"
+      ],
+      "catalog_github": "https://github.com/lbjlaq/Antigravity-Manager",
+      "posture": [
+        "skip_install"
+      ],
+      "evidence": [
+        "notes_doc:docs/ops/antigravity-catalog-posture.md"
+      ],
+      "tier_ceiling": "I0",
+      "uses": "Account-pool proxy. LiteLLM plus keys is the default.",
+      "features": [
+        "account pool"
+      ],
+      "potential": "low",
+      "next_gate": "Stay skip-install.",
+      "handoff_by": "llm"
     },
     "adr-tools": {
       "integration_stage": "I1",
@@ -41,7 +99,27 @@
       ],
       "non_goals": [
         "bootstrap hard dependency"
-      ]
+      ],
+      "catalog_tier": "B",
+      "catalog_overall": "78",
+      "catalog_tags": [
+        "#pipeline",
+        "#local-first",
+        "#I1"
+      ],
+      "catalog_github": "https://github.com/npryce/adr-tools",
+      "posture": [],
+      "evidence": [
+        "notes_doc:docs/ops/adr-tools-companion.md"
+      ],
+      "tier_ceiling": "I1",
+      "uses": "Optional CLI beside the ADR skill.",
+      "features": [
+        "adr files"
+      ],
+      "potential": "low",
+      "next_gate": "Stay on the companion doc unless the skill stops being enough.",
+      "handoff_by": "llm"
     },
     "colibri": {
       "integration_stage": "I1",
@@ -51,8 +129,35 @@
         24
       ],
       "non_goals": [
-        "weights in git"
-      ]
+        "weights in git",
+        "weights in the repo"
+      ],
+      "catalog_tier": "A",
+      "catalog_overall": "86",
+      "catalog_tags": [
+        "#inference-engine",
+        "#moe",
+        "#cpu-only",
+        "#low-ram",
+        "#openai-shim",
+        "#local-first"
+      ],
+      "catalog_github": "https://github.com/JustVugg/colibri",
+      "posture": [
+        "no_weights"
+      ],
+      "evidence": [
+        "notes_doc:docs/ops/local-model-storage-and-eval.md"
+      ],
+      "tier_ceiling": "I1",
+      "uses": "Low-RAM MoE server to try later inside the cage.",
+      "features": [
+        "cpu moe",
+        "openai shim"
+      ],
+      "potential": "medium",
+      "next_gate": "T-0016: serve plus LiteLLM in the cage, or stay I1.",
+      "handoff_by": "llm"
     },
     "MUE-X": {
       "integration_stage": "I1",
@@ -60,6 +165,36 @@
       "notes_doc": "docs/ops/mue-x-patterns.md",
       "issues": [
         28
+      ],
+      "catalog_tier": "A",
+      "catalog_overall": "81",
+      "catalog_tags": [
+        "#agentic",
+        "#self-evolving",
+        "#ast-mutation",
+        "#autonomous",
+        "#memory",
+        "#mcp-compatible",
+        "#self-modifying",
+        "#local-first"
+      ],
+      "catalog_github": "https://github.com/KorroAi/mue-x",
+      "posture": [],
+      "evidence": [
+        "notes_doc:docs/ops/mue-x-patterns.md"
+      ],
+      "tier_ceiling": "I1",
+      "uses": "Self-rewriting agent. Interesting pattern, unsafe as a runtime.",
+      "features": [
+        "ast mutation",
+        "memory layers"
+      ],
+      "potential": "ambiguous",
+      "next_gate": "Stay I1 until a mutation-safety note exists. Do not pin for adoption yet.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "unattended self-modify",
+        "primary runtime"
       ]
     },
     "Laguna S 2.1": {
@@ -69,6 +204,35 @@
       "issues": [
         13,
         25
+      ],
+      "catalog_tier": "S",
+      "catalog_overall": "91",
+      "catalog_tags": [
+        "#moe",
+        "#agentic-coding",
+        "#open-weights",
+        "#1m-context",
+        "#local-first",
+        "#gguf",
+        "#mlx"
+      ],
+      "catalog_github": "https://huggingface.co/poolside/Laguna-S-2.1",
+      "posture": [],
+      "evidence": [
+        "notes_doc:docs/ops/laguna-local-dod.md"
+      ],
+      "tier_ceiling": "I3",
+      "uses": "Large local coding weights, when a machine can hold them.",
+      "features": [
+        "moe",
+        "gguf"
+      ],
+      "potential": "medium",
+      "next_gate": "Stay I1 until one GGUF smoke runs on a real machine.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "weights in the repo",
+        "default model"
       ]
     },
     "asm (agent-skill-manager)": {
@@ -76,6 +240,30 @@
       "intent": "smoke_when_node",
       "issues": [
         26
+      ],
+      "catalog_tier": "A",
+      "catalog_overall": "91",
+      "catalog_tags": [
+        "#skills",
+        "#cli",
+        "#cross-agent",
+        "#security-audit",
+        "#local-first",
+        "#npm"
+      ],
+      "catalog_github": "https://github.com/luongnv89/asm",
+      "posture": [],
+      "evidence": [],
+      "tier_ceiling": "I1",
+      "uses": "Cross-agent skill installer. We already install Grok skills ourselves.",
+      "features": [
+        "skill audit"
+      ],
+      "potential": "medium",
+      "next_gate": "Stay I1 unless skill distribution across CLIs becomes a real gap.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "replace the Grok skill installer"
       ]
     },
     "claude-codex-settings": {
@@ -84,6 +272,33 @@
       "notes_doc": "docs/ops/claude-codex-quality-hooks.md",
       "issues": [
         27
+      ],
+      "catalog_tier": "A",
+      "catalog_overall": "88",
+      "catalog_tags": [
+        "#configs",
+        "#hooks",
+        "#plugins",
+        "#claude-code",
+        "#codex",
+        "#cursor",
+        "#quality"
+      ],
+      "catalog_github": "https://github.com/fcakyon/claude-codex-settings",
+      "posture": [],
+      "evidence": [
+        "notes_doc:docs/ops/claude-codex-quality-hooks.md"
+      ],
+      "tier_ceiling": "I1",
+      "uses": "Hook and plugin pack for other CLIs.",
+      "features": [
+        "hooks"
+      ],
+      "potential": "low",
+      "next_gate": "Extract a hook only when a Grok policy needs it.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "vendor the pack"
       ]
     },
     "Pipecat": {
@@ -108,235 +323,1194 @@
       "notes_doc": "docs/ops/agenc-reeval-stance.md",
       "issues": [
         14
+      ],
+      "catalog_tier": "B",
+      "catalog_overall": "78",
+      "catalog_tags": [
+        "#coding-agent",
+        "#terminal",
+        "#daemon",
+        "#mcp-compatible",
+        "#watch"
+      ],
+      "catalog_github": "https://github.com/tetsuo-ai/agenc-core",
+      "posture": [
+        "reference_only"
+      ],
+      "evidence": [
+        "path:bootstrap/agenc",
+        "notes_doc:docs/ops/agenc-reeval-stance.md"
+      ],
+      "tier_ceiling": "I0",
+      "uses": "Watch a daemon coding agent. Do not run it as the operator.",
+      "features": [
+        "terminal daemon"
+      ],
+      "potential": "low",
+      "next_gate": "Re-open only if a scored gap beats Grok plus cage.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "primary runtime",
+        "default remote login"
       ]
     },
     "Grok CLI bootstrap": {
       "integration_stage": "I3",
       "intent": "first_party",
       "tier": "S",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "S",
+      "catalog_overall": "94",
+      "catalog_tags": [
+        "#grok-cli",
+        "#mcp-compatible",
+        "#code-memory",
+        "#pipeline",
+        "#local-first"
+      ],
+      "catalog_github": "this repo (`bootstrap/grok-cli/`)",
+      "posture": [],
+      "evidence": [
+        "make:smoke-grok-skills",
+        "path:bootstrap/grok-cli"
+      ],
+      "tier_ceiling": "I3",
+      "uses": "Operator env, skills install, cage Grok sessions.",
+      "features": [
+        "skills",
+        "mcp",
+        "cage path"
+      ],
+      "potential": "high",
+      "next_gate": "Keep smoke-grok-skills and cage-grok green.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "replace with AgenC"
+      ]
     },
     "project-process bootstrap": {
       "integration_stage": "I3",
       "intent": "first_party",
       "tier": "S",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "S",
+      "catalog_overall": "92",
+      "catalog_tags": [
+        "#grok-cli",
+        "#pipeline",
+        "#local-first",
+        "#agentic"
+      ],
+      "catalog_github": "this repo (`bootstrap/project-process/`)",
+      "posture": [],
+      "evidence": [
+        "path:bootstrap/project-process"
+      ],
+      "tier_ceiling": "I3",
+      "uses": "Scaffold DESIGN, ADR, TODO, open questions, AGENTS into another repo.",
+      "features": [
+        "init.sh",
+        "process docs"
+      ],
+      "potential": "high",
+      "next_gate": "Keep init.sh as the process kit.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "heavy SaaS",
+        "adr-tools as a hard dependency"
+      ]
     },
     "agent-cage (PNNL)": {
       "integration_stage": "I3",
       "intent": "primary_harness",
       "tier": "S",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "S",
+      "catalog_overall": "92",
+      "catalog_tags": [
+        "#docker",
+        "#sandbox",
+        "#mcp-compatible",
+        "#harness",
+        "#pipeline",
+        "#local-first"
+      ],
+      "catalog_github": "https://github.com/pnnl/agent-cage",
+      "posture": [],
+      "evidence": [
+        "make:cage-grok",
+        "path:harness/agent-cage"
+      ],
+      "tier_ceiling": "I3",
+      "uses": "Isolated lab for Grok, filesystem MCP, and policy smokes.",
+      "features": [
+        "docker sandbox",
+        "filesystem MCP"
+      ],
+      "potential": "high",
+      "next_gate": "Keep cage-grok smokes. Host and cage stay two trees.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "product surface",
+        "sell the cage"
+      ]
     },
     "codebase-memory-mcp": {
       "integration_stage": "I2",
       "intent": "smoke_path",
       "tier": "S",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "S",
+      "catalog_overall": "91",
+      "catalog_tags": [
+        "#mcp-compatible",
+        "#code-memory",
+        "#local-first",
+        "#rag"
+      ],
+      "catalog_github": "https://github.com/DeusData/codebase-memory-mcp",
+      "posture": [],
+      "evidence": [
+        "make:smoke-codebase-memory",
+        "toolset"
+      ],
+      "tier_ceiling": "I3",
+      "uses": "Primary code-graph MCP and the code-graph toolset.",
+      "features": [
+        "mcp",
+        "code graph"
+      ],
+      "potential": "high",
+      "next_gate": "Smoke is the probe. Promote the card to I3 only when that smoke is the operator path of record.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "second primary graph"
+      ]
     },
     "Graphify": {
       "integration_stage": "I0",
       "intent": "watch",
       "tier": "B",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "B",
+      "catalog_overall": "80",
+      "catalog_tags": [
+        "#code-memory",
+        "#graph",
+        "#tree-sitter",
+        "#mcp-compatible",
+        "#local-first"
+      ],
+      "catalog_github": "https://github.com/Graphify-Labs/graphify",
+      "posture": [
+        "not_integrated",
+        "reference_only"
+      ],
+      "evidence": [],
+      "tier_ceiling": "I0",
+      "uses": "Reference tree-sitter graph. Not the code memory we run.",
+      "features": [
+        "tree-sitter edges"
+      ],
+      "potential": "low",
+      "next_gate": "Stay I0 unless a cage smoke beats codebase-memory.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "primary code graph",
+        "install by default"
+      ]
     },
     "LiteLLM": {
       "integration_stage": "I2",
       "intent": "smoke_path",
       "tier": "S",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "S",
+      "catalog_overall": "93",
+      "catalog_tags": [
+        "#litellm-ready",
+        "#openai-shim",
+        "#grok-cli",
+        "#multi-llm",
+        "#proxy"
+      ],
+      "catalog_github": "https://github.com/BerriAI/litellm",
+      "posture": [],
+      "evidence": [
+        "make:smoke-litellm-ollama"
+      ],
+      "tier_ceiling": "I3",
+      "uses": "One OpenAI-compatible proxy for Grok and local models.",
+      "features": [
+        "proxy",
+        "fallbacks"
+      ],
+      "potential": "high",
+      "next_gate": "Keep smoke-litellm-ollama as a probe, not a required product lever.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "vendor the server into the repo"
+      ]
     },
     "Ollama": {
       "integration_stage": "I2",
       "intent": "host_runtime",
       "tier": "S",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "S",
+      "catalog_overall": "92",
+      "catalog_tags": [
+        "#local-first",
+        "#consumer-hw",
+        "#openai-shim",
+        "#tool-calling",
+        "#apple-silicon",
+        "#nvidia"
+      ],
+      "catalog_github": "https://github.com/ollama/ollama",
+      "posture": [],
+      "evidence": [
+        "make:smoke-litellm-ollama"
+      ],
+      "tier_ceiling": "I3",
+      "uses": "Local OpenAI-compatible server. Named pfy start ollama checks health and the default model.",
+      "features": [
+        "openai shim",
+        "tool calling"
+      ],
+      "potential": "high",
+      "next_gate": "Stay a probe until product stage requires the smoke.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "preferred over FreeToken"
+      ]
     },
     "write-guard-mcp": {
       "integration_stage": "I3",
       "intent": "first_party",
       "tier": "S",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "S",
+      "catalog_overall": "90",
+      "catalog_tags": [
+        "#mcp-compatible",
+        "#security",
+        "#filesystem",
+        "#audit",
+        "#local-first"
+      ],
+      "catalog_github": "this repo (`harness/write-guard-mcp/`)",
+      "posture": [],
+      "evidence": [
+        "make:smoke-write-guard",
+        "path:harness/write-guard-mcp"
+      ],
+      "tier_ceiling": "I3",
+      "uses": "First-party write mediation above the cage mount.",
+      "features": [
+        "audit",
+        "enforce"
+      ],
+      "potential": "high",
+      "next_gate": "Keep smoke-write-guard. mcp-host wiring stays parked.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "replace cage mounts",
+        "mcp-host wiring in this pass"
+      ]
     },
     "Continue.dev": {
       "integration_stage": "I1",
       "intent": "catalog_default",
       "tier": "S",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "S",
+      "catalog_overall": "90",
+      "catalog_tags": [
+        "#ide-integration",
+        "#coding-agent",
+        "#local-first",
+        "#tool-calling",
+        "#vs"
+      ],
+      "catalog_github": "https://github.com/continuedev/continue",
+      "posture": [],
+      "evidence": [
+        "path:bootstrap/continue"
+      ],
+      "tier_ceiling": "I3",
+      "uses": "IDE recipe pointed at the local OpenAI base. Not a CLI we exec.",
+      "features": [
+        "ide",
+        "autocomplete"
+      ],
+      "potential": "medium",
+      "next_gate": "Operator copies the generated config. I3 only if someone actually uses it.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "exec the IDE",
+        "vendor Continue"
+      ]
     },
     "Hermes Agent (feedback loops)": {
       "integration_stage": "I1",
       "intent": "catalog_default",
       "tier": "A",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "A",
+      "catalog_overall": "89",
+      "catalog_tags": [
+        "#agentic",
+        "#self-healing",
+        "#skills",
+        "#memory",
+        "#feedback-loop"
+      ],
+      "catalog_github": "https://github.com/NousResearch/hermes-agent",
+      "posture": [
+        "pattern_only"
+      ],
+      "evidence": [
+        "path:bootstrap/grok-cli/skills/hermes-feedback"
+      ],
+      "tier_ceiling": "I1",
+      "uses": "Feedback-loop pattern ported as a skill. Not the Hermes runtime.",
+      "features": [
+        "skill pattern"
+      ],
+      "potential": "medium",
+      "next_gate": "Stay the skill. Do not install the daemon for this card.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "Hermes as primary runtime"
+      ]
     },
     "Multica": {
       "integration_stage": "I1",
       "intent": "catalog_default",
       "tier": "A",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "A",
+      "catalog_overall": "88",
+      "catalog_tags": [
+        "#multi-agent",
+        "#orchestration",
+        "#workflow",
+        "#skills",
+        "#self-host",
+        "#docker"
+      ],
+      "catalog_github": "https://github.com/multica-ai/multica",
+      "posture": [],
+      "evidence": [],
+      "tier_ceiling": "I1",
+      "uses": "Multi-agent board. Not our orchestrator.",
+      "features": [
+        "board",
+        "docker"
+      ],
+      "potential": "medium",
+      "next_gate": "Stay I1. Compare patterns only.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "primary orchestrator"
+      ]
     },
     "gstack": {
       "integration_stage": "I1",
       "intent": "catalog_default",
       "tier": "A",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "A",
+      "catalog_overall": "88",
+      "catalog_tags": [
+        "#skills",
+        "#multi-agent",
+        "#roles",
+        "#workflow"
+      ],
+      "catalog_github": "https://github.com/garrytan/gstack",
+      "posture": [
+        "docs_only",
+        "pattern_only"
+      ],
+      "evidence": [],
+      "tier_ceiling": "I1",
+      "uses": "Role patterns already ported in docs. Do not clone the repo.",
+      "features": [
+        "roles"
+      ],
+      "potential": "low",
+      "next_gate": "Stay I1, patterns only.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "clone garrytan/gstack",
+        "raw skill install"
+      ]
     },
     "Auto-Company": {
       "integration_stage": "I1",
       "intent": "catalog_default",
       "tier": "S",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "S",
+      "catalog_overall": "4.7",
+      "catalog_tags": [
+        "#ai-company",
+        "#multi-agent-org",
+        "#consensus-memory",
+        "#persona-roles",
+        "#cycle-autonomy",
+        "#local-first"
+      ],
+      "catalog_github": "https://github.com/MaxMiksa/Auto-Company",
+      "posture": [],
+      "evidence": [],
+      "tier_ceiling": "I3",
+      "uses": "Company-daemon patterns worth extracting. Not a runtime to adopt.",
+      "features": [
+        "personas",
+        "consensus baton",
+        "pre-mortem gate"
+      ],
+      "potential": "medium",
+      "next_gate": "Extract a pattern into a skill, or stay I1.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "company daemon as primary runtime"
+      ]
     },
     "LEANN": {
       "integration_stage": "I1",
       "intent": "catalog_default",
       "tier": "A",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "A",
+      "catalog_overall": "87",
+      "catalog_tags": [
+        "#rag",
+        "#compression",
+        "#local-first",
+        "#embeddings"
+      ],
+      "catalog_github": "https://github.com/StarTrail-org/LEANN",
+      "posture": [],
+      "evidence": [],
+      "tier_ceiling": "I1",
+      "uses": "Compressed RAG. Not our code memory.",
+      "features": [
+        "compressed embeddings"
+      ],
+      "potential": "medium",
+      "next_gate": "Stay I1 until a measured gap versus codebase-memory.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "replace codebase-memory"
+      ]
     },
     "Memvid": {
       "integration_stage": "I1",
       "intent": "catalog_default",
       "tier": "A",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "A",
+      "catalog_overall": "86",
+      "catalog_tags": [
+        "#memory",
+        "#versioning",
+        "#local-first",
+        "#rag"
+      ],
+      "catalog_github": "https://github.com/memvid/memvid",
+      "posture": [],
+      "evidence": [],
+      "tier_ceiling": "I1",
+      "uses": "Video-backed memory. No job in the current operator path.",
+      "features": [
+        "versioned memory"
+      ],
+      "potential": "ambiguous",
+      "next_gate": "Stay I1 until a concrete use is named.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "primary memory"
+      ]
     },
     "llama.cpp (server mode)": {
       "integration_stage": "I1",
       "intent": "catalog_default",
       "tier": "A",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "A",
+      "catalog_overall": "88",
+      "catalog_tags": [
+        "#high-perf",
+        "#quantized",
+        "#gguf",
+        "#openai-shim",
+        "#cpu-gpu"
+      ],
+      "catalog_github": "https://github.com/ggerganov/llama.cpp",
+      "posture": [],
+      "evidence": [],
+      "tier_ceiling": "I1",
+      "uses": "GGUF server already in the pfy up order, after llama-swap and before Ollama.",
+      "features": [
+        "gguf",
+        "openai shim"
+      ],
+      "potential": "high",
+      "next_gate": "Card stays a record of that bring-up. Do not fork the tree.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "preferred over FreeToken"
+      ]
     },
     "repowise": {
       "integration_stage": "I2",
       "intent": "smoke_path",
       "tier": "A",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "A",
+      "catalog_overall": "88",
+      "catalog_tags": [
+        "#context",
+        "#token-efficiency",
+        "#coding-agent",
+        "#local-first"
+      ],
+      "catalog_github": "https://github.com/repowise-dev/repowise",
+      "posture": [],
+      "evidence": [
+        "make:smoke-repowise"
+      ],
+      "tier_ceiling": "I1",
+      "uses": "Context packing probe. Overlaps codebase-memory.",
+      "features": [
+        "token context"
+      ],
+      "potential": "medium",
+      "next_gate": "Keep smoke-repowise as a probe.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "primary code memory"
+      ]
     },
     "eval-harness (pfy)": {
       "integration_stage": "I1",
       "intent": "catalog_default",
       "tier": "A",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "A",
+      "catalog_overall": "89",
+      "catalog_tags": [
+        "#evaluation",
+        "#pipeline",
+        "#local-first",
+        "#litellm-ready"
+      ],
+      "catalog_github": "this repo (`examples/eval-harness/`)",
+      "posture": [],
+      "evidence": [
+        "make:eval-structural",
+        "path:examples/eval-harness"
+      ],
+      "tier_ceiling": "I1",
+      "uses": "First-party structural and integration ladder.",
+      "features": [
+        "eval",
+        "scorers"
+      ],
+      "potential": "high",
+      "next_gate": "Keep make eval-structural green.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "a second eval framework"
+      ]
     },
     "Finn Loop / eval-loop / 8-exits patterns": {
       "integration_stage": "I1",
       "intent": "catalog_default",
       "tier": "A",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "A",
+      "catalog_overall": "91",
+      "catalog_tags": [
+        "#agentic",
+        "#loops",
+        "#evaluation",
+        "#human-in-loop",
+        "#stop-conditions",
+        "#exits"
+      ],
+      "catalog_github": "docs / X Entries 024 \u00b7 027 \u00b7 031 \u00b7 032 \u00b7 **068**",
+      "posture": [],
+      "evidence": [
+        "path:bootstrap/grok-cli/skills/agent-loops",
+        "toolset"
+      ],
+      "tier_ceiling": "I1",
+      "uses": "Exit cards and loop types, already the orchestration toolset.",
+      "features": [
+        "8 exits",
+        "agent-loops skill"
+      ],
+      "potential": "high",
+      "next_gate": "Card can move to I3 when the skill smoke is the record, not before.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "a second loop runtime"
+      ]
     },
     "awesome-hermes-skills": {
       "integration_stage": "I1",
       "intent": "catalog_default",
       "tier": "A",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "A",
+      "catalog_overall": "89",
+      "catalog_tags": [
+        "#skills",
+        "#curated",
+        "#prompt-pack"
+      ],
+      "catalog_github": "https://github.com/ZeroPointRepo/awesome-hermes-skills",
+      "posture": [],
+      "evidence": [],
+      "tier_ceiling": "I1",
+      "uses": "A list of other people's skills.",
+      "features": [
+        "skill index"
+      ],
+      "potential": "low",
+      "next_gate": "Stay I1. Pull a skill only when a gap is named.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "import the whole list"
+      ]
     },
     "destructive_command_guard": {
       "integration_stage": "I1",
       "intent": "catalog_default",
       "tier": "A",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "A",
+      "catalog_overall": "84",
+      "catalog_tags": [
+        "#security",
+        "#guardrail",
+        "#coding-agent"
+      ],
+      "catalog_github": "https://github.com/Dicklesworthstone/destructive_command_guard",
+      "posture": [],
+      "evidence": [],
+      "tier_ceiling": "I1",
+      "uses": "Blocks destructive shell commands. Overlaps write-guard.",
+      "features": [
+        "shell guard"
+      ],
+      "potential": "medium",
+      "next_gate": "Stay I1 unless write-guard's shell coverage is shown to be a hole.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "replace write-guard"
+      ]
     },
     "OpenClaude-Portable": {
       "integration_stage": "I1",
       "intent": "catalog_default",
       "tier": "A",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "A",
+      "catalog_overall": "85",
+      "catalog_tags": [
+        "#coding-agent",
+        "#portable",
+        "#folder-based"
+      ],
+      "catalog_github": "https://github.com/techjarves/OpenClaude-Portable",
+      "posture": [],
+      "evidence": [],
+      "tier_ceiling": "I1",
+      "uses": "A portable Claude folder. We already point at the official installer.",
+      "features": [
+        "portable folder"
+      ],
+      "potential": "low",
+      "next_gate": "Stay I1.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "second Claude install path"
+      ]
     },
     "opencode-mem": {
       "integration_stage": "I1",
       "intent": "catalog_default",
       "tier": "A",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "A",
+      "catalog_overall": "83",
+      "catalog_tags": [
+        "#memory",
+        "#vector",
+        "#coding-agent",
+        "#local-first"
+      ],
+      "catalog_github": "https://github.com/tickernelz/opencode-mem",
+      "posture": [],
+      "evidence": [],
+      "tier_ceiling": "I1",
+      "uses": "Memory plugin for the OpenCode worker.",
+      "features": [
+        "worker memory"
+      ],
+      "potential": "medium",
+      "next_gate": "Stay I1 unless the worker smoke shows a context hole.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "replace codebase-memory"
+      ]
     },
     "Aider": {
       "integration_stage": "I1",
       "intent": "catalog_default",
       "tier": "A",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "A",
+      "catalog_overall": "87",
+      "catalog_tags": [
+        "#terminal",
+        "#git-native",
+        "#coding-agent",
+        "#local-first",
+        "#headless"
+      ],
+      "catalog_github": "https://github.com/paul-gauthier/aider",
+      "posture": [],
+      "evidence": [],
+      "tier_ceiling": "I1",
+      "uses": "Git-native terminal editor. Overlaps OpenCode and Grok.",
+      "features": [
+        "git edits",
+        "headless"
+      ],
+      "potential": "medium",
+      "next_gate": "Stay I1 unless headless git edit is a gap the current CLIs miss.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "second primary coding CLI"
+      ]
     },
     "DSPy": {
       "integration_stage": "I1",
       "intent": "catalog_default",
       "tier": "A",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "A",
+      "catalog_overall": "85",
+      "catalog_tags": [
+        "#agentic",
+        "#optimizer",
+        "#pipeline",
+        "#litellm-ready",
+        "#reasoning"
+      ],
+      "catalog_github": "https://github.com/stanfordnlp/dspy",
+      "posture": [],
+      "evidence": [],
+      "tier_ceiling": "I1",
+      "uses": "Optimize prompts when an eval shows a reliability hole.",
+      "features": [
+        "optimizers",
+        "pipelines"
+      ],
+      "potential": "medium",
+      "next_gate": "One eval task, or stay I1.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "product runtime"
+      ]
     },
     "MLX + MLX-LM": {
       "integration_stage": "I1",
       "intent": "catalog_default",
       "tier": "A",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "A",
+      "catalog_overall": "82",
+      "catalog_tags": [
+        "#apple-silicon",
+        "#high-perf",
+        "#quantized",
+        "#local-first"
+      ],
+      "catalog_github": "https://github.com/ml-explore/mlx (mlx-lm)",
+      "posture": [],
+      "evidence": [],
+      "tier_ceiling": "I1",
+      "uses": "Apple Silicon server. This lab is Linux.",
+      "features": [
+        "apple silicon",
+        "quantized"
+      ],
+      "potential": "medium",
+      "next_gate": "Stay I1 on this machine.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "linux default runtime"
+      ]
     },
     "LangGraph (LangChain)": {
       "integration_stage": "I1",
       "intent": "catalog_default",
       "tier": "A",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "A",
+      "catalog_overall": "82",
+      "catalog_tags": [
+        "#agentic",
+        "#graph",
+        "#orchestration",
+        "#tool-calling",
+        "#rag"
+      ],
+      "catalog_github": "https://github.com/langchain-ai/langgraph",
+      "posture": [],
+      "evidence": [],
+      "tier_ceiling": "I1",
+      "uses": "Graph orchestration. Our loops already cover the operator path.",
+      "features": [
+        "stateful graphs"
+      ],
+      "potential": "low",
+      "next_gate": "Stay I1.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "orchestration runtime"
+      ]
     },
     "Open WebUI": {
       "integration_stage": "I1",
       "intent": "catalog_default",
       "tier": "A",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "A",
+      "catalog_overall": "82",
+      "catalog_tags": [
+        "#ui",
+        "#chat",
+        "#local-first",
+        "#docker",
+        "#multi-model"
+      ],
+      "catalog_github": "https://github.com/open-webui/open-webui",
+      "posture": [],
+      "evidence": [],
+      "tier_ceiling": "I1",
+      "uses": "Chat UI for local models. The operator window is the product UI.",
+      "features": [
+        "chat ui",
+        "docker"
+      ],
+      "potential": "low",
+      "next_gate": "Stay I1.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "product UI"
+      ]
     },
     "Chroma (or LanceDB)": {
       "integration_stage": "I0",
       "intent": "watch",
       "tier": "B",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "B",
+      "catalog_overall": "78",
+      "catalog_tags": [
+        "#rag",
+        "#vector",
+        "#code-memory",
+        "#local-first",
+        "#embeddings"
+      ],
+      "catalog_github": "https://github.com/chroma-core/chroma",
+      "posture": [],
+      "evidence": [],
+      "tier_ceiling": "I1",
+      "uses": "Vector store. Code memory is already chosen.",
+      "features": [
+        "embeddings"
+      ],
+      "potential": "low",
+      "next_gate": "Stay I0.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "second memory store"
+      ]
     },
     "ponytail (skills pack)": {
       "integration_stage": "I1",
       "intent": "catalog_default",
       "tier": "A",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "A",
+      "catalog_overall": "86",
+      "catalog_tags": [
+        "#terminal",
+        "#coding-agent",
+        "#local-first",
+        "#grok-cli"
+      ],
+      "catalog_github": "https://github.com/DietrichGebert/ponytail",
+      "posture": [],
+      "evidence": [
+        "path:bootstrap/grok-cli/skills-external/ponytail"
+      ],
+      "tier_ceiling": "I1",
+      "uses": "YAGNI skill pack already under skills-external.",
+      "features": [
+        "skills"
+      ],
+      "potential": "high",
+      "next_gate": "I3 only if smoke-grok-skills asserts this pack loads.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "product runtime"
+      ]
     },
     "karpathy-guidelines": {
       "integration_stage": "I1",
       "intent": "catalog_default",
       "tier": "A",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "A",
+      "catalog_overall": "84",
+      "catalog_tags": [
+        "#coding-agent",
+        "#grok-cli",
+        "#local-first"
+      ],
+      "catalog_github": "https://github.com/forrestchang/andrej-karpathy-skills",
+      "posture": [],
+      "evidence": [
+        "path:bootstrap/grok-cli/skills/karpathy-guidelines"
+      ],
+      "tier_ceiling": "I1",
+      "uses": "Single coding-behavior skill already in the skill tree.",
+      "features": [
+        "skills"
+      ],
+      "potential": "high",
+      "next_gate": "Same smoke gate as the other first-party skills.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "product runtime"
+      ]
     },
     "mattpocock/skills": {
       "integration_stage": "I1",
       "intent": "catalog_default",
       "tier": "A",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "A",
+      "catalog_overall": "87",
+      "catalog_tags": [
+        "#skills",
+        "#planning",
+        "#tdd",
+        "#review",
+        "#composable"
+      ],
+      "catalog_github": "https://github.com/mattpocock/skills",
+      "posture": [],
+      "evidence": [
+        "path:bootstrap/grok-cli/skills-external/mattpocock"
+      ],
+      "tier_ceiling": "I1",
+      "uses": "Planning and review skills already on the skill path.",
+      "features": [
+        "to-spec",
+        "tdd",
+        "review"
+      ],
+      "potential": "high",
+      "next_gate": "T-0076 wires the checklists into structural eval, or they stay skills.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "product runtime"
+      ]
     },
     "marketing-skills (marketing-council)": {
       "integration_stage": "I1",
       "intent": "catalog_default",
       "tier": "A",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "A",
+      "catalog_overall": "85",
+      "catalog_tags": [
+        "#skills",
+        "#multi-agent",
+        "#council",
+        "#prompt-pack"
+      ],
+      "catalog_github": "https://github.com/coreyhaines31/marketingskills",
+      "posture": [],
+      "evidence": [
+        "path:bootstrap/grok-cli/skills/marketing-council"
+      ],
+      "tier_ceiling": "I1",
+      "uses": "First-party marketing council skill.",
+      "features": [
+        "council prompts"
+      ],
+      "potential": "medium",
+      "next_gate": "Stay a skill.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "product runtime"
+      ]
     },
     "Jamon Holmgren agentic setup": {
       "integration_stage": "I1",
       "intent": "catalog_default",
       "tier": "A",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "A",
+      "catalog_overall": "81",
+      "catalog_tags": [
+        "#workflow",
+        "#harness",
+        "#agents-md",
+        "#process"
+      ],
+      "catalog_github": "https://x.com/i/status/2076001786700394610",
+      "posture": [],
+      "evidence": [],
+      "tier_ceiling": "I1",
+      "uses": "One public workflow post. Process kit already covers AGENTS.md.",
+      "features": [
+        "workflow notes"
+      ],
+      "potential": "low",
+      "next_gate": "Stay I1.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "copy the whole setup"
+      ]
     },
     "Ruben Hassid context/token hacks": {
       "integration_stage": "I0",
       "intent": "watch",
       "tier": "B",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "B",
+      "catalog_overall": "77",
+      "catalog_tags": [
+        "#token-efficiency",
+        "#prompt",
+        "#workflow"
+      ],
+      "catalog_github": "https://x.com/i/status/2075807299638014212",
+      "posture": [],
+      "evidence": [],
+      "tier_ceiling": "I1",
+      "uses": "Token-saving prompts. Not a tool we run.",
+      "features": [
+        "prompt notes"
+      ],
+      "potential": "low",
+      "next_gate": "Stay I0.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "runtime dependency"
+      ]
     },
     "Bumblebee": {
       "integration_stage": "I1",
       "intent": "catalog_default",
       "tier": "A",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "A",
+      "catalog_overall": "89",
+      "catalog_tags": [
+        "#mcp-compatible",
+        "#security",
+        "#supply-chain",
+        "#local-first",
+        "#go"
+      ],
+      "catalog_github": "https://github.com/perplexityai/bumblebee",
+      "posture": [],
+      "evidence": [],
+      "tier_ceiling": "I1",
+      "uses": "Read-only scanner for packages and MCP configs.",
+      "features": [
+        "supply chain scan"
+      ],
+      "potential": "medium",
+      "next_gate": "One cage probe next to write-guard, or stay I1.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "replace write-guard"
+      ]
     },
     "Hyperframes": {
       "integration_stage": "I1",
       "intent": "catalog_default",
       "tier": "S",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "S",
+      "catalog_overall": "90",
+      "catalog_tags": [
+        "#skills",
+        "#multimodal",
+        "#video",
+        "#agent-native",
+        "#html"
+      ],
+      "catalog_github": "https://github.com/heygen-com/hyperframes",
+      "posture": [],
+      "evidence": [],
+      "tier_ceiling": "I3",
+      "uses": "HTML-to-video for agents. Not a product surface here.",
+      "features": [
+        "html to mp4"
+      ],
+      "potential": "medium",
+      "next_gate": "Stay I1 unless a doc or demo needs rendered video.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "product video pipeline"
+      ]
     },
     "Camofox Browser": {
       "integration_stage": "I1",
       "intent": "catalog_default",
       "tier": "A",
-      "auto": true
+      "auto": true,
+      "catalog_tier": "A",
+      "catalog_overall": "87",
+      "catalog_tags": [
+        "#browser",
+        "#anti-detection",
+        "#mcp-compatible",
+        "#agent-tool",
+        "#local-first"
+      ],
+      "catalog_github": "https://github.com/jo-inc/camofox-browser",
+      "posture": [],
+      "evidence": [],
+      "tier_ceiling": "I1",
+      "uses": "Stealth browser for agents. Browser automation is not core.",
+      "features": [
+        "fingerprint browser"
+      ],
+      "potential": "low",
+      "next_gate": "Stay I1.",
+      "handoff_by": "llm",
+      "non_goals": [
+        "browser-use as core"
+      ]
     },
     "claude-code-unified-agents": {
       "integration_stage": "I1",
@@ -362,13 +1536,60 @@
       "integration_stage": "I1",
       "intent": "catalog_default",
       "github": "https://github.com/ggerganov/llama.cpp",
-      "next_gate": "fill uses, features, potential, non-goals"
+      "next_gate": "Stay I1. Use upstream llama-server unless a speed smoke needs the patch.",
+      "catalog_tier": "A",
+      "catalog_overall": "89",
+      "catalog_tags": [
+        "#high-perf",
+        "#speculative-decoding",
+        "#local-first",
+        "#gguf"
+      ],
+      "catalog_github": "https://github.com/ggerganov/llama.cpp",
+      "posture": [],
+      "evidence": [],
+      "tier_ceiling": "I1",
+      "uses": "Speculative-decoding patch on llama.cpp.",
+      "features": [
+        "ngram draft"
+      ],
+      "potential": "medium",
+      "handoff_by": "llm",
+      "non_goals": [
+        "fork llama.cpp into this repo"
+      ]
     },
     "kanbots": {
       "integration_stage": "I1",
       "intent": "catalog_default",
       "github": "https://github.com/leodavinci1/kanbots",
-      "next_gate": "fill uses, features, potential, non-goals"
+      "next_gate": "Stage 0 already passed via npx. Stay I1 beside our loops.",
+      "catalog_tier": "A",
+      "catalog_overall": "81",
+      "catalog_tags": [
+        "#multi-agent",
+        "#kanban",
+        "#worktree",
+        "#mcp-compatible",
+        "#parallel",
+        "#opencode",
+        "#local-first",
+        "#ui"
+      ],
+      "catalog_github": "https://github.com/leodavinci1/kanbots",
+      "posture": [],
+      "evidence": [],
+      "tier_ceiling": "I1",
+      "uses": "Kanban that fans out to many coding CLIs in worktrees.",
+      "features": [
+        "kanban",
+        "worktrees"
+      ],
+      "potential": "medium",
+      "handoff_by": "llm",
+      "non_goals": [
+        "primary dispatcher"
+      ]
     },
     "multi-agent-generator": {
       "integration_stage": "I0",
@@ -376,11 +1597,38 @@
       "github": "https://github.com/aakriti1318/multi-agent-generator",
       "notes_doc": "sources/entries/079-multi-agent-generator.md",
       "non_goals": [
-        "pipeline hard dependency"
+        "pipeline hard dependency",
+        "pipeline dependency"
       ],
-      "next_gate": "stay I0 unless a smoke shows a gap the current orchestrators do not fill"
+      "next_gate": "Stay I0.",
+      "catalog_tier": "B",
+      "catalog_overall": "79",
+      "catalog_tags": [
+        "#agentic",
+        "#orchestration",
+        "#litellm-ready",
+        "#codegen",
+        "#crewai",
+        "#langgraph",
+        "#local-first"
+      ],
+      "catalog_github": "https://github.com/aakriti1318/multi-agent-generator",
+      "posture": [
+        "i0_explicit"
+      ],
+      "evidence": [
+        "notes_doc:sources/entries/079-multi-agent-generator.md"
+      ],
+      "tier_ceiling": "I0",
+      "uses": "Scaffolds CrewAI or LangGraph teams. The note already says I0.",
+      "features": [
+        "team scaffold"
+      ],
+      "potential": "low",
+      "handoff_by": "llm"
     }
   },
   "probe_path": "tools/_probe/",
-  "coverage": "54 tools registered"
+  "coverage": "54 tools registered",
+  "handoff": "data/catalog_stage_handoff.json"
 }

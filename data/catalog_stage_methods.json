@@ -1,0 +1,758 @@
+{
+  "deterministic": {
+    "attributes": [
+      "catalog_tier",
+      "catalog_scores",
+      "catalog_tags",
+      "catalog_github",
+      "posture",
+      "evidence",
+      "tier_ceiling"
+    ],
+    "how": [
+      "Parse the TOOLS.md table cell (tier, scores, tags, github).",
+      "Resolve the bold name plus parenthetical onto an existing stage key.",
+      "Regex the notes for not-integrated, reference-only, skip-install, I0, I1-stay, docs-only, pattern-only.",
+      "Tier ceiling: those phrases cap I0 or I1; otherwise S\u2192I3, A/B\u2192I1, C\u2192I0. Ceiling is not a promotion.",
+      "Evidence: known Makefile target, known repo path, notes_doc file, pin, toolset catalog_tool."
+    ]
+  },
+  "llm": {
+    "attributes": [
+      "uses",
+      "features",
+      "potential",
+      "non_goals",
+      "next_gate"
+    ],
+    "how": "Judged once from the catalog note and ADRs. Stored in catalog_stage_handoff.json. Re-run does not invent a new potential."
+  },
+  "per_tool": [
+    {
+      "name": "Grok CLI bootstrap",
+      "posture": [],
+      "evidence": [
+        "make:smoke-grok-skills",
+        "path:bootstrap/grok-cli"
+      ],
+      "ceiling": "I3",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "project-process bootstrap",
+      "posture": [],
+      "evidence": [
+        "path:bootstrap/project-process"
+      ],
+      "ceiling": "I3",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "AgenC",
+      "posture": [
+        "reference_only"
+      ],
+      "evidence": [
+        "path:bootstrap/agenc",
+        "notes_doc:docs/ops/agenc-reeval-stance.md"
+      ],
+      "ceiling": "I0",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "agent-cage (PNNL)",
+      "posture": [],
+      "evidence": [
+        "make:cage-grok",
+        "path:harness/agent-cage"
+      ],
+      "ceiling": "I3",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "adr-tools",
+      "posture": [],
+      "evidence": [
+        "notes_doc:docs/ops/adr-tools-companion.md"
+      ],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "codebase-memory-mcp",
+      "posture": [],
+      "evidence": [
+        "make:smoke-codebase-memory",
+        "toolset"
+      ],
+      "ceiling": "I3",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "Graphify",
+      "posture": [
+        "not_integrated",
+        "reference_only"
+      ],
+      "evidence": [],
+      "ceiling": "I0",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "LiteLLM",
+      "posture": [],
+      "evidence": [
+        "make:smoke-litellm-ollama"
+      ],
+      "ceiling": "I3",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "Ollama",
+      "posture": [],
+      "evidence": [
+        "make:smoke-litellm-ollama"
+      ],
+      "ceiling": "I3",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "Laguna S 2.1",
+      "posture": [],
+      "evidence": [
+        "notes_doc:docs/ops/laguna-local-dod.md"
+      ],
+      "ceiling": "I3",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "colibri",
+      "posture": [
+        "no_weights"
+      ],
+      "evidence": [
+        "notes_doc:docs/ops/local-model-storage-and-eval.md"
+      ],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "Continue.dev",
+      "posture": [],
+      "evidence": [
+        "path:bootstrap/continue"
+      ],
+      "ceiling": "I3",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "Aider",
+      "posture": [],
+      "evidence": [],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "DSPy",
+      "posture": [],
+      "evidence": [],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "llama.cpp (server mode)",
+      "posture": [],
+      "evidence": [],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "MLX + MLX-LM",
+      "posture": [],
+      "evidence": [],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "LangGraph (LangChain)",
+      "posture": [],
+      "evidence": [],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "Open WebUI",
+      "posture": [],
+      "evidence": [],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "Chroma (or LanceDB)",
+      "posture": [],
+      "evidence": [],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "Atomic Task Graph (ATG)",
+      "posture": [
+        "i1_stay",
+        "docs_only"
+      ],
+      "evidence": [
+        "notes_doc:docs/ops/atg-coupling.md"
+      ],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "ponytail (skills pack)",
+      "posture": [],
+      "evidence": [
+        "path:bootstrap/grok-cli/skills-external/ponytail"
+      ],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "karpathy-guidelines",
+      "posture": [],
+      "evidence": [
+        "path:bootstrap/grok-cli/skills/karpathy-guidelines"
+      ],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "repowise",
+      "posture": [],
+      "evidence": [
+        "make:smoke-repowise"
+      ],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "gstack",
+      "posture": [
+        "docs_only",
+        "pattern_only"
+      ],
+      "evidence": [],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "Multica",
+      "posture": [],
+      "evidence": [],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "mattpocock/skills",
+      "posture": [],
+      "evidence": [
+        "path:bootstrap/grok-cli/skills-external/mattpocock"
+      ],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "marketing-skills (marketing-council)",
+      "posture": [],
+      "evidence": [
+        "path:bootstrap/grok-cli/skills/marketing-council"
+      ],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "Antigravity-Manager",
+      "posture": [
+        "skip_install"
+      ],
+      "evidence": [
+        "notes_doc:docs/ops/antigravity-catalog-posture.md"
+      ],
+      "ceiling": "I0",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "Jamon Holmgren agentic setup",
+      "posture": [],
+      "evidence": [],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "Ruben Hassid context/token hacks",
+      "posture": [],
+      "evidence": [],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "eval-harness (pfy)",
+      "posture": [],
+      "evidence": [
+        "make:eval-structural",
+        "path:examples/eval-harness"
+      ],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "write-guard-mcp",
+      "posture": [],
+      "evidence": [
+        "make:smoke-write-guard",
+        "path:harness/write-guard-mcp"
+      ],
+      "ceiling": "I3",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "Hermes Agent (feedback loops)",
+      "posture": [
+        "pattern_only"
+      ],
+      "evidence": [
+        "path:bootstrap/grok-cli/skills/hermes-feedback"
+      ],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "awesome-hermes-skills",
+      "posture": [],
+      "evidence": [],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "LEANN",
+      "posture": [],
+      "evidence": [],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "Memvid",
+      "posture": [],
+      "evidence": [],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "opencode-mem",
+      "posture": [],
+      "evidence": [],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "llama.cpp ngram-mod",
+      "posture": [],
+      "evidence": [],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "Finn Loop / eval-loop / 8-exits patterns",
+      "posture": [],
+      "evidence": [
+        "path:bootstrap/grok-cli/skills/agent-loops",
+        "toolset"
+      ],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "destructive_command_guard",
+      "posture": [],
+      "evidence": [],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "OpenClaude-Portable",
+      "posture": [],
+      "evidence": [],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "MUE-X",
+      "posture": [],
+      "evidence": [
+        "notes_doc:docs/ops/mue-x-patterns.md"
+      ],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "Bumblebee",
+      "posture": [],
+      "evidence": [],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "Hyperframes",
+      "posture": [],
+      "evidence": [],
+      "ceiling": "I3",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "Camofox Browser",
+      "posture": [],
+      "evidence": [],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "asm (agent-skill-manager)",
+      "posture": [],
+      "evidence": [],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "claude-codex-settings",
+      "posture": [],
+      "evidence": [
+        "notes_doc:docs/ops/claude-codex-quality-hooks.md"
+      ],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "kanbots",
+      "posture": [],
+      "evidence": [],
+      "ceiling": "I1",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "multi-agent-generator",
+      "posture": [
+        "i0_explicit"
+      ],
+      "evidence": [
+        "notes_doc:sources/entries/079-multi-agent-generator.md"
+      ],
+      "ceiling": "I0",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    },
+    {
+      "name": "Auto-Company",
+      "posture": [],
+      "evidence": [],
+      "ceiling": "I3",
+      "llm": [
+        "uses",
+        "features",
+        "potential",
+        "non_goals",
+        "next_gate"
+      ]
+    }
+  ]
+}

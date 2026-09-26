@@ -1,0 +1,589 @@
+{
+  "Grok CLI bootstrap": {
+    "potential": "high",
+    "uses": "Operator env, skills install, cage Grok sessions.",
+    "features": [
+      "skills",
+      "mcp",
+      "cage path"
+    ],
+    "non_goals": [
+      "replace with AgenC"
+    ],
+    "next_gate": "Keep smoke-grok-skills and cage-grok green."
+  },
+  "project-process bootstrap": {
+    "potential": "high",
+    "uses": "Scaffold DESIGN, ADR, TODO, open questions, AGENTS into another repo.",
+    "features": [
+      "init.sh",
+      "process docs"
+    ],
+    "non_goals": [
+      "heavy SaaS",
+      "adr-tools as a hard dependency"
+    ],
+    "next_gate": "Keep init.sh as the process kit."
+  },
+  "AgenC": {
+    "potential": "low",
+    "uses": "Watch a daemon coding agent. Do not run it as the operator.",
+    "features": [
+      "terminal daemon"
+    ],
+    "non_goals": [
+      "primary runtime",
+      "default remote login"
+    ],
+    "next_gate": "Re-open only if a scored gap beats Grok plus cage."
+  },
+  "agent-cage (PNNL)": {
+    "potential": "high",
+    "uses": "Isolated lab for Grok, filesystem MCP, and policy smokes.",
+    "features": [
+      "docker sandbox",
+      "filesystem MCP"
+    ],
+    "non_goals": [
+      "product surface",
+      "sell the cage"
+    ],
+    "next_gate": "Keep cage-grok smokes. Host and cage stay two trees."
+  },
+  "adr-tools": {
+    "potential": "low",
+    "uses": "Optional CLI beside the ADR skill.",
+    "features": [
+      "adr files"
+    ],
+    "non_goals": [
+      "bootstrap hard dependency"
+    ],
+    "next_gate": "Stay on the companion doc unless the skill stops being enough."
+  },
+  "codebase-memory-mcp": {
+    "potential": "high",
+    "uses": "Primary code-graph MCP and the code-graph toolset.",
+    "features": [
+      "mcp",
+      "code graph"
+    ],
+    "non_goals": [
+      "second primary graph"
+    ],
+    "next_gate": "Smoke is the probe. Promote the card to I3 only when that smoke is the operator path of record."
+  },
+  "Graphify": {
+    "potential": "low",
+    "uses": "Reference tree-sitter graph. Not the code memory we run.",
+    "features": [
+      "tree-sitter edges"
+    ],
+    "non_goals": [
+      "primary code graph",
+      "install by default"
+    ],
+    "next_gate": "Stay I0 unless a cage smoke beats codebase-memory."
+  },
+  "LiteLLM": {
+    "potential": "high",
+    "uses": "One OpenAI-compatible proxy for Grok and local models.",
+    "features": [
+      "proxy",
+      "fallbacks"
+    ],
+    "non_goals": [
+      "vendor the server into the repo"
+    ],
+    "next_gate": "Keep smoke-litellm-ollama as a probe, not a required product lever."
+  },
+  "Ollama": {
+    "potential": "high",
+    "uses": "Local OpenAI-compatible server. Named pfy start ollama checks health and the default model.",
+    "features": [
+      "openai shim",
+      "tool calling"
+    ],
+    "non_goals": [
+      "preferred over FreeToken"
+    ],
+    "next_gate": "Stay a probe until product stage requires the smoke."
+  },
+  "Laguna S 2.1": {
+    "potential": "medium",
+    "uses": "Large local coding weights, when a machine can hold them.",
+    "features": [
+      "moe",
+      "gguf"
+    ],
+    "non_goals": [
+      "weights in the repo",
+      "default model"
+    ],
+    "next_gate": "Stay I1 until one GGUF smoke runs on a real machine."
+  },
+  "colibri": {
+    "potential": "medium",
+    "uses": "Low-RAM MoE server to try later inside the cage.",
+    "features": [
+      "cpu moe",
+      "openai shim"
+    ],
+    "non_goals": [
+      "weights in the repo"
+    ],
+    "next_gate": "T-0016: serve plus LiteLLM in the cage, or stay I1."
+  },
+  "Continue.dev": {
+    "potential": "medium",
+    "uses": "IDE recipe pointed at the local OpenAI base. Not a CLI we exec.",
+    "features": [
+      "ide",
+      "autocomplete"
+    ],
+    "non_goals": [
+      "exec the IDE",
+      "vendor Continue"
+    ],
+    "next_gate": "Operator copies the generated config. I3 only if someone actually uses it."
+  },
+  "Aider": {
+    "potential": "medium",
+    "uses": "Git-native terminal editor. Overlaps OpenCode and Grok.",
+    "features": [
+      "git edits",
+      "headless"
+    ],
+    "non_goals": [
+      "second primary coding CLI"
+    ],
+    "next_gate": "Stay I1 unless headless git edit is a gap the current CLIs miss."
+  },
+  "DSPy": {
+    "potential": "medium",
+    "uses": "Optimize prompts when an eval shows a reliability hole.",
+    "features": [
+      "optimizers",
+      "pipelines"
+    ],
+    "non_goals": [
+      "product runtime"
+    ],
+    "next_gate": "One eval task, or stay I1."
+  },
+  "llama.cpp (server mode)": {
+    "potential": "high",
+    "uses": "GGUF server already in the pfy up order, after llama-swap and before Ollama.",
+    "features": [
+      "gguf",
+      "openai shim"
+    ],
+    "non_goals": [
+      "preferred over FreeToken"
+    ],
+    "next_gate": "Card stays a record of that bring-up. Do not fork the tree."
+  },
+  "MLX + MLX-LM": {
+    "potential": "medium",
+    "uses": "Apple Silicon server. This lab is Linux.",
+    "features": [
+      "apple silicon",
+      "quantized"
+    ],
+    "non_goals": [
+      "linux default runtime"
+    ],
+    "next_gate": "Stay I1 on this machine."
+  },
+  "LangGraph (LangChain)": {
+    "potential": "low",
+    "uses": "Graph orchestration. Our loops already cover the operator path.",
+    "features": [
+      "stateful graphs"
+    ],
+    "non_goals": [
+      "orchestration runtime"
+    ],
+    "next_gate": "Stay I1."
+  },
+  "Open WebUI": {
+    "potential": "low",
+    "uses": "Chat UI for local models. The operator window is the product UI.",
+    "features": [
+      "chat ui",
+      "docker"
+    ],
+    "non_goals": [
+      "product UI"
+    ],
+    "next_gate": "Stay I1."
+  },
+  "Chroma (or LanceDB)": {
+    "potential": "low",
+    "uses": "Vector store. Code memory is already chosen.",
+    "features": [
+      "embeddings"
+    ],
+    "non_goals": [
+      "second memory store"
+    ],
+    "next_gate": "Stay I0."
+  },
+  "Atomic Task Graph (ATG)": {
+    "potential": "ambiguous",
+    "uses": "Paper task-graph prototype. No runnable core in this repo.",
+    "features": [
+      "dag",
+      "repair"
+    ],
+    "non_goals": [
+      "subtree now",
+      "pipeline dependency"
+    ],
+    "next_gate": "Stay I1 until a runnable core exists."
+  },
+  "ponytail (skills pack)": {
+    "potential": "high",
+    "uses": "YAGNI skill pack already under skills-external.",
+    "features": [
+      "skills"
+    ],
+    "non_goals": [
+      "product runtime"
+    ],
+    "next_gate": "I3 only if smoke-grok-skills asserts this pack loads."
+  },
+  "karpathy-guidelines": {
+    "potential": "high",
+    "uses": "Single coding-behavior skill already in the skill tree.",
+    "features": [
+      "skills"
+    ],
+    "non_goals": [
+      "product runtime"
+    ],
+    "next_gate": "Same smoke gate as the other first-party skills."
+  },
+  "repowise": {
+    "potential": "medium",
+    "uses": "Context packing probe. Overlaps codebase-memory.",
+    "features": [
+      "token context"
+    ],
+    "non_goals": [
+      "primary code memory"
+    ],
+    "next_gate": "Keep smoke-repowise as a probe."
+  },
+  "gstack": {
+    "potential": "low",
+    "uses": "Role patterns already ported in docs. Do not clone the repo.",
+    "features": [
+      "roles"
+    ],
+    "non_goals": [
+      "clone garrytan/gstack",
+      "raw skill install"
+    ],
+    "next_gate": "Stay I1, patterns only."
+  },
+  "Multica": {
+    "potential": "medium",
+    "uses": "Multi-agent board. Not our orchestrator.",
+    "features": [
+      "board",
+      "docker"
+    ],
+    "non_goals": [
+      "primary orchestrator"
+    ],
+    "next_gate": "Stay I1. Compare patterns only."
+  },
+  "mattpocock/skills": {
+    "potential": "high",
+    "uses": "Planning and review skills already on the skill path.",
+    "features": [
+      "to-spec",
+      "tdd",
+      "review"
+    ],
+    "non_goals": [
+      "product runtime"
+    ],
+    "next_gate": "T-0076 wires the checklists into structural eval, or they stay skills."
+  },
+  "marketing-skills (marketing-council)": {
+    "potential": "medium",
+    "uses": "First-party marketing council skill.",
+    "features": [
+      "council prompts"
+    ],
+    "non_goals": [
+      "product runtime"
+    ],
+    "next_gate": "Stay a skill."
+  },
+  "Antigravity-Manager": {
+    "potential": "low",
+    "uses": "Account-pool proxy. LiteLLM plus keys is the default.",
+    "features": [
+      "account pool"
+    ],
+    "non_goals": [
+      "default install",
+      "Tauri smoke"
+    ],
+    "next_gate": "Stay skip-install."
+  },
+  "Jamon Holmgren agentic setup": {
+    "potential": "low",
+    "uses": "One public workflow post. Process kit already covers AGENTS.md.",
+    "features": [
+      "workflow notes"
+    ],
+    "non_goals": [
+      "copy the whole setup"
+    ],
+    "next_gate": "Stay I1."
+  },
+  "Ruben Hassid context/token hacks": {
+    "potential": "low",
+    "uses": "Token-saving prompts. Not a tool we run.",
+    "features": [
+      "prompt notes"
+    ],
+    "non_goals": [
+      "runtime dependency"
+    ],
+    "next_gate": "Stay I0."
+  },
+  "eval-harness (pfy)": {
+    "potential": "high",
+    "uses": "First-party structural and integration ladder.",
+    "features": [
+      "eval",
+      "scorers"
+    ],
+    "non_goals": [
+      "a second eval framework"
+    ],
+    "next_gate": "Keep make eval-structural green."
+  },
+  "write-guard-mcp": {
+    "potential": "high",
+    "uses": "First-party write mediation above the cage mount.",
+    "features": [
+      "audit",
+      "enforce"
+    ],
+    "non_goals": [
+      "replace cage mounts",
+      "mcp-host wiring in this pass"
+    ],
+    "next_gate": "Keep smoke-write-guard. mcp-host wiring stays parked."
+  },
+  "Hermes Agent (feedback loops)": {
+    "potential": "medium",
+    "uses": "Feedback-loop pattern ported as a skill. Not the Hermes runtime.",
+    "features": [
+      "skill pattern"
+    ],
+    "non_goals": [
+      "Hermes as primary runtime"
+    ],
+    "next_gate": "Stay the skill. Do not install the daemon for this card."
+  },
+  "awesome-hermes-skills": {
+    "potential": "low",
+    "uses": "A list of other people's skills.",
+    "features": [
+      "skill index"
+    ],
+    "non_goals": [
+      "import the whole list"
+    ],
+    "next_gate": "Stay I1. Pull a skill only when a gap is named."
+  },
+  "LEANN": {
+    "potential": "medium",
+    "uses": "Compressed RAG. Not our code memory.",
+    "features": [
+      "compressed embeddings"
+    ],
+    "non_goals": [
+      "replace codebase-memory"
+    ],
+    "next_gate": "Stay I1 until a measured gap versus codebase-memory."
+  },
+  "Memvid": {
+    "potential": "ambiguous",
+    "uses": "Video-backed memory. No job in the current operator path.",
+    "features": [
+      "versioned memory"
+    ],
+    "non_goals": [
+      "primary memory"
+    ],
+    "next_gate": "Stay I1 until a concrete use is named."
+  },
+  "opencode-mem": {
+    "potential": "medium",
+    "uses": "Memory plugin for the OpenCode worker.",
+    "features": [
+      "worker memory"
+    ],
+    "non_goals": [
+      "replace codebase-memory"
+    ],
+    "next_gate": "Stay I1 unless the worker smoke shows a context hole."
+  },
+  "llama.cpp ngram-mod": {
+    "potential": "medium",
+    "uses": "Speculative-decoding patch on llama.cpp.",
+    "features": [
+      "ngram draft"
+    ],
+    "non_goals": [
+      "fork llama.cpp into this repo"
+    ],
+    "next_gate": "Stay I1. Use upstream llama-server unless a speed smoke needs the patch."
+  },
+  "Finn Loop / eval-loop / 8-exits patterns": {
+    "potential": "high",
+    "uses": "Exit cards and loop types, already the orchestration toolset.",
+    "features": [
+      "8 exits",
+      "agent-loops skill"
+    ],
+    "non_goals": [
+      "a second loop runtime"
+    ],
+    "next_gate": "Card can move to I3 when the skill smoke is the record, not before."
+  },
+  "destructive_command_guard": {
+    "potential": "medium",
+    "uses": "Blocks destructive shell commands. Overlaps write-guard.",
+    "features": [
+      "shell guard"
+    ],
+    "non_goals": [
+      "replace write-guard"
+    ],
+    "next_gate": "Stay I1 unless write-guard's shell coverage is shown to be a hole."
+  },
+  "OpenClaude-Portable": {
+    "potential": "low",
+    "uses": "A portable Claude folder. We already point at the official installer.",
+    "features": [
+      "portable folder"
+    ],
+    "non_goals": [
+      "second Claude install path"
+    ],
+    "next_gate": "Stay I1."
+  },
+  "MUE-X": {
+    "potential": "ambiguous",
+    "uses": "Self-rewriting agent. Interesting pattern, unsafe as a runtime.",
+    "features": [
+      "ast mutation",
+      "memory layers"
+    ],
+    "non_goals": [
+      "unattended self-modify",
+      "primary runtime"
+    ],
+    "next_gate": "Stay I1 until a mutation-safety note exists. Do not pin for adoption yet."
+  },
+  "Bumblebee": {
+    "potential": "medium",
+    "uses": "Read-only scanner for packages and MCP configs.",
+    "features": [
+      "supply chain scan"
+    ],
+    "non_goals": [
+      "replace write-guard"
+    ],
+    "next_gate": "One cage probe next to write-guard, or stay I1."
+  },
+  "Hyperframes": {
+    "potential": "medium",
+    "uses": "HTML-to-video for agents. Not a product surface here.",
+    "features": [
+      "html to mp4"
+    ],
+    "non_goals": [
+      "product video pipeline"
+    ],
+    "next_gate": "Stay I1 unless a doc or demo needs rendered video."
+  },
+  "Camofox Browser": {
+    "potential": "low",
+    "uses": "Stealth browser for agents. Browser automation is not core.",
+    "features": [
+      "fingerprint browser"
+    ],
+    "non_goals": [
+      "browser-use as core"
+    ],
+    "next_gate": "Stay I1."
+  },
+  "asm (agent-skill-manager)": {
+    "potential": "medium",
+    "uses": "Cross-agent skill installer. We already install Grok skills ourselves.",
+    "features": [
+      "skill audit"
+    ],
+    "non_goals": [
+      "replace the Grok skill installer"
+    ],
+    "next_gate": "Stay I1 unless skill distribution across CLIs becomes a real gap."
+  },
+  "claude-codex-settings": {
+    "potential": "low",
+    "uses": "Hook and plugin pack for other CLIs.",
+    "features": [
+      "hooks"
+    ],
+    "non_goals": [
+      "vendor the pack"
+    ],
+    "next_gate": "Extract a hook only when a Grok policy needs it."
+  },
+  "kanbots": {
+    "potential": "medium",
+    "uses": "Kanban that fans out to many coding CLIs in worktrees.",
+    "features": [
+      "kanban",
+      "worktrees"
+    ],
+    "non_goals": [
+      "primary dispatcher"
+    ],
+    "next_gate": "Stage 0 already passed via npx. Stay I1 beside our loops."
+  },
+  "multi-agent-generator": {
+    "potential": "low",
+    "uses": "Scaffolds CrewAI or LangGraph teams. The note already says I0.",
+    "features": [
+      "team scaffold"
+    ],
+    "non_goals": [
+      "pipeline dependency"
+    ],
+    "next_gate": "Stay I0."
+  },
+  "Auto-Company": {
+    "potential": "medium",
+    "uses": "Company-daemon patterns worth extracting. Not a runtime to adopt.",
+    "features": [
+      "personas",
+      "consensus baton",
+      "pre-mortem gate"
+    ],
+    "non_goals": [
+      "company daemon as primary runtime"
+    ],
+    "next_gate": "Extract a pattern into a skill, or stay I1."
+  }
+}
