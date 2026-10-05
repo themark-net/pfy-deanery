@@ -95,8 +95,8 @@ Active work is also tracked as issues: https://github.com/themark-net/pfy-mentat
 | T-0096 | P1 | done | **Dual-tier orchestrator** high↔low (`VOICE_ROUTE=high-first` default) | — | T-0092, T-0093 | [voice-orchestrator.md](ops/voice-orchestrator.md); `smoke-voice-orchestrate` |
 | T-0094 | P3 | todo | Optional short **local TTS** status (not duplex) | — | T-0092 | [#9](https://github.com/themark-net/pfy-mentat/issues/9) · Kokoro/piper after local agent path green |
 | T-0095 | P3 | todo | Catalog Stage 0: Pipecat / LiveKit / freeapp (ref only) | — | ADR-0012 | [#10](https://github.com/themark-net/pfy-mentat/issues/10) · No primary install |
-| T-0070 | P1 | doing | Grow design/coding **skills + structural eval** (more text scorers) | — | T-0065 | [#3](https://github.com/themark-net/pfy-mentat/issues/3) · Keep `eval-structural` green |
-| T-0074 | P1 | doing | Implement-lane via `make eval-auto` (fit-select + candidates) | — | — | [#4](https://github.com/themark-net/pfy-mentat/issues/4) · deepseek-coder:6.7b lab-proven |
+| T-0070 | P1 | doing | Grow design/coding **skills + structural eval** (more text scorers) | — | T-0065 | [#3](https://github.com/themark-net/pfy-mentat/issues/3) · `013-stage-card` scorer. Keep `eval-structural` green |
+| T-0074 | P1 | doing | Implement-lane via `make eval-auto` (fit-select + candidates) | — | — | [#4](https://github.com/themark-net/pfy-mentat/issues/4) · empty fit-select falls back to `deepseek-coder:6.7b-instruct`, then `deepseek-coder:6.7b` |
 | T-0075 | P2 | done | More structural scorers: ADR shape, open-question row shape | — | T-0070 | [#5](https://github.com/themark-net/pfy-mentat/issues/5) **done** |
 | T-0076 | P2 | todo | Wire mattpocock to-spec/tdd checklist into structural or skill cross-links | — | — | [#6](https://github.com/themark-net/pfy-mentat/issues/6) · paths pack already installed |
 | T-0081 | P2 | todo | Optional OpenCode-in-cage smoke | — | T-0080 | [#7](https://github.com/themark-net/pfy-mentat/issues/7) · After host smoke green |

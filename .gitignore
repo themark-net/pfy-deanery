@@ -35,3 +35,10 @@ gui/operator/src-tauri/gen/
 
 # Local doctrine-port inputs. SoT is bootstrap/grok-cli/skills/ — do not commit these.
 /_port_sources/
+tmp/
+
+# Local env backups — never commit (includes .env.bak)
+*.bak
+
+# Generated/scratch expanded pfy — SoT is scripts/pfy
+scripts/.pfy.expanded.sh

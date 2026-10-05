@@ -31,12 +31,12 @@ set -a
 # shellcheck disable=SC1091
 source /tmp/pfy-eval-model-exports.sh
 set +a
-cands="${EVAL_GATE_CANDIDATES:-${EVAL_GATE_MODEL:-}}"
+mapfile -t arr < <(python3 scripts/eval_auto_candidates.py)
 ok=0
-IFS=',' read -ra arr <<<"$cands"
+tried=""
 for g in "${arr[@]}"; do
-  g="$(echo "$g" | tr -d ' ')"
   [[ -z "$g" ]] && continue
+  tried="${tried:+$tried,}$g"
   echo "==> eval-v02 gate candidate: $g"
   if make eval-v02 \
     EVAL_MODEL="$g" EVAL_GATE_MODEL="$g" \
@@ -44,9 +44,24 @@ for g in "${arr[@]}"; do
     LITELLM_SMOKE_MODEL="${LITELLM_SMOKE_MODEL:-deepseek-coder:latest}"; then
     ok=1
     echo "eval-auto: PASS with gate $g"
-    echo "status: pass gate=$g" > pipelines/eval/eval-auto.latest.md
+    cat > pipelines/eval/eval-auto.latest.md <<MD
+# eval-auto pass $(date -u +%Y-%m-%dT%H:%M:%SZ)
+status: pass
+gate: $g
+tried: $tried
+note: structural green, then this gate passed
+MD
     break
   fi
   echo "eval-auto: gate $g failed — try next candidate"
 done
-[[ $ok -eq 1 ]] || { echo "eval-auto: all gate candidates failed"; exit 1; }
+if [[ $ok -ne 1 ]]; then
+  cat > pipelines/eval/eval-auto.latest.md <<MD
+# eval-auto fail $(date -u +%Y-%m-%dT%H:%M:%SZ)
+status: fail
+tried: ${tried:-"(none)"}
+note: structural green; every gate candidate failed
+MD
+  echo "eval-auto: all gate candidates failed" >&2
+  exit 1
+fi

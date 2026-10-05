@@ -1,0 +1,5 @@
+integration_stage: I1
+potential: medium
+uses: probe a local server
+non_goals: weights in the repo
+next_gate: one smoke, or stay I1
