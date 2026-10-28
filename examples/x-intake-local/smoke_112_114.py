@@ -163,6 +163,7 @@ def smoke_overtime(r: dict) -> int:
     before = tree_sig(real)
     r["containment"] = "real-home-check (daemon is detached; no bwrap)"
     timed_out: subprocess.TimeoutExpired | None = None
+    daemon_stop_tmo: float | None = None
     try:
         with tempfile.TemporaryDirectory(prefix="pfy-overtime-") as td:
             home = Path(td) / "home"
@@ -214,6 +215,7 @@ def smoke_overtime(r: dict) -> int:
                     steps.append({"daemon_stop": p.returncode})
                 except subprocess.TimeoutExpired as e:
                     steps.append({"daemon_stop": timeout_reason("overtime daemon stop", float(e.timeout))})
+                    daemon_stop_tmo = float(e.timeout)
                 time.sleep(1)
             lock = home / "overtime/overtimed.lock"
             alive = False
@@ -227,6 +229,9 @@ def smoke_overtime(r: dict) -> int:
                         pass
             if alive:
                 r["reason"] = "daemon still running after `daemon stop`"
+                return 1
+            if daemon_stop_tmo is not None and not alive:
+                r["reason"] = timeout_reason("overtime daemon stop", daemon_stop_tmo)
                 return 1
     except subprocess.TimeoutExpired as e:
         timed_out = e
