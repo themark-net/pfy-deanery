@@ -209,11 +209,13 @@ def smoke_overtime(r: dict) -> int:
                         break
                 r["agent_md_edit_adopted"] = adopted
             finally:
+                daemon_stop_timeout: str | None = None
                 try:
                     p = sh(ot + ["daemon", "stop"], home=home_s, path=path)
                     steps.append({"daemon_stop": p.returncode})
                 except subprocess.TimeoutExpired as e:
-                    steps.append({"daemon_stop": timeout_reason("overtime daemon stop", float(e.timeout))})
+                    daemon_stop_timeout = timeout_reason("overtime daemon stop", float(e.timeout))
+                    steps.append({"daemon_stop": daemon_stop_timeout})
                 time.sleep(1)
             lock = home / "overtime/overtimed.lock"
             alive = False
@@ -227,6 +229,9 @@ def smoke_overtime(r: dict) -> int:
                         pass
             if alive:
                 r["reason"] = "daemon still running after `daemon stop`"
+                return 1
+            if daemon_stop_timeout is not None:
+                r["reason"] = daemon_stop_timeout
                 return 1
     except subprocess.TimeoutExpired as e:
         timed_out = e
