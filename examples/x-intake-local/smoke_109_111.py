@@ -195,15 +195,15 @@ def smolvm_image(r: dict) -> str | None:
 
 
 def smolvm_image_evidence(stdout: str, stderr: str, image: str) -> str | None:
-    """Cache line from stdout, else the pull line from stderr. Not a digest from the output."""
-    for raw_line in stdout.splitlines():
-        line = raw_line.split("\r")[-1].strip()
-        if _IMAGE_CACHE_LINE.match(line):
-            return line
+    """Pull line from stderr wins over a Cache line from stdout. Not a digest from the output."""
     needle = "Pulling image " + image
     for raw_line in stderr.splitlines():
         line = raw_line.split("\r")[-1].strip()
         if needle in line:
+            return line
+    for raw_line in stdout.splitlines():
+        line = raw_line.split("\r")[-1].strip()
+        if _IMAGE_CACHE_LINE.match(line):
             return line
     return None
 
