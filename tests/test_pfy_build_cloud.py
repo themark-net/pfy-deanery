@@ -1082,3 +1082,184 @@ class CloudBuildFailureTests(unittest.TestCase):
         self.assertEqual(count.read_text(encoding="utf-8"), "1")
         self.assertEqual(len(payload["attempts"]), 1)
 
+
+class CloudBuildGateReasonTests(unittest.TestCase):
+    def setUp(self) -> None:
+        SCRATCH.mkdir(parents=True, exist_ok=True)
+        self.repo = _init_repo(SCRATCH / self.id().replace(".", "_"))
+        self.side = SCRATCH / (self.id().replace(".", "_") + "-side")
+        self.side.mkdir(parents=True, exist_ok=True)
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.repo, ignore_errors=True)
+        shutil.rmtree(self.side, ignore_errors=True)
+
+    def _receipt(self) -> dict:
+        path = list((self.repo / "pipelines" / "dogfood" / "build-cloud").glob("*/receipt.json"))[0]
+        return json.loads(path.read_text(encoding="utf-8"))
+
+    def test_changed_test_file_fails_before_the_gate_and_is_not_committed(self) -> None:
+        count = self.side / "gate-count"
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\n"
+            "import os\n"
+            "from pathlib import Path\n"
+            "path = Path(os.environ['PFY_GATE_COUNT'])\n"
+            "n = int(path.read_text()) + 1 if path.exists() else 1\n"
+            "path.write_text(str(n))\n"
+            "print('GATE-SHOULD-NOT-RERUN')\n"
+            "raise SystemExit(0)\n",
+        )
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "Path('tests').mkdir(exist_ok=True)\n"
+            "Path('tests/test_sneak.py').write_text('def test_sneak():\\n    assert True\\n', encoding='utf-8')\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        proc = _run(
+            [
+                sys.executable,
+                str(CLOUD),
+                "do not edit tests",
+                "--repo",
+                str(self.repo),
+                "--retries",
+                "0",
+                "--timeout",
+                "30",
+                "--test-cmd",
+                "%s %s" % (sys.executable, gate),
+                "--grok-cmd",
+                str(grok),
+            ],
+            self.repo,
+            env={"PFY_GATE_COUNT": str(count)},
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 1, text)
+        payload = self._receipt()
+        self.assertEqual(payload["reason"], "tests-tampered")
+        self.assertIsNone(payload["branch"])
+        self.assertIsNone(payload["commit"])
+        self.assertEqual(count.read_text(encoding="utf-8"), "1")
+        self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
+
+    def test_second_green_gate_that_goes_red_is_flaky_and_not_committed(self) -> None:
+        count = self.side / "gate-count"
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\n"
+            "import os\n"
+            "from pathlib import Path\n"
+            "path = Path(os.environ['PFY_GATE_COUNT'])\n"
+            "n = int(path.read_text()) + 1 if path.exists() else 1\n"
+            "path.write_text(str(n))\n"
+            "print('GATE-FLAKY-TAIL')\n"
+            "raise SystemExit(1 if n >= 3 else 0)\n",
+        )
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        proc = _run(
+            [
+                sys.executable,
+                str(CLOUD),
+                "add kept",
+                "--repo",
+                str(self.repo),
+                "--no-review",
+                "--retries",
+                "0",
+                "--timeout",
+                "30",
+                "--test-cmd",
+                "%s %s" % (sys.executable, gate),
+                "--grok-cmd",
+                str(grok),
+            ],
+            self.repo,
+            env={"PFY_GATE_COUNT": str(count)},
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 1, text)
+        payload = self._receipt()
+        self.assertEqual(payload["reason"], "tests-flaky")
+        self.assertEqual(payload["attempts"][0]["reason"], "tests-flaky")
+        self.assertIsNone(payload["commit"])
+        self.assertIn("GATE-FLAKY-TAIL", payload["gate"]["after"]["tail"])
+        self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
+
+    def test_worktree_add_failure_leaves_the_caller_dirty_file(self) -> None:
+        real_git = shutil.which("git")
+        self.assertIsNotNone(real_git)
+        _write_exe(
+            self.side / "git",
+            "#!/usr/bin/env python3\n"
+            "import os, sys\n"
+            "real = os.environ['REAL_GIT']\n"
+            "args = sys.argv[1:]\n"
+            "if 'worktree' in args and 'add' in args:\n"
+            "    sys.stderr.write('worktree add refused\\n')\n"
+            "    raise SystemExit(1)\n"
+            "os.execv(real, [real, *args])\n",
+        )
+        calls = self.side / "calls.txt"
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import os\n"
+            "from pathlib import Path\n"
+            "Path(os.environ['PFY_CALL_COUNT']).write_text('called\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        (self.repo / "caller-dirty.txt").write_text("stay\n", encoding="utf-8")
+        before = _git(self.repo, "status", "--porcelain").stdout
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        env = os.environ.copy()
+        env["TMPDIR"] = str(SCRATCH)
+        env["PYTHONDONTWRITEBYTECODE"] = "1"
+        env["PATH"] = str(self.side) + os.pathsep + env.get("PATH", "")
+        env["REAL_GIT"] = real_git
+        env["PFY_CALL_COUNT"] = str(calls)
+        proc = subprocess.run(
+            [
+                sys.executable,
+                str(CLOUD),
+                "add kept",
+                "--repo",
+                str(self.repo),
+                "--retries",
+                "0",
+                "--timeout",
+                "30",
+                "--test-cmd",
+                "true",
+                "--grok-cmd",
+                str(grok),
+            ],
+            cwd=self.repo,
+            env=env,
+            text=True,
+            capture_output=True,
+            timeout=30,
+            check=False,
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 1, text)
+        payload = self._receipt()
+        self.assertEqual(payload["reason"], "worktree-failed")
+        self.assertIsNone(payload["branch"])
+        self.assertIsNone(payload["commit"])
+        self.assertFalse(calls.exists())
+        self.assertEqual(_git(self.repo, "status", "--porcelain").stdout, before)
+        self.assertIn("caller-dirty.txt", before)
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+
