@@ -1,0 +1,39 @@
+{
+  "task": "t1-smolvm-stderr-first",
+  "label": "pass1",
+  "command": [
+    "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-sixtask-1031/pfy",
+    "build",
+    "# t1 smolvm stderr pull wins\n\nLevel: trivial\nBase SHA: 997d89264495861a178713ccf7d4447ea828afc4\nFiles likely touched: examples/x-intake-local/smoke_109_111.py\nGate: python3 -m unittest tests.test_mvp2_t1_smolvm_evidence\n\nThe acceptance test is already in the tree. Do not edit it. Do not edit any other test file. Do not commit.\n\n`smolvm_image_evidence` in `examples/x-intake-local/smoke_109_111.py` currently returns a stdout `Caching image` / `Using cached image` line before it looks at stderr. When both are present, the stderr `Pulling image <image>` line must win. When stderr has no pull line, a stdout cache line is still the evidence, so the existing cache-only behavior stays.\n\nUpdate the comment at the top of that function's smoke section so it matches this rule. Touch no other file.\n\nGate command: `python3 -m unittest tests.test_mvp2_t1_smolvm_evidence`\n",
+    "--repo",
+    "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-sixtask-1031/tmp/sixtask-clones/pass1/t1-smolvm-stderr-first",
+    "--base",
+    "demo-base",
+    "--test-cmd",
+    "python3 -m unittest tests.test_mvp2_t1_smolvm_evidence",
+    "--receipt-dir",
+    "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-sixtask-1031/eval/mvp-1031/sixtask/t1-smolvm-stderr-first",
+    "--timeout",
+    "900",
+    "--keep-worktree"
+  ],
+  "wall_s": 211.2,
+  "exit_code": 0,
+  "receipt_status": "PASS",
+  "receipt_reason": "ok",
+  "attempts": 1,
+  "review_verdict": "accept",
+  "review_reasons": [],
+  "commit": "a96d0776bdb82fc98d4f6c8789efe381697f1550",
+  "branch": "cloud/t1-smolvm-stderr-pull-wins-level-trivial-20261031T202757443226Z",
+  "base": "997d89264495861a178713ccf7d4447ea828afc4",
+  "planted": "9a57cf1ad8a7308272cef64282d00bedae4e11b3",
+  "lane_head": "3d1b2bf623cf782a664787e66fd23cc3a8530fab",
+  "gate_rerun": {
+    "exit": 0,
+    "acceptance_unchanged": true
+  },
+  "human": "accept",
+  "human_note": "Stderr pull is checked before the stdout cache line, and a cache line still wins when stderr has no pull. The smoke-section comment matches. Only smoke_109_111.py changed. The planted gate was not edited and the canonical rerun passed. An older smoke test that still expects the cache line when both streams exist was left alone, which is what the task says.",
+  "timeout_s": 900
+}

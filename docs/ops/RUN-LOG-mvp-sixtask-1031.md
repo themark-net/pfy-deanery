@@ -51,3 +51,5 @@ Format: `item | commit | tests | result`
 
 - loop-card | 42d6952 | docs only | PASS
 - base-merge | d0adb75 | merge origin/bot/mvp-cloud-1031 (cloud lane empty at d94d2b6) | PASS, runner still has no --writable-test
+- report-checker | 3d1b2bf | nice python3 -m unittest tests.test_mvp_1031_sixtask_report (8 tests, 1 skipped, OK) | PASS
+- t1 | pending | ./pfy build exit 0 wall 211.2s attempts 1 review accept gate_rerun 0 human accept | PASS
