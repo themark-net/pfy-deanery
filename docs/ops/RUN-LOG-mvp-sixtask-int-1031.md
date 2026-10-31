@@ -61,3 +61,5 @@ Risks:
 ## Item log
 
 Format: `item | commit | tests | result`
+
+- loop-card | 627fd6d | docs only | PASS
