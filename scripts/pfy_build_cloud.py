@@ -41,6 +41,7 @@ _ROOT = Path(__file__).resolve().parents[1]
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
+from pfylib.build_phase_clock import PhaseClock, install_build_phases  # noqa: E402
 from pfylib.build_preflight import classify_cloud_failure  # noqa: E402
 
 _NOT_SIGNED_IN = re.compile(r"not signed in", re.IGNORECASE)
@@ -682,6 +683,13 @@ def review_prompt(task: str, diff_text: str, gate_tail: str) -> str:
     )
 
 
+def grok_phase_name(prompt: str) -> str:
+    """Review prompts carry REVIEW_MARKER. Every other grok call is the agent."""
+    if REVIEW_MARKER in (prompt or ""):
+        return "review"
+    return "agent"
+
+
 def files_changed(worktree: Path) -> list[str]:
     proc = _git(worktree, ["status", "--porcelain", "-z", "-uall"])
     found: list[str] = []
@@ -864,7 +872,16 @@ def before_gate_block(record: dict | None, test_cmd: str) -> str | None:
 
 
 class CloudBuild:
-    def __init__(self, args, repo: Path, base_ref: str, base_sha: str, grok: str | None) -> None:
+    def __init__(
+        self,
+        args,
+        repo: Path,
+        base_ref: str,
+        base_sha: str,
+        grok: str | None,
+        *,
+        phase_clock: PhaseClock | None = None,
+    ) -> None:
         self.args = args
         self.repo = repo
         self.base_ref = base_ref
@@ -896,6 +913,8 @@ class CloudBuild:
         self.finished = False
         self.max_attempts = 1 if args.no_review else args.retries + 1
         self.recheck_tail = ""
+        self.phase_clock = phase_clock or PhaseClock()
+        install_build_phases(self, self.phase_clock, grok_phase_name)
 
     def child_env(self) -> dict[str, str]:
         env = os.environ.copy()
@@ -1177,6 +1196,8 @@ class CloudBuild:
             "pushed": False,
             "worktree_removed": self.worktree_removed,
             "task": self.args.task_text,
+            "phases": self.phase_clock.report(),
+            "wall_seconds": self.phase_clock.wall_seconds(),
             "finished_at": _now(),
         }
         try:
@@ -1227,8 +1248,10 @@ class CloudBuild:
         return None
 
     def execute(self) -> int:
-        _install_signals(self.state)
-        if not self.grok:
+        with self.phase_clock.phase("preflight"):
+            _install_signals(self.state)
+            missing_grok = not self.grok
+        if missing_grok:
             self.record(0, "FAIL", "unauthenticated", "")
             return self.fail("FAIL", "unauthenticated", EXIT_FAIL, auth_recovery(self.args.task_text))
         problem = self.prepare_worktree()
@@ -1256,7 +1279,8 @@ class CloudBuild:
                 'The default is "%s".' % DEFAULT_TEST_CMD
             )
             return self.fail("FAIL", blocked, EXIT_USAGE, recovery)
-        base_tests = snapshot_tests(self.worktree)
+        with self.phase_clock.phase("preflight"):
+            base_tests = snapshot_tests(self.worktree)
         feedback = ""
         previous_diff = ""
         for number in range(1, self.max_attempts + 1):
@@ -1524,14 +1548,17 @@ def main(argv: list[str] | None = None) -> int:
     if not args.task_text:
         _print_usage()
         return EXIT_USAGE
+    clock = PhaseClock()
     try:
-        repo = resolve_repo(args.repo)
+        with clock.phase("preflight"):
+            repo = resolve_repo(args.repo)
     except UsageError as exc:
         _print_usage()
         print(str(exc), file=sys.stderr)
         return EXIT_USAGE
     try:
-        base_ref, base_sha = resolve_base(repo, args.base)
+        with clock.phase("preflight"):
+            base_ref, base_sha = resolve_base(repo, args.base)
     except BaseMissing as exc:
         return missing_base(args, repo, exc.ref)
     stamp = _stamp()
@@ -1539,7 +1566,9 @@ def main(argv: list[str] | None = None) -> int:
     receipt = receipt_dir / "receipt.json"
     if args.dry_run:
         return _dry_run(args, repo, base_ref, receipt)
-    build = CloudBuild(args, repo, base_ref, base_sha, resolve_grok(args))
+    with clock.phase("preflight"):
+        grok = resolve_grok(args)
+    build = CloudBuild(args, repo, base_ref, base_sha, grok, phase_clock=clock)
     try:
         return build.execute()
     except Exception as exc:

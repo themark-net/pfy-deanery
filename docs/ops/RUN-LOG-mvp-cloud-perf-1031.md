@@ -57,10 +57,18 @@ Make the daily `./pfy build` faster without dropping checks. Collect phase wall 
 - Missing skills repo-handoff-doc-required and write-loop-exits-first. Mitigation: this card plus the drop-in handoff path stand in. Do not invent those skill files.
 - Sub-agents on shared files. Mitigation: do not spawn implementation worktrees. This worktree is the only checkout this lane may touch. project-map may write only .project-map/.
 
-## Items
+## Survey
 
-(appended as they finish)
+2026-10-31T23:50Z. 85 receipts with schema `pfy-cloud-build/1`. Zero have a `phases` object. `origin/main` and `origin/bot/mvp-integrate-1031` have no `phase_clock` in `scripts/pfy_build_cloud.py`.
+
+Harness totals (not a phase split): `wall_seconds` n=18 median 172.2s, `wall_s` n=36 median 145.8s, `receipt_wall_seconds` n=6 median 392.8s. Combined median 167.4s (n=60, min 18.7s, max 2203.5s). The drop-in's "about 119s" sits in that range and below this median. sixtask-int Wall_s median of the 12 PASS rows is 168.9s.
+
+Git bench on a throwaway shared clone of this repo (1672 files): worktree add 0.17s, `git archive | tar` 0.14s, status 0.06s, test-file hash walk 0.016s. Full `unittest discover` was not run: `flock -w 20` on `~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock` did not get the lock. One targeted module, `tests.test_pfy_build_cloud`, took 22.3s for 61 tests. The repeated full gate is the non-model cost. Git setup is not.
+
+## Items
 
 ```text
 item | commit | tests | result
+exits | 11cf824 | none (docs before code) | pushed
+survey | (recorded in the phase-timing commit) | read-only receipt scan plus git bench | no phase keys; git under 0.2s; discover skipped, lock busy
 ```
