@@ -177,6 +177,14 @@ def _receipt_on_disk(item: str) -> bool:
     return path.is_file()
 
 
+def _sha_evidence(item: str) -> bool:
+    """Keep pin:HEX and scored:HEX. HEX is [0-9a-f], length at least 7."""
+    head, sep, tail = item.partition(":")
+    if sep != ":" or head not in ("pin", "scored") or len(tail) < 7:
+        return False
+    return all(ch in "0123456789abcdef" for ch in tail)
+
+
 def _methods_label() -> Path:
     """Relative when the methods file sits in this repo; absolute when a caller points it outside."""
     if METHODS_PATH.is_relative_to(ROOT):
@@ -202,7 +210,9 @@ def evidence_for(name: str, card: dict, makefile: str, toolset_names: set[str]) 
     prior = card.get("evidence")
     if isinstance(prior, list):
         for item in prior:
-            if isinstance(item, str) and item not in found and _receipt_on_disk(item):
+            if isinstance(item, str) and item not in found and (
+                _receipt_on_disk(item) or _sha_evidence(item)
+            ):
                 found.append(item)
     return found
 
