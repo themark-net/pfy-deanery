@@ -53,3 +53,5 @@ Host before init: 2026-10-31T19:57:50Z MemAvailable 62.1 GiB, load 2.78, 32 core
 - init | 4ebb99ec92a9d8ffa9b2a7068a386ba6b3707a58 | nice python3 -m unittest tests.test_mvp_1031_receipt OK (6 tests, then empty-dest added and rechecked) | pass
 - checker | f742dbf9830d9c68c51e63a394617df0541ce2eb | nice python3 -m unittest tests.test_mvp_1031_receipt OK (11 tests) | pass
 Host before readme: 2026-10-31T19:59:40Z MemAvailable 63.6 GiB, load 3.04, 32 cores. Under the pressure line.
+- readme | 4a76204b1886009e8e5c4be6cc7356ecd2229d46 | nice python3 -m unittest tests.test_mvp_1031_receipt OK (12 tests) | pass
+Lane check after readme: G9 is the only round-1 gap for this lane and it is closed. Round 2 `rerun_local.py` and `local-rerun/` belong to mvp-local-t5-1031. `demo-receipt.json` and `REPORT.md` belong to integration. G10 is excluded by the plan. Exit 2, lane empty. Handoff is next.
