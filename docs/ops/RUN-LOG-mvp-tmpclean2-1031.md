@@ -75,3 +75,4 @@ Progress:
 - FU7 opencontext how pointer | 6fe37a2 | TMPDIR=$PWD/tmp nice -n 19 python3 -m unittest tests.test_registry tests.test_toolsets | 36 OK in 0.072s | pass
 - FU8 duplicate workflow keys | 617ec78 | TMPDIR=$PWD/tmp nice -n 19 python3 -m unittest tests.test_workflow_image_pin | 22 OK in 0.583s | pass
 - FU9 T-0124 leaves the active table | 894382e | docs only | row is in the Done table | pass
+- FU11 run() re-checks and dir_usable | 4980d94 | TMPDIR=$PWD/tmp nice -n 19 python3 -m unittest tests.test_x_intake_smoke_149 | 32 OK in 2.917s | pass
