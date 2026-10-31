@@ -131,3 +131,65 @@ class CloudBuildSkeletonTests(unittest.TestCase):
         self.assertEqual(payload["base"], "HEAD")
         self.assertIn(str(receipt), proc.stdout)
         self.assertFalse((self.repo / "tmp" / "cloud-build").exists())
+
+
+class CloudBuildDispatchTests(unittest.TestCase):
+    def setUp(self) -> None:
+        SCRATCH.mkdir(parents=True, exist_ok=True)
+        self.repo = _init_repo(SCRATCH / self.id().replace(".", "_"))
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.repo, ignore_errors=True)
+
+    def test_p_help_reaches_dogfood_and_positional_reaches_cloud(self) -> None:
+        dogfood = _run([str(PFY), "build", "-p", "--help"], self.repo)
+        dogfood_text = (dogfood.stdout or "") + (dogfood.stderr or "")
+        self.assertEqual(dogfood.returncode, 0, dogfood_text)
+        self.assertIn("Apply local jev toolset", dogfood_text)
+        self.assertNotIn("Daily cloud build", dogfood_text)
+
+        shifted = _run([str(PFY), "build", "p", "--help"], self.repo)
+        shifted_text = (shifted.stdout or "") + (shifted.stderr or "")
+        self.assertEqual(shifted.returncode, 0, shifted_text)
+        self.assertIn("Apply local jev toolset", shifted_text)
+
+        prompt_file = self.repo / "prompt.txt"
+        prompt_file.write_text(" \n", encoding="utf-8")
+        prompted = _run([str(PFY), "build", "--prompt-file", str(prompt_file)], self.repo)
+        prompted_text = (prompted.stdout or "") + (prompted.stderr or "")
+        self.assertEqual(prompted.returncode, 2, prompted_text)
+        self.assertIn("Apply local jev toolset", prompted_text)
+        self.assertNotIn("DRY-RUN", prompted_text)
+
+        local = _run([str(PFY), "build", "--local", "--help"], self.repo)
+        local_text = (local.stdout or "") + (local.stderr or "")
+        self.assertEqual(local.returncode, 0, local_text)
+        self.assertIn("Headless local-model build", local_text)
+
+        daily = _run([str(PFY), "build", "--help"], self.repo)
+        daily_text = (daily.stdout or "") + (daily.stderr or "")
+        self.assertEqual(daily.returncode, 0, daily_text)
+        self.assertIn('./pfy build "<task>"', daily_text)
+        self.assertIn("jev dogfood wrap", daily_text)
+        self.assertIn("opt-in fallback", daily_text)
+
+        receipt_dir = SCRATCH / (self.id().replace(".", "_") + "-receipt")
+        positional = _run(
+            [
+                str(PFY),
+                "build",
+                "add a note",
+                "--dry-run",
+                "--repo",
+                str(self.repo),
+                "--receipt-dir",
+                str(receipt_dir),
+            ],
+            self.repo,
+        )
+        positional_text = (positional.stdout or "") + (positional.stderr or "")
+        self.assertEqual(positional.returncode, 0, positional_text)
+        payload = json.loads((receipt_dir / "receipt.json").read_text(encoding="utf-8"))
+        self.assertEqual(payload["schema"], "pfy-cloud-build/1")
+        self.assertEqual(payload["status"], "DRY-RUN")
+        self.assertIsNone(payload["commit"])
