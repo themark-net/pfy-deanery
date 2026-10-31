@@ -46,3 +46,6 @@ Launch host: MemAvailable 62.1 GiB, 32 cores, load 2.76. Under the pressure line
 ## Items
 
 Format: `item | commit | tests | result`
+
+- exits | 75a5f7782f21f69fe96fa91076ac570674453646 | none (docs only, before code) | written
+Host before fixture: MemAvailable 62.1 GiB, load 2.76, under the pressure line.
