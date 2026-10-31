@@ -78,3 +78,7 @@ rerun-script | b8b1003 | TMPDIR=tmp/scratch nice -n 19 python3 eval/mvp-1031/tes
 ## t5 launch
 
 2026-10-31T22:13Z: heavy lock held by pregate c0d38af, with unittest discover and two more pregates waiting. t5 waits until 2026-11-01T03:57Z, then runs. This lane does not signal those processes.
+
+Lock acquired 2026-10-31T22:52:31Z. Runner finished 2026-10-31T23:02:02Z. Gate PASS ok, attempts 1, review on, retries 2, model qwen3.6:35b, model_was_loaded false, unloaded true. Commit 4aa36fd34d1b9007bbf4887dcd729977aded3ee2. Diff is the two allowed test modules. No gitignored path was added. ollama ps was empty after the wrapper.
+
+run-t5 | pending-sha | receipt eval/mvp-1031/local-rerun/t5-receipts-outside-repo/receipt.json | PASS ok, diff has no new gitignored path, model unloaded

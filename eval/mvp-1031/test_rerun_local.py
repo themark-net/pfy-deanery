@@ -230,6 +230,31 @@ class RerunLocalTests(unittest.TestCase):
             self.assertEqual(argv[argv.index("--model") + 1], "qwen3.6:35b")
             self.assertTrue(any(part.endswith("t5-receipts-outside-repo.md") for part in argv))
 
+    def test_parent_gitignored_file_does_not_fail_the_child_commit(self) -> None:
+        with tempfile.TemporaryDirectory(dir=SCRATCH) as raw:
+            folder = Path(raw)
+            repo = folder / "repo"
+            first = make_repo(repo, "secret.txt")
+            self.assertIn("secret.txt", rerun_local.gitignored_in_commit(repo, first))
+            (repo / "README").write_text("changed\n", encoding="utf-8")
+            _git(repo, ["add", "--", "README"])
+            _git(
+                repo,
+                [
+                    "-c",
+                    "user.name=rerun-test",
+                    "-c",
+                    "user.email=rerun-test@localhost",
+                    "-c",
+                    "commit.gpgsign=false",
+                    "commit",
+                    "-qm",
+                    "readme only",
+                ],
+            )
+            second = _git(repo, ["rev-parse", "HEAD"])
+            self.assertEqual(rerun_local.gitignored_in_commit(repo, second), [])
+
     def test_clean_commit_copies_receipt_and_records_no(self) -> None:
         with tempfile.TemporaryDirectory(dir=SCRATCH) as raw:
             folder = Path(raw)

@@ -341,12 +341,21 @@ def spawn_runner(argv: list[str]) -> int:
 
 
 def gitignored_in_commit(repo: Path, sha: str) -> list[str]:
-    """Paths in sha that match a gitignore rule. Empty when sha is missing."""
+    """Paths this commit adds or changes that match a gitignore rule.
+
+    Files already tracked on the parent are not a new landing. A root commit
+    has no parent, so every path in that tree counts.
+    """
     if not sha or not str(sha).strip():
         return []
     if not repo or not Path(repo).exists():
         return ["<commit unreadable>"]
-    listed = _git(Path(repo), ["ls-tree", "-r", "--name-only", "-z", sha])
+    parent = _git(Path(repo), ["rev-parse", "--verify", "--quiet", sha + "^"])
+    parent_sha = (parent.stdout or "").strip()
+    if parent.returncode == 0 and parent_sha:
+        listed = _git(Path(repo), ["diff", "--name-only", "-z", parent_sha, sha])
+    else:
+        listed = _git(Path(repo), ["ls-tree", "-r", "--name-only", "-z", sha])
     if listed.returncode != 0:
         return ["<commit unreadable>"]
     paths = [part for part in (listed.stdout or "").split("\0") if part]
