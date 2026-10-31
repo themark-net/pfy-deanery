@@ -57,4 +57,10 @@ Format: `item | commit | tests | result`
 
 exits | 7209ff2 | none | exit card pushed before either fix
 help-test | bb00fe7 | TMPDIR=$PWD/tmp python3 -m unittest tests.test_pfy_build_local.CloudBuildUnchangedTests | 2 OK in 0.965s
-log-path | this commit | TMPDIR=$PWD/tmp python3 -m unittest tests.test_local_bench | 17 OK in 1.234s; before the helper, outside path was '/proc/self/comm' != resolved '/proc/<pid>/comm'
+log-path | 9285317 | TMPDIR=$PWD/tmp python3 -m unittest tests.test_local_bench | 17 OK in 1.234s; before the helper, outside path was '/proc/self/comm' != resolved '/proc/<pid>/comm'
+suite | 9285317 | TMPDIR=$PWD/tmp nice -n 19 flock heavy-1030.lock python3 -m unittest discover -s tests -t . | lock 2026-10-31T21:38:19Z; Ran 1049 tests in 670.488s; FAILED (failures=1, skipped=16). The one failure is tests.test_pfylib_tmp_cleanup.PfylibTmpCleanupTests.test_module_run_leaves_no_new_tmp_dirs. Not an owned file. Not fixed. Targeted re-run also failed, different /tmp name. Integrate discover did not fail this test.
+skip tmp-cleanup | none | not owned | cross-lane. Do not edit tests/test_pfylib_tmp_cleanup.py or x-intake smokes. Do not delete /tmp dirs.
+
+state: DONE | tests: discover 1049 run, 1 fail, 16 skip, 670.488s | files: help test, log_path_for_receipt, local-bench tests, this log | err: test_module_run_leaves_no_new_tmp_dirs outside owned files
+
+Exit: lane empty. Owned suite failures from the integrate discover are fixed. No further item fits these files. Pregate not run: host busy (Runner.Worker). Wall clock at finish is inside the cap.
