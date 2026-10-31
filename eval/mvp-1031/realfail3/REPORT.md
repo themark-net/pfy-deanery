@@ -11,4 +11,5 @@ Rows: partial
 | network-down | shim | FAIL | no-change | 1 | FAIL | no-change | 1 | matches | 1 | empty | PATH shim prints Network is unreachable and writes nothing review None |
 | no-tests | real | FAIL | tests | 1 | FAIL | tests | 1 | matches | 1 | empty | default gate on a repo with no tests directory before_exit 1 review None |
 | non-ascii | real | PASS | ok | 0 | PASS | ok | 0 | matches | 1 | empty | task keeps cafe-acute and the path contains a space review skipped |
+| over-cap | real | PASS | ok | 0 | PASS | ok | 0 | matches | 1 | empty | commit files 4 lines 280 names a.py,b.py,c.py,d.py review skipped |
 | tmp-unwritable | real | FAIL | worktree-failed | 1 | FAIL | runner-crash | 1 | FINDING | 1 | empty | repo tmp is mode 555 review None |

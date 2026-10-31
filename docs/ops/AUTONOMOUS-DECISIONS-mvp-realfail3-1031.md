@@ -7,3 +7,4 @@
 - 2026-10-31T22:38:29Z | Do not edit `docs/TODO.md` or `docs/PENDING-HANDOFF.md`. Other lanes share those files. This lane's handoff is `docs/ops/HANDOFF-mvp-realfail3-1031.md`.
 - 2026-10-31T22:38:29Z | Scratch and `TMPDIR` stay under this worktree's `tmp/` (gitignored). Do not use `/tmp`. The network case is the only PATH shim. It does not change the host network.
 - 2026-10-31T22:38:29Z | `.project-map/` is gitignored. The map agent may write it. This lane does not commit it.
+- 2026-10-31T23:05:00Z | over-cap PASS with 4 files and 280 lines stays MATCH. Alternative was a FINDING that the cloud runner lacks the local 3-file / 250-line cap. The failure table has no size row, so a finished build is the PASS row. The counts are in the report notes and the handoff for mvp-cloudfix-1031.
