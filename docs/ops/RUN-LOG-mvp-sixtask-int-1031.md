@@ -68,3 +68,4 @@ Format: `item | commit | tests | result`
 - pass1 t2 | f573cf3 | ./pfy build exit 0 wall 65.7s attempts 1 review accept gate_rerun 0 human accept | PASS
 - pass1 t3 | 39cc194 | ./pfy build exit 0 wall 366.3s attempts 1 review accept gate_rerun 0 human accept | PASS
 - pass1 t4 | 5c14473 | ./pfy build exit 0 wall 337.8s attempts 1 review accept gate_rerun 0 human accept writable tests/test_x_intake_smoke_112_114.py | PASS
+- pass1 t5 | 5df0448 | ./pfy build exit 0 wall 215.3s attempts 1 review accept gate_rerun 0 human accept writable tests/test_x_intake_smoke_117_118.py, tests/test_x_intake_smoke_119_121.py | PASS
