@@ -448,3 +448,175 @@ class CloudBuildRetryTests(unittest.TestCase):
         self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
         self.assertEqual(_git(self.repo, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip(), caller)
 
+
+class CloudBuildNoChangeTests(unittest.TestCase):
+    def setUp(self) -> None:
+        SCRATCH.mkdir(parents=True, exist_ok=True)
+        self.repo = _init_repo(SCRATCH / self.id().replace(".", "_"))
+        self.side = SCRATCH / (self.id().replace(".", "_") + "-side")
+        self.side.mkdir(parents=True, exist_ok=True)
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.repo, ignore_errors=True)
+        shutil.rmtree(self.side, ignore_errors=True)
+
+    def _run_task(self, grok: Path, gate: Path, task: str, retries: str, extra: list[str] | None = None) -> subprocess.CompletedProcess:
+        argv = [
+            sys.executable,
+            str(CLOUD),
+            task,
+            "--repo",
+            str(self.repo),
+            "--retries",
+            retries,
+            "--test-cmd",
+            "%s %s" % (sys.executable, gate),
+            "--grok-cmd",
+            str(grok),
+            "--timeout",
+            "30",
+        ]
+        if extra:
+            argv.extend(extra)
+        return _run(
+            argv,
+            self.repo,
+            env={"PFY_PROMPT_LOG": str(self.side / "prompts.txt")},
+            timeout=60,
+        )
+
+    def test_no_change_runs_the_gate_and_does_not_pass(self) -> None:
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\nprint('GATE-TAIL-EMPTY')\nraise SystemExit(0)\n",
+        )
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import os, sys\n"
+            "from pathlib import Path\n"
+            "blob = '\\n'.join(sys.argv)\n"
+            "Path(os.environ['PFY_PROMPT_LOG']).open('a', encoding='utf-8').write(blob + '\\n---PROMPT---\\n')\n"
+            "raise SystemExit(0)\n",
+        )
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        proc = self._run_task(grok, gate, "change nothing", "1")
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 1, text)
+        self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
+        payload = json.loads(list((self.repo / "pipelines" / "dogfood" / "build-cloud").glob("*/receipt.json"))[0].read_text(encoding="utf-8"))
+        self.assertEqual(payload["status"], "FAIL")
+        self.assertEqual(payload["reason"], "no-change")
+        self.assertIsNone(payload["commit"])
+        self.assertIsNone(payload["branch"])
+        self.assertEqual(len(payload["attempts"]), 2)
+        self.assertTrue(all(row["reason"] == "no-change" for row in payload["attempts"]))
+        prompts = (self.side / "prompts.txt").read_text(encoding="utf-8").split("---PROMPT---")
+        implement = [item for item in prompts if "PFY-CLOUD-IMPLEMENT" in item and "PFY-CLOUD-REVIEW" not in item]
+        self.assertGreaterEqual(len(implement), 2, prompts)
+        self.assertIn("GATE-TAIL-EMPTY", implement[1])
+        self.assertIn("no-change", implement[1])
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+
+    def test_gitignored_extra_file_is_absent_from_the_commit(self) -> None:
+        ignore = self.repo / ".gitignore"
+        ignore.write_text(ignore.read_text(encoding="utf-8") + "secret.txt\n", encoding="utf-8")
+        _git(self.repo, "add", ".gitignore")
+        committed = _git(self.repo, "commit", "-m", "ignore secret")
+        self.assertEqual(committed.returncode, 0, committed.stderr)
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\nprint('GATE-OK')\nraise SystemExit(0)\n",
+        )
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "import sys\n"
+            "blob = '\\n'.join(sys.argv)\n"
+            "if 'PFY-CLOUD-REVIEW' in blob:\n"
+            "    print('verdict: accept')\n"
+            "    raise SystemExit(0)\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "Path('secret.txt').write_text('should-not-commit\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        proc = self._run_task(grok, gate, "add kept only", "0")
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        match = re.search(r"PASS ok branch=(\S+) receipt=(\S+)", proc.stdout or "")
+        self.assertIsNotNone(match, proc.stdout)
+        branch = match.group(1)
+        names = _git(self.repo, "ls-tree", "-r", "--name-only", branch).stdout.splitlines()
+        self.assertIn("kept.py", names)
+        self.assertNotIn("secret.txt", names)
+        grepped = _git(self.repo, "grep", "should-not-commit", branch)
+        self.assertNotEqual(grepped.returncode, 0)
+
+    def test_staged_name_outside_the_reviewed_set_resets_and_does_not_commit(self) -> None:
+        real_git = shutil.which("git")
+        self.assertIsNotNone(real_git)
+        _write_exe(
+            self.side / "git",
+            "#!/usr/bin/env python3\n"
+            "import os, sys, subprocess\n"
+            "real = os.environ['REAL_GIT']\n"
+            "args = sys.argv[1:]\n"
+            "if 'diff' in args and '--cached' in args and '--name-only' in args:\n"
+            "    proc = subprocess.run([real, *args], stdout=subprocess.PIPE, stderr=subprocess.PIPE)\n"
+            "    sys.stdout.buffer.write(proc.stdout + b'extra-not-reviewed.txt\\0')\n"
+            "    sys.stderr.buffer.write(proc.stderr)\n"
+            "    raise SystemExit(proc.returncode)\n"
+            "os.execv(real, [real, *args])\n",
+        )
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\nprint('GATE-OK')\nraise SystemExit(0)\n",
+        )
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        env = os.environ.copy()
+        env["TMPDIR"] = str(SCRATCH)
+        env["PYTHONDONTWRITEBYTECODE"] = "1"
+        env["PATH"] = str(self.side) + os.pathsep + env.get("PATH", "")
+        env["REAL_GIT"] = real_git
+        proc = subprocess.run(
+            [
+                sys.executable,
+                str(CLOUD),
+                "add kept",
+                "--repo",
+                str(self.repo),
+                "--no-review",
+                "--retries",
+                "0",
+                "--test-cmd",
+                "%s %s" % (sys.executable, gate),
+                "--grok-cmd",
+                str(grok),
+                "--timeout",
+                "30",
+            ],
+            cwd=self.repo,
+            env=env,
+            text=True,
+            capture_output=True,
+            timeout=60,
+            check=False,
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 1, text)
+        payload = json.loads(list((self.repo / "pipelines" / "dogfood" / "build-cloud").glob("*/receipt.json"))[0].read_text(encoding="utf-8"))
+        self.assertEqual(payload["reason"], "scope-commit-mismatch")
+        self.assertIsNone(payload["branch"])
+        self.assertIsNone(payload["commit"])
+        self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+        self.assertNotIn("extra-not-reviewed.txt", _git(self.repo, "status", "--porcelain").stdout)
+
