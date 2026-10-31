@@ -69,3 +69,11 @@ Skip items that need special hardware, a human decision (an open OQ), a secret, 
 ## Finish (on any exit)
 
 Write or update this run's handoff in `docs/ops/`: items done with SHAs, items skipped and why, test evidence, how each change fails and recovers, cross-lane requests, the gate needed (Tester plus Reviewer for runtime changes; pregate plus Reviewer for docs, eval or test-only changes), and the next step. Finish the run log with a final `state:` line. Commit and push. Do not merge.
+
+## Round 2 addendum (2026-10-31 14:47 PT): new items from the parent
+Continue on this branch with new commits, push after each green item. The earlier `state: DONE` is superseded. Write a new state line when these are done.
+- F1: the bwrap probe must also pass `--bind <tmp> <tmp>` and `--die-with-parent`, the same flags the real run uses, so a host where those fail is detected by the probe. Behavior test with a fake bwrap that rejects one of those flags: the probe must report unavailable.
+- F2: add a `--tmpfs-only` fake-bwrap twin test, mirroring the existing fake-bwrap test, so the tmpfs-only path is covered.
+- P2: test that a failing lint makes scripts/pregate.sh fail (overall FAIL, nonzero exit). Drive it with a fixture repo or an env hook, do not edit real lint rules to fail.
+- G1: test the root-length guard (the B2 root-length fix at c0d38af): a root path over the limit is refused with a clear message, and one at the limit works.
+Same rules as above. Do not run pregate. Finish by updating docs/ops/HANDOFF-mvp-followups-fix2-1031.md.
