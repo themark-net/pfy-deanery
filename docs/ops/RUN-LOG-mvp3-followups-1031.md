@@ -87,3 +87,4 @@ Phases still open:
 ## Items after the override
 
 - item 2 | `d84e29f` | `tests.test_pfy_build_local_review` Ran 20 in 81.384s OK | stderr and receipt `warnings` say `scope check skipped: no allow list` only with no allow list. A `files:` line and `--allow-path` stay quiet.
+- item 3 | `6da1cb3` | `tests.test_pfy_build_local_review` Ran 21 in 82.336s OK | Seam unset: inject does not land, and under bwrap the stub cannot write its notes. Seam on: the existing inject test still mismatches, and prompt rows are still recorded. Host at the run: MemAvailable about 37 GiB, load 6.74, 32 cores.
