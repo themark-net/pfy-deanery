@@ -87,3 +87,48 @@ Format: `item | commit | tests | result`
 Rescan at 2026-10-31T21:25:20Z: dogfood still only F1. Sixtask t6 PASS, variance t1 and t2 PASS. t4 and t5 remain the writable-test finding already locked here. No new high runner bug.
 
 prior-state: LANE EMPTY | tests: tests.test_pfy_build_cloud tests.test_pfy_build_p, 64 OK, skipped 1, at 61d539a | files: scripts/pfy_build_cloud.py, tests/test_pfy_build_cloud.py | err: none | pregate not run: host busy
+
+## Wave 4 (2026-10-31 15:40 PT)
+
+The earlier lane-empty line is not an exit. Wave 4 resumed at 2026-10-31T22:39:26Z. Same launch clock: no new item after 2026-11-01T04:10:10Z, wall 2026-11-01T04:30:10Z. Host at resume: MemAvailable about 57 GiB, 32 cores, load about 3.7. Runner.Worker pid 3199955 was alive, so pregate stays unrun.
+
+```text
+LOOP EXIT CARD (wave 4)
+Goal (success criteria):     origin/bot/mvp-integrate-1031 is merged (no rebase). A missing --base is exit 1, reason worktree-failed, with a recovery line, and the caller checkout is unchanged. Every failure reason from classify_cloud_failure (rate-limit, unauthenticated) and every non-PASS runner reason has a non-empty recovery on the receipt. New findings under eval/mvp-1031/*/findings/ on origin/bot/mvp-realfail3-1031 and origin/bot/mvp-sixtask-int-1031 are fixed or the poll has seen none for 60 minutes.
+1 Goal met:                  nice -n 19 python3 -m unittest tests.test_pfy_build_cloud tests.test_pfy_build_p is OK after each code item.
+2 Turn cap:                  the items below, then the 60 minute findings poll, then the handoff. Not the agent-loops default of 8.
+3 Budget cap:                Cloud Grok only. A missing base returns before grok starts, so that repro does not call the model. No local model.
+4 Wall clock:                2026-11-01T04:30:10Z, or 2026-11-02T02:00Z, whichever first. Handoff starts 20 minutes earlier (2026-11-01T04:10:10Z).
+5 No-progress:               the same failure twice with no new information, or 3 items skipped in a row.
+6 Human interrupt:           user says stop. Do not ask questions. Do not merge to main. Push of this bot/ branch is pre-authorized. The integrate merge is pre-authorized.
+7 Error threshold:           3 consecutive same failures, then stop. A red base test is recorded and that area is skipped.
+8 External event:            stop a line if origin/main already closed it. Poll the two branches every 20 minutes. Stop the poll when no new findings file for 60 minutes.
+Loop type:                   goal
+Human gate:                  no merge to main, no PR, no tag. Tester plus Reviewer at handoff for runtime changes.
+```
+
+## Wave 4 plan
+
+Overview: Merge the integrate branch first so this lane sits on the collected tree. Then lock the realfail2 missing-base FINDING as worktree-failed with a recovery line, then give every failure reason a non-empty recovery (protected-path-changed is the observed empty one). Then poll realfail3 and sixtask-int for new findings files.
+
+Phases:
+
+- wave4-card | this run log and the decisions file | exits are recorded before the merge | depends on nothing | general
+- merge-integrate | merge origin/bot/mvp-integrate-1031, never rebase | merge commit, cloud tests still OK | wave4-card | general
+- base-missing | scripts/pfy_build_cloud.py, tests/test_pfy_build_cloud.py | missing --base exits 1, receipt reason worktree-failed, recovery tells Mark what to do, caller HEAD and status unchanged, grok not started | merge-integrate | general
+- recovery-lines | scripts/pfy_build_cloud.py, tests/test_pfy_build_cloud.py | protected-path-changed recovery is non-empty; a test walks classify_cloud_failure rate-limit and unauthenticated plus every non-PASS runner reason and reads a receipt whose recovery is non-empty. PASS and DRY-RUN stay empty | base-missing | general
+- findings-poll | read-only git fetch of origin/bot/mvp-realfail3-1031 and origin/bot/mvp-sixtask-int-1031 every 20 minutes | each new cloud-runner FINDING fixed with a test, or 60 minutes with no new findings file | recovery-lines | general
+- handoff | docs/ops/HANDOFF-mvp-cloudfix-1031.md and a final state line | committed and pushed, no merge to main | findings-poll | general
+
+One workstream. The code phases edit the same runner, so they run in order. No second editor.
+
+Risks:
+
+- The integrate merge brings other lanes' files. Mitigation: merge only, then edit only this lane's owned files. Do not rebase.
+- A missing base could stay exit 2 if resolve_base still raises UsageError. Mitigation: a behavior test on a temp repo with --base pointing at a ref that is not there, asserted red before the fix.
+- Filling recovery could change the DoD rate-limit and auth strings. Mitigation: those two keep the existing exact lines. PASS recovery stays empty.
+- realfail3 and sixtask-int had only drop-in commits at 2026-10-31T22:39Z (43cdee4 and 4123dda). Mitigation: poll, do not invent findings.
+
+## Item log (wave 4)
+
+Format: `item | commit | tests | result`
