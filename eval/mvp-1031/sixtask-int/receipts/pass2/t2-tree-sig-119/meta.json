@@ -1,0 +1,40 @@
+{
+  "task": "t2-tree-sig-119",
+  "label": "pass2",
+  "command": [
+    "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-sixtask-int-1031/pfy",
+    "build",
+    "# t2 content hash for the 119 tree signature\n\nLevel: trivial\nBase SHA: 997d89264495861a178713ccf7d4447ea828afc4\nFiles likely touched: examples/x-intake-local/smoke_119_121.py\nGate: python3 -m unittest tests.test_mvp2_t2_tree_sig_119\n\nThe acceptance test is already in the tree. Do not edit it. Do not edit any other test file. Do not commit.\n\n`tree_sig` in `examples/x-intake-local/smoke_119_121.py` still hashes size and mtime. Replace that function with the content hash already used by `tree_sig` in `examples/x-intake-local/smoke_122_124.py`, including the unreadable marker. Same function name and None for a missing path. Do not change the other smoke files. An unchanged tree, including an mtime-only touch, must keep the same signature. A same-size byte change that restores mtime must change it.\n\nGate command: `python3 -m unittest tests.test_mvp2_t2_tree_sig_119`\n",
+    "--repo",
+    "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-sixtask-int-1031/tmp/sixtask-int-clones/pass2/t2-tree-sig-119",
+    "--base",
+    "demo-base",
+    "--test-cmd",
+    "python3 -m unittest tests.test_mvp2_t2_tree_sig_119",
+    "--receipt-dir",
+    "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-sixtask-int-1031/eval/mvp-1031/sixtask-int/receipts/pass2/t2-tree-sig-119",
+    "--timeout",
+    "900",
+    "--keep-worktree"
+  ],
+  "writable_test": [],
+  "wall_s": 58.4,
+  "exit_code": 0,
+  "receipt_status": "PASS",
+  "receipt_reason": "ok",
+  "attempts": 1,
+  "review_verdict": "accept",
+  "review_reasons": [],
+  "commit": "7bf669d30f773b9a06971d25817e9c38d814a5f8",
+  "branch": "cloud/t2-content-hash-for-the-119-tree-signatu-20261031T231454010053Z",
+  "base": "997d89264495861a178713ccf7d4447ea828afc4",
+  "planted": "5f9498fadfb4095d1687ba233a7d34c89fdc0065",
+  "lane_head": "1bd024736343b54280d6ee2efd0a1afae53be92d",
+  "gate_rerun": {
+    "exit": 0,
+    "acceptance_unchanged": true
+  },
+  "human": "accept",
+  "human_note": "tree_sig now matches the content hash in smoke_122_124.py, including the unreadable marker. Only smoke_119_121.py changed. The planted gate was not edited and the canonical rerun passed.",
+  "timeout_s": 900
+}

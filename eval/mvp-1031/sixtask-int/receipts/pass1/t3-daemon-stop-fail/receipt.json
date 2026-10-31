@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/t3-overtime-daemon-stop-timeout-is-a-fai-20261031T225313451908Z",
+  "commit": "0b58a8166439ac34e18fab1acdceb90212fd246c",
+  "base": "demo-base",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "The overtime smoke treats a timed-out `daemon stop` as success when the lock is gone. I'll read the smoke path and the acceptance test, then make a timeout with no live lock return 1 with the shared timeout reason.A `daemon stop` timeout is recorded on the step and then dropped, so a missing lock still takes the success path. I'll keep that step record and fail the receipt with the same timeout text when the lock is not alive.The timeout text stays on the step, and it now becomes the receipt reason when the lock is gone. Next I’ll run the gate and the other overtime smoke checks that share this path.The gate passed. I’ll also check the two paths the task says must stay as they are: a live lock after a completed stop, and a clean stop.A `daemon stop` timeout in the overtime smoke is now a failure when no `overtimed.lock` is left alive. The receipt reason is the same text already stored on the step, `overtime daemon stop timeout after <seconds>s`, and the smoke exits 1.\n\nIn `examples/x-intake-local/smoke_112_114.py`, `smoke_overtime` was catching `subprocess.TimeoutExpired` from `daemon stop`, recording `timeout_reason(\"overtime daemon stop\", ...)` on the step, and then continuing. With no live lock it fell through to the success sentence and returned 0. That step record is unchanged. After the real-HOME check and any earlier command timeout, a stop timeout now sets that same string as the receipt reason and returns 1.\n\nA stop that returns while the lock is still alive still fails with `daemon still running after `daemon stop``. A clean stop with no live lock still passes. A timed-out earlier command, or a changed real `~/overtime`, still owns the receipt reason.\n\n`python3 -m unittest tests.test_mvp2_t3_daemon_stop tests.test_x_intake_smoke_112_114` — 9 tests, OK. A separate probe confirmed the clean-stop pass and the live-lock failure. Nothing was committed.\n\nI'll review the overtime daemon-stop change against the task and the surrounding smoke logic before giving a verdict.verdict: accept\n\nThe diff is confined to `smoke_overtime` in `examples/x-intake-local/smoke_112_114.py`. A `daemon stop` timeout is still recorded on the step with `timeout_reason(\"overtime daemon stop\", ...)`, and when that happens and no live `overtimed.lock` remains, the receipt reason is that same text and the smoke returns 1. A live lock still fails with \"daemon still running\", a clean stop still passes, and an earlier command timeout or a changed real HOME still owns the receipt reason. No tests were deleted, and the diff adds no recursive delete or root-level command.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "python3 -m unittest tests.test_mvp2_t3_daemon_stop tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_overtime_daemon_stop_timeout_uses_shared_text",
+    "before": {
+      "cmd": "python3 -m unittest tests.test_mvp2_t3_daemon_stop tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_overtime_daemon_stop_timeout_uses_shared_text",
+      "exit": 1,
+      "tail": "\nF.\n======================================================================\nFAIL: test_stop_timeout_without_lock_is_fail (tests.test_mvp2_t3_daemon_stop.DaemonStopTimeoutTests.test_stop_timeout_without_lock_is_fail)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-sixtask-int-1031/tmp/sixtask-int-clones/pass1/t3-daemon-stop-fail/tmp/cloud-build/20261031T225313451908Z/tests/test_mvp2_t3_daemon_stop.py\", line 79, in test_stop_timeout_without_lock_is_fail\n    self.assertEqual(proc.returncode, 1, blob)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 0 != 1 : {\"verdict\": \"PASS\", \"reason\": \"agent created, listed, budget/protect set and shown, no session run, daemon stopped, real HOME untouched\"}\nreceipt: /home/mark/DEVELOP/pfy-mentat/tmp/mvp-sixtask-int-1031/tmp/sixtask-int-clones/pass1/t3-daemon-stop-fail/tmp/cloud-build/20261031T225313451908Z/tmp/mvp2-t3-r5itzmf1/receipts/overtime/latest.json\n\n\n----------------------------------------------------------------------\nRan 2 tests in 3.942s\n\nFAILED (failures=1)\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "python3 -m unittest tests.test_mvp2_t3_daemon_stop tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_overtime_daemon_stop_timeout_uses_shared_text",
+      "exit": 0,
+      "tail": "\n..\n----------------------------------------------------------------------\nRan 2 tests in 4.088s\n\nOK\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": false,
+  "task": "# t3 overtime daemon-stop timeout is a failure\n\nLevel: medium\nBase SHA: 997d89264495861a178713ccf7d4447ea828afc4\nFiles likely touched: examples/x-intake-local/smoke_112_114.py\nGate: python3 -m unittest tests.test_mvp2_t3_daemon_stop tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_overtime_daemon_stop_timeout_uses_shared_text\n\nThe acceptance test `tests/test_mvp2_t3_daemon_stop.py` is already in the tree. Do not edit it. Do not edit `tests/test_x_intake_smoke_112_114.py`. Do not commit.\n\nIn `smoke_overtime` (`examples/x-intake-local/smoke_112_114.py`), a `daemon stop` that raises `subprocess.TimeoutExpired` is recorded on the step and then ignored. If no `overtimed.lock` is left behind, the smoke still returns 0 and the reason says the daemon stopped. That success sentence is wrong.\n\nWhen `daemon stop` times out and the lock is not alive, return 1 and set the receipt reason to the same timeout text already stored on the step: `overtime daemon stop timeout after <seconds>s` from `timeout_reason(\"overtime daemon stop\", ...)`. Keep the existing step record. A stop that returns and a still-live lock must still fail with the existing \"daemon still running\" reason. A clean stop with no live lock must still pass.\n\nGate command: `python3 -m unittest tests.test_mvp2_t3_daemon_stop tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_overtime_daemon_stop_timeout_uses_shared_text`\n",
+  "finished_at": "2026-10-31T22:59:19Z"
+}
