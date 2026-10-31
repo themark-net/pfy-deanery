@@ -128,13 +128,15 @@ The default cap is `--max-files 3` and `--max-lines 250`. A test file named by `
 
 A larger diff is `PASS-REJECTED` (exit 1) even when the tests are green and the change is a legitimate fix. The attempt receipt names the file count and the line count. Raise `--max-files` and `--max-lines` when the task is really that big. Three changed files, or 251 changed lines, is enough to reject.
 
+The scope check runs only when the task has a `files:` line or the command passes `--allow-path`. With neither, review still runs the size check, the wiring check, and the model, and a path the task never named can be committed. Stderr prints `scope check skipped: no allow list` once, and the top-level receipt lists that same phrase in `warnings`. Add a `files:` line or `--allow-path` and the warning stays off. `--no-review` does not run the scope check, so that path does not print the warning.
+
 The reviewer is the same local model as the agent. `--model` (default `qwen3.6:35b`) is the tag for the edit and for the review call. That is a self-review, not an independent reader. A mistake the model cannot see in its own patch is a mistake this step will not catch. The scope, size, and wiring checks do not call the model. The receipt `model` field is that tag. Read the attempt receipt for the verdict. Do not treat a model accept as a second person.
 
 ## Receipt schema `pfy-local-build/1`
 
 File: `<receipt-dir>/receipt.json`, written atomically, including on BLOCKED (then `worktree` is null).
 
-Fields: `schema`, `id`, `task` (first 500 chars, redacted), `repo`, `base_sha`, `model`, `endpoint` (host only), `status` (`PASS|FAIL|BLOCKED|TIMEOUT|ABORTED`), `reason`, `exit_code`, `wall_seconds`, `agent_seconds`, `tests_before`, `tests_after`, `files_changed`, `branch`, `commit`, `worktree`, `model_was_loaded`, `unloaded`, `mem` (`mem_available_gb`, `swap_free_gb`, `min_available_gb`), `opencode_version`, `agent_log`, `sandbox` (`bwrap-unshare-net`, `bwrap-share-net`, or `unsafe-no-sandbox`), `started_at`, `finished_at` (UTC, `Z`).
+Fields: `schema`, `id`, `task` (first 500 chars, redacted), `repo`, `base_sha`, `model`, `endpoint` (host only), `status` (`PASS|FAIL|BLOCKED|TIMEOUT|ABORTED`), `reason`, `exit_code`, `wall_seconds`, `agent_seconds`, `tests_before`, `tests_after`, `files_changed`, `warnings` (a list; `scope check skipped: no allow list` when review reached the scope check and there was no allow list, otherwise empty), `branch`, `commit`, `worktree`, `model_was_loaded`, `unloaded`, `mem` (`mem_available_gb`, `swap_free_gb`, `min_available_gb`), `opencode_version`, `agent_log`, `sandbox` (`bwrap-unshare-net`, `bwrap-share-net`, or `unsafe-no-sandbox`), `started_at`, `finished_at` (UTC, `Z`).
 
 `password: x` redacts to `password:***`. Token, key, secret, and passwd assignments redact the same way. `Authorization: Basic` and an `AKIA` id (16 trailing characters) keep a four-character prefix and then `***`. A PEM private-key block becomes `[redacted-private-key]`. A value of four characters or fewer becomes `***`.
 

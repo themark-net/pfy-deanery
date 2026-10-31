@@ -97,6 +97,7 @@ DEFAULT_RETRIES = 2
 DEFAULT_MAX_FILES = 3
 DEFAULT_MAX_LINES = 250
 REVIEW_MARKER = "pfy-review-v1"
+SCOPE_SKIPPED_NOTE = "scope check skipped: no allow list"
 DIFF_PROMPT_CAP = 8000
 # Shown on the final receipt when the review call itself fails. Not a reject.
 _REVIEW_OUTAGE_RECOVERY = (
@@ -2863,6 +2864,7 @@ def build_local(argv: list[str] | None = None) -> int:
     agent_seconds = 0.0
     attempts_used = 0
     attempt_receipts: list[str] = []
+    scope_warning = ""
     model_was_loaded = False
     unloaded = False
     agent_started = False
@@ -2923,6 +2925,7 @@ def build_local(argv: list[str] | None = None) -> int:
                 "stale_worktrees": list(stale_worktrees),
                 "sandbox_extra_rw": list(sandbox_extra_rw),
                 "attempt_receipts": list(attempt_receipts),
+                "warnings": [scope_warning] if scope_warning else [],
                 "branch": branch,
                 "commit": commit,
                 "worktree": None if worktree is None else str(worktree),
@@ -3476,6 +3479,9 @@ def build_local(argv: list[str] | None = None) -> int:
                 break
 
             scope = _check_scope(changed, allow_patterns, allow_declared)
+            if scope.get("skipped") == "no-allow-list" and not scope_warning:
+                scope_warning = SCOPE_SKIPPED_NOTE
+                print(SCOPE_SKIPPED_NOTE, file=sys.stderr)
             size = _check_size(changed, diff_stats, args.test_cmd_s, args.max_files_n, args.max_lines_n)
             wire = _check_wiring(diff_text, wiring_rules)
             checks = {"scope": scope, "size": size, "wiring": wire}

@@ -704,6 +704,41 @@ class ReviewLoopTests(unittest.TestCase):
         self.assertNotIn(marker, rows[1]["prompt"].split("Previous diff:", 1)[0])
         self.inner.assert_clean_origin()
 
+    def test_scope_check_skipped_is_on_stderr_and_the_receipt(self):
+        phrase = "scope check skipped: no allow list"
+        bare, bare_receipt = self.inner.run_build(
+            "fix",
+            task="fix add so one plus one is two",
+        )
+        self.assertEqual(bare.returncode, 0, bare.stdout + bare.stderr)
+        self.assertIn(phrase, bare.stderr)
+        bare_data = self._receipt(bare, bare_receipt)
+        self.assertEqual(bare_data["status"], "PASS")
+        self.assertIn(phrase, bare_data["warnings"])
+        self.assertEqual(bare_data["warnings"].count(phrase), 1)
+
+        named, named_receipt = self._run(
+            "fix add so one plus one is two\nfiles: src/calc.py\n",
+            [{"mode": "fix"}],
+        )
+        self.assertEqual(named.returncode, 0, named.stdout + named.stderr)
+        self.assertNotIn(phrase, named.stderr)
+        named_data = self._receipt(named, named_receipt)
+        self.assertEqual(named_data["status"], "PASS")
+        self.assertNotIn(phrase, named_data.get("warnings") or [])
+
+        flagged, flagged_receipt = self.inner.run_build(
+            "fix",
+            extra=["--allow-path", "src/calc.py"],
+            task="fix add so one plus one is two",
+        )
+        self.assertEqual(flagged.returncode, 0, flagged.stdout + flagged.stderr)
+        self.assertNotIn(phrase, flagged.stderr)
+        flagged_data = self._receipt(flagged, flagged_receipt)
+        self.assertEqual(flagged_data["status"], "PASS")
+        self.assertNotIn(phrase, flagged_data.get("warnings") or [])
+        self.assertEqual(flagged_data["review"]["allow_path"], ["src/calc.py"])
+
     def test_no_review_does_not_retry_a_red_gate(self):
         task = "fix add so one plus one is two\nfiles: src/calc.py\n"
         proc, receipt = self._run(
