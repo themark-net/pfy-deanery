@@ -1519,7 +1519,7 @@ class LocalBuildTests(unittest.TestCase):
         proc, receipt = self.run_build("ignored-helper")
         self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
         data = self.assert_no_commit(proc, receipt)
-        self.assertIn(data["reason"], ("commit-recheck-failed", "scope-commit-mismatch"))
+        self.assertEqual(data["reason"], "commit-recheck-failed")
         names = _git(self.repo, "log", "--all", "--name-only", "--pretty=format:")
         self.assertNotIn("src/helper.py", names)
         self.assertNotIn("helper.py", data["files_changed"])
