@@ -41,6 +41,7 @@ import hashlib
 import json
 import os
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -78,16 +79,24 @@ def tree_sig(p: Path) -> str | None:
         return None
     h = hashlib.sha256()
     for f in sorted(p.rglob("*")):
-        # content hash, not mtime: a same-size in-place edit that restores mtime still changes the signature
+        # permission bits plus a streamed content hash, not mtime: chmod and a same-size edit change the signature
         try:
             if f.is_file():
-                fh = hashlib.sha256()
-                with f.open("rb") as fp:  # streamed in 1 MiB chunks, so a huge file doesn't load into RAM
-                    for chunk in iter(lambda: fp.read(1 << 20), b""):
-                        fh.update(chunk)
-                h.update(f"{f}:{f.stat().st_size}:{fh.hexdigest()}\n".encode())
+                st = f.stat()
+                mode = f"{stat.S_IMODE(st.st_mode):o}"
+                try:
+                    fh = hashlib.sha256()
+                    with f.open("rb") as fp:  # streamed in 1 MiB chunks, so a huge file doesn't load into RAM
+                        for chunk in iter(lambda: fp.read(1 << 20), b""):
+                            fh.update(chunk)
+                except OSError:
+                    h.update(f"{f}:{mode}:unreadable\n".encode())
+                else:
+                    h.update(f"{f}:{mode}:{st.st_size}:{fh.hexdigest()}\n".encode())
             else:
-                h.update(f"{f}:dir\n".encode())
+                # lstat keeps a symlink recorded as itself; do not follow it or hash its target
+                mode = f"{stat.S_IMODE(f.lstat().st_mode):o}"
+                h.update(f"{f}:{mode}:dir\n".encode())
         except OSError:
             h.update(f"{f}:unreadable\n".encode())
     return h.hexdigest()
