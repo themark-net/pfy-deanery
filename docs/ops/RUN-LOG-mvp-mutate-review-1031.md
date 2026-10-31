@@ -90,6 +90,6 @@ How it fails: a mutant is written into the worktree runner, a hung suite is call
 How we recover: the harness refuses a protected path and a clone outside `tmp/`. The campaign restores the clone file in `finally`. A timeout kills only the suite process group this run started. A red baseline records the module and skips scoring.
 
 item | commit | tests | result
-harness | pending-sha | nice python3 -m unittest tests.test_mut_review_harness | Ran 5 tests in 2.414s OK
+harness | 80b5aec | nice python3 -m unittest tests.test_mut_review_harness | Ran 5 tests in 2.414s OK
 
-state: DONE | tests: tests.test_mut_review_harness OK | files: 3 | err: none
+state: DONE | tests: tests.test_mut_review_harness OK | files: 4 | err: none
