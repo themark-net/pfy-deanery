@@ -49,3 +49,25 @@ Named skills `write-loop-exits-first` and `repo-handoff-doc-required` are not fi
 ## Items
 
 - exits | 1a09623 | none (log only) | pushed
+- demo section | b799f3c | nice -n 19 python3 -m unittest tests.test_pfy_build_docs : 5 tests OK in 0.002s | pushed
+- further gaps | skipped | plan rows G1-G7 and G9 belong to other lanes; G8 is already the card this section appends to; G10 is excluded by the plan; round-2 dedupe, sandbox-gate, and local-t5 own other files | lane empty
+- pregate | skipped | pregate not run: host busy | Runner.Worker pid 1974251 and heavy-1030.lock held
+
+## Finish
+
+state: DONE | tests: tests.test_pfy_build_docs 5 OK on b799f3c | files: 4 owned docs | err: none
+
+```text
+LOOP REPORT
+================================================================
+Type:            goal
+Goal:            Demo 2026-10-31 on the daily card, fields matching eval/mvp-1031/REPORT.md, contract test green
+Exit fired:      lane empty. DoD met. No further plan gap fits the owned files.
+Iterations:      2 item commits plus handoff / turn cap 8
+Progress:        exit code cell 0 and branch cell match the report. Suite 5 OK. Test file unchanged.
+Evidence:        unittest 5 OK at the tree committed as b799f3c. Report exit code is 0, so the section says Demo: PASS.
+Human gate:      no merge. Reviewer next. Pregate not run: host busy.
+Next:            Reviewer checks the Demo 2026-10-31 table against eval/mvp-1031/REPORT.md.
+Status:          DONE
+================================================================
+```
