@@ -128,4 +128,22 @@ RED: M7 -> `test_previous_diff_reaches_the_retry_prompt`. Failed: `return a + b 
 On the restored runner the same test passed in 1.512s. The removed line is absent from the first prompt and sits after `Previous diff:` on the retry.
 
 item | commit | tests | result
-item-3-m7 | (sha in the next log line) | nice python3 -m unittest tests.test_pfy_build_local_review | Ran 14 tests in 29.210s OK
+item-3-m7 | 5079532 | nice python3 -m unittest tests.test_pfy_build_local_review | Ran 14 tests in 29.210s OK
+
+### item-4-scope
+
+Already done on this branch. `7bdede7` (`fix: stage only reviewed paths on local build`) is an ancestor. `_stage_reviewed` stages only the reviewed names and requires `git diff --cached --name-only` to match. A mismatch resets the index, sets `scope-commit-mismatch`, exits 1, and creates no branch. `test_gitignored_extra_file_is_absent_from_the_commit` uses a gitignored extra file. `origin/main` has no `scope-commit-mismatch`. Skipped. No second copy.
+
+item | commit | tests | result
+item-4-scope | skipped | already on base 7bdede7 | no code change
+
+### item-5-docs
+
+`./pfy build --local --help` states that review is on by default and that a green patch is rejected above 3 changed files or 250 added plus removed lines. The same sentence is in `docs/ops/HANDOFF-mvp3-review-retry.md` under Review defaults.
+
+How it fails: an operator reads `--help` or the MVP-3 handoff and does not learn the default or the cap.
+
+How we recover: the help test fails if the sentence is dropped. `--no-review` remains the one-attempt path. `--max-files` and `--max-lines` still override the cap.
+
+item | commit | tests | result
+item-5-docs | (sha next) | nice python3 -m unittest tests.test_pfy_build_local_review | Ran 15 tests in 29.461s OK

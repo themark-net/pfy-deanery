@@ -296,7 +296,11 @@ def _apply_review_flags(args: argparse.Namespace) -> None:
 def parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="pfy build --local",
-        description="Headless local-model build. One task, one tested branch, no push.",
+        description=(
+            "Headless local-model build. One task, one tested branch, no push. "
+            "Review is on by default (--no-review turns it off). "
+            "A green patch is rejected above 3 changed files or 250 added plus removed lines."
+        ),
     )
     parser.add_argument("task", nargs="?", help="task text")
     parser.add_argument("--local", action="store_true", help=argparse.SUPPRESS)

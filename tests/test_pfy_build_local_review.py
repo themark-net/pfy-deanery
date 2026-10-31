@@ -28,6 +28,26 @@ def _prompts(path):
     return rows
 
 
+class ReviewHelpTests(unittest.TestCase):
+    def test_help_says_review_is_on_and_names_the_size_cap(self):
+        env = os.environ.copy()
+        env["TMPDIR"] = str(harness.ROOT / "tmp" / "scratch")
+        proc = subprocess.run(
+            [str(harness.ROOT / "pfy"), "build", "--local", "--help"],
+            cwd=harness.ROOT,
+            env=env,
+            text=True,
+            capture_output=True,
+            timeout=20,
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        text = " ".join((proc.stdout or "").split())
+        self.assertIn("Review is on by default", text)
+        self.assertIn("--no-review", text)
+        self.assertIn("3 changed files", text)
+        self.assertIn("250 added plus removed lines", text)
+
+
 class ReviewLoopTests(unittest.TestCase):
     def setUp(self):
         self.inner = harness.LocalBuildTests()
