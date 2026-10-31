@@ -110,3 +110,12 @@ Host: MemAvailable 59.2 GiB, load 3.18, 32 cores. Under the pressure line. `Runn
 - pregate | not run | stopped before lock acquire at 2026-10-31T22:43:21Z | host busy: Runner.Worker pid 3199955, other pregates queued on the heavy lock
 
 state: goal met 2026-10-31T22:44:05Z. Six cloud builds remain PASS. Pregate not run: host busy. No merge.
+
+## Resume 2026-10-31T22:52Z
+
+Host: MemAvailable 45.5 GiB, load 4.81, 32 cores. Under the pressure line (2x cores is 64). `Runner.Worker` pid 3199955 is running. No new build. Turn cap stays at the six landed tasks. Further gom TODO rows stay skipped (parked, open question, scraper, or operator-ask).
+
+- resume check | none | tests.test_gom_dogfood_1031_report 2 tests OK; six gom tests 6 passed in 1.06s | HEAD matches origin on both bot branches; journal mtime 1790360353 size 1744896 unchanged; receipt scan has no AKIA, private-key, sk-, or ghp_ markers
+- pregate | not run | not queued | host busy: Runner.Worker pid 3199955
+
+state: goal met 2026-10-31T22:52:50Z. Lane empty. Pregate not run: host busy. No merge.
