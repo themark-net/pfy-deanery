@@ -1,3 +1,11 @@
+## 2026-10-31: mvp-integrate-1031
+
+- Branch: `bot/mvp-integrate-1031`. Not merged. No PR. No tag. Not a Feature GO. Catalog HOLD 70-75 stays.
+- Demo: PASS. One cloud `./pfy build` on a temp fixture. Checker exit 0. Receipt [eval/mvp-1031/demo-receipt.json](../eval/mvp-1031/demo-receipt.json). Fixture branch `cloud/make-add-return-the-sum-of-its-two-argum-20261031T210933627529Z` at `ebef4238a7eff8f938747623f7920b3fde74e586`. The integrate checkout was not the task target.
+- Suite: `nice -n 19 flock ~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock python3 -m unittest discover -s tests -t .` with `TMPDIR` on this worktree `tmp/`. Ran 1048 tests in 668.761s. Failures 2, skipped 16. Details in the handoff.
+- Handoff: [ops/HANDOFF-mvp-integrate-1031.md](ops/HANDOFF-mvp-integrate-1031.md). Report: [../eval/mvp-1031/REPORT.md](../eval/mvp-1031/REPORT.md).
+- Pregate not run: host busy.
+
 ## 2026-10-19: Hermes Agent bake-off (Entry 134)
 
 - **Branch:** `bot/hermes-eval` (worktree `/home/mark/DEVELOP/pfy-mentat/tmp/hermes-eval`). Lands on `main` by fast-forward after the Tester and Reviewer gate (no-PR flow). Not a Feature GO. Mark chooses Hermes as the bot interface (wiring pending; see the handoff).

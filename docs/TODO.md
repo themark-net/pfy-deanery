@@ -31,6 +31,11 @@ Branch `bot/mvp-local-build`. Not a Feature GO. Catalog HOLD 70-75 stays. Handof
 | MVP-3 | Review-and-retry on `./pfy build --local`, then the six MVP-2 tasks locally | done as a measurement on `bot/mvp3-review-retry` (gate 5/6, loop accept 5/6, human accept 4/6, wall 3859.9 s; no-go as the default). Report: [eval/mvp3/REPORT.md](../eval/mvp3/REPORT.md). Handoff: [HANDOFF-mvp3-review-retry.md](ops/HANDOFF-mvp3-review-retry.md) |
 
 
+## MVP integrate (2026-10-31)
+
+Not a Feature GO. Catalog HOLD 70-75 stays. One cloud `./pfy build` on the mvp-1031 fixture PASSed on `bot/mvp-integrate-1031` (checker exit 0, receipt [eval/mvp-1031/demo-receipt.json](../eval/mvp-1031/demo-receipt.json), fixture commit `ebef4238a7eff8f938747623f7920b3fde74e586`). Handoff: [HANDOFF-mvp-integrate-1031.md](ops/HANDOFF-mvp-integrate-1031.md).
+
+
 ## G8 — Simple harness-agnostic launch (2026-07-31)
 
 | ID | Item | Status |

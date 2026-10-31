@@ -79,3 +79,8 @@ merge mvp-surface-1031 | c17d4ef | none | clean
 merge mvp-eval-1031 | 71fd74a | none | clean
 merge mvp-cloud-1031 | 29bbad4 | none | clean
 classifier import | d966e83 | nice -n 19 python3 -m unittest tests.test_pfy_build_cloud tests.test_build_preflight | 35 OK in 6.753s
+suite | 444af7b | TMPDIR=$PWD/tmp nice -n 19 flock ~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock python3 -m unittest discover -s tests -t . | Ran 1048 in 668.761s, FAILED failures=2 skipped=16 (help contract, local-bench TMPDIR). Not rewritten
+demo | a73e9ae | ./pfy build on tmp fixture; python3 eval/mvp-1031/check_receipt.py eval/mvp-1031/demo-receipt.json | build exit 0, checker exit 0, PASS, review accept, commit ebef4238a7eff8f938747623f7920b3fde74e586
+notes | (handoff commit) | docs links | one TODO note, one pending section, one modules row
+
+state: DONE | exit: lane empty | tests: discover 1048 ran, failures=2, skipped=16; checker exit 0 | files: merges, classifier import, demo receipt, report, TODO note, pending section, modules row, handoff | err: help contract and TMPDIR local-bench recorded, not rewritten
