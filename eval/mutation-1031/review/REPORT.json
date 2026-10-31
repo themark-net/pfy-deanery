@@ -125,5 +125,50 @@
       "seconds": 147.083,
       "first_failure": "FAIL: test_stub_binds_stay_off_unless_the_test_seam_is_on"
     }
-  ]
+  ],
+  "after": {
+    "commit": "1c332e8",
+    "note": "R1-R6 and R10-R14 were not re-run. review-fix2 had not moved past 3396ee7. Their kill stands. R7-R9 were re-run on tests.test_mut_review_size_cap only.",
+    "modules": [
+      "tests.test_mut_review_size_cap"
+    ],
+    "baseline": "pass",
+    "kills_after": [
+      "R1",
+      "R2",
+      "R3",
+      "R4",
+      "R5",
+      "R6",
+      "R7",
+      "R8",
+      "R9",
+      "R10",
+      "R11",
+      "R12",
+      "R13",
+      "R14"
+    ],
+    "survivors_left": [],
+    "rows": [
+      {
+        "id": "R7",
+        "result": "killed",
+        "seconds": 2.669,
+        "first_failure": "FAIL: test_four_files_are_rejected_and_three_files_pass"
+      },
+      {
+        "id": "R8",
+        "result": "killed",
+        "seconds": 2.673,
+        "first_failure": "FAIL: test_two_hundred_fifty_one_lines_are_rejected_and_two_hundred_fifty_pass"
+      },
+      {
+        "id": "R9",
+        "result": "killed",
+        "seconds": 2.296,
+        "first_failure": "FAIL: test_four_files_are_rejected_and_three_files_pass"
+      }
+    ]
+  }
 }

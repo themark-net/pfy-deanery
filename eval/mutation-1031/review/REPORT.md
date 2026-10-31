@@ -26,6 +26,20 @@ Excluded tests: none
 
 Kills before: 11 (R1, R2, R3, R4, R5, R6, R10, R11, R12, R13, R14)
 Survivors before: 3 (R7, R8, R9)
-Kills after: pending until survivor tests or a review-fix2 re-run
-Survivors left: 3 (R7, R8, R9)
+Kills after: 14 (R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14)
+Survivors left: none
 Not killed or survived: none
+
+## Kills after
+
+`origin/bot/mvp-review-fix2-1031` had not moved past the merge in `3396ee7`, so R1-R6 and R10-R14 were not re-run. Their kill in the table above stands.
+
+R7, R8, and R9 were applied one at a time on a fresh clone of `1c332e8`. The only module was `tests.test_mut_review_size_cap` (`--modules`, timeout 180s). That module's baseline passed. The worktree runner was not mutated.
+
+| id | result | seconds | first failure |
+| --- | --- | --- | --- |
+| R7 | killed | 2.669 | FAIL: test_four_files_are_rejected_and_three_files_pass |
+| R8 | killed | 2.673 | FAIL: test_two_hundred_fifty_one_lines_are_rejected_and_two_hundred_fifty_pass |
+| R9 | killed | 2.296 | FAIL: test_four_files_are_rejected_and_three_files_pass |
+
+R7 dies when 4 files are accepted. R8 dies when 251 lines are accepted. R9 dies on the 4-file case (the 251-line case would also fail it). No `expectedFailure`. No runner edit.

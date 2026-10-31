@@ -128,3 +128,14 @@ item | commit | tests | result
 survivor-tests | ef554f2 | nice python3 -m unittest tests.test_mut_review_harness tests.test_mut_review_size_cap | Ran 8 tests in 5.476s OK
 
 state: DONE | tests: both modules OK on the unmutated runner | files: 3 | err: none
+
+### rerun
+
+`git fetch origin` at 2026-10-31T22:19Z: `origin/bot/mvp-review-fix2-1031` had not moved past the merge in `3396ee7`. R1-R6 and R10-R14 were not re-run. Their kill stands.
+
+R7, R8, and R9 on a clone of `1c332e8`, module `tests.test_mut_review_size_cap` only: all killed (2.669s, 2.673s, 2.296s). Survivors left: none. The worktree runner hash stayed `15e4f4ae1bafa98c2e109002c1ba72e538c89c1ab665827741abf101d80b110a`.
+
+item | commit | tests | result
+rerun | pending-sha | nice python3 eval/mutation-1031/review/run_mutants.py --run --ids R7,R8,R9 --modules tests.test_mut_review_size_cap --timeout 180 | R7 R8 R9 killed, survivors none, exit 0
+
+state: DONE | tests: size-cap module kills R7 R8 R9 | files: 2 | err: none
