@@ -17,6 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = "examples/x-intake-local/smoke_117_118.py"
+_RECEPTS: Path | None = None
 
 
 def _write_exe(path: Path, body: str) -> None:
@@ -30,6 +31,8 @@ def _env(home: Path, **extra: str) -> dict[str, str]:
     for key in list(env):
         if key.startswith(("KANDER_", "MOIRA_", "DOCKER_")) or key == "PFY_XINTAKE_TIMEOUT":
             env.pop(key, None)
+    if _RECEPTS is not None:
+        env["PFY_SMOKE_RECEIPT_DIR"] = str(_RECEPTS)
     env.update(extra)
     return env
 
@@ -52,13 +55,21 @@ def _moira_dir(root: Path, image: str, traefik: str = TRAEFIK_PINNED) -> Path:
 
 
 def _receipt(entry: str) -> dict:
-    return json.loads((ROOT / f"pipelines/smoke/{entry}/latest.json").read_text(encoding="utf-8"))
+    if _RECEPTS is None:
+        raise RuntimeError("PFY_SMOKE_RECEIPT_DIR is unset")
+    return json.loads((Path(_RECEPTS) / entry / "latest.json").read_text(encoding="utf-8"))
 
 
 PINNED = "ghcr.io/moira-mcp/moira@sha256:" + "0" * 64
 
 
 class XIntakeSmoke117118Tests(unittest.TestCase):
+    def setUp(self) -> None:
+        global _RECEPTS
+        self._receipt_tmp = tempfile.TemporaryDirectory(prefix="pfy-xintake-117-receipts-")
+        self.addCleanup(self._receipt_tmp.cleanup)
+        _RECEPTS = Path(self._receipt_tmp.name)
+
     def test_wrong_kander_version_exits_2(self) -> None:
         with tempfile.TemporaryDirectory(prefix="pfy-xintake-117-") as td:
             home = Path(td, "home")

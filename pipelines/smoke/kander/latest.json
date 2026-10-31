@@ -1,0 +1,26 @@
+{
+  "entry": "kander",
+  "script": "examples/x-intake-local/smoke_117_118.py",
+  "started": "2026-10-30T20:51:18-0700",
+  "binary": "/home/mark/DEVELOP/pfy-mentat/tmp/mvp3/tmp/mvp3-runs/t5-receipts-outside-repo-L/tmp/local-build-20261031T034804451279Z-t5-117-and-119-tests-must-not-write-repo/tmp/pfy-xintake-117-_ulijjsd/kander",
+  "expected": {
+    "KANDER_SHA256": {
+      "value": "skip",
+      "source": "env",
+      "pin": "3a5f8979f94fc1325dbcf9aa30e73831d1db907302c13b5273362313c327e254"
+    },
+    "KANDER_VERSION": {
+      "value": "0.9.5",
+      "source": "pin",
+      "pin": "0.9.5"
+    }
+  },
+  "sha256": "10a6a5ddc062fbda826cd3ab0beb607a86cc3444f43c33de9eee5654e2ac8096",
+  "version_out": "kander version 0.0.1",
+  "reason": "kander version is not 0.9.5: 'kander version 0.0.1' (set $KANDER_VERSION)",
+  "checks": {
+    "real_home_untouched": true
+  },
+  "exit_code": 2,
+  "verdict": "FAIL_CANNOT_RUN_HERE"
+}
