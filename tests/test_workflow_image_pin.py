@@ -35,6 +35,22 @@ needs_yaml = unittest.skipUnless(
 )
 
 
+def _image_pin_step_command(steps: object) -> str | None:
+    """Return the shell of the step that runs the image-pin helper, if any."""
+    if not isinstance(steps, list):
+        return None
+    found: str | None = None
+    for step in steps:
+        if not isinstance(step, dict):
+            continue
+        run = step.get("run")
+        if not isinstance(run, str):
+            continue
+        if "check_workflow_image_pin.py" in run:
+            found = run
+    return found
+
+
 def run_helper(*args: str, env: dict | None = None) -> subprocess.CompletedProcess[str]:
     merged = os.environ.copy()
     merged["TMPDIR"] = str(SCRATCH)
@@ -116,6 +132,68 @@ class WorkflowImagePinTests(unittest.TestCase):
     @needs_yaml
     def test_real_workflows_pass(self) -> None:
         self.assert_pass(run_helper(str(ROOT / ".github" / "workflows")))
+
+    @needs_yaml
+    def test_hosted_ci_step_invokes_image_pin_lint(self) -> None:
+        """The hosted G0 job must run the helper. Parse the workflow; do not grep the file.
+
+        A shell comment that names the script is not a step. The test runs the
+        parsed step with a PATH python3 that records its argv, so an echo of the
+        PASS line does not count as invoking the lint.
+        """
+        import yaml
+
+        path = ROOT / ".github" / "workflows" / "eval-structural.yml"
+        data = yaml.safe_load(path.read_text(encoding="utf-8"))
+        self.assertIsInstance(data, dict)
+        jobs = data.get("jobs")
+        self.assertIsInstance(jobs, dict)
+        job = jobs.get("structural-github")
+        self.assertIsInstance(job, dict, "hosted job structural-github missing")
+        self.assertEqual(job.get("runs-on"), "ubuntu-24.04")
+        command = _image_pin_step_command(job.get("steps"))
+        self.assertIsNotNone(command, "hosted job has no image-pin step")
+        # Comment-only mentions do not count: strip shell comments before matching.
+        code_lines = []
+        for line in command.splitlines():
+            code = line.split("#", 1)[0].strip()
+            if code:
+                code_lines.append(code)
+        body = "\n".join(code_lines)
+        self.assertIn("scripts/check_workflow_image_pin.py", body)
+        self.assertIn(".github/workflows", body)
+
+        SCRATCH.mkdir(parents=True, exist_ok=True)
+        wrap = Path(tempfile.mkdtemp(prefix="image-pin-ci-wrap-", dir=SCRATCH))
+        try:
+            log = wrap / "argv.log"
+            wrapper = wrap / "python3"
+            wrapper.write_text(
+                "#!/bin/sh\n"
+                f"printf '%s\\n' \"$0 $*\" >> {str(log)!r}\n"
+                f"exec {sys.executable} \"$@\"\n",
+                encoding="utf-8",
+            )
+            wrapper.chmod(0o755)
+            env = os.environ.copy()
+            env["TMPDIR"] = str(SCRATCH)
+            env["PATH"] = str(wrap) + os.pathsep + env.get("PATH", "")
+            proc = subprocess.run(
+                ["bash", "-c", command],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+            blob = proc.stdout + proc.stderr
+            self.assertEqual(proc.returncode, 0, blob)
+            self.assertIn("PASS workflow image pin:", proc.stdout)
+            recorded = log.read_text(encoding="utf-8") if log.is_file() else ""
+            self.assertIn("scripts/check_workflow_image_pin.py", recorded, recorded or blob)
+            self.assertIn(".github/workflows", recorded, recorded or blob)
+        finally:
+            shutil.rmtree(wrap)
 
     @needs_yaml
     def test_empty_directory_fails_closed(self) -> None:
