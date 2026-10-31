@@ -2183,28 +2183,31 @@ def _stage_reviewed(worktree: Path, env: dict, reviewed: list[str]) -> str | Non
 
     A mismatch resets the index and returns scope-commit-mismatch. The caller
     does not commit and does not create a branch. commit-failed means git
-    itself failed. The index is reset in both cases.
+    itself failed. The index is reset in both cases. An empty reviewed name
+    set (only excluded paths) returns no-reviewable-change and does not commit.
     """
     wanted = _reviewed_names(reviewed)
-    if wanted:
-        # :(literal) so a reviewed name cannot be read as pathspec magic.
-        # Excludes stay, matching the previous commit pathspec.
-        argv = [
-            "add",
-            "-A",
-            "-f",
-            "--",
-            *(":(literal)%s" % rel for rel in wanted),
-            ":!tmp",
-            ":!**/__pycache__",
-            ":!**/*.pyc",
-            ":!.pytest_cache",
-            ":!**/.pytest_cache",
-        ]
-        added = _git(worktree, argv, env=env)
-        if added.returncode != 0:
-            _reset_index(worktree, env)
-            return "commit-failed"
+    if not wanted:
+        _reset_index(worktree, env)
+        return "no-reviewable-change"
+    # :(literal) so a reviewed name cannot be read as pathspec magic.
+    # Excludes stay, matching the previous commit pathspec.
+    argv = [
+        "add",
+        "-A",
+        "-f",
+        "--",
+        *(":(literal)%s" % rel for rel in wanted),
+        ":!tmp",
+        ":!**/__pycache__",
+        ":!**/*.pyc",
+        ":!.pytest_cache",
+        ":!**/.pytest_cache",
+    ]
+    added = _git(worktree, argv, env=env)
+    if added.returncode != 0:
+        _reset_index(worktree, env)
+        return "commit-failed"
     # Fault injection for the mismatch recovery. Same seam as _stub_extra_rw.
     # PFY_LOCAL_BUILD_TEST_SEAM unset: this hook does not write a file.
     if (

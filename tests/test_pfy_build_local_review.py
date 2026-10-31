@@ -218,6 +218,29 @@ class ReviewLoopTests(unittest.TestCase):
         self.assertNotEqual(shown.returncode, 0, shown.stderr)
         self.inner.assert_clean_origin()
 
+    def test_excluded_only_change_does_not_commit(self):
+        """A diff that is only an excluded path must not reach git commit.
+
+        Fail: .pytest_cache is the only change, the gate is green, and git
+        commit of an empty index is recorded as commit-failed.
+        Recover: reason no-reviewable-change, exit 1, no branch, caller HEAD
+        unchanged.
+        """
+        cmd = self._commit_gate(
+            "print('1 passed in 0.01s')\nraise SystemExit(0)\n",
+            "always_ok.py",
+        )
+        proc, receipt = self._run(
+            "touch only the pytest cache\n",
+            [{"mode": "noop", "write": {".pytest_cache/README": "cache\n"}}],
+            extra=["--no-review", "--test-cmd", cmd],
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 1, text)
+        data = self.inner.assert_no_commit(proc, receipt)
+        self.assertEqual(data["reason"], "no-reviewable-change")
+        self.assertEqual(data["status"], "FAIL")
+
     def test_inject_stage_does_nothing_when_the_test_seam_is_off(self):
         """PFY_LOCAL_BUILD_INJECT_EXTRA_STAGE must not write a file unless the seam is on.
 
