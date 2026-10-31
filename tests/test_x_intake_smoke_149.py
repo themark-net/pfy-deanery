@@ -345,6 +345,19 @@ class Smoke149(unittest.TestCase):
         self.assertEqual(code, 2, rec)
         self.assertEqual(rec["reason"], "bwrap is not usable here; MemPalace must run with no network")
 
+    def test_bwrap_without_tmpfs_mount_fails_closed_with_bwrap_reason(self):
+        # F2: twin of the --proc fake. A bwrap that runs but cannot mount a tmpfs
+        # must fail in the probe, not later as a version mismatch. Dropping
+        # --tmpfs from the probe lets this fake exit 0 there.
+        with tempfile.TemporaryDirectory() as d:
+            fake = Path(d) / "bwrap"
+            fake.write_text(f"#!{sys.executable}\nimport sys\nsys.exit(1 if '--tmpfs' in sys.argv else 0)\n",
+                            encoding="utf-8")
+            fake.chmod(0o755)
+            code, rec = self.run_smoke(dict(BASE, probe=True), {"PATH": d})
+        self.assertEqual(code, 2, rec)
+        self.assertEqual(rec["reason"], "bwrap is not usable here; MemPalace must run with no network")
+
     def test_bwrap_rejecting_bind_or_die_with_parent_is_unavailable(self):
         # F1: the probe must pass --bind <tmp> <tmp> and --die-with-parent, the same flags run() uses.
         # A fake that accepts every other flag and rejects one of those two must not count as usable,
