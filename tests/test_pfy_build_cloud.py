@@ -912,6 +912,108 @@ class CloudBuildFailureTests(unittest.TestCase):
         self.assertTrue(_wait_file(pidfile))
         self.assertTrue(_dead(int(pidfile.read_text(encoding="utf-8").strip())))
 
+    def test_sigkill_during_grok_reap_kills_that_grok(self) -> None:
+        gate_pidfile = self.side / "gate.pid"
+        grok_pidfile = self.side / "grok.pid"
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\n"
+            "import os\n"
+            "from pathlib import Path\n"
+            "Path(os.environ['PFY_GATE_PIDFILE']).write_text(str(os.getpid()))\n"
+            "print('GATE-OK')\n"
+            "raise SystemExit(0)\n",
+        )
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import os, time\n"
+            "from pathlib import Path\n"
+            "Path(os.environ['PFY_CLOUD_PIDFILE']).write_text(str(os.getpid()))\n"
+            "time.sleep(60)\n",
+        )
+        local_sleeper = subprocess.Popen(["sleep", "60"], start_new_session=True)
+        self.addCleanup(_stop_proc, local_sleeper)
+        local_pids = self.repo / "tmp" / "local-build.pids.json"
+        local_pids.parent.mkdir(parents=True, exist_ok=True)
+        local_pids.write_text(
+            json.dumps({"pid": local_sleeper.pid, "pgid": os.getpgid(local_sleeper.pid)}),
+            encoding="utf-8",
+        )
+        local_bytes = local_pids.read_bytes()
+        proc = subprocess.Popen(
+            [
+                sys.executable,
+                str(CLOUD),
+                "sleeping task",
+                "--repo",
+                str(self.repo),
+                "--retries",
+                "0",
+                "--no-review",
+                "--timeout",
+                "30",
+                "--test-cmd",
+                "%s %s" % (sys.executable, gate),
+                "--grok-cmd",
+                str(grok),
+            ],
+            cwd=self.repo,
+            env={
+                **os.environ,
+                "TMPDIR": str(SCRATCH),
+                "PYTHONDONTWRITEBYTECODE": "1",
+                "PFY_GATE_PIDFILE": str(gate_pidfile),
+                "PFY_CLOUD_PIDFILE": str(grok_pidfile),
+            },
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            start_new_session=True,
+        )
+        self.addCleanup(_stop_proc, proc)
+
+        def _kill_grok() -> None:
+            if not grok_pidfile.is_file():
+                return
+            pid = int(grok_pidfile.read_text(encoding="utf-8").strip() or "0")
+            if pid > 0 and not _dead(pid):
+                try:
+                    os.kill(pid, signal.SIGKILL)
+                except OSError:
+                    return
+
+        self.addCleanup(_kill_grok)
+        self.assertTrue(_wait_file(grok_pidfile), "grok did not start")
+        self.assertTrue(_wait_file(gate_pidfile), "gate did not start")
+        cloud_pids = self.repo / "tmp" / "cloud-build.pids.json"
+        self.assertTrue(cloud_pids.is_file(), "runner did not write a pid file")
+        recorded = json.loads(cloud_pids.read_text(encoding="utf-8"))
+        grok_pid = int(grok_pidfile.read_text(encoding="utf-8").strip())
+        gate_pid = int(gate_pidfile.read_text(encoding="utf-8").strip())
+        self.assertEqual(recorded.get("agent_pgid"), grok_pid)
+        self.assertNotEqual(recorded.get("agent_pgid"), gate_pid)
+        self.assertFalse(_dead(grok_pid))
+        os.kill(proc.pid, signal.SIGKILL)
+        proc.wait(timeout=5)
+        if proc.stdout is not None:
+            proc.stdout.close()
+        if proc.stderr is not None:
+            proc.stderr.close()
+        self.assertFalse(_dead(grok_pid))
+        reap = _run([sys.executable, str(CLOUD), "--reap", "--repo", str(self.repo)], self.repo, timeout=20)
+        text = (reap.stdout or "") + (reap.stderr or "")
+        self.assertEqual(reap.returncode, 0, text)
+        self.assertTrue(_dead(grok_pid), text)
+        self.assertFalse(_dead(local_sleeper.pid))
+        self.assertEqual(local_pids.read_bytes(), local_bytes)
+        receipt_dir = Path(str(recorded.get("receipt_dir") or ""))
+        aborted = json.loads((receipt_dir / "receipt.json").read_text(encoding="utf-8"))
+        self.assertEqual(aborted["status"], "ABORTED")
+        self.assertEqual(aborted["reason"], "no-receipt")
+        self.assertIsNone(aborted["branch"])
+        self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
+
     def test_reap_aborts_a_dead_cloud_pid_and_spares_a_local_only_pid(self) -> None:
         stale = self.side / "killed-run"
         stale.mkdir()

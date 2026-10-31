@@ -570,7 +570,14 @@ def capture_diff(worktree: Path, paths: list[str]) -> str:
     return "\n".join(chunk for chunk in chunks if chunk)
 
 
-def run_command(argv: list[str], cwd: Path, timeout: float, state: State, env: dict) -> tuple[str, int, str, str]:
+def run_command(
+    argv: list[str],
+    cwd: Path,
+    timeout: float,
+    state: State,
+    env: dict,
+    on_start=None,
+) -> tuple[str, int, str, str]:
     try:
         proc = subprocess.Popen(
             argv,
@@ -585,6 +592,8 @@ def run_command(argv: list[str], cwd: Path, timeout: float, state: State, env: d
         return "missing", 127, "", "not found"
     state.pgid = proc.pid
     state.agent_pgid = proc.pid
+    if on_start is not None:
+        on_start()
     try:
         out, err = proc.communicate(timeout=timeout)
     except subprocess.TimeoutExpired:
@@ -665,7 +674,12 @@ class CloudBuild:
         if self.worktree is None:
             return {"cmd": self.args.test_cmd, "exit": None, "tail": "no worktree", "started": False}
         status, code, out, err = run_command(
-            argv, self.worktree, self.args.timeout, self.state, self.child_env()
+            argv,
+            self.worktree,
+            self.args.timeout,
+            self.state,
+            self.child_env(),
+            on_start=self.save_pid,
         )
         text = (out or "") + ("\n" + err if err else "")
         if status == "timeout":
@@ -700,6 +714,7 @@ class CloudBuild:
             self.args.timeout,
             self.state,
             self.child_env(),
+            on_start=self.save_pid,
         )
         self.save_pid()
         return status, code, out, err

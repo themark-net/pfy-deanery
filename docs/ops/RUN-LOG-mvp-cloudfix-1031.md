@@ -67,4 +67,5 @@ Risks:
 
 Format: `item | commit | tests | result`
 
-(none yet)
+- loop-card | 8614547 | docs only | PASS
+- sigkill-reap | feaf914 | tests.test_pfy_build_cloud tests.test_pfy_build_p | fake grok PASS, 44 tests OK skipped 1. Real repro after this commit. Before receipt: origin/bot/mvp-realfail-1031:eval/mvp-1031/realfail/sigkill-reap/receipt.json (agent_pgid was the dead gate, live grok survived reap).
