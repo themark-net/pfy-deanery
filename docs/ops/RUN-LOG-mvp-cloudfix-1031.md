@@ -86,4 +86,4 @@ Format: `item | commit | tests | result`
 
 Rescan at 2026-10-31T21:25:20Z: dogfood still only F1. Sixtask t6 PASS, variance t1 and t2 PASS. t4 and t5 remain the writable-test finding already locked here. No new high runner bug.
 
-state: LANE EMPTY | tests: tests.test_pfy_build_cloud tests.test_pfy_build_p, 64 OK, skipped 1, at 61d539a | files: scripts/pfy_build_cloud.py, tests/test_pfy_build_cloud.py | err: none | pregate not run: host busy
+prior-state: LANE EMPTY | tests: tests.test_pfy_build_cloud tests.test_pfy_build_p, 64 OK, skipped 1, at 61d539a | files: scripts/pfy_build_cloud.py, tests/test_pfy_build_cloud.py | err: none | pregate not run: host busy
