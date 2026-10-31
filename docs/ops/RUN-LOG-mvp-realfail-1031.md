@@ -51,4 +51,5 @@ exits | 07c45ca | tests.test_mvp_1031_realfail_receipts 3 ok | pass, pushed
 merge-cloud | c0cf507 | git merge origin/bot/mvp-cloud-1031 | merged and pushed before interrupted
 interrupted | 00d0ec4 | tests.test_mvp_1031_realfail_receipts 3 ok | SIGINT and SIGTERM match DoD
 sigkill-reap | d11ce1a | tests.test_mvp_1031_realfail_receipts 3 ok | FINDING stray grok after reap
-timeout | (this commit) | tests.test_mvp_1031_realfail_receipts | exit 3 TIMEOUT matches DoD
+timeout | 468ae85 | tests.test_mvp_1031_realfail_receipts 3 ok | exit 3 TIMEOUT matches DoD
+dirty-caller | (this commit) | tests.test_mvp_1031_realfail_receipts | PASS, dirty files stayed out of the commit

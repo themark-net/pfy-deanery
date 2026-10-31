@@ -10,3 +10,4 @@ One line each. Choice, alternatives, why.
 - 2026-10-31T20:17:03Z: owned paths are eval/mvp-1031/realfail/**, tests/test_mvp_1031_realfail_receipts.py, and the three docs/ops files named in the drop-in. The plan matrix gives other eval/mvp-1031 paths to mvp-eval-1031. Those stay untouched.
 - 2026-10-31T20:30:39Z: interrupted runs use --retries 0 --no-review --timeout 30 --base HEAD and a fast gate. Alternative was the default 3 attempts with review. The interrupt is defined on the first grok call, so one implement call is the whole case.
 - 2026-10-31T20:32:06Z: sigkill-reap is a FINDING even though the receipt status matches. The DoD also requires no stray grok process. Alternative was to mark matches and mention the orphan only as a note. The stray process is the failure.
+- 2026-10-31T20:35:34Z: dirty-caller uses --no-review and one attempt. Alternative was a reviewed pass. The row is about caller dirtiness, and --no-review still commits on a green gate.
