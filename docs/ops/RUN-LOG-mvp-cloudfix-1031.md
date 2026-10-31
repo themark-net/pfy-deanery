@@ -83,3 +83,7 @@ Format: `item | commit | tests | result`
 - redact-bearer | 1a4f067 | tests.test_pfy_build_cloud tests.test_pfy_build_p | PASS, 63 tests OK, skipped 1. A bearer value and an API_TOKEN assignment are absent from the receipt. kept.py stays value = 1. Not a real-run finding, so no grok repro.
 - default-test-cmd | 469d285 | tests.test_pfy_build_cloud tests.test_pfy_build_p | PASS, 63 tests OK, skipped 1. Dry-run gate.cmd is python3 -m unittest discover -s tests -t . when --test-cmd is omitted. Not a real-run finding, so no grok repro.
 - no-push | 61d539a | tests.test_pfy_build_cloud tests.test_pfy_build_p | PASS, 64 tests OK, skipped 1. A PASS against a bare origin leaves ls-remote empty and pushed false. The local cloud/ branch still matches the receipt commit. Not a real-run finding, so no grok repro.
+
+Rescan at 2026-10-31T21:25:20Z: dogfood still only F1. Sixtask t6 PASS, variance t1 and t2 PASS. t4 and t5 remain the writable-test finding already locked here. No new high runner bug.
+
+state: LANE EMPTY | tests: tests.test_pfy_build_cloud tests.test_pfy_build_p, 64 OK, skipped 1, at 61d539a | files: scripts/pfy_build_cloud.py, tests/test_pfy_build_cloud.py | err: none | pregate not run: host busy
