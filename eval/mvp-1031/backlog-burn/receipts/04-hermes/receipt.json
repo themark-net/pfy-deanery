@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/in-docs-pending-handoff-md-the-section-2-20261031T230932390090Z",
+  "commit": "954dc026b9a7be35172e6481ca27cf6f0b5513b2",
+  "base": "HEAD",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll change only the word \"Lands\" to \"Landed\" in that Hermes bake-off section, then run the unittest.The Hermes bake-off bullet in `docs/PENDING-HANDOFF.md` now says **Landed on `main`**. Only that word changed in the `## 2026-10-19: Hermes Agent bake-off` section.\n\n`python3 -m unittest tests.test_hermes_landed_status` passed (1 test).\n\nverdict: accept\n\nThe diff changes only `Lands` to `Landed` in the `## 2026-10-19: Hermes Agent bake-off` bullet in `docs/PENDING-HANDOFF.md`. No other section, file, or test is touched, and no dash was added. The gate reports the landed-status test passed.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "python3 -m unittest tests.test_hermes_landed_status",
+    "before": {
+      "cmd": "python3 -m unittest tests.test_hermes_landed_status",
+      "exit": 1,
+      "tail": "\nF\n======================================================================\nFAIL: test_pending_bullet_matches_landed_handoff (tests.test_hermes_landed_status.HermesLandedStatusTests.test_pending_bullet_matches_landed_handoff)\nFail: the 2026-10-19 bullet says Lands on main while the eval\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-backlog-burn-1031/tmp/target-04/tmp/cloud-build/20261031T230932390090Z/tests/test_hermes_landed_status.py\", line 35, in test_pending_bullet_matches_landed_handoff\n    self.assertNotIn(\"Lands on\", section)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'Lands on' unexpectedly found in ' (Entry 134)\\n\\n- **Branch:** `bot/hermes-eval` (worktree `/home/mark/DEVELOP/pfy-mentat/tmp/hermes-eval`). Lands on `main` by fast-forward after the Tester and Reviewer gate (no-PR flow). Not a Feature GO. Mark chooses Hermes as the bot interface (wiring pending; see the handoff).\\n- **Verdict:** NO-WIN. Hermes 26/27 vs `opencode run` 25/27 on `qwen3.6:35b` (+3.70 pp, need +10). Valid tool-call rate 82.61% vs 97.83%. Hermes p50 8.75s vs 47.38s. Wilson intervals overlap.\\n- **Handoff:** [eval/HERMES-EVAL-HANDOFF.md](eval/HERMES-EVAL-HANDOFF.md). Write-up [eval/hermes-vs-current.md](eval/hermes-vs-current.md). Entry 134. Item C (adapter plan) skipped.\\n- **Isolation:** `~/.hermes` untouched. OpenClaw inactive and disabled. Model: the scored run left it loaded (`results.json` `model_unloaded: false`); the session cleanup unloaded it afterwards (see the handoff). `./tmp/` left in place.\\n'\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nFAILED (failures=1)\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "python3 -m unittest tests.test_hermes_landed_status",
+      "exit": 0,
+      "tail": "\n.\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nOK\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": true,
+  "task": "In docs/PENDING-HANDOFF.md, the section '## 2026-10-19: Hermes Agent bake-off' still says the branch Lands on main. docs/eval/HERMES-EVAL-HANDOFF.md says 'Landed on main.' Change only the word Lands to Landed in that section so the bullet says Landed on main. Do not edit any other section. Do not edit docs/eval/HERMES-EVAL-HANDOFF.md. Do not edit tests. Do not edit any other file. Do not add an em dash or an en dash.\n\ntests.test_hermes_landed_status.test_pending_bullet_matches_landed_handoff is red and must pass.",
+  "finished_at": "2026-10-31T23:10:09Z"
+}

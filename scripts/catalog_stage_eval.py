@@ -146,6 +146,67 @@ def tier_ceiling(tier: str, flags: list[str]) -> str:
     return TIER_CEILING.get(tier, "I1")
 
 
+def _stage_rank(value: str) -> int:
+    if len(value) == 2 and value[0] == "I" and value[1].isdigit():
+        return int(value[1])
+    return -1
+
+
+def _ceiling_keep(existing: str, recomputed: str) -> str:
+    """Do not replace a card ceiling with a lower recomputed one."""
+    if _stage_rank(existing) > _stage_rank(recomputed):
+        return existing
+    return recomputed
+
+
+def _receipt_on_disk(item: str) -> bool:
+    """receipt:REL, or a bare relative path, naming a file under ROOT."""
+    if item.startswith("receipt:"):
+        rel = item.split(":", 1)[1]
+    elif ":" in item or item.startswith("/"):
+        return False
+    else:
+        rel = item
+    if not rel or Path(rel).is_absolute():
+        return False
+    path = ROOT / rel
+    try:
+        path.resolve().relative_to(ROOT)
+    except ValueError:
+        return False
+    return path.is_file()
+
+
+def _sha_evidence(item: str) -> bool:
+    """Keep pin:HEX and scored:HEX. HEX is [0-9a-f], length at least 7."""
+    head, sep, tail = item.partition(":")
+    if sep != ":" or head not in ("pin", "scored") or len(tail) < 7:
+        return False
+    return all(ch in "0123456789abcdef" for ch in tail)
+
+
+def _notes_doc_on_disk(item: str) -> bool:
+    """notes_doc:REL naming a file under ROOT. REL must be relative."""
+    if not item.startswith("notes_doc:"):
+        return False
+    rel = item.split(":", 1)[1]
+    if not rel or Path(rel).is_absolute():
+        return False
+    path = ROOT / rel
+    try:
+        path.resolve().relative_to(ROOT)
+    except ValueError:
+        return False
+    return path.is_file()
+
+
+def _methods_label() -> Path:
+    """Relative when the methods file sits in this repo; absolute when a caller points it outside."""
+    if METHODS_PATH.is_relative_to(ROOT):
+        return METHODS_PATH.relative_to(ROOT)
+    return METHODS_PATH
+
+
 def evidence_for(name: str, card: dict, makefile: str, toolset_names: set[str]) -> list[str]:
     found = []
     target = EVIDENCE_TARGETS.get(name)
@@ -155,12 +216,19 @@ def evidence_for(name: str, card: dict, makefile: str, toolset_names: set[str]) 
     if path and (ROOT / path).exists():
         found.append("path:%s" % path)
     doc = card.get("notes_doc")
-    if doc and (ROOT / doc).is_file():
+    if isinstance(doc, str) and _notes_doc_on_disk("notes_doc:%s" % doc):
         found.append("notes_doc:%s" % doc)
     if card.get("pin"):
         found.append("pin")
     if name in toolset_names:
         found.append("toolset")
+    prior = card.get("evidence")
+    if isinstance(prior, list):
+        for item in prior:
+            if isinstance(item, str) and item not in found and (
+                _receipt_on_disk(item) or _sha_evidence(item) or _notes_doc_on_disk(item)
+            ):
+                found.append(item)
     return found
 
 
@@ -225,12 +293,13 @@ def apply() -> int:
         card["catalog_github"] = ev["github"]
         card["posture"] = ev["posture"]
         card["evidence"] = ev["evidence"]
-        card["tier_ceiling"] = ev["tier_ceiling"]
+        card["tier_ceiling"] = _ceiling_keep(card.get("tier_ceiling") or "", ev["tier_ceiling"])
         if not judge:
             continue
         card["uses"] = judge["uses"]
         card["features"] = judge["features"]
-        card["potential"] = judge["potential"]
+        if not card.get("potential"):
+            card["potential"] = judge["potential"]
         card["next_gate"] = judge["next_gate"]
         card["handoff_by"] = "llm"
         prior = list(card.get("non_goals") or [])
@@ -241,7 +310,7 @@ def apply() -> int:
     if missing:
         print("FAIL no stage card: %s" % missing)
         return 1
-    stages["last_updated"] = "2026-09-25"
+    # Keep the stamp already on the file. Do not rewind last_updated.
     stages["handoff"] = "data/catalog_stage_handoff.json"
     STAGES_PATH.write_text(json.dumps(stages, indent=2) + "\n", encoding="utf-8")
     methods = {
@@ -266,7 +335,7 @@ def apply() -> int:
     }
     METHODS_PATH.write_text(json.dumps(methods, indent=2) + "\n", encoding="utf-8")
     open_n = sum(1 for ev in evaluations() if any(not (cards[ev["name"]].get(k)) for k in CARD))
-    print("applied %d cards · still open %d · methods %s" % (len(evaluations()), open_n, METHODS_PATH.relative_to(ROOT)))
+    print("applied %d cards · still open %d · methods %s" % (len(evaluations()), open_n, _methods_label()))
     return 0
 
 

@@ -35,6 +35,7 @@ def arm_launch_env_session(res, open_fn) -> dict:
     if not out.get("ok"):
         out["session_reach"] = "FAIL"
         out["enterable"] = False
+        out["next_steps"] = next_steps
         return out
     if live == "SKIP":
         # Env itself skipped — honest about enterable too
