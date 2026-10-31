@@ -110,6 +110,6 @@ Killed: R1, R2, R3, R4 (M4), R5 (M7), R6, R10, R11, R12, R13, R14.
 Survived: R7 file cap off by one, R8 line cap off by one, R9 size cap removed.
 
 item | commit | tests | result
-catalog-and-first-run | pending-sha | nice python3 eval/mutation-1031/review/run_mutants.py --run --timeout 420 | baseline OK, 11 killed, 3 survived, exit 0
+catalog-and-first-run | e9e532c | nice python3 eval/mutation-1031/review/run_mutants.py --run --timeout 420 | baseline OK, 11 killed, 3 survived, exit 0
 
 state: DONE | tests: mutation campaign exit 0 | files: 2 | err: none
