@@ -60,4 +60,5 @@ checker | 552147c | tests.test_mvp_1031_dogfood_reports 7 ok | green, planted mi
 merge-cloud-2 | 73b5581 | cloud lane docs only, runner bytes unchanged | merged before run 01
 01-stale-enterable | b08d603 cloud 8d29f5d | tests.test_mvp_1031_dogfood_reports 7 ok | PASS exit 0 wall 39s review accept human yes
 02-enterable-test | 77fedac | tests.test_mvp_1031_dogfood_reports 7 ok | FAIL exit 1 wall 343s tests-tampered human no
-03-t0110-status | (this commit) cloud 96224de | tests.test_mvp_1031_dogfood_reports | PASS exit 0 wall 46s review accept human yes
+03-t0110-status | 40d05c3 cloud 96224de | tests.test_mvp_1031_dogfood_reports | PASS exit 0 wall 46s review accept human yes
+04-pregate-latest | (this commit) cloud daa83e5 | tests.test_mvp_1031_dogfood_reports | PASS exit 0 wall 289s review accept human yes
