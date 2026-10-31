@@ -2819,7 +2819,14 @@ def _run_model_review(
     try:
         raw = out_path.read_text(encoding="utf-8")
     except OSError:
-        raw = (out or "") + (err or "")
+        # The poster died before open(out). Empty stdout is not a verdict.
+        # Falling through makes _parse_verdict say review-unparseable and the
+        # loop retries that like a reject.
+        return "crashed", {
+            "verdict": "review-crashed",
+            "reasons": ["review-crashed"],
+            "raw_tail": redact(((out or "") + (err or ""))[:500]),
+        }
     # HTTP error and the bounded-call timeout are the same outage.
     # A verdict reject is a later return and is retried. An outage is not.
     if run_status == "timeout" or _review_transport_error(raw) or _review_outage_kind(raw):
@@ -3583,6 +3590,23 @@ def build_local(argv: list[str] | None = None) -> int:
                 print("BLOCKED: %s" % why, file=sys.stderr)
                 status, reason, exit_code = "BLOCKED", why, EXIT_BLOCKED
                 _record_attempt(attempts_used, attempt_t0, mem_snap, "BLOCKED", why, checks, model_review, diff_stats, diff_text)
+                return finish()
+            if review_status == "crashed":
+                why = "review-crashed"
+                if isinstance(model_review, dict) and model_review.get("reasons"):
+                    why = str(model_review["reasons"][0])
+                status, reason, exit_code = "FAIL", why, EXIT_FAIL
+                _record_attempt(
+                    attempts_used,
+                    attempt_t0,
+                    mem_snap,
+                    "FAIL",
+                    why,
+                    checks,
+                    model_review,
+                    diff_stats,
+                    diff_text,
+                )
                 return finish()
             if review_status != "accept":
                 feedback = "\n".join((model_review or {}).get("reasons") or ["review-unparseable"])

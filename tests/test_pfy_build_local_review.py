@@ -11,6 +11,7 @@ import json
 import os
 import signal
 import subprocess
+import sys
 import threading
 import time
 import unittest
@@ -372,6 +373,41 @@ class ReviewLoopTests(unittest.TestCase):
         self.assertIn(removed, retry)
         self.assertLess(retry.index("Previous diff:"), retry.index(removed))
         self.assertLess(retry.index("Reasons:"), retry.index("Previous diff:"))
+
+    def test_missing_review_out_file_is_one_crash_and_does_not_retry(self):
+        """A poster that never writes pfy-review-out.json must not be retried.
+
+        Fail: python exits before that file exists, empty stdout is parsed as
+        review-unparseable, and the loop tries again.
+        Recover: reason review-crashed, exit 1, one attempt, no commit.
+        """
+        fake_dir = self.inner.tmp / "no-review-python"
+        fake_dir.mkdir()
+        fake = fake_dir / "python3"
+        fake.write_text(
+            "#!/bin/sh\n"
+            "for arg in \"$@\"; do\n"
+            "  case \"$arg\" in\n"
+            "    *pfy-review-post.py*) exit 1 ;;\n"
+            "  esac\n"
+            "done\n"
+            "exec %s \"$@\"\n" % sys.executable,
+            encoding="utf-8",
+        )
+        fake.chmod(0o755)
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        proc, receipt = self._run(
+            task,
+            [{"mode": "fix"}],
+            extra=["--retries", "2"],
+            env_extra={"PATH": str(fake_dir) + os.pathsep + os.environ.get("PATH", "")},
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 1, text)
+        data = self.inner.assert_no_commit(proc, receipt)
+        self.assertEqual(data["reason"], "review-crashed")
+        self.assertEqual(data["attempts"], 1)
+        self.assertFalse((receipt / "attempt-2").exists())
 
     def test_unparseable_review_is_a_reject_and_the_reason_is_fed_back(self):
         self.inner.httpd.review_queue = [
