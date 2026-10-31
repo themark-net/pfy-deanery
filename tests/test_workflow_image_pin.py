@@ -146,6 +146,9 @@ class WorkflowImagePinTests(unittest.TestCase):
         # this helper. It does not discover tests. MVP-3 may be busy.
         env = os.environ.copy()
         env["TMPDIR"] = str(SCRATCH)
+        # Lint only: no sockets under the run root, so a long CI checkout
+        # path (actions-runner/_work/...) must not trip the 60-char guard.
+        env["PREGATE_MAX_ROOT_LEN"] = "200"
         proc = subprocess.run(
             [
                 "nice",
