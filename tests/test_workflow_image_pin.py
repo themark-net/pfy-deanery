@@ -20,6 +20,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 HELPER = ROOT / "scripts" / "check_workflow_image_pin.py"
 FIX = ROOT / "tests" / "fixtures" / "workflow_image_pin"
+FIX_CONTAINER = ROOT / "tests" / "fixtures" / "workflow_container_pin"
 SCRATCH = ROOT / "tmp"
 
 try:
@@ -296,6 +297,64 @@ class WorkflowImagePinTests(unittest.TestCase):
             self.assertIn(needle, text, text)
         finally:
             shutil.rmtree(venv)
+
+    @needs_yaml
+    def test_container_and_service_tags_pass(self) -> None:
+        for name in (
+            "container-string.yml",
+            "container-mapping.yml",
+            "service-tag.yml",
+            "registry-port.yml",
+            "digest-all.yml",
+        ):
+            self.assert_pass(run_helper(str(FIX_CONTAINER / name)))
+
+    @needs_yaml
+    def test_container_and_service_tags_fail(self) -> None:
+        cases = (
+            ("container-latest.yml", "image tag is latest"),
+            ("container-latest-upper.yml", "image tag is latest"),
+            ("container-no-tag.yml", "image has no tag"),
+            ("container-empty-tag.yml", "image has no tag"),
+            ("container-mapping-latest.yml", "image tag is latest"),
+            ("service-latest.yml", "image tag is latest"),
+            ("service-no-tag.yml", "image has no tag"),
+            ("registry-port-no-tag.yml", "image has no tag"),
+            ("digest-short.yml", "image digest is not @sha256:"),
+            ("unresolved-image.yml", "unresolved image expression"),
+            ("digest-mixed.yml", "image is missing @sha256: digest"),
+        )
+        for name, needle in cases:
+            self.assert_fail(run_helper(str(FIX_CONTAINER / name)), needle)
+
+    @needs_yaml
+    def test_digest_requirement_spans_files_in_one_run(self) -> None:
+        # A tag-only file passes alone. The same file fails when another file
+        # in the same invocation already pins @sha256:.
+        self.assert_pass(run_helper(str(FIX_CONTAINER / "container-string.yml")))
+        self.assert_fail(
+            run_helper(
+                str(FIX_CONTAINER / "digest-all.yml"),
+                str(FIX_CONTAINER / "container-string.yml"),
+            ),
+            "image is missing @sha256: digest",
+        )
+
+    @needs_yaml
+    def test_malformed_container_and_service_forms_fail_closed(self) -> None:
+        proc = run_helper(str(FIX_CONTAINER / "malformed-forms.yml"))
+        blob = proc.stdout + proc.stderr
+        self.assertNotEqual(proc.returncode, 0, blob)
+        for needle in (
+            "container is not a string or a mapping",
+            "container has no image",
+            "services is not a mapping",
+            "services is empty",
+            "service has no image",
+            "image is not a string",
+            "service is not a mapping",
+        ):
+            self.assertIn(needle, blob, needle)
 
     @needs_yaml
     def test_pregate_lint_calls_helper(self) -> None:
