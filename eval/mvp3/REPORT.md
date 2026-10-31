@@ -60,6 +60,10 @@ t1 checks stderr for `Pulling image` before the stdout cache line, and a cache-o
 
 None. The loop did not reject a patch the human accepted. MVP-2 local had accepted t1, t2, t3, and t6. The loop accepted those four as well. The one disagreement is t5, where the loop accepted a tree the human rejects.
 
+## Reviewer independence
+
+The reviewer is the same model as the agent. Every arm called `qwen3.6:35b` through the same Ollama endpoint for the edit and, when a diff existed, for the review. That is not an independent review. A mistake the model cannot see in its own patch is a mistake the review step will not catch. The human column is the independent read. t5 is the case: the model accepted the tree and the human rejected it. The deterministic checks (scope, size, wiring) do not call the model, so they do not share that blind spot. The numbers above were not re-run for this note.
+
 ## Task copies
 
 `eval/mvp3/tasks/` differs from `eval/mvp2/tasks/` only by a `files:` line on each task, plus this line on t5:

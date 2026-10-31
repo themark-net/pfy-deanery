@@ -21,6 +21,10 @@ t1, t2, t3, t6: loop and human accept. t4: FAIL no-change after 3 attempts, both
 
 The trial ran in two sessions. Run 1 (cap from 2026-10-30T17:50:52Z) died at 11:13 PDT when the grok CLI stopped a background task at 600 s, during t4. t1 to t3 were already committed. Run 2 (cap from 2026-10-31T03:07:13Z to 06:07:13Z) finished t4, t5, and t6. Each session had its own 3 h cap. Details are in the report and in `docs/ops/RUN-LOG-mvp3-review-retry.md`.
 
+## Review defaults
+
+Review is on for `./pfy build --local` unless the command passes `--no-review`. The size cap is 3 changed files and 250 added plus removed lines (`--max-files`, `--max-lines`). A test file named by the test command is not counted in the file cap. `./pfy build --local --help` prints the same defaults.
+
 ## How to run
 
 ```bash
