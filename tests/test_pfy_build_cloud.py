@@ -138,6 +138,7 @@ class CloudBuildSkeletonTests(unittest.TestCase):
         self.assertEqual(payload["status"], "DRY-RUN")
         self.assertIsNone(payload["commit"])
         self.assertFalse(payload["pushed"])
+        self.assertEqual(payload["gate"]["cmd"], "python3 -m unittest discover -s tests -t .")
         self.assertEqual(payload["base"], "HEAD")
         self.assertIn(str(receipt), proc.stdout)
         self.assertFalse((self.repo / "tmp" / "cloud-build").exists())
