@@ -89,3 +89,11 @@ Merge commit: `97632630b888038573f1a58ddde2381177241096`. `scripts/pfy_build_clo
 state: DONE | tests: merge only, suite not run yet | files: merge | err: none
 
 item | 9763263 | merge only | integrate f877c7d and dogfood-fix 1fa9fd3 are ancestors
+
+### reuse-harness
+
+Copied `eval/mutation-1031/cloud/run_mutants.py`, `tests/test_mut_cloud_harness.py`, and `tests/test_mut_cloud_survivors.py` from `origin/bot/mvp-mutate-cloud-1031` at `9f707fd`. Did not merge that branch. Did not edit those three files. C1-C16 anchors still match this runner: `tests.test_mut_cloud_harness` and `tests.test_mut_cloud_survivors` passed (6 tests, 3.933s).
+
+state: DONE | tests: nice -n 19 python3 -m unittest tests.test_mut_cloud_harness tests.test_mut_cloud_survivors | files: 3 | err: none
+
+item | pending-sha | 6 tests OK in 3.933s | anchors C1-C16 apply on the merged runner
