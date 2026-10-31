@@ -717,6 +717,60 @@ class CloudBuildRetryTests(unittest.TestCase):
         self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
         self.assertNotIn("danger.sh", _git(self.repo, "ls-tree", "-r", "--name-only", "HEAD").stdout)
 
+    def test_target_marker_is_rejected_even_when_review_accepts(self) -> None:
+        """A symlink :target marker must not land when review says accept.
+
+        Fail: the diff records is_symlink and stores :target instead of the
+        linked file's bytes, review prints accept, and the runner still
+        creates a cloud branch. A real-HOME snapshot then misses content edits.
+        Recover: reason review-rejected, exit 1, no branch, caller HEAD unchanged.
+        """
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\nprint('GATE-OK')\nraise SystemExit(0)\n",
+        )
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "from pathlib import Path\n"
+            "blob = '\\n'.join(sys.argv)\n"
+            "if 'PFY-CLOUD-REVIEW' in blob:\n"
+            "    print('verdict: accept')\n"
+            "    raise SystemExit(0)\n"
+            "Path('tree_sig.py').write_text(\n"
+            "    'def record(f):\\n'\n"
+            "    '    if f.is_symlink():\\n'\n"
+            "    '        return str(f) + \":target\"\\n'\n"
+            "    '    return \"bytes\"\\n',\n"
+            "    encoding='utf-8',\n"
+            ")\n"
+            "raise SystemExit(0)\n",
+        )
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        proc = self._run_task(
+            grok,
+            gate,
+            "Record a symlink with readlink. Keep hashing the linked file bytes.",
+            "0",
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 1, text)
+        self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
+        payload = json.loads(
+            list((self.repo / "pipelines" / "dogfood" / "build-cloud").glob("*/receipt.json"))[0].read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(payload["status"], "FAIL")
+        self.assertEqual(payload["reason"], "review-rejected")
+        self.assertEqual(payload["review"]["verdict"], "reject")
+        self.assertIsNone(payload["branch"])
+        self.assertIsNone(payload["commit"])
+        self.assertEqual(len(payload["attempts"]), 1)
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+        self.assertNotIn("tree_sig.py", _git(self.repo, "ls-tree", "-r", "--name-only", "HEAD").stdout)
+
     def test_gate_stays_red_for_the_default_three_attempts(self) -> None:
         gate = _write_exe(
             self.side / "gate.py",
