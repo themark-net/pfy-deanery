@@ -89,7 +89,7 @@ run-t5 | 771cc1f | receipt eval/mvp-1031/local-rerun/t5-receipts-outside-repo/re
 
 Lock acquired 2026-10-31T23:23:51Z. Finished 2026-10-31T23:54:51Z. Exit 3. Gate TIMEOUT timeout. Attempts: tests-failed, tests-failed, timeout. Commit none. Gitignored path: no. Model unloaded. ollama ps empty.
 
-run-t4 | this handoff commit | receipt eval/mvp-1031/local-rerun/t4-timeout-substep/receipt.json | TIMEOUT, no commit, no gitignored path
+run-t4 | 0e5c43f | receipt eval/mvp-1031/local-rerun/t4-timeout-substep/receipt.json | TIMEOUT, no commit, no gitignored path
 
 ## Close
 
