@@ -2403,6 +2403,16 @@ def _gate_feedback(why: str, record: dict | None) -> str:
     return "gate failed: %s\n%s" % (why, tail)
 
 
+def _no_change_feedback(record: dict | None) -> str:
+    """Retry text for an empty diff. Includes the gate tail. Never a PASS."""
+    tail = ""
+    if isinstance(record, dict):
+        tail = str(record.get("tail") or "")
+    if tail:
+        return "no-change\n%s" % tail
+    return "no-change"
+
+
 def _review_prompt(task: str, diff_text: str, gate_tail: str) -> str:
     return (
         "%s\n"
@@ -3054,9 +3064,34 @@ def build_local(argv: list[str] | None = None) -> int:
             changed = files_changed(worktree, test_env)
             diff_text, diff_stats = _collect_diff(worktree, test_env, changed)
             if not changed:
+                tests_after = run_tests(
+                    args.test_cmd_s,
+                    worktree,
+                    test_env,
+                    args.test_timeout_s,
+                    state,
+                    repo=repo,
+                    unsafe=bool(args.unsafe_no_sandbox),
+                )
+                if tests_after.get("aborted") == "interrupted" or state.interrupted:
+                    status, reason, exit_code = "FAIL", "interrupted", EXIT_FAIL
+                    _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "interrupted", None, None, diff_stats, diff_text)
+                    return finish()
+                if tests_after.get("aborted") == "mem-edge" or state.mem_edge:
+                    status, reason, exit_code = "FAIL", "mem-edge", EXIT_FAIL
+                    _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "mem-edge", None, None, diff_stats, diff_text)
+                    return finish()
+                if not tests_after.get("started"):
+                    status, reason, exit_code = "FAIL", "test-cmd-failed-to-start", EXIT_FAIL
+                    _record_attempt(
+                        attempts_used, attempt_t0, mem_snap, "FAIL", "test-cmd-failed-to-start", None, None, diff_stats, diff_text
+                    )
+                    return finish()
+                # Empty diff stays no-change even when this gate is green.
+                # The review model is not called.
+                feedback = _no_change_feedback(tests_after)
                 if _can_retry(args.review, attempts_used, max_attempts, "no-change"):
                     _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "no-change", None, None, diff_stats, diff_text)
-                    feedback = "no-change"
                     previous_diff = diff_text
                     continue
                 status, reason, exit_code = "FAIL", "no-change", EXIT_FAIL
