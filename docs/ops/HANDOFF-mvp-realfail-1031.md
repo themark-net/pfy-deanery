@@ -13,7 +13,8 @@ Base: `origin/bot/mvp-cloud-1031`
 - interrupted `00d0ec4`: real SIGINT and SIGTERM. Exit 1, status FAIL, reason interrupted, no branch, caller unchanged, grok session gone.
 - sigkill-reap `d11ce1a`: receipt `ABORTED` / `no-receipt`, reap exit 0, planted local sleep survived. FINDING: live grok was still running after reap. See `eval/mvp-1031/realfail/sigkill-reap/FINDING.md`.
 - timeout `468ae85`: real grok, `--timeout 5`, exit 3, status `TIMEOUT`, reason `timeout`, no branch.
-- dirty-caller: exit 0, `PASS` / `ok`. `untracked-dirty.txt` and staged `staged-dirty.txt` stayed dirty and are absent from commit `ac54ba9` (only `kept.py`).
+- dirty-caller `3fbb203`: exit 0, `PASS` / `ok`. `untracked-dirty.txt` and staged `staged-dirty.txt` stayed dirty and are absent from commit `ac54ba9` (only `kept.py`).
+- gate-red: exit 1, `FAIL` / `tests`, attempts 3, no branch. The gate tail `PLANTED-GATE-RED-TAIL` is in the second and third real grok prompts. Attempts 1 and 2 are the retries-left row. Attempt 3 spends the retries.
 
 ## Skipped
 
@@ -37,4 +38,4 @@ Docs, eval, and test only. Pregate plus Reviewer when the lane finishes. Pregate
 
 ## Next
 
-Gate red: a planted failing gate, three attempts, no branch, gate tail in the next real grok prompt.
+Review reject: a real task that also asks for `danger.sh` containing `rm -rf /`. Record the review verdict.

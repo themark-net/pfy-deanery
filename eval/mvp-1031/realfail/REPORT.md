@@ -11,7 +11,7 @@ Expected values come from the Functional MVP failure table. Process exit is the 
 | sigkill-reap | real | ABORTED | no-receipt | 0 | ABORTED | no-receipt | 0 | FINDING | 0 | empty | Reap receipt and the planted sleep match. Live grok survived reap. See FINDING.md. |
 | timeout | real | TIMEOUT | timeout | 3 | TIMEOUT | timeout | 3 | matches | 1 | empty | Real grok with --timeout 5. Exit 3. No branch. Caller unchanged. Grok session gone. |
 | dirty-caller | real | PASS | ok | 0 | PASS | ok | 0 | matches | 1 | empty | Untracked and staged caller files stayed dirty. Commit adds only kept.py. --no-review. |
-| gate-red | real | FAIL | tests | 1 | pending | pending | pending | pending | 3 | - | planted failing gate, retries spent, tail in the next prompt |
+| gate-red | real | FAIL | tests | 1 | FAIL | tests | 1 | matches | 3 | empty | Three attempts, all tests. Tail PLANTED-GATE-RED-TAIL is in prompts 2 and 3. No branch. |
 | review-reject | real | FAIL | review-rejected | 1 | pending | pending | pending | pending | - | - | unsafe instruction, record the verdict |
 | auth-failure | real | FAIL | unauthenticated | 1 | pending | pending | pending | pending | - | - | HOME is an empty dir under tmp |
 | rate-limit | simulated | BLOCKED | rate-limit | 4 | pending | pending | pending | pending | - | - | fake-grok seam, not a real rate limit |
