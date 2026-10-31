@@ -14,7 +14,7 @@ Exit: lane empty after the third GAP recheck. Wall cap is `2026-11-01T05:15:32Z`
 | Quickstart command test | `4f87ddf` | `tests/test_quickstart_commands.py`. 3 tests OK in 0.769s. |
 | README links | `330faeb` | Two lines under the simple-path block. Root README was not owned by another lane. |
 | GAP recheck | `1866938` | Cloudfix moved to `d35af20`. GAPs 1-8 still open at that time. |
-| GAP recheck 2 | this commit | Integrate tip is `6372dcc`. Realfail2 tip `8edff42` closed GAPs 1-6. GAPs 7 and 8 stay open. |
+| GAP recheck 2 | `d2c7680` | Integrate tip is `6372dcc`. Realfail2 tip `8edff42` closed GAPs 1-6. GAPs 7 and 8 stay open. |
 
 ## Test evidence
 
