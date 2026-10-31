@@ -109,7 +109,7 @@ The runner does not read `auth.json`. A rate limit does not auto-start `--local`
 
 ## Receipt rules
 
-Receipt text is redacted (token, bearer, AKIA, private-key blocks). A receipt that still contains those raw forms is a failed run. Do not paste a receipt that holds a live token into chat or into git. The demo copy that integration keeps is `eval/mvp-1031/demo-receipt.json` on the integrate branch, not a default receipt under `pipelines/dogfood/build-cloud/`.
+Receipt text is redacted (token, bearer, AKIA, private-key blocks). A short fixture assignment such as `user_key=list-user` stays readable. An uppercase name such as `API_TOKEN`, a name that contains password or secret, and a value that mixes letters and digits are still replaced with `[redacted]`. A receipt that still contains those raw forms is a failed run. Do not paste a receipt that holds a live token into chat or into git. The demo copy that integration keeps is `eval/mvp-1031/demo-receipt.json` on the integrate branch, not a default receipt under `pipelines/dogfood/build-cloud/`.
 
 Pid file: `<repo>/tmp/cloud-build.pids.json`. Worktree: `<repo>/tmp/cloud-build/<stamp>/`, removed on PASS unless `--keep-worktree`. Branch prefix: `cloud/`. The branch ref remains after the worktree is removed.
 

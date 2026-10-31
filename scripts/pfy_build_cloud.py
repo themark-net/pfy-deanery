@@ -159,7 +159,18 @@ def redact(text: str) -> str:
         return ""
 
     def _eq(match: re.Match) -> str:
-        return match.group(1) + match.group(2) + "[redacted]"
+        # Fail: every name containing KEY or TOKEN hid fixture ids such as
+        # user_key=list-user. Recover: keep a short lowercase fixture value.
+        # Still hide an uppercase env name, a password or secret name, and a
+        # value that is long or mixes letters and digits.
+        name, sep, value = match.group(1), match.group(2), match.group(3)
+        lower = name.lower()
+        explicit = any(word in lower for word in ("password", "passwd", "secret"))
+        mixed = any(ch.isalpha() for ch in value) and any(ch.isdigit() for ch in value)
+        looks = len(value) >= 32 or (len(value) >= 8 and mixed)
+        if explicit or name.isupper() or looks or value == "[redacted]":
+            return name + sep + "[redacted]"
+        return match.group(0)
 
     text = _PEM.sub("[redacted-private-key]", text)
     text = text.replace("BEGIN PRIVATE KEY", "[redacted-private-key]")

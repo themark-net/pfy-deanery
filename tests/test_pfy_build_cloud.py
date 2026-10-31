@@ -1606,6 +1606,38 @@ class CloudBuildFailureTests(unittest.TestCase):
         shown = _git(self.repo, "show", payload["commit"] + ":kept.py")
         self.assertEqual(shown.stdout, "value = 1\n")
 
+    def test_receipt_keeps_fixture_ids_and_still_hides_secret_assignments(self) -> None:
+        # Fail: user_key=list-user and token=RAWTOKEN-only-in-source become
+        # [redacted], so the gate tail no longer shows the assertion.
+        # Recover: leave those fixture values, and still hide API_TOKEN and
+        # password values.
+        secret_value = "abcd1234EFGHijkl"
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "print('user_key=list-user')\n"
+            "print('token=land-user')\n"
+            "print('token=RAWTOKEN-only-in-source')\n"
+            "print('API_TOKEN=%s')\n"
+            "print('password=hunter2')\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n" % secret_value,
+        )
+        proc = self._run_task(grok, self._gate(), "add kept", extra=["--no-review", "--retries", "0"])
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        raw = list((self.repo / "pipelines" / "dogfood" / "build-cloud").glob("*/receipt.json"))[0].read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("user_key=list-user", raw)
+        self.assertIn("token=land-user", raw)
+        self.assertIn("token=RAWTOKEN-only-in-source", raw)
+        self.assertNotIn(secret_value, raw)
+        self.assertNotIn("hunter2", raw)
+        self.assertIn("API_TOKEN=[redacted]", raw)
+        self.assertIn("password=[redacted]", raw)
+
     def test_protected_auth_json_is_not_committed(self) -> None:
         grok = _write_exe(
             self.side / "grok.py",
