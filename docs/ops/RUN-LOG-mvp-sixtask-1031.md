@@ -67,3 +67,4 @@ Format: `item | commit | tests | result`
 - variance-t6 | c19212a | ./pfy build exit 0 wall 110.5s attempts 1 review accept gate_rerun 0 human accept | PASS, three tree_sig copies match canonical
 - variance-report | 96dd2a5 | nice python3 -m unittest tests.test_mvp_1031_sixtask_report (9 tests OK, live and variance reports checked) | PASS, same 4/6 class, wall 2356.0s
 - retries0-t1 | 5d2c362 | ./pfy build --retries 0 exit 0 wall 174.7s attempts 1 review accept gate_rerun 0 human accept | PASS
+- retries0-t2 | pending | ./pfy build --retries 0 exit 0 wall 58.7s attempts 1 review accept gate_rerun 0 human accept | PASS, tree_sig matches canonical
