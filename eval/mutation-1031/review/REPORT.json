@@ -1,0 +1,129 @@
+{
+  "meta": {
+    "commit": "3396ee7",
+    "source": "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-mutate-review-1031",
+    "baseline": "pass",
+    "modules": [
+      "tests.test_pfy_build_local_review",
+      "tests.test_pfy_build_local",
+      "tests.test_pfy_build_local_review_ci"
+    ],
+    "red_modules": [],
+    "audit": "No targeted test calls a model. Exclude list is empty. Stubs only: in-process Ollama, stub opencode, in-process HTTP reviewer. Cloud dry-run does not execute grok. opencode --help is not a model call.",
+    "excluded": []
+  },
+  "rows": [
+    {
+      "id": "R1",
+      "title": "review skipped",
+      "reviewer": "",
+      "result": "killed",
+      "seconds": 184.954,
+      "first_failure": "FAIL: test_a_reviewer_that_keeps_rejecting_stops_at_three_attempts"
+    },
+    {
+      "id": "R2",
+      "title": "verdict inverted",
+      "reviewer": "",
+      "result": "killed",
+      "seconds": 162.67,
+      "first_failure": "FAIL: test_a_reviewer_that_keeps_rejecting_stops_at_three_attempts"
+    },
+    {
+      "id": "R3",
+      "title": "reviewer outage treated as accept",
+      "reviewer": "",
+      "result": "killed",
+      "seconds": 146.347,
+      "first_failure": "FAIL: test_reviewer_http_error_is_not_a_reject_and_is_not_retried"
+    },
+    {
+      "id": "R4",
+      "title": "reviewer outage treated as reject",
+      "reviewer": "M4",
+      "result": "killed",
+      "seconds": 197.447,
+      "first_failure": "FAIL: test_reviewer_http_error_is_not_a_reject_and_is_not_retried"
+    },
+    {
+      "id": "R5",
+      "title": "retry prompt missing previous diff",
+      "reviewer": "M7",
+      "result": "killed",
+      "seconds": 147.325,
+      "first_failure": "FAIL: test_previous_diff_reaches_the_retry_prompt"
+    },
+    {
+      "id": "R6",
+      "title": "missing gate tail in feedback",
+      "reviewer": "",
+      "result": "killed",
+      "seconds": 147.096,
+      "first_failure": "FAIL: test_gate_fail_is_retried_and_the_tail_reaches_the_next_prompt"
+    },
+    {
+      "id": "R7",
+      "title": "file cap off by one",
+      "reviewer": "",
+      "result": "survived",
+      "seconds": 146.814,
+      "first_failure": ""
+    },
+    {
+      "id": "R8",
+      "title": "line cap off by one",
+      "reviewer": "",
+      "result": "survived",
+      "seconds": 147.688,
+      "first_failure": ""
+    },
+    {
+      "id": "R9",
+      "title": "size cap removed",
+      "reviewer": "",
+      "result": "survived",
+      "seconds": 146.605,
+      "first_failure": ""
+    },
+    {
+      "id": "R10",
+      "title": "allow list ignored",
+      "reviewer": "",
+      "result": "killed",
+      "seconds": 145.824,
+      "first_failure": "FAIL: test_out_of_scope_patch_is_rejected_and_the_retry_passes"
+    },
+    {
+      "id": "R11",
+      "title": "git add -A -f scope check bypassed",
+      "reviewer": "",
+      "result": "killed",
+      "seconds": 148.024,
+      "first_failure": "FAIL: test_gitignored_extra_file_is_absent_from_the_commit"
+    },
+    {
+      "id": "R12",
+      "title": "no-change counted as PASS",
+      "reviewer": "",
+      "result": "killed",
+      "seconds": 146.621,
+      "first_failure": "FAIL: test_green_gate_and_empty_diff_is_no_change_when_retries_are_spent"
+    },
+    {
+      "id": "R13",
+      "title": "attempts not recorded",
+      "reviewer": "",
+      "result": "killed",
+      "seconds": 146.856,
+      "first_failure": "ERROR: test_missing_wiring_names_the_module_and_the_retry_wires_both"
+    },
+    {
+      "id": "R14",
+      "title": "stub env read in production",
+      "reviewer": "",
+      "result": "killed",
+      "seconds": 147.083,
+      "first_failure": "FAIL: test_stub_binds_stay_off_unless_the_test_seam_is_on"
+    }
+  ]
+}

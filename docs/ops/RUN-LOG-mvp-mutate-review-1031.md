@@ -93,3 +93,23 @@ item | commit | tests | result
 harness | 80b5aec | nice python3 -m unittest tests.test_mut_review_harness | Ran 5 tests in 2.414s OK
 
 state: DONE | tests: tests.test_mut_review_harness OK | files: 4 | err: none
+
+### merge-before-campaign
+
+`origin/bot/mvp-review-fix2-1031` moved to `b483166` (gate_unsandboxed only when bwrap is missing) plus its handoff. Merge commit `3396ee7`. Anchors still match. Harness tests re-run: 5 tests OK in 2.439s. Pushed.
+
+Host before the campaign: MemAvailable about 57.6 GiB, load 4.09, nproc 32. Under the pressure line.
+
+state: DONE | tests: tests.test_mut_review_harness OK | files: merge | err: none
+
+### catalog-and-first-run
+
+One clone under `tmp/mutation-1031/review-clone`. Baseline 80 tests in 146.235s OK. No module was red. No test was excluded (none call a model). 14 mutants, about 147s each. Wall about 38 minutes. The worktree runner matched HEAD after the run. The clone file was restored.
+
+Killed: R1, R2, R3, R4 (M4), R5 (M7), R6, R10, R11, R12, R13, R14.
+Survived: R7 file cap off by one, R8 line cap off by one, R9 size cap removed.
+
+item | commit | tests | result
+catalog-and-first-run | pending-sha | nice python3 eval/mutation-1031/review/run_mutants.py --run --timeout 420 | baseline OK, 11 killed, 3 survived, exit 0
+
+state: DONE | tests: mutation campaign exit 0 | files: 2 | err: none
