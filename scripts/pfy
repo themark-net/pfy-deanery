@@ -154,16 +154,19 @@ pfy — simple setup & launch for the pfy-mentat stack
   pfy decision            Jev-style typed Choice/Score (#230; CUA-S1-FORMS local)
   pfy decision off|cua-s1-forms|typesafe|mini-jev
   pfy decision smoke      Mark-free CUA-S1-FORMS Choice (no TypeSafe key)
+  pfy build "<task>"      daily cloud build: worktree, cloud Grok, gate, review,
+                          commit on cloud/<slug>-<stamp> (no push, no PR);
+                          receipt under pipelines/dogfood/build-cloud/
   pfy build -p "<prompt>" [--cwd DIR] [--dry-run]
-                          jev toolset (local) + decision shadow + grok -p (plain);
-                          prints session id + usage; receipt under pipelines/dogfood/build/
+                          jev dogfood wrap: local jev toolset + decision shadow
+                          + grok -p (plain); receipt under pipelines/dogfood/build/
   pfy build --local "<task>" [--repo DIR] [--base REF] [--model TAG] [--dry-run]
                           [--reap] [--unsafe-no-sandbox]
-                          headless local-model build in a tmp worktree (no push, no PR);
-                          bubblewrap sandbox, or BLOCKED no-sandbox when bwrap is missing;
-                          --reap kills a stale group and writes ABORTED receipts;
-                          no-model is BLOCKED exit 4; no-opencode stays exit 2;
-                          receipt under pipelines/dogfood/build-local/
+                          opt-in fallback: headless local-model build in a tmp worktree
+                          (no push, no PR); bubblewrap sandbox, or BLOCKED no-sandbox
+                          when bwrap is missing; --reap kills a stale group and writes
+                          ABORTED receipts; no-model is BLOCKED exit 4; no-opencode
+                          stays exit 2; receipt under pipelines/dogfood/build-local/
   pfy eval-local-build [--only ID] [--limit N] [--model TAG] [--timeout SEC] [--require-live]
                           offline coding eval for pfy build --local (stub or local model)
   pfy toolset matrix      toolset × harness grid: implemented|partial|stub (ADR-0017; honest, most cells stub)
@@ -1801,28 +1804,43 @@ cmd_catalog() {
 
 
 cmd_build() {
-  # D1 friction: wrap grok -p with local jev toolset + decision shadow + plain output-format.
-  # Usage: pfy build -p "<prompt>" [--cwd DIR] [--dry-run]
-  #        pfy build --prompt-file FILE [--cwd DIR] [--dry-run]
-  #        pfy build --local "<task>"   headless local build (scripts/pfy_build_local.py)
-  # Default preamble is trimmed (#263). PFY_BUILD_FULL_PREAMBLE=1 inlines full jev skill bodies.
-  # --local anywhere in argv. exec so SIGTERM reaches the runner, not the shell.
+  # Daily default is the cloud runner. -p / p / --prompt / --prompt-file stay
+  # the jev dogfood wrap. --local anywhere stays the opt-in local runner.
+  # exec so SIGTERM reaches the cloud or local runner, not the shell.
   local arg
   for arg in "$@"; do
     if [[ "$arg" == "--local" ]]; then
       exec python3 "$ROOT/scripts/pfy_build_local.py" "$@"
     fi
   done
-  if [[ "${1:-}" == "-h" || "${1:-}" == "--help" || "${1:-}" == "help" ]]; then
-    python3 "$ROOT/scripts/pfy_build_p.py" --help
-    return 0
-  fi
-  # Allow `pfy build -p ...` or `pfy build p ...` (p as subcommand)
-  if [[ "${1:-}" == "p" ]]; then
-    shift || true
-    set -- -p "$@"
-  fi
-  python3 "$ROOT/scripts/pfy_build_p.py" "$@"
+  case "${1:-}" in
+    -p)
+      # -p takes a value, so `pfy build -p --help` never reaches argparse help.
+      # Show the dogfood help without editing scripts/pfy_build_p.py.
+      if [[ "${2:-}" == "--help" || "${2:-}" == "-h" ]]; then
+        python3 "$ROOT/scripts/pfy_build_p.py" --help
+        return $?
+      fi
+      python3 "$ROOT/scripts/pfy_build_p.py" "$@"
+      return $?
+      ;;
+    p)
+      shift || true
+      if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+        python3 "$ROOT/scripts/pfy_build_p.py" --help
+        return $?
+      fi
+      python3 "$ROOT/scripts/pfy_build_p.py" -p "$@"
+      return $?
+      ;;
+    --prompt|--prompt-file|--prompt=*|--prompt-file=*)
+      python3 "$ROOT/scripts/pfy_build_p.py" "$@"
+      return $?
+      ;;
+    *)
+      exec python3 "$ROOT/scripts/pfy_build_cloud.py" "$@"
+      ;;
+  esac
 }
 
 cmd_decision() {
