@@ -88,4 +88,22 @@ detached-head | 19eafd3 | nice -n 19 python3 -m unittest tests.test_mvp_1031_rea
 no-tests | 3b1c126 | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail3_receipts (6 ok) | MATCH FAIL tests, default discover exit 1, no branch. Before-gate was already red and grok still ran.
 non-ascii | ba55764 | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail3_receipts (6 ok) | MATCH PASS, receipt kept cafe-acute, commit includes "my app.py"
 over-cap | 0511b60 | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail3_receipts (6 ok) | MATCH PASS with 4 files and 280 lines. The cloud table has no size row, so this is not a FINDING. The local cap was not applied.
-two-builds | this commit | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail3_receipts (6 ok) | MATCH intact, both PASS, two cloud branches, fsck 0, overlap true
+two-builds | 91ce285 | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail3_receipts (6 ok) | MATCH intact, both PASS, two cloud branches, fsck 0, overlap true
+gate-hang | this commit | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail3_receipts | FINDING FAIL tests exit 1, gate.after exit 124, recovery empty. Expected TIMEOUT timeout exit 3.
+
+## LOOP REPORT
+
+```text
+LOOP REPORT
+Type:            goal
+Goal:            nine realfail3 cases, report locked to receipts
+Exit fired:      lane empty. Nine cases are recorded. No further case fits these rules.
+Iterations:      9 cases plus harness and handoff
+Progress:        two FINDINGs (tmp-unwritable, gate-hang), seven matches
+Evidence:        nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail3_receipts (6 ok)
+Human gate:      no merge, no PR. Operator pregate plus Reviewer.
+Next:            mvp-cloudfix-1031 takes the two FINDING files
+Status:          DONE
+```
+
+state: lane empty | 9 cases, 7 matches, 2 FINDINGs, runner not edited | tests: nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail3_receipts (6 ok) | pregate not run: operator runs it, and Runner.Worker was active

@@ -8,3 +8,4 @@
 - 2026-10-31T22:38:29Z | Scratch and `TMPDIR` stay under this worktree's `tmp/` (gitignored). Do not use `/tmp`. The network case is the only PATH shim. It does not change the host network.
 - 2026-10-31T22:38:29Z | `.project-map/` is gitignored. The map agent may write it. This lane does not commit it.
 - 2026-10-31T23:05:00Z | over-cap PASS with 4 files and 280 lines stays MATCH. Alternative was a FINDING that the cloud runner lacks the local 3-file / 250-line cap. The failure table has no size row, so a finished build is the PASS row. The counts are in the report notes and the handoff for mvp-cloudfix-1031.
+- 2026-10-31T23:10:00Z | Stop after the nine listed cases. Alternative was more cloud runs (rate limit, interrupt). Those rows are already covered by earlier lanes, or they need a second shim, which this drop-in allows only for the network case. Pregate was not run: the drop-in says the operator runs it, and `Runner.Worker` was active.

@@ -2,12 +2,13 @@
 
 One row per run. Expected values come from the Functional MVP failure table. `matches` means status, reason, and process exit matched that row and the case invariants held. `FINDING` means a DoD clause failed. Notes say what differed. The runner was not edited.
 
-Rows: partial
+Rows: complete
 
 | Case | Mode | Exp status | Exp reason | Exp exit | Obs status | Obs reason | Obs exit | Verdict | Attempts | Recovery | Notes |
 |------|------|------------|------------|----------|------------|------------|----------|---------|----------|----------|-------|
 | detached-head | real | PASS | ok | 0 | PASS | ok | 0 | matches | 1 | empty | HEAD must stay detached at the same SHA review skipped |
 | dirty-tree | real | PASS | ok | 0 | PASS | ok | 0 | matches | 1 | empty | dirty porcelain must survive. elapsed 12s review skipped |
+| gate-hang | real | TIMEOUT | timeout | 3 | FAIL | tests | 1 | FINDING | 1 | empty | gate sleeps after the first call a hung gate was recorded as tests, not timeout review None |
 | network-down | shim | FAIL | no-change | 1 | FAIL | no-change | 1 | matches | 1 | empty | PATH shim prints Network is unreachable and writes nothing review None |
 | no-tests | real | FAIL | tests | 1 | FAIL | tests | 1 | matches | 1 | empty | default gate on a repo with no tests directory before_exit 1 review None |
 | non-ascii | real | PASS | ok | 0 | PASS | ok | 0 | matches | 1 | empty | task keeps cafe-acute and the path contains a space review skipped |
