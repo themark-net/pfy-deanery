@@ -5,7 +5,7 @@
     "tests.test_build_preflight",
     "tests.test_mvp_1031_receipt"
   ],
-  "head": "c798af848b5fb19ad8c8482799d95abb3973fa29",
+  "head": "b5d57f8ec468522b414802beda83d2789194d948",
   "integrate": "0c3f133d4d2ea2bf104f6390416fa8d26f394803",
   "sources": {
     "pfylib/build_preflight.py": "050aeff48ca27e50203633f3fcbc115503eb41f758b4f043ef3c84067251d635",
@@ -17,8 +17,8 @@
     "target": "pfylib/build_preflight.py",
     "status": "survived",
     "returncode": 0,
-    "seconds": 0.455,
-    "detail": "Ran 20 tests in 0.396s"
+    "seconds": 1.046,
+    "detail": "Ran 20 tests in 0.895s"
   },
   "rows": [
     {
@@ -27,7 +27,7 @@
       "target": "pfylib/build_preflight.py",
       "status": "killed",
       "returncode": 1,
-      "seconds": 0.463,
+      "seconds": 1.007,
       "detail": "FAIL: test_zero_exit_is_other_even_when_the_text_matches (tests.test_build_preflight.ClassifyCloudFailureTests.test_zero_exit_is_other_even_when_the_text_matches)"
     },
     {
@@ -36,7 +36,7 @@
       "target": "pfylib/build_preflight.py",
       "status": "killed",
       "returncode": 1,
-      "seconds": 0.478,
+      "seconds": 1.074,
       "detail": "FAIL: test_each_rate_limit_phrase_wins_even_with_not_logged_in (tests.test_build_preflight.ClassifyCloudFailureTests.test_each_rate_limit_phrase_wins_even_with_not_logged_in) (phrase='rate limit', text='rate limit')"
     },
     {
@@ -45,7 +45,7 @@
       "target": "pfylib/build_preflight.py",
       "status": "killed",
       "returncode": 1,
-      "seconds": 0.475,
+      "seconds": 0.824,
       "detail": "FAIL: test_each_rate_limit_phrase_wins_even_with_not_logged_in (tests.test_build_preflight.ClassifyCloudFailureTests.test_each_rate_limit_phrase_wins_even_with_not_logged_in) (phrase='429', text='429')"
     },
     {
@@ -54,7 +54,7 @@
       "target": "pfylib/build_preflight.py",
       "status": "killed",
       "returncode": 1,
-      "seconds": 0.459,
+      "seconds": 1.036,
       "detail": "FAIL: test_each_auth_phrase_without_a_rate_limit_phrase (tests.test_build_preflight.ClassifyCloudFailureTests.test_each_auth_phrase_without_a_rate_limit_phrase) (phrase='unauthenticated', text='UNAUTHENTICATED')"
     },
     {
@@ -63,7 +63,7 @@
       "target": "pfylib/build_preflight.py",
       "status": "killed",
       "returncode": 1,
-      "seconds": 0.459,
+      "seconds": 1.041,
       "detail": "FAIL: test_phrase_split_across_the_newline_join_is_other (tests.test_build_preflight.ClassifyCloudFailureTests.test_phrase_split_across_the_newline_join_is_other)"
     },
     {
@@ -72,8 +72,8 @@
       "target": "pfylib/build_preflight.py",
       "status": "survived",
       "returncode": 0,
-      "seconds": 0.441,
-      "detail": "Ran 20 tests in 0.383s"
+      "seconds": 1.007,
+      "detail": "Ran 20 tests in 0.851s"
     },
     {
       "id": "P8",
@@ -81,8 +81,8 @@
       "target": "pfylib/build_preflight.py",
       "status": "survived",
       "returncode": 0,
-      "seconds": 0.45,
-      "detail": "Ran 20 tests in 0.394s"
+      "seconds": 1.083,
+      "detail": "Ran 20 tests in 0.931s"
     },
     {
       "id": "P9",
@@ -90,8 +90,17 @@
       "target": "pfylib/build_preflight.py",
       "status": "survived",
       "returncode": 0,
-      "seconds": 0.446,
-      "detail": "Ran 20 tests in 0.382s"
+      "seconds": 0.902,
+      "detail": "Ran 20 tests in 0.769s"
+    },
+    {
+      "id": "P10",
+      "title": "429 must be a whole token",
+      "target": "pfylib/build_preflight.py",
+      "status": "survived",
+      "returncode": 0,
+      "seconds": 1.067,
+      "detail": "Ran 20 tests in 0.922s"
     },
     {
       "id": "R1",
@@ -99,8 +108,8 @@
       "target": "eval/mvp-1031/check_receipt.py",
       "status": "survived",
       "returncode": 0,
-      "seconds": 0.447,
-      "detail": "Ran 20 tests in 0.389s"
+      "seconds": 1.01,
+      "detail": "Ran 20 tests in 0.863s"
     },
     {
       "id": "R2",
@@ -108,8 +117,8 @@
       "target": "eval/mvp-1031/check_receipt.py",
       "status": "survived",
       "returncode": 0,
-      "seconds": 0.459,
-      "detail": "Ran 20 tests in 0.406s"
+      "seconds": 0.797,
+      "detail": "Ran 20 tests in 0.658s"
     },
     {
       "id": "R3",
@@ -117,8 +126,8 @@
       "target": "eval/mvp-1031/check_receipt.py",
       "status": "survived",
       "returncode": 0,
-      "seconds": 0.449,
-      "detail": "Ran 20 tests in 0.391s"
+      "seconds": 0.969,
+      "detail": "Ran 20 tests in 0.819s"
     },
     {
       "id": "R4",
@@ -126,8 +135,8 @@
       "target": "eval/mvp-1031/check_receipt.py",
       "status": "survived",
       "returncode": 0,
-      "seconds": 0.463,
-      "detail": "Ran 20 tests in 0.408s"
+      "seconds": 0.986,
+      "detail": "Ran 20 tests in 0.835s"
     },
     {
       "id": "R5",
@@ -135,8 +144,8 @@
       "target": "eval/mvp-1031/check_receipt.py",
       "status": "survived",
       "returncode": 0,
-      "seconds": 0.441,
-      "detail": "Ran 20 tests in 0.381s"
+      "seconds": 0.948,
+      "detail": "Ran 20 tests in 0.802s"
     },
     {
       "id": "R7",
@@ -144,8 +153,8 @@
       "target": "eval/mvp-1031/check_receipt.py",
       "status": "survived",
       "returncode": 0,
-      "seconds": 0.456,
-      "detail": "Ran 20 tests in 0.401s"
+      "seconds": 0.447,
+      "detail": "Ran 20 tests in 0.375s"
     },
     {
       "id": "R8",
@@ -153,8 +162,8 @@
       "target": "eval/mvp-1031/check_receipt.py",
       "status": "survived",
       "returncode": 0,
-      "seconds": 0.464,
-      "detail": "Ran 20 tests in 0.397s"
+      "seconds": 1.082,
+      "detail": "Ran 20 tests in 0.930s"
     },
     {
       "id": "R10",
@@ -162,8 +171,8 @@
       "target": "eval/mvp-1031/check_receipt.py",
       "status": "survived",
       "returncode": 0,
-      "seconds": 0.469,
-      "detail": "Ran 20 tests in 0.409s"
+      "seconds": 0.782,
+      "detail": "Ran 20 tests in 0.674s"
     },
     {
       "id": "R11",
@@ -171,7 +180,7 @@
       "target": "eval/mvp-1031/check_receipt.py",
       "status": "killed",
       "returncode": 1,
-      "seconds": 0.358,
+      "seconds": 0.903,
       "detail": "FAIL: test_rejects_secret_markers_in_pass_shaped_json (tests.test_mvp_1031_receipt.CheckReceiptTests.test_rejects_secret_markers_in_pass_shaped_json)"
     },
     {
@@ -180,8 +189,80 @@
       "target": "eval/mvp-1031/check_receipt.py",
       "status": "survived",
       "returncode": 0,
-      "seconds": 0.416,
-      "detail": "Ran 20 tests in 0.359s"
+      "seconds": 0.975,
+      "detail": "Ran 20 tests in 0.852s"
+    },
+    {
+      "id": "R13",
+      "title": "json array accepted",
+      "target": "eval/mvp-1031/check_receipt.py",
+      "status": "survived",
+      "returncode": 0,
+      "seconds": 1.052,
+      "detail": "Ran 20 tests in 0.902s"
+    },
+    {
+      "id": "R14",
+      "title": "commit suffix ignored",
+      "target": "eval/mvp-1031/check_receipt.py",
+      "status": "survived",
+      "returncode": 0,
+      "seconds": 1.055,
+      "detail": "Ran 20 tests in 0.911s"
+    },
+    {
+      "id": "R15",
+      "title": "uppercase commit accepted",
+      "target": "eval/mvp-1031/check_receipt.py",
+      "status": "survived",
+      "returncode": 0,
+      "seconds": 0.911,
+      "detail": "Ran 20 tests in 0.771s"
+    },
+    {
+      "id": "R16",
+      "title": "review string accepted as verdict",
+      "target": "eval/mvp-1031/check_receipt.py",
+      "status": "survived",
+      "returncode": 0,
+      "seconds": 0.764,
+      "detail": "Ran 20 tests in 0.632s"
+    },
+    {
+      "id": "R17",
+      "title": "usage failure exits 0",
+      "target": "eval/mvp-1031/check_receipt.py",
+      "status": "survived",
+      "returncode": 0,
+      "seconds": 0.853,
+      "detail": "Ran 20 tests in 0.692s"
+    },
+    {
+      "id": "R18",
+      "title": "non-utf8 receipt accepted",
+      "target": "eval/mvp-1031/check_receipt.py",
+      "status": "survived",
+      "returncode": 0,
+      "seconds": 0.994,
+      "detail": "Ran 20 tests in 0.858s"
+    },
+    {
+      "id": "R19",
+      "title": "schema case folded",
+      "target": "eval/mvp-1031/check_receipt.py",
+      "status": "survived",
+      "returncode": 0,
+      "seconds": 0.399,
+      "detail": "Ran 20 tests in 0.339s"
+    },
+    {
+      "id": "R20",
+      "title": "non-string gate accepted",
+      "target": "eval/mvp-1031/check_receipt.py",
+      "status": "survived",
+      "returncode": 0,
+      "seconds": 0.951,
+      "detail": "Ran 20 tests in 0.839s"
     }
   ]
 }
