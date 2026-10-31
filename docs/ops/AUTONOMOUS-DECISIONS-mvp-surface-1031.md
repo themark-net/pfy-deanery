@@ -1,0 +1,10 @@
+# Autonomous decisions mvp-surface-1031
+
+Branch `bot/mvp-surface-1031`. No questions asked. One line per decision.
+
+1. Choice: treat `write-loop-exits-first` and `repo-handoff-doc-required` as the drop-in text (exit card in this run log before item work, handoff file on every exit) plus `.grok/skills/agent-loops`. Alternatives: stop until those skill files appear. Why: no SKILL.md with either name is in this worktree or `~/.grok/skills`. `prefer-behavior-and-fail-recover-tests` is present and is followed.
+2. Choice: the lead writes this lane. Do not spawn implementation sub-agents. Alternatives: one sub-agent per phase. Why: the phases share the run log, the decisions file, and one branch. A second writer would race. The project-map agent may write only gitignored `.project-map/`.
+3. Choice: copy the daily-command contract from `origin/bot/mvp-plan-1031:docs/plans/MVP-PARALLEL-1031.md` (failure table and PASS fields) plus this lane's drop-in. Alternatives: wait for `scripts/pfy_build_cloud.py`, or invent recovery text. Why: that file is not on any fetched branch (`origin/bot/mvp-cloud-1031` is still the drop-in commit only). The plan is the shared contract.
+4. Choice: cite MVP-3 numbers in prose (local loop 5/6 gate, 4/6 human accept, 3859.9 s) and link only MVP-2 files that exist on `origin/main`. Alternatives: link `eval/mvp3/REPORT.md`. Why: that report is not on this branch. A relative link to it would fail the contract test.
+5. Choice: do not add a row to `docs/modules/README.md`. Alternatives: add the row here. Why: the drop-in forbids that file. The backlog branch edits it. Integration adds the pfy-build row. Recorded as a cross-lane request in the handoff.
+6. Choice: do not start round-2 `mvp-daily-card-1031` until `origin/bot/mvp-integrate-1031` has a pushed handoff. Alternatives: invent a demo transcript. Why: the plan says that lane appends the real integrate demo and must not invent a green run. If the branch is missing after the card lands, skip it and exit lane empty.
