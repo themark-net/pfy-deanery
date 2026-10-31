@@ -16,8 +16,7 @@ Exit codes:
 
 Receipt schema: pfy-cloud-build/1
 
-classify_cloud_failure is an inline copy of the pfylib.build_preflight
-contract so this branch tests alone. Do not import that module.
+classify_cloud_failure is imported from pfylib.build_preflight.
 """
 
 from __future__ import annotations
@@ -71,15 +70,6 @@ Daily cloud build.
 --local is the opt-in fallback (./pfy build --local "<task>").
 """
 
-# Same phrases as pfylib.build_preflight.classify_cloud_failure, in that order.
-_RATE_LIMIT = re.compile(
-    r"rate limit|usage limit|quota exceeded|too many requests|\b429\b",
-    re.IGNORECASE,
-)
-_UNAUTH = re.compile(
-    r"unauthenticated|not logged in|please log in|auth\.json",
-    re.IGNORECASE,
-)
 _PEM = re.compile(
     r"-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----.*?-----END [A-Z0-9 ]*PRIVATE KEY-----",
     re.DOTALL,
@@ -118,20 +108,10 @@ def _slug(text: str) -> str:
     return raw or "task"
 
 
-def classify_cloud_failure(rc, stdout, stderr) -> str:
-    """Return rate-limit, unauthenticated, or other. Opens no file."""
-    try:
-        code = int(rc)
-    except (TypeError, ValueError):
-        code = 1
-    if code == 0:
-        return "other"
-    text = "%s\n%s" % (stdout or "", stderr or "")
-    if _RATE_LIMIT.search(text):
-        return "rate-limit"
-    if _UNAUTH.search(text):
-        return "unauthenticated"
-    return "other"
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+from pfylib.build_preflight import classify_cloud_failure  # noqa: E402
 
 
 def redact(text: str) -> str:

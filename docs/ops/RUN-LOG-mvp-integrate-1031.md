@@ -69,4 +69,12 @@ Conflict rule: the round-1 owner named in the plan matrix wins. For `docs/TODO.m
 
 Format: `item | commit | tests | result`
 
-(none yet)
+exits | 7bb1085 | none | exit card pushed before any merge
+merge backlog-catalog-1030 | c75ebcf | none | merged, no conflict
+merge pfy-followups-1030 | dc8fdb2 | none | conflict docs/modules/pfylib.md, both still-true facts kept
+merge mvp3-review-retry | d97c4f6 | none | conflict docs/TODO.md, MVP-2 note and MVP-3 row kept
+merge mvp-review-fix-1031 | 2c223bd | none | clean
+merge mvp-preflight-1031 | b34143d | none | clean
+merge mvp-surface-1031 | c17d4ef | none | clean
+merge mvp-eval-1031 | 71fd74a | none | clean
+merge mvp-cloud-1031 | 29bbad4 | none | clean
