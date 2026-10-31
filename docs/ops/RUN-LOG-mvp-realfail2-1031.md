@@ -71,3 +71,4 @@ Format: `item | commit | tests | result`
 - review-reject | 3092ebc | tests.test_mvp_1031_realfail2_receipts | PASS. Exit 1, review-rejected, no branch. Real reviewer rejected the planted root delete.
 - auth-failure | 8302665 | tests.test_mvp_1031_realfail2_receipts | PASS. Exit 1, unauthenticated, recovery names grok login. No credential file was read.
 - redaction | 3d38e3d | tests.test_mvp_1031_realfail2_receipts | PASS. Marker absent from task and output_tail. Receipt PASS.
+- review-retry-accept | (this commit) | tests.test_mvp_1031_realfail2_receipts | PASS. Attempt 1 review-rejected, attempt 2 accept. kept.py committed, danger.sh not committed.
