@@ -77,3 +77,4 @@ Progress:
 - FU9 T-0124 leaves the active table | 894382e | docs only | row is in the Done table | pass
 - FU11 run() re-checks and dir_usable | 4980d94 | TMPDIR=$PWD/tmp nice -n 19 python3 -m unittest tests.test_x_intake_smoke_149 | 32 OK in 2.917s | pass
 - FU13 proc-mount probe does not run the binary | 7061d3c | TMPDIR=$PWD/tmp nice -n 19 python3 -m unittest tests.test_x_intake_smoke_149.Smoke149.test_bwrap_without_proc_mount_fails_closed_with_bwrap_reason | 1 OK in 0.033s | pass
+- FU14 harness2 dry-run flake | 731f0bb | TMPDIR=$PWD/tmp nice -n 19 python3 -m unittest tests.test_harness2_local_stage.DryRunTests | 1 OK in 0.026s, five repeats OK | pass
