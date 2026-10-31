@@ -8,7 +8,7 @@ Expected values come from the Functional MVP failure table and from the mvp-real
 |------|------|------------|------------|----------|------------|------------|----------|---------|----------|----------|-------|
 | sigkill-reap | real | ABORTED | no-receipt | 0 | ABORTED | no-receipt | 0 | matches | 0 | empty | Fixed. The pid file's agent_pgid was the live grok. Reap exit 0 left that pid dead and left the planted sleeper alive. Build exit was -9. No cloud branch. Caller unchanged. |
 | review-reject | real | FAIL | review-rejected | 1 | FAIL | review-rejected | 1 | matches | 1 | empty | Fixed. Real grok refused to write the file. The wrapper planted it in the throwaway worktree so review still ran. The real reviewer returned verdict reject. No branch. danger.sh was not committed. |
-| auth-failure | real | FAIL | unauthenticated | 1 | pending | pending | pending | pending | - | - | Re-check. Empty HOME. Recovery must tell the operator to run grok once. |
+| auth-failure | real | FAIL | unauthenticated | 1 | FAIL | unauthenticated | 1 | matches | 1 | run grok once to log in | Fixed. Empty HOME. Strace saw 25 ENOENT opens under that home and zero successful opens. Recovery tells the operator to run grok once. No branch. |
 | redaction | real | PASS | ok | 0 | pending | pending | pending | pending | - | - | Re-check. Planted marker must be absent from the receipt task and output_tail. |
 | review-retry-accept | real | PASS | ok | 0 | pending | pending | pending | pending | - | - | Real reviewer. Attempt 1 rejected, attempt 2 accepted. |
 | scope-commit-mismatch | real | FAIL | scope-commit-mismatch | 1 | pending | pending | pending | pending | - | - | Staged path outside the reviewed set. Index reset. No branch. |
