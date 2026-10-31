@@ -6,5 +6,6 @@ Rows: partial
 
 | Case | Mode | Exp status | Exp reason | Exp exit | Obs status | Obs reason | Obs exit | Verdict | Attempts | Recovery | Notes |
 |------|------|------------|------------|----------|------------|------------|----------|---------|----------|----------|-------|
+| dirty-tree | real | PASS | ok | 0 | PASS | ok | 0 | matches | 1 | empty | dirty porcelain must survive. elapsed 12s review skipped |
 | network-down | shim | FAIL | no-change | 1 | FAIL | no-change | 1 | matches | 1 | empty | PATH shim prints Network is unreachable and writes nothing review None |
 | tmp-unwritable | real | FAIL | worktree-failed | 1 | FAIL | runner-crash | 1 | FINDING | 1 | empty | repo tmp is mode 555 review None |
