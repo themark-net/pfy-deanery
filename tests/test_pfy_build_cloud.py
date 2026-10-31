@@ -1028,6 +1028,42 @@ class CloudBuildFailureTests(unittest.TestCase):
         self.assertFalse((home / ".grok" / "auth.json").exists())
         self.assertFalse((home / "auth.json").exists())
 
+    def test_not_signed_in_is_unauthenticated_on_zero_and_nonzero_exit(self) -> None:
+        home = self.side / "empty-home"
+        home.mkdir()
+        message = (
+            "Not signed in. To authenticate without a browser, run:\n"
+            "  grok login --device-code\n"
+        )
+        for code in (0, 1):
+            with self.subTest(code=code):
+                receipt_dir = self.side / ("signed-in-%s" % code)
+                grok = _write_exe(
+                    self.side / "grok.py",
+                    "#!/usr/bin/env python3\n"
+                    "import sys\n"
+                    "sys.stdout.write(%r)\n"
+                    "raise SystemExit(%s)\n" % (message, code),
+                )
+                proc = self._run_task(
+                    grok,
+                    self._gate(),
+                    "signed-out",
+                    extra=["--retries", "0", "--no-review", "--receipt-dir", str(receipt_dir)],
+                    env={"HOME": str(home)},
+                )
+                text = (proc.stdout or "") + (proc.stderr or "")
+                self.assertEqual(proc.returncode, 1, text)
+                payload = json.loads((receipt_dir / "receipt.json").read_text(encoding="utf-8"))
+                self.assertEqual(payload["status"], "FAIL")
+                self.assertEqual(payload["reason"], "unauthenticated")
+                self.assertIn("run grok once", payload["recovery"])
+                self.assertNotIn("--local", payload["recovery"])
+                self.assertIsNone(payload["branch"])
+                self.assertIsNone(payload["commit"])
+                self.assertFalse((home / ".grok" / "auth.json").exists())
+                self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
+
     def test_missing_grok_with_empty_home_does_not_raise(self) -> None:
         home = self.side / "empty-home"
         home.mkdir()

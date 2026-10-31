@@ -42,6 +42,24 @@ if str(_ROOT) not in sys.path:
 
 from pfylib.build_preflight import classify_cloud_failure  # noqa: E402
 
+_NOT_SIGNED_IN = re.compile(r"not signed in", re.IGNORECASE)
+
+
+def classify_runner_failure(code: int, stdout: str, stderr: str) -> str:
+    """Preflight class, plus the logged-out line it does not name.
+
+    `classify_cloud_failure` treats exit 0 as other, and its auth phrases
+    do not include "Not signed in". A successful reply that only mentions
+    auth.json stays other.
+    """
+    kind = classify_cloud_failure(code, stdout, stderr)
+    if kind != "other":
+        return kind
+    if _NOT_SIGNED_IN.search("%s\n%s" % (stdout or "", stderr or "")):
+        return "unauthenticated"
+    return kind
+
+
 EXIT_OK = 0
 EXIT_FAIL = 1
 EXIT_USAGE = 2
@@ -898,7 +916,7 @@ class CloudBuild:
             if status == "missing":
                 self.record(number, "FAIL", "unauthenticated", output)
                 return self.fail("FAIL", "unauthenticated", EXIT_FAIL, auth_recovery(self.args.task_text))
-            kind = classify_cloud_failure(code, out, err)
+            kind = classify_runner_failure(code, out, err)
             if kind == "rate-limit":
                 self.record(number, "BLOCKED", "rate-limit", output)
                 return self.fail("BLOCKED", "rate-limit", EXIT_BLOCKED, rate_recovery(self.args.task_text))
@@ -969,7 +987,7 @@ class CloudBuild:
                 if review_status == "missing":
                     self.record(number, "FAIL", "unauthenticated", output)
                     return self.fail("FAIL", "unauthenticated", EXIT_FAIL, auth_recovery(self.args.task_text))
-                review_kind = classify_cloud_failure(review_code, review_out, review_err)
+                review_kind = classify_runner_failure(review_code, review_out, review_err)
                 if review_kind == "rate-limit":
                     self.record(number, "BLOCKED", "rate-limit", output)
                     return self.fail("BLOCKED", "rate-limit", EXIT_BLOCKED, rate_recovery(self.args.task_text))
