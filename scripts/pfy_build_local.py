@@ -3092,10 +3092,12 @@ def build_local(argv: list[str] | None = None) -> int:
         watcher_started = False
         allow_patterns, allow_declared = _task_allow(args.task_text, list(args.allow_path or []))
         if not allow_declared:
-            warnings.append(
-                "no allow list: scope was not checked. "
+            note = (
+                "scope check skipped: no allow list. "
                 "Name paths with files: in the task or with --allow-path."
             )
+            warnings.append(note)
+            print(note, file=sys.stderr)
         wiring_rules = _wiring_rules(args.task_text, list(args.require_wiring or []))
 
         def _record_attempt(number, t0, mem_snap, attempt_status, attempt_reason, checks, model_review, diff_stats, diff_text):
