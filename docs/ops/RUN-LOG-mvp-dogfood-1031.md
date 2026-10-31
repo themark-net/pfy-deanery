@@ -67,4 +67,5 @@ merge-cloud-2 | 73b5581 | cloud lane docs only, runner bytes unchanged | merged 
 07-pregate-lock | 22aa6b5 cloud f7d00a2 | tests.test_mvp_1031_dogfood_reports | PASS exit 0 wall 94s review accept human yes
 08-board-loaders-next | d6b8819 cloud 51f4cd7 | tests.test_mvp_1031_dogfood_reports | PASS exit 0 wall 130s review accept human yes
 09-splice-close | 90d5113 cloud 24e73be | tests.test_mvp_1031_dogfood_reports | PASS exit 0 wall 85s review accept human yes
-10-board-loaders-rest | (this commit) cloud fe9ccc5 | tests.test_mvp_1031_dogfood_reports | PASS exit 0 wall 166s review accept human yes
+10-board-loaders-rest | eefa37e cloud fe9ccc5 | tests.test_mvp_1031_dogfood_reports | PASS exit 0 wall 166s review accept human yes
+state: exit lane-empty after 10 real runs. Handoff docs/ops/HANDOFF-mvp-dogfood-1031.md. pregate not run: host busy. No merge.
