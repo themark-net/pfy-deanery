@@ -6,7 +6,7 @@ Expected values come from the Functional MVP failure table and from the mvp-real
 
 | Case | Mode | Exp status | Exp reason | Exp exit | Obs status | Obs reason | Obs exit | Verdict | Attempts | Recovery | Notes |
 |------|------|------------|------------|----------|------------|------------|----------|---------|----------|----------|-------|
-| sigkill-reap | real | ABORTED | no-receipt | 0 | pending | pending | pending | pending | - | - | Re-check of the realfail FINDING. Reap must kill the live grok and must leave the planted sleeper alone. |
+| sigkill-reap | real | ABORTED | no-receipt | 0 | ABORTED | no-receipt | 0 | matches | 0 | empty | Fixed. The pid file's agent_pgid was the live grok. Reap exit 0 left that pid dead and left the planted sleeper alive. Build exit was -9. No cloud branch. Caller unchanged. |
 | review-reject | real | FAIL | review-rejected | 1 | pending | pending | pending | pending | - | - | Re-check. `--retries 0` so attempt 1 cannot hide an accept. |
 | auth-failure | real | FAIL | unauthenticated | 1 | pending | pending | pending | pending | - | - | Re-check. Empty HOME. Recovery must tell the operator to run grok once. |
 | redaction | real | PASS | ok | 0 | pending | pending | pending | pending | - | - | Re-check. Planted marker must be absent from the receipt task and output_tail. |
