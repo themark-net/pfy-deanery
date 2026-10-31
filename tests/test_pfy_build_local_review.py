@@ -582,6 +582,39 @@ class ReviewLoopTests(unittest.TestCase):
         self.assertIsNotNone(first["checks"])
         self.inner.assert_clean_origin()
 
+    def test_overall_timeout_stops_the_review_loop_without_a_commit(self):
+        """The wall cap covers the review call, not only the agent timeout."""
+        self.inner.httpd.review_block = threading.Event()
+        self.inner.httpd.review_started = threading.Event()
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        proc, receipt = self._run(
+            task,
+            [{"mode": "fix"}],
+            extra=["--timeout", "60", "--overall-timeout", "35", "--retries", "2"],
+            timeout=90,
+        )
+        self.assertTrue(self.inner.httpd.review_started.is_set(), proc.stdout + proc.stderr)
+        self.assertEqual(proc.returncode, harness.BUILD.EXIT_TIMEOUT, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "TIMEOUT")
+        self.assertEqual(data["reason"], "overall-timeout")
+        self.assertNotEqual(data["reason"], "timeout")
+        self.assertNotEqual(data["status"], "reviewer-unavailable")
+        self.assertNotEqual(data["status"], "FAIL")
+        self.assertIn("wall-clock cap", data.get("recovery") or "")
+        self.assertIn("Nothing was committed", data.get("recovery") or "")
+        self.assertIn("Recovery:", data.get("recovery") or "")
+        self.assertIn("--overall-timeout", data.get("recovery") or "")
+        self.assertEqual(data["attempts"], 1)
+        self.assertIsNone(data["commit"])
+        self.assertIsNone(data["branch"])
+        self.assertEqual(harness._branches(self.inner.repo), [])
+        self.assertFalse((receipt / "attempt-2").exists())
+        first = json.loads((receipt / "attempt-1" / "receipt.json").read_text(encoding="utf-8"))
+        self.assertEqual(first["status"], "TIMEOUT")
+        self.assertEqual(first["reason"], "overall-timeout")
+        self.inner.assert_clean_origin()
+
     def test_empty_diff_sent_toward_the_reviewer_does_not_commit(self):
         cmd = self._commit_gate(
             "print('PFY_EMPTY_DIFF_GATE')\nprint('Ran 1 test in 0.001s')\nprint('OK')\n",

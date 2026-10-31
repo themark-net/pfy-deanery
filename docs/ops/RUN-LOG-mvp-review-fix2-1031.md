@@ -286,4 +286,15 @@ How it fails: the review service returns HTTP 500, or the review call exceeds it
 How we recover: no branch. Run again when the reviewer answers, or pass `--no-review`.
 
 item | commit | tests | result
-S1-outage | this commit | nice python3 -m unittest tests.test_pfy_build_local_review | Ran 23 tests in 67.088s OK
+S1-outage | 5cdc5c2 | nice python3 -m unittest tests.test_pfy_build_local_review | Ran 23 tests in 67.088s OK
+
+### S2-overall
+
+`--overall-timeout` (default 7200, env `PFY_LOCAL_BUILD_OVERALL_TIMEOUT`) caps the whole build and review loop. Hitting it sets status `TIMEOUT`, reason `overall-timeout`, exit 3. A per-call review timeout stays `reviewer-unavailable`. An agent timeout stays reason `timeout`. Nothing is committed. The recovery line names `--overall-timeout`.
+
+How it fails: the review call is still blocked when the wall cap expires, while the agent timeout has not.
+
+How we recover: no branch. Run again with a larger `--overall-timeout`.
+
+item | commit | tests | result
+S2-overall | this commit | review module Ran 24 in 122.108s OK; local module Ran 62 in 112.159s OK; hang test still reason timeout

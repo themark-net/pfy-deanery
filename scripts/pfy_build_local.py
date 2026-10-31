@@ -12,7 +12,7 @@ Exit codes:
      or reviewer-unavailable (reviewer HTTP error or review-call timeout:
      not a reject, not retried, nothing committed)
   2  usage, or opencode is missing
-  3  TIMEOUT (agent)
+  3  TIMEOUT (the agent, or the whole build and review loop when the reason is overall-timeout)
   4  BLOCKED (memory, busy host, ps error, model size, cloud tag, lock, no-model,
            no-sandbox, no-runtime-dir, runtime-dir-in-tmp, socket-path)
 
@@ -66,6 +66,7 @@ DEFAULT_ENDPOINT = "http://127.0.0.1:11434/v1"
 DEFAULT_TEST_CMD = "python3 -m unittest discover -s tests -t ."
 DEFAULT_TIMEOUT = 1200
 DEFAULT_TEST_TIMEOUT = 600
+DEFAULT_OVERALL_TIMEOUT = 7200.0
 DEFAULT_MIN_FREE_GB = 32.0
 DEFAULT_RETRIES = 2
 DEFAULT_MAX_FILES = 3
@@ -78,6 +79,11 @@ _REVIEW_OUTAGE_RECOVERY = (
     "(HTTP error or review-call timeout). This is not a reject and was not retried. "
     "Nothing was committed. "
     "Recovery: run the build again when the reviewer answers, or pass --no-review."
+)
+_OVERALL_RECOVERY = (
+    "The wall-clock cap for the whole build and review loop fired. "
+    "Nothing was committed. "
+    "Recovery: run again with a larger --overall-timeout."
 )
 _RETRYABLE = {
     "no-change",
@@ -313,6 +319,12 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser.add_argument("--endpoint", default=None, help="OpenAI base URL (env LOCAL_OPENAI_BASE_URL)")
     parser.add_argument("--test-cmd", default=None, help="gate command (env PFY_LOCAL_BUILD_TEST_CMD)")
     parser.add_argument("--timeout", type=float, default=None, help="agent seconds (env PFY_LOCAL_BUILD_TIMEOUT)")
+    parser.add_argument(
+        "--overall-timeout",
+        type=float,
+        default=None,
+        help="seconds for the whole build and review loop (default 7200, env PFY_LOCAL_BUILD_OVERALL_TIMEOUT)",
+    )
     parser.add_argument("--test-timeout", type=float, default=None, help="test command seconds")
     parser.add_argument("--min-free-gb", type=float, default=None, help="MemAvailable+SwapFree floor")
     parser.add_argument("--protect", action="append", default=[], help="glob the agent must not change")
@@ -389,6 +401,9 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
         args.test_cmd_s = _pick_str(args.test_cmd, "PFY_LOCAL_BUILD_TEST_CMD", DEFAULT_TEST_CMD)
         args.timeout_s = _pick_float(args.timeout, "PFY_LOCAL_BUILD_TIMEOUT", DEFAULT_TIMEOUT)
         args.test_timeout_s = _pick_float(args.test_timeout, "PFY_LOCAL_BUILD_TEST_TIMEOUT", DEFAULT_TEST_TIMEOUT)
+        args.overall_timeout_s = _pick_float(
+            args.overall_timeout, "PFY_LOCAL_BUILD_OVERALL_TIMEOUT", DEFAULT_OVERALL_TIMEOUT
+        )
         args.min_free = _pick_float(args.min_free_gb, "PFY_LOCAL_BUILD_MIN_FREE_GB", DEFAULT_MIN_FREE_GB)
         _apply_review_flags(args)
         return args
@@ -401,11 +416,14 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
         args.test_cmd_s = _pick_str(args.test_cmd, "PFY_LOCAL_BUILD_TEST_CMD", DEFAULT_TEST_CMD)
         args.timeout_s = _pick_float(args.timeout, "PFY_LOCAL_BUILD_TIMEOUT", DEFAULT_TIMEOUT)
         args.test_timeout_s = _pick_float(args.test_timeout, "PFY_LOCAL_BUILD_TEST_TIMEOUT", DEFAULT_TEST_TIMEOUT)
+        args.overall_timeout_s = _pick_float(
+            args.overall_timeout, "PFY_LOCAL_BUILD_OVERALL_TIMEOUT", DEFAULT_OVERALL_TIMEOUT
+        )
         args.min_free = _pick_float(args.min_free_gb, "PFY_LOCAL_BUILD_MIN_FREE_GB", DEFAULT_MIN_FREE_GB)
     except ValueError as exc:
         raise UsageError("a numeric flag or env value is not a number") from exc
-    if args.timeout_s <= 0 or args.test_timeout_s <= 0 or args.min_free < 0:
-        raise UsageError("timeout and min-free-gb must be positive (min-free-gb may be 0)")
+    if args.timeout_s <= 0 or args.test_timeout_s <= 0 or args.overall_timeout_s <= 0 or args.min_free < 0:
+        raise UsageError("timeout, overall-timeout, and min-free-gb must be positive (min-free-gb may be 0)")
     _apply_review_flags(args)
     return args
 
@@ -2660,12 +2678,14 @@ def _run_model_review(
     gate_tail: str,
     state: State,
     repo: Path,
+    call_limit: float | None = None,
 ) -> tuple[str, dict | None]:
     """Return (status, review).
 
-    status is accept, reject, unavailable, interrupted, mem-edge, blocked, or
-    sandbox. unavailable means the review call had an HTTP error or timed out.
-    That is not a verdict and the caller does not commit or retry.
+    status is accept, reject, unavailable, overall-timeout, interrupted,
+    mem-edge, blocked, or sandbox. unavailable means the review call had an
+    HTTP error or its own timeout. overall-timeout means the whole-loop cap
+    cut this call. Neither is a verdict. The caller does not commit or retry.
     """
     port = _loopback_port(openai_base)
     if port is None:
@@ -2715,9 +2735,16 @@ def _run_model_review(
     if prepared.mode == "bwrap-unshare-net":
         child["OPENAI_BASE_URL"] = "http://127.0.0.1:%d/v1" % port
     child.update(lockdown_env(worktree))
+    limit = float(args.timeout_s)
+    cut_by_overall = False
+    if call_limit is not None and call_limit < limit:
+        limit = call_limit
+        cut_by_overall = True
+    if limit <= 0:
+        return "overall-timeout", None
     try:
         run_status, _code, out, err = run_bounded(
-            prepared.argv, child, worktree, float(args.timeout_s), state
+            prepared.argv, child, worktree, limit, state
         )
     finally:
         prepared.close()
@@ -2725,6 +2752,8 @@ def _run_model_review(
         return "interrupted", None
     if run_status == "mem-edge":
         return "mem-edge", None
+    if run_status == "timeout" and cut_by_overall:
+        return "overall-timeout", None
     raw = ""
     try:
         raw = out_path.read_text(encoding="utf-8")
@@ -2757,6 +2786,7 @@ def build_local(argv: list[str] | None = None) -> int:
         return _reap_only(args)
 
     started = time.monotonic()
+    loop_deadline = started + float(args.overall_timeout_s)
     started_at = _now()
     stamp = _stamp()
     slug = _slug(args.task_text)
@@ -3026,7 +3056,53 @@ def build_local(argv: list[str] | None = None) -> int:
                 gate_unsandboxed = True
             return rec
 
+        def _finish_overall(checks=None, model_review=None):
+            nonlocal status, reason, exit_code, recovery
+            recovery = _OVERALL_RECOVERY
+            status, reason, exit_code = "TIMEOUT", "overall-timeout", EXIT_TIMEOUT
+            if attempts_used:
+                _record_attempt(
+                    attempts_used,
+                    attempt_t0,
+                    mem_snap,
+                    "TIMEOUT",
+                    "overall-timeout",
+                    checks,
+                    model_review,
+                    diff_stats,
+                    diff_text,
+                )
+            return finish()
+
+        def _gate_run():
+            remain = loop_deadline - time.monotonic()
+            if remain <= 0:
+                return {"aborted": "overall-timeout", "started": False, "exit": None}
+            limit = float(args.test_timeout_s)
+            cut = remain < limit
+            rec = _watch_gate(run_tests(
+                args.test_cmd_s,
+                worktree,
+                test_env,
+                remain if cut else limit,
+                state,
+                repo=repo,
+                unsafe=bool(args.unsafe_no_sandbox),
+            ))
+            if cut and rec.get("exit") == 124:
+                rec["aborted"] = "overall-timeout"
+            return rec
+
+        def _overall_stop(rec, checks=None, model_review=None):
+            if rec.get("aborted") == "overall-timeout":
+                return _finish_overall(checks, model_review)
+            return None
+
         while attempts_used < max_attempts:
+            if time.monotonic() >= loop_deadline:
+                recovery = _OVERALL_RECOVERY
+                status, reason, exit_code = "TIMEOUT", "overall-timeout", EXIT_TIMEOUT
+                return finish()
             attempts_used += 1
             attempt_t0 = time.monotonic()
             mem_snap = state.min_avail
@@ -3040,6 +3116,7 @@ def build_local(argv: list[str] | None = None) -> int:
             diff_stats = {"files": 0, "added": 0, "removed": 0, "lines": 0, "paths": []}
             checks = None
             model_review = None
+            agent_cut = False
 
             if worktree is not None:
                 if git_saved is not None:
@@ -3098,15 +3175,10 @@ def build_local(argv: list[str] | None = None) -> int:
                 watcher.start()
                 watcher_started = True
 
-            tests_before = _watch_gate(run_tests(
-                args.test_cmd_s,
-                worktree,
-                test_env,
-                args.test_timeout_s,
-                state,
-                repo=repo,
-                unsafe=bool(args.unsafe_no_sandbox),
-            ))
+            tests_before = _gate_run()
+            stopped = _overall_stop(tests_before)
+            if stopped is not None:
+                return stopped
             if tests_before.get("aborted") == "interrupted" or state.interrupted:
                 status, reason, exit_code = "FAIL", "interrupted", EXIT_FAIL
                 _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "interrupted", None, None, diff_stats, "")
@@ -3157,7 +3229,14 @@ def build_local(argv: list[str] | None = None) -> int:
             agent_started = True
             _mark_loaded(state, not model_was_loaded)
             agent_t0 = time.monotonic()
-            run_status, _code, out, err = run_bounded(prepared.argv, child, worktree, args.timeout_s, state)
+            remain = loop_deadline - time.monotonic()
+            if remain <= 0:
+                return _finish_overall()
+            agent_limit = float(args.timeout_s)
+            if remain < agent_limit:
+                agent_limit = remain
+                agent_cut = True
+            run_status, _code, out, err = run_bounded(prepared.argv, child, worktree, agent_limit, state)
             agent_seconds += time.monotonic() - agent_t0
             prepared.close()
             prepared = None
@@ -3187,6 +3266,8 @@ def build_local(argv: list[str] | None = None) -> int:
                 status, reason, exit_code = "FAIL", "mem-edge", EXIT_FAIL
                 _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "mem-edge", None, None, diff_stats, "")
                 return finish()
+            if run_status == "timeout" and agent_cut:
+                return _finish_overall()
             if run_status == "timeout" and not args.run_tests_on_timeout:
                 status, reason, exit_code = "TIMEOUT", "timeout", EXIT_TIMEOUT
                 _record_attempt(attempts_used, attempt_t0, mem_snap, "TIMEOUT", "timeout", None, None, diff_stats, "")
@@ -3195,15 +3276,10 @@ def build_local(argv: list[str] | None = None) -> int:
             changed = files_changed(worktree, test_env)
             diff_text, diff_stats = _collect_diff(worktree, test_env, changed)
             if not changed:
-                tests_after = _watch_gate(run_tests(
-                    args.test_cmd_s,
-                    worktree,
-                    test_env,
-                    args.test_timeout_s,
-                    state,
-                    repo=repo,
-                    unsafe=bool(args.unsafe_no_sandbox),
-                ))
+                tests_after = _gate_run()
+                stopped = _overall_stop(tests_after)
+                if stopped is not None:
+                    return stopped
                 if tests_after.get("aborted") == "interrupted" or state.interrupted:
                     status, reason, exit_code = "FAIL", "interrupted", EXIT_FAIL
                     _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "interrupted", None, None, diff_stats, diff_text)
@@ -3243,15 +3319,10 @@ def build_local(argv: list[str] | None = None) -> int:
                 )
                 return finish()
 
-            tests_after = _watch_gate(run_tests(
-                args.test_cmd_s,
-                worktree,
-                test_env,
-                args.test_timeout_s,
-                state,
-                repo=repo,
-                unsafe=bool(args.unsafe_no_sandbox),
-            ))
+            tests_after = _gate_run()
+            stopped = _overall_stop(tests_after)
+            if stopped is not None:
+                return stopped
             if tests_after.get("aborted") == "interrupted" or state.interrupted:
                 status, reason, exit_code = "FAIL", "interrupted", EXIT_FAIL
                 _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "interrupted", None, None, diff_stats, diff_text)
@@ -3280,15 +3351,10 @@ def build_local(argv: list[str] | None = None) -> int:
                     attempts_used, attempt_t0, mem_snap, "FAIL", "tests-tampered", None, None, diff_stats, diff_text
                 )
                 return finish()
-            again = _watch_gate(run_tests(
-                args.test_cmd_s,
-                worktree,
-                test_env,
-                args.test_timeout_s,
-                state,
-                repo=repo,
-                unsafe=bool(args.unsafe_no_sandbox),
-            ))
+            again = _gate_run()
+            stopped = _overall_stop(again)
+            if stopped is not None:
+                return stopped
             if again.get("aborted") == "interrupted" or state.interrupted:
                 status, reason, exit_code = "FAIL", "interrupted", EXIT_FAIL
                 _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "interrupted", None, None, diff_stats, diff_text)
@@ -3309,6 +3375,8 @@ def build_local(argv: list[str] | None = None) -> int:
                 return finish()
             gated_tree = tree_digest(worktree)
             if run_status == "timeout":
+                if agent_cut:
+                    return _finish_overall()
                 status, reason, exit_code = "TIMEOUT", "timeout", EXIT_TIMEOUT
                 _record_attempt(attempts_used, attempt_t0, mem_snap, "TIMEOUT", "timeout", None, None, diff_stats, diff_text)
                 return finish()
@@ -3368,6 +3436,9 @@ def build_local(argv: list[str] | None = None) -> int:
                 return finish()
 
             gate_tail = str(tests_after.get("tail") or "") if isinstance(tests_after, dict) else ""
+            remain = loop_deadline - time.monotonic()
+            if remain <= 0:
+                return _finish_overall(checks, None)
             review_status, model_review = _run_model_review(
                 args,
                 worktree,
@@ -3377,7 +3448,10 @@ def build_local(argv: list[str] | None = None) -> int:
                 gate_tail,
                 state,
                 repo,
+                call_limit=remain,
             )
+            if review_status == "overall-timeout":
+                return _finish_overall(checks, model_review)
             if review_status == "unavailable":
                 # Not a generic FAIL and not an agent TIMEOUT. Not retried.
                 recovery = _REVIEW_OUTAGE_RECOVERY
