@@ -53,4 +53,5 @@ interrupted | 00d0ec4 | tests.test_mvp_1031_realfail_receipts 3 ok | SIGINT and 
 sigkill-reap | d11ce1a | tests.test_mvp_1031_realfail_receipts 3 ok | FINDING stray grok after reap
 timeout | 468ae85 | tests.test_mvp_1031_realfail_receipts 3 ok | exit 3 TIMEOUT matches DoD
 dirty-caller | 3fbb203 | tests.test_mvp_1031_realfail_receipts 3 ok | PASS, dirty files stayed out of the commit
-gate-red | (this commit) | tests.test_mvp_1031_realfail_receipts | exit 1 tests, attempts 3, tail in later prompts
+gate-red | fae6bc3 | tests.test_mvp_1031_realfail_receipts 3 ok | exit 1 tests, attempts 3, tail in later prompts
+review-reject | (this commit) | tests.test_mvp_1031_realfail_receipts | FINDING review accepted rm -rf script
