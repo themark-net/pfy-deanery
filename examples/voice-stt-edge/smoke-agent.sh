@@ -2,6 +2,11 @@
 # T-0092: voice auto-agent local-first smoke (no cloud required).
 # Covers: mock · opencode/ollama path · VOICE_AUTO_AGENT=1 maps to opencode · remote hook
 set -euo pipefail
+remote_log() { mktemp; }
+if [[ "${1:-}" == "--scratch-path" ]]; then
+  remote_log
+  exit 0
+fi
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 EDGE="$ROOT/examples/voice-stt-edge"
@@ -92,8 +97,9 @@ echo "==> remote VOICE_AUTO_AGENT=opencode queues local agent"
 export VOICE_AUTO_AGENT=opencode
 PORT="${VOICE_REMOTE_SMOKE_PORT:-18791}"
 TOKEN="t0092-$RANDOM"
+REMOTE_LOG=$(remote_log)
 "$VOICE_PY" "$EDGE/remote_server.py" --host 127.0.0.1 --port "$PORT" --token "$TOKEN" --out-dir "$OUT" \
-  >/tmp/voice-t0092-remote.log 2>&1 &
+  >"$REMOTE_LOG" 2>&1 &
 PID=$!
 cleanup() { kill "$PID" 2>/dev/null || true; wait "$PID" 2>/dev/null || true; }
 trap cleanup EXIT
@@ -130,7 +136,7 @@ elif [[ "$st" == "error" ]] && echo "$md" | grep -qE 'ollama|opencode'; then
   ok "auto-agent errored on local stack only (Ollama?) mode=$md — wiring OK"
 else
   bad "auto-agent status=$st mode=$md"
-  tail -25 /tmp/voice-t0092-remote.log 2>/dev/null || true
+  tail -25 "$REMOTE_LOG" 2>/dev/null || true
 fi
 
 LR=$(curl -sS -m 5 -H "Authorization: Bearer $TOKEN" "http://127.0.0.1:$PORT/api/last-run")

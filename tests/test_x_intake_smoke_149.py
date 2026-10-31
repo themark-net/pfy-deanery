@@ -17,6 +17,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "examples/x-intake-local/smoke_149.py"
@@ -114,6 +115,8 @@ class Smoke149(unittest.TestCase):
             else:
                 env2["MEMPALACE_BIN"] = str(td / "missing")
             env2.update(env or {})
+            if "TMPDIR" not in env2 and os.environ.get("TMPDIR"):
+                env2["TMPDIR"] = os.environ["TMPDIR"]
             p = subprocess.run([sys.executable, str(SCRIPT)], env=env2, capture_output=True, text=True, timeout=120)
             rec = json.loads((td / "r" / "latest.json").read_text())
             self.escaped = (td / "escaped.txt").exists()
@@ -129,19 +132,79 @@ class Smoke149(unittest.TestCase):
 
     def _call_main(self, mod, real, mh, stub, td):
         saved = dict(os.environ)
+        cached_tempdir = tempfile.tempdir
         try:
             os.environ.clear()
-            os.environ.update({
+            kept = {
                 "PATH": saved.get("PATH", ""),
                 "HOME": str(real),
                 "MEMPALACE_HOME": str(mh),
                 "MEMPALACE_BIN": str(stub),
                 "PFY_SMOKE_RECEIPT_DIR": str(td / "r"),
-            })
+            }
+            if saved.get("TMPDIR"):
+                kept["TMPDIR"] = saved["TMPDIR"]
+            os.environ.update(kept)
+            # gettempdir caches the first answer. Drop it so main() follows the env just set.
+            tempfile.tempdir = None
             return mod.main()
         finally:
             os.environ.clear()
             os.environ.update(saved)
+            tempfile.tempdir = cached_tempdir
+
+    def test_inprocess_main_keeps_caller_tmpdir(self):
+        private = Path(tempfile.mkdtemp(prefix="keep-tmpdir-"))
+        seen = {}
+        mod = self._load()
+
+        def fake_main():
+            seen["got"] = os.environ.get("TMPDIR")
+            seen["path"] = tempfile.mkdtemp(prefix="pfy-smoke-149-")
+            return 0
+
+        mod.main = fake_main
+        old = os.environ.get("TMPDIR")
+        os.environ["TMPDIR"] = str(private)
+        try:
+            with tempfile.TemporaryDirectory() as td:
+                td_path = Path(td)
+                self._call_main(mod, td_path / "real", td_path / "mh", td_path / "stub", td_path)
+            self.assertEqual(seen["got"], str(private))
+            self.assertTrue(Path(seen["path"]).resolve().is_relative_to(private.resolve()))
+        finally:
+            if seen.get("path"):
+                shutil.rmtree(seen["path"], ignore_errors=True)
+            shutil.rmtree(private, ignore_errors=True)
+            if old is None:
+                os.environ.pop("TMPDIR", None)
+            else:
+                os.environ["TMPDIR"] = old
+
+    def test_run_smoke_forwards_tmpdir(self):
+        private = tempfile.mkdtemp(prefix="fwd-tmpdir-")
+        captured = {}
+
+        def fake_run(argv, **kwargs):
+            captured["env"] = kwargs["env"]
+            receipt_dir = Path(kwargs["env"]["PFY_SMOKE_RECEIPT_DIR"])
+            receipt_dir.mkdir(parents=True, exist_ok=True)
+            (receipt_dir / "latest.json").write_text('{"verdict":"FAIL"}', encoding="utf-8")
+            return subprocess.CompletedProcess(argv, 2, "", "")
+
+        old = os.environ.get("TMPDIR")
+        os.environ["TMPDIR"] = private
+        try:
+            with mock.patch("tests.test_x_intake_smoke_149.subprocess.run", side_effect=fake_run):
+                code, _rec = self.run_smoke()
+            self.assertEqual(code, 2)
+            self.assertEqual(captured["env"].get("TMPDIR"), private)
+        finally:
+            if old is None:
+                os.environ.pop("TMPDIR", None)
+            else:
+                os.environ["TMPDIR"] = old
+            shutil.rmtree(private, ignore_errors=True)
 
     def _run_inprocess(self, knobs, bind_real=False):
         """Call main() in this process. bind_real passes extra_binds; main() never does."""

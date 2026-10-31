@@ -9,6 +9,11 @@
 #
 # Exit: 0 PASS · 1 FAIL
 set -euo pipefail
+probe_log() { mktemp; }
+if [[ "${1:-}" == "--scratch-path" ]]; then
+  probe_log
+  exit 0
+fi
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
@@ -138,7 +143,8 @@ fi
 log "optional real STT probe (does not fail smoke)"
 STT_NOTE="none"
 PROBE_RC=0
-"$PY" "$EDGE/stt_edge.py" --probe >/tmp/voice-stt-probe.txt 2>&1 || PROBE_RC=$?
+PROBE_LOG=$(probe_log)
+"$PY" "$EDGE/stt_edge.py" --probe >"$PROBE_LOG" 2>&1 || PROBE_RC=$?
 if [[ "$PROBE_RC" -eq 0 ]]; then
   STT_NOTE="real STT ready (local or OPENAI_API_KEY)"
   ok "real STT ready — try: make voice-listen"
@@ -146,7 +152,7 @@ else
   STT_NOTE="no real STT — mock/text only (install: make voice-stt-install)"
   ok "no Whisper required for this smoke (expected until voice-stt-install)"
 fi
-cat /tmp/voice-stt-probe.txt 2>/dev/null | sed 's/^/  | /' || true
+cat "$PROBE_LOG" 2>/dev/null | sed 's/^/  | /' || true
 
 # --- result receipt ---
 STATUS=PASS
