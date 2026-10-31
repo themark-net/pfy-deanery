@@ -55,3 +55,20 @@ Host before init: 2026-10-31T19:57:50Z MemAvailable 62.1 GiB, load 2.78, 32 core
 Host before readme: 2026-10-31T19:59:40Z MemAvailable 63.6 GiB, load 3.04, 32 cores. Under the pressure line.
 - readme | 4a76204b1886009e8e5c4be6cc7356ecd2229d46 | nice python3 -m unittest tests.test_mvp_1031_receipt OK (12 tests) | pass
 Lane check after readme: G9 is the only round-1 gap for this lane and it is closed. Round 2 `rerun_local.py` and `local-rerun/` belong to mvp-local-t5-1031. `demo-receipt.json` and `REPORT.md` belong to integration. G10 is excluded by the plan. Exit 2, lane empty. Handoff is next.
+
+Host before handoff: 2026-10-31T20:00:29Z MemAvailable 63.6 GiB, load 3.02, 32 cores. Under the pressure line. pregate not run: host busy.
+
+```text
+LOOP REPORT
+Type:            goal
+Goal:            red add fixture, init script, PASS receipt checker
+Exit fired:      2 lane empty, after exit 1 goal met
+Iterations:      5 items / turn cap 8
+Progress:        tests.test_mvp_1031_receipt 12 OK
+Evidence:        nice -n 19 python3 -m unittest tests.test_mvp_1031_receipt
+Human gate:      no merge, no PR
+Next:            integration runs the README demo once the cloud runner is merged there
+Status:          DONE
+```
+
+state: DONE | tests: nice -n 19 python3 -m unittest tests.test_mvp_1031_receipt (12 OK) | files: fixture, init_fixture.sh, check_receipt.py, README, tests/test_mvp_1031_receipt.py, three ops docs | err: none
