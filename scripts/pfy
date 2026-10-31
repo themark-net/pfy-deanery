@@ -156,7 +156,8 @@ pfy — simple setup & launch for the pfy-mentat stack
   pfy decision smoke      Mark-free CUA-S1-FORMS Choice (no TypeSafe key)
   pfy build "<task>"      daily cloud build: worktree, cloud Grok, gate, review,
                           commit on cloud/<slug>-<stamp> (no push, no PR);
-                          receipt under pipelines/dogfood/build-cloud/
+                          receipt under pipelines/dogfood/build-cloud/;
+                          pass --base when HEAD is not origin/main
   pfy build -p "<prompt>" [--cwd DIR] [--dry-run]
                           jev dogfood wrap: local jev toolset + decision shadow
                           + grok -p (plain); receipt under pipelines/dogfood/build/

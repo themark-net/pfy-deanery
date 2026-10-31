@@ -25,7 +25,7 @@ The runner does not read `auth.json`.
 | Flag | Meaning |
 |------|---------|
 | `--repo DIR` | Repo to build. Default is the repo that contains `./pfy`. The caller checkout is never the worktree. |
-| `--base REF` | Base ref. Default `origin/main`. |
+| `--base REF` | Base ref. When HEAD matches `origin/main`, that is the default. When they differ, the run exits 2 until you pass `--base origin/main` or `--base HEAD`. When `origin/main` is absent, the default is HEAD. |
 | `--test-cmd CMD` | Gate. Default `python3 -m unittest discover -s tests -t .`. |
 | `--retries N` | Extra attempts. Default 2 (3 total). |
 | `--no-review` | One attempt, no review. Default is review on. |
@@ -63,13 +63,15 @@ Exit 3 is TIMEOUT: receipt `status` `TIMEOUT`, `reason` `timeout`, no branch. Re
 
 ### Failures and recovery
 
-The runner does not read `auth.json`. A rate limit does not auto-start `--local`.
+The runner does not read `auth.json`. A rate limit does not auto-start `--local`. When `recovery` is not empty, that same line is printed on stderr. Printing it does not start the command.
 
 | Case | Exit | Receipt | Recovery |
 |------|------|---------|----------|
 | `rate-limit` | 4 BLOCKED | `status` `BLOCKED`, `reason` `rate-limit`, no branch | `recovery` is the exact `./pfy build --local "<task>"` command. This run does not start it. A rate limit does not auto-start `--local`. |
 | `unauthenticated` | 1 FAIL | `status` `FAIL`, `reason` `unauthenticated`, no branch | Run grok once to log in, then rerun the same `./pfy build`. The runner does not read `auth.json` and does not suggest `--local`. |
 | gate red | 1 FAIL when retries are spent. The exit stays open while retries remain. | Attempt `reason` `tests`, `tests-flaky`, or `tests-tampered`. Final `status` `FAIL` when spent. No branch. | The next grok call gets the gate tail. When retries are spent, fix the task or the test command and rerun. The failed tree is not committed. |
+| `gate-missing` | 2 usage | The gate binary was not found. No grok call. | Pass `--test-cmd` with a command that exists. The default is `python3 -m unittest discover -s tests -t .`. |
+| `gate-unusable` | 2 usage | The default unittest command failed with an import error before any edit. No grok call. | Pass `--test-cmd` with an interpreter that can import this repo. A custom gate that fails an assertion still retries. |
 | `review-rejected` | 1 FAIL when retries are spent. The exit stays open while retries remain. | Attempt `status` `PASS-REJECTED`, `reason` `review-rejected`, `review.verdict` `reject`. Final `status` `FAIL` when spent. No branch. | The next grok call gets the reject reasons and the previous diff. When retries are spent, rerun with a tighter task, or pass `--no-review` only when an unreviewed commit is acceptable. |
 | `no-change` | 1 FAIL when retries are spent. The attempt counts while retries remain. | Attempt `reason` `no-change`. No branch. | The gate still runs. Feedback includes the gate tail. A green gate with an empty diff is still `no-change`. |
 | `scope-commit-mismatch` | 1 FAIL | `reason` `scope-commit-mismatch`. Index reset. No branch. | The commit set is the reviewed path list. `git add -A -f` is not the cloud commit. A staged name outside that list aborts the commit. |
