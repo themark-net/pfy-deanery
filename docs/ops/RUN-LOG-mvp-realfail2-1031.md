@@ -63,4 +63,4 @@ Risks:
 
 Format: `item | commit | tests | result`
 
-- loop-card | (this commit) | docs only, receipt test after scaffold | writing the card before case runs
+- loop-card | a480afa | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail2_receipts | PASS, 4 tests OK. Pending report, no case run yet.
