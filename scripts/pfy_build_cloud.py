@@ -429,6 +429,26 @@ def auth_recovery(task: str) -> str:
     return "Mark: run grok once to log in, then rerun the same ./pfy build %s" % shlex.quote(task)
 
 
+TERMINAL_FAILURE_REASONS = (
+    "commit-failed",
+    "commit-recheck-failed",
+    "interrupted",
+    "no-change",
+    "no-receipt",
+    "protected-path-changed",
+    "rate-limit",
+    "review-rejected",
+    "runner-crash",
+    "scope-commit-mismatch",
+    "tests",
+    "tests-flaky",
+    "tests-tampered",
+    "timeout",
+    "unauthenticated",
+    "worktree-failed",
+)
+
+
 def worktree_recovery(task: str, ref: str, detail: str) -> str:
     """Tell Mark how to get a worktree when the base cannot be checked out."""
     quoted = shlex.quote(task) if (task or "").strip() else '""'
@@ -445,6 +465,76 @@ def worktree_recovery(task: str, ref: str, detail: str) -> str:
         "The caller checkout was not changed."
         % (ref, quoted)
     )
+
+
+def _quoted_task(task: str) -> str:
+    return shlex.quote(task) if (task or "").strip() else '""'
+
+
+def failure_recovery(reason: str, task: str, detail: str = "") -> str:
+    """Non-empty recovery for every terminal failure. PASS stays empty."""
+    if reason == "rate-limit":
+        return rate_recovery(task)
+    if reason == "unauthenticated":
+        return auth_recovery(task)
+    if reason == "worktree-failed":
+        if (detail or "").strip():
+            return worktree_recovery(task, detail.strip(), "missing-ref")
+        return worktree_recovery(task, "the requested base", "add-failed")
+    if reason == "no-receipt":
+        if (task or "").strip():
+            return (
+                "Mark: the build died before it wrote a receipt. "
+                "Run ./pfy build --reap, then rerun ./pfy build %s."
+                % _quoted_task(task)
+            )
+        return (
+            "Mark: the build died before it wrote a receipt. "
+            "Run ./pfy build --reap, then rerun the same ./pfy build task."
+        )
+    quoted = _quoted_task(task)
+    if reason == "protected-path-changed":
+        shown = (detail or "").strip() or "a protected file"
+        return (
+            "Mark: the attempt changed a protected path (%s). "
+            "Remove that change and rerun ./pfy build %s. "
+            "auth.json, .env, and grok-home stay out of the commit."
+            % (shown, quoted)
+        )
+    lines = {
+        "interrupted": "Mark: the build was interrupted. Rerun ./pfy build %s.",
+        "timeout": "Mark: grok timed out. Rerun ./pfy build %s, or pass a larger --timeout.",
+        "tests-tampered": (
+            "Mark: a base test changed and was not named by --writable-test. "
+            "Restore it or pass --writable-test for that file, then rerun ./pfy build %s."
+        ),
+        "no-change": (
+            "Mark: grok made no committable change. "
+            "Restate the task so it edits a file, then rerun ./pfy build %s."
+        ),
+        "tests": "Mark: the gate stayed red. Read the receipt gate tail, then rerun ./pfy build %s.",
+        "tests-flaky": "Mark: the gate passed once and failed once. Rerun ./pfy build %s.",
+        "review-rejected": (
+            "Mark: review rejected the diff. Change the task or the patch, then rerun ./pfy build %s."
+        ),
+        "commit-recheck-failed": (
+            "Mark: the fresh extract of the commit did not pass the gate. "
+            "The branch was not kept. Rerun ./pfy build %s."
+        ),
+        "commit-failed": "Mark: git commit failed. The branch was not kept. Rerun ./pfy build %s.",
+        "scope-commit-mismatch": (
+            "Mark: the commit set did not match the reviewed files. "
+            "The index was reset and no branch was kept. Rerun ./pfy build %s."
+        ),
+        "runner-crash": (
+            "Mark: the runner crashed before it could finish. "
+            "The caller checkout was left as it was. Rerun ./pfy build %s."
+        ),
+    }
+    line = lines.get(reason)
+    if line:
+        return line % quoted
+    return "Mark: the build failed (%s). Rerun ./pfy build %s." % (reason, quoted)
 
 
 def diff_aims_at_root(diff_text: str) -> bool:
@@ -701,6 +791,7 @@ class CloudBuild:
         self.commit: str | None = None
         self.branch_created = False
         self.recovery = ""
+        self.recovery_detail = ""
         self.attempts: list[dict] = []
         self.review = {"verdict": None, "reasons": []}
         self.gate_before = None
@@ -933,6 +1024,12 @@ class CloudBuild:
     def finish(self) -> int:
         if self.finished:
             return self.exit_code
+        if self.status != "PASS" and not (self.recovery or "").strip():
+            self.recovery = failure_recovery(
+                self.reason or "runner-crash",
+                getattr(self.args, "task_text", "") or "",
+                getattr(self, "recovery_detail", "") or "",
+            )
         self.finished = True
         if self.status != "PASS":
             self.drop_branch()
@@ -1039,6 +1136,7 @@ class CloudBuild:
             if protected_hits:
                 feedback = "protected-path-changed: %s" % ", ".join(protected_hits)
                 self.record(number, "FAIL", "protected-path-changed", output)
+                self.recovery_detail = ", ".join(protected_hits)
                 previous_diff = ""
                 if number < self.max_attempts:
                     continue
@@ -1236,7 +1334,7 @@ def reap(args) -> int:
                                 "review": {"verdict": None, "reasons": []},
                                 "attempts": [],
                                 "gate": {"cmd": None, "before": None, "after": None},
-                                "recovery": "",
+                                "recovery": failure_recovery("no-receipt", ""),
                                 "pushed": False,
                                 "worktree_removed": False,
                                 "finished_at": _now(),
