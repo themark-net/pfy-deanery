@@ -49,4 +49,5 @@ Host at launch: MemAvailable about 64 GiB, load 3.6 on 32 cores. Under the press
 item | commit | tests | result
 exits | 07c45ca | tests.test_mvp_1031_realfail_receipts 3 ok | pass, pushed
 merge-cloud | c0cf507 | git merge origin/bot/mvp-cloud-1031 | merged and pushed before interrupted
-interrupted | (this commit) | tests.test_mvp_1031_realfail_receipts | SIGINT and SIGTERM match DoD
+interrupted | 00d0ec4 | tests.test_mvp_1031_realfail_receipts 3 ok | SIGINT and SIGTERM match DoD
+sigkill-reap | (this commit) | tests.test_mvp_1031_realfail_receipts | FINDING stray grok after reap

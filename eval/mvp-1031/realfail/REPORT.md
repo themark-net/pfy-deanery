@@ -8,7 +8,7 @@ Expected values come from the Functional MVP failure table. Process exit is the 
 |------|------|------------|------------|----------|------------|------------|----------|---------|----------|----------|-------|
 | interrupted-sigint | real | FAIL | interrupted | 1 | FAIL | interrupted | 1 | matches | 1 | empty | SIGINT after grok started. No cloud branch. Caller HEAD and status unchanged. No orphan from this run. |
 | interrupted-sigterm | real | FAIL | interrupted | 1 | FAIL | interrupted | 1 | matches | 1 | empty | SIGTERM after grok started. No cloud branch. Caller HEAD and status unchanged. No orphan from this run. |
-| sigkill-reap | real | ABORTED | no-receipt | 0 | pending | pending | pending | pending | - | - | SIGKILL, then ./pfy build --reap |
+| sigkill-reap | real | ABORTED | no-receipt | 0 | ABORTED | no-receipt | 0 | FINDING | 0 | empty | Reap receipt and the planted sleep match. Live grok survived reap. See FINDING.md. |
 | timeout | real | TIMEOUT | timeout | 3 | pending | pending | pending | pending | - | - | real grok, very short --timeout |
 | dirty-caller | real | PASS | ok | 0 | pending | pending | pending | pending | - | - | uncommitted file and staged file stay dirty |
 | gate-red | real | FAIL | tests | 1 | pending | pending | pending | pending | 3 | - | planted failing gate, retries spent, tail in the next prompt |
@@ -21,4 +21,4 @@ Expected values come from the Functional MVP failure table. Process exit is the 
 
 ## Findings
 
-None yet.
+- sigkill-reap: `./pfy build --reap` after SIGKILL writes `ABORTED` / `no-receipt` and does not touch `tmp/local-build.pids.json`, but the live grok pid is not in the cloud pid file, so it keeps running. Suggested fix: `eval/mvp-1031/realfail/sigkill-reap/suggested.patch`. For lane mvp-cloud-1031.

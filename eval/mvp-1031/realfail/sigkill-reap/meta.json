@@ -1,0 +1,49 @@
+{
+  "process_exit": 0,
+  "build_exit": -9,
+  "command": [
+    "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-realfail-1031/pfy",
+    "build",
+    "Add a one line comment at the top of app.py that says hello from pfy.",
+    "--repo",
+    "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-realfail-1031/tmp/targets/sigkill-reap",
+    "--base",
+    "HEAD",
+    "--retries",
+    "0",
+    "--no-review",
+    "--timeout",
+    "180",
+    "--test-cmd",
+    "python3 -c 'print(\"gate-ok\")'",
+    "--receipt-dir",
+    "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-realfail-1031/eval/mvp-1031/realfail/sigkill-reap"
+  ],
+  "reap_command": [
+    "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-realfail-1031/pfy",
+    "build",
+    "--reap",
+    "--repo",
+    "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-realfail-1031/tmp/targets/sigkill-reap"
+  ],
+  "saw_grok": true,
+  "grok_pid": 1717259,
+  "orphans_before_cleanup": [
+    1717259
+  ],
+  "sleep_survived_reap": true,
+  "local_pid_unchanged": true,
+  "caller_head_unchanged": true,
+  "caller_status_unchanged": true,
+  "cloud_branches": "",
+  "receipt_status": "ABORTED",
+  "receipt_reason": "no-receipt",
+  "receipt_branch": null,
+  "recovery": "",
+  "attempts": 0,
+  "cloud_sha": "00d0ec4629ba9a14855d16b2e7b44f75eb73485c",
+  "notes": [
+    "comms: 1717246:python3,1717259:grok,1717500:codebase-memory,1717504:sh,1717505:curl",
+    "grok session still alive after reap: [1717259]"
+  ]
+}

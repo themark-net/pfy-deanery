@@ -10,7 +10,8 @@ Base: `origin/bot/mvp-cloud-1031`
 
 - exits `07c45ca`: exit card, pending report, receipt checker.
 - merge `c0cf507`: `origin/bot/mvp-cloud-1031` at `d94d2b6`.
-- interrupted: real SIGINT and SIGTERM. Exit 1, status FAIL, reason interrupted, no branch, caller unchanged, grok session gone. Receipts under `eval/mvp-1031/realfail/interrupted-sigint/` and `interrupted-sigterm/`.
+- interrupted `00d0ec4`: real SIGINT and SIGTERM. Exit 1, status FAIL, reason interrupted, no branch, caller unchanged, grok session gone.
+- sigkill-reap: receipt `ABORTED` / `no-receipt`, reap exit 0, planted local sleep survived. FINDING: live grok was still running after reap. See `eval/mvp-1031/realfail/sigkill-reap/FINDING.md`.
 
 ## Skipped
 
@@ -26,7 +27,7 @@ The receipt checker rejects a committed receipt whose status or reason disagrees
 
 ## Cross-lane requests
 
-None yet.
+- mvp-cloud-1031: SIGKILL during the grok call leaves a stale `agent_pgid` in `tmp/cloud-build.pids.json` (the previous gate pid). `./pfy build --reap` then exits 0 and writes `ABORTED` / `no-receipt`, but the live grok process is not signaled. Evidence and a suggested patch: `eval/mvp-1031/realfail/sigkill-reap/`. Please save the pid file after `Popen` sets `state.agent_pgid`. This lane will rerun the case after the next cloud commit.
 
 ## Gate
 
@@ -34,4 +35,4 @@ Docs, eval, and test only. Pregate plus Reviewer when the lane finishes. Pregate
 
 ## Next
 
-SIGKILL a real run, then `./pfy build --reap`, with a planted local sleep that must survive.
+Real run with a very short `--timeout`. Expect exit 3 and `TIMEOUT`.
