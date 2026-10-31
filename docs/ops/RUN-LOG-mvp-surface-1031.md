@@ -46,4 +46,25 @@ Drop-in exits (same loop, checked before every item):
 
 - exits | a2302df | none (log only) | pushed
 - operator card | c73ef00 | link targets and contract strings checked before commit; unittest is the next item | pushed
-- contract test | this commit | nice -n 19 python3 -m unittest tests.test_pfy_build_docs : 5 tests OK | green
+- contract test | b56285e | nice -n 19 python3 -m unittest tests.test_pfy_build_docs : 5 tests OK | pushed
+- daily-card append | skipped | origin/bot/mvp-integrate-1031 missing | lane empty after this skip
+- pregate | b56285e | nice -n 19 flock heavy-1030.lock ./scripts/pregate.sh | OVERALL=FAIL wall=1067s pass=4 fail=2 skip=1. Both fails are test_pfylib_tmp_cleanup seeing /tmp/pfy-xintake-* dirs. Not rerun.
+
+## Finish
+
+state: DONE | tests: tests.test_pfy_build_docs 5 OK on b56285e; pregate OVERALL=FAIL on b56285e (tmp cleanup only) | files: 6 owned | err: none in this lane's diff
+
+```text
+LOOP REPORT
+================================================================
+Type:            goal
+Goal:            operator card for ./pfy build plus tests.test_pfy_build_docs
+Exit fired:      lane empty. DoD met. Round-2 daily card skipped: integrate branch absent.
+Iterations:      3 item commits plus handoff / turn cap 8
+Progress:        card and test green. Pregate fail is outside this diff.
+Evidence:        unittest 5 OK. Pregate summary b56285e-20261031T202132Z-1625691
+Human gate:      no merge. Reviewer next. Pregate attached, overall FAIL as recorded.
+Next:            integration merges this branch, then the demo. Do not append a fake PASS.
+Status:          DONE
+================================================================
+```
