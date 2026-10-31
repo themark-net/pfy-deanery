@@ -286,3 +286,165 @@ class CloudBuildPassTests(unittest.TestCase):
         self.assertNotIn("secret.txt", names)
         self.assertFalse((self.repo / "tmp" / "cloud-build").exists())
         self.assertIn("pipelines/dogfood/build-cloud/", receipt_path)
+
+
+class CloudBuildRetryTests(unittest.TestCase):
+    def setUp(self) -> None:
+        SCRATCH.mkdir(parents=True, exist_ok=True)
+        self.repo = _init_repo(SCRATCH / self.id().replace(".", "_"))
+        self.side = SCRATCH / (self.id().replace(".", "_") + "-side")
+        self.side.mkdir(parents=True, exist_ok=True)
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.repo, ignore_errors=True)
+        shutil.rmtree(self.side, ignore_errors=True)
+
+    def _run_task(self, grok: Path, gate: Path, task: str, retries: str) -> subprocess.CompletedProcess:
+        return _run(
+            [
+                sys.executable,
+                str(CLOUD),
+                task,
+                "--repo",
+                str(self.repo),
+                "--retries",
+                retries,
+                "--test-cmd",
+                "%s %s" % (sys.executable, gate),
+                "--grok-cmd",
+                str(grok),
+                "--timeout",
+                "30",
+            ],
+            self.repo,
+            env={"PFY_PROMPT_LOG": str(self.side / "prompts.txt")},
+            timeout=60,
+        )
+
+    def test_gate_red_then_pass_commits_only_the_green_attempt(self) -> None:
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "print('GATE-TAIL-RED')\n"
+            "raise SystemExit(0 if Path('ready.txt').is_file() else 1)\n",
+        )
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import os, sys\n"
+            "from pathlib import Path\n"
+            "blob = '\\n'.join(sys.argv)\n"
+            "Path(os.environ['PFY_PROMPT_LOG']).open('a', encoding='utf-8').write(blob + '\\n---PROMPT---\\n')\n"
+            "if 'PFY-CLOUD-REVIEW' in blob:\n"
+            "    print('verdict: accept')\n"
+            "    raise SystemExit(0)\n"
+            "count = Path(os.environ['PFY_PROMPT_LOG'] + '.n')\n"
+            "n = int(count.read_text()) + 1 if count.exists() else 1\n"
+            "count.write_text(str(n))\n"
+            "if n == 1:\n"
+            "    Path('kept.py').write_text('bad = True\\n', encoding='utf-8')\n"
+            "else:\n"
+            "    Path('ready.txt').write_text('ok\\n', encoding='utf-8')\n"
+            "    Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        proc = self._run_task(grok, gate, "make the gate green", "1")
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        match = re.search(r"PASS ok branch=(\S+) receipt=(\S+)", proc.stdout or "")
+        self.assertIsNotNone(match, proc.stdout)
+        branch = match.group(1)
+        payload = json.loads(Path(match.group(2)).read_text(encoding="utf-8"))
+        self.assertEqual(len(payload["attempts"]), 2)
+        self.assertEqual(payload["attempts"][0]["reason"], "tests")
+        self.assertEqual(payload["attempts"][1]["status"], "PASS")
+        self.assertEqual(_git(self.repo, "rev-list", "--count", head + ".." + branch).stdout.strip(), "1")
+        names = _git(self.repo, "ls-tree", "-r", "--name-only", branch).stdout.splitlines()
+        self.assertIn("ready.txt", names)
+        prompts = (self.side / "prompts.txt").read_text(encoding="utf-8").split("---PROMPT---")
+        implement = [item for item in prompts if "PFY-CLOUD-IMPLEMENT" in item and "PFY-CLOUD-REVIEW" not in item]
+        self.assertGreaterEqual(len(implement), 2)
+        self.assertIn("GATE-TAIL-RED", implement[1])
+
+    def test_review_reject_then_accept(self) -> None:
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\nprint('GATE-OK')\nraise SystemExit(0)\n",
+        )
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import os, sys\n"
+            "from pathlib import Path\n"
+            "blob = '\\n'.join(sys.argv)\n"
+            "Path(os.environ['PFY_PROMPT_LOG']).open('a', encoding='utf-8').write(blob + '\\n---PROMPT---\\n')\n"
+            "if 'PFY-CLOUD-REVIEW' in blob:\n"
+            "    count = Path(os.environ['PFY_PROMPT_LOG'] + '.review')\n"
+            "    n = int(count.read_text()) + 1 if count.exists() else 1\n"
+            "    count.write_text(str(n))\n"
+            "    if n == 1:\n"
+            "        print('verdict: reject')\n"
+            "        print('reasons: NEEDS-FIX-77')\n"
+            "    else:\n"
+            "        print('verdict: accept')\n"
+            "        print('reasons: ok now')\n"
+            "    raise SystemExit(0)\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        proc = self._run_task(grok, gate, "add kept value", "1")
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        match = re.search(r"PASS ok branch=(\S+) receipt=(\S+)", proc.stdout or "")
+        self.assertIsNotNone(match, proc.stdout)
+        payload = json.loads(Path(match.group(2)).read_text(encoding="utf-8"))
+        self.assertEqual(payload["attempts"][0]["status"], "PASS-REJECTED")
+        self.assertEqual(payload["attempts"][0]["reason"], "review-rejected")
+        self.assertEqual(payload["attempts"][1]["status"], "PASS")
+        self.assertEqual(payload["review"]["verdict"], "accept")
+        self.assertEqual(_git(self.repo, "rev-list", "--count", head + ".." + match.group(1)).stdout.strip(), "1")
+        prompts = (self.side / "prompts.txt").read_text(encoding="utf-8").split("---PROMPT---")
+        implement = [item for item in prompts if item.startswith("\n") or "PFY-CLOUD-IMPLEMENT" in item]
+        implement = [item for item in implement if "PFY-CLOUD-IMPLEMENT" in item and "PFY-CLOUD-REVIEW" not in item]
+        self.assertGreaterEqual(len(implement), 2, prompts)
+        self.assertIn("NEEDS-FIX-77", implement[1])
+        self.assertIn("kept.py", implement[1])
+
+    def test_final_review_reject_leaves_no_branch(self) -> None:
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\nprint('GATE-OK')\nraise SystemExit(0)\n",
+        )
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "from pathlib import Path\n"
+            "blob = '\\n'.join(sys.argv)\n"
+            "if 'PFY-CLOUD-REVIEW' in blob:\n"
+            "    print('verdict: reject')\n"
+            "    print('reasons: still wrong')\n"
+            "    raise SystemExit(0)\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        caller = _git(self.repo, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip()
+        proc = self._run_task(grok, gate, "add kept value", "1")
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 1, text)
+        self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
+        payload = json.loads(list((self.repo / "pipelines" / "dogfood" / "build-cloud").glob("*/receipt.json"))[0].read_text(encoding="utf-8"))
+        self.assertEqual(payload["status"], "FAIL")
+        self.assertEqual(payload["reason"], "review-rejected")
+        self.assertEqual(payload["exit_code"], 1)
+        self.assertIsNone(payload["branch"])
+        self.assertIsNone(payload["commit"])
+        self.assertEqual(payload["review"]["verdict"], "reject")
+        self.assertEqual(len(payload["attempts"]), 2)
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+        self.assertEqual(_git(self.repo, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip(), caller)
+
