@@ -47,3 +47,7 @@ Builds run one at a time in this worktree. Parallel sub-agents would race one in
 
 Item log (append one line each):
 item | commit | tests | result
+
+Survey skips, recorded before item 01, not a no-progress streak: T-0091 voice shelved; T-0094 local TTS; T-0081 docker cage; T-0064 EBUSY parked; T-0043 write-guard parked; T-0062 Laguna hardware; T-0046 AgenC already rejected by ADR-0010; T-0016 colibri needs OQ-0008 and hardware; T-0005 stage letter is OQ-0003. Not repeated: the 13 selfhost accepts, the 2 selfhost rejects (smolvm t1 and the bad symlink oracle), the 6 backlog-burn accepts, and dogfood2's tree-sig copies, home sigs, receipt tests, timeout labels, daemon stop, and pregate orphans. No cache-tree hash of smoke_149 or smoke_109. No edit of runner, pregate, scripts/pfy, catalog_stage_eval, or enterable files.
+
+01 ad-snap | 4a0fe4e | tests.test_agentdescent_snap tests.test_agentdescent_trial_harness 74 OK | PASS receipt, attempts 1, wall 457s, review accept, human accept. Cloud SHA 35b7585.
