@@ -48,3 +48,5 @@ Risks:
 ## Items
 
 item | commit | tests | result
+sync cloudfix d35af20 | 0a76e22 | catalog anchors C1-C16 still apply | merged
+harness | d5540a4 | nice -n 19 python3 -m unittest tests.test_mut_cloud_harness | 4 tests OK
