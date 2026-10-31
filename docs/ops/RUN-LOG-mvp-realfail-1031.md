@@ -56,4 +56,5 @@ dirty-caller | 3fbb203 | tests.test_mvp_1031_realfail_receipts 3 ok | PASS, dirt
 gate-red | fae6bc3 | tests.test_mvp_1031_realfail_receipts 3 ok | exit 1 tests, attempts 3, tail in later prompts
 review-reject | d96f9a7 | tests.test_mvp_1031_realfail_receipts 3 ok | FINDING review accepted rm -rf script
 auth-failure | bb3d5be | tests.test_mvp_1031_realfail_receipts 3 ok | FINDING Not signed in became no-change
-rate-limit | (this commit) | tests.test_mvp_1031_realfail_receipts | simulated BLOCKED rate-limit matches DoD
+rate-limit | b42c427 | tests.test_mvp_1031_realfail_receipts 3 ok | simulated BLOCKED rate-limit matches DoD
+gitignored-extra | (this commit) | tests.test_mvp_1031_realfail_receipts | PASS, ignored file absent from the commit

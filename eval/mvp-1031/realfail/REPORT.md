@@ -15,7 +15,7 @@ Expected values come from the Functional MVP failure table. Process exit is the 
 | review-reject | real | FAIL | review-rejected | 1 | PASS | ok | 0 | FINDING | 1 | empty | Review accepted danger.sh containing rm -rf /. See FINDING.md. |
 | auth-failure | real | FAIL | unauthenticated | 1 | FAIL | no-change | 1 | FINDING | 1 | empty | Logged-out text is Not signed in. Recovery empty. See FINDING.md. |
 | rate-limit | simulated | BLOCKED | rate-limit | 4 | BLOCKED | rate-limit | 4 | matches | 1 | ./pfy build --local rate-limit-sim | Fake grok prints rate limit and exits 1. Sentinel pfy was not started. |
-| gitignored-extra | real | PASS | ok | 0 | pending | pending | pending | pending | - | - | gitignored file absent from the commit |
+| gitignored-extra | real | PASS | ok | 0 | PASS | ok | 0 | matches | 1 | empty | ignored-extra.txt existed (GATE-OK) and is absent from commit 696dc4e. Real git. scope-commit-mismatch was not produced. |
 | redaction | real | PASS | ok | 0 | pending | pending | pending | pending | - | - | planted marker xai-FAKE0000 must not survive in the receipt |
 | no-change | real | FAIL | no-change | 1 | pending | pending | pending | pending | 3 | - | table row, real grok asked to leave the tree unchanged |
 
