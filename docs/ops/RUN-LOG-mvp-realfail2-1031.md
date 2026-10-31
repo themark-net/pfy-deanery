@@ -78,3 +78,4 @@ Format: `item | commit | tests | result`
 - worktree-default | 68d982a | tests.test_mvp_1031_realfail2_receipts | PASS. Exit 0, worktree_removed true, directory gone.
 - dogfood-p | de4ecef | tests.test_mvp_1031_realfail2_receipts | PASS. Help exit 0. Real -p wrote hello.txt. grok-home removed.
 - concurrent | f8b2a19 | tests.test_mvp_1031_realfail2_receipts | PASS. Distinct cloud branches, fsck 0, caller unchanged.
+- review-cap | (this commit) | tests.test_mvp_1031_realfail2_receipts | PASS. Four files accepted on attempt 1. Recovery not needed.
