@@ -351,6 +351,81 @@ class Smoke149(unittest.TestCase):
         self.assertNotIn("init_exit", rec["checks"])
         self.assertNotIn("sandbox", rec)
 
+    def test_run_rechecks_a_bad_mount_and_does_not_spawn(self):
+        # main() already stops on the mount reason. run() must stop again.
+        # Removing that raise lets the child start. Recovery: raise the mount reason
+        # before subprocess.run.
+        scratch = ROOT / "tmp"
+        scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as td:
+            td = Path(td)
+            mod = self._load()
+            mod.PROC_PATH = str(td / "no-such-proc")
+            spawned: list = []
+            orig = mod.subprocess.run
+
+            def fake_run(*args, **kwargs):
+                spawned.append(args[0] if args else kwargs.get("args"))
+                return subprocess.CompletedProcess([], 0, stdout="", stderr="")
+
+            mod.subprocess.run = fake_run
+            try:
+                with self.assertRaises(OSError) as ctx:
+                    mod.run(str(td / "mempalace"), ["--version"], td, 5)
+            finally:
+                mod.subprocess.run = orig
+        self.assertIn("required bind", str(ctx.exception))
+        self.assertIn("not usable", str(ctx.exception))
+        self.assertEqual(spawned, [])
+
+    def test_run_rechecks_missing_bwrap_and_does_not_spawn(self):
+        # The child PATH is stripped. run() must look up bwrap on the caller PATH
+        # again and refuse when that lookup misses. Recovery: raise before spawn.
+        scratch = ROOT / "tmp"
+        scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as td:
+            td = Path(td)
+            mod = self._load()
+            spawned: list = []
+            orig_run = mod.subprocess.run
+            orig_which = mod.shutil.which
+
+            def fake_run(*args, **kwargs):
+                spawned.append(args[0] if args else kwargs.get("args"))
+                return subprocess.CompletedProcess([], 0, stdout="", stderr="")
+
+            def fake_which(cmd, *args, **kwargs):
+                if cmd == "bwrap":
+                    return None
+                return orig_which(cmd, *args, **kwargs)
+
+            mod.subprocess.run = fake_run
+            mod.shutil.which = fake_which
+            try:
+                with self.assertRaises(OSError) as ctx:
+                    mod.run(str(td / "mempalace"), ["--version"], td, 5)
+            finally:
+                mod.subprocess.run = orig_run
+                mod.shutil.which = orig_which
+        self.assertIn("bwrap is not usable", str(ctx.exception))
+        self.assertEqual(spawned, [])
+
+    def test_dir_usable_rejects_a_regular_file(self):
+        # A readable file is not a mount point. Dropping the isdir check makes
+        # os.access succeed and the smoke would treat the file as /proc.
+        # Recovery: return False unless the path is a directory.
+        scratch = ROOT / "tmp"
+        scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as td:
+            td = Path(td)
+            regular = td / "not-a-dir"
+            regular.write_text("x", encoding="utf-8")
+            regular.chmod(0o644)
+            mod = self._load()
+            self.assertFalse(mod.dir_usable(str(regular), writable=False))
+            self.assertFalse(mod.dir_usable(str(regular), writable=True))
+            self.assertTrue(mod.dir_usable(str(td), writable=True))
+
     def test_required_shm_bind_unusable_exits_2(self):
         with tempfile.TemporaryDirectory() as d:
             shm = Path(d) / "shm"
