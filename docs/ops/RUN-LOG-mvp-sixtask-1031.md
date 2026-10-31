@@ -60,3 +60,4 @@ Format: `item | commit | tests | result`
 - t6 | f5ca6ac | ./pfy build exit 0 wall 93.4s attempts 1 review accept gate_rerun 0 human accept | PASS
 - report | e662d04 | nice python3 -m unittest tests.test_mvp_1031_sixtask_report (8 tests OK, live REPORT checked) | NO-GO, 4/6 runner PASS, 6/6 canonical gate, 4/6 review, 6/6 human, 2778.0s
 - variance-t1 | 486350a | ./pfy build exit 0 wall 130.2s attempts 1 review accept gate_rerun 0 human accept | PASS, comment wording differs from pass 1
+- variance-t2 | pending | ./pfy build exit 0 wall 51.1s attempts 1 review accept gate_rerun 0 human accept | PASS, tree_sig matches canonical
