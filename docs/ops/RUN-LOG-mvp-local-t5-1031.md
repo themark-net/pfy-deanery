@@ -71,4 +71,5 @@ Lead runs these phases in order. They share the run log and eval/mvp-1031, so th
 
 ## Item log
 
-(appended after each item: item | commit | tests | result)
+exits-and-base | 358de84 | none | base origin/bot/mvp-integrate-1031 at 0c3f133 present
+confirm-review-fix | 358de84 | git grep scope-commit-mismatch on the base | staged-set check present, no product patch
