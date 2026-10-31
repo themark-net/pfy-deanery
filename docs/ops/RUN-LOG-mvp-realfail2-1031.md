@@ -79,6 +79,6 @@ Format: `item | commit | tests | result`
 - dogfood-p | de4ecef | tests.test_mvp_1031_realfail2_receipts | PASS. Help exit 0. Real -p wrote hello.txt. grok-home removed.
 - concurrent | f8b2a19 | tests.test_mvp_1031_realfail2_receipts | PASS. Distinct cloud branches, fsck 0, caller unchanged.
 - review-cap | a202e74 | tests.test_mvp_1031_realfail2_receipts | PASS. Four files accepted on attempt 1. Recovery not needed.
-- handoff | (this commit) | tests.test_mvp_1031_realfail2_receipts | Lane empty. 14 matches, 1 FINDING (worktree-failed). Pregate not run: host busy.
+- handoff | 1c1f84c | tests.test_mvp_1031_realfail2_receipts | Lane empty. 14 matches, 1 FINDING (worktree-failed). Pregate not run: host busy.
 
 state: lane-empty | 15 rows | 14 matches, 1 FINDING worktree-failed | tests.test_mvp_1031_realfail2_receipts 4 OK | pregate not run: host busy (Runner.Worker pid 2631906 at 2026-10-31T21:50:42Z) | no merge
