@@ -15,7 +15,7 @@ stripped env, temp HOME). Venv, AgentDescent run store and scratch live in <work
 is never a target: AgentDescent evolves a copy in tmp/, and `apply` is never called. ~/.agentdescent in the
 real HOME is snapshotted before and after. Waits (never kills) while Ollama has another model loaded.
 """
-import argparse, hashlib, json, os, shutil, sys, tempfile, threading, time, urllib.request
+import argparse, hashlib, json, os, shutil, stat, sys, tempfile, threading, time, urllib.request
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -36,21 +36,39 @@ BASE = "http://localhost:11434/v1"
 MEM_CAP_GIB = 85
 
 
+def _snap_entry(path: Path, st) -> str:
+    """One lstat fingerprint. Symlinks store mode and readlink text and are not opened.
+    Small regular files keep a content sha256. Anything larger, or unreadable, keeps size and mtime_ns."""
+    mode = stat.S_IMODE(st.st_mode)
+    if stat.S_ISLNK(st.st_mode):
+        try:
+            link = os.readlink(path)
+        except OSError:
+            link = ""
+        return f"mode:{mode:o}:mt:{st.st_mtime_ns}:link:{link}"
+    meta = f"sz:{st.st_size}:mt:{st.st_mtime_ns}:mode:{mode:o}"
+    if not stat.S_ISREG(st.st_mode) or st.st_size > HASH_MAX:
+        return meta
+    try:
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    except OSError:
+        return meta
+    return f"sha:{digest}:mode:{mode:o}"
+
+
 def snap_dir(p: Path):
-    """Per-entry fingerprint: content sha256 (small files) or size+mtime_ns, plus dir mtimes."""
+    """Per-entry fingerprint. None if p is missing. A symlinked root keeps its readlink; entries under the target are still hashed."""
     if not p.exists() and not p.is_symlink():
         return None
     out = {}
+    # is_dir follows a symlinked root so the target tree is hashed; lstat below does not follow.
     for f in [p, *sorted(p.rglob("*"))] if p.is_dir() else [p]:
         try:
             st = f.lstat()
         except OSError:
             continue
-        rel = str(f.relative_to(p)) if f != p else "."
-        if f.is_file() and not f.is_symlink() and st.st_size <= HASH_MAX:
-            out[rel] = "sha:" + hashlib.sha256(f.read_bytes()).hexdigest()
-        else:
-            out[rel] = f"sz:{st.st_size}:mt:{st.st_mtime_ns}"
+        rel = "." if f == p else str(f.relative_to(p))
+        out[rel] = _snap_entry(f, st)
     return out
 
 
