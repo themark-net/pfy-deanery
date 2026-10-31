@@ -1519,7 +1519,11 @@ class LocalBuildTests(unittest.TestCase):
         proc, receipt = self.run_build("ignored-helper")
         self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
         data = self.assert_no_commit(proc, receipt)
-        self.assertIn(data["reason"], ("commit-recheck-failed", "scope-commit-mismatch"))
+        # 0f0d889 renamed this from test_ignored_helper_is_in_the_commit on purpose.
+        # The helper stays out. git status hides it, so the reviewed set is only
+        # src/calc.py, the commit succeeds, and the archive recheck fails.
+        # scope-commit-mismatch does not fire on this path.
+        self.assertEqual(data["reason"], "commit-recheck-failed")
         names = _git(self.repo, "log", "--all", "--name-only", "--pretty=format:")
         self.assertNotIn("src/helper.py", names)
         self.assertNotIn("helper.py", data["files_changed"])
