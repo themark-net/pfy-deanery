@@ -289,6 +289,101 @@ class CloudBuildPassTests(unittest.TestCase):
         self.assertFalse((self.repo / "tmp" / "cloud-build").exists())
         self.assertIn("pipelines/dogfood/build-cloud/", receipt_path)
 
+    def _accepting_grok(self) -> Path:
+        return _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "from pathlib import Path\n"
+            "blob = '\\n'.join(sys.argv)\n"
+            "if 'PFY-CLOUD-REVIEW' in blob:\n"
+            "    print('verdict: accept')\n"
+            "    raise SystemExit(0)\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+
+    def test_default_base_is_origin_main_not_the_caller_head(self) -> None:
+        first = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        (self.repo / "later.txt").write_text("later\n", encoding="utf-8")
+        _git(self.repo, "add", "later.txt")
+        later = _git(self.repo, "commit", "-m", "later")
+        self.assertEqual(later.returncode, 0, later.stderr)
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        ref = _git(self.repo, "update-ref", "refs/remotes/origin/main", first)
+        self.assertEqual(ref.returncode, 0, ref.stderr)
+        gate = _write_exe(self.side / "gate.py", "#!/usr/bin/env python3\nprint('GATE-OK')\nraise SystemExit(0)\n")
+        proc = _run(
+            [
+                sys.executable,
+                str(CLOUD),
+                "add kept",
+                "--repo",
+                str(self.repo),
+                "--retries",
+                "0",
+                "--test-cmd",
+                "%s %s" % (sys.executable, gate),
+                "--grok-cmd",
+                str(self._accepting_grok()),
+                "--timeout",
+                "30",
+            ],
+            self.repo,
+            timeout=60,
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        match = re.search(r"PASS ok branch=(\S+) receipt=(\S+)", proc.stdout or "")
+        self.assertIsNotNone(match, proc.stdout)
+        branch = match.group(1)
+        payload = json.loads(Path(match.group(2)).read_text(encoding="utf-8"))
+        self.assertEqual(payload["base"], "origin/main")
+        self.assertEqual(_git(self.repo, "rev-parse", branch + "^").stdout.strip(), first)
+        names = _git(self.repo, "ls-tree", "-r", "--name-only", branch).stdout.splitlines()
+        self.assertIn("kept.py", names)
+        self.assertNotIn("later.txt", names)
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+
+    def test_explicit_base_selects_that_ref(self) -> None:
+        (self.repo / "later.txt").write_text("later\n", encoding="utf-8")
+        _git(self.repo, "add", "later.txt")
+        later = _git(self.repo, "commit", "-m", "later")
+        self.assertEqual(later.returncode, 0, later.stderr)
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        gate = _write_exe(self.side / "gate.py", "#!/usr/bin/env python3\nprint('GATE-OK')\nraise SystemExit(0)\n")
+        proc = _run(
+            [
+                sys.executable,
+                str(CLOUD),
+                "add kept",
+                "--repo",
+                str(self.repo),
+                "--base",
+                "HEAD",
+                "--retries",
+                "0",
+                "--test-cmd",
+                "%s %s" % (sys.executable, gate),
+                "--grok-cmd",
+                str(self._accepting_grok()),
+                "--timeout",
+                "30",
+            ],
+            self.repo,
+            timeout=60,
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        match = re.search(r"PASS ok branch=(\S+) receipt=(\S+)", proc.stdout or "")
+        self.assertIsNotNone(match, proc.stdout)
+        payload = json.loads(Path(match.group(2)).read_text(encoding="utf-8"))
+        self.assertEqual(payload["base"], "HEAD")
+        self.assertEqual(_git(self.repo, "rev-parse", match.group(1) + "^").stdout.strip(), head)
+        names = _git(self.repo, "ls-tree", "-r", "--name-only", match.group(1)).stdout.splitlines()
+        self.assertIn("later.txt", names)
+        self.assertIn("kept.py", names)
+
 
 class CloudBuildRetryTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -449,6 +544,58 @@ class CloudBuildRetryTests(unittest.TestCase):
         self.assertEqual(len(payload["attempts"]), 2)
         self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
         self.assertEqual(_git(self.repo, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip(), caller)
+
+    def test_gate_stays_red_for_the_default_three_attempts(self) -> None:
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\nprint('GATE-TAIL-SPENT')\nraise SystemExit(1)\n",
+        )
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import os, sys\n"
+            "from pathlib import Path\n"
+            "blob = '\\n'.join(sys.argv)\n"
+            "Path(os.environ['PFY_PROMPT_LOG']).open('a', encoding='utf-8').write(blob + '\\n---PROMPT---\\n')\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        proc = _run(
+            [
+                sys.executable,
+                str(CLOUD),
+                "cannot go green",
+                "--repo",
+                str(self.repo),
+                "--test-cmd",
+                "%s %s" % (sys.executable, gate),
+                "--grok-cmd",
+                str(grok),
+                "--timeout",
+                "30",
+            ],
+            self.repo,
+            env={"PFY_PROMPT_LOG": str(self.side / "prompts.txt")},
+            timeout=60,
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 1, text)
+        payload = json.loads(list((self.repo / "pipelines" / "dogfood" / "build-cloud").glob("*/receipt.json"))[0].read_text(encoding="utf-8"))
+        self.assertEqual(payload["status"], "FAIL")
+        self.assertEqual(payload["reason"], "tests")
+        self.assertEqual(payload["exit_code"], 1)
+        self.assertEqual(len(payload["attempts"]), 3)
+        self.assertTrue(all(row["reason"] == "tests" for row in payload["attempts"]))
+        self.assertIsNone(payload["branch"])
+        self.assertIsNone(payload["commit"])
+        self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
+        prompts = (self.side / "prompts.txt").read_text(encoding="utf-8").split("---PROMPT---")
+        implement = [item for item in prompts if "PFY-CLOUD-IMPLEMENT" in item]
+        self.assertGreaterEqual(len(implement), 3, prompts)
+        self.assertIn("GATE-TAIL-SPENT", implement[1])
+        self.assertIn("GATE-TAIL-SPENT", implement[2])
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
 
 
 class CloudBuildNoChangeTests(unittest.TestCase):
@@ -724,6 +871,54 @@ class CloudBuildFailureTests(unittest.TestCase):
         self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
         self.assertFalse(sentinel.exists())
 
+    def test_rate_limit_and_auth_phrases_use_the_failure_table(self) -> None:
+        rate_phrases = ("usage limit", "Quota Exceeded", "too many requests", "429")
+        for phrase in rate_phrases:
+            with self.subTest(phrase=phrase):
+                receipt_dir = self.side / ("rate-" + re.sub(r"[^a-z0-9]+", "-", phrase.lower()).strip("-"))
+                grok = _write_exe(
+                    self.side / "grok.py",
+                    "#!/usr/bin/env python3\nprint(%r)\nraise SystemExit(1)\n" % phrase,
+                )
+                proc = self._run_task(
+                    grok,
+                    self._gate(),
+                    "phrase-task",
+                    extra=["--retries", "1", "--receipt-dir", str(receipt_dir)],
+                )
+                text = (proc.stdout or "") + (proc.stderr or "")
+                self.assertEqual(proc.returncode, 4, text)
+                payload = json.loads((receipt_dir / "receipt.json").read_text(encoding="utf-8"))
+                self.assertEqual(payload["status"], "BLOCKED")
+                self.assertEqual(payload["reason"], "rate-limit")
+                self.assertEqual(payload["recovery"], "./pfy build --local phrase-task")
+                self.assertIsNone(payload["branch"])
+        home = self.side / "empty-home"
+        home.mkdir(exist_ok=True)
+        for phrase in ("unauthenticated", "please log in", "auth.json"):
+            with self.subTest(phrase=phrase):
+                receipt_dir = self.side / ("auth-" + re.sub(r"[^a-z0-9]+", "-", phrase.lower()).strip("-"))
+                grok = _write_exe(
+                    self.side / "grok.py",
+                    "#!/usr/bin/env python3\nimport sys\nsys.stderr.write(%r + '\\n')\nraise SystemExit(1)\n" % phrase,
+                )
+                proc = self._run_task(
+                    grok,
+                    self._gate(),
+                    "auth-task",
+                    extra=["--retries", "1", "--receipt-dir", str(receipt_dir)],
+                    env={"HOME": str(home)},
+                )
+                text = (proc.stdout or "") + (proc.stderr or "")
+                self.assertEqual(proc.returncode, 1, text)
+                self.assertNotIn("Traceback", text)
+                payload = json.loads((receipt_dir / "receipt.json").read_text(encoding="utf-8"))
+                self.assertEqual(payload["reason"], "unauthenticated")
+                self.assertIn("run grok once", payload["recovery"])
+                self.assertNotIn("--local", payload["recovery"])
+                self.assertIsNone(payload["branch"])
+                self.assertFalse((home / "auth.json").exists())
+
     def test_zero_exit_with_rate_limit_text_is_not_blocked(self) -> None:
         grok = _write_exe(
             self.side / "grok.py",
@@ -825,6 +1020,93 @@ class CloudBuildFailureTests(unittest.TestCase):
         self.assertEqual(_git(self.repo, "status", "--porcelain").stdout, before)
         self.assertIn("caller-dirty.txt", before)
         self.assertEqual(_git(self.repo, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip(), caller)
+
+    def test_staged_caller_file_stays_staged_and_out_of_the_commit(self) -> None:
+        (self.repo / "staged-dirty.txt").write_text("staged-only\n", encoding="utf-8")
+        added = _git(self.repo, "add", "staged-dirty.txt")
+        self.assertEqual(added.returncode, 0, added.stderr)
+        (self.repo / "untracked-dirty.txt").write_text("free\n", encoding="utf-8")
+        before = _git(self.repo, "status", "--porcelain").stdout
+        self.assertIn("A  staged-dirty.txt", before)
+        self.assertIn("?? untracked-dirty.txt", before)
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "from pathlib import Path\n"
+            "blob = '\\n'.join(sys.argv)\n"
+            "if 'PFY-CLOUD-REVIEW' in blob:\n"
+            "    print('verdict: accept')\n"
+            "    raise SystemExit(0)\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        proc = self._run_task(grok, self._gate(), "add kept", extra=["--retries", "0"])
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        payload = self._receipt()
+        names = _git(self.repo, "ls-tree", "-r", "--name-only", payload["commit"]).stdout.splitlines()
+        self.assertIn("kept.py", names)
+        self.assertNotIn("staged-dirty.txt", names)
+        self.assertNotIn("untracked-dirty.txt", names)
+        self.assertEqual(_git(self.repo, "status", "--porcelain").stdout, before)
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+
+    def test_sigint_interrupts_with_no_branch(self) -> None:
+        pidfile = self.side / "grok.pid"
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import os, time\n"
+            "from pathlib import Path\n"
+            "Path(os.environ['PFY_CLOUD_PIDFILE']).write_text(str(os.getpid()))\n"
+            "time.sleep(60)\n",
+        )
+        gate = self._gate()
+        proc = subprocess.Popen(
+            [
+                sys.executable,
+                str(CLOUD),
+                "sleeping task",
+                "--repo",
+                str(self.repo),
+                "--retries",
+                "0",
+                "--timeout",
+                "30",
+                "--test-cmd",
+                "%s %s" % (sys.executable, gate),
+                "--grok-cmd",
+                str(grok),
+            ],
+            cwd=self.repo,
+            env={**os.environ, "TMPDIR": str(SCRATCH), "PYTHONDONTWRITEBYTECODE": "1", "PFY_CLOUD_PIDFILE": str(pidfile)},
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            start_new_session=True,
+        )
+        self.addCleanup(_stop_proc, proc)
+        self.assertTrue(_wait_file(pidfile), "grok did not start")
+        time.sleep(0.1)
+        grok_pid = int(pidfile.read_text(encoding="utf-8").strip())
+        self.addCleanup(lambda: None if _dead(grok_pid) else os.kill(grok_pid, signal.SIGKILL))
+        os.kill(proc.pid, signal.SIGINT)
+        try:
+            out, err = proc.communicate(timeout=20)
+        except subprocess.TimeoutExpired:
+            _stop_proc(proc)
+            self.fail("runner did not exit after SIGINT")
+        text = (out or "") + (err or "")
+        self.assertEqual(proc.returncode, 1, text)
+        payload = self._receipt()
+        self.assertEqual(payload["status"], "FAIL")
+        self.assertEqual(payload["reason"], "interrupted")
+        self.assertIsNone(payload["branch"])
+        self.assertIsNone(payload["commit"])
+        self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
+        self.assertTrue(_dead(grok_pid))
 
     def test_sigterm_interrupts_with_no_branch(self) -> None:
         pidfile = self.side / "grok.pid"
