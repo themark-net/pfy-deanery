@@ -71,3 +71,4 @@ Format: `item | commit | tests | result`
 - pass1 t5 | 5df0448 | ./pfy build exit 0 wall 215.3s attempts 1 review accept gate_rerun 0 human accept writable tests/test_x_intake_smoke_117_118.py, tests/test_x_intake_smoke_119_121.py | PASS
 - pass1 t6 | d12ba6a | ./pfy build exit 0 wall 95.3s attempts 1 review accept gate_rerun 0 human accept | PASS
 - pass2 t1 | 53b7e22 | ./pfy build exit 0 wall 150.5s attempts 1 review accept gate_rerun 0 human accept | PASS
+- pass2 t2 | da98b97 | ./pfy build exit 0 wall 58.4s attempts 1 review accept gate_rerun 0 human accept | PASS
