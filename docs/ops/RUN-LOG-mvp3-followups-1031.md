@@ -53,8 +53,18 @@ Risks:
 - item 1 | `d3e73f6` | docs only, no test | Review section in the operator usage doc: default on, cap 3 files / 250 lines, larger legitimate diffs are PASS-REJECTED
 - item 4 | `16f7c07` | docs only, no test | Same section now says the reviewer is the same local model as the agent. Receipt field is cross-lane.
 - item 10 | `6d562a1` | docs only, no test | Standing TMPDIR note is now TMPDIR=$PWD/tmp in the worktree. The old tmp/pgs line stays as history of that run.
-- item 6 | (this commit) | `tests.test_pfy_build_local.LocalBuildTests.test_ignored_helper_is_not_committed` OK in 1.099s, reason `commit-recheck-failed` | Pin not edited. The test file is owned by bot/mvp-review-fix2-1031. The inversion is noted in the operator handoff. The old test name proved the helper was committed. The new name proves it is not. That inversion was the point of 0f0d889.
+- item 6 | `309d4ec` | `tests.test_pfy_build_local.LocalBuildTests.test_ignored_helper_is_not_committed` OK in 1.099s, reason `commit-recheck-failed` | Pin not edited. The test file is owned by bot/mvp-review-fix2-1031. The inversion is noted in the operator handoff. The old test name proved the helper was committed. The new name proves it is not. That inversion was the point of 0f0d889.
+- item 2 | none | not run (owned file) | SKIPPED cross-lane bot/mvp-review-fix2-1031. Scope skip is a machine field `skipped: no-allow-list` on the attempt check. The required stderr line and the exact receipt phrase are not there.
+- item 3 | none | not run (owned file) | SKIPPED cross-lane. `PFY_STUB_*` is still read in production. review-fix2 gates only those binds behind `PFY_LOCAL_BUILD_TEST_SEAM`. `PFY_LOCAL_BUILD_INJECT_EXTRA_STAGE` is still ungated.
+- item 5 | none | not run (owned file) | SKIPPED cross-lane. An empty reviewed set still reaches `git commit` and fails as `commit-failed`.
+- item 7 | none | not run (owned file) | SKIPPED cross-lane. A poster with no out file is still `review-unparseable` and is retried.
+- item 8 | none | docs file owned | SKIPPED cross-lane. `docs/ops/HANDOFF-mvp3-review-retry.md` lines 38, 45, and 51 still describe the scope and commit mismatch as open.
+- item 9 | this handoff | `tests.test_pfy_build_local_review` with bwrap hidden: Ran 19 in 60.511s OK, skipped 0. Local-build bwrap cases: Ran 10 skipped 10 in 2.119s. Harness2 plus three x-intake modules: Ran 167 skipped 89 in 61.986s. | Review E2E already runs without bwrap. No code change. Full discover not run: heavy lock held by pregate on 6664713. At finish, origin/bot/mvp-review-fix2-1031 is 8c40087 and the seven code requests are still open there.
+- item 4 receipt half | none | docs half is `16f7c07` | SKIPPED the receipt field. Same owner as the runner.
+
+state: lane empty | tests: review module 19 OK skipped 0 in 60.511s with bwrap hidden; ignored-helper reason commit-recheck-failed; local-build bwrap cases 10 skipped | files: docs | err: none
 
 ## Host checks
 
 - 2026-10-31T23:09:23Z MemAvailable about 80 GiB, load 3.74, 32 cores. Under the pressure line.
+- 2026-10-31T23:28:00Z finish check: MemAvailable about 42 GiB, load 6.33, 32 cores. Under the pressure line. origin/main still c0d38af.
