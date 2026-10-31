@@ -2074,6 +2074,84 @@ def _rollback_head(worktree: Path, env: dict) -> None:
     _git(worktree, ["reset", "--hard", "HEAD~1"], env=env)
 
 
+def _commit_excluded(path: str) -> bool:
+    """Paths the old commit pathspec never staged: tmp, bytecode, pytest cache."""
+    rel = _norm_rel(path)
+    if not rel:
+        return True
+    parts = rel.split("/")
+    if parts[0] == "tmp":
+        return True
+    if any(part in ("__pycache__", ".pytest_cache") for part in parts):
+        return True
+    if rel.endswith(".pyc"):
+        return True
+    return False
+
+
+def _reviewed_names(paths: list[str]) -> list[str]:
+    found: list[str] = []
+    seen: set[str] = set()
+    for path in paths:
+        rel = _norm_rel(path)
+        if not rel or rel in seen or _commit_excluded(rel):
+            continue
+        seen.add(rel)
+        found.append(rel)
+    return found
+
+
+def _reset_index(worktree: Path, env: dict) -> None:
+    _git(worktree, ["reset", "-q", "--mixed"], env=env)
+
+
+def _stage_reviewed(worktree: Path, env: dict, reviewed: list[str]) -> str | None:
+    """Stage only the reviewed names. None when the index matches that set.
+
+    A mismatch resets the index and returns scope-commit-mismatch. The caller
+    does not commit and does not create a branch. commit-failed means git
+    itself failed. The index is reset in both cases.
+    """
+    wanted = _reviewed_names(reviewed)
+    if wanted:
+        # :(literal) so a reviewed name cannot be read as pathspec magic.
+        # Excludes stay, matching the previous commit pathspec.
+        argv = [
+            "add",
+            "-A",
+            "-f",
+            "--",
+            *(":(literal)%s" % rel for rel in wanted),
+            ":!tmp",
+            ":!**/__pycache__",
+            ":!**/*.pyc",
+            ":!.pytest_cache",
+            ":!**/.pytest_cache",
+        ]
+        added = _git(worktree, argv, env=env)
+        if added.returncode != 0:
+            _reset_index(worktree, env)
+            return "commit-failed"
+    # Fault injection for the mismatch recovery. Unset in normal runs.
+    if os.environ.get("PFY_LOCAL_BUILD_INJECT_EXTRA_STAGE") == "1":
+        extra = worktree / "injected-extra.txt"
+        extra.write_text("injected\n", encoding="utf-8")
+        _git(worktree, ["add", "-f", "--", "injected-extra.txt"], env=env)
+    listed = _git(worktree, ["diff", "--cached", "--name-only", "-z"], env=env)
+    if listed.returncode != 0:
+        _reset_index(worktree, env)
+        return "commit-failed"
+    staged: list[str] = []
+    for part in (listed.stdout or "").split("\0"):
+        rel = _norm_rel(part)
+        if rel:
+            staged.append(rel)
+    if set(staged) != set(wanted):
+        _reset_index(worktree, env)
+        return "scope-commit-mismatch"
+    return None
+
+
 def _recheck_commit(
     repo: Path,
     worktree: Path,
@@ -2323,6 +2401,16 @@ def _gate_feedback(why: str, record: dict | None) -> str:
     if isinstance(record, dict):
         tail = str(record.get("tail") or "")
     return "gate failed: %s\n%s" % (why, tail)
+
+
+def _no_change_feedback(record: dict | None) -> str:
+    """Retry text for an empty diff. Includes the gate tail. Never a PASS."""
+    tail = ""
+    if isinstance(record, dict):
+        tail = str(record.get("tail") or "")
+    if tail:
+        return "no-change\n%s" % tail
+    return "no-change"
 
 
 def _review_prompt(task: str, diff_text: str, gate_tail: str) -> str:
@@ -2976,9 +3064,34 @@ def build_local(argv: list[str] | None = None) -> int:
             changed = files_changed(worktree, test_env)
             diff_text, diff_stats = _collect_diff(worktree, test_env, changed)
             if not changed:
+                tests_after = run_tests(
+                    args.test_cmd_s,
+                    worktree,
+                    test_env,
+                    args.test_timeout_s,
+                    state,
+                    repo=repo,
+                    unsafe=bool(args.unsafe_no_sandbox),
+                )
+                if tests_after.get("aborted") == "interrupted" or state.interrupted:
+                    status, reason, exit_code = "FAIL", "interrupted", EXIT_FAIL
+                    _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "interrupted", None, None, diff_stats, diff_text)
+                    return finish()
+                if tests_after.get("aborted") == "mem-edge" or state.mem_edge:
+                    status, reason, exit_code = "FAIL", "mem-edge", EXIT_FAIL
+                    _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "mem-edge", None, None, diff_stats, diff_text)
+                    return finish()
+                if not tests_after.get("started"):
+                    status, reason, exit_code = "FAIL", "test-cmd-failed-to-start", EXIT_FAIL
+                    _record_attempt(
+                        attempts_used, attempt_t0, mem_snap, "FAIL", "test-cmd-failed-to-start", None, None, diff_stats, diff_text
+                    )
+                    return finish()
+                # Empty diff stays no-change even when this gate is green.
+                # The review model is not called.
+                feedback = _no_change_feedback(tests_after)
                 if _can_retry(args.review, attempts_used, max_attempts, "no-change"):
                     _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "no-change", None, None, diff_stats, diff_text)
-                    feedback = "no-change"
                     previous_diff = diff_text
                     continue
                 status, reason, exit_code = "FAIL", "no-change", EXIT_FAIL
@@ -3196,26 +3309,11 @@ def build_local(argv: list[str] | None = None) -> int:
         commit_env = _git_env(test_env)
         title = " ".join(args.task_text.split())[:80] or "task"
         message = "%s\n\nreceipt: %s\n" % (title, stamp + "-" + slug)
-        # -f so a gitignore cannot drop a file the tests imported. tmp and
-        # bytecode stay out. .gitignore itself is a gate file and is hashed.
-        committed = _git(
-            worktree,
-            [
-                "add",
-                "-A",
-                "-f",
-                "--",
-                ".",
-                ":!tmp",
-                ":!**/__pycache__",
-                ":!**/*.pyc",
-                ":!.pytest_cache",
-                ":!**/.pytest_cache",
-            ],
-            env=commit_env,
-        )
-        if committed.returncode != 0:
-            status, reason, exit_code = "FAIL", "commit-failed", EXIT_FAIL
+        # Stage the names the review saw. git add -A -f of the whole tree
+        # also staged gitignored paths that git status never listed.
+        staged_reason = _stage_reviewed(worktree, commit_env, changed)
+        if staged_reason:
+            status, reason, exit_code = "FAIL", staged_reason, EXIT_FAIL
             return finish()
         committed = _git(worktree, ["commit", "-m", message], env=commit_env)
         if committed.returncode != 0:
