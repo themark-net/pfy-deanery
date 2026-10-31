@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/the-parked-note-in-docs-automation-x-int-20261031T221744753463Z",
+  "commit": "5e24f83e0d3ae588651064c6c4c7810e95b11178",
+  "base": "HEAD",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll match `tree_sig` and the two `home_sig` functions to the existing contract, then run the remaining-home-sigs tests. First I'm reading the parked note, the reference implementation, and the three functions I can edit.The reference `tree_sig` already hashes streamed bytes, `lstat` mode, and symlink text. I'll apply that contract to the three signatures that still use size and mtime.`tree_sig` and both `home_sig` helpers now fingerprint content, permission bits, and symlink text. `python3 -m unittest tests.test_remaining_home_sigs` passes (2 tests).\n\n- `smoke_117_118.tree_sig` follows the `smoke_119_121.tree_sig` contract. A missing path returns `None`. Each entry is read with `lstat` and `S_IMODE`. Regular files are hashed in 1 MiB chunks. A symlink contributes its `readlink` text. An `OSError` writes a stable unreadable marker and keeps the path. The result is still `str` or `None`.\n- `smoke_148.home_sig` and `smoke_149.home_sig` still return a dict with exactly their `WATCHED` keys. A missing path is `None`. A same-size edit, a `chmod`, or a symlink retarget inside a watched directory changes that key. An mtime-only update does not. An unreadable file is recorded, and `home_sig` does not raise.\n\nThe diff is 130 lines across those three functions. Nothing was committed.\n\nI'll review the diff against the task contract and the existing `tree_sig` behavior before giving a verdict.verdict: accept\n\nThe three functions match the requested contract. `tree_sig` follows `smoke_119_121.tree_sig`: a missing path is `None`, file bytes are streamed, `lstat` and `S_IMODE` are used, symlink text is hashed without following the link, an `OSError` keeps a stable unreadable marker, and mtime is not hashed. Both `home_sig` helpers still return exactly the `WATCHED` keys, record a missing path as `None`, change on a same-size edit, chmod, or symlink retarget, stay stable on an mtime-only update, and do not raise. The diff stays inside those functions, adds no product file, leaves the test alone, and stays under 250 lines. `python3 -m unittest tests.test_remaining_home_sigs` passed (2 tests).\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "python3 -m unittest tests.test_remaining_home_sigs",
+    "before": {
+      "cmd": "python3 -m unittest tests.test_remaining_home_sigs",
+      "exit": 1,
+      "tail": "\nFF\n======================================================================\nFAIL: test_home_sig_ignores_mtime_and_sees_content_mode_and_links (tests.test_remaining_home_sigs.RemainingHomeSigTests.test_home_sig_ignores_mtime_and_sees_content_mode_and_links)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood2-1031/tmp/target-04/tmp/cloud-build/20261031T221744753463Z/tests/test_remaining_home_sigs.py\", line 100, in test_home_sig_ignores_mtime_and_sees_content_mode_and_links\n    self.assertEqual(home_sig(home), before, mod_name)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: {'.sk[20 chars]4, 1700000000000000000)], '.cache/skillspector[33 chars]None} != {'.sk[20 chars]4, 1793485064843545209)], '.cache/skillspector[33 chars]None}\n  {'.cache/skillspector': None,\n   '.config/skillspector': None,\n-  '.skillspector': [('f', 4, 1700000000000000000)]}\n+  '.skillspector': [('f', 4, 1793485064843545209)]} : smoke_148\n\n======================================================================\nFAIL: test_tree_sig_content_chmod_and_link (tests.test_remaining_home_sigs.RemainingHomeSigTests.test_tree_sig_content_chmod_and_link)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood2-1031/tmp/target-04/tmp/cloud-build/20261031T221744753463Z/tests/test_remaining_home_sigs.py\", line 43, in test_tree_sig_content_chmod_and_link\n    self.assertEqual(sig(root), before)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^\nAssertionError: '4cc1bfdf41236531325e95e7ab895e754928772228b4c2419ee63b4d71875e68' != 'bc1a0f4bc3a0a5392e99771df5295b72bdcc33f1f87ddf385a30a8ba36870ae1'\n- 4cc1bfdf41236531325e95e7ab895e754928772228b4c2419ee63b4d71875e68\n+ bc1a0f4bc3a0a5392e99771df5295b72bdcc33f1f87ddf385a30a8ba36870ae1\n\n\n----------------------------------------------------------------------\nRan 2 tests in 0.018s\n\nFAILED (failures=2)\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "python3 -m unittest tests.test_remaining_home_sigs",
+      "exit": 0,
+      "tail": "\n..\n----------------------------------------------------------------------\nRan 2 tests in 0.021s\n\nOK\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": true,
+  "task": "The parked note in docs/automation/x-intake-2026-10-16-handoff.md says mode-000 files, symlink retargets, and chmod-only changes are blind spots of tree_sig. smoke_117_118.tree_sig still hashes size and mtime. smoke_148.home_sig and smoke_149.home_sig do the same for their watched real-HOME directories. Do not edit smoke_119_121.py, smoke_112_114.py, smoke_115_116.py, smoke_122_124.py, or smoke_128_130.py.\n\nEdit only these three functions:\n- examples/x-intake-local/smoke_117_118.py tree_sig\n- examples/x-intake-local/smoke_148.py home_sig\n- examples/x-intake-local/smoke_149.py home_sig\n\ntree_sig matches the contract already in smoke_119_121.tree_sig. Return None when the path is missing. Stream file bytes. Use lstat and S_IMODE. For a symlink, hash the readlink text and do not follow it. On OSError, record a stable unreadable marker and do not drop the path. Do not hash mtime. Keep the return type as str or None.\n\nhome_sig keeps returning a dict with exactly the WATCHED keys. A missing watched path is None. A present path's value changes when a same-size content edit, a chmod, or a symlink retarget happens inside that watched directory, and it does not change on an mtime-only update. Do not follow symlinks. An unreadable file is recorded, not dropped, and home_sig must not raise. Do not hash mtime.\n\nDo not add another product file. Do not edit the test. Stay at or under 250 changed lines.\n\nThe gate is python3 -m unittest tests.test_remaining_home_sigs. It is red before your edit. Do not weaken it.",
+  "finished_at": "2026-10-31T22:28:45Z"
+}
