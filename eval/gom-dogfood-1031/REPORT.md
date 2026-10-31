@@ -66,4 +66,39 @@ Six more cloud runs after `origin/bot/mvp-integrate-1031` was merged (`d6d62db`)
 | 09 | catch-view-date | 0 | PASS | 1 | accept | accept | 107 | 2987c4f30a35371ea739f25ada733cefc7153d34 |
 | 10 | land-mailbox-parties | 0 | PASS | 1 | accept | accept | 121 | 973cedd1e4cc831d114e78e0734e04207f4fcb31 |
 | 11 | land-recipients | 0 | PASS | 1 | accept | accept | 81 | 5d1ecaa4a7a31ddf64307f2d832a0a7203812daa |
+| 12 | capture-list-references | 0 | PASS | 1 | accept | accept | 135 | 855b079f6298a35214f1611334bb3dd6822c9a39 |
+
+### Wave 5 rates
+
+| measure | value |
+|---------|--------|
+| runs | 6 |
+| PASS | 6 (100%) |
+| FAIL, TIMEOUT, BLOCKED | 0 |
+| review accept | 6/6 |
+| human accept | 6/6 |
+| attempts used | 1 on every run (retries armed, none spent) |
+| wall sum | 658 s |
+| wall mean | 109.7 s |
+| cherry-picked to `bot/gom-dogfood-1031` | 6/6 |
+
+Gate before was exit 1 on every run. Gate after was exit 0. Both waves together: 12/12 PASS, wall sum 1297 s. Gom product tip after the twelfth land: `c6c42371195ee045ccc84965f1d2ce95085d02ab`. The real journal stayed mtime `1790360353`, size `1744896`.
+
+### Wave 5 findings for mvp-cloudfix-1031
+
+The merge at `d6d62db` did not close the five requests from the first section. This lane still did not edit `scripts/pfy_build_cloud.py`.
+
+1. A seeded test is still tamper. `tests_tampered` hashes tests that exist at the base and rejects an edit unless `--writable-test` names that path. A brand-new test file is no longer in that hash, which is a change from the first six runs. This lane still committed the red test first and told the model not to edit `tests/`. `--writable-test` would let the model weaken the assertion, so it was not used. Request: keep the hash on tests the task does not name. If the task is supposed to add a test file, a missing file should be a usage note, not something the operator has to pre-commit to get a red assertion the model cannot touch.
+
+2. `DEFAULT_TEST_CMD` is still `python3 -m unittest discover -s tests -t .`. The merged runner did not change it. Gom still needs an explicit pytest on the Python 3.12 venv. Same request: a missing interpreter is a usage error, not a product FAIL.
+
+3. `resolve_base` still prefers `origin/main` when that ref exists. Every wave 5 run passed `--base` equal to the seeded test commit. Without that flag the clone's `origin/main` is Mark's local `main`, not the bot branch. Same request: refuse to start when HEAD and the default base differ, unless `--base` is set.
+
+4. The receipt redactor still rewrites fixture names. Receipt 07 shows `user_key=[redacted]` in the pytest stderr. The value was the fixture id `to-user`, not a credential. `_SECRET_EQ` is unchanged. Same request: redact values that look like secrets, and leave the assertion text readable.
+
+5. `child_env` still copies `os.environ` and then sets `TMPDIR` and `PYTHONDONTWRITEBYTECODE`. Wave 5 receipts were scanned and have no `AKIA`, `BEGIN PRIVATE KEY`, `sk_`, `ghp_`, or `xai-` markers. Same request: start the gate from a scrubbed environment.
+
+6. The cloud commit subject is the first 72 characters of the task, cut mid-word. Gom commits now end in `fiel`, `header`, `cat`, and `W`. Request: stop at a word boundary, or use the first sentence, and keep the subject under 72 characters.
+
+Gom `tmp/` is not gitignored. The runner puts its worktree at `<repo>/tmp/cloud-build/`. This lane cloned into `~/DEVELOP/jobbar-master/tmp/gom-dogfood-1031-scratch/clones/` so that directory was never the bot worktree and never Mark's checkout. That is an operator constraint, not a new runner bug.
 

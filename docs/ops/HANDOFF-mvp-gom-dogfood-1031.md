@@ -1,5 +1,77 @@
 # Handoff mvp-gom-dogfood-1031
 
+Wave 5 finished. The earlier goal-met paragraph below is the first six runs. Wave 5 merged `origin/bot/mvp-integrate-1031` (`d6d62db`) and landed six more cloud `./pfy build` runs, all different T-0034 slices, all human-accepted, all on `bot/gom-dogfood-1031`. No merge, no PR, no force push, no `--local`. No build 13.
+
+Pfy branch: `bot/mvp-gom-dogfood-1031` in `~/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031`.
+Gom branch: `bot/gom-dogfood-1031` in `~/DEVELOP/jobbar-master/tmp/gom-dogfood-1031`.
+Mark's `~/DEVELOP/jobbar-master/current` stayed `2d26630915783ada9f6631fed125b6c1b566da6c` on `main`. Journal mtime `1790360353`, size `1744896`, after every wave 5 land.
+
+Exit: goal met. Turn cap was six new builds. The other open gom TODO rows stay skipped. Wall clock and host pressure did not fire. No run returned rate-limit.
+
+## Wave 5 done
+
+Pfy merge: `d6d62db6fa9e6b1d3a799a35b6fbefb32649cbe4` (merge, not a rebase). Exit card: `ccd639a5ea51921461855267f312dd4d67a2f46a`.
+
+| n | cloud | gom test | gom product | wall_s |
+|---|-------|----------|-------------|--------|
+| 07 catch view to | `57e15700113ea1949526cb97a16f1f9a74db141a` | `915e80cfad5631b527494c65383a48f102a36739` | `fe88852978ec008dcab339f6296e23037eb90a28` | 112 |
+| 08 catch view cc | `b2b1981c78666b0d7d55828545cc13feea3a11a4` | `af19c0c684ebf7698b5f92d1d70cfe67a058a0dd` | `1bb43270d46a6b18b466e8d1036a41da3ef63009` | 102 |
+| 09 catch view date | `2987c4f30a35371ea739f25ada733cefc7153d34` | `4f6db0d370f3aa2aae5c920de953ff7892b9508a` | `c9885f829baad8ecce74705f76756de31e3ce6df` | 107 |
+| 10 land mailbox parties | `973cedd1e4cc831d114e78e0734e04207f4fcb31` | `ef2692c00c39a24cc41a99f2f14e6892418a2cba` | `3ecf83f674e668ad064b4ed9c1a54cf154b8d4a8` | 121 |
+| 11 land recipients | `5d1ecaa4a7a31ddf64307f2d832a0a7203812daa` | `7ebd92e46fa1cdd8f17dca663259649f9ea123f4` | `04d7ff206e21b7dd15cb8d1bc3f3c2e38e6c747b` | 81 |
+| 12 capture list references | `855b079f6298a35214f1611334bb3dd6822c9a39` | `8c8ae3ecfe040da3bbe4f8d6171544304255e8a3` | `c6c42371195ee045ccc84965f1d2ce95085d02ab` | 135 |
+
+Rates: 6/6 PASS, 6/6 review accept, 6/6 human accept, one attempt each, wall sum 658 s, mean 109.7 s. Detail: `eval/gom-dogfood-1031/REPORT.md` section Wave 5.
+
+## Wave 5 how the changes fail and recover
+
+07. `catch --view` hid `to`. Recover: print it only when the stored string is non-empty. Missing and empty stay hidden. `tests/test_catch_view_to.py`.
+
+08. The view hid `cc`. Recover: the same rule for that field. `tests/test_catch_view_cc.py`.
+
+09. The view hid `headers.date`, or a missing `headers` map would have crashed a careless read. Recover: print `date:` only when `headers` is a dict and `headers.date` is a non-empty string. Do not read `raw_source`. `tests/test_catch_view_date.py`.
+
+10. `capture land` kept `message_id` and dropped `from` and `reply_to`, or a wide copy would store `raw_source` on the item. Recover: copy those two strings when they are non-empty, and leave `raw_source` on the catch. `tests/test_land_mailbox_parties.py`.
+
+11. Land dropped `to` and `cc`. Recover: the same rule for the recipient fields. `tests/test_land_recipients.py`.
+
+12. `format_item_line` hid a non-empty `references` list, or it would print the label for an empty list. Recover: append the ids separated by single spaces only when the list is non-empty, and keep `message_id` and `in_reply_to`. `tests/test_capture_list_references.py`.
+
+Report checker. A wave 5 row can claim PASS, or a different attempt count, while the receipt disagrees. Recover: `check_report` names the run and the field. The planted exit on row 01 and the planted attempts on row 03 still fail.
+
+## Wave 5 test evidence
+
+Cloud gate, every run: before exit 1, after exit 0, attempt 1. Receipts under `eval/gom-dogfood-1031/07` through `12`.
+
+Gom worktree after the twelfth land, cwd = the worktree, `JOURNAL_DB_PATH` under scratch: 12 passed in 3.79s.
+
+Pfy: `nice -n 19 python3 -m unittest tests.test_gom_dogfood_1031_report`. The checker covers both tables.
+
+## Wave 5 cross-lane requests (mvp-cloudfix-1031)
+
+Full write-up: `eval/gom-dogfood-1031/REPORT.md` section Wave 5 findings. This lane did not edit the runner.
+
+1. Seeded tests are still tamper. A new test file is no longer hashed. `--writable-test` exists and was not used, because it would let the model edit the red assertion.
+2. Default gate is still `python3 -m unittest discover`.
+3. Default base is still `origin/main` unless `--base` is set.
+4. `_SECRET_EQ` still redacts `user_key` in receipt 07. The value was the fixture id `to-user`.
+5. `child_env` still copies the parent environment. Wave 5 scans found no `AKIA`, private-key, `sk_`, `ghp_`, or `xai-` markers.
+6. The cloud commit subject is the first 72 characters of the task, cut mid-word.
+
+## Wave 5 gate
+
+Pfy files this wave are the merge plus docs and eval. The report checker was already on the branch. Gate for this lane's docs and eval: pregate plus Reviewer.
+
+pregate not run: host busy. At 2026-10-31T23:51:18Z, `Runner.Worker` pid 3751002 was running. MemAvailable 35.7 GiB, load 7.71, 32 cores, under the pressure line.
+
+Gom `bot/gom-dogfood-1031` now also changes `gomjobbar/cli.py`, `gomjobbar/capture.py`, `docs/modules/capture.md`, and the twelve tests. That branch needs Tester plus Reviewer. Not a Feature GO. Do not merge it to gom `main`.
+
+## Wave 5 next
+
+Reviewer reads this branch at the wave 5 handoff SHA and the Wave 5 section of `eval/gom-dogfood-1031/REPORT.md`. mvp-cloudfix-1031 takes the six requests above. The gom operator reviews `bot/gom-dogfood-1031` at `63d97e302c5cd768a7e92213b2b9374857286cc4`. No further build from this lane. T-0034 stays open for UI surfacing. Parked rows stay parked.
+
+## Earlier finish (first six runs)
+
 Lane finished. Goal met: six real cloud `./pfy build` runs on Gom Jabbar, each recorded, human-accepted, and cherry-picked to `bot/gom-dogfood-1031`. No merge, no PR, no force push, no `--local`.
 
 Pfy branch: `bot/mvp-gom-dogfood-1031` in `~/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031`.
@@ -110,4 +182,4 @@ Gom `bot/gom-dogfood-1031` changes `gomjobbar/cli.py`, `gomjobbar/capture.py`, d
 
 ## Next
 
-Reviewer reads this branch at the handoff SHA and `eval/gom-dogfood-1031/REPORT.md`. mvp-cloudfix-1031 takes the five requests. The gom operator reviews `bot/gom-dogfood-1031` at `02e421de4cc1a7beca16846b2ac18acc1c28df5b`. No further build from this lane unless a slice is rejected.
+Superseded by the Wave 5 next section at the top of this file. The first six runs stopped at gom `02e421de4cc1a7beca16846b2ac18acc1c28df5b`. Wave 5 continued from there.
