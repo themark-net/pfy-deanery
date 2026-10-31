@@ -78,3 +78,34 @@ Exit card and phase plan written before the merge and before any product code. S
 Parallel sub-agents are not used for the listed items. They share the runner and the review tests. The lead implements them in order on this branch.
 
 state: DONE | tests: none (docs only) | files: 2 | err: none
+
+### merge-tip
+
+`git merge --no-edit origin/bot/mvp3-review-retry` brought `d624535` (one-line handoff fix). Merge commit `fbb2835`. No rebase. Pushed.
+
+state: DONE | tests: none (merge) | files: 1 | err: none
+
+### confirm-base
+
+Host at 2026-10-31T20:50Z: MemAvailable about 61 GiB, load 3.60, nproc 32. Under the pressure line. Wall cap still 2026-11-01T04:42:04Z.
+
+Checked on `fbb2835` before the product edit:
+
+- A review HTTP error is written as `{"error": ...}` and parsed as `review-unparseable`, then retried as `PASS-REJECTED`. A review-call timeout is status `TIMEOUT` / reason `timeout` (exit 3), the same bucket as an agent timeout.
+- No test feeds an HTTP error or a hung review call.
+- The retry prompt puts the previous diff after the reasons. Existing tests assert strings that also appear in the reasons (`src/notes.py`, module names, `review-unparseable`, `tests-failed`). A prompt that drops the diff still passes. That is M7.
+- Scope vs commit is already fail-closed on this base (`scope-commit-mismatch`, gitignored extra file test). Item 4 will be confirmed and skipped if that still holds.
+- Help text already says review is the default and the file and line caps. The MVP-3 handoff does not.
+
+state: DONE | tests: read-only | files: 0 | err: none
+
+### item-1-outage
+
+Reviewer HTTP error and reviewer-call timeout set attempt and final status `REVIEW-ERROR`, reason `review-unavailable`, exit 1. They are not retried and not `PASS-REJECTED` or `TIMEOUT`. The receipt `recovery` line says this is not a reject, was not retried, and names the recovery (run again, or `--no-review`).
+
+How it fails: the review service returns HTTP 500, or the review call exceeds the attempt timeout. There is no verdict.
+
+How we recover: no branch, origin unchanged. The receipt tells the operator to run again when the reviewer answers, or to pass `--no-review`.
+
+item | commit | tests | result
+item-1-outage | (this commit) | nice python3 -m unittest tests.test_pfy_build_local tests.test_pfy_build_local_review | Ran 74 tests in 109.054s OK

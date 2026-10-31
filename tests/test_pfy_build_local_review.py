@@ -369,3 +369,66 @@ class ReviewLoopTests(unittest.TestCase):
         data = self._receipt(again, again_receipt)
         self.assertEqual(data["status"], "PASS")
         self.assertNotEqual(again_receipt, receipt)
+
+    def test_reviewer_http_error_is_not_a_reject_and_is_not_retried(self):
+        self.inner.httpd.review_http_status = 500
+        self.inner.httpd.review_queue = [
+            json.dumps({"verdict": "accept", "reasons": ["should not be asked"]}),
+        ]
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        proc, receipt = self._run(task, [{"mode": "fix"}], extra=["--retries", "2"])
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "REVIEW-ERROR")
+        self.assertEqual(data["reason"], "review-unavailable")
+        self.assertNotEqual(data["status"], "PASS-REJECTED")
+        self.assertEqual(data["attempts"], 1)
+        self.assertIsNone(data["commit"])
+        self.assertIsNone(data["branch"])
+        self.assertEqual(harness._branches(self.inner.repo), [])
+        recovery = data.get("recovery") or ""
+        self.assertIn("not a reject", recovery)
+        self.assertIn("was not retried", recovery)
+        self.assertIn("Recovery:", recovery)
+        first = json.loads((receipt / "attempt-1" / "receipt.json").read_text(encoding="utf-8"))
+        self.assertEqual(first["status"], "REVIEW-ERROR")
+        self.assertEqual(first["reason"], "review-unavailable")
+        self.assertNotEqual((first.get("model_review") or {}).get("verdict"), "reject")
+        self.assertNotEqual((first.get("model_review") or {}).get("verdict"), "accept")
+        self.assertFalse((receipt / "attempt-2").exists())
+        self.assertEqual(len(_prompts(self.prompts)), 1)
+        self.inner.assert_clean_origin()
+
+    def test_reviewer_timeout_is_not_a_reject_and_is_not_retried(self):
+        self.inner.httpd.review_block = threading.Event()
+        self.inner.httpd.review_started = threading.Event()
+        self.inner.httpd.review_queue = [
+            json.dumps({"verdict": "accept", "reasons": ["should not be asked"]}),
+        ]
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        proc, receipt = self._run(
+            task,
+            [{"mode": "fix"}],
+            extra=["--retries", "2", "--timeout", "12"],
+            timeout=90,
+        )
+        self.assertTrue(self.inner.httpd.review_started.is_set(), proc.stdout + proc.stderr)
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "REVIEW-ERROR")
+        self.assertEqual(data["reason"], "review-unavailable")
+        self.assertNotEqual(data["status"], "TIMEOUT")
+        self.assertNotEqual(data["status"], "PASS-REJECTED")
+        self.assertEqual(data["attempts"], 1)
+        self.assertIsNone(data["commit"])
+        self.assertIsNone(data["branch"])
+        recovery = data.get("recovery") or ""
+        self.assertIn("not a reject", recovery)
+        self.assertIn("was not retried", recovery)
+        self.assertIn("Recovery:", recovery)
+        first = json.loads((receipt / "attempt-1" / "receipt.json").read_text(encoding="utf-8"))
+        self.assertEqual(first["status"], "REVIEW-ERROR")
+        self.assertEqual(first["reason"], "review-unavailable")
+        self.assertFalse((receipt / "attempt-2").exists())
+        self.assertEqual(len(_prompts(self.prompts)), 1)
+        self.inner.assert_clean_origin()

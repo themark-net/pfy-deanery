@@ -343,7 +343,10 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
-        self.wfile.write(data)
+        try:
+            self.wfile.write(data)
+        except BrokenPipeError:
+            return
 
     def do_GET(self):  # noqa: N802
         if self.path.startswith("/api/tags"):
@@ -378,6 +381,10 @@ class Handler(BaseHTTPRequestHandler):
                 blocker = getattr(self.server, "review_block", None)
                 if blocker is not None:
                     blocker.wait()
+                http_status = getattr(self.server, "review_http_status", 200)
+                if http_status != 200:
+                    self._send(int(http_status), {"error": "review-down"})
+                    return
                 queue = getattr(self.server, "review_queue", None)
                 if queue:
                     content = queue.pop(0)
