@@ -1,0 +1,5 @@
+name: reusable
+on: push
+jobs:
+  call:
+    uses: ./.github/workflows/self-hosted.yml

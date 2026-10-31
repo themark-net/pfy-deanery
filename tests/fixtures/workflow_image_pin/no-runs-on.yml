@@ -1,0 +1,6 @@
+name: bare
+on: push
+jobs:
+  g:
+    steps:
+      - run: "true"

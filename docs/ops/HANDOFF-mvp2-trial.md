@@ -1,5 +1,7 @@
 # Handoff: pfy local build MVP step 2 trial
 
+Historical note: "Do not merge to main" and the `bot/mvp2-trial` branch text below are historical. The report now lives on main.
+
 Branch `bot/mvp2-trial`. Base `997d89264495861a178713ccf7d4447ea828afc4`. Not a Feature GO. No PR. Do not merge to main. Catalog HOLD 70-75 was not touched. The head SHA is whatever `git rev-parse HEAD` prints after the commit that adds this file. A commit cannot record its own SHA.
 
 Worktree: `/home/mark/DEVELOP/pfy-mentat/tmp/mvp2`. The main checkout and other worktrees were not used. Raw logs and arm worktrees stay under `tmp/mvp2-runs/` (gitignored). Receipts and reviews: `eval/mvp2/results/`. Patches: `eval/mvp2/patches/`. Report: `eval/mvp2/REPORT.md`. Decisions: `docs/ops/AUTONOMOUS-DECISIONS-2026-10-27.md`. Run log: `docs/ops/RUN-LOG-mvp2-trial.md`.
@@ -10,7 +12,7 @@ No-go for making `./pfy build --local` the default on build-only runs.
 
 Gate pass: local 5/6, cloud 6/6. Review accept: local 4/6, cloud 6/6. Wall: local 1694.0 s, cloud 583.6 s. Attempts: 1 each. Timeouts: 0. Memory blocks: 0. Gaming: none. Scope creep: none.
 
-Weekly Build percent was not readable. `~/.grok/auth.json` exists and is non-empty. Six cloud sessions, `turnCount` 1 each, `modelCalls` 9+5+9+9+12+7 = 51. Token fields were not copied.
+Weekly Build percent was not readable. That sentence is an operator observation with no receipt field. `~/.grok/auth.json` exists and is non-empty. Six cloud sessions, `turnCount` 1 each, `modelCalls` 9+5+9+9+12+7 = 51. Token fields were not copied.
 
 ## Per task
 
@@ -33,8 +35,16 @@ Local: `python3 eval/mvp2/run_trial.py all-local`. Cloud: `python3 eval/mvp2/run
 
 ## Not done
 
-Task diffs are not on this branch except as patches. Mark chooses what to land. No second local attempt. No cloud retry. Weekly percent still unknown.
+Task diffs are not on this branch except as patches. Landing default, as an owner override: prefer the cloud (C) patches; never land the local t4/t5 patches. No second local attempt. No cloud retry. Weekly Build percent is still unknown. That reading is an operator observation with no receipt field.
 
 ## Landing (2026-10-30 PT)
 
-Branch `bot/mvp2-report`: the five `bot/mvp2-trial` commits (50220ce and parents) cherry-picked unchanged onto `origin/main` 1e99251 so main can fast-forward. Worktree `tmp/mvp2r`. Scope is docs and eval only: `docs/build-dropins/`, `docs/ops/`, `docs/TODO.md`, `eval/mvp2/`. No runtime code changes; the local t4/t5 diffs are only evidence files under `eval/mvp2/patches/`, not landed code. The `eval/mvp2/gates/test_mvp2_*.py` gates are red on base by design and sit outside `tests/`, so CI's `unittest discover -s tests` does not collect them. Gate rule: docs/eval only, so pregate plus Reviewer, no Tester. Follow-up: MVP-3 review-and-retry loop on `bot/mvp3-review-retry` (`docs/build-dropins/pfy-local-build-mvp3.md`).
+Branch `bot/mvp2-report`: the five `bot/mvp2-trial` commits (50220ce and parents) cherry-picked unchanged onto `origin/main` 1e99251 so main can fast-forward. Worktree `tmp/mvp2r`. Scope is docs and eval only: `docs/build-dropins/`, `docs/ops/`, `docs/TODO.md`, `eval/mvp2/`. No runtime code changes; the local t4/t5 diffs are only evidence files under `eval/mvp2/patches/`, not landed code. The `eval/mvp2/gates/test_mvp2_*.py` gates are red on base by design and sit outside `tests/`, so CI's `unittest discover -s tests` does not collect them. Gate rule: docs/eval only, so pregate plus Reviewer, no Tester. Follow-up: MVP-3 review-and-retry loop on `bot/mvp3-review-retry` ([pfy-local-build-mvp3.md](../build-dropins/pfy-local-build-mvp3.md)). That file is not on this branch or on main. It lands with MVP-3 on branch `bot/mvp3-review-retry`.
+
+## Known gaps
+
+Prove-red has no standalone receipt. It is backed only by the local `tests_before` field (failures 1, 1, 1, 2, 1, 3; errors 0). Cloud receipts lack `tests_before`. This note does not add a receipt.
+
+None reported a truncated prompt. That sentence is an operator observation with no receipt field. The same wording is in `eval/mvp2/REPORT.md`.
+
+Weekly Build percent was not readable. That sentence is an operator observation with no receipt field.

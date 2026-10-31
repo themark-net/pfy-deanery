@@ -100,7 +100,7 @@ data/toolsets.json ─┐                         data/harnesses.json (role=harn
 - The matrix status is derived from `data/toolsets.json` only; `plan()` never upgrades a `stub` and never fabricates a READY plan for a stub cell. Implemented/partial cells return READY (env/files/brief) or honest FAIL (missing live dep), never STUB.
 - `plan()` is pure (no writes). `apply()` writes only with `yes=True` and only under allowed roots; every write mode is idempotent (`write`, `append-marker`, `json-merge`, `symlink`, `legacy`).
 - Toolset semantics live in `scripts/pfy_*_NNN.py`; `pfylib` imports them by path via `_legacy` — do not copy constants or decision logic into `pfylib`. Who still goes through the bridge: see `_legacy.py` docstring.
-- Attach differences per harness live in `data/harnesses.json[].attach` (session id, label, install hint, bin fallbacks, config dir). Binary names come from `detect`. The four `pfy_attach_usable_*.py` files are ≤45-line shims so the board keeps loading `open_enterable_<x>_session`. OpenCode enterable (`pfy_enterable_162*`) is still its own path (T-0124).
+- Attach differences per harness live in `data/harnesses.json[].attach` (session id, label, install hint, bin fallbacks, config dir). Binary names come from `detect`. The four `pfy_attach_usable_*.py` files are ≤45-line shims so the board keeps loading `open_enterable_<x>_session`. OpenCode enterable is `attach.open_opencode_session` (T-0124); `scripts/pfy_enterable_162_b.py` is the shim. That path still writes OpenCode config, skills, and tools env. The four harnesses stay on `open_session`.
 - `hedge.decide()` is deterministic given `(task, local, budget, ledger, profile)`; tests pass `local=` and `budget=` explicitly so no detector or network runs.
 - `catalog_tool` is a `TOOLS.md`/`tools.json` **name** or `null`; the reverse link is `tools.json[].implementation = {"toolset", "stage"}` with stages from [integration-stages.md](../ops/integration-stages.md). Do not invent catalog rows or scores to make the link exist.
 - Package is `pfylib/` because the repo root already has the executable file `pfy` (ADR-0017 § Consequences).
@@ -113,9 +113,10 @@ data/toolsets.json ─┐                         data/harnesses.json (role=harn
 | hermes | hermes | Hermes | `pfy_attach_usable_196` | `hermes`, `hermes-agent` | — | none |
 | claude-code | **claude** | Claude | `pfy_attach_usable_221` | `claude` | `curl -fsSL https://claude.ai/install.sh | bash` | `CLAUDE_CONFIG_DIR` → `~/.claude` |
 | codex | codex | Codex | `pfy_attach_usable_220` | `codex` then `~/.local/bin/codex` | `curl -fsSL https://chatgpt.com/codex/install.sh \| sh` | `CODEX_HOME` → `~/.codex` |
+| opencode | opencode | OpenCode | `pfy_enterable_162` | `opencode`, `opencode-cli` | none | none (`config_dir` null; the open path sets `OPENCODE_CONFIG`) |
 
 Shared body (FreeToken-first probe, child env via #205/#208, models+smoke prove, FAIL+next) is `pfylib/attach.py` once. Regression contract: `tests/test_attach.py` (`EXPECTED` captured at de0da83).
 
 ### Extension points (T-0124)
 
-Add a `_plan_<toolset>()` in `toolsets.py`, register it in `_PLANNERS`, import the legacy module through `_legacy.load("<script stem>")`, and flip the relevant cells in `data/toolsets.json` only to the status the code earns. Add a test in `tests/test_toolsets.py` asserting non-empty `env`/`files`/`brief` (or honest FAIL) for every non-stub cell. OpenCode attach still lives in `pfy_enterable_162*` — fold it behind `attach.py` the same way when touching it.
+Add a `_plan_<toolset>()` in `toolsets.py`, register it in `_PLANNERS`, import the legacy module through `_legacy.load("<script stem>")`, and flip the relevant cells in `data/toolsets.json` only to the status the code earns. Add a test in `tests/test_toolsets.py` asserting non-empty `env`/`files`/`brief` (or honest FAIL) for every non-stub cell. OpenCode attach is `attach.open_opencode_session`, which writes OpenCode config, skills, and tools env.

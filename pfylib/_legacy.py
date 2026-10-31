@@ -19,8 +19,7 @@ Scripts that still go through this bridge (and who calls them):
   pfy_enterable_162_a    attach                        spawn_terminal_opencode / _focus_pid /
                                                        resolve_enterable_pid (OpenCode-shaped helpers)
 
-Not bridged (still their own entry points): pfy_enterable_162{,_b} (OpenCode
-attach -- T-0124), pfy_session_compose_224, pfy_launch_wizard_225,
+Not bridged (still their own entry points): pfy_session_compose_224, pfy_launch_wizard_225,
 pfy_recommend_models_207, pfy_live_org_queue_214, pfy_usage_165, pfy_verify_159.
 """
 from __future__ import annotations
