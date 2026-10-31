@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/t-0034-capture-list-must-show-thread-ids-20261031T214624679385Z",
+  "commit": "7600d6cf88477251bd80b56dca59dd8ef82d49c5",
+  "base": "49141a34bdefef6fe49de9e1e53d4878d537cc3b",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll implement thread ids on the capture list line without touching tests, then run the given pytest command. First I'm locating `format_item_line` and the test expectations.The list line is built in `format_item_line`. I'll check how provenance is stored and whether other tests lock the current line shape.Thread ids are already stored on the item. `format_item_line` still omits them. I'll confirm the tree, then append `message_id` and `in_reply_to` only when those strings are non-empty.The test passed. I'll note the new list-line fields in the capture and CLI docs so the operator surface matches the code.`gomjobbar capture list` now prints thread ids that are already stored on the capture item.\n\n`format_item_line` still starts with id, kind, status, title, `compute=` when a tier is set, and the source label. It then appends `message_id:` and `in_reply_to:` only when those `provenance` values are non-empty strings. A missing or empty field is left off the line. `raw_source` is not printed. The list command already calls this function, so no IMAP call and no submit path were added.\n\n`tests/test_capture_list_thread.py` passed unchanged: 1 passed in 0.19s. Docs in `docs/modules/capture.md` and `docs/modules/cli.md` match the new line. Nothing was committed or pushed.\n\nI'll check the capture-list change against T-0034 and only accept it if the line format matches the task without extra behavior.verdict: accept\n\n`format_item_line` still prints id, kind, status, title, compute tier, and source label, and appends `message_id:` and `in_reply_to:` only when those provenance values are non-empty strings. It does not print `raw_source`, call IMAP, or set `submitted`. Docs match that behavior, and `tests/` is untouched.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "env JOURNAL_DB_PATH=./tmp/list-journal.db USE_OLLAMA=false PYTHONDONTWRITEBYTECODE=1 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/tmp/gom-venv/bin/python -m pytest -q -p no:cacheprovider tests/test_capture_list_thread.py",
+    "before": {
+      "cmd": "env JOURNAL_DB_PATH=./tmp/list-journal.db USE_OLLAMA=false PYTHONDONTWRITEBYTECODE=1 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/tmp/gom-venv/bin/python -m pytest -q -p no:cacheprovider tests/test_capture_list_thread.py",
+      "exit": 1,
+      "tail": "F                                                                        [100%]\n=================================== FAILURES ===================================\n______________________ test_capture_list_shows_thread_ids ______________________\n\ntmp_path = PosixPath('/home/mark/DEVELOP/jobbar-master/tmp/gom-dogfood-1031-scratch/clones/06-capture-list-thread/tmp/cloud-build/20261031T214624679385Z/tmp/pytest-of-mark/pytest-0/test_capture_list_shows_thread0')\n\n    def test_capture_list_shows_thread_ids(tmp_path: Path) -> None:\n        db_path = tmp_path / \"journal.db\"\n        token=[redacted]\n        child = _land(\n            db_path,\n            {\n                \"ts\": \"2026-10-02T00:00:00Z\",\n                \"subject\": \"Re: shipped the queue\",\n                \"body\": \"added the graph\",\n                \"message_id\": \"mid-child@example\",\n                \"in_reply_to\": \"mid-root@example\",\n                \"references\": [\"mid-root@example\"],\n                \"raw_source\": token,\n            },\n        )\n        assert child[\"ok\"] is True\n        line = format_item_line(child[\"item\"])\n        assert \"Re: shipped the queue\" in line\n>       assert \"message_id: mid-child@example\" in line\nE       AssertionError: assert 'message_id: mid-child@example' in 'cap_a9a1fe4660  email  landed           Re: shipped the queue  email'\n\ntests/test_capture_list_thread.py:70: AssertionError\n----------------------------- Captured stderr call -----------------------------\n2026-10-31 14:46:24 [debug    ] journal upserted               user_key=[redacted]\n=========================== short test summary info ============================\nFAILED tests/test_capture_list_thread.py::test_capture_list_shows_thread_ids - AssertionError: assert 'message_id: mid-child@example' in 'cap_a9a1fe4660  email  landed           Re: shipped the queue  email'\n1 failed in 0.03s\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "env JOURNAL_DB_PATH=./tmp/list-journal.db USE_OLLAMA=false PYTHONDONTWRITEBYTECODE=1 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/tmp/gom-venv/bin/python -m pytest -q -p no:cacheprovider tests/test_capture_list_thread.py",
+      "exit": 0,
+      "tail": ".                                                                        [100%]\n1 passed in 0.18s\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": false,
+  "task": "T-0034: capture list must show thread ids that are already on the capture item. format_item_line, which gomjobbar capture list prints, must include the text message_id: followed by the value when provenance.message_id is a non-empty string, and the text in_reply_to: followed by the value when provenance.in_reply_to is a non-empty string. Omit each label when that field is missing or empty. Keep the existing id, kind, status, title, compute tier, and source label. Do not print raw_source. Do not call IMAP. Do not submit anything and do not set submitted to true (Decision 0006). Do not edit files under tests/. tests/test_capture_list_thread.py must pass unchanged.",
+  "finished_at": "2026-10-31T21:48:45Z"
+}

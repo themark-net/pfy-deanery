@@ -90,3 +90,7 @@ Host before 04: 2026-10-31T21:37:38Z MemAvailable 59.3 GiB, load 4.50, 32 cores.
 Host before 05: 2026-10-31T21:41:15Z MemAvailable 57.0 GiB, load 4.20, 32 cores. Under the pressure line.
 
 - 05-land-thread-provenance | cloud 0c06365b9afbe7012f02cdd351d589e1c6502db6 landed b1288bc98421ecacd30b3359f13d32d31ff1f7fd (test 48644529f172ed8fac7822963dd1161be1fe9c54) | gate before exit 1, after exit 0; land pytest 5 passed | PASS review accept human accept wall 85s
+
+Host before 06: 2026-10-31T21:46:18Z MemAvailable 58.6 GiB, load 4.18, 32 cores. Under the pressure line.
+
+- 06-capture-list-thread | cloud 7600d6cf88477251bd80b56dca59dd8ef82d49c5 landed 3d9aac7b434e02d93ecab45a97457f5b2069dcb3 (test 213344387c16f3cfbdaaccebd60bd8e36c40fe41) | gate before exit 1, after exit 0; land pytest 6 passed | PASS review accept human accept wall 141s

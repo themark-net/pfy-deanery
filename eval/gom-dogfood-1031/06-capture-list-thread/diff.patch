@@ -1,0 +1,54 @@
+diff --git a/docs/modules/capture.md b/docs/modules/capture.md
+index 9ab702c..c7066e6 100644
+--- a/docs/modules/capture.md
++++ b/docs/modules/capture.md
+@@ -25,6 +25,8 @@ uv run gomjobbar capture serve USER   # land API + capture-thin PWA
+ uv run gomjobbar catch USER --poll   # still lands email items + raw_catches bridge
+ ```
+ 
++`capture list` keeps id, kind, status, title, `compute=` when set, and the source label. It appends `message_id:` and `in_reply_to:` only when those provenance strings are non-empty. It does not print `raw_source`.
++
+ ### Failure modes
+ 
+ | Symptom | Likely cause | Recovery |
+@@ -60,7 +62,7 @@ uv run gomjobbar catch USER --poll   # still lands email items + raw_catches bri
+ 
+ ### Data shapes
+ 
+-CaptureItem keys: `id`, `kind` (`voice|photo|pdf|file|email`), `status` (`landed|processing|stored|needs_judgment|consumed|failed`), `title`, `snippet`, `blob_ref`, `text_extract`, `provenance` (incl. `source`, optional `dedupe_key` / `device`), `compute_tier` (`full|offline_stub|blocked`), `links`, `error`, `next_hint`.
++CaptureItem keys: `id`, `kind` (`voice|photo|pdf|file|email`), `status` (`landed|processing|stored|needs_judgment|consumed|failed`), `title`, `snippet`, `blob_ref`, `text_extract`, `provenance` (incl. `source`, optional `dedupe_key` / `device` / `message_id` / `in_reply_to`), `compute_tier` (`full|offline_stub|blocked`), `links`, `error`, `next_hint`. `format_item_line` (used by `capture list`) appends `message_id:` and `in_reply_to:` only for non-empty strings. It does not print `raw_source`.
+ 
+ ### Callers / callees
+ 
+diff --git a/docs/modules/cli.md b/docs/modules/cli.md
+index 48ee8d4..365172e 100644
+--- a/docs/modules/cli.md
++++ b/docs/modules/cli.md
+@@ -37,7 +37,7 @@ python -m gomjobbar ...
+ | `leads list` | list journal mailbox `job_leads` |
+ | `job load` | `--from-lead N` or `--job-url` → current-job JSON. `--no-fetch` uses stored lead fields (no HTTP; sim dummy URLs) |
+ | `capture land` | land file or `--email-fixture` into unified inbox; `--source mobile-fixture --dedupe-key` matches phone |
+-| `capture list` | list CaptureItems |
++| `capture list` | list CaptureItems. Line includes `message_id:` and `in_reply_to:` when those provenance strings are non-empty. Does not print `raw_source`. |
+ | `capture process` | capture→store compute tier (`--id`) |
+ | `capture apply` | `--ids` + `--confirm` → experiences / job_leads (not submit) |
+ | `capture serve` | land API + capture PWA + `POST /fills/match` and `/fills/commit` (token required) |
+diff --git a/gomjobbar/capture.py b/gomjobbar/capture.py
+index 50c9973..134be3f 100644
+--- a/gomjobbar/capture.py
++++ b/gomjobbar/capture.py
+@@ -973,4 +973,13 @@ def format_item_line(item: dict[str, Any]) -> str:
+     extra = f"  compute={tier}" if tier else ""
+     label = provenance_label(item)
+     src = f"  {label}" if label else ""
+-    return f"{item.get('id')}  {kind:5}  {status:15}  {title}{extra}{src}"
++    # T-0034: ids already on the item. Missing or empty stays off the line.
++    prov = item.get("provenance") if isinstance(item.get("provenance"), dict) else {}
++    thread = ""
++    message_id = prov.get("message_id")
++    if isinstance(message_id, str) and message_id:
++        thread += f"  message_id: {message_id}"
++    in_reply_to = prov.get("in_reply_to")
++    if isinstance(in_reply_to, str) and in_reply_to:
++        thread += f"  in_reply_to: {in_reply_to}"
++    return f"{item.get('id')}  {kind:5}  {status:15}  {title}{extra}{src}{thread}"
