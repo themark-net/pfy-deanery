@@ -104,7 +104,12 @@ Format: `item | commit | tests | result`
 - entry 149 count | 42fc4e1 (cloud 3faeaa2e0a48a8e65aeeda9d57bea304511c02bd) | nice python3 -m unittest tests.test_entry_149_count (1 OK) | PASS human-accept wall 28s attempts 1
 - hermes landed | 6e0ae87 (cloud 954dc026b9a7be35172e6481ca27cf6f0b5513b2) | nice python3 -m unittest tests.test_hermes_landed_status (1 OK) | PASS human-accept wall 37s attempts 1
 - ATG pin and score | dfe915f (cloud 84c2cbf4068430ec8915a426b5d4824401f05a66) | nice python3 -m unittest tests.test_catalog_stage_pin_score tests.test_catalog_stage_eval (5 OK) | PASS human-accept wall 116s attempts 1
+- harness2 notes doc | 13d6bf2 (cloud 1d3f6143a05d9f04bc55a530ed4bbc2dc01576b6) | nice python3 -m unittest tests.test_catalog_stage_notes_doc tests.test_catalog_stage_eval tests.test_catalog_stage_pin_score (6 OK) | PASS human-accept wall 294s attempts 1
 
 ## Checks
 
 Host before each item: MemAvailable and load. Skip the item area on a red base test. Do not stop the lane for a red base.
+
+At stop 2026-10-31T23:22:46Z: MemAvailable about 78 GiB, load 3.33, 32 cores. Runner.Worker was live. Another lane held the heavy lock and was running pregate. This lane did not run pregate.
+
+state: lane empty | six cloud builds landed, recompute drops no further evidence string, remaining named gaps need an OQ, hardware, a local model, docker, Mark, an ADR, or a file a live lane owns

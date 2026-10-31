@@ -13,3 +13,4 @@ Rows are appended as each item finishes. A missing row means that item has not f
 | entry 149: publish the live stub-test count | PASS ok, review accept, gate 1 then 0 | 1 | 28 | accept | 42fc4e1 |
 | Hermes bake-off: pending bullet says landed | PASS ok, review accept, gate 1 then 0 | 1 | 37 | accept | 6e0ae87 |
 | ATG evidence: keep pin SHA and score SHA | PASS ok, review accept, gate 1 then 0 | 1 | 116 | accept | dfe915f |
+| harness2 evidence: keep the entry notes doc | PASS ok, review accept, gate 1 then 0 | 1 | 294 | accept | 13d6bf2 |
