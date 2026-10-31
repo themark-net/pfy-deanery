@@ -62,6 +62,7 @@ Format: `item | commit | tests | result`
 
 - loop-card | 5d0575b | nice python3 -m unittest tests.test_selfhost_1031_log (2 OK) | PASS
 - relative receipt dir | 00dbdd9 | nice python3 -m unittest tests.test_smoke_receipt_absolute (1 OK, was red before the fix) | PASS human-accept
+- tree sig mode | 89d34af | nice python3 -m unittest tests.test_tree_sig_mode tests.test_x_intake_smoke_122_124.XIntakeSmoke122124Tests.test_tree_sig_streams_file_contents tests.test_selfhost_1031_log (4 OK) | PASS human-accept
 
 Skips logged before the first build (not three in a row of attempted items; these are out of scope up front):
 
