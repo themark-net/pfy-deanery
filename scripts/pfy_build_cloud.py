@@ -16,8 +16,8 @@ Exit codes:
 
 Receipt schema: pfy-cloud-build/1
 
-classify_cloud_failure is an inline copy of the pfylib.build_preflight
-contract so this branch tests alone. Do not import that module.
+Failure class comes from pfylib.build_preflight.classify_cloud_failure.
+This runner does not keep a second copy of those phrases.
 """
 
 from __future__ import annotations
@@ -35,6 +35,12 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+
+_ROOT = Path(__file__).resolve().parents[1]
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
+from pfylib.build_preflight import classify_cloud_failure  # noqa: E402
 
 EXIT_OK = 0
 EXIT_FAIL = 1
@@ -71,15 +77,6 @@ Daily cloud build.
 --local is the opt-in fallback (./pfy build --local "<task>").
 """
 
-# Same phrases as pfylib.build_preflight.classify_cloud_failure, in that order.
-_RATE_LIMIT = re.compile(
-    r"rate limit|usage limit|quota exceeded|too many requests|\b429\b",
-    re.IGNORECASE,
-)
-_UNAUTH = re.compile(
-    r"unauthenticated|not logged in|please log in|auth\.json",
-    re.IGNORECASE,
-)
 _PEM = re.compile(
     r"-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----.*?-----END [A-Z0-9 ]*PRIVATE KEY-----",
     re.DOTALL,
@@ -116,22 +113,6 @@ def _slug(text: str) -> str:
     raw = re.sub(r"[^a-z0-9]+", "-", (text or "").strip().lower()).strip("-")
     raw = (raw[:40] or "task").strip("-")
     return raw or "task"
-
-
-def classify_cloud_failure(rc, stdout, stderr) -> str:
-    """Return rate-limit, unauthenticated, or other. Opens no file."""
-    try:
-        code = int(rc)
-    except (TypeError, ValueError):
-        code = 1
-    if code == 0:
-        return "other"
-    text = "%s\n%s" % (stdout or "", stderr or "")
-    if _RATE_LIMIT.search(text):
-        return "rate-limit"
-    if _UNAUTH.search(text):
-        return "unauthenticated"
-    return "other"
 
 
 def redact(text: str) -> str:

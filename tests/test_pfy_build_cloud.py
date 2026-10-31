@@ -919,6 +919,27 @@ class CloudBuildFailureTests(unittest.TestCase):
                 self.assertIsNone(payload["branch"])
                 self.assertFalse((home / "auth.json").exists())
 
+    def test_embedded_429_follows_the_preflight_classifier(self) -> None:
+        receipt_dir = self.side / "embedded-429"
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\nprint('code 4291')\nraise SystemExit(1)\n",
+        )
+        proc = self._run_task(
+            grok,
+            self._gate(),
+            "embedded-429",
+            extra=["--retries", "0", "--receipt-dir", str(receipt_dir)],
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 4, text)
+        payload = json.loads((receipt_dir / "receipt.json").read_text(encoding="utf-8"))
+        self.assertEqual(payload["status"], "BLOCKED")
+        self.assertEqual(payload["reason"], "rate-limit")
+        self.assertEqual(payload["recovery"], "./pfy build --local embedded-429")
+        self.assertIsNone(payload["branch"])
+        self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
+
     def test_zero_exit_with_rate_limit_text_is_not_blocked(self) -> None:
         grok = _write_exe(
             self.side / "grok.py",
