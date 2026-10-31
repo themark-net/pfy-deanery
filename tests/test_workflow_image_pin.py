@@ -4,12 +4,14 @@
 Fixture files live in tests/fixtures/workflow_image_pin/. Parse cases skip
 when this interpreter cannot import yaml, because the helper itself exits 1
 in that case and G0's setup-python does not ship PyYAML. The missing-import
-case always runs.
+case always runs. The pregate lint test skips on PATH python3, which is the
+interpreter pregate.sh execs, not on sys.executable.
 """
 from __future__ import annotations
 
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -32,6 +34,30 @@ except ImportError:
 needs_yaml = unittest.skipUnless(
     HAS_YAML,
     "SKIP: PyYAML is not importable; the helper fails closed and these fixtures are not parsed here",
+)
+
+
+def path_python3_has_yaml(path: str | None = None) -> bool:
+    """True when the python3 pregate will exec can import PyYAML.
+
+    pregate.sh calls ``python3`` from PATH. Importing yaml in this process
+    (sys.executable) is a different interpreter and must not decide the skip.
+    """
+    python3 = shutil.which("python3", path=path) if path is not None else shutil.which("python3")
+    if not python3:
+        return False
+    proc = subprocess.run(
+        [python3, "-c", "import yaml"],
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    return proc.returncode == 0
+
+
+needs_path_python_yaml = unittest.skipUnless(
+    path_python3_has_yaml(),
+    "SKIP: PATH python3 cannot import PyYAML; pregate calls that interpreter, not sys.executable",
 )
 
 
@@ -214,7 +240,32 @@ class WorkflowImagePinTests(unittest.TestCase):
         finally:
             shutil.rmtree(shadow)
 
-    @needs_yaml
+    def test_yaml_probe_uses_the_python3_on_path(self) -> None:
+        # A python3 earlier on PATH that cannot import yaml must not be hidden
+        # by this process's interpreter. The positive half execs the real
+        # PATH python3 via that same slot, so a probe of sys.executable fails
+        # the negative half instead of passing both.
+        SCRATCH.mkdir(parents=True, exist_ok=True)
+        directory = Path(tempfile.mkdtemp(prefix="path-python3-", dir=SCRATCH))
+        try:
+            fake = directory / "python3"
+            fake.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
+            fake.chmod(0o755)
+            self.assertFalse(path_python3_has_yaml(str(directory)))
+            real = shutil.which("python3")
+            self.assertIsNotNone(real)
+            if not path_python3_has_yaml():
+                return
+            fake.write_text(
+                "#!/bin/sh\nexec " + shlex.quote(real) + ' "$@"\n',
+                encoding="utf-8",
+            )
+            fake.chmod(0o755)
+            self.assertTrue(path_python3_has_yaml(str(directory)))
+        finally:
+            shutil.rmtree(directory)
+
+    @needs_path_python_yaml
     def test_pregate_lint_calls_helper(self) -> None:
         # --only lint is filemode, launchers, payload lint, catalog_check, and
         # this helper. It does not discover tests. MVP-3 may be busy.
