@@ -48,4 +48,5 @@ Launch host: MemAvailable 62.1 GiB, 32 cores, load 2.76. Under the pressure line
 Format: `item | commit | tests | result`
 
 - exits | 75a5f7782f21f69fe96fa91076ac570674453646 | none (docs only, before code) | written
-Host before fixture: MemAvailable 62.1 GiB, load 2.76, under the pressure line.
+- fixture | 837107604d5003a5465b2c89618a6f93a651c523 | temp proof red rc 1 (0 != 5), green rc 0; nice python3 -m unittest tests.test_mvp_1031_receipt OK | pass
+Host before init: 2026-10-31T19:57:50Z MemAvailable 62.1 GiB, load 2.78, 32 cores. Under the pressure line.
