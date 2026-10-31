@@ -18,7 +18,7 @@ Report: `eval/mutation-1031/preflight/REPORT.md`.
 | First killing tests | fe74696 | 11 gaps, green on the source |
 | Second catalog (P10, R13-R19) | 6e2f314 | anchors apply, tests green |
 | Non-string gate (R20) | b5d57f8 | empty-string coverage did not kill this mutant |
-| Final before and after | this handoff commit | 27 mutants; before 6/21; after 26/1; sources unchanged |
+| Final before and after | 718a925 | 27 mutants; before 6/21; after 26/1; sources unchanged |
 
 ## Skipped
 

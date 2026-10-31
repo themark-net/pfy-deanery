@@ -55,7 +55,7 @@ survivors | fe74696 | nice -n 19 python3 -m unittest tests.test_mut_preflight_su
 second-pass | 6e2f314 | nice -n 19 python3 -m unittest tests.test_mut_preflight_harness tests.test_mut_preflight_survivors | 24 tests OK in 3.371s; P10 and R13-R19 anchors apply
 gate-shape | b5d57f8 | same modules, catalog test plus the two gate tests | R20 anchor applies; missing gate and a bare string are rejected
 rescore | b5d57f8 | nice -n 19 python3 eval/mutation-1031/preflight/run_mutants.py --baseline-only --label before; then --label after | 27 mutants; before 6 killed, 21 survived; after 26 killed, 1 survived (P9 equivalent); base suite green both rounds; sources unchanged
-handoff | this commit | report plus the 25-test module run | lane empty
+handoff | 718a925 | report plus the 25-test module run | lane empty
 ```
 
 state: lane empty | 27 mutants; before 6 killed, 21 survived; after 26 killed, 1 equivalent (P9); tests: harness plus survivors 25 OK in 3.979s; pregate not run | files: harness, survivor tests, report, results | err: none
