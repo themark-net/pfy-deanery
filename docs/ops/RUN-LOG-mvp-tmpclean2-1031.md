@@ -71,3 +71,4 @@ Progress:
 - state: DONE | tests: tests.test_workflow_image_pin 21 OK in 6.800s | files: 1 | err: none
 - FU5 lint helper without pregate | d5422c9 | TMPDIR=$PWD/tmp nice -n 19 python3 -m unittest tests.test_workflow_image_pin | 21 OK in 0.561s | pass
 - state: DONE | tests: tests.test_workflow_image_pin 21 OK in 0.561s | files: 1 | err: none
+- FU6 T-0124 session cases | 1be6160 | TMPDIR=$PWD/tmp nice -n 19 python3 -m unittest tests.test_attach | 28 OK in 0.065s | pass
