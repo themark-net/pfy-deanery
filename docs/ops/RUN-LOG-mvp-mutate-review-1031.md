@@ -70,3 +70,26 @@ Exit card and phase plan written before the merge and before any product code. S
 Parallel coding sub-agents are not used. They would share this branch. The lead implements the phases in order.
 
 state: DONE | tests: none (docs only) | files: 2 | err: none
+
+### merge-base
+
+`git fetch origin && git merge --no-edit origin/bot/mvp-review-fix2-1031` at planning time brought `23ea0cd` (eval scratch stays in the script repo). Merge commit `cdcd017`. Pushed.
+
+The tip moved during the exit card. A second merge brought `187efde` (review module runs with bwrap hidden). Merge commit `1ee80a3`. Pushed. The runner file did not change. `tests/test_pfy_build_local_review_ci.py` is now in the required glob.
+
+Host still under the pressure line at the harness item (the long suite has not started). Wall cap remains 2026-11-01T05:16:00Z.
+
+state: DONE | tests: none (merge) | files: merge | err: none
+
+### harness
+
+`eval/mutation-1031/review/run_mutants.py` applies one catalog mutant at a time on a clone under this worktree `tmp/`. Default invocation only checks anchors. `--run` clones and executes the suite, niced, with `TMPDIR` under `tmp/`. A missing anchor is `not-applied`. A timeout is not a kill. A red baseline is skipped per module and is not scored as kills. The worktree runner is a protected file.
+
+How it fails: a mutant is written into the worktree runner, a hung suite is called killed, or a red baseline is scored as a kill.
+
+How we recover: the harness refuses a protected path and a clone outside `tmp/`. The campaign restores the clone file in `finally`. A timeout kills only the suite process group this run started. A red baseline records the module and skips scoring.
+
+item | commit | tests | result
+harness | pending-sha | nice python3 -m unittest tests.test_mut_review_harness | Ran 5 tests in 2.414s OK
+
+state: DONE | tests: tests.test_mut_review_harness OK | files: 3 | err: none
