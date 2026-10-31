@@ -485,6 +485,8 @@ class ReviewLoopTests(unittest.TestCase):
         self.assertEqual(data["status"], "PASS")
         self.assertEqual(data["attempts"], 1)
         self.assertFalse(data["review"]["enabled"])
+        self.assertIs(data["review"]["same_model"], True)
+        self.assertEqual(data["model"], "fixture:small")
         self.assertFalse((receipt / "attempt-2").exists())
         chat = [path for path, _payload in self.inner.httpd.posts if "chat" in path]
         self.assertEqual(chat, [])

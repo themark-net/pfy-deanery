@@ -2920,6 +2920,7 @@ def build_local(argv: list[str] | None = None) -> int:
                 "attempts": attempts_used,
                 "review": {
                     "enabled": bool(args.review),
+                    "same_model": True,
                     "retries": int(args.retries_n),
                     "max_files": int(args.max_files_n),
                     "max_lines": int(args.max_lines_n),
