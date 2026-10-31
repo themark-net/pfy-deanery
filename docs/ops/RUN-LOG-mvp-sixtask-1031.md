@@ -54,3 +54,4 @@ Format: `item | commit | tests | result`
 - report-checker | 3d1b2bf | nice python3 -m unittest tests.test_mvp_1031_sixtask_report (8 tests, 1 skipped, OK) | PASS
 - t1 | 7eb77e7 | ./pfy build exit 0 wall 211.2s attempts 1 review accept gate_rerun 0 human accept | PASS
 - t2 | 9cf7a7c | ./pfy build exit 0 wall 66.3s attempts 1 review accept gate_rerun 0 human accept | PASS
+- t3 | pending | ./pfy build exit 0 wall 259.7s attempts 1 review accept gate_rerun 0 human accept | PASS
