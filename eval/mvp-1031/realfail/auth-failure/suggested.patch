@@ -1,0 +1,35 @@
+--- a/scripts/pfy_build_cloud.py
++++ b/scripts/pfy_build_cloud.py
+@@ -77,7 +77,11 @@
+     re.IGNORECASE,
+ )
+ _UNAUTH = re.compile(
+-    r"unauthenticated|not logged in|please log in|auth\.json",
++    r"unauthenticated|not logged in|not signed in|please log in",
++    re.IGNORECASE,
++)
++_UNAUTH_FAIL = re.compile(
++    r"unauthenticated|not logged in|not signed in|please log in|auth\.json",
+     re.IGNORECASE,
+ )
+ _PEM = re.compile(
+@@ -124,12 +128,17 @@
+         code = int(rc)
+     except (TypeError, ValueError):
+         code = 1
++    text = "%s\n%s" % (stdout or "", stderr or "")
++    # A logged-out grok can exit 0 and print "Not signed in".
++    # auth.json stays on the non-zero path so a successful reply that
++    # names the file is not treated as logged out.
+     if code == 0:
++        if _UNAUTH.search(text):
++            return "unauthenticated"
+         return "other"
+-    text = "%s\n%s" % (stdout or "", stderr or "")
+     if _RATE_LIMIT.search(text):
+         return "rate-limit"
+-    if _UNAUTH.search(text):
++    if _UNAUTH_FAIL.search(text):
+         return "unauthenticated"
+     return "other"
+ 

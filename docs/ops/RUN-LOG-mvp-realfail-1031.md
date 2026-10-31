@@ -54,4 +54,5 @@ sigkill-reap | d11ce1a | tests.test_mvp_1031_realfail_receipts 3 ok | FINDING st
 timeout | 468ae85 | tests.test_mvp_1031_realfail_receipts 3 ok | exit 3 TIMEOUT matches DoD
 dirty-caller | 3fbb203 | tests.test_mvp_1031_realfail_receipts 3 ok | PASS, dirty files stayed out of the commit
 gate-red | fae6bc3 | tests.test_mvp_1031_realfail_receipts 3 ok | exit 1 tests, attempts 3, tail in later prompts
-review-reject | (this commit) | tests.test_mvp_1031_realfail_receipts | FINDING review accepted rm -rf script
+review-reject | d96f9a7 | tests.test_mvp_1031_realfail_receipts 3 ok | FINDING review accepted rm -rf script
+auth-failure | (this commit) | tests.test_mvp_1031_realfail_receipts | FINDING Not signed in became no-change
