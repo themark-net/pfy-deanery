@@ -79,4 +79,4 @@ Flags on every probe: `--retries 0`, `--no-review`, `--base HEAD`, `--repo` on a
 
 Format: `item | commit | tests | result`
 
-(none yet)
+exits | d213794 | none (docs only) | exit card pushed before any build
