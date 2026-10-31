@@ -1,6 +1,6 @@
 # Handoff: MVP-3 review-and-retry loop for `./pfy build --local`
 
-Branch `bot/mvp3-review-retry`. Worktree `~/DEVELOP/pfy-mentat/tmp/mvp3`. Base of the branch is `bot/mvp2-report` `85c53dc`. Trial base for every arm is `997d89264495861a178713ccf7d4447ea828afc4`. No PR. After Tester and Reviewer PASS, the bot fast-forwards main.
+Branch `bot/mvp3-review-retry`. Worktree `~/DEVELOP/pfy-mentat/tmp/mvp3`. Base of the branch is `bot/mvp2-report` `85c53dc`. Trial base for every arm is `997d89264495861a178713ccf7d4447ea828afc4`. No PR. The review loop code lands on main after Tester and Reviewer PASS, with the local default staying NO-GO.
 
 ## Status (2026-10-30 PT)
 
@@ -46,6 +46,6 @@ The scope check and the commit do not see the same files. t4's broad-label failu
 
 ## Gate and what is left
 
-Tester plus Reviewer at the pinned SHA. Part 1 changes runtime. No Feature GO. Do not merge from this run.
+Tester plus Reviewer at the pinned SHA. Part 1 changes runtime. No Feature GO. The review loop code lands on main after Tester and Reviewer PASS. The local default stays NO-GO.
 
 Next code fix, not done here: make the scope check include every path `git add -A -f` will commit, then re-run t5. Separately, t4 still needs a local run that writes the sub-step catch.
