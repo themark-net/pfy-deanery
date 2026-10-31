@@ -71,6 +71,7 @@ Format: `item | commit | tests | result`
 - smolvm stderr pull | none | runner exit 1 review-rejected after 3 attempts | REJECT not cherry-picked. test_h expects the cache line when stderr also has pull progress.
 - tree sig 115 | 90c9037 | nice python3 -m unittest tests.test_tree_sig_115 tests.test_selfhost_1031_log tests.test_x_intake_smoke_115_116 (7 OK) | PASS human-accept
 - tree sig 117 | b9b8898 | nice python3 -m unittest tests.test_tree_sig_117 tests.test_selfhost_1031_log tests.test_x_intake_smoke_117_118 (10 OK) | PASS human-accept
+- tree sig 112 | 828063b | nice python3 -m unittest tests.test_tree_sig_112 tests.test_selfhost_1031_log tests.test_x_intake_smoke_112_114 (11 OK) | PASS human-accept
 
 Skips logged before the first build (not three in a row of attempted items; these are out of scope up front):
 
