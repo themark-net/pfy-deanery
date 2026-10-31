@@ -82,4 +82,4 @@ Collect round 1 on mvp-integrate-1031. Merge this branch in the plan's order (af
 
 ## Decisions
 
-`docs/ops/AUTONOMOUS-DECISIONS-mvp-preflight-1031.md` (6 lines).
+`docs/ops/AUTONOMOUS-DECISIONS-mvp-preflight-1031.md` (7 lines).
