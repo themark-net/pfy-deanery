@@ -63,3 +63,6 @@ Skip items that need special hardware, a human decision (an open OQ), a secret, 
 ## Finish (on any exit)
 
 Write or update this run's handoff in `docs/ops/`: items done with SHAs, items skipped and why, test evidence, how each change fails and recovers, cross-lane requests, the gate needed (Tester plus Reviewer for runtime changes; pregate plus Reviewer for docs, eval or test-only changes), and the next step. Finish the run log with a final `state:` line. Commit and push. Do not merge.
+
+## Ownership override (2026-10-31 16:40 PT, operator)
+You OWN the code for these items on this branch: `scripts/pfy_build_local.py` (review, scope, staging, test hooks), `tests/test_pfy_build_local.py`, `tests/test_pfy_build_local_review.py`, and `docs/ops/HANDOFF-mvp3-review-retry.md`. bot/mvp-review-fix2-1031 is closed (lane empty) and is NOT the owner for this branch. Do not leave them as cross-lane requests. Implement the seven open code and handoff items from your handoff now (2, 3, 5, 6, 7, 8 and any other), each with a behavior test, push after each. The integrator will reconcile with review-fix2 later. Then write a new state line.
