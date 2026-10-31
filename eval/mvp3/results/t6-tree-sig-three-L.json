@@ -1,0 +1,129 @@
+{
+  "task": "t6-tree-sig-three",
+  "level": "slightly-hard",
+  "arm": "L",
+  "base_sha": "997d89264495861a178713ccf7d4447ea828afc4",
+  "planted_sha": "275846f691f3549593141cd121a9ae4f7aa26439",
+  "gate": "python3 -m unittest tests.test_mvp2_t6_tree_sig_three",
+  "status": "PASS",
+  "reason": "ok",
+  "attempts": 2,
+  "loop_verdict": "accept",
+  "quality_accept": true,
+  "quality_why": "Accept. Attempt 1 wrote nothing. Attempt 2 replaced tree_sig in the three named files with the smoke_122_124 content hash: streamed file bytes, a :dir marker, and :unreadable on OSError. The name stays tree_sig, and a missing path still returns None. The commit is those three files only. The planted gate is unchanged. smoke_119_121.py and smoke_122_124.py were not edited.",
+  "gaming": false,
+  "scope_creep": false,
+  "exit_code": 0,
+  "wall_seconds": 364.781,
+  "agent_seconds": 321.917,
+  "receipt_wall_seconds": 364.652,
+  "diff": {
+    "files": 4,
+    "insertions": 104,
+    "deletions": 9
+  },
+  "attempt_rows": [
+    {
+      "attempt": 1,
+      "status": "FAIL",
+      "reason": "no-change",
+      "wall_seconds": 89.934,
+      "diff_stats": {
+        "files": 0,
+        "added": 0,
+        "removed": 0,
+        "lines": 0,
+        "paths": []
+      },
+      "checks": null,
+      "model_review": null,
+      "mem_min_available_gb": 41.016
+    },
+    {
+      "attempt": 2,
+      "status": "PASS",
+      "reason": "ok",
+      "wall_seconds": 274.177,
+      "diff_stats": {
+        "files": 3,
+        "added": 27,
+        "removed": 9,
+        "lines": 36,
+        "paths": [
+          "examples/x-intake-local/smoke_112_114.py",
+          "examples/x-intake-local/smoke_115_116.py",
+          "examples/x-intake-local/smoke_117_118.py"
+        ]
+      },
+      "checks": {
+        "scope": {
+          "ok": true,
+          "outside": [],
+          "skipped": null,
+          "patterns": [
+            "examples/x-intake-local/smoke_112_114.py",
+            "examples/x-intake-local/smoke_115_116.py",
+            "examples/x-intake-local/smoke_117_118.py"
+          ]
+        },
+        "size": {
+          "ok": true,
+          "files": 3,
+          "lines": 36,
+          "max_files": 3,
+          "max_lines": 250,
+          "counted_paths": [
+            "examples/x-intake-local/smoke_112_114.py",
+            "examples/x-intake-local/smoke_115_116.py",
+            "examples/x-intake-local/smoke_117_118.py"
+          ]
+        },
+        "wiring": {
+          "ok": true,
+          "missing": [],
+          "rules": []
+        }
+      },
+      "model_review": {
+        "verdict": "accept",
+        "reasons": [
+          "The diff correctly replaces the mtime-based hashing with a content hash implementation across all three specified files. It properly handles directories and unreadable files with the required markers, preserves the function name, and satisfies the gate test. The logic ensures mtime-only changes do not affect the signature while byte changes do, as requested."
+        ],
+        "raw_tail": "{\"verdict\": \"accept\", \"reasons\": [\"The diff correctly replaces the mtime-based hashing with a content hash implementation across all three specified files. It properly handles directories and unreadable files with the required markers, preserves the function name, and satisfies the gate test. The logic ensures mtime-only changes do not affect the signature while byte changes do, as requested.\"]}"
+      },
+      "mem_min_available_gb": 38.689
+    }
+  ],
+  "free_gib_before": 88.498,
+  "receipt_status": "PASS",
+  "receipt_reason": "ok",
+  "branch": "local/t6-content-hash-for-the-three-older-tree-20261031T040058418107Z",
+  "commit": "9b61b7599899910b268d3f8e16b7d69d7721d8b8",
+  "sandbox": "bwrap-unshare-net",
+  "files_changed": [
+    "examples/x-intake-local/smoke_112_114.py",
+    "examples/x-intake-local/smoke_115_116.py",
+    "examples/x-intake-local/smoke_117_118.py"
+  ],
+  "review": {
+    "enabled": true,
+    "retries": 2,
+    "max_files": 3,
+    "max_lines": 250,
+    "allow_path": [],
+    "require_wiring": []
+  },
+  "canonical_gate": {
+    "acceptance_test_unchanged": true,
+    "exit": 0,
+    "passed": 1,
+    "failed": 0,
+    "errors": 0
+  },
+  "patch": "eval/mvp3/patches/t6-tree-sig-three-L.patch",
+  "mem": {
+    "mem_available_gb": 88.483,
+    "swap_free_gb": 0.0,
+    "min_available_gb": 38.689
+  }
+}

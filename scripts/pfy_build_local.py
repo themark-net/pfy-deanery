@@ -7,7 +7,7 @@ Nothing is pushed and no PR is opened.
 
 Exit codes:
   0  PASS, or a clean --dry-run, or --reap
-  1  FAIL (no-change, tests, protected path, tampered tests, interrupt, mem-edge, runner-crash)
+  1  FAIL, or PASS-REJECTED (the gate was green and the review rejected the patch)
   2  usage, or opencode is missing
   3  TIMEOUT (agent)
   4  BLOCKED (memory, busy host, ps error, model size, cloud tag, lock, no-model,
@@ -64,6 +64,21 @@ DEFAULT_TEST_CMD = "python3 -m unittest discover -s tests -t ."
 DEFAULT_TIMEOUT = 1200
 DEFAULT_TEST_TIMEOUT = 600
 DEFAULT_MIN_FREE_GB = 32.0
+DEFAULT_RETRIES = 2
+DEFAULT_MAX_FILES = 3
+DEFAULT_MAX_LINES = 250
+REVIEW_MARKER = "pfy-review-v1"
+DIFF_PROMPT_CAP = 8000
+_RETRYABLE = {
+    "no-change",
+    "protected-path-changed",
+    "tests-failed",
+    "tests-regressed",
+    "tests-tampered",
+    "tests-flaky",
+}
+_FILES_LINE = re.compile(r"(?m)^files:\s*(.*)$")
+_REQUIRE_LINE = re.compile(r"(?m)^require:\s*(\S+)\s+in\s+(.+)$")
 # examples/local-bench/bench.py DEFAULT_MIN_MEM_GB (Entry 091). Watchdog only.
 MEM_EDGE_GIB = 16.0
 MAX_MODEL_BYTES = 30 * 1024 * 1024 * 1024
@@ -243,6 +258,34 @@ def _pick_float(flag: float | None, env_name: str, default: float) -> float:
     return default
 
 
+def _parse_require_flag(text: str) -> tuple[str, list[str]]:
+    match = re.fullmatch(r"(\S+)\s+in\s+(\S.*)", (text or "").strip())
+    if not match:
+        raise UsageError("--require-wiring must look like 'NAME in path, path'")
+    modules = [part.strip() for part in match.group(2).split(",") if part.strip()]
+    if not modules:
+        raise UsageError("--require-wiring must look like 'NAME in path, path'")
+    return match.group(1), modules
+
+
+def _apply_review_flags(args: argparse.Namespace) -> None:
+    if args.review and args.no_review_flag:
+        raise UsageError("pass only one of --review and --no-review")
+    args.review = not args.no_review_flag
+    if args.retries is None:
+        args.retries_n = DEFAULT_RETRIES
+    else:
+        args.retries_n = int(args.retries)
+    args.max_files_n = DEFAULT_MAX_FILES if args.max_files is None else int(args.max_files)
+    args.max_lines_n = DEFAULT_MAX_LINES if args.max_lines is None else int(args.max_lines)
+    if args.retries_n < 0 or args.max_files_n < 0 or args.max_lines_n < 0:
+        raise UsageError("retries, max-files, and max-lines must be zero or greater")
+    if not args.review:
+        args.retries_n = 0
+    for item in list(args.require_wiring or []):
+        _parse_require_flag(item)
+
+
 def parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="pfy build --local",
@@ -286,6 +329,33 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
         action="store_true",
         help="run the agent without bwrap when bwrap is unavailable (recorded on the receipt)",
     )
+    parser.add_argument("--review", action="store_true", help="review a green gate before PASS (default)")
+    parser.add_argument(
+        "--no-review",
+        action="store_true",
+        dest="no_review_flag",
+        help="one attempt and no review (MVP-1 behavior)",
+    )
+    parser.add_argument("--retries", type=int, default=None, help="extra attempts after the first (default 2)")
+    parser.add_argument(
+        "--max-files",
+        type=int,
+        default=None,
+        help="changed files allowed, not counting a test file the test command names (default 3)",
+    )
+    parser.add_argument(
+        "--max-lines",
+        type=int,
+        default=None,
+        help="added plus removed lines allowed (default 250)",
+    )
+    parser.add_argument("--allow-path", action="append", default=[], help="glob the patch may change (repeatable)")
+    parser.add_argument(
+        "--require-wiring",
+        action="append",
+        default=[],
+        help="NAME in path, path: the symbol must be added in every path (repeatable)",
+    )
     args = parser.parse_args(argv)
     if args.task and args.prompt_file:
         raise UsageError("PASS one task string or --prompt-file, not both")
@@ -303,6 +373,7 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
         args.timeout_s = _pick_float(args.timeout, "PFY_LOCAL_BUILD_TIMEOUT", DEFAULT_TIMEOUT)
         args.test_timeout_s = _pick_float(args.test_timeout, "PFY_LOCAL_BUILD_TEST_TIMEOUT", DEFAULT_TEST_TIMEOUT)
         args.min_free = _pick_float(args.min_free_gb, "PFY_LOCAL_BUILD_MIN_FREE_GB", DEFAULT_MIN_FREE_GB)
+        _apply_review_flags(args)
         return args
     if not task or not str(task).strip():
         raise UsageError("a task string or --prompt-file is required")
@@ -318,6 +389,7 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
         raise UsageError("a numeric flag or env value is not a number") from exc
     if args.timeout_s <= 0 or args.test_timeout_s <= 0 or args.min_free < 0:
         raise UsageError("timeout and min-free-gb must be positive (min-free-gb may be 0)")
+    _apply_review_flags(args)
     return args
 
 
@@ -963,12 +1035,22 @@ def _write_config(home: Path, base: str, model: str) -> Path:
     return path
 
 
-def _agent_prompt(task: str, test_cmd: str) -> str:
-    return (
+def _agent_prompt(task: str, test_cmd: str, feedback: str = "", previous_diff: str = "") -> str:
+    base = (
         "Work only in this directory. Edit files. Run the tests yourself. "
         "Do not commit. Do not touch anything outside this directory.\n\n"
         "Test command: %s\n\n"
         "Task:\n%s" % (test_cmd, task)
+    )
+    if not feedback and not previous_diff:
+        return base
+    shown = redact(previous_diff or "")
+    if len(shown) > DIFF_PROMPT_CAP:
+        shown = shown[:DIFF_PROMPT_CAP] + "\n...[diff truncated]\n"
+    return (
+        base
+        + "\n\nThe previous attempt was rejected.\nReasons:\n%s\n\nPrevious diff:\n%s\n"
+        % (redact(feedback or ""), shown)
     )
 
 
@@ -1024,6 +1106,8 @@ def _summary(status: str, reason: str, branch: str | None, receipt: Path) -> str
     label = status
     if status == "BLOCKED":
         label = "BLOCKED:"
+    if status == "PASS-REJECTED":
+        label = "PASS-REJECTED"
     shown = reason or ""
     return "%s %s branch=%s receipt=%s" % (label, shown, branch or "none", receipt)
 
@@ -2058,6 +2142,413 @@ def _cleanup_runtime(home: Path | None, lock_path: Path | None, pid_path: Path |
             pass
 
 
+def _can_retry(review: bool, used: int, maximum: int, why: str) -> bool:
+    return bool(review) and used < maximum and why in _RETRYABLE
+
+
+def _task_allow(task: str, extra: list[str] | None) -> tuple[list[str], bool]:
+    declared = False
+    patterns: list[str] = []
+    for item in extra or []:
+        text = (item or "").strip()
+        if text:
+            patterns.append(text)
+            declared = True
+    for match in _FILES_LINE.finditer(task or ""):
+        declared = True
+        for part in match.group(1).split(","):
+            part = part.strip()
+            if part:
+                patterns.append(part)
+    return patterns, declared
+
+
+def _wiring_rules(task: str, flags: list[str] | None) -> list[tuple[str, list[str]]]:
+    rules: list[tuple[str, list[str]]] = []
+    for match in _REQUIRE_LINE.finditer(task or ""):
+        symbol = match.group(1).strip()
+        modules = [part.strip() for part in match.group(2).split(",") if part.strip()]
+        if symbol and modules:
+            rules.append((symbol, modules))
+    for item in flags or []:
+        rules.append(_parse_require_flag(item))
+    return rules
+
+
+def _named_by_test_cmd(rel: str, test_cmd: str) -> bool:
+    rel_n = _norm_rel(rel)
+    if not rel_n:
+        return False
+    try:
+        tokens = shlex.split(test_cmd or "")
+    except ValueError:
+        tokens = (test_cmd or "").split()
+    for token in tokens:
+        if _norm_rel(token) == rel_n:
+            return True
+        if "." not in token or token.endswith(".py"):
+            continue
+        parts = token.split(".")
+        if len(parts) >= 2 and parts[0] in ("tests", "test"):
+            if _norm_rel("%s/%s.py" % (parts[0], parts[1])) == rel_n:
+                return True
+    return False
+
+
+def _synthetic_new_diff(rel: str, lines: list[str]) -> str:
+    body = "".join("+%s\n" % line for line in lines)
+    return (
+        "diff --git a/%s b/%s\n"
+        "new file mode 100644\n"
+        "--- /dev/null\n"
+        "+++ b/%s\n"
+        "@@ -0,0 +1,%d @@\n%s" % (rel, rel, rel, len(lines), body)
+    )
+
+
+def _collect_diff(worktree: Path, env: dict, paths: list[str]) -> tuple[str, dict]:
+    proc = _git(worktree, ["diff", "HEAD", "--"], env=env)
+    text = proc.stdout or ""
+    num = _git(worktree, ["diff", "HEAD", "--numstat"], env=env)
+    added = 0
+    removed = 0
+    seen: set[str] = set()
+    for line in (num.stdout or "").splitlines():
+        parts = line.split("\t")
+        if len(parts) < 3:
+            continue
+        if parts[0] != "-":
+            try:
+                added += int(parts[0])
+            except ValueError:
+                pass
+        if parts[1] != "-":
+            try:
+                removed += int(parts[1])
+            except ValueError:
+                pass
+        seen.add(parts[2].replace("\\", "/"))
+    for rel in paths:
+        norm = _norm_rel(rel)
+        if not norm or norm in seen:
+            continue
+        full = worktree / norm
+        if not full.is_file():
+            continue
+        try:
+            content = full.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            content = ""
+        lines = content.splitlines()
+        added += len(lines)
+        text += _synthetic_new_diff(norm, lines)
+    stats = {
+        "files": len(paths),
+        "added": added,
+        "removed": removed,
+        "lines": added + removed,
+        "paths": list(paths),
+    }
+    return text, stats
+
+
+def _added_text_for(diff_text: str, rel: str) -> str:
+    target = _norm_rel(rel)
+    if not target:
+        return ""
+    blobs: list[str] = []
+    for part in re.split(r"(?m)^diff --git ", diff_text or ""):
+        lines = part.splitlines()
+        if not lines:
+            continue
+        head = lines[0]
+        path = head.split(" b/")[-1].strip()
+        if path != target:
+            continue
+        for line in lines[1:]:
+            if line.startswith("+") and not line.startswith("+++"):
+                blobs.append(line[1:])
+    return "\n".join(blobs)
+
+
+def _check_scope(paths: list[str], patterns: list[str], declared: bool) -> dict:
+    if not declared:
+        return {"ok": True, "outside": [], "skipped": "no-allow-list", "patterns": []}
+    outside = [path for path in paths if not _protected(path, patterns)]
+    return {"ok": not outside, "outside": outside, "skipped": None, "patterns": list(patterns)}
+
+
+def _check_size(paths: list[str], diff_stats: dict, test_cmd: str, max_files: int, max_lines: int) -> dict:
+    counted = [path for path in paths if not _named_by_test_cmd(path, test_cmd)]
+    files_n = len(counted)
+    lines_n = int(diff_stats.get("lines") or 0)
+    return {
+        "ok": files_n <= max_files and lines_n <= max_lines,
+        "files": files_n,
+        "lines": lines_n,
+        "max_files": max_files,
+        "max_lines": max_lines,
+        "counted_paths": counted,
+    }
+
+
+def _check_wiring(diff_text: str, rules: list[tuple[str, list[str]]]) -> dict:
+    missing: list[str] = []
+    for symbol, modules in rules:
+        for module in modules:
+            if symbol not in _added_text_for(diff_text, module):
+                missing.append("missing wiring for %s in %s" % (symbol, module))
+    return {
+        "ok": not missing,
+        "missing": missing,
+        "rules": [{"symbol": symbol, "modules": modules} for symbol, modules in rules],
+    }
+
+
+def _reject_reasons(scope: dict, size: dict, wiring: dict) -> list[str]:
+    reasons: list[str] = []
+    for path in scope.get("outside") or []:
+        reasons.append("path outside allowed set: %s" % path)
+    if not size.get("ok"):
+        reasons.append(
+            "changed files %d (max %d), changed lines %d (max %d)"
+            % (size.get("files"), size.get("max_files"), size.get("lines"), size.get("max_lines"))
+        )
+    reasons.extend(wiring.get("missing") or [])
+    return reasons
+
+
+def _gate_feedback(why: str, record: dict | None) -> str:
+    tail = ""
+    if isinstance(record, dict):
+        tail = str(record.get("tail") or "")
+    return "gate failed: %s\n%s" % (why, tail)
+
+
+def _review_prompt(task: str, diff_text: str, gate_tail: str) -> str:
+    return (
+        "%s\n"
+        "Reply with JSON only, no markdown: "
+        '{"verdict": "accept" or "reject", "reasons": ["..."]}\n'
+        "Accept only when the change does exactly what the task says, at the place the task names, "
+        "without widening behavior. A green test can still be wrong if the change applies to a "
+        "broader block than the task names.\n\n"
+        "Task:\n%s\n\nDiff:\n%s\n\nGate:\n%s\n"
+        % (REVIEW_MARKER, (task or "")[:4000], (diff_text or "")[:DIFF_PROMPT_CAP], (gate_tail or "")[:2000])
+    )
+
+
+def _parse_verdict(text: str) -> tuple[str, list[str], str]:
+    raw = (text or "").strip()
+    fenced = re.search(r"```(?:json)?\s*(\{.*\})\s*```", raw, re.DOTALL)
+    blob = fenced.group(1) if fenced else raw
+    start = blob.find("{")
+    end = blob.rfind("}")
+    if start < 0 or end <= start:
+        return "reject", ["review-unparseable"], raw[:500]
+    try:
+        data = json.loads(blob[start : end + 1])
+    except json.JSONDecodeError:
+        return "reject", ["review-unparseable"], raw[:500]
+    if not isinstance(data, dict):
+        return "reject", ["review-unparseable"], raw[:500]
+    verdict = data.get("verdict")
+    reasons = data.get("reasons")
+    if verdict not in ("accept", "reject") or not isinstance(reasons, list):
+        return "reject", ["review-unparseable"], raw[:500]
+    if not all(isinstance(item, str) for item in reasons):
+        return "reject", ["review-unparseable"], raw[:500]
+    return verdict, reasons, raw[:500]
+
+
+def _content_from_model_body(raw: str) -> str:
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        return raw or ""
+    if not isinstance(data, dict):
+        return raw or ""
+    if data.get("error"):
+        return ""
+    choices = data.get("choices")
+    if isinstance(choices, list) and choices and isinstance(choices[0], dict):
+        message = choices[0].get("message")
+        if isinstance(message, dict):
+            content = message.get("content")
+            if isinstance(content, str):
+                return content
+            if isinstance(content, list):
+                bits = []
+                for part in content:
+                    if isinstance(part, dict) and isinstance(part.get("text"), str):
+                        bits.append(part["text"])
+                if bits:
+                    return "\n".join(bits)
+    response = data.get("response")
+    if isinstance(response, str):
+        return response
+    return raw or ""
+
+
+_REVIEW_POSTER = """\
+import json
+import os
+import urllib.request
+
+url = os.environ["OPENAI_BASE_URL"].rstrip("/") + "/chat/completions"
+body = json.loads(open(os.environ["PFY_REVIEW_BODY"], encoding="utf-8").read())
+data = json.dumps(body).encode("utf-8")
+req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+timeout = float(os.environ.get("PFY_REVIEW_HTTP_TIMEOUT") or "60")
+out = os.environ["PFY_REVIEW_OUT"]
+try:
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        raw = resp.read().decode("utf-8", "replace")
+except Exception as exc:
+    raw = json.dumps({"error": "%s" % exc})
+open(out, "w", encoding="utf-8").write(raw)
+"""
+
+
+def _mem_sample() -> float | None:
+    info = read_meminfo()
+    if not info:
+        return None
+    return mem_available_gib(info)
+
+
+def _attempt_low(state: State, snap: float | None) -> float | None:
+    values = []
+    now = _mem_sample()
+    for item in (snap, now):
+        if isinstance(item, (int, float)):
+            values.append(float(item))
+    if isinstance(state.min_avail, (int, float)) and (snap is None or state.min_avail < snap):
+        values.append(float(state.min_avail))
+    if not values:
+        return None
+    return round(min(values), 3)
+
+
+def _stub_extra_rw() -> list[Path]:
+    """Parents of the test stub's plan files. A normal run sets none of these.
+
+    The sandbox root is read-only, so the stub cannot record the prompt or the
+    attempt counter unless those files' directory is bound read-write. The
+    agent cannot add binds of its own: this list is fixed before it starts.
+    """
+    found: list[Path] = []
+    seen: set[str] = set()
+    for key in ("PFY_STUB_PLAN", "PFY_STUB_COUNT", "PFY_STUB_PROMPTS"):
+        raw = os.environ.get(key) or ""
+        if not raw:
+            continue
+        path = Path(raw)
+        parent = path if path.is_dir() else path.parent
+        try:
+            if not parent.is_dir():
+                continue
+            resolved = parent.resolve()
+        except OSError:
+            continue
+        text = str(resolved)
+        if text in seen or resolved == Path("/"):
+            continue
+        seen.add(text)
+        found.append(resolved)
+    return found
+
+
+def _drop_worktree(repo: Path, worktree: Path | None) -> None:
+    if worktree is None:
+        return
+    _git(repo, ["worktree", "remove", "--force", str(worktree)])
+    if worktree.exists():
+        shutil.rmtree(worktree, ignore_errors=True)
+    _git(repo, ["worktree", "prune"])
+
+
+def _run_model_review(
+    args,
+    worktree: Path,
+    openai_base: str,
+    task: str,
+    diff_text: str,
+    gate_tail: str,
+    state: State,
+    repo: Path,
+) -> tuple[str, dict | None]:
+    """Return (status, review). status is accept, reject, timeout, interrupted, mem-edge, blocked, sandbox."""
+    port = _loopback_port(openai_base)
+    if port is None:
+        return "blocked", {
+            "verdict": "reject",
+            "reasons": ["review-endpoint-not-local"],
+            "raw_tail": "",
+        }
+    prompt = _review_prompt(task, redact(diff_text), redact(gate_tail or ""))
+    body = {
+        "model": args.model_name,
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0,
+        "stream": False,
+    }
+    tmp = worktree / "tmp"
+    tmp.mkdir(parents=True, exist_ok=True)
+    (tmp / "review-home").mkdir(parents=True, exist_ok=True)
+    body_path = tmp / "pfy-review-body.json"
+    out_path = tmp / "pfy-review-out.json"
+    script_path = tmp / "pfy-review-post.py"
+    if out_path.exists():
+        out_path.unlink()
+    body_path.write_text(json.dumps(body), encoding="utf-8")
+    script_path.write_text(_REVIEW_POSTER, encoding="utf-8")
+    child = _child_env(
+        {
+            "TMPDIR": str(tmp),
+            "HOME": str(tmp / "review-home"),
+            "PYTHONDONTWRITEBYTECODE": "1",
+            "OPENAI_BASE_URL": openai_base,
+            "PFY_REVIEW_BODY": str(body_path),
+            "PFY_REVIEW_OUT": str(out_path),
+            "PFY_REVIEW_HTTP_TIMEOUT": str(float(args.timeout_s) + 30.0),
+        }
+    )
+    try:
+        prepared = prepare_sandbox(
+            ["python3", str(script_path)],
+            worktree,
+            hide=hide_paths(repo, worktree),
+            endpoint=openai_base,
+            unsafe=bool(args.unsafe_no_sandbox),
+        )
+    except SandboxUnavailable as exc:
+        return "sandbox", {"verdict": "reject", "reasons": [exc.reason], "raw_tail": str(exc)}
+    if prepared.mode == "bwrap-unshare-net":
+        child["OPENAI_BASE_URL"] = "http://127.0.0.1:%d/v1" % port
+    child.update(lockdown_env(worktree))
+    try:
+        run_status, _code, out, err = run_bounded(
+            prepared.argv, child, worktree, float(args.timeout_s), state
+        )
+    finally:
+        prepared.close()
+    if run_status == "timeout":
+        return "timeout", None
+    if run_status == "interrupted":
+        return "interrupted", None
+    if run_status == "mem-edge":
+        return "mem-edge", None
+    raw = ""
+    try:
+        raw = out_path.read_text(encoding="utf-8")
+    except OSError:
+        raw = (out or "") + (err or "")
+    content = _content_from_model_body(raw)
+    verdict, reasons, raw_tail = _parse_verdict(content)
+    return verdict, {"verdict": verdict, "reasons": reasons, "raw_tail": redact(raw_tail)[:500]}
+
+
 def build_local(argv: list[str] | None = None) -> int:
     state = State()
     _install_signals(state)
@@ -2087,6 +2578,8 @@ def build_local(argv: list[str] | None = None) -> int:
     changed: list[str] = []
     agent_log: Path | None = None
     agent_seconds = 0.0
+    attempts_used = 0
+    attempt_receipts: list[str] = []
     model_was_loaded = False
     unloaded = False
     agent_started = False
@@ -2132,6 +2625,16 @@ def build_local(argv: list[str] | None = None) -> int:
                 "tests_before": _public_test(tests_before),
                 "tests_after": _public_test(tests_after),
                 "files_changed": changed,
+                "attempts": attempts_used,
+                "review": {
+                    "enabled": bool(args.review),
+                    "retries": int(args.retries_n),
+                    "max_files": int(args.max_files_n),
+                    "max_lines": int(args.max_lines_n),
+                    "allow_path": list(args.allow_path or []),
+                    "require_wiring": list(args.require_wiring or []),
+                },
+                "attempt_receipts": list(attempt_receipts),
                 "branch": branch,
                 "commit": commit,
                 "worktree": None if worktree is None else str(worktree),
@@ -2271,176 +2774,423 @@ def build_local(argv: list[str] | None = None) -> int:
             status, reason, exit_code = "FAIL", "worktree-exists", EXIT_FAIL
             return finish()
         (repo / "tmp").mkdir(parents=True, exist_ok=True)
-        added = _git(repo, ["worktree", "add", "--detach", str(wt_path), base_ref])
-        if added.returncode != 0:
-            status, reason, exit_code = "FAIL", "worktree-failed", EXIT_FAIL
-            return finish()
-        worktree = wt_path
-        home = worktree / "tmp" / "opencode.home"
-        _ensure_tmp_excluded(worktree, _child_env({"TMPDIR": str(worktree / "tmp")}))
-        (worktree / "tmp").mkdir(parents=True, exist_ok=True)
-        pid_path = repo / "tmp" / "local-build.pids.json"
-        state.pid_path = pid_path
-        _write_pidfile(
-            pid_path,
-            {
-                "pid": os.getpid(),
-                "pgid": os.getpgrp(),
-                "agent_pgid": None,
-                "model": args.model_name,
-                "ollama_root": ollama_root,
-                "loaded_by_run": False,
-                "receipt_dir": str(receipt_dir),
-            },
-        )
 
-        test_env = _child_env(
-            {
-                "TMPDIR": str(worktree / "tmp"),
-                "HOME": str(home / "home"),
-                "PYTHONDONTWRITEBYTECODE": "1",
+        max_attempts = 1 if not args.review else 1 + int(args.retries_n)
+        feedback = ""
+        previous_diff = ""
+        commit_ready = False
+        pid_written = False
+        watcher_started = False
+        allow_patterns, allow_declared = _task_allow(args.task_text, list(args.allow_path or []))
+        wiring_rules = _wiring_rules(args.task_text, list(args.require_wiring or []))
+
+        def _record_attempt(number, t0, mem_snap, attempt_status, attempt_reason, checks, model_review, diff_stats, diff_text):
+            if not args.review:
+                return
+            payload = {
+                "schema": SCHEMA,
+                "attempt": number,
+                "status": attempt_status,
+                "reason": attempt_reason,
+                "tests_before": _public_test(tests_before),
+                "tests_after": _public_test(tests_after),
+                "diff_stats": diff_stats,
+                "checks": checks,
+                "model_review": model_review,
+                "wall_seconds": round(time.monotonic() - t0, 3),
+                "mem_min_available_gb": _attempt_low(state, mem_snap),
             }
-        )
-        home.mkdir(parents=True, exist_ok=True)
-        _prepare_home(home)
-        # Before the test gate. That gate has no Ollama bridge, so a bad
-        # explicit runtime dir would otherwise be reported as no-sandbox.
-        if _loopback_port(openai_base) is not None and not args.unsafe_no_sandbox:
-            _refuse_explicit_runtime_dir()
+            dest = receipt_dir / ("attempt-%d" % number) / "receipt.json"
+            _write_receipt(dest, payload)
+            attempt_receipts.append(str(dest))
+            if diff_text:
+                try:
+                    (dest.parent / "patch.diff").write_text(redact(diff_text), encoding="utf-8")
+                except OSError:
+                    pass
 
-        watcher = threading.Thread(target=_watchdog, args=(stop_watch, state), daemon=True)
-        watcher.start()
+        while attempts_used < max_attempts:
+            attempts_used += 1
+            attempt_t0 = time.monotonic()
+            mem_snap = state.min_avail
+            sample = _mem_sample()
+            if isinstance(sample, (int, float)) and (mem_snap is None or sample < mem_snap):
+                mem_snap = sample
+            tests_before = None
+            tests_after = None
+            changed = []
+            diff_text = ""
+            diff_stats = {"files": 0, "added": 0, "removed": 0, "lines": 0, "paths": []}
+            checks = None
+            model_review = None
 
-        tests_before = run_tests(
-            args.test_cmd_s,
-            worktree,
-            test_env,
-            args.test_timeout_s,
-            state,
-            repo=repo,
-            unsafe=bool(args.unsafe_no_sandbox),
-        )
-        if tests_before.get("aborted") == "interrupted" or state.interrupted:
-            status, reason, exit_code = "FAIL", "interrupted", EXIT_FAIL
-            return finish()
-        if tests_before.get("aborted") == "mem-edge" or state.mem_edge:
-            status, reason, exit_code = "FAIL", "mem-edge", EXIT_FAIL
-            return finish()
-        if not tests_before.get("started"):
-            status, reason, exit_code = "FAIL", "test-cmd-failed-to-start", EXIT_FAIL
-            return finish()
+            if worktree is not None:
+                if git_saved is not None:
+                    restore_worktree_git(worktree, git_saved)
+                    git_saved = None
+                if prepared is not None:
+                    prepared.close()
+                    prepared = None
+                _drop_worktree(repo, worktree)
+                worktree = None
 
-        test_snapshot = snapshot_tests(worktree, args.test_cmd_s)
-        config = _write_config(home, openai_base, args.model_name)
-        try:
-            shutil.copy(config, receipt_dir / "opencode.json")
-        except OSError:
-            pass
-        child = _opencode_env(home, worktree, openai_base, config)
-        child.update(lockdown_env(worktree))
-        prompt = _agent_prompt(args.task_text, args.test_cmd_s)
-        cmd = [binary, "run", "--pure", "--model", "ollama/%s" % args.model_name, "--variant", "none", prompt]
-        git_saved = isolate_worktree_git(worktree)
-        try:
-            prepared = prepare_sandbox(
-                cmd,
+            added = _git(repo, ["worktree", "add", "--detach", str(wt_path), base_ref])
+            if added.returncode != 0:
+                status, reason, exit_code = "FAIL", "worktree-failed", EXIT_FAIL
+                _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "worktree-failed", None, None, diff_stats, "")
+                return finish()
+            worktree = wt_path
+            home = worktree / "tmp" / "opencode.home"
+            _ensure_tmp_excluded(worktree, _child_env({"TMPDIR": str(worktree / "tmp")}))
+            (worktree / "tmp").mkdir(parents=True, exist_ok=True)
+            if not pid_written:
+                pid_path = repo / "tmp" / "local-build.pids.json"
+                state.pid_path = pid_path
+                _write_pidfile(
+                    pid_path,
+                    {
+                        "pid": os.getpid(),
+                        "pgid": os.getpgrp(),
+                        "agent_pgid": None,
+                        "model": args.model_name,
+                        "ollama_root": ollama_root,
+                        "loaded_by_run": False,
+                        "receipt_dir": str(receipt_dir),
+                    },
+                )
+                pid_written = True
+            test_env = _child_env(
+                {
+                    "TMPDIR": str(worktree / "tmp"),
+                    "HOME": str(home / "home"),
+                    "PYTHONDONTWRITEBYTECODE": "1",
+                }
+            )
+            home.mkdir(parents=True, exist_ok=True)
+            _prepare_home(home)
+            try:
+                if _loopback_port(openai_base) is not None and not args.unsafe_no_sandbox:
+                    _refuse_explicit_runtime_dir()
+            except SandboxUnavailable as exc:
+                print("BLOCKED: %s" % exc, file=sys.stderr)
+                status, reason, exit_code = "BLOCKED", exc.reason, EXIT_BLOCKED
+                _record_attempt(attempts_used, attempt_t0, mem_snap, "BLOCKED", exc.reason, None, None, diff_stats, "")
+                return finish()
+            if not watcher_started:
+                watcher = threading.Thread(target=_watchdog, args=(stop_watch, state), daemon=True)
+                watcher.start()
+                watcher_started = True
+
+            tests_before = run_tests(
+                args.test_cmd_s,
                 worktree,
-                hide=hide_paths(repo, worktree),
-                endpoint=openai_base,
+                test_env,
+                args.test_timeout_s,
+                state,
+                repo=repo,
                 unsafe=bool(args.unsafe_no_sandbox),
             )
-        except SandboxUnavailable as exc:
-            print("BLOCKED: %s" % exc, file=sys.stderr)
-            status, reason, exit_code = "BLOCKED", exc.reason, EXIT_BLOCKED
-            return finish()
-        sandbox_mode = prepared.mode
-        if sandbox_mode == "bwrap-unshare-net":
-            port = _loopback_port(openai_base)
-            if port:
-                child["OPENAI_BASE_URL"] = "http://127.0.0.1:%d/v1" % port
-        agent_started = True
-        _mark_loaded(state, not model_was_loaded)
-        agent_t0 = time.monotonic()
-        run_status, _code, out, err = run_bounded(prepared.argv, child, worktree, args.timeout_s, state)
-        agent_seconds = time.monotonic() - agent_t0
-        prepared.close()
-        prepared = None
-        if git_saved is not None:
-            restore_worktree_git(worktree, git_saved)
-            git_saved = None
-        agent_log = receipt_dir / "agent.log"
-        agent_log.write_text(
-            "----- stdout -----\n%s\n----- stderr -----\n%s\n" % (redact(out), redact(err)),
-            encoding="utf-8",
-        )
+            if tests_before.get("aborted") == "interrupted" or state.interrupted:
+                status, reason, exit_code = "FAIL", "interrupted", EXIT_FAIL
+                _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "interrupted", None, None, diff_stats, "")
+                return finish()
+            if tests_before.get("aborted") == "mem-edge" or state.mem_edge:
+                status, reason, exit_code = "FAIL", "mem-edge", EXIT_FAIL
+                _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "mem-edge", None, None, diff_stats, "")
+                return finish()
+            if not tests_before.get("started"):
+                status, reason, exit_code = "FAIL", "test-cmd-failed-to-start", EXIT_FAIL
+                _record_attempt(
+                    attempts_used, attempt_t0, mem_snap, "FAIL", "test-cmd-failed-to-start", None, None, diff_stats, ""
+                )
+                return finish()
 
-        if os.environ.get("PFY_LOCAL_BUILD_INJECT_CRASH") == "post" and run_status == "done":
-            raise RuntimeError("injected post crash")
+            test_snapshot = snapshot_tests(worktree, args.test_cmd_s)
+            config = _write_config(home, openai_base, args.model_name)
+            try:
+                shutil.copy(config, receipt_dir / "opencode.json")
+            except OSError:
+                pass
+            child = _opencode_env(home, worktree, openai_base, config)
+            child.update(lockdown_env(worktree))
+            prompt = _agent_prompt(args.task_text, args.test_cmd_s, feedback, previous_diff)
+            cmd = [binary, "run", "--pure", "--model", "ollama/%s" % args.model_name, "--variant", "none", prompt]
+            git_saved = isolate_worktree_git(worktree)
+            try:
+                prepared = prepare_sandbox(
+                    cmd,
+                    worktree,
+                    hide=hide_paths(repo, worktree),
+                    endpoint=openai_base,
+                    extra_rw=_stub_extra_rw(),
+                    unsafe=bool(args.unsafe_no_sandbox),
+                )
+            except SandboxUnavailable as exc:
+                print("BLOCKED: %s" % exc, file=sys.stderr)
+                status, reason, exit_code = "BLOCKED", exc.reason, EXIT_BLOCKED
+                _record_attempt(attempts_used, attempt_t0, mem_snap, "BLOCKED", exc.reason, None, None, diff_stats, "")
+                return finish()
+            sandbox_mode = prepared.mode
+            if sandbox_mode == "bwrap-unshare-net":
+                port = _loopback_port(openai_base)
+                if port:
+                    child["OPENAI_BASE_URL"] = "http://127.0.0.1:%d/v1" % port
+            agent_started = True
+            _mark_loaded(state, not model_was_loaded)
+            agent_t0 = time.monotonic()
+            run_status, _code, out, err = run_bounded(prepared.argv, child, worktree, args.timeout_s, state)
+            agent_seconds += time.monotonic() - agent_t0
+            prepared.close()
+            prepared = None
+            if git_saved is not None:
+                restore_worktree_git(worktree, git_saved)
+                git_saved = None
+            blob = "----- attempt %d stdout -----\n%s\n----- stderr -----\n%s\n" % (
+                attempts_used,
+                redact(out),
+                redact(err),
+            )
+            agent_log = receipt_dir / "agent.log"
+            if agent_log.is_file():
+                with agent_log.open("a", encoding="utf-8") as handle:
+                    handle.write(blob)
+            else:
+                agent_log.write_text(blob, encoding="utf-8")
 
-        if run_status == "interrupted" or state.interrupted:
-            status, reason, exit_code = "FAIL", "interrupted", EXIT_FAIL
-            return finish()
-        if run_status == "mem-edge" or state.mem_edge:
-            status, reason, exit_code = "FAIL", "mem-edge", EXIT_FAIL
-            return finish()
-        if run_status == "timeout" and not args.run_tests_on_timeout:
-            status, reason, exit_code = "TIMEOUT", "timeout", EXIT_TIMEOUT
-            return finish()
+            if os.environ.get("PFY_LOCAL_BUILD_INJECT_CRASH") == "post" and run_status == "done":
+                raise RuntimeError("injected post crash")
 
-        changed = files_changed(worktree, test_env)
-        if not changed:
-            status, reason, exit_code = "FAIL", "no-change", EXIT_FAIL
-            return finish()
-        protected_hits = [path for path in changed if _protected(path, args.protect or [])]
-        if protected_hits:
-            status, reason, exit_code = "FAIL", "protected-path-changed", EXIT_FAIL
-            return finish()
+            if run_status == "interrupted" or state.interrupted:
+                status, reason, exit_code = "FAIL", "interrupted", EXIT_FAIL
+                _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "interrupted", None, None, diff_stats, "")
+                return finish()
+            if run_status == "mem-edge" or state.mem_edge:
+                status, reason, exit_code = "FAIL", "mem-edge", EXIT_FAIL
+                _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "mem-edge", None, None, diff_stats, "")
+                return finish()
+            if run_status == "timeout" and not args.run_tests_on_timeout:
+                status, reason, exit_code = "TIMEOUT", "timeout", EXIT_TIMEOUT
+                _record_attempt(attempts_used, attempt_t0, mem_snap, "TIMEOUT", "timeout", None, None, diff_stats, "")
+                return finish()
 
-        tests_after = run_tests(
-            args.test_cmd_s,
-            worktree,
-            test_env,
-            args.test_timeout_s,
-            state,
-            repo=repo,
-            unsafe=bool(args.unsafe_no_sandbox),
-        )
-        if tests_after.get("aborted") == "interrupted" or state.interrupted:
-            status, reason, exit_code = "FAIL", "interrupted", EXIT_FAIL
-            return finish()
-        gate = judge_tests(tests_before, tests_after)
-        if gate:
-            status, reason, exit_code = "FAIL", gate, EXIT_FAIL
-            return finish()
-        tampered = tests_tampered(worktree, test_snapshot, list(args.writable_test or []))
-        if tampered:
-            status, reason, exit_code = "FAIL", "tests-tampered", EXIT_FAIL
-            return finish()
-        again = run_tests(
-            args.test_cmd_s,
-            worktree,
-            test_env,
-            args.test_timeout_s,
-            state,
-            repo=repo,
-            unsafe=bool(args.unsafe_no_sandbox),
-        )
-        if again.get("aborted") == "interrupted" or state.interrupted:
-            status, reason, exit_code = "FAIL", "interrupted", EXIT_FAIL
-            return finish()
-        if again.get("aborted") == "mem-edge" or state.mem_edge:
-            status, reason, exit_code = "FAIL", "mem-edge", EXIT_FAIL
-            return finish()
-        flaky = judge_tests(tests_before, again)
-        if flaky:
-            status, reason, exit_code = "FAIL", "tests-flaky", EXIT_FAIL
-            return finish()
-        gated_tree = tree_digest(worktree)
-        if run_status == "timeout":
-            status, reason, exit_code = "TIMEOUT", "timeout", EXIT_TIMEOUT
-            return finish()
-        if tree_digest(worktree) != gated_tree:
-            status, reason, exit_code = "FAIL", "worktree-changed-after-gate", EXIT_FAIL
+            changed = files_changed(worktree, test_env)
+            diff_text, diff_stats = _collect_diff(worktree, test_env, changed)
+            if not changed:
+                if _can_retry(args.review, attempts_used, max_attempts, "no-change"):
+                    _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "no-change", None, None, diff_stats, diff_text)
+                    feedback = "no-change"
+                    previous_diff = diff_text
+                    continue
+                status, reason, exit_code = "FAIL", "no-change", EXIT_FAIL
+                _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "no-change", None, None, diff_stats, diff_text)
+                return finish()
+            protected_hits = [path for path in changed if _protected(path, args.protect or [])]
+            if protected_hits:
+                feedback = "protected-path-changed: %s" % ", ".join(protected_hits)
+                if _can_retry(args.review, attempts_used, max_attempts, "protected-path-changed"):
+                    _record_attempt(
+                        attempts_used, attempt_t0, mem_snap, "FAIL", "protected-path-changed", None, None, diff_stats, diff_text
+                    )
+                    previous_diff = diff_text
+                    continue
+                status, reason, exit_code = "FAIL", "protected-path-changed", EXIT_FAIL
+                _record_attempt(
+                    attempts_used, attempt_t0, mem_snap, "FAIL", "protected-path-changed", None, None, diff_stats, diff_text
+                )
+                return finish()
+
+            tests_after = run_tests(
+                args.test_cmd_s,
+                worktree,
+                test_env,
+                args.test_timeout_s,
+                state,
+                repo=repo,
+                unsafe=bool(args.unsafe_no_sandbox),
+            )
+            if tests_after.get("aborted") == "interrupted" or state.interrupted:
+                status, reason, exit_code = "FAIL", "interrupted", EXIT_FAIL
+                _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "interrupted", None, None, diff_stats, diff_text)
+                return finish()
+            gate = judge_tests(tests_before, tests_after)
+            if gate:
+                feedback = _gate_feedback(gate, tests_after)
+                if _can_retry(args.review, attempts_used, max_attempts, gate):
+                    _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", gate, None, None, diff_stats, diff_text)
+                    previous_diff = diff_text
+                    continue
+                status, reason, exit_code = "FAIL", gate, EXIT_FAIL
+                _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", gate, None, None, diff_stats, diff_text)
+                return finish()
+            tampered = tests_tampered(worktree, test_snapshot, list(args.writable_test or []))
+            if tampered:
+                feedback = "gate failed: tests-tampered\n%s" % "\n".join(tampered)
+                if _can_retry(args.review, attempts_used, max_attempts, "tests-tampered"):
+                    _record_attempt(
+                        attempts_used, attempt_t0, mem_snap, "FAIL", "tests-tampered", None, None, diff_stats, diff_text
+                    )
+                    previous_diff = diff_text
+                    continue
+                status, reason, exit_code = "FAIL", "tests-tampered", EXIT_FAIL
+                _record_attempt(
+                    attempts_used, attempt_t0, mem_snap, "FAIL", "tests-tampered", None, None, diff_stats, diff_text
+                )
+                return finish()
+            again = run_tests(
+                args.test_cmd_s,
+                worktree,
+                test_env,
+                args.test_timeout_s,
+                state,
+                repo=repo,
+                unsafe=bool(args.unsafe_no_sandbox),
+            )
+            if again.get("aborted") == "interrupted" or state.interrupted:
+                status, reason, exit_code = "FAIL", "interrupted", EXIT_FAIL
+                _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "interrupted", None, None, diff_stats, diff_text)
+                return finish()
+            if again.get("aborted") == "mem-edge" or state.mem_edge:
+                status, reason, exit_code = "FAIL", "mem-edge", EXIT_FAIL
+                _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "mem-edge", None, None, diff_stats, diff_text)
+                return finish()
+            flaky = judge_tests(tests_before, again)
+            if flaky:
+                feedback = _gate_feedback("tests-flaky", again)
+                if _can_retry(args.review, attempts_used, max_attempts, "tests-flaky"):
+                    _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "tests-flaky", None, None, diff_stats, diff_text)
+                    previous_diff = diff_text
+                    continue
+                status, reason, exit_code = "FAIL", "tests-flaky", EXIT_FAIL
+                _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "tests-flaky", None, None, diff_stats, diff_text)
+                return finish()
+            gated_tree = tree_digest(worktree)
+            if run_status == "timeout":
+                status, reason, exit_code = "TIMEOUT", "timeout", EXIT_TIMEOUT
+                _record_attempt(attempts_used, attempt_t0, mem_snap, "TIMEOUT", "timeout", None, None, diff_stats, diff_text)
+                return finish()
+            if tree_digest(worktree) != gated_tree:
+                status, reason, exit_code = "FAIL", "worktree-changed-after-gate", EXIT_FAIL
+                _record_attempt(
+                    attempts_used,
+                    attempt_t0,
+                    mem_snap,
+                    "FAIL",
+                    "worktree-changed-after-gate",
+                    None,
+                    None,
+                    diff_stats,
+                    diff_text,
+                )
+                return finish()
+
+            if not args.review:
+                commit_ready = True
+                break
+
+            scope = _check_scope(changed, allow_patterns, allow_declared)
+            size = _check_size(changed, diff_stats, args.test_cmd_s, args.max_files_n, args.max_lines_n)
+            wire = _check_wiring(diff_text, wiring_rules)
+            checks = {"scope": scope, "size": size, "wiring": wire}
+            reasons = _reject_reasons(scope, size, wire)
+            if reasons:
+                feedback = "\n".join(reasons)
+                previous_diff = diff_text
+                if attempts_used >= max_attempts:
+                    status, reason, exit_code = "PASS-REJECTED", "review-rejected", EXIT_FAIL
+                    _record_attempt(
+                        attempts_used, attempt_t0, mem_snap, "PASS-REJECTED", "review-rejected", checks, None, diff_stats, diff_text
+                    )
+                    return finish()
+                _record_attempt(
+                    attempts_used, attempt_t0, mem_snap, "PASS-REJECTED", "review-rejected", checks, None, diff_stats, diff_text
+                )
+                continue
+
+            gate_tail = str(tests_after.get("tail") or "") if isinstance(tests_after, dict) else ""
+            review_status, model_review = _run_model_review(
+                args,
+                worktree,
+                openai_base,
+                args.task_text,
+                diff_text,
+                gate_tail,
+                state,
+                repo,
+            )
+            if review_status == "timeout":
+                status, reason, exit_code = "TIMEOUT", "timeout", EXIT_TIMEOUT
+                _record_attempt(attempts_used, attempt_t0, mem_snap, "TIMEOUT", "timeout", checks, model_review, diff_stats, diff_text)
+                return finish()
+            if review_status == "interrupted" or state.interrupted:
+                status, reason, exit_code = "FAIL", "interrupted", EXIT_FAIL
+                _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "interrupted", checks, model_review, diff_stats, diff_text)
+                return finish()
+            if review_status == "mem-edge" or state.mem_edge:
+                status, reason, exit_code = "FAIL", "mem-edge", EXIT_FAIL
+                _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "mem-edge", checks, model_review, diff_stats, diff_text)
+                return finish()
+            if review_status == "blocked":
+                status, reason, exit_code = "BLOCKED", "review-endpoint-not-local", EXIT_BLOCKED
+                _record_attempt(
+                    attempts_used,
+                    attempt_t0,
+                    mem_snap,
+                    "BLOCKED",
+                    "review-endpoint-not-local",
+                    checks,
+                    model_review,
+                    diff_stats,
+                    diff_text,
+                )
+                return finish()
+            if review_status == "sandbox":
+                why = "no-sandbox"
+                if isinstance(model_review, dict) and model_review.get("reasons"):
+                    why = str(model_review["reasons"][0])
+                print("BLOCKED: %s" % why, file=sys.stderr)
+                status, reason, exit_code = "BLOCKED", why, EXIT_BLOCKED
+                _record_attempt(attempts_used, attempt_t0, mem_snap, "BLOCKED", why, checks, model_review, diff_stats, diff_text)
+                return finish()
+            if review_status != "accept":
+                feedback = "\n".join((model_review or {}).get("reasons") or ["review-unparseable"])
+                previous_diff = diff_text
+                if attempts_used >= max_attempts:
+                    status, reason, exit_code = "PASS-REJECTED", "review-rejected", EXIT_FAIL
+                    _record_attempt(
+                        attempts_used,
+                        attempt_t0,
+                        mem_snap,
+                        "PASS-REJECTED",
+                        "review-rejected",
+                        checks,
+                        model_review,
+                        diff_stats,
+                        diff_text,
+                    )
+                    return finish()
+                _record_attempt(
+                    attempts_used, attempt_t0, mem_snap, "PASS-REJECTED", "review-rejected", checks, model_review, diff_stats, diff_text
+                )
+                continue
+            if tree_digest(worktree) != gated_tree:
+                status, reason, exit_code = "FAIL", "worktree-changed-after-gate", EXIT_FAIL
+                _record_attempt(
+                    attempts_used,
+                    attempt_t0,
+                    mem_snap,
+                    "FAIL",
+                    "worktree-changed-after-gate",
+                    checks,
+                    model_review,
+                    diff_stats,
+                    diff_text,
+                )
+                return finish()
+            _record_attempt(attempts_used, attempt_t0, mem_snap, "PASS", "ok", checks, model_review, diff_stats, diff_text)
+            commit_ready = True
+            break
+
+        if not commit_ready:
             return finish()
 
         commit_env = _git_env(test_env)

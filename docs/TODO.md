@@ -28,6 +28,7 @@ Branch `bot/mvp-local-build`. Not a Feature GO. Catalog HOLD 70-75 stays. Handof
 |----|------|--------|
 | MVP-1 | Headless `./pfy build --local` plus the offline coding eval | done after fix 2 (Tester FAIL at 42fcc229 closed on `bot/mvp-local-build`; live 8/8 on `qwen3.6:35b`, 617.949 s, stamp `20261027T070700973123Z`, sandbox `bwrap-unshare-net`; stub cheater scores 0; fix-1 8/8 was stamp `20261027T031008578576Z`) |
 | MVP-2 | Use `pfy build --local` for a real build-only task from this file, and compare with cloud Build on cost and pass rate | done on `bot/mvp2-trial` (historical branch name; the report now lives on main; gate local 5/6, cloud 6/6; review accept local 4/6, cloud 6/6; wall 1694 s vs 584 s; no-go as the default). Handoff: [HANDOFF-mvp2-trial.md](ops/HANDOFF-mvp2-trial.md) |
+| MVP-3 | Review-and-retry on `./pfy build --local`, then the six MVP-2 tasks locally | done as a measurement on `bot/mvp3-review-retry` (gate 5/6, loop accept 5/6, human accept 4/6, wall 3859.9 s; no-go as the default). Report: [eval/mvp3/REPORT.md](../eval/mvp3/REPORT.md). Handoff: [HANDOFF-mvp3-review-retry.md](ops/HANDOFF-mvp3-review-retry.md) |
 
 
 ## G8 — Simple harness-agnostic launch (2026-07-31)

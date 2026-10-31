@@ -265,6 +265,46 @@ elif scenario == "late-rewrite" and calc.exists():
                 time.sleep(0.2)
         os._exit(0)
     _wait_ready(root / "tmp" / "daemon.heartbeat")
+elif scenario == "plan":
+    plan_path = os.environ.get("PFY_STUB_PLAN") or ""
+    count_path = os.environ.get("PFY_STUB_COUNT") or ""
+    prompts_path = os.environ.get("PFY_STUB_PROMPTS") or ""
+    n = 0
+    if count_path:
+        try:
+            n = int(Path(count_path).read_text(encoding="utf-8").strip() or "0")
+        except (OSError, ValueError):
+            n = 0
+        _mark(Path(count_path), str(n + 1))
+    prompt = argv[-1] if argv else ""
+    if prompts_path:
+        line = json.dumps({"attempt": n + 1, "prompt": prompt}) + "\n"
+        try:
+            with open(prompts_path, "a", encoding="utf-8") as handle:
+                handle.write(line)
+        except OSError:
+            pass
+    steps = []
+    if plan_path:
+        try:
+            steps = json.loads(Path(plan_path).read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            steps = []
+    step = steps[n] if n < len(steps) else (steps[-1] if steps else {"mode": "fix"})
+    mode = step.get("mode") or "noop"
+    if mode == "fix" and calc.exists():
+        calc.write_text(calc.read_text(encoding="utf-8").replace("return a + b + 1", "return a + b"), encoding="utf-8")
+    elif mode == "worse" and calc.exists():
+        calc.write_text("def add(a, b):\n    return a + b + 5\n", encoding="utf-8")
+    for rel, content in (step.get("write") or {}).items():
+        dest = root / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(content, encoding="utf-8")
+    for rel, extra in (step.get("append") or {}).items():
+        dest = root / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        prev = dest.read_text(encoding="utf-8") if dest.is_file() else ""
+        dest.write_text(prev + extra, encoding="utf-8")
 raise SystemExit(0)
 """
 
@@ -329,7 +369,21 @@ class Handler(BaseHTTPRequestHandler):
             payload = {}
         self.server.posts.append((self.path, payload))
         if "/chat/completions" in self.path:
-            self._send(200, {"id": "c", "choices": [{"message": {"role": "assistant", "content": "ok"}}]})
+            blob = json.dumps(payload)
+            content = "ok"
+            if "pfy-review-v1" in blob:
+                started = getattr(self.server, "review_started", None)
+                if started is not None:
+                    started.set()
+                blocker = getattr(self.server, "review_block", None)
+                if blocker is not None:
+                    blocker.wait()
+                queue = getattr(self.server, "review_queue", None)
+                if queue:
+                    content = queue.pop(0)
+                else:
+                    content = json.dumps({"verdict": "accept", "reasons": []})
+            self._send(200, {"id": "c", "choices": [{"message": {"role": "assistant", "content": content}}]})
             return
         self._send(200, {"ok": True})
 
@@ -497,7 +551,7 @@ class LocalBuildTests(unittest.TestCase):
         env.update(extra)
         return env
 
-    def command(self, scenario, extra=None, auto_unsafe=True):
+    def command(self, scenario, extra=None, auto_unsafe=True, task=None):
         self._seq += 1
         receipt = self.repo / "tmp" / "receipts" / ("%s-%s" % (scenario, self._seq))
         cmd = [
@@ -506,7 +560,7 @@ class LocalBuildTests(unittest.TestCase):
             "--repo",
             str(self.repo),
             "--local",
-            "fix add so one plus one is two",
+            task or "fix add so one plus one is two",
             "--model",
             "fixture:small",
             "--endpoint",
@@ -528,10 +582,10 @@ class LocalBuildTests(unittest.TestCase):
             cmd.append("--unsafe-no-sandbox")
         return cmd, receipt
 
-    def run_build(self, scenario="fix", extra=None, env_extra=None, timeout=60, auto_unsafe=True):
+    def run_build(self, scenario="fix", extra=None, env_extra=None, timeout=60, auto_unsafe=True, task=None):
         if self.marker.exists():
             self.marker.unlink()
-        cmd, receipt = self.command(scenario, extra, auto_unsafe=auto_unsafe)
+        cmd, receipt = self.command(scenario, extra, auto_unsafe=auto_unsafe, task=task)
         proc = subprocess.run(
             cmd,
             cwd=self.repo,

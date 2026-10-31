@@ -1,0 +1,105 @@
+{
+  "task": "t2-tree-sig-119",
+  "level": "trivial",
+  "arm": "L",
+  "base_sha": "997d89264495861a178713ccf7d4447ea828afc4",
+  "planted_sha": "a96f84cf1d986a789a4b6e8d05aa2a6f76dd85f7",
+  "gate": "python3 -m unittest tests.test_mvp2_t2_tree_sig_119",
+  "status": "PASS",
+  "reason": "ok",
+  "attempts": 1,
+  "loop_verdict": "accept",
+  "quality_accept": true,
+  "quality_why": "tree_sig in smoke_119_121.py now matches the smoke_122_124 content hash, including :dir and :unreadable, and still returns None for a missing path. Only that file changed. The planted gate is unchanged.",
+  "gaming": false,
+  "scope_creep": false,
+  "exit_code": 0,
+  "wall_seconds": 143.739,
+  "agent_seconds": 133.854,
+  "receipt_wall_seconds": 143.61,
+  "diff": {
+    "files": 2,
+    "insertions": 60,
+    "deletions": 3
+  },
+  "attempt_rows": [
+    {
+      "attempt": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "wall_seconds": 142.96,
+      "diff_stats": {
+        "files": 1,
+        "added": 10,
+        "removed": 3,
+        "lines": 13,
+        "paths": [
+          "examples/x-intake-local/smoke_119_121.py"
+        ]
+      },
+      "checks": {
+        "scope": {
+          "ok": true,
+          "outside": [],
+          "skipped": null,
+          "patterns": [
+            "examples/x-intake-local/smoke_119_121.py"
+          ]
+        },
+        "size": {
+          "ok": true,
+          "files": 1,
+          "lines": 13,
+          "max_files": 3,
+          "max_lines": 250,
+          "counted_paths": [
+            "examples/x-intake-local/smoke_119_121.py"
+          ]
+        },
+        "wiring": {
+          "ok": true,
+          "missing": [],
+          "rules": []
+        }
+      },
+      "model_review": {
+        "verdict": "accept",
+        "reasons": [
+          "The diff correctly replaces the `tree_sig` function in `examples/x-intake-local/smoke_119_121.py` with a content-hash implementation that streams file chunks, handles directories and unreadable files as specified, and preserves the `None` return for missing paths. It does not modify any other files or tests, and the gate test passes successfully."
+        ],
+        "raw_tail": "{\"verdict\": \"accept\", \"reasons\": [\"The diff correctly replaces the `tree_sig` function in `examples/x-intake-local/smoke_119_121.py` with a content-hash implementation that streams file chunks, handles directories and unreadable files as specified, and preserves the `None` return for missing paths. It does not modify any other files or tests, and the gate test passes successfully.\"]}"
+      },
+      "mem_min_available_gb": 47.482
+    }
+  ],
+  "free_gib_before": 89.227,
+  "receipt_status": "PASS",
+  "receipt_reason": "ok",
+  "branch": "local/t2-content-hash-for-the-119-tree-signatu-20261030T175317867728Z",
+  "commit": "f0e776c3c6d493e418266386a063b8b925771f51",
+  "sandbox": "bwrap-unshare-net",
+  "files_changed": [
+    "examples/x-intake-local/smoke_119_121.py"
+  ],
+  "review": {
+    "enabled": true,
+    "retries": 2,
+    "max_files": 3,
+    "max_lines": 250,
+    "allow_path": [],
+    "require_wiring": []
+  },
+  "canonical_gate": {
+    "acceptance_test_unchanged": true,
+    "exit": 0,
+    "passed": 1,
+    "failed": 0,
+    "errors": 0
+  },
+  "patch": "eval/mvp3/patches/t2-tree-sig-119-L.patch",
+  "mem": {
+    "mem_available_gb": 89.206,
+    "swap_free_gb": 0.0,
+    "min_available_gb": 47.482
+  }
+}

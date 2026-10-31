@@ -138,8 +138,11 @@ class Handler(BaseHTTPRequestHandler):
             payload = {}
         self.server.posts.append((self.path, payload))
         if self.path.startswith("/v1/chat/completions"):
+            content = "noop"
+            if b"pfy-review-v1" in raw:
+                content = json.dumps({"verdict": "accept", "reasons": []})
             body = {
-                "choices": [{"message": {"role": "assistant", "content": "noop"}, "finish_reason": "stop"}]
+                "choices": [{"message": {"role": "assistant", "content": content}, "finish_reason": "stop"}]
             }
             self._send(200, json.dumps(body).encode())
             return
