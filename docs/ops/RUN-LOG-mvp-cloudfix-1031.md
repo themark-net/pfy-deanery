@@ -1,0 +1,70 @@
+# Run log mvp-cloudfix-1031
+
+Lane: extra cloud lane. Harden the daily cloud runner. Branch `bot/mvp-cloudfix-1031`. Worktree `~/DEVELOP/pfy-mentat/tmp/mvp-cloudfix-1031`. Base `origin/bot/mvp-cloud-1031` at `d94d2b6` (that lane exited LANE EMPTY). This lane owns the cloud runner.
+
+Launch: 2026-10-31T20:30:10Z.
+Wall cap: 8 hours from launch, so 2026-11-01T04:30:10Z, or Sunday 2026-11-01 18:00 PT (2026-11-02T02:00Z), whichever comes first. The 8 hour cap binds first. Leave 20 minutes to write the handoff. No new item after 2026-11-01T04:10:10Z.
+Clock check before every item. Host at launch: MemAvailable about 64 GiB, 32 cores, load about 3.5. Pressure line is 16 GiB or load over 64 for 5 minutes.
+
+## LOOP EXIT CARD
+
+```text
+LOOP EXIT CARD
+Goal (success criteria):     Every Functional MVP DoD line and failure-case row is locked by a behavior or fail/recover test on this branch, the inline classifier calls pfylib.build_preflight.classify_cloud_failure, and a gitignored helper the gate imported cannot produce a PASS. Real high findings from the parallel lanes are fixed first when a receipt shows them.
+1 Goal met:                  nice -n 19 python3 -m unittest tests.test_pfy_build_cloud tests.test_pfy_build_p is OK after each item. A new assertion fails if the DoD line regresses.
+2 Turn cap:                  16 items including the handoff. The agent-loops default of 8 is not the cap. The drop-in says keep taking the next gap until an exit fires.
+3 Budget cap:                Cloud Grok only when a finding came from a real run and must be reproduced once. No local model. No --local. Fake grok for tests.
+4 Wall clock:                2026-11-01T04:30:10Z, or 2026-11-02T02:00Z, whichever first. Handoff starts 20 minutes earlier (2026-11-01T04:10:10Z).
+5 No-progress:               the same failure twice with no new information, or 3 items skipped in a row.
+6 Human interrupt:           user says stop. Do not ask questions. Do not merge to main. Push of this bot/ branch is pre-authorized.
+7 Error threshold:           3 consecutive same failures, then stop. A red base test is recorded and that area is skipped. It does not by itself stop the lane.
+8 External event:            stop a line if origin/bot/mvp-cloud-1031 or origin/main already closed it. Re-read parallel reports with git fetch before every item.
+Loop type:                   goal
+Human gate:                  no merge, no PR, no tag. Tester plus Reviewer at handoff for runtime changes.
+```
+
+Orchestrator clock of about 6 hours does not apply. This drop-in sets the 8 hour cap.
+
+## Exits (drop-in, written before code)
+
+1. Wall cap: the clock above. On this exit, write the handoff and stop.
+2. Lane empty: no item left that fits this lane and the drop-in rules.
+3. No progress: the same failure twice with no new information, or 3 items in a row skipped. Record and stop.
+4. Host pressure: MemAvailable under 16 GiB, or load over 2x cores (64) for 5 minutes. Pause 10 minutes, then stop if it persists.
+5. Red base: tests that fail on the base before this lane's change. Record them and skip that area. Do not stop the lane.
+
+Skip items that need special hardware, a human decision (an open OQ), a secret, or Mark's hands. Log each skip with a reason. An item that needs an ADR is an OQ draft in the handoff, then a skip. Do not invent architecture.
+
+## Plan
+
+Overview: The cloud runner on this base already implements the daily command, the PASS receipt, and the failure table with fake-grok tests. Parallel dogfood, realfail, and sixtask reports have no high findings yet. This lane locks the DoD rows that those tests do not yet pin, switches the classifier to the preflight module, then mirrors the two local G4 holes that can still mint a bad PASS (pathspec magic, gitignored helper the gate imported).
+
+Phases:
+
+- loop-card | `docs/ops/RUN-LOG-mvp-cloudfix-1031.md`, `docs/ops/AUTONOMOUS-DECISIONS-mvp-cloudfix-1031.md` | exits and phases are in this file before any product edit | depends on nothing | general
+- findings-scan | read-only `git fetch` plus `git show` of dogfood, realfail, sixtask, review-fix | high findings listed, or "none" | loop-card | general
+- dod-spent-gate | `tests/test_pfy_build_cloud.py` | default retries, gate stays red, exit 1, reason `tests`, attempts length 3, no branch | findings-scan | general
+- dod-sigint | `tests/test_pfy_build_cloud.py` | SIGINT exits 1, reason `interrupted`, grok group dead, no branch | dod-spent-gate | general
+- dod-base | `tests/test_pfy_build_cloud.py` | default base is `origin/main` when that ref exists; `--base` selects another ref; caller HEAD stays | dod-sigint | general
+- dod-staged-dirty | `tests/test_pfy_build_cloud.py` | a staged caller file stays staged and is absent from the new commit | dod-base | general
+- dod-phrases | `tests/test_pfy_build_cloud.py` | each rate-limit phrase exits 4; each auth phrase exits 1 and does not suggest `--local`; rc 0 stays other | dod-staged-dirty | general
+- dedupe | merge `origin/bot/mvp-preflight-1031`, then `scripts/pfy_build_cloud.py` calls `classify_cloud_failure` | cloud tests and `tests.test_pfy_build_p` stay green; inline copy is gone | dod-phrases | general
+- g4-literal | `scripts/pfy_build_cloud.py`, cloud tests | a reviewed file whose name is pathspec magic is the file that commits | dedupe | general
+- g4-recheck | `scripts/pfy_build_cloud.py`, cloud tests | a gitignored helper imported by the gate does not PASS; reason `commit-recheck-failed`; no branch | g4-literal | general
+- rescan | same read-only fetches | any new high finding is fixed before the handoff, or recorded as none | g4-recheck | general
+- handoff | `docs/ops/HANDOFF-mvp-cloudfix-1031.md`, final `state:` line | committed and pushed, no merge | rescan | general
+
+One workstream. Every phase edits the same runner or its tests, so they run in order. No second editor.
+
+Risks:
+
+- Parallel lanes push new findings mid-run. Mitigation: `git fetch origin` before every item and read reports with `git show`. Do not merge those branches.
+- A real grok reproduction could rate-limit. Mitigation: reproduce only a finding that came from a real run, once, on a throwaway clone under this worktree's `tmp/`. Never point `./pfy build` at Mark's checkout.
+- Merging preflight could pull docs this lane does not own. Mitigation: merge that branch only (it adds `pfylib/build_preflight.py`, its test, and its own docs). Do not edit `pfylib/build_preflight.py` after the merge.
+- Archive recheck could turn a good PASS red. Mitigation: the existing gitignored-extra test stays PASS when the gate does not need the ignored file. Only a helper the fresh tree cannot import fails.
+
+## Item log
+
+Format: `item | commit | tests | result`
+
+(none yet)

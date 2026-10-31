@@ -1,0 +1,10 @@
+# Autonomous decisions mvp-cloudfix-1031
+
+One line each. Choice, alternatives, why. Conservative and reversible.
+
+- 2026-10-31T20:31Z | Skills `repo-handoff-doc-required` and `write-loop-exits-first` are not files under this worktree, `bootstrap/`, or `~/.grok/skills`. Follow the drop-in exit list, the agent-loops exit card in the run log, and `docs/ops/HANDOFF-mvp-cloudfix-1031.md`. Alternative was to stop and ask. The drop-in already names the exits and the handoff path.
+- 2026-10-31T20:31Z | One sequential workstream. All code items edit `scripts/pfy_build_cloud.py` or its tests. Do not spawn parallel editors and do not open another worktree. The project-map agent may write `.project-map/` only (gitignored, not committed). Alternative was one sub-agent per DoD row. Rejected because they would race on the same branch.
+- 2026-10-31T20:31Z | Orchestrator 6 hour clock does not apply. This drop-in's 8 hour cap binds: stop new items at 2026-11-01T04:10:10Z, wall 2026-11-01T04:30:10Z. Sunday 2026-11-02T02:00Z is later.
+- 2026-10-31T20:31Z | Do not add `--writable-test` until a real receipt shows `tests-tampered` on a task that must edit tests. The DoD names `tests-tampered` as a failure reason. Sixtask has not published that receipt yet. Alternative was to copy the local flag now. Rejected as an unconfirmed guess.
+- 2026-10-31T20:31Z | Merge `origin/bot/mvp-preflight-1031` for the dedupe even though `origin/bot/mvp-integrate-1031` has no handoff. This drop-in replaces the round-2 dedupe lane and allows that merge. `pfylib/build_preflight.py` stays read-only after the merge.
+- 2026-10-31T20:31Z | Launch clock is the first fetch in this session, 2026-10-31T20:30:10Z. Host was not under pressure (about 64 GiB available, load about 3.5, 32 cores).
