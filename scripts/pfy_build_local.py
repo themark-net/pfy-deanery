@@ -61,6 +61,28 @@ EXIT_USAGE = 2
 EXIT_TIMEOUT = 3
 EXIT_BLOCKED = 4
 
+# Receipt status and the stdout summary token. One list. _lab refuses the rest.
+LABELS = (
+    "PASS",
+    "FAIL",
+    "PASS-REJECTED",
+    "reviewer-unavailable",
+    "crash",
+    "TIMEOUT",
+    "BLOCKED",
+    "ABORTED",
+)
+
+
+class LabelError(Exception):
+    """A status is not in LABELS. Callers must not rewrite it to FAIL."""
+
+
+def _lab(status: str) -> str:
+    if status not in LABELS:
+        raise LabelError("undocumented status %r" % (status,))
+    return status
+
 SCHEMA = "pfy-local-build/1"
 DEFAULT_MODEL = "qwen3.6:35b"
 DEFAULT_ENDPOINT = "http://127.0.0.1:11434/v1"
@@ -1152,13 +1174,8 @@ def _write_receipt(path: Path, payload: dict) -> None:
 
 
 def _summary(status: str, reason: str, branch: str | None, receipt: Path) -> str:
-    label = status
-    if status == "BLOCKED":
-        label = "BLOCKED:"
-    if status == "PASS-REJECTED":
-        label = "PASS-REJECTED"
     shown = reason or ""
-    return "%s %s branch=%s receipt=%s" % (label, shown, branch or "none", receipt)
+    return "%s %s branch=%s receipt=%s" % (_lab(status), shown, branch or "none", receipt)
 
 
 def _install_signals(state: State) -> None:
@@ -1976,7 +1993,7 @@ def _write_aborted(repo: Path) -> list[str]:
             {
                 "schema": SCHEMA,
                 "id": entry.name,
-                "status": "ABORTED",
+                "status": _lab("ABORTED"),
                 "reason": "no-receipt",
                 "exit_code": EXIT_FAIL,
                 "finished_at": _now(),
@@ -2029,7 +2046,7 @@ def reap_stale(repo: Path) -> list[str]:
                             {
                                 "schema": SCHEMA,
                                 "id": dest.parent.name,
-                                "status": "ABORTED",
+                                "status": _lab("ABORTED"),
                                 "reason": "no-receipt",
                                 "exit_code": EXIT_FAIL,
                                 "finished_at": _now(),
@@ -2844,6 +2861,7 @@ def build_local(argv: list[str] | None = None) -> int:
             prepared = None
         finished_at = _now()
         if receipt_path is not None:
+            label = _lab(status)
             payload = {
                 "schema": SCHEMA,
                 "id": stamp + "-" + slug,
@@ -2852,7 +2870,7 @@ def build_local(argv: list[str] | None = None) -> int:
                 "base_sha": base_sha,
                 "model": args.model_name,
                 "endpoint": _host_only(args.endpoint_raw),
-                "status": status,
+                "status": label,
                 "reason": reason,
                 "exit_code": exit_code,
                 "wall_seconds": round(time.monotonic() - started, 3),
@@ -2892,7 +2910,7 @@ def build_local(argv: list[str] | None = None) -> int:
             if recovery:
                 payload["recovery"] = recovery
             _write_receipt(receipt_path, payload)
-            print(_summary(status, reason, branch, receipt_path))
+            print(_summary(label, reason, branch, receipt_path))
         stop_watch.set()
         if watcher is not None:
             watcher.join(timeout=1)
@@ -3032,6 +3050,7 @@ def build_local(argv: list[str] | None = None) -> int:
         def _record_attempt(number, t0, mem_snap, attempt_status, attempt_reason, checks, model_review, diff_stats, diff_text):
             if not args.review:
                 return
+            attempt_status = _lab(attempt_status)
             payload = {
                 "schema": SCHEMA,
                 "attempt": number,
@@ -3608,6 +3627,8 @@ def build_local(argv: list[str] | None = None) -> int:
         print("FAIL: %s" % exc, file=sys.stderr)
         status, reason, exit_code = "BLOCKED", "usage", EXIT_USAGE
         return finish()
+    except LabelError:
+        raise
     except Exception:
         traceback.print_exc()
         status, reason, exit_code = "FAIL", "runner-crash", EXIT_FAIL

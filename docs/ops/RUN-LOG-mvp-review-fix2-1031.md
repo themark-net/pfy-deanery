@@ -308,4 +308,15 @@ How it fails: the agent raises SystemExit 2 and leaves the worktree unchanged.
 How we recover: no branch. Run the build again. An exit 0 empty diff stays `no-change` and can still retry.
 
 item | commit | tests | result
-S3-crash | this commit | nice python3 -m unittest tests.test_pfy_build_local | Ran 64 tests in 84.626s OK
+S3-crash | c114c7f | nice python3 -m unittest tests.test_pfy_build_local | Ran 64 tests in 84.626s OK
+
+### S4-labels
+
+Receipt status and the stdout summary token are the same word from `LABELS` (`_lab`). `BLOCKED` no longer prints as `BLOCKED:`. An unknown status raises `LabelError` and is not stored as FAIL. ABORTED receipts use the same helper.
+
+How it fails: the summary used to add a colon only on BLOCKED, so a log reader and the receipt disagreed. An unknown word would have been easy to hide as FAIL.
+
+How we recover: the operator reads one word in both places. A bad word aborts with LabelError instead of a fake FAIL. Fix the word to one of the eight documented labels and run again.
+
+item | commit | tests | result
+S4-labels | this commit | nice python3 -m unittest tests.test_pfy_build_local | Ran 65 tests in 85.031s OK

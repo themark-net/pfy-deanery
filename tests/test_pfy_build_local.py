@@ -765,6 +765,59 @@ class LocalBuildTests(unittest.TestCase):
         self.assertIn("return a + b\n", shown)
         self.assert_clean_origin()
 
+    def test_receipt_status_matches_the_stdout_label_and_the_docs(self):
+        source = (ROOT / "scripts" / "pfy_build_local.py").read_text(encoding="utf-8")
+        doc = source.split('"""', 2)[1]
+        documented = (
+            "PASS",
+            "FAIL",
+            "PASS-REJECTED",
+            "reviewer-unavailable",
+            "crash",
+            "TIMEOUT",
+            "BLOCKED",
+            "ABORTED",
+        )
+        self.assertEqual(sorted(BUILD.LABELS), sorted(documented))
+        self.assertEqual(len(BUILD.LABELS), len(set(BUILD.LABELS)))
+        for label in documented:
+            self.assertIn(label, doc)
+        with self.assertRaises(BUILD.LabelError) as caught:
+            BUILD._lab("NOT-A-STATUS")
+        self.assertIn("NOT-A-STATUS", str(caught.exception))
+        self.assertNotEqual(str(caught.exception), "FAIL")
+
+        runs = []
+        proc, receipt = self.run_build("crash", extra=["--retries", "0"])
+        runs.append((proc, receipt))
+        proc, receipt = self.run_build("noop", extra=["--retries", "0"])
+        runs.append((proc, receipt))
+        self.write_mem(10, 0, 64)
+        proc, receipt = self.run_build("fix")
+        runs.append((proc, receipt))
+        seen = set()
+        for proc, receipt in runs:
+            data = self.receipt(proc, receipt)
+            status = data["status"]
+            reason = data["reason"]
+            seen.add(status)
+            self.assertIn(status, documented)
+            self.assertIn(status, BUILD.LABELS)
+            prefix = "%s %s " % (status, reason)
+            lines = [
+                line
+                for line in (proc.stdout or "").splitlines()
+                if line.startswith(prefix) and "receipt=" in line
+            ]
+            self.assertEqual(len(lines), 1, proc.stdout)
+            self.assertEqual(lines[0].split(" ", 1)[0], status)
+            self.assertFalse(lines[0].startswith(status + ":"))
+            attempt = receipt / "attempt-1" / "receipt.json"
+            if attempt.is_file():
+                first = json.loads(attempt.read_text(encoding="utf-8"))
+                self.assertEqual(first["status"], status)
+        self.assertEqual(seen, {"crash", "FAIL", "BLOCKED"})
+
     def test_protected_test_edit_does_not_commit(self):
         proc, receipt = self.run_build("protect", extra=["--protect", "tests/*"])
         self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
