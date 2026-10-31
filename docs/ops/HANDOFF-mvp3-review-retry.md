@@ -39,17 +39,17 @@ Model `qwen3.6:35b` only. Floor is 32 GiB MemAvailable+SwapFree. Unload that mod
 | Risk | How it fails | Recovery |
 |------|--------------|----------|
 | Reviewer too strict | Real tasks end PASS-REJECTED | Receipts name the check. `--no-review` is the one-attempt MVP-1 path |
-| Reviewer too loose | t5: loop accepted a commit that contains a gitignored receipt | Read the commit, not only the attempt diff. The scope check uses `git status`, and `git add -A -f` then adds ignored paths |
+| Reviewer too loose | t5: loop accepted a commit that contains a gitignored receipt | Superseded by mvp3-fix-1031 (582414b). That trial's commit did include a gitignored receipt. The fix stages only reviewed paths. `git add -A -f` of the whole tree is no longer the commit path |
 | Model writes nothing | t4: three no-change attempts, 2203.5 s, gate still red | The review never runs without a diff. A retry does not force a write |
 | Host memory or a hung arm | Floor, lockup, or the 3 h cap | The run log records STOPPED or not-run. Kill only process groups this run started |
 | CLI ends a background arm | Run 1, 600 s background wait | Run the arm with `setsid` and poll it in the foreground |
 
 ## Known gaps
 
-The scope check and the commit do not see the same files. t4's broad-label failure from MVP-2 was not re-measured, because this model never wrote a patch. Wall time is worse than MVP-2 local.
+Superseded by mvp3-fix-1031 (582414b): the scope check and the commit now see the same reviewed paths. Before that fix, this trial recorded that the scope check and the commit do not see the same files. t4's broad-label failure from MVP-2 was not re-measured, because this model never wrote a patch. Wall time is worse than MVP-2 local.
 
 ## Gate and what is left
 
 Tester plus Reviewer at the pinned SHA. Part 1 changes runtime. No Feature GO. The review loop code lands on main after Tester and Reviewer PASS. The local default stays NO-GO.
 
-Next code fix, not done here: make the scope check include every path `git add -A -f` will commit, then re-run t5. Separately, t4 still needs a local run that writes the sub-step catch.
+Superseded by mvp3-fix-1031 (582414b, commit 0f0d889): the commit stages only the reviewed paths, so the old next step (make the scope check include every path `git add -A -f` will commit, then re-run t5) is not open on this tree. Separately, t4 still needs a local run that writes the sub-step catch. That measurement is not this follow-up.
