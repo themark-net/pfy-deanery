@@ -58,3 +58,4 @@ exits | 210e0fe | none, docs only | written before dogfood builds
 merge-cloud | 0747fee | not this lane's tests | merged origin/bot/mvp-cloud-1031 before the checker
 checker | 552147c | tests.test_mvp_1031_dogfood_reports 7 ok | green, planted mismatch exits 1
 merge-cloud-2 | 73b5581 | cloud lane docs only, runner bytes unchanged | merged before run 01
+01-stale-enterable | cloud 8d29f5d | tests.test_mvp_1031_dogfood_reports after the report row | PASS exit 0 wall 39s review accept human yes
