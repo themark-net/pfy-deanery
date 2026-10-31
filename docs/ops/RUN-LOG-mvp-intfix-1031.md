@@ -55,4 +55,6 @@ Owned files: the `CloudBuildUnchangedTests` class, `tests/test_local_bench.py`, 
 
 Format: `item | commit | tests | result`
 
-exits | (this commit) | none | exit card written before either fix
+exits | 7209ff2 | none | exit card pushed before either fix
+help-test | bb00fe7 | TMPDIR=$PWD/tmp python3 -m unittest tests.test_pfy_build_local.CloudBuildUnchangedTests | 2 OK in 0.965s
+log-path | this commit | TMPDIR=$PWD/tmp python3 -m unittest tests.test_local_bench | 17 OK in 1.234s; before the helper, outside path was '/proc/self/comm' != resolved '/proc/<pid>/comm'

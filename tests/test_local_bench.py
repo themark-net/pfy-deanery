@@ -244,18 +244,83 @@ class FailClosedTests(unittest.TestCase):
 
 class OutdirPathTests(unittest.TestCase):
     def test_relative_outdir_log_path_safe(self):
-        """Out-of-tree --outdir must not raise; harness helper returns absolute log path."""
+        """A temp outdir must not raise. The receipt path follows the resolved location.
+
+        Fail: TMPDIR inside the repo makes TemporaryDirectory an in-repo log,
+        and demanding an absolute path fails a correct relative receipt.
+        Recover: inside the repo, root / stored path opens the log. Outside,
+        the stored path is absolute and opens the same bytes.
+        """
         with tempfile.TemporaryDirectory(prefix="local-bench-out-") as td:
             outdir = Path(td).resolve()
             log_path = outdir / "demo_model.log"
             log_path.write_text("x\n", encoding="utf-8")
             got = bench.log_path_for_receipt(log_path, root=bench.ROOT)
-            self.assertEqual(got, str(log_path.resolve()))
-            # In-tree path still relativizes
+            try:
+                outdir.relative_to(bench.ROOT)
+                inside = True
+            except ValueError:
+                inside = False
+            if inside:
+                self.assertFalse(Path(got).is_absolute(), got)
+                self.assertEqual((bench.ROOT / got).read_text(encoding="utf-8"), "x\n")
+            else:
+                self.assertEqual(got, str(log_path.resolve()))
+                self.assertEqual(Path(got).read_text(encoding="utf-8"), "x\n")
             in_tree = bench.ROOT / "examples" / "local-bench" / "bench.py"
             rel = bench.log_path_for_receipt(in_tree, root=bench.ROOT)
-            self.assertFalse(rel.startswith("/"), rel)
-            self.assertIn("examples/local-bench/bench.py", rel.replace("\\", "/"))
+            self.assertFalse(Path(rel).is_absolute(), rel)
+            self.assertEqual((bench.ROOT / rel).resolve(), in_tree.resolve())
+
+    def test_log_path_receipt_inside_and_outside_repo(self):
+        """In-repo logs stay relative. Outside logs are the absolute resolved path.
+
+        Fail: an in-repo log stored with the machine prefix, or an outside
+        path that still contains '..' / raises from relative_to (Entry 090
+        turned that ValueError into DROP).
+        Recover: root / relative opens the in-repo log. The outside value
+        equals Path.resolve(), has no '..' segment, and opens the same file.
+        """
+        root = bench.ROOT
+        inside_dir = root / "tmp" / "intfix-log-path"
+        inside_dir.mkdir(parents=True, exist_ok=True)
+        inside_log = inside_dir / "demo_model.log"
+        inside_log.write_text("inside-log\n", encoding="utf-8")
+        try:
+            got_in = bench.log_path_for_receipt(inside_log, root=root)
+            self.assertFalse(Path(got_in).is_absolute(), got_in)
+            self.assertNotIn(str(root), got_in)
+            self.assertEqual((root / got_in).read_text(encoding="utf-8"), "inside-log\n")
+        finally:
+            inside_log.unlink(missing_ok=True)
+            try:
+                inside_dir.rmdir()
+            except OSError:
+                pass
+
+        outside = Path("/proc/self/comm")
+        try:
+            outside.resolve().relative_to(root)
+            self.fail("expected /proc/self/comm to resolve outside the repo")
+        except ValueError:
+            pass
+        got_out = bench.log_path_for_receipt(outside, root=root)
+        self.assertEqual(got_out, str(outside.resolve()))
+        self.assertTrue(Path(got_out).is_absolute(), got_out)
+        self.assertEqual(
+            Path(got_out).read_text(encoding="utf-8"),
+            outside.read_text(encoding="utf-8"),
+        )
+
+        messy = Path("/proc/self/../self/comm")
+        got_messy = bench.log_path_for_receipt(messy, root=root)
+        self.assertEqual(got_messy, str(messy.resolve()))
+        self.assertTrue(Path(got_messy).is_absolute(), got_messy)
+        self.assertNotIn("..", Path(got_messy).parts)
+        self.assertEqual(
+            Path(got_messy).read_text(encoding="utf-8"),
+            outside.read_text(encoding="utf-8"),
+        )
 
     def test_outdir_arg_is_resolved_absolute(self):
         """resolve_outdir() is what main() uses for --outdir."""
