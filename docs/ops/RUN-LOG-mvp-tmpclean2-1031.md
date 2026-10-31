@@ -78,3 +78,7 @@ Progress:
 - FU11 run() re-checks and dir_usable | 4980d94 | TMPDIR=$PWD/tmp nice -n 19 python3 -m unittest tests.test_x_intake_smoke_149 | 32 OK in 2.917s | pass
 - FU13 proc-mount probe does not run the binary | 7061d3c | TMPDIR=$PWD/tmp nice -n 19 python3 -m unittest tests.test_x_intake_smoke_149.Smoke149.test_bwrap_without_proc_mount_fails_closed_with_bwrap_reason | 1 OK in 0.033s | pass
 - FU14 harness2 dry-run flake | 731f0bb | TMPDIR=$PWD/tmp nice -n 19 python3 -m unittest tests.test_harness2_local_stage.DryRunTests | 1 OK in 0.026s, five repeats OK | pass
+- FU15 pregate rerun note | 9afffa0 | docs only | HANDOFF-pfy-followups-1030.md names c0d38af and CI 41242021101 | pass
+- skip 2 ubuntu rg path | none | not run | eval-structural.yml already installs ripgrep when command -v rg misses; no ubuntu runner in this lane | skip
+- skip 10 MemPalace staging | none | not run | staging writes a shared tree and warms an embedding model | skip
+- state: lane empty | listed follow-ups closed or skipped | ahead of origin/main, behind 0 | pregate not run: host busy | err: none
