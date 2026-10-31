@@ -1,0 +1,9 @@
+# Autonomous decisions mvp-gom-dogfood-1031
+
+One line each. Choice, alternatives, why. No secrets.
+
+- 2026-10-31T21:16:00Z | Skills `write-loop-exits-first` and `repo-handoff-doc-required` are not files in this worktree or `~/.grok/skills`. Bound the loop to the drop-in exit list, the agent-loops exit card in the run log, and `docs/ops/HANDOFF-mvp-gom-dogfood-1031.md`. | Stop and ask. | The drop-in says do not ask, and it already names the exits and the handoff path.
+- 2026-10-31T21:16:00Z | The lead runs the cloud builds serially in this worktree. The only sub-agent is `project-map`, which writes gitignored `.project-map/`. | Spawn one builder per task in extra worktrees. | Builds share the cloud quota and the gom bot branch. Extra worktrees under `~/DEVELOP/pfy-mentat/tmp/` are forbidden. Each item must be pushed on `bot/mvp-gom-dogfood-1031`.
+- 2026-10-31T21:16:00Z | Human verdict is the lead reading the PASS diff. Accept only when the diff matches the task, the gate is green, and gom decisions hold (no auto-submit, `submitted` stays false, no scraper, no Playwright, no network job fetch, no real journal). Otherwise reject and do not cherry-pick. Record the verdict in `meta.json` next to the receipt. | Treat review `accept` as the human verdict. | The drop-in names both verdicts. Review is the model. Human accept is the gate before a commit lands on the gom bot branch.
+- 2026-10-31T21:16:00Z | `.project-map/` stays uncommitted. It is gitignored and not an owned file. | Commit the map. | Owned files are `eval/gom-dogfood-1031/**`, `tests/test_gom_dogfood_1031_report.py`, this lane's docs/ops files, and the gom bot branch.
+- 2026-10-31T21:16:00Z | Scratch for commands is this worktree `tmp/` with `TMPDIR` set there. Throwaway gom clones go under the gom worktree `tmp/` when that path is gitignored, else `~/DEVELOP/jobbar-master/tmp/gom-dogfood-1031-scratch/`. | Use `/tmp`. | The drop-in forbids `/tmp` and names the gom scratch.

@@ -1,0 +1,51 @@
+# RUN-LOG mvp-gom-dogfood-1031
+
+Branch `bot/mvp-gom-dogfood-1031`. Base `origin/bot/mvp-integrate-1031` (`86fcfba` includes the lane drop-in on top of integrate `0338b67`). Worktree `~/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031`. Gom worktree `~/DEVELOP/jobbar-master/tmp/gom-dogfood-1031` on `bot/gom-dogfood-1031`. No rebase, no force-push, no PR, no merge to main. No local model. Never pass `--local` to a real run. Mark's checkouts `~/DEVELOP/pfy-mentat` and `~/DEVELOP/jobbar-master/current` stay untouched.
+
+Launch: 2026-10-31T21:15:13Z (grok pid 2167101 start). Wall cap: 2026-11-01T05:15:13Z (8 hours), or 2026-11-02T02:00Z (Sunday 2026-11-01 18:00 PT), whichever comes first. Stop new items by 2026-11-01T04:55:13Z so the handoff has 20 minutes. Binding cap is the 8 hour mark.
+
+Overview: Prove `./pfy build` on a second real repo, Gom Jabbar (`themark-net/gom-jabbar-grok4`). Six or more small tasks from that repo's TODO and handoffs run through the cloud runner against throwaway clones. PASS plus a human accept is cherry-picked onto `bot/gom-dogfood-1031` with a Built-by trailer, tested, and pushed. Receipts, diffs, and a report land in `eval/gom-dogfood-1031/`. A behavior test checks that report rows match receipts and that a planted mismatch fails.
+
+Phases:
+- exits | `docs/ops/RUN-LOG-mvp-gom-dogfood-1031.md`, `docs/ops/AUTONOMOUS-DECISIONS-mvp-gom-dogfood-1031.md` | exit card and phase plan are in this file before any gom command or build | none | lead
+- worktree | `~/DEVELOP/jobbar-master/tmp/gom-dogfood-1031` only, via the drop-in `git -C current fetch` and `worktree add` | branch `bot/gom-dogfood-1031` exists at `origin/main`; Mark's current HEAD and journal are unchanged | exits | lead
+- select | gom `AGENTS.md`, `docs/DECISIONS.md`, `docs/TODO.md`, `docs/PENDING-HANDOFF.md` (read only) | six or more small task briefs in this log, each with a test command that does not fetch jobs or touch a real journal | worktree | lead
+- builds | `eval/gom-dogfood-1031/<n>-<slug>/` | each task has command, wall time, exit, attempts, review verdict, human verdict, redacted receipt, and diff | select | lead
+- land | gom `bot/gom-dogfood-1031` and `docs/PENDING-HANDOFF.md` there | each PASS and human-accept commit is cherry-picked with the Built-by trailer, tests run, branch pushed; no PR and no merge to gom main | builds | lead
+- report | `eval/gom-dogfood-1031/REPORT.md`, `tests/test_gom_dogfood_1031_report.py` | rows match receipts; a planted mismatch fails the checker | builds | lead
+- handoff | `docs/ops/HANDOFF-mvp-gom-dogfood-1031.md`, this log | SHAs, skips, fail/recover, cross-lane requests, gate, next step | report and land | lead
+
+Risks: cloud quota, so builds stay serial and never use `--local`. A throwaway clone keeps the runner worktree out of Mark's gom checkout. Human accept is a diff read against gom decisions (Decision 0006: no auto-submit, `submitted` stays false). Scratch and `TMPDIR` stay under this worktree `tmp/` except the drop-in gom scratch. No scrapers, Playwright, network job fetches, or real journal.
+
+## LOOP EXIT CARD
+
+```text
+LOOP EXIT CARD
+Goal (success criteria):     six or more real ./pfy build runs on throwaway clones of Gom Jabbar; each recorded under eval/gom-dogfood-1031/<n>-<slug>/; PASS and human-accept commits cherry-picked to bot/gom-dogfood-1031 with Built-by trailer, tests run, branch pushed; REPORT.md rows match receipts; tests.test_gom_dogfood_1031_report fails a planted mismatch
+1 Goal met:                  tests.test_gom_dogfood_1031_report plus the recorded receipt fields (exit, attempts, review verdict, human verdict) for each run
+2 Turn cap:                  8 build tasks, then report, land notes, and handoff (stop new builds at 8 even if the wall clock remains)
+3 Budget cap:                cloud Grok only; no --local; no second model; stop new builds if two runs return rate-limit
+4 Wall clock:                2026-11-01T05:15:13Z or 2026-11-02T02:00Z, whichever comes first; handoff starts 20 minutes earlier
+5 No-progress:               same failure twice with no new information, or 3 items skipped in a row
+6 Human interrupt:           user stop; do not ask; conservative decision goes in the decisions file
+7 Error threshold:           3 consecutive same failures, then stop
+8 External event:            lane empty when no further gom TODO item fits these rules; or the task is already done on origin/main
+Loop type:                   goal
+Human gate:                  lead reads each PASS diff before cherry-pick; no merge, no PR; push bot/mvp-gom-dogfood-1031 and gom bot/gom-dogfood-1031 only
+```
+
+Drop-in exits, checked before every item:
+
+1. Wall cap above. Leave 20 minutes for the handoff.
+2. Lane empty: no item left that fits the lane and these rules.
+3. No progress: the same failure twice with no new information, or 3 items in a row skipped.
+4. Host pressure: MemAvailable under 16 GiB, or load over 2x cores (64) for 5 minutes. Pause 10 minutes, then stop if it persists.
+5. Red base: tests that fail on the base before this change. Record them and skip that area. Do not stop the lane.
+
+Launch host: MemAvailable 59.6 GiB (62515772 kB), 32 cores, load 4.98. Under the pressure line.
+
+Named skills `write-loop-exits-first` and `repo-handoff-doc-required` are not files. This card, the drop-in exit list, and `docs/ops/HANDOFF-mvp-gom-dogfood-1031.md` are the binding.
+
+## Items
+
+Format: `item | commit | tests | result`
