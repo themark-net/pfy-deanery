@@ -1,0 +1,20 @@
+{
+  "process_exit": 0,
+  "status": "PASS",
+  "reason": "ok",
+  "recovery": "",
+  "attempts": "1",
+  "verdict": "matches",
+  "exp_status": "PASS",
+  "exp_reason": "ok",
+  "exp_exit": 0,
+  "invariant_problems": [],
+  "head": "4c8112c2697d603917361c83d623106cfedb575a",
+  "detached": false,
+  "porcelain": "",
+  "cloud_branches": [
+    "cloud/in-the-file-my-app-py-set-the-only-line-20261031T225836028576Z"
+  ],
+  "runner_sha": "3b1c126f3bebddb524931392612dc0cd0d7623f6",
+  "elapsed_note": "see the driver clock in stdout of this process"
+}

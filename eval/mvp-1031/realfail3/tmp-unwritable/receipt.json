@@ -1,0 +1,31 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "FAIL",
+  "reason": "runner-crash",
+  "exit_code": 1,
+  "branch": null,
+  "commit": null,
+  "base": "HEAD",
+  "review": {
+    "verdict": null,
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 0,
+      "status": "FAIL",
+      "reason": "runner-crash",
+      "output_tail": "[Errno 13] Permission denied: '/home/mark/DEVELOP/pfy-mentat/tmp/mvp-realfail3-1031/tmp/realfail3-targets/tmp-unwritable/tmp/cloud-build'"
+    }
+  ],
+  "gate": {
+    "cmd": "/usr/bin/python3 -c 'print('\"'\"'gate-ok'\"'\"')'",
+    "before": null,
+    "after": null
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": false,
+  "task": "In app.py change the line value = 0 to value = 1. Do not edit any other file. Do not commit.",
+  "finished_at": "2026-10-31T22:55:29Z"
+}
