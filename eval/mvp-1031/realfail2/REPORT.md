@@ -12,7 +12,7 @@ Expected values come from the Functional MVP failure table and from the mvp-real
 | redaction | real | PASS | ok | 0 | pending | pending | pending | pending | - | - | Re-check. Planted marker must be absent from the receipt task and output_tail. |
 | review-retry-accept | real | PASS | ok | 0 | pending | pending | pending | pending | - | - | Real reviewer. Attempt 1 rejected, attempt 2 accepted. |
 | scope-commit-mismatch | real | FAIL | scope-commit-mismatch | 1 | pending | pending | pending | pending | - | - | Staged path outside the reviewed set. Index reset. No branch. |
-| worktree-failed | real | FAIL | worktree-failed | 1 | pending | pending | pending | pending | - | - | `--base` is a ref that does not exist. Caller unchanged. |
+| worktree-failed | real | FAIL | worktree-failed | 1 | none | usage | 2 | FINDING | - | - | Missing `--base` exits 2 with `base ref not found` before worktree add. No receipt. Caller HEAD and status unchanged. Cross-lane for mvp-cloudfix-1031: a missing base should be exit 1, reason `worktree-failed`. |
 | dry-run | shim | DRY-RUN | dry-run | 0 | DRY-RUN | dry-run | 0 | matches | 0 | empty | PATH shim recorded 0 grok calls. No branch. Caller unchanged. |
 | usage | real | none | usage | 2 | none | usage | 2 | matches | - | - | No task. Exit 2. Text has `./pfy build "<task>"`, the `-p` dogfood line, and the `--local` line. No receipt. |
 | dogfood-p | real | PASS | ok | 0 | pending | pending | pending | pending | - | - | `./pfy build -p --help` and one real `-p` run on a clone. |
