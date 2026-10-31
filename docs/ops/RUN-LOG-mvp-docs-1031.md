@@ -1,6 +1,6 @@
 # Run log mvp-docs-1031
 
-Lane: operator quickstart and DoD walkthrough. Branch `bot/mvp-docs-1031`. Worktree `~/DEVELOP/pfy-mentat/tmp/mvp-docs-1031`. Base `origin/bot/mvp-integrate-1031` (`19c2710`). Launch observed `2026-10-31T21:15:32Z`.
+Lane: operator quickstart and DoD walkthrough. Branch `bot/mvp-docs-1031`. Worktree `~/DEVELOP/pfy-mentat/tmp/mvp-docs-1031`. Started from `origin/bot/mvp-integrate-1031` (`19c2710`). Launch observed `2026-10-31T21:15:32Z`. Integrate tip at the third recheck is `6372dcc`. This branch was not rebased.
 
 LOOP EXIT CARD
 ════════════════════════════════════════
@@ -54,16 +54,17 @@ walkthrough | a9cc74f | nice -n 19 python3 -m unittest tests.test_pfy_build_clou
 quickstart-test | 4f87ddf | nice -n 19 python3 -m unittest tests.test_quickstart_commands -v | PASS, 3 tests OK in 0.769s. Planted exit=0 on ./pfy build failed as required.
 readme | 330faeb | two link lines; tests.test_docs_hygiene already green on the prior commit | PASS
 gap-recheck | 1866938 | nice -n 19 python3 -m unittest tests.test_docs_hygiene tests.test_quickstart_commands | PASS, 5 tests OK in 0.847s. Cloudfix tip moved 57c6dad to d35af20. GAPs 1-8 unchanged. Realfail d09647a and realfail2 884a16a unchanged.
+gap-recheck-2 | this commit | nice -n 19 python3 -m unittest tests.test_docs_hygiene tests.test_quickstart_commands | PASS, 5 tests OK in 0.893s. Integrate moved to 6372dcc. Realfail2 moved to 8edff42 and closed GAPs 1-6. GAPs 7 and 8 stay open. Host MemAvailable 61576936 kB, load 4.33, 32 cores.
 
 LOOP REPORT
 Type:            goal
-Goal:            quickstart card, DoD walkthrough, command test, README links
-Exit fired:      2 lane empty. Listed items are done. No further item fits the owned files.
-Iterations:      6 commits after the drop-in / turn cap 8
+Goal:            quickstart card, DoD walkthrough, command test, README links, GAP list matches fetched receipts
+Exit fired:      2 lane empty. Listed items are done. GAPs 7 and 8 need another lane's receipt. No further item fits the owned files.
+Iterations:      7 commits after the drop-in / turn cap 8
 Progress:        last state is this line
-Evidence:        tests.test_quickstart_commands 3 OK; cloud bundle 54 OK; red base help test FAIL
+Evidence:        tests.test_quickstart_commands 3 OK; cloud bundle 54 OK; hygiene on this recheck; red base help test FAIL
 Human gate:      no merge, no PR
-Next:            recheck the walkthrough when a GAP receipt is committed
+Next:            recheck when a worktree-failed receipt or a tests-then-PASS receipt is committed
 Status:          DONE
 
-state: lane empty | tests: tests.test_quickstart_commands 3 OK; tests.test_pfy_build_cloud plus preflight, receipt, docs 54 OK; red base tests.test_pfy_build_local.CloudBuildUnchangedTests.test_help_and_dry_run_stay_the_same FAIL | files: quickstart, walkthrough, test, README, this log, handoff | err: none
+state: lane empty | tests: tests.test_quickstart_commands 3 OK; tests.test_pfy_build_cloud plus preflight, receipt, docs 54 OK; red base tests.test_pfy_build_local.CloudBuildUnchangedTests.test_help_and_dry_run_stay_the_same FAIL | files: quickstart, walkthrough, test, README, this log, handoff | err: none | gaps open: 7 worktree-failed, 8 gate-red-then-pass
