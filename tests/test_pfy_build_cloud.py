@@ -1078,6 +1078,53 @@ class CloudBuildNoChangeTests(unittest.TestCase):
         self.assertNotIn("import helper", shown.stdout)
         self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
 
+    def test_recheck_tmpdir_stays_inside_the_extract(self) -> None:
+        """The archive recheck must see temp files under the extract, not the worktree.
+
+        Fail: the worktree gate passes because TMPDIR is the worktree tmp, then
+        the recheck runs in repo/tmp/recheck-<sha> and TemporaryDirectory is
+        still the worktree tmp, so relative_to raises and the commit is reset.
+        Recover: TMPDIR for that gate is the extract tmp. The same command
+        passes, and kept.py lands.
+        """
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\n"
+            "import os\n"
+            "import tempfile\n"
+            "from pathlib import Path\n"
+            "root = Path('.').resolve()\n"
+            "if not Path('kept.py').is_file():\n"
+            "    print('GATE-NO-KEPT')\n"
+            "    raise SystemExit(1)\n"
+            "made = Path(tempfile.mkdtemp())\n"
+            "try:\n"
+            "    made.relative_to(root)\n"
+            "except ValueError:\n"
+            "    print('TMPDIR-OUTSIDE')\n"
+            "    print(os.environ.get('TMPDIR', ''))\n"
+            "    raise SystemExit(1)\n"
+            "print('TMPDIR-INSIDE')\n"
+            "raise SystemExit(0)\n",
+        )
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        proc = self._run_task(grok, gate, "add kept", "0", extra=["--no-review"])
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        self.assertNotIn("TMPDIR-OUTSIDE", text)
+        match = re.search(r"PASS ok branch=(\S+) receipt=(\S+)", proc.stdout or "")
+        self.assertIsNotNone(match, proc.stdout)
+        names = _git(self.repo, "ls-tree", "-r", "--name-only", match.group(1)).stdout.splitlines()
+        self.assertIn("kept.py", names)
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+
 
 def _dead(pid: int) -> bool:
     if pid <= 0:

@@ -961,6 +961,15 @@ class CloudBuild:
                 or "_KEY_" in upper
             ):
                 env.pop(key, None)
+        # Recheck runs with cwd set to the extract. A TMPDIR left on the
+        # build worktree makes TemporaryDirectory paths fail relative_to
+        # on that extract and pass on the worktree.
+        gate_tmp = where / "tmp"
+        try:
+            gate_tmp.mkdir(parents=True, exist_ok=True)
+            env["TMPDIR"] = str(gate_tmp)
+        except OSError:
+            pass
         status, code, out, err = run_command(
             argv,
             where,
