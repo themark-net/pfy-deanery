@@ -391,6 +391,52 @@ class WorkflowImagePinTests(unittest.TestCase):
         text = log.read_text(encoding="utf-8")
         self.assertIn("PASS workflow image pin:", text)
 
+    @needs_yaml
+    def test_failing_image_pin_lint_fails_pregate(self) -> None:
+        """A ubuntu-latest fixture must make --only lint print OVERALL=FAIL.
+
+        PREGATE_IMAGE_PIN_ROOT points at a scratch copy of the fixture. The
+        real workflow files are not edited. If the hook is ignored, the real
+        workflows pass and OVERALL=PASS makes this test red.
+        """
+        SCRATCH.mkdir(parents=True, exist_ok=True)
+        fixture = Path(tempfile.mkdtemp(prefix="image-pin-fail-lint-", dir=SCRATCH))
+        try:
+            shutil.copy(FIX / "latest.yml", fixture / "latest.yml")
+            env = os.environ.copy()
+            env["TMPDIR"] = str(SCRATCH)
+            env["PREGATE_MAX_ROOT_LEN"] = "200"
+            env["PREGATE_IMAGE_PIN_ROOT"] = str(fixture)
+            proc = subprocess.run(
+                [
+                    "nice",
+                    "-n",
+                    "19",
+                    "scripts/pregate.sh",
+                    "--in-place",
+                    "--allow-dirty",
+                    "--only",
+                    "lint",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=240,
+            )
+            blob = proc.stdout + proc.stderr
+            self.assertNotEqual(proc.returncode, 0, blob)
+            self.assertIn("OVERALL=FAIL", proc.stdout)
+            self.assertNotIn("OVERALL=PASS", proc.stdout)
+            match = re.search(r"Summary: (\S+)", proc.stdout)
+            self.assertIsNotNone(match, blob)
+            log = Path(match.group(1)).parent / "logs" / "lint.log"
+            text = log.read_text(encoding="utf-8")
+            self.assertIn("unpinned GitHub-hosted runs-on (ubuntu-latest)", text)
+            self.assertNotIn("PASS workflow image pin:", text)
+        finally:
+            shutil.rmtree(fixture)
+
 
 if __name__ == "__main__":
     unittest.main()
