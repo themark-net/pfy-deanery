@@ -1,0 +1,10 @@
+# Autonomous decisions mvp-review-quality-1031
+
+- 2026-10-31T23:39Z: The skills `write-loop-exits-first` and `repo-handoff-doc-required` are not files in this worktree or `~/.grok/skills`. Bound the loop to the drop-in exits, the agent-loops exit card in the run log, and `docs/ops/HANDOFF-mvp-review-quality-1031.md`. Alternative was to stop and ask. The drop-in already names the exits and the handoff path.
+- 2026-10-31T23:45Z: Do not spawn implementation sub-agents. One branch, one shared `review_prompt`, push after each item, and this checkout is already a linked worktree of `~/DEVELOP/pfy-mentat/.git`. A new worktree would register on that shared git dir. The lead runs the phases. The project-map subagent writes only `.project-map/`.
+- 2026-10-31T23:45Z: Wall start `2026-10-31T23:39:22Z`. Stop new items at `2026-11-01T07:19:22Z`. Sunday 2026-11-01 18:00 PT is `2026-11-02T02:00:00Z` and is later, so the 8 hour cap binds.
+- 2026-10-31T23:45Z: Review calls use `grok -p PROMPT --cwd SCRATCH --always-approve --output-format plain` with the prompt from `review_prompt()`. SCRATCH is `tmp/review-quality-cwd` inside this worktree. Timeout is 180s per case, sequential. The runner default is 1200s. A timeout is an error, not an accept or a reject. Never `--local`.
+- 2026-10-31T23:45Z: Code edits stay inside `review_prompt` unless a measured miss is a one-function override. The replay test is `tests/test_review_quality_replay.py`. Eval files live under `eval/mvp-1031/review-quality/`. Alternative was to edit `tests/test_pfy_build_cloud.py`, which mvp-cloudfix-1031 owns.
+- 2026-10-31T23:45Z: At most two measured reviewer passes. A third pass only if the remeasure false-accept count did not drop and the failure text is new.
+- 2026-10-31T23:45Z: Do not edit `docs/TODO.md`, `docs/OPEN_QUESTIONS.md`, or `scripts/pfy`. They are shared. Follow-ups go in the handoff.
+- 2026-10-31T23:45Z: The cloud review batch does not take `heavy-1030.lock`. It is not a local model, not `unittest discover`, and not `make eval-*`. It runs under `nice -n 19` only, so other lanes can take the lock.
