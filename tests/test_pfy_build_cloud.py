@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -35,6 +36,13 @@ def _run(argv: list[str], cwd: Path, env: dict | None = None, timeout: float = 6
 
 def _git(repo: Path, *args: str) -> subprocess.CompletedProcess:
     return _run(["git", *args], repo)
+
+
+def _write_exe(path: Path, body: str) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(body, encoding="utf-8")
+    path.chmod(0o755)
+    return path
 
 
 def _init_repo(path: Path) -> Path:
@@ -193,3 +201,88 @@ class CloudBuildDispatchTests(unittest.TestCase):
         self.assertEqual(payload["schema"], "pfy-cloud-build/1")
         self.assertEqual(payload["status"], "DRY-RUN")
         self.assertIsNone(payload["commit"])
+
+
+class CloudBuildPassTests(unittest.TestCase):
+    def setUp(self) -> None:
+        SCRATCH.mkdir(parents=True, exist_ok=True)
+        self.repo = _init_repo(SCRATCH / self.id().replace(".", "_"))
+        self.side = SCRATCH / (self.id().replace(".", "_") + "-side")
+        self.side.mkdir(parents=True, exist_ok=True)
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.repo, ignore_errors=True)
+        shutil.rmtree(self.side, ignore_errors=True)
+
+    def test_pass_matches_receipt_and_leaves_caller_clean(self) -> None:
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\nprint('GATE-OK')\nraise SystemExit(0)\n",
+        )
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "from pathlib import Path\n"
+            "blob = '\\n'.join(sys.argv)\n"
+            "if 'PFY-CLOUD-REVIEW' in blob:\n"
+            "    print('verdict: accept')\n"
+            "    print('reasons: matches the task')\n"
+            "    raise SystemExit(0)\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        caller = _git(self.repo, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip()
+        porcelain = _git(self.repo, "status", "--porcelain").stdout
+        proc = _run(
+            [
+                sys.executable,
+                str(CLOUD),
+                "add kept value",
+                "--repo",
+                str(self.repo),
+                "--test-cmd",
+                "%s %s" % (sys.executable, gate),
+                "--grok-cmd",
+                str(grok),
+                "--timeout",
+                "30",
+            ],
+            self.repo,
+            timeout=60,
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        match = re.search(r"PASS ok branch=(\S+) receipt=(\S+)", proc.stdout or "")
+        self.assertIsNotNone(match, proc.stdout)
+        branch, receipt_path = match.group(1), match.group(2)
+        self.assertTrue(branch.startswith("cloud/"), branch)
+        payload = json.loads(Path(receipt_path).read_text(encoding="utf-8"))
+        self.assertEqual(payload["schema"], "pfy-cloud-build/1")
+        self.assertEqual(payload["status"], "PASS")
+        self.assertEqual(payload["reason"], "ok")
+        self.assertEqual(payload["exit_code"], 0)
+        self.assertEqual(payload["branch"], branch)
+        self.assertRegex(payload["commit"], r"^[0-9a-f]{40}$")
+        self.assertEqual(payload["review"]["verdict"], "accept")
+        self.assertIsInstance(payload["review"]["reasons"], list)
+        self.assertGreaterEqual(len(payload["attempts"]), 1)
+        self.assertEqual(payload["attempts"][-1]["status"], "PASS")
+        self.assertEqual(payload["gate"]["cmd"], "%s %s" % (sys.executable, gate))
+        self.assertIsNotNone(payload["gate"]["before"])
+        self.assertIsNotNone(payload["gate"]["after"])
+        self.assertEqual(payload["recovery"], "")
+        self.assertIs(payload["pushed"], False)
+        self.assertIs(payload["worktree_removed"], True)
+        self.assertEqual(_git(self.repo, "rev-parse", branch).stdout.strip(), payload["commit"])
+        self.assertEqual(_git(self.repo, "rev-parse", branch + "^").stdout.strip(), head)
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+        self.assertEqual(_git(self.repo, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip(), caller)
+        self.assertEqual(_git(self.repo, "status", "--porcelain").stdout, porcelain)
+        self.assertEqual(_git(self.repo, "stash", "list").stdout.strip(), "")
+        names = _git(self.repo, "ls-tree", "-r", "--name-only", payload["commit"]).stdout.splitlines()
+        self.assertIn("kept.py", names)
+        self.assertNotIn("secret.txt", names)
+        self.assertFalse((self.repo / "tmp" / "cloud-build").exists())
+        self.assertIn("pipelines/dogfood/build-cloud/", receipt_path)

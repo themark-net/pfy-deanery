@@ -5,3 +5,7 @@
 - 2026-10-31: Ordered items share scripts/pfy_build_cloud.py, the test module, and scripts/pfy. Run them in order in this lead session. Do not spawn parallel implementers. The project-map agent may write only gitignored .project-map/.
 - 2026-10-31: The word help is a task. Only -h and --help print help. Alternative was to treat help as --help and steal a task named help.
 - 2026-10-31: `pfy build -p --help` is rewritten to `pfy_build_p.py --help` in cmd_build. Dogfood argparse treats the next token as the -p value, so --help never opened the help. The dogfood script stays unedited.
+- 2026-10-31: --no-review means one attempt and review.verdict skipped. It does not pretend the review accepted. Alternative was to keep retries and only skip the review call.
+- 2026-10-31: A gate command that exceeds --timeout is reason tests, so the attempt can retry. Exit 3 is reserved for the grok call. A non-zero grok exit that is not rate-limit or unauthenticated still runs the gate. rc 0 is never rate-limit.
+- 2026-10-31: The cloud commit sets user.name, commit.gpgsign=false, and an empty core.hooksPath on the git command line. Caller git config is not edited. Reap records pgid 0 unless this process is the session leader, so it does not signal the caller's process group.
+- 2026-10-31: --keep-worktree keeps the worktree after PASS and after failure. A new run replaces tmp/cloud-build.pids.json. Recovery of a missing receipt is ./pfy build --reap, not an automatic reap on the next build.
