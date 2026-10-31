@@ -1899,6 +1899,87 @@ class CloudBuildGateReasonTests(unittest.TestCase):
         names = _git(self.repo, "ls-tree", "-r", "--name-only", payload["commit"]).stdout.splitlines()
         self.assertIn("kept.py", names)
 
+    def test_two_writable_tests_land_and_a_third_base_file_does_not(self) -> None:
+        tests = self.repo / "tests"
+        tests.mkdir()
+        (tests / "test_a.py").write_text("def test_a():\n    assert True\n", encoding="utf-8")
+        (tests / "test_b.py").write_text("def test_b():\n    assert True\n", encoding="utf-8")
+        (tests / "test_gate.py").write_text("def test_gate():\n    assert True\n", encoding="utf-8")
+        added = _git(self.repo, "add", "tests/test_a.py", "tests/test_b.py", "tests/test_gate.py")
+        self.assertEqual(added.returncode, 0, added.stderr)
+        committed = _git(self.repo, "commit", "-m", "tests")
+        self.assertEqual(committed.returncode, 0, committed.stderr)
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "a = Path('tests/test_a.py').read_text(encoding='utf-8')\n"
+            "b = Path('tests/test_b.py').read_text(encoding='utf-8')\n"
+            "gate = Path('tests/test_gate.py').read_text(encoding='utf-8')\n"
+            "if 'assert 1 == 1' not in a or 'assert 2 == 2' not in b or gate != 'def test_gate():\\n    assert True\\n':\n"
+            "    print('GATE-NEED-BOTH')\n"
+            "    raise SystemExit(1)\n"
+            "print('GATE-OK')\n"
+            "raise SystemExit(0)\n",
+        )
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "from pathlib import Path\n"
+            "blob = '\\n'.join(sys.argv)\n"
+            "if 'PFY-CLOUD-REVIEW' in blob:\n"
+            "    print('verdict: accept')\n"
+            "    raise SystemExit(0)\n"
+            "if 'tests-tampered' in blob:\n"
+            "    Path('tests/test_gate.py').write_text('def test_gate():\\n    assert True\\n', encoding='utf-8')\n"
+            "    Path('tests/test_a.py').write_text('def test_a():\\n    assert 1 == 1\\n', encoding='utf-8')\n"
+            "    Path('tests/test_b.py').write_text('def test_b():\\n    assert 2 == 2\\n', encoding='utf-8')\n"
+            "    Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "    raise SystemExit(0)\n"
+            "Path('tests/test_a.py').write_text('def test_a():\\n    assert 1 == 1\\n', encoding='utf-8')\n"
+            "Path('tests/test_b.py').write_text('def test_b():\\n    assert 2 == 2\\n', encoding='utf-8')\n"
+            "Path('tests/test_gate.py').write_text('def test_gate():\\n    assert False\\n', encoding='utf-8')\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        proc = _run(
+            [
+                sys.executable,
+                str(CLOUD),
+                "edit the two named tests",
+                "--repo",
+                str(self.repo),
+                "--retries",
+                "1",
+                "--timeout",
+                "30",
+                "--writable-test",
+                "tests/test_a.py",
+                "--writable-test",
+                "tests/test_b.py",
+                "--test-cmd",
+                "%s %s" % (sys.executable, gate),
+                "--grok-cmd",
+                str(grok),
+            ],
+            self.repo,
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        payload = self._receipt()
+        self.assertEqual(len(payload["attempts"]), 2)
+        self.assertEqual(payload["attempts"][0]["reason"], "tests-tampered")
+        self.assertEqual(payload["attempts"][1]["status"], "PASS")
+        self.assertIn("assert 1 == 1", _git(self.repo, "show", payload["commit"] + ":tests/test_a.py").stdout)
+        self.assertIn("assert 2 == 2", _git(self.repo, "show", payload["commit"] + ":tests/test_b.py").stdout)
+        self.assertEqual(
+            _git(self.repo, "show", payload["commit"] + ":tests/test_gate.py").stdout,
+            "def test_gate():\n    assert True\n",
+        )
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+
     def test_writable_test_does_not_cover_a_different_base_file(self) -> None:
         tests = self.repo / "tests"
         tests.mkdir()
