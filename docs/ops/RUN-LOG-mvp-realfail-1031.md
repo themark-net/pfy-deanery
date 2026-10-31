@@ -59,4 +59,8 @@ auth-failure | bb3d5be | tests.test_mvp_1031_realfail_receipts 3 ok | FINDING No
 rate-limit | b42c427 | tests.test_mvp_1031_realfail_receipts 3 ok | simulated BLOCKED rate-limit matches DoD
 gitignored-extra | f8e5553 | tests.test_mvp_1031_realfail_receipts 3 ok | PASS, ignored file absent from the commit
 redaction | b66d5a0 | tests.test_mvp_1031_realfail_receipts 3 ok | FINDING planted marker stayed in the receipt
-no-change | (this commit) | tests.test_mvp_1031_realfail_receipts | real FAIL no-change, attempts 3, tail in later prompts
+no-change | e0bdb62 | tests.test_mvp_1031_realfail_receipts 3 ok | real FAIL no-change, attempts 3, tail in later prompts
+recheck | none | cloud still d94d2b6 | FINDINGs not rerun, no new cloud commit
+handoff | (this commit) | tests.test_mvp_1031_realfail_receipts | lane empty, pregate not run: host busy
+
+state: LANE EMPTY | tests: tests.test_mvp_1031_realfail_receipts 3 ok | files: eval/mvp-1031/realfail, tests/test_mvp_1031_realfail_receipts.py, docs/ops/*-mvp-realfail-1031.md | err: none | pregate not run: host busy
