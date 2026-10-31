@@ -201,3 +201,7 @@ Host before 09: 2026-10-31T23:40:56Z MemAvailable 39.1 GiB (41035180 kB), load 6
 Host before 10: 2026-10-31T23:43:23Z MemAvailable 39.1 GiB (40990948 kB), load 6.55, 32 cores. Under the pressure line.
 
 - 10-land-mailbox-parties | cloud 973cedd1e4cc831d114e78e0734e04207f4fcb31 landed 3ecf83f674e668ad064b4ed9c1a54cf154b8d4a8 (test ef2692c00c39a24cc41a99f2f14e6892418a2cba) | gate before exit 1, after 1 passed in 0.06s; land pytest 10 passed | PASS review accept human accept wall 121s
+
+Host before 11: 2026-10-31T23:45:58Z MemAvailable 38.0 GiB (39877916 kB), load 6.78, 32 cores. Under the pressure line.
+
+- 11-land-recipients | cloud 5d1ecaa4a7a31ddf64307f2d832a0a7203812daa landed 04d7ff206e21b7dd15cb8d1bc3f3c2e38e6c747b (test 7ebd92e46fa1cdd8f17dca663259649f9ea123f4) | gate before exit 1, after 1 passed in 0.05s; land pytest 11 passed | PASS review accept human accept wall 81s

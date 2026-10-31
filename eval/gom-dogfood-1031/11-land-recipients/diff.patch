@@ -1,0 +1,26 @@
+diff --git a/gomjobbar/capture.py b/gomjobbar/capture.py
+index c4d8c52..a6d3c69 100644
+--- a/gomjobbar/capture.py
++++ b/gomjobbar/capture.py
+@@ -375,7 +375,7 @@ def land(
+         if catch.get("message_id"):
+             prov["message_id"] = catch["message_id"]
+             prov.setdefault("dedupe_key", f"mid:{catch['message_id']}")
+-        # T-0034: thread headers and mailbox parties already on the catch.
++        # T-0034: thread headers, mailbox parties, and recipients already on the catch.
+         # Empty or missing stays off the item. raw_source stays on the catch.
+         in_reply_to = catch.get("in_reply_to")
+         if isinstance(in_reply_to, str) and in_reply_to:
+@@ -389,6 +389,12 @@ def land(
+         reply_to = catch.get("reply_to")
+         if isinstance(reply_to, str) and reply_to:
+             prov["reply_to"] = reply_to
++        to_addr = catch.get("to")
++        if isinstance(to_addr, str) and to_addr:
++            prov["to"] = to_addr
++        cc_addr = catch.get("cc")
++        if isinstance(cc_addr, str) and cc_addr:
++            prov["cc"] = cc_addr
+         prov["catch_ts"] = catch.get("ts") or catch.get("fetched_at")
+         if text is None:
+             text = f"{catch.get('subject') or ''}\n{body}".strip()
