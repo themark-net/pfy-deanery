@@ -60,6 +60,9 @@ Risks:
 
 Format: `item | commit | tests | result`
 
+- loop-card | 5d0575b | nice python3 -m unittest tests.test_selfhost_1031_log (2 OK) | PASS
+- relative receipt dir | 00dbdd9 | nice python3 -m unittest tests.test_smoke_receipt_absolute (1 OK, was red before the fix) | PASS human-accept
+
 Skips logged before the first build (not three in a row of attempted items; these are out of scope up front):
 
 - T-0091 voice: shelved, needs Mark

@@ -19,8 +19,13 @@ TRAILER_PREFIX = "Built-by: ./pfy build (cloud) receipt "
 
 
 def expected_subject(task: str) -> str:
+    """Runner subject: collapsed task, cut at 72, trailing space removed.
+
+    git stores the subject without a trailing space when the cut lands on
+    the space between words. The comparison uses that stored subject.
+    """
     collapsed = " ".join((task or "").split())
-    return collapsed[:72] or "task"
+    return (collapsed[:72] or "task").rstrip()
 
 
 def _git(repo: Path, args: list[str]) -> subprocess.CompletedProcess[str]:
