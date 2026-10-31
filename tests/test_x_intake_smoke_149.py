@@ -10,6 +10,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import shutil
 import socket
 import subprocess
 import sys
@@ -37,7 +38,8 @@ STUB = r'''
 import os, sys, pathlib, socket
 a = sys.argv[1:]
 if a[:1] == ["--version"]:
-    print("MemPalace " + K["version"]); sys.exit(0)
+    print(K["version_text"] if "version_text" in K else "MemPalace " + K["version"])
+    sys.exit(K.get("version_rc", 0))
 if K.get("dial"):
     s = socket.socket()
     s.settimeout(2)
@@ -78,7 +80,7 @@ BASE = {"version": "3.12.0", "drawers": 2}
 
 
 class Smoke149(unittest.TestCase):
-    def run_smoke(self, knobs=None, env=None, model=True):
+    def run_smoke(self, knobs=None, env=None, model=True, on_path=False):
         with tempfile.TemporaryDirectory() as td:
             td = Path(td)
             real = td / "realhome"
@@ -100,7 +102,15 @@ class Smoke149(unittest.TestCase):
                 stub = td / "mempalace"
                 stub.write_text(f"#!{sys.executable}\nK = {k!r}\n" + STUB, encoding="utf-8")
                 stub.chmod(0o755)
-                env2["MEMPALACE_BIN"] = str(stub)
+                if on_path:
+                    bindir = td / "bin"
+                    bindir.mkdir()
+                    path_stub = bindir / "mempalace"
+                    path_stub.write_text(stub.read_text(encoding="utf-8"), encoding="utf-8")
+                    path_stub.chmod(0o755)
+                    env2["PATH"] = str(bindir) + os.pathsep + env2["PATH"]
+                else:
+                    env2["MEMPALACE_BIN"] = str(stub)
             else:
                 env2["MEMPALACE_BIN"] = str(td / "missing")
             env2.update(env or {})
@@ -108,6 +118,77 @@ class Smoke149(unittest.TestCase):
             rec = json.loads((td / "r" / "latest.json").read_text())
             self.escaped = (td / "escaped.txt").exists()
             return p.returncode, rec
+
+    def _load(self):
+        n = getattr(self, "_loads", 0) + 1
+        self._loads = n
+        spec = importlib.util.spec_from_file_location(f"smoke_149_case_{id(self)}_{n}", SCRIPT)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
+
+    def _call_main(self, mod, real, mh, stub, td):
+        saved = dict(os.environ)
+        try:
+            os.environ.clear()
+            os.environ.update({
+                "PATH": saved.get("PATH", ""),
+                "HOME": str(real),
+                "MEMPALACE_HOME": str(mh),
+                "MEMPALACE_BIN": str(stub),
+                "PFY_SMOKE_RECEIPT_DIR": str(td / "r"),
+            })
+            return mod.main()
+        finally:
+            os.environ.clear()
+            os.environ.update(saved)
+
+    def _run_inprocess(self, knobs, bind_real=False):
+        """Call main() in this process. bind_real passes extra_binds; main() never does."""
+        with tempfile.TemporaryDirectory() as td:
+            td = Path(td)
+            real = td / "realhome"
+            real.mkdir()
+            mh = td / "mphome"
+            (mh / MODEL_REL).mkdir(parents=True)
+            k = dict(knobs)
+            if k.get("touch_real"):
+                k["touch_real"] = str(real)
+            stub = td / "mempalace"
+            stub.write_text(f"#!{sys.executable}\nK = {k!r}\n" + STUB, encoding="utf-8")
+            stub.chmod(0o755)
+            mod = self._load()
+            if bind_real:
+                orig = mod.run
+                home = str(real)
+                def wrapped(binary, args, tmp, timeout, extra_binds=None, _orig=orig, _home=home):
+                    return _orig(binary, args, tmp, timeout, extra_binds=["--bind", _home, _home])
+                mod.run = wrapped
+            code = self._call_main(mod, real, mh, stub, td)
+            rec = json.loads((td / "r" / "latest.json").read_text(encoding="utf-8"))
+            wrote = (real / ".mempalace").is_dir()
+            return code, rec, wrote
+
+    def _run_mount_case(self, proc=None, shm=None):
+        with tempfile.TemporaryDirectory() as td:
+            td = Path(td)
+            real = td / "realhome"
+            real.mkdir()
+            mh = td / "mphome"
+            (mh / MODEL_REL).mkdir(parents=True)
+            k = dict(BASE, probe=str(td / "escaped.txt"))
+            stub = td / "mempalace"
+            stub.write_text(f"#!{sys.executable}\nK = {k!r}\n" + STUB, encoding="utf-8")
+            stub.chmod(0o755)
+            mod = self._load()
+            if proc is not None:
+                mod.PROC_PATH = proc
+            if shm is not None:
+                mod.SHM_PATH = shm
+            code = self._call_main(mod, real, mh, stub, td)
+            rec = json.loads((td / "r" / "latest.json").read_text(encoding="utf-8"))
+            self.escaped = (td / "escaped.txt").exists()
+            return code, rec, self.escaped
 
     @needs_bwrap
     def test_pass(self):
@@ -125,8 +206,30 @@ class Smoke149(unittest.TestCase):
     def test_bad_timeout_exit_2(self):
         self.assertEqual(self.run_smoke(dict(BASE), {"PFY_XINTAKE_TIMEOUT": "nope"})[0], 2)
 
+    @needs_bwrap
     def test_version_pin_exit_2(self):
-        self.assertEqual(self.run_smoke(dict(BASE, version="9.9.9"))[0], 2)
+        # The probe runs inside bwrap, so a host with no bwrap exits 2 for the bwrap reason first.
+        code, rec = self.run_smoke(dict(BASE, version="9.9.9"))
+        self.assertEqual(code, 2, rec)
+        self.assertEqual(rec["reason"], "version pin 3.12.0 != --version 9.9.9")
+
+    @needs_bwrap
+    def test_version_of_reads_binary_on_path(self):
+        # find_bin falls through to PATH when MEMPALACE_BIN is unset and the staged venv is absent.
+        code, rec = self.run_smoke(dict(BASE), on_path=True)
+        self.assertEqual(code, 0, rec)
+        self.assertEqual(rec["version"], "3.12.0")
+        self.assertIn("MemPalace 3.12.0", rec["version_output"])
+
+    @needs_bwrap
+    def test_version_of_rejects_broken_binary_on_path(self):
+        # Non-zero exit and unparseable output: exit 2, no later step, never treated as the pinned version.
+        code, rec = self.run_smoke(dict(BASE, version_rc=1, version_text="not-a-version"), on_path=True)
+        self.assertEqual(code, 2, rec)
+        self.assertIsNone(rec["version"])
+        self.assertEqual(rec["reason"], "version pin 3.12.0 != --version None")
+        self.assertIn("not-a-version", rec["version_output"])
+        self.assertNotIn("init_exit", rec["checks"])
 
     @needs_bwrap
     def test_wrong_ranking_fails(self):
@@ -154,17 +257,87 @@ class Smoke149(unittest.TestCase):
 
     @needs_bwrap
     def test_real_home_write_fails(self):
-        # The test-only bind makes the real HOME writable inside bwrap, so the check has to notice the write.
-        code, rec = self.run_smoke(dict(BASE, touch_real=True), {"PFY_SMOKE_REAL_HOME_BIND": "1"})
+        # The writable bind is passed only by this test. Production main() never passes extra_binds.
+        code, rec, wrote = self._run_inprocess(dict(BASE, touch_real=True), bind_real=True)
+        self.assertTrue(wrote, rec)
         self.assertEqual(code, 1, rec)
         self.assertIn("real_home_unchanged", rec["failed"])
+
+    @needs_bwrap
+    def test_real_home_env_hook_does_not_bind(self):
+        # A leftover PFY_SMOKE_REAL_HOME_BIND must not make the real HOME writable.
+        code, rec = self.run_smoke(dict(BASE, touch_real=True), {"PFY_SMOKE_REAL_HOME_BIND": "1"})
+        self.assertEqual(code, 0, rec)
+        self.assertEqual(rec["real_home_changed"], [])
+
+    def test_bwrap_exit_1_fails_closed(self):
+        # A bwrap that exists but exits 1 is not a license to run MemPalace on the host.
+        with tempfile.TemporaryDirectory() as d:
+            fake = Path(d) / "bwrap"
+            fake.write_text(f"#!{sys.executable}\nimport sys\nsys.exit(1)\n", encoding="utf-8")
+            fake.chmod(0o755)
+            code, rec = self.run_smoke(dict(BASE, probe=True), {"PATH": d})
+        self.assertEqual(code, 2, rec)
+        self.assertEqual(rec["reason"], "bwrap is not usable here; MemPalace must run with no network")
+        self.assertFalse(self.escaped, "MemPalace ran unsandboxed")
+        self.assertNotIn("init_exit", rec["checks"])
+
+    def test_required_proc_bind_missing_exits_2(self):
+        code, rec, _wrote = self._run_mount_case(proc=str(Path("/no/such/proc-149")))
+        self.assertEqual(code, 2, rec)
+        self.assertIn("required bind", rec["reason"])
+        self.assertIn("not usable", rec["reason"])
+        self.assertNotIn("init_exit", rec["checks"])
+        self.assertNotIn("sandbox", rec)
+
+    def test_required_shm_bind_unusable_exits_2(self):
+        with tempfile.TemporaryDirectory() as d:
+            shm = Path(d) / "shm"
+            shm.mkdir()
+            shm.chmod(0o555)
+            try:
+                code, rec, _wrote = self._run_mount_case(shm=str(shm))
+            finally:
+                shm.chmod(0o755)
+        self.assertEqual(code, 2, rec)
+        self.assertIn(str(shm), rec["reason"])
+        self.assertIn("not usable", rec["reason"])
+        self.assertNotIn("init_exit", rec["checks"])
+        self.assertFalse(self.escaped, "MemPalace ran unsandboxed")
+
+    @needs_bwrap
+    def test_proc_and_shm_are_mounted_when_usable(self):
+        # The child argv must carry both mounts. A ro-bind of / already exposes the host paths,
+        # so seeing them inside the sandbox would not prove the flags were passed.
+        real_bwrap = shutil.which("bwrap")
+        with tempfile.TemporaryDirectory() as d:
+            log = Path(d) / "argv.log"
+            wrap = Path(d) / "bwrap"
+            wrap.write_text(
+                "#!" + sys.executable + "\n"
+                "import os, sys\n"
+                f"open({str(log)!r}, 'a').write('\\n'.join(sys.argv) + '\\n---\\n')\n"
+                f"os.execv({real_bwrap!r}, sys.argv)\n",
+                encoding="utf-8")
+            wrap.chmod(0o755)
+            path = str(Path(d)) + os.pathsep + os.environ.get("PATH", "")
+            code, rec = self.run_smoke(dict(BASE), {"PATH": path})
+            text = log.read_text(encoding="utf-8")
+        self.assertEqual(code, 0, rec)
+        runs = [chunk for chunk in text.split("\n---\n") if "mempalace" in chunk]
+        self.assertTrue(runs, text)
+        for chunk in runs:
+            self.assertIn("--tmpfs", chunk)
+            self.assertIn("/dev/shm", chunk)
+            self.assertIn("--proc", chunk)
+            self.assertIn("/proc", chunk)
 
     def test_no_bwrap_exits_2_never_runs_unsandboxed(self):
         # B2: without bwrap the smoke must not fall back to running MemPalace with network and a writable root.
         with tempfile.TemporaryDirectory() as empty:
             code, rec = self.run_smoke(dict(BASE, probe=True), {"PATH": empty})
         self.assertEqual(code, 2, rec)
-        self.assertIn("bwrap is not usable", rec["reason"])
+        self.assertEqual(rec["reason"], "bwrap is not usable here; MemPalace must run with no network")
         self.assertFalse(self.escaped, "MemPalace ran unsandboxed")
         self.assertNotIn("init_exit", rec["checks"])
 

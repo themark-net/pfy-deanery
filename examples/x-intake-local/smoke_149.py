@@ -14,8 +14,9 @@ $MEMPALACE_HOME/.cache/chroma/onnx_models/all-MiniLM-L6-v2 (MEMPALACE_HOME defau
 ~/DEVELOP/pfy-mentat/tmp/mempalace/home); without it the smoke exits 2 rather than fetch ~80 MB.
 The smoke copies that HOME into a temp dir, writes a two-note fixture project, then runs `init --yes`, `mine` and two
 `search` queries against a temp palace with a clean env and a timeout ($PFY_XINTAKE_TIMEOUT, default 180 s). Every
-step runs under bwrap with no network and a read-only root; if bwrap is missing or unusable the smoke exits 2 and never
-runs MemPalace unsandboxed (same rule as Entry 148). Checks: each step exits 0, mine files 2 drawers, each query ranks
+step runs under bwrap with no network and a read-only root. If bwrap is missing or unusable, or a required
+`/proc` or `/dev/shm` mount cannot be made, the smoke exits 2 and never runs MemPalace unsandboxed (same rule as
+Entry 148). Checks: each step exits 0, mine files 2 drawers, each query ranks
 the right note first, and real-HOME paths ~/.mempalace, ~/.config/mempalace and ~/.cache/chroma are unchanged.
 """
 from __future__ import annotations
@@ -33,6 +34,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 PIN = os.environ.get("MEMPALACE_VERSION", "3.12.0")
 SYS_PATH = "/usr/local/bin:/usr/bin:/bin"
+PROC_PATH = "/proc"
+SHM_PATH = "/dev/shm"
 WATCHED = [".mempalace", ".config/mempalace", ".cache/chroma"]
 MODEL_REL = ".cache/chroma/onnx_models/all-MiniLM-L6-v2"
 NOTES = {
@@ -71,9 +74,28 @@ def find_bin() -> str | None:
 def bwrap_ok() -> bool:
     if not shutil.which("bwrap"):
         return False
-    p = subprocess.run(["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--proc", "/proc", "--unshare-net", "true"],
+    p = subprocess.run(["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--unshare-net", "true"],
                        capture_output=True)
     return p.returncode == 0
+
+
+def dir_usable(path: str, *, writable: bool) -> bool:
+    try:
+        if not os.path.isdir(path):
+            return False
+        need = os.X_OK | (os.W_OK if writable else os.R_OK)
+        return os.access(path, need)
+    except OSError:
+        return False
+
+
+def sandbox_mount_args() -> tuple[list[str], str | None]:
+    """Bind args for the required mounts, or a fail-closed reason. Never a signal to run unsandboxed."""
+    if not dir_usable(PROC_PATH, writable=False):
+        return [], f"required bind {PROC_PATH} is not usable; refusing to run unsandboxed"
+    if not dir_usable(SHM_PATH, writable=True):
+        return [], f"required bind {SHM_PATH} is not usable; refusing to run unsandboxed"
+    return ["--tmpfs", SHM_PATH, "--proc", PROC_PATH], None
 
 
 def home_sig(home: Path) -> dict:
@@ -89,17 +111,21 @@ def home_sig(home: Path) -> dict:
     return sig
 
 
-def run(binary: str, args: list[str], tmp: Path, timeout: float) -> subprocess.CompletedProcess:
+def run(binary: str, args: list[str], tmp: Path, timeout: float,
+        extra_binds: list[str] | None = None) -> subprocess.CompletedProcess:
+    # extra_binds is a test seam. main() never passes it. No env var opens a writable real HOME.
     env = {"PATH": SYS_PATH, "HOME": str(tmp / "home"), "TMPDIR": str(tmp / "t"), "LANG": "C.UTF-8",
            "NO_COLOR": "1", "TERM": "dumb", "HF_HUB_OFFLINE": "1", "ANONYMIZED_TELEMETRY": "False"}
-    # Tests set this so a stub can write the real HOME and the real-home check has to notice.
-    # Leave it unset: --ro-bind keeps that tree read-only.
-    home_bind: list[str] = []
-    if os.environ.get("PFY_SMOKE_REAL_HOME_BIND") == "1":
-        home = str(Path.home())
-        home_bind = ["--bind", home, home]
-    cmd = ["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--tmpfs", "/dev/shm", "--proc", "/proc",
-           "--bind", str(tmp), str(tmp), *home_bind, "--unshare-net", "--die-with-parent", binary, *args]
+    mounts, why = sandbox_mount_args()
+    if why:
+        raise OSError(why)
+    # Same PATH lookup as bwrap_ok. The child env's PATH is the stripped one and must not pick a different bwrap.
+    bwrap = shutil.which("bwrap")
+    if not bwrap:
+        raise OSError("bwrap is not usable here; MemPalace must run with no network")
+    cmd = [bwrap, "--ro-bind", "/", "/", "--dev", "/dev", *mounts,
+           "--bind", str(tmp), str(tmp), *(extra_binds or []), "--unshare-net", "--die-with-parent",
+           binary, *args]
     return subprocess.run(cmd, env=env, capture_output=True, text=True, timeout=timeout, start_new_session=True,
                           stdin=subprocess.DEVNULL)
 
@@ -131,6 +157,10 @@ def main() -> int:
     src_home = Path(os.environ.get("MEMPALACE_HOME") or Path.home() / "DEVELOP/pfy-mentat/tmp/mempalace/home")
     if not (src_home / MODEL_REL).is_dir():
         rec["reason"] = f"embedding model not cached at {src_home / MODEL_REL} (warm it once inside DEVELOP)"
+        return finish(2, rec)
+    _mounts, mount_reason = sandbox_mount_args()
+    if mount_reason:
+        rec["reason"] = mount_reason
         return finish(2, rec)
     if not bwrap_ok():
         rec["reason"] = "bwrap is not usable here; MemPalace must run with no network"

@@ -1,0 +1,5 @@
+name: bad
+on: push
+jobs:
+  g:
+    runs-on: [

@@ -1,5 +1,7 @@
 # RUN-LOG mvp2 trial
 
+Historical note: "Do not merge to main" and the `bot/mvp2-trial` branch text below are historical. The report now lives on main.
+
 Branch `bot/mvp2-trial`. Base for every arm is `997d89264495861a178713ccf7d4447ea828afc4`. No rebase, no force-push, no PR, no merge to main.
 
 Overview: Six small build-only tasks, each with a red acceptance test planted in a fresh worktree, run on local `./pfy build --local` and on one headless cloud Build pass (one retry if the gate fails). Patches stay under `eval/mvp2/patches/`. The trial branch records specs, receipts, and the verdict.

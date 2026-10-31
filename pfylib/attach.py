@@ -12,6 +12,7 @@ Public API
     profile(hid)                       per-harness table row (flat dict)
     prepare(hid, *, mode, lane, env)   AttachPlan: what attach would hand the child (no spawn, no writes)
     open_session(hid, **deps)          the board's ``open_enterable_<x>_session`` body -> dict
+    open_opencode_session(**deps)      OpenCode enterable (config, skills, tools env) -> dict
     run(plan, base=None)               CLI prove (models + smoke) -> exit code
     live_session_reach(hid, STATE)     board status chip
     selftest(hid) / main(hid, argv)    ``--selftest`` / ``--prove`` / ``--plan`` entry used by the shims
@@ -543,6 +544,243 @@ def open_session(
         "base_url": base,
         "usable": False,
         "next_step": next_step,
+    }
+
+
+def _opencode_mode_env(env, STATE=None):
+    """Attach-mode child env plus OpenCode config decoration. Cite #208.
+
+    The return value is what the caller must keep. ``decorate_opencode_config``
+    is OpenCode-only; the four harnesses do not call it.
+    """
+    mod = _legacy.optional("pfy_attach_mode_208")
+    if mod is None:
+        return env
+    env = mod.apply_child_env(env, STATE)
+    try:
+        mod.decorate_opencode_config(STATE)
+    except Exception:
+        pass
+    return env
+
+
+def open_opencode_session(
+    *,
+    ROOT,
+    STATE,
+    which_bin,
+    live_openai_base,
+    inspect_models,
+    write_opencode_config,
+    load_tools_state,
+    apply_skills_dir,
+    grok_home,
+    TOOLS_ENV,
+    record_sidecar_pid,
+    record_last_verb,
+    pid_alive,
+    active_harness_setter=None,
+    stub_line="",
+):
+    """Attach OpenCode and open or focus an enterable terminal. Cite #162.
+
+    Same contract ``scripts/pfy_enterable_162_b.py`` had before it became a shim.
+    A missing binary, a dead terminal, or a failed models-and-smoke prove is
+    FAIL. Nothing here paints READY without that prove. The FreeToken probe
+    wins over a tools-env pin. Recovery: install the binary, or point the live
+    detect base at an endpoint that passes prove, then call again.
+    """
+    term = _legacy.enterable_helpers()
+    prove = _legacy.attach_prove()
+    reach_ok = prove.SESSION_REACH_USABLE
+    clear_session_reach = term.clear_session_reach
+    read_terminal_pid = term.read_terminal_pid
+    write_terminal_pid = term.write_terminal_pid
+    write_session_reach = term.write_session_reach
+    resolve_enterable_pid = term.resolve_enterable_pid
+    ROOT = Path(ROOT)
+    STATE = Path(STATE)
+    hid = "opencode"
+    stub = stub_line or "./pfy start opencode"
+    bin_path = which_bin("opencode", "opencode-cli")
+    if not bin_path:
+        clear_session_reach(STATE)
+        return {
+            "ok": False,
+            "id": hid,
+            "live": "FAIL",
+            "copy": stub,
+            "error": "opencode missing",
+            "session_reach": "FAIL",
+        }
+    base, det = live_openai_base()
+    base, det, engine, status = _probe_freetoken(base, det)
+    next_step = NEXT_UP
+    if not base or status != "ready":
+        clear_session_reach(STATE)
+        reason = "no local engine" if status != "ready" else "no live local endpoint"
+        copy = "FAIL attach -- %s \u00b7 %s" % (reason, next_step)
+        return {
+            "ok": False,
+            "id": hid,
+            "live": "FAIL",
+            "copy": copy,
+            "error": reason,
+            "session_reach": "FAIL",
+            "next_step": next_step,
+            "next_steps": [{"id": "next", "label": next_step, "value": next_step}],
+            "engine": engine,
+            "detect_status": status or "missing",
+        }
+
+    attach_base_path = STATE / "opencode-attach-base"
+    prev_base = ""
+    try:
+        if attach_base_path.is_file():
+            prev_base = attach_base_path.read_text(encoding="utf-8", errors="replace").strip()
+    except OSError:
+        prev_base = ""
+    term_pid = read_terminal_pid(STATE)
+    real = resolve_enterable_pid(bin_path, term_pid, pid_alive) if term_pid else 0
+    if real and pid_alive(real) and prev_base and prev_base != base:
+        clear_session_reach(STATE)
+        try:
+            if attach_base_path.is_file():
+                attach_base_path.unlink()
+        except OSError:
+            pass
+        real = 0
+        term_pid = 0
+    if real and pid_alive(real) and prev_base == base:
+        usable_ok, model, usable_err = prove.prove_developer_usable(base, inspect_models)
+        if not usable_ok:
+            return prove.fail_not_usable(
+                clear_session_reach,
+                STATE, hid, usable_err or "session not usable", next_step,
+                engine, status, base=base, model=model,
+            )
+        focused = term._focus_pid(real)
+        write_session_reach(STATE, reach_ok)
+        write_terminal_pid(STATE, real)
+        if active_harness_setter:
+            active_harness_setter("opencode")
+        record_last_verb("start opencode")
+        return {
+            "ok": True,
+            "id": hid,
+            "live": "READY",
+            "pid": real,
+            "sidecar": True,
+            "session_reach": reach_ok,
+            "focused": bool(focused),
+            "copy": "attached opencode pid %s \u00b7 %s \u00b7 %s" % (real, reach_ok, engine),
+            "error": "",
+            "base_url": base,
+            "engine": engine,
+            "model": model,
+            "usable": True,
+            "models_ok": True,
+            "smoke_ok": True,
+        }
+
+    models = inspect_models(prove.openai_compat_root(base))
+    cfg_path, model = write_opencode_config(base, models)
+    skills = ROOT / "bootstrap" / "grok-cli" / "skills"
+    env = os.environ.copy()
+    env["LOCAL_OPENAI_BASE_URL"] = base
+    env["OPENAI_BASE_URL"] = base
+    env["OPENAI_API_KEY"] = env.get("OPENAI_API_KEY") or "local"
+    _apply_opencontext_env(env)
+    env["OPENCODE_CONFIG"] = str(cfg_path)
+    tst = load_tools_state()
+    dest, _enabled = apply_skills_dir(tst)
+    if dest is not None:
+        env["OPENCODE_SKILLS"] = str(dest)
+    elif skills.is_dir():
+        env["OPENCODE_SKILLS"] = str(skills)
+    _opencode_mode_env(env, STATE)
+    env["TOOLS_MODE"] = str(tst.get("tools_mode") or "split")
+    env["WRITE_GUARD_MODE"] = "enforce" if tst.get("write_guard") else "off"
+    env["PFY_MCP"] = "1" if tst.get("mcp") else "0"
+    tools_env = Path(TOOLS_ENV) if TOOLS_ENV else None
+    if tools_env and tools_env.is_file():
+        for line in tools_env.read_text(encoding="utf-8", errors="replace").splitlines():
+            s = line.strip()
+            if s.startswith("export "):
+                s = s[7:].strip()
+            if not s or s.startswith("#") or "=" not in s:
+                continue
+            k, v = s.split("=", 1)
+            env[k.strip()] = v.strip().strip("'\"")
+    env["LOCAL_OPENAI_BASE_URL"] = base
+    env["OPENAI_BASE_URL"] = base
+    env["GROK_HOME"] = str(grok_home())
+    log = STATE / "sidecar-opencode.log"
+    ok, pid, err = term.spawn_terminal_opencode(bin_path, str(ROOT), env, log, pid_alive)
+    real = resolve_enterable_pid(bin_path, pid if ok else 0, pid_alive)
+    if real and pid_alive(real):
+        usable_ok, smoke_model, usable_err = prove.prove_developer_usable(base, inspect_models)
+        if not usable_ok:
+            return prove.fail_not_usable(
+                clear_session_reach,
+                STATE, hid, usable_err or "session not usable", next_step,
+                engine, status, base=base, model=smoke_model or model,
+            )
+        if smoke_model:
+            model = smoke_model
+        focused = term._focus_pid(real)
+        record_sidecar_pid("opencode", real)
+        write_terminal_pid(STATE, real)
+        write_session_reach(STATE, reach_ok)
+        if active_harness_setter:
+            active_harness_setter("opencode")
+        else:
+            try:
+                (STATE / "active-harness").write_text("opencode\n", encoding="utf-8")
+            except OSError:
+                pass
+        record_last_verb("start opencode")
+        try:
+            STATE.mkdir(parents=True, exist_ok=True)
+            attach_base_path.write_text(base + "\n", encoding="utf-8")
+        except OSError:
+            pass
+        return {
+            "ok": True,
+            "id": hid,
+            "live": "READY",
+            "pid": real,
+            "sidecar": True,
+            "log": str(log),
+            "base_url": base,
+            "model": model,
+            "session_reach": reach_ok,
+            "focused": bool(focused),
+            "copy": "attached opencode pid %s \u00b7 %s \u00b7 %s" % (real, reach_ok, engine),
+            "error": "",
+            "engine": engine,
+            "usable": True,
+            "models_ok": True,
+            "smoke_ok": True,
+        }
+    clear_session_reach(STATE)
+    try:
+        if attach_base_path.is_file():
+            attach_base_path.unlink()
+    except OSError:
+        pass
+    return {
+        "ok": False,
+        "id": hid,
+        "live": "FAIL",
+        "copy": "FAIL open session -- " + (err or "terminal cannot start"),
+        "error": err or "terminal cannot start",
+        "session_reach": "FAIL",
+        "pid": "",
+        "log": str(log),
+        "base_url": base,
+        "model": model,
+        "usable": False,
     }
 
 

@@ -127,8 +127,8 @@ class _Tmp(unittest.TestCase):
 
 
 class ProfileTests(unittest.TestCase):
-    def test_registry_has_exactly_the_four_attach_profiles(self):
-        self.assertEqual(sorted(registry.attach_harness_ids(ROOT)), sorted(EXPECTED))
+    def test_registry_has_the_captured_profiles_plus_opencode(self):
+        self.assertEqual(sorted(registry.attach_harness_ids(ROOT)), sorted([*EXPECTED, "opencode"]))
 
     def test_profile_matches_pre_refactor_constants(self):
         for hid, exp in EXPECTED.items():
@@ -315,6 +315,140 @@ class ProveCliTests(_Tmp):
             rc = attach.main("grok", ["--bogus"], prog="pfy_attach_usable_202.py")
         self.assertEqual(rc, 2)
         self.assertTrue(err.getvalue().startswith("usage: pfy_attach_usable_202.py --prove [BASE]"))
+
+
+class OpenCodeEnterableTests(_Tmp):
+    """OpenCode open path lives in attach.open_opencode_session (T-0124).
+
+    urlopen is patched so the FreeToken probe does not touch a local server.
+    """
+
+    def setUp(self):
+        super().setUp()
+        import urllib.request
+
+        self._url = urllib.request
+        self.term = _legacy.enterable_helpers()
+        self.prove = _legacy.attach_prove()
+        self._spawn = self.term.spawn_terminal_opencode
+        self._resolve = self.term.resolve_enterable_pid
+        self._prove_fn = self.prove.prove_developer_usable
+        self._urlopen = urllib.request.urlopen
+        self.spawned = []
+        urllib.request.urlopen = self._refuse_probe
+        self.term.resolve_enterable_pid = lambda bin_path, candidate, pid_alive: int(candidate or 0)
+        self.term.spawn_terminal_opencode = self._record_spawn
+        self._spawn_result = (False, 0, "terminal cannot start")
+        self.prove.prove_developer_usable = lambda base, inspect: (True, "stub-model", "")
+        self.shim = _load_shim("pfy_enterable_162_b")
+
+    def tearDown(self):
+        self.term.spawn_terminal_opencode = self._spawn
+        self.term.resolve_enterable_pid = self._resolve
+        self.prove.prove_developer_usable = self._prove_fn
+        self._url.urlopen = self._urlopen
+        super().tearDown()
+
+    def _refuse_probe(self, *args, **kwargs):
+        raise OSError("local probe blocked in this test")
+
+    def _record_spawn(self, bin_path, cwd, env, log, pid_alive):
+        self.spawned.append({"bin": bin_path, "cwd": cwd, "env": dict(env), "log": str(log)})
+        return self._spawn_result
+
+    def _deps(self, **over):
+        tools = self.tmp / "tools.env"
+        deps = dict(
+            ROOT=ROOT,
+            STATE=self.state,
+            which_bin=lambda *names: str(self.tmp / "opencode"),
+            live_openai_base=lambda: ("http://127.0.0.1:9/v1", {"engine": "stub", "status": "ready"}),
+            inspect_models=lambda base: ["stub-model"],
+            write_opencode_config=lambda base, models: (self.state / "opencode.json", "cfg-model"),
+            load_tools_state=lambda: {},
+            apply_skills_dir=lambda tst: (None, []),
+            grok_home=lambda: self.tmp / "grok-home",
+            TOOLS_ENV=str(tools),
+            record_sidecar_pid=lambda *a: None,
+            record_last_verb=lambda *a: None,
+            pid_alive=lambda pid: True,
+        )
+        deps.update(over)
+        return deps
+
+    def _open(self, **over):
+        return self.shim.open_enterable_opencode_session(**self._deps(**over))
+
+    def test_missing_binary_fails_closed_and_does_not_spawn(self):
+        out = self._open(which_bin=lambda *names: "")
+        direct = attach.open_opencode_session(**self._deps(which_bin=lambda *names: ""))
+        self.assertEqual(out, direct)
+        self.assertFalse(out["ok"])
+        self.assertEqual(out["error"], "opencode missing")
+        self.assertEqual(out["session_reach"], "FAIL")
+        self.assertEqual(self.spawned, [])
+        board = _load_shim("pfy_enterable_162")
+        via_board = board.open_enterable_opencode_session(**self._deps(which_bin=lambda *names: ""))
+        self.assertEqual(via_board["error"], "opencode missing")
+        armed = board.arm_launch_env_session({"ok": False, "live": "FAIL"}, lambda: {"ok": True})
+        self.assertEqual(armed["session_reach"], "FAIL")
+        self.assertFalse(armed["enterable"])
+
+    def test_terminal_cannot_start_fails_closed(self):
+        self._spawn_result = (False, 0, "terminal cannot start")
+        out = self._open()
+        self.assertFalse(out["ok"])
+        self.assertFalse(out["usable"])
+        self.assertEqual(out["error"], "terminal cannot start")
+        self.assertNotEqual(out["live"], "READY")
+        self.assertFalse((self.state / "opencode-session-reach").exists())
+        self.assertEqual(len(self.spawned), 1)
+
+    def test_prove_failure_does_not_paint_ready(self):
+        self._spawn_result = (True, 4242, "")
+        self.prove.prove_developer_usable = lambda base, inspect: (False, "", "smoke failed")
+        out = self._open()
+        self.assertFalse(out["ok"])
+        self.assertFalse(out["usable"])
+        self.assertEqual(out["error"], "smoke failed")
+        self.assertEqual(out["live"], "FAIL")
+        self.assertNotEqual(out.get("session_reach"), self.prove.SESSION_REACH_USABLE)
+
+    def test_tools_env_pin_does_not_override_the_probed_base(self):
+        (self.tmp / "tools.env").write_text(
+            "LOCAL_OPENAI_BASE_URL=http://127.0.0.1:11434/v1\n", encoding="utf-8"
+        )
+        self._spawn_result = (True, 4242, "")
+        out = self._open()
+        self.assertTrue(out["ok"], out)
+        self.assertEqual(out["live"], "READY")
+        self.assertTrue(out["usable"])
+        child = self.spawned[0]["env"]
+        self.assertEqual(child["LOCAL_OPENAI_BASE_URL"], "http://127.0.0.1:9/v1")
+        self.assertEqual(child["OPENAI_BASE_URL"], "http://127.0.0.1:9/v1")
+        self.assertEqual(child["OPENCODE_CONFIG"], str(self.state / "opencode.json"))
+        self.assertNotIn("11434", child["LOCAL_OPENAI_BASE_URL"])
+
+    def test_freetoken_probe_wins_over_the_injected_base(self):
+        class _Resp:
+            status = 200
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+        self._url.urlopen = lambda *args, **kwargs: _Resp()
+        (self.tmp / "tools.env").write_text(
+            "LOCAL_OPENAI_BASE_URL=http://127.0.0.1:11434/v1\n", encoding="utf-8"
+        )
+        self._spawn_result = (True, 4242, "")
+        out = self._open()
+        self.assertTrue(out["ok"], out)
+        child = self.spawned[0]["env"]
+        self.assertEqual(child["LOCAL_OPENAI_BASE_URL"], BASE)
+        self.assertNotIn("11434", child["LOCAL_OPENAI_BASE_URL"])
 
 
 if __name__ == "__main__":
