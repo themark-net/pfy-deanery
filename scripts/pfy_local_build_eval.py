@@ -13,6 +13,11 @@ same opt-in as the build flag. Without it, a missing bwrap is BLOCKED.
 
 The only network is the configured loopback endpoint. A BLOCKED task stops
 the run. Later tasks are not-run. They are not failures and not passes.
+
+Scratch is this script's repo tmp/, or the tmp/ of an explicit --repo that
+sits in that same tree. It is not the process cwd and not the git common
+dir. On a linked worktree that common dir's parent is the main checkout,
+and its tmp/pgs belongs to pregate.
 """
 
 from __future__ import annotations
@@ -70,6 +75,64 @@ def _tasks(only: str | None, limit: int | None) -> list[dict]:
     if limit is not None:
         rows = rows[:limit]
     return rows
+
+
+def _under(parent: Path, child: Path) -> bool:
+    try:
+        parent_r = parent.resolve()
+        child_r = child.resolve()
+    except OSError:
+        return False
+    return child_r == parent_r or parent_r in child_r.parents
+
+
+def _common_main(script_root: Path) -> Path | None:
+    """Parent of the git common dir. For a linked worktree that is the main checkout."""
+    proc = subprocess.run(
+        ["git", "-C", str(script_root), "rev-parse", "--path-format=absolute", "--git-common-dir"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    raw = (proc.stdout or "").strip()
+    if proc.returncode != 0 or not raw:
+        return None
+    common = Path(raw)
+    if not common.is_absolute():
+        common = script_root / common
+    try:
+        return common.resolve().parent
+    except OSError:
+        return None
+
+
+def _refuse_main_checkout(repo: Path) -> str | None:
+    """Block scratch in the main checkout when this file lives in another worktree.
+
+    The worktree path itself is often under the main checkout's tmp/. That
+    tree is allowed. The main checkout root and the rest of its files,
+    including tmp/pgs, are not.
+    """
+    if repo == ROOT or _under(ROOT, repo):
+        return None
+    main = _common_main(ROOT)
+    if main is None or main == ROOT:
+        return None
+    if repo == main or _under(main, repo):
+        return (
+            "refusing eval scratch in the main checkout: %s. "
+            "Recovery: run this script from its worktree, or pass --repo under that worktree."
+            % main
+        )
+    return None
+
+
+def _pin_scratch(repo: Path) -> Path:
+    """Create repo/tmp and point TMPDIR at it so children do not inherit a foreign temp."""
+    path = repo / "tmp"
+    path.mkdir(parents=True, exist_ok=True)
+    os.environ["TMPDIR"] = str(path)
+    return path
 
 
 def _summary_dir(repo: Path, stamp: str) -> Path:
@@ -219,7 +282,14 @@ def _one_task(task: dict, repo_dir: Path, endpoint: str, model: str, timeout: fl
         cmd.append("--unload-at-end")
     if os.environ.get("PFY_LOCAL_BUILD_UNSAFE_NO_SANDBOX") == "1":
         cmd.append("--unsafe-no-sandbox")
-    proc = subprocess.run(cmd, cwd=repo_dir, text=True, capture_output=True, check=False)
+    proc = subprocess.run(
+        cmd,
+        cwd=repo_dir,
+        env=os.environ.copy(),
+        text=True,
+        capture_output=True,
+        check=False,
+    )
     receipt_path = receipt_dir / "receipt.json"
     if not receipt_path.is_file():
         raise RuntimeError(
@@ -275,7 +345,7 @@ def _rates(rows: list[dict]) -> dict:
     }
 
 
-def _blank(stamp: str, model: str, endpoint: str, skip: str | None, tasks: list, not_run: list) -> dict:
+def _blank(stamp: str, model: str, endpoint: str, skip: str | None, tasks: list, not_run: list, scratch: str | None = None) -> dict:
     payload = {
         "schema": "pfy-local-build-eval/1",
         "stamp": stamp,
@@ -291,6 +361,7 @@ def _blank(stamp: str, model: str, endpoint: str, skip: str | None, tasks: list,
         "pass_rate": None,
         "total_seconds": 0.0,
         "mean_seconds": 0.0,
+        "scratch": scratch,
     }
     payload.update(_rates(tasks) if not skip else {})
     if skip:
@@ -310,11 +381,20 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--timeout", type=float, default=1200)
     parser.add_argument("--test-timeout", type=float, default=600)
     parser.add_argument("--require-live", action="store_true")
-    parser.add_argument("--repo", default=None, help="repo whose tmp/ holds the eval copies (default: this repo)")
+    parser.add_argument(
+        "--repo",
+        default=None,
+        help="repo whose tmp/ holds the eval copies (default: the repo that contains this script, not the main checkout)",
+    )
     args = parser.parse_args(argv)
     endpoint = _endpoint(args.endpoint)
     model = args.model.strip()
     repo = Path(args.repo).resolve() if args.repo else ROOT
+    refused = _refuse_main_checkout(repo)
+    if refused:
+        print(refused, file=sys.stderr)
+        return 2
+    scratch_parent = _pin_scratch(repo)
     stamp = _now_stamp()
     try:
         selected = _tasks(args.only, args.limit)
@@ -328,14 +408,14 @@ def main(argv: list[str] | None = None) -> int:
     try:
         skip = _preflight(model, endpoint)
         if skip:
-            payload = _blank(stamp, model, endpoint, skip, [], [row["id"] for row in selected])
+            payload = _blank(stamp, model, endpoint, skip, [], [row["id"] for row in selected], str(scratch_parent))
             _write_summary(summary_path, payload)
             print("SKIP: %s" % skip)
             print("summary: %s" % summary_path)
             return 2 if args.require_live else 0
         rows = []
         not_run: list[str] = []
-        base = repo / "tmp" / ("local-build-eval-%s" % stamp)
+        base = scratch_parent / ("local-build-eval-%s" % stamp)
         base.mkdir(parents=True, exist_ok=True)
         for index, task in enumerate(selected):
             dest = base / task["id"]
@@ -358,7 +438,7 @@ def main(argv: list[str] | None = None) -> int:
             if row["status"] == "BLOCKED":
                 not_run = [later["id"] for later in selected[index + 1 :]]
                 break
-        payload = _blank(stamp, model, endpoint, None, rows, not_run)
+        payload = _blank(stamp, model, endpoint, None, rows, not_run, str(scratch_parent))
         _write_summary(summary_path, payload)
         scored = payload["passed"] + payload["failed"] + payload["blocked"]
         print(
@@ -370,7 +450,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     except Exception:
         traceback.print_exc()
-        payload = _blank(stamp, model, endpoint, "runner-broken", [], [])
+        payload = _blank(stamp, model, endpoint, "runner-broken", [], [], str(scratch_parent))
         try:
             _write_summary(summary_path, payload)
         except OSError:

@@ -27,7 +27,13 @@ Branch `bot/mvp-local-build`. Not a Feature GO. Catalog HOLD 70-75 stays. Handof
 | ID | Item | Status |
 |----|------|--------|
 | MVP-1 | Headless `./pfy build --local` plus the offline coding eval | done after fix 2 (Tester FAIL at 42fcc229 closed on `bot/mvp-local-build`; live 8/8 on `qwen3.6:35b`, 617.949 s, stamp `20261027T070700973123Z`, sandbox `bwrap-unshare-net`; stub cheater scores 0; fix-1 8/8 was stamp `20261027T031008578576Z`) |
-| MVP-2 | Use `pfy build --local` for a real build-only task from this file, and compare with cloud Build on cost and pass rate | done on `bot/mvp2-trial` (gate local 5/6, cloud 6/6; review accept local 4/6, cloud 6/6; wall 1694 s vs 584 s; no-go as the default). Handoff: [HANDOFF-mvp2-trial.md](ops/HANDOFF-mvp2-trial.md) |
+| MVP-2 | Use `pfy build --local` for a real build-only task from this file, and compare with cloud Build on cost and pass rate | done on `bot/mvp2-trial` (historical branch name; the report now lives on main; gate local 5/6, cloud 6/6; review accept local 4/6, cloud 6/6; wall 1694 s vs 584 s; no-go as the default). Handoff: [HANDOFF-mvp2-trial.md](ops/HANDOFF-mvp2-trial.md) |
+| MVP-3 | Review-and-retry on `./pfy build --local`, then the six MVP-2 tasks locally | done as a measurement on `bot/mvp3-review-retry` (gate 5/6, loop accept 5/6, human accept 4/6, wall 3859.9 s; no-go as the default). Report: [eval/mvp3/REPORT.md](../eval/mvp3/REPORT.md). Handoff: [HANDOFF-mvp3-review-retry.md](ops/HANDOFF-mvp3-review-retry.md) |
+
+
+## MVP integrate (2026-10-31)
+
+Not a Feature GO. Catalog HOLD 70-75 stays. One cloud `./pfy build` on the mvp-1031 fixture PASSed on `bot/mvp-integrate-1031` (checker exit 0, receipt [eval/mvp-1031/demo-receipt.json](../eval/mvp-1031/demo-receipt.json), fixture commit `ebef4238a7eff8f938747623f7920b3fde74e586`). Handoff: [HANDOFF-mvp-integrate-1031.md](ops/HANDOFF-mvp-integrate-1031.md).
 
 
 ## G8 — Simple harness-agnostic launch (2026-07-31)
@@ -57,19 +63,19 @@ Active work is also tracked as issues: https://github.com/themark-net/pfy-mentat
 | T-0090 | [#1](https://github.com/themark-net/pfy-mentat/issues/1) | P0 |
 | T-0110 | [#76](https://github.com/themark-net/pfy-mentat/issues/76) | P1 doing/partial |
 | T-0091 | [#2](https://github.com/themark-net/pfy-mentat/issues/2) | P1 doing |
-| T-0070 | [#3](https://github.com/themark-net/pfy-mentat/issues/3) | P1 doing |
-| T-0074 | [#4](https://github.com/themark-net/pfy-mentat/issues/4) | P1 doing |
+| T-0070 | [#3](https://github.com/themark-net/pfy-mentat/issues/3) | P1 **done** |
+| T-0074 | [#4](https://github.com/themark-net/pfy-mentat/issues/4) | P1 **done** |
 | T-0076 | [#6](https://github.com/themark-net/pfy-mentat/issues/6) | P2 **done** |
 | T-0081 | [#7](https://github.com/themark-net/pfy-mentat/issues/7) | P2 |
 | T-0040 | [#8](https://github.com/themark-net/pfy-mentat/issues/8) | P2 **done** |
 | T-0094 | [#9](https://github.com/themark-net/pfy-mentat/issues/9) | P3 |
-| T-0095 | [#10](https://github.com/themark-net/pfy-mentat/issues/10) | P3 |
+| T-0095 | [#10](https://github.com/themark-net/pfy-mentat/issues/10) | P3 **done** |
 | T-0064 | [#11](https://github.com/themark-net/pfy-mentat/issues/11) | P3 parked |
 | T-0043 | [#12](https://github.com/themark-net/pfy-mentat/issues/12) | P3 parked |
 | T-0062 | [#13](https://github.com/themark-net/pfy-mentat/issues/13) | P3 |
 | T-0046 | [#14](https://github.com/themark-net/pfy-mentat/issues/14) | P3 |
-| T-0002 | [#16](https://github.com/themark-net/pfy-mentat/issues/16) | P3 |
-| T-0005 | [#21](https://github.com/themark-net/pfy-mentat/issues/21) | P2 todo |
+| T-0002 | [#16](https://github.com/themark-net/pfy-mentat/issues/16) | P3 **done** |
+| T-0005 | [#21](https://github.com/themark-net/pfy-mentat/issues/21) | P2 doing |
 | T-0004 | [#22](https://github.com/themark-net/pfy-mentat/issues/22) | P2 **done** |
 | T-0015 | [#23](https://github.com/themark-net/pfy-mentat/issues/23) | P3 **done** |
 | T-0016 | [#24](https://github.com/themark-net/pfy-mentat/issues/24) | P2 todo |
@@ -113,9 +119,7 @@ Active work is also tracked as issues: https://github.com/themark-net/pfy-mentat
 | T-0093 | P1 | done | Tools-capable Ollama select + tool-split | — | T-0080 | `eval-select-tools-model` |
 | T-0096 | P1 | done | **Dual-tier orchestrator** high↔low (`VOICE_ROUTE=high-first` default) | — | T-0092, T-0093 | [voice-orchestrator.md](ops/voice-orchestrator.md); `smoke-voice-orchestrate` |
 | T-0094 | P3 | todo | Optional short **local TTS** status (not duplex) | — | T-0092 | [#9](https://github.com/themark-net/pfy-mentat/issues/9) · Kokoro/piper after local agent path green |
-| T-0095 | P3 | todo | Catalog Stage 0: Pipecat / LiveKit / freeapp (ref only) | — | ADR-0012 | [#10](https://github.com/themark-net/pfy-mentat/issues/10) · No primary install |
-| T-0070 | P1 | doing | Grow design/coding **skills + structural eval** (more text scorers) | — | T-0065 | [#3](https://github.com/themark-net/pfy-mentat/issues/3) · `013-stage-card` scorer. Keep `eval-structural` green |
-| T-0074 | P1 | doing | Implement-lane via `make eval-auto` (fit-select + candidates) | — | — | [#4](https://github.com/themark-net/pfy-mentat/issues/4) · empty fit-select falls back to `deepseek-coder:6.7b-instruct`, then `deepseek-coder:6.7b` |
+
 | T-0075 | P2 | done | More structural scorers: ADR shape, open-question row shape | — | T-0070 | [#5](https://github.com/themark-net/pfy-mentat/issues/5) **done** |
 | T-0076 | P2 | done | Wire mattpocock to-spec/tdd checklist into structural or skill cross-links | — | — | [#6](https://github.com/themark-net/pfy-mentat/issues/6) · paths pack already installed |
 | T-0081 | P2 | todo | Optional OpenCode-in-cage smoke | — | T-0080 | [#7](https://github.com/themark-net/pfy-mentat/issues/7) · After host smoke green |
@@ -129,7 +133,6 @@ Active work is also tracked as issues: https://github.com/themark-net/pfy-mentat
 | T-0043 | P3 | todo | Write-guard mcp-host wiring | — | T-0031 | [#12](https://github.com/themark-net/pfy-mentat/issues/12) · Parked |
 | T-0062 | P3 | todo | Laguna local model DoD | — | — | [#13](https://github.com/themark-net/pfy-mentat/issues/13) · Hardware-gated |
 | T-0046 | P3 | todo | Re-evaluate AgenC | [ADR-0010](adr/0010-reject-agenc-as-primary-runtime.md) | T-0044 | [#14](https://github.com/themark-net/pfy-mentat/issues/14) |
-| T-0002 | P3 | todo | Aggregate synthesis | — | — | [#16](https://github.com/themark-net/pfy-mentat/issues/16) |
 
 ### Active — follow-ups (OQs answered; not blocked)
 
@@ -137,7 +140,7 @@ Active work is also tracked as issues: https://github.com/themark-net/pfy-mentat
 |----|----------|--------|------|----------------|---------|-------|
 | T-0016 | P2 | todo | colibri/large model lab under 250GB pool | — | OQ-0008 | [#24](https://github.com/themark-net/pfy-mentat/issues/24) |
 | T-0005 | P2 | doing | Apply integration-stages broadly | — | OQ-0003 | [#21](https://github.com/themark-net/pfy-mentat/issues/21) · 50 handoff cards. Facts recomputed by `scripts/catalog_stage_eval.py`. Stage letter still does not auto-promote |
-| T-0124 | P2 | todo | Fold OpenCode enterable (`pfy_enterable_162*`) behind `pfylib/attach.py`; retire `_legacy` as remaining scripts move | — | T-0121 | OpenCode attach is still its own path; four usable shims already delegate |
+| T-0124 | P2 | done | Fold OpenCode enterable (`pfy_enterable_162*`) behind `pfylib/attach.py`; retire `_legacy` as remaining scripts move | - | T-0121 | OpenCode open path is `attach.open_opencode_session`; `pfy_enterable_162_b.py` is a shim. `_legacy` still loads the other scripts |
 | T-0127 | P2 | done | Live atg-compile once the host is quiet (one model: `qwen3.6:35b`, then opt-in coder-next) | — | T-0004 | 2026-10-06: `qwen3.6:35b` exit 0, 2/10 sink-correct, wall 478s. Stage I2. coder-next blocked: 48.19 GiB blob + 25 GiB > 65.3 GiB MemAvailable. Not a Feature GO. Catalog HOLD 70–75. Do not touch eval-harness. |
 
 ---
@@ -146,6 +149,10 @@ Active work is also tracked as issues: https://github.com/themark-net/pfy-mentat
 
 | ID | Priority | Status | Item | Notes |
 |----|----------|--------|------|-------|
+| T-0070 | P1 | done | Grow design/coding skills + structural eval | Issue #3 closed completed 2026-07-30. Scorers 009 and 010 are on main at `7197200`. `013-stage-card` is on main at `c0d9072`. This run did not re-run `make eval-structural` (MVP-3 busy). |
+| T-0074 | P1 | done | Implement-lane via `make eval-auto` | Issue #4 closed completed 2026-07-30. `scripts/eval-auto.sh` is on main at `7197200` and still at `c0d9072`. Soft-SKIP when Ollama is down. This run did not re-run the host matrix (MVP-3 busy). |
+| T-0002 | P3 | done | Aggregate synthesis | Issue #16 was already closed on the 2026-07-30 rollup. The 2026-10-30 section is the diff since then. No new scores. `sources/aggregates.md` still empty. Not a Feature GO. |
+| T-0095 | P3 | done | Catalog Stage 0: Pipecat / LiveKit / freeapp (ref only) | Entries 150-152. Issue #10 was already closed on the 2026-07-30 stub. Receipts are Stage-0 FAIL / I0. No install. No TOOLS.md row. ADR-0012 primary unchanged. Not a Feature GO. |
 | — | P1 | done | pfy launcher phase 1: `install.sh`, catalog v2 (`core-skills`, `code-graph`, `rea`), setup/doctor/uninstall on grok, claude-code, codex, opencode | [#290](https://github.com/themark-net/pfy-mentat/issues/290) · PR 291 · `build/pfy-launcher-p1` · review fixes on the same branch (created-file uninstall, npx allowlist, shared-skill dedupe, backup delete, needs_human receipt) · suite 228 OK skipped=4 · `v0.4.17` tag still absent on origin · not a Feature GO · HOLD 70–75 untouched · phases 2–4 not started |
 | — | P3 | done | X-intake receipt sha source, shared timeout text, har temp HOME, graphjin log close, pfylib tmp cleanup | `build/orch-fixes-1011` · 2026-10-11 · not a Feature GO · catalog HOLD untouched |
 | — | — | done | #230 Jev-style decision layer (CUA-S1-FORMS primary local; TypeSafe optional) | — |

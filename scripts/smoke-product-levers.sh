@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
 # GAP-09 dual-sided product onboard smoke
 set -euo pipefail
+# mktemp -t honors TMPDIR. A template that already contains /tmp does not.
+product_tmp() { mktemp -d -t pfy-product-XXXXXX; }
+if [[ "${1:-}" == "--tmpdir-path" ]]; then
+  product_tmp
+  exit 0
+fi
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 mkdir -p pipelines/smoke/product-levers
 OUT=pipelines/smoke/product-levers/results.latest.md
-TMP=$(mktemp -d /tmp/pfy-product-XXXXXX)
+TMP=$(product_tmp)
 trap 'rm -rf "$TMP"' EXIT
 {
   echo "# Product levers smoke"

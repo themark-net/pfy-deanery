@@ -1,0 +1,22 @@
+diff --git a/docs/TODO.md b/docs/TODO.md
+index 6341895..a2695a8 100644
+--- a/docs/TODO.md
++++ b/docs/TODO.md
+@@ -44,7 +44,7 @@ Branch `bot/mvp-local-build`. Not a Feature GO. Catalog HOLD 70-75 stays. Handof
+ | T-0107 | Exo optional lab path | **done** · [#60](https://github.com/themark-net/pfy-mentat/issues/60) |
+ | T-0108 | Continue + Ollama recipe | **done** · [#61](https://github.com/themark-net/pfy-mentat/issues/61) |
+ | T-0109 | Fold agent-cage into `pfy stage --lab` | **done** · [#62](https://github.com/themark-net/pfy-mentat/issues/62) |
+-| T-0110 | Pluggable local runtime (llama-swap / Shimmy / Ollama) | **doing** (partial) · [#76](https://github.com/themark-net/pfy-mentat/issues/76) |
++| T-0110 | Pluggable local runtime (llama-swap / Shimmy / Ollama) | **done** · [#76](https://github.com/themark-net/pfy-mentat/issues/76) |
+ 
+ Authority: ADR-0012 · ADR-0014 · issues labeled `harness-adapter`.
+ 
+@@ -55,7 +55,7 @@ Active work is also tracked as issues: https://github.com/themark-net/pfy-mentat
+ | TODO | Issue | Priority |
+ |------|-------|----------|
+ | T-0090 | [#1](https://github.com/themark-net/pfy-mentat/issues/1) | P0 |
+-| T-0110 | [#76](https://github.com/themark-net/pfy-mentat/issues/76) | P1 doing/partial |
++| T-0110 | [#76](https://github.com/themark-net/pfy-mentat/issues/76) | P1 done |
+ | T-0091 | [#2](https://github.com/themark-net/pfy-mentat/issues/2) | P1 doing |
+ | T-0070 | [#3](https://github.com/themark-net/pfy-mentat/issues/3) | P1 doing |
+ | T-0074 | [#4](https://github.com/themark-net/pfy-mentat/issues/4) | P1 doing |

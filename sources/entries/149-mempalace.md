@@ -1,6 +1,6 @@
 ### Entry 149: MemPalace: local-first verbatim agent memory with scoped search and an MCP server
 
-- **URL**: https://github.com/MemPalace/mempalace (MIT, Python 3.10+). Checked at `HEAD` `84582fb055a6429261f9c779da86c0561ec80adc` (2026-10-25), `mempalace --version` = `MemPalace 3.12.0`.
+- **URL**: https://github.com/MemPalace/mempalace (MIT, Python 3.10+). Checked at `HEAD` `84582fb055a6429261f9c779da86c0561ec80adc` (2026-10-25T04:41:28Z), `mempalace --version` = `MemPalace 3.12.0`.
 - **Date**: 2026-10-29 PT (daily X intake, window 2026-10-28 17:42 to 2026-10-29 17:35 PT, i.e. 2026-10-29T00:42Z to 2026-10-30T00:35Z)
 - **Source / Poster**: Mark's bookmark of @thisguyknowsai, https://x.com/thisguyknowsai/status/2115754546018566471 (repo found by name; the post had no link)
 - **Summary / Key Claims** (upstream README; their claims except where marked verified): stores project files and agent transcripts verbatim (no summarizing) in a ChromaDB-backed index organized as wings (people/projects), rooms (topics) and drawers (original chunks), so search can be scoped to a wing or room by metadata filter. Hybrid ranking (cosine plus BM25). Claims 96.6% R@5 raw on LongMemEval with zero API calls. CLI (`init`, `mine`, `search`, `wake-up` for a ~600-900 token session primer, `audit`, `kg`, `tunnels`), a 47-tool MCP server (`mempalace-mcp`), Claude Code session mining (`mine --mode convos`), optional local-LLM classification through Ollama, pluggable backends (Chroma, Milvus). The post's "49K stars" figure is unverified.

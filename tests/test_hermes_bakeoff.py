@@ -7,11 +7,14 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import sys
+import tempfile
 import unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 BAKE = ROOT / "examples" / "hermes-bakeoff"
@@ -1014,6 +1017,44 @@ class HermesBakeoffTests(unittest.TestCase):
                 os.environ.pop("TMPDIR", None)
             else:
                 os.environ["TMPDIR"] = old
+
+    def test_opencode_run_tmpdir_stays_under_repo_tmp(self):
+        """A hardcoded TMPDIR=/tmp in the opencode child must fail this test."""
+        import opencode_arm
+
+        base = Path(tempfile.mkdtemp(prefix="opencode-tmp-", dir=ROOT / "tmp"))
+        out = base / "out"
+        out.mkdir()
+        captured = {}
+
+        def fake_run(argv, **kwargs):
+            captured["env"] = kwargs["env"]
+            return subprocess.CompletedProcess(argv, 0, "", "")
+
+        old = os.environ.get("TMPDIR")
+        os.environ["TMPDIR"] = str(base)
+        try:
+            with mock.patch.object(opencode_arm.shutil, "which", return_value="/bin/true"):
+                with mock.patch.object(opencode_arm.subprocess, "run", side_effect=fake_run):
+                    result = opencode_arm.run_task(
+                        {"id": "t", "prompt": "ping"},
+                        "sys",
+                        "model",
+                        "http://127.0.0.1:9/v1",
+                        1024,
+                        base / "calls.jsonl",
+                        out,
+                    )
+            self.assertIsNone(result["error"])
+            got = Path(captured["env"]["TMPDIR"]).resolve()
+            self.assertEqual(got, base.resolve())
+            self.assertNotEqual(got, Path("/tmp"))
+        finally:
+            if old is None:
+                os.environ.pop("TMPDIR", None)
+            else:
+                os.environ["TMPDIR"] = old
+            shutil.rmtree(base, ignore_errors=True)
 
 
 @pytest.mark.live

@@ -1,0 +1,103 @@
+{
+  "task": "t4-timeout-substep",
+  "level": "medium",
+  "arm": "L",
+  "base_sha": "997d89264495861a178713ccf7d4447ea828afc4",
+  "planted_sha": "512f807e1b971e3e84576c54ceb51a6b5071143e",
+  "gate": "python3 -m unittest tests.test_mvp2_t4_timeout_step tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_overtime_timeout_reason_is_shared_text tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_festival_timeout_reason_is_shared_text tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_overtime_daemon_stop_timeout_uses_shared_text",
+  "status": "FAIL",
+  "reason": "no-change",
+  "attempts": 3,
+  "loop_verdict": "reject",
+  "quality_accept": false,
+  "quality_why": "Reject. Three attempts, each no-change. The model read smoke_112_114.py and the tests, named the right edit (timeout_reason at new and at fest --version, plus the two assertion strings), and never wrote a file. The tool trace is Read, Grep, and Glob only. The planted gate is unchanged and still fails the two new assertions (overtime timeout, festival timeout). The saved patch is that planted test against the base, not an agent diff. No gaming and no scope creep. The review loop had no patch to accept or send back.",
+  "gaming": false,
+  "scope_creep": false,
+  "exit_code": 1,
+  "wall_seconds": 2203.514,
+  "agent_seconds": 2181.633,
+  "receipt_wall_seconds": 2203.388,
+  "diff": {
+    "files": 1,
+    "insertions": 95,
+    "deletions": 0
+  },
+  "attempt_rows": [
+    {
+      "attempt": 1,
+      "status": "FAIL",
+      "reason": "no-change",
+      "wall_seconds": 982.363,
+      "diff_stats": {
+        "files": 0,
+        "added": 0,
+        "removed": 0,
+        "lines": 0,
+        "paths": []
+      },
+      "checks": null,
+      "model_review": null,
+      "mem_min_available_gb": 27.494
+    },
+    {
+      "attempt": 2,
+      "status": "FAIL",
+      "reason": "no-change",
+      "wall_seconds": 205.901,
+      "diff_stats": {
+        "files": 0,
+        "added": 0,
+        "removed": 0,
+        "lines": 0,
+        "paths": []
+      },
+      "checks": null,
+      "model_review": null,
+      "mem_min_available_gb": 27.494
+    },
+    {
+      "attempt": 3,
+      "status": "FAIL",
+      "reason": "no-change",
+      "wall_seconds": 1014.777,
+      "diff_stats": {
+        "files": 0,
+        "added": 0,
+        "removed": 0,
+        "lines": 0,
+        "paths": []
+      },
+      "checks": null,
+      "model_review": null,
+      "mem_min_available_gb": 27.494
+    }
+  ],
+  "free_gib_before": 64.59,
+  "receipt_status": "FAIL",
+  "receipt_reason": "no-change",
+  "branch": null,
+  "commit": null,
+  "sandbox": "bwrap-unshare-net",
+  "files_changed": [],
+  "review": {
+    "enabled": true,
+    "retries": 2,
+    "max_files": 3,
+    "max_lines": 250,
+    "allow_path": [],
+    "require_wiring": []
+  },
+  "canonical_gate": {
+    "acceptance_test_unchanged": true,
+    "exit": 1,
+    "passed": 3,
+    "failed": 2,
+    "errors": 0
+  },
+  "patch": "eval/mvp3/patches/t4-timeout-substep-L.patch",
+  "mem": {
+    "mem_available_gb": 64.473,
+    "swap_free_gb": 0.11,
+    "min_available_gb": 27.494
+  }
+}

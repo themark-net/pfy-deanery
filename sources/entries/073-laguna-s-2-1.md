@@ -1,4 +1,4 @@
-### Entry 073: Laguna S 2.1 — Poolside Open Agentic Coding MoE
+### Entry 073: Laguna S 2.1 - Poolside Open Agentic Coding MoE
 
 - **URL**: https://x.com/i/status/2079613777343848465
 - **Date**: 2026-07-21 (post); cataloged 2026-07-22
@@ -8,3 +8,4 @@
 - **TOOLS.md Link**: New primary row under **Inference & Serving** (and cross-tag Coding & Dev Agents). High-value open local/hybrid coding model. Complements Ollama / llama.cpp / LiteLLM stack. Strong candidate for Grok CLI + agent-cage evaluation once GGUF/MLX paths are verified.
 - **Notes**: Stage 0 pass (open weights, local inference path via quantizations + GGUF/MLX, agentic coding focus, broad runtime support). OpenMDW-1.1 is permissive (NVIDIA/Linux Foundation model license). Known limitations noted by authors: overthinking on hard math (no intermediate effort control yet), occasional first-use tool-schema trust issues, JSON-array escaping. Recommend: (1) Catalog. (2) Queue smoke with Ollama/llama.cpp + Grok CLI agent harness. (3) Compare vs other open coding MoEs on Terminal-Bench / SWE-style tasks. (4) Track DFlash draft models for speculative decoding gains.
 - **Status**: Quick-evaluated - cataloged (high priority for deeper local eval)
+- **Smoke note (2026-10-30 PT, issue #25, catalog text only):** The lab in [docs/ops/laguna-local-dod.md](../../docs/ops/laguna-local-dod.md) (T-0062) was not run. The DoD needs a quant pull and one completion through Ollama or llama.cpp. This run did not pull weights and did not call a local model: MVP-3 run 2 was timing a loaded model on this host. No Laguna weights were added to git. Issue #25 stays open for that lab. Not a Feature GO. Catalog HOLD 70-75 unchanged.

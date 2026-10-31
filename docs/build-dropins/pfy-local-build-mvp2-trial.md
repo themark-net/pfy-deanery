@@ -16,5 +16,5 @@ Per task and arm: PASS/FAIL by the gate, wall time, diff size, whether a human-q
 
 ## Deliverables
 - eval/mvp2/tasks/*.md, eval/mvp2/results/<task>-<arm>.json (receipts and summaries; raw logs stay gitignored under tmp/), eval/mvp2/REPORT.md, docs/ops/HANDOFF-mvp2-trial.md, a RUN-LOG entry.
-- Do not merge the produced task diffs into main; keep them as patch files under eval/mvp2/patches/ so Mark can choose which to land.
+- Do not merge the produced task diffs into main; keep them as patch files under eval/mvp2/patches/. Landing default, as an owner override: prefer the cloud (C) patches; never land the local t4/t5 patches.
 - Push branch bot/mvp2-trial and print the head SHA plus a 10-line verdict.

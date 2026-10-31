@@ -1,0 +1,11 @@
+name: pinned
+on: push
+jobs:
+  string-pin:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: "true"
+  list-pin:
+    runs-on: [ubuntu-24.04]
+    steps:
+      - run: "true"

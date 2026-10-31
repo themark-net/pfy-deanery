@@ -1,5 +1,7 @@
 # Handoff: Hermes Agent bake-off (2026-10-19)
 
+**Status (2026-10-30 PT):** Landed on main. Entry 134 (`sources/entries/134-hermes-agent.md`, renumber 131 to 134 is `73ff535`). Meta-tools-off re-run done (NO-WIN, 2026-10-21). `PFY_BOT_INTERFACE=hermes` stays default-off (opencode unless that flag is set). `origin/bot/hermes-eval` (final tip `24fe672`, earlier tip `9b4c8f9`) and `origin/bot/hermes-wire` (`7281cd1`) have no commits outside `origin/main`. Nothing left on these branches. Not a Feature GO. Catalog HOLD 70-75 unchanged. Sections below are the 2026-10-19 and 2026-10-21 record.
+
 ## Wire run status (2026-10-20, branch `bot/hermes-wire`)
 
 Live status for the meta-tools-off re-run and the bot-interface flag. The sections below stay the 2026-10-19 eval record. Run log: [RUN-LOG-hermes-wire.md](../ops/RUN-LOG-hermes-wire.md).
@@ -19,9 +21,9 @@ Live status for the meta-tools-off re-run and the bot-interface flag. The sectio
 | Re-run (meta tools off, matched thinking) | done 2026-10-21. Receipt `pipelines/dogfood/hermes-bakeoff/results-rerun.json`. NO-WIN: 26/27 vs 26/27, valid 36/36 vs 36/36, p50 7.011s vs 7.191s, TTFT p50 4.877s vs 5.364s, peak 239.8 MiB vs 1.03 GiB, meta calls 0. Thinking off on both arms. `tool_search` off. Requested num_ctx 65536, observed context_length 262144. Does not block the flag |
 | `scripts/pfy` Hermes flag | done. `PFY_BOT_INTERFACE=hermes` opts in. Default remains opencode. Plan `docs/plans/hermes-bot-interface.md`. Not a Feature GO. Catalog HOLD 70-75 unchanged |
 
-**Branch:** `bot/hermes-eval` (worktree `/home/mark/DEVELOP/pfy-mentat/tmp/hermes-eval`), cut from `origin/main` @ `b36234b` (#303). Lands on `main` by fast-forward after the Tester and Reviewer gate (no-PR flow); `origin/main` was merged in on 2026-10-20. Not a Feature GO. No production wiring. Catalog HOLD 70–75 unchanged.
+**Branch:** `bot/hermes-eval` (worktree `/home/mark/DEVELOP/pfy-mentat/tmp/hermes-eval`), cut from `origin/main` @ `b36234b` (#303). This paragraph was written while the branch was still ahead of the gate. It has since landed on `main` (final tip `24fe672` is contained in `origin/main`; see the status line). The plan at the time was a fast-forward after the Tester and Reviewer gate (no-PR flow); `origin/main` was merged in on 2026-10-20. Not a Feature GO. No production wiring. Catalog HOLD 70-75 unchanged.
 
-**History on this branch:** entry `03cfbec`, bake-off `b48d634`, handoff `9b4c8f9`, merge of `origin/main` @ `aed526d` `09b1c16` (no rebase), renumber 131 to 134 `73ff535`, founder decision `02dd0af`, then the Reviewer docs fixes on top. The gated tip SHA is the one in the gate request; after the fast-forward it is `main`.
+**History on this branch:** entry `03cfbec`, bake-off `b48d634`, handoff `9b4c8f9`, merge of `origin/main` @ `aed526d` `09b1c16` (no rebase), renumber 131 to 134 `73ff535`, founder decision `02dd0af`, then the Reviewer docs fixes on top. The gated tip was the SHA in the gate request. That fast-forward happened: the tip is on `main`.
 
 ## What shipped vs open
 
@@ -36,7 +38,7 @@ Live status for the meta-tools-off re-run and the bot-interface flag. The sectio
 
 | | Hermes `AIAgent.run_conversation` `ddabd383` | `opencode run` 1.18.32 |
 |---|---:|---:|
-| Task success | 26/27 = 96.30% (Wilson 81.7–99.3%) | 25/27 = 92.59% (Wilson 76.6–97.9%) |
+| Task success | 26/27 = 96.30% (Wilson 81.7-99.3%) | 25/27 = 92.59% (Wilson 76.6-97.9%) |
 | Valid tool-call rate | 82.61% (38/46) | 97.83% (45/46) |
 | Narrate rate | 0 | 0 |
 | p50 latency | 8.75s | 47.38s |
@@ -90,4 +92,4 @@ None that stopped the ship. Driver bugs fixed before the scored pass, each once:
 
 ## Next
 
-2026-10-21: the re-run receipt and the default-off `./pfy bot` flag are on `bot/hermes-wire`. See the status table at the top of this file and [hermes-vs-current.md](hermes-vs-current.md). Tester and Reviewer still gate the merge (no-PR flow: on a double PASS, main is fast-forwarded to the gated SHA). Do not merge from this run. Do not rescore Hermes in the catalog. The 2026-10-19 instruction not to wire `scripts/pfy` is superseded by the flag above, which stays off unless `PFY_BOT_INTERFACE=hermes`.
+2026-10-21: the re-run receipt and the default-off `./pfy bot` flag were on `bot/hermes-wire`. See the status table above and [hermes-vs-current.md](hermes-vs-current.md). At that date, Tester and Reviewer still gated the merge (no-PR flow: on a double PASS, main would be fast-forwarded to the gated SHA), and that run said not to merge from the run. Both tips are now in `origin/main` (status line, 2026-10-30 PT). Do not rescore Hermes in the catalog. The 2026-10-19 instruction not to wire `scripts/pfy` was superseded by the flag, which stays off unless `PFY_BOT_INTERFACE=hermes`.

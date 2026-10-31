@@ -126,7 +126,16 @@
       "github": null,
       "catalog": null,
       "issue_stub": "OpenCode host adapter",
-      "github_issue": 55
+      "github_issue": 55,
+      "attach": {
+        "session_id": "opencode",
+        "label": "OpenCode",
+        "issue": 162,
+        "script": "pfy_enterable_162",
+        "bin_fallbacks": [],
+        "next_install": null,
+        "config_dir": null
+      }
     },
     {
       "id": "hermes",

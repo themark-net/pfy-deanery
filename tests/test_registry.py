@@ -121,7 +121,11 @@ class RegistryValidateTests(unittest.TestCase):
         self.assertEqual(prof["session_id"], "claude")
         self.assertEqual(prof["binaries"], ("claude",))
         self.assertEqual(prof["config_dir_env"], "CLAUDE_CONFIG_DIR")
-        self.assertIsNone(registry.attach_profile("opencode", ROOT))
+        oc = registry.attach_profile("opencode", ROOT)
+        self.assertEqual(oc["script"], "pfy_enterable_162")
+        self.assertEqual(oc["session_id"], "opencode")
+        self.assertIsNone(oc["config_dir_env"])
+        self.assertIsNone(registry.harness_home("opencode", ROOT))
         self.assertIsNone(registry.harness_home("hermes", ROOT))
         saved = os.environ.get("CODEX_HOME")
         try:

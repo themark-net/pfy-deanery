@@ -1,0 +1,11 @@
+name: unpinned
+on: push
+jobs:
+  old-ubuntu:
+    runs-on: ubuntu-22.04
+    steps:
+      - run: "true"
+  windows:
+    runs-on: windows-latest
+    steps:
+      - run: "true"

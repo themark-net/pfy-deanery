@@ -1,0 +1,27 @@
+diff --git a/scripts/pregate.sh b/scripts/pregate.sh
+index 0e56acb..7f7547f 100755
+--- a/scripts/pregate.sh
++++ b/scripts/pregate.sh
+@@ -82,10 +82,22 @@ GIT_COMMON="$(git rev-parse --path-format=absolute --git-common-dir)"
+ MAIN_ROOT="$(dirname "$GIT_COMMON")"
+ HOST="$(hostname -s 2>/dev/null || hostname)"
+ 
++pregate_claim_lock() {
++  mkdir -p "$MAIN_ROOT/tmp"
++  exec {PREGATE_LOCK_FD}>"$MAIN_ROOT/tmp/pregate.lock"
++  if ! flock -n "$PREGATE_LOCK_FD"; then
++    echo "pregate busy" >&2
++    return 2
++  fi
++  return 0
++}
++
+ case "$MAIN_ROOT$REPO_ROOT" in
+   *[[:space:]]*) die2 "repo path contains whitespace; not supported: $MAIN_ROOT" ;;
+ esac
+ 
++pregate_claim_lock || exit $?
++
+ RUN_TS="$(date -u +%Y%m%dT%H%M%SZ)"
+ HHMMSS="${RUN_TS:9:6}"
+ RUN_ID="${SHORT}-${RUN_TS}-$$"

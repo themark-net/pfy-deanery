@@ -11,7 +11,7 @@ No-go for making `./pfy build --local` the default on build-only runs.
 | L | 5/6 | 4/6 | 1694.0 s | 1 each | 0 | 0 |
 | C | 6/6 | 6/6 | 583.6 s | 1 each | 0 | 0 |
 
-Cloud was faster on five tasks. `t1` tied (113.9 s local, 113.5 s cloud). Weekly Build percent was not readable. Auth file exists and is non-empty. Six cloud sessions were present, each `turnCount` 1. `modelCalls` were 9, 5, 9, 9, 12, and 7 (51 total). Token totals are not in this report.
+Cloud was faster on five tasks. `t1` tied (113.9 s local, 113.5 s cloud). Weekly Build percent was not readable. That sentence is an operator observation with no receipt field. Auth file exists and is non-empty. Six cloud sessions were present, each `turnCount` 1. `modelCalls` were 9, 5, 9, 9, 12, and 7 (51 total). Token totals are not in this report.
 
 ## Per task
 
@@ -48,7 +48,7 @@ A review step is the gap this trial measured. `t4` shows a green gate is not eno
 
 A retry was not measured. Local had one attempt by decision. `t5` used 460 s of the 1200 s agent budget and stopped on a wrong fix, so a second attempt might help. This run does not show that.
 
-A bigger context was not the limit. No local arm timed out, and none reported a truncated prompt. The agent budget was not exhausted on the failure.
+A bigger context was not the limit. No local arm timed out. None reported a truncated prompt. That sentence is an operator observation with no receipt field. The agent budget was not exhausted on the failure.
 
 A stronger local model might close `t4` and `t5`. This trial used only `qwen3.6:35b`.
 

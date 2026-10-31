@@ -1,0 +1,7 @@
+name: self-hosted
+on: push
+jobs:
+  g:
+    runs-on: [self-hosted, Linux, X64, pfy-mentat]
+    steps:
+      - run: "true"

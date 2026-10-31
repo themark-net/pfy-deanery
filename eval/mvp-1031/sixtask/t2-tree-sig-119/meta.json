@@ -1,0 +1,39 @@
+{
+  "task": "t2-tree-sig-119",
+  "label": "pass1",
+  "command": [
+    "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-sixtask-1031/pfy",
+    "build",
+    "# t2 content hash for the 119 tree signature\n\nLevel: trivial\nBase SHA: 997d89264495861a178713ccf7d4447ea828afc4\nFiles likely touched: examples/x-intake-local/smoke_119_121.py\nGate: python3 -m unittest tests.test_mvp2_t2_tree_sig_119\n\nThe acceptance test is already in the tree. Do not edit it. Do not edit any other test file. Do not commit.\n\n`tree_sig` in `examples/x-intake-local/smoke_119_121.py` still hashes size and mtime. Replace that function with the content hash already used by `tree_sig` in `examples/x-intake-local/smoke_122_124.py`, including the unreadable marker. Same function name and None for a missing path. Do not change the other smoke files. An unchanged tree, including an mtime-only touch, must keep the same signature. A same-size byte change that restores mtime must change it.\n\nGate command: `python3 -m unittest tests.test_mvp2_t2_tree_sig_119`\n",
+    "--repo",
+    "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-sixtask-1031/tmp/sixtask-clones/pass1/t2-tree-sig-119",
+    "--base",
+    "demo-base",
+    "--test-cmd",
+    "python3 -m unittest tests.test_mvp2_t2_tree_sig_119",
+    "--receipt-dir",
+    "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-sixtask-1031/eval/mvp-1031/sixtask/t2-tree-sig-119",
+    "--timeout",
+    "900",
+    "--keep-worktree"
+  ],
+  "wall_s": 66.3,
+  "exit_code": 0,
+  "receipt_status": "PASS",
+  "receipt_reason": "ok",
+  "attempts": 1,
+  "review_verdict": "accept",
+  "review_reasons": [],
+  "commit": "6951f72013c776f9b3107bff646c81106121553b",
+  "branch": "cloud/t2-content-hash-for-the-119-tree-signatu-20261031T203217137527Z",
+  "base": "997d89264495861a178713ccf7d4447ea828afc4",
+  "planted": "163b130b333e1cfc9b7bad100eab61a520242459",
+  "lane_head": "336ff155405a70b54424735ca7237585a2ca17cb",
+  "gate_rerun": {
+    "exit": 0,
+    "acceptance_unchanged": true
+  },
+  "human": "accept",
+  "human_note": "tree_sig in smoke_119_121.py matches the content hash in smoke_122_124.py, including :dir and :unreadable, and still returns None when the path is missing. No other file changed. The planted gate was not edited and the canonical rerun passed.",
+  "timeout_s": 900
+}

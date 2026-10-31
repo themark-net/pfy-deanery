@@ -265,6 +265,46 @@ elif scenario == "late-rewrite" and calc.exists():
                 time.sleep(0.2)
         os._exit(0)
     _wait_ready(root / "tmp" / "daemon.heartbeat")
+elif scenario == "plan":
+    plan_path = os.environ.get("PFY_STUB_PLAN") or ""
+    count_path = os.environ.get("PFY_STUB_COUNT") or ""
+    prompts_path = os.environ.get("PFY_STUB_PROMPTS") or ""
+    n = 0
+    if count_path:
+        try:
+            n = int(Path(count_path).read_text(encoding="utf-8").strip() or "0")
+        except (OSError, ValueError):
+            n = 0
+        _mark(Path(count_path), str(n + 1))
+    prompt = argv[-1] if argv else ""
+    if prompts_path:
+        line = json.dumps({"attempt": n + 1, "prompt": prompt}) + "\n"
+        try:
+            with open(prompts_path, "a", encoding="utf-8") as handle:
+                handle.write(line)
+        except OSError:
+            pass
+    steps = []
+    if plan_path:
+        try:
+            steps = json.loads(Path(plan_path).read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            steps = []
+    step = steps[n] if n < len(steps) else (steps[-1] if steps else {"mode": "fix"})
+    mode = step.get("mode") or "noop"
+    if mode == "fix" and calc.exists():
+        calc.write_text(calc.read_text(encoding="utf-8").replace("return a + b + 1", "return a + b"), encoding="utf-8")
+    elif mode == "worse" and calc.exists():
+        calc.write_text("def add(a, b):\n    return a + b + 5\n", encoding="utf-8")
+    for rel, content in (step.get("write") or {}).items():
+        dest = root / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(content, encoding="utf-8")
+    for rel, extra in (step.get("append") or {}).items():
+        dest = root / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        prev = dest.read_text(encoding="utf-8") if dest.is_file() else ""
+        dest.write_text(prev + extra, encoding="utf-8")
 raise SystemExit(0)
 """
 
@@ -303,7 +343,10 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
-        self.wfile.write(data)
+        try:
+            self.wfile.write(data)
+        except BrokenPipeError:
+            return
 
     def do_GET(self):  # noqa: N802
         if self.path.startswith("/api/tags"):
@@ -329,7 +372,25 @@ class Handler(BaseHTTPRequestHandler):
             payload = {}
         self.server.posts.append((self.path, payload))
         if "/chat/completions" in self.path:
-            self._send(200, {"id": "c", "choices": [{"message": {"role": "assistant", "content": "ok"}}]})
+            blob = json.dumps(payload)
+            content = "ok"
+            if "pfy-review-v1" in blob:
+                started = getattr(self.server, "review_started", None)
+                if started is not None:
+                    started.set()
+                blocker = getattr(self.server, "review_block", None)
+                if blocker is not None:
+                    blocker.wait()
+                http_status = getattr(self.server, "review_http_status", 200)
+                if http_status != 200:
+                    self._send(int(http_status), {"error": "review-down"})
+                    return
+                queue = getattr(self.server, "review_queue", None)
+                if queue:
+                    content = queue.pop(0)
+                else:
+                    content = json.dumps({"verdict": "accept", "reasons": []})
+            self._send(200, {"id": "c", "choices": [{"message": {"role": "assistant", "content": content}}]})
             return
         self._send(200, {"ok": True})
 
@@ -497,7 +558,7 @@ class LocalBuildTests(unittest.TestCase):
         env.update(extra)
         return env
 
-    def command(self, scenario, extra=None, auto_unsafe=True):
+    def command(self, scenario, extra=None, auto_unsafe=True, task=None):
         self._seq += 1
         receipt = self.repo / "tmp" / "receipts" / ("%s-%s" % (scenario, self._seq))
         cmd = [
@@ -506,7 +567,7 @@ class LocalBuildTests(unittest.TestCase):
             "--repo",
             str(self.repo),
             "--local",
-            "fix add so one plus one is two",
+            task or "fix add so one plus one is two",
             "--model",
             "fixture:small",
             "--endpoint",
@@ -528,10 +589,10 @@ class LocalBuildTests(unittest.TestCase):
             cmd.append("--unsafe-no-sandbox")
         return cmd, receipt
 
-    def run_build(self, scenario="fix", extra=None, env_extra=None, timeout=60, auto_unsafe=True):
+    def run_build(self, scenario="fix", extra=None, env_extra=None, timeout=60, auto_unsafe=True, task=None):
         if self.marker.exists():
             self.marker.unlink()
-        cmd, receipt = self.command(scenario, extra, auto_unsafe=auto_unsafe)
+        cmd, receipt = self.command(scenario, extra, auto_unsafe=auto_unsafe, task=task)
         proc = subprocess.run(
             cmd,
             cwd=self.repo,
@@ -1257,18 +1318,17 @@ class LocalBuildTests(unittest.TestCase):
         data = self.assert_no_commit(proc, receipt)
         self.assertEqual(data["reason"], "tests-tampered")
 
-    def test_ignored_helper_is_in_the_commit(self):
+    def test_ignored_helper_is_not_committed(self):
         ignore = self.repo / ".gitignore"
         ignore.write_text(ignore.read_text(encoding="utf-8") + "helper.py\n", encoding="utf-8")
         self.commit_base("ignore helper.py")
         proc, receipt = self.run_build("ignored-helper")
-        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
-        data = self.receipt(proc, receipt)
-        self.assertEqual(data["status"], "PASS")
-        shown = _git(self.repo, "show", "%s:src/helper.py" % data["commit"])
-        self.assertIn("def add_impl", shown)
-        calc = _git(self.repo, "show", "%s:src/calc.py" % data["commit"])
-        self.assertIn("add_impl", calc)
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self.assert_no_commit(proc, receipt)
+        self.assertIn(data["reason"], ("commit-recheck-failed", "scope-commit-mismatch"))
+        names = _git(self.repo, "log", "--all", "--name-only", "--pretty=format:")
+        self.assertNotIn("src/helper.py", names)
+        self.assertNotIn("helper.py", data["files_changed"])
 
     def test_sandboxed_tests_block_push_write_and_tcp(self):
         if not BUILD.bwrap_works():
@@ -1429,12 +1489,28 @@ class LocalBuildTests(unittest.TestCase):
 
 class CloudBuildUnchangedTests(unittest.TestCase):
     def test_help_and_dry_run_stay_the_same(self):
+        """Bare help is the cloud card. ./pfy build -p --help keeps dogfood flags.
+
+        Fail: bare ./pfy build --help still lists --prompt-file, so the daily
+        cloud card from plan D1 is hidden. The reverse fail is -p --help
+        showing Daily cloud build and dropping -p, --prompt.
+        Recover: bare help names ./pfy build "<task>" and points at -p and
+        --local. -p --help lists the dogfood flags. -p x --dry-run still
+        prints READY and leaves no new receipt directory entries.
+        """
         if shutil.which("grok") is None:
             self.skipTest("SKIP: grok-missing")
         env = os.environ.copy()
         env["TMPDIR"] = str(ROOT / "tmp" / "scratch")
-        receipt_root = ROOT / "pipelines" / "dogfood" / "build"
-        before = {path.name for path in receipt_root.iterdir()} if receipt_root.is_dir() else set()
+        receipt_roots = (
+            ROOT / "pipelines" / "dogfood" / "build",
+            ROOT / "pipelines" / "dogfood" / "build-cloud",
+        )
+
+        def names(path):
+            return {child.name for child in path.iterdir()} if path.is_dir() else set()
+
+        before = {path: names(path) for path in receipt_roots}
         try:
             help_proc = subprocess.run(
                 [str(ROOT / "pfy"), "build", "--help"],
@@ -1445,11 +1521,32 @@ class CloudBuildUnchangedTests(unittest.TestCase):
                 timeout=30,
             )
             self.assertEqual(help_proc.returncode, 0, help_proc.stderr)
-            help_text = help_proc.stdout or ""
+            help_text = (help_proc.stdout or "") + (help_proc.stderr or "")
             self.assertIn("usage: pfy build", help_text)
+            self.assertIn("Daily cloud build", help_text)
+            self.assertIn('./pfy build "<task>"', help_text)
+            self.assertIn("jev dogfood wrap", help_text)
+            self.assertIn("opt-in fallback", help_text)
+            self.assertIn("--local", help_text)
             self.assertIn("--dry-run", help_text)
-            self.assertIn("--prompt-file", help_text)
-            self.assertIn("-p, --prompt", help_text)
+            self.assertNotIn("--prompt-file", help_text)
+            self.assertNotIn("-p, --prompt", help_text)
+            dogfood = subprocess.run(
+                [str(ROOT / "pfy"), "build", "-p", "--help"],
+                cwd=ROOT,
+                env=env,
+                text=True,
+                capture_output=True,
+                timeout=30,
+            )
+            self.assertEqual(dogfood.returncode, 0, dogfood.stderr)
+            dogfood_text = (dogfood.stdout or "") + (dogfood.stderr or "")
+            self.assertIn("usage: pfy build", dogfood_text)
+            self.assertIn("Apply local jev toolset", dogfood_text)
+            self.assertIn("--dry-run", dogfood_text)
+            self.assertIn("--prompt-file", dogfood_text)
+            self.assertIn("-p, --prompt", dogfood_text)
+            self.assertNotIn("Daily cloud build", dogfood_text)
             dry = subprocess.run(
                 [str(ROOT / "pfy"), "build", "-p", "x", "--dry-run"],
                 cwd=ROOT,
@@ -1463,15 +1560,17 @@ class CloudBuildUnchangedTests(unittest.TestCase):
             self.assertIn("READY", dry.stdout)
             self.assertIn("receipt:", dry.stdout)
         finally:
-            if receipt_root.is_dir():
+            for receipt_root, seen in before.items():
+                if not receipt_root.is_dir():
+                    continue
                 for child in list(receipt_root.iterdir()):
-                    if child.name not in before:
+                    if child.name not in seen:
                         if child.is_dir():
                             shutil.rmtree(child, ignore_errors=True)
                         else:
                             child.unlink(missing_ok=True)
-        after = {path.name for path in receipt_root.iterdir()} if receipt_root.is_dir() else set()
-        self.assertEqual(after, before)
+        for receipt_root, seen in before.items():
+            self.assertEqual(names(receipt_root), seen)
 
     def test_real_opencode_accepts_the_flags_we_pass(self):
         binary = shutil.which("opencode")
