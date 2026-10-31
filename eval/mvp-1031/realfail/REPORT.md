@@ -6,8 +6,8 @@ Expected values come from the Functional MVP failure table. Process exit is the 
 
 | Case | Mode | Exp status | Exp reason | Exp exit | Obs status | Obs reason | Obs exit | Verdict | Attempts | Recovery | Notes |
 |------|------|------------|------------|----------|------------|------------|----------|---------|----------|----------|-------|
-| interrupted-sigint | real | FAIL | interrupted | 1 | pending | pending | pending | pending | - | - | SIGINT after the first grok call starts |
-| interrupted-sigterm | real | FAIL | interrupted | 1 | pending | pending | pending | pending | - | - | SIGTERM after the first grok call starts |
+| interrupted-sigint | real | FAIL | interrupted | 1 | FAIL | interrupted | 1 | matches | 1 | empty | SIGINT after grok started. No cloud branch. Caller HEAD and status unchanged. No orphan from this run. |
+| interrupted-sigterm | real | FAIL | interrupted | 1 | FAIL | interrupted | 1 | matches | 1 | empty | SIGTERM after grok started. No cloud branch. Caller HEAD and status unchanged. No orphan from this run. |
 | sigkill-reap | real | ABORTED | no-receipt | 0 | pending | pending | pending | pending | - | - | SIGKILL, then ./pfy build --reap |
 | timeout | real | TIMEOUT | timeout | 3 | pending | pending | pending | pending | - | - | real grok, very short --timeout |
 | dirty-caller | real | PASS | ok | 0 | pending | pending | pending | pending | - | - | uncommitted file and staged file stay dirty |

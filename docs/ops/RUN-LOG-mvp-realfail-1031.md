@@ -47,4 +47,6 @@ Host at launch: MemAvailable about 64 GiB, load 3.6 on 32 cores. Under the press
 ## Log
 
 item | commit | tests | result
-exits | (this commit) | tests.test_mvp_1031_realfail_receipts | pending push
+exits | 07c45ca | tests.test_mvp_1031_realfail_receipts 3 ok | pass, pushed
+merge-cloud | c0cf507 | git merge origin/bot/mvp-cloud-1031 | merged and pushed before interrupted
+interrupted | (this commit) | tests.test_mvp_1031_realfail_receipts | SIGINT and SIGTERM match DoD

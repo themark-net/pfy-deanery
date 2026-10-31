@@ -151,12 +151,11 @@ def evaluate(root: Path) -> list[str]:
                     )
         elif row["obs_exit"] != "pending":
             problems.append("%s missing meta.json" % case)
-        blob = receipt_path.read_text(encoding="utf-8")
-        if meta_path.is_file():
-            blob += "\n" + meta_path.read_text(encoding="utf-8")
-        for extra in case_dir.iterdir():
-            if extra.is_file() and extra.suffix in {".log", ".txt", ".md", ".patch"}:
-                blob += "\n" + extra.read_text(encoding="utf-8", errors="replace")
+        blob_parts = []
+        for extra in case_dir.rglob("*"):
+            if extra.is_file():
+                blob_parts.append(extra.read_text(encoding="utf-8", errors="replace"))
+        blob = "\n".join(blob_parts)
         hits = secret_hits(blob)
         if hits:
             problems.append("%s secret-like text matched %s" % (case, ", ".join(hits)))

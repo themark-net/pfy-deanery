@@ -1,6 +1,6 @@
 # Handoff mvp-realfail-1031
 
-Status: in progress. Exit card is written. Failure runs have not started.
+Status: in progress. Interrupted SIGINT and SIGTERM match the DoD. Later cases are not run yet.
 
 Branch: `bot/mvp-realfail-1031`
 Worktree: `~/DEVELOP/pfy-mentat/tmp/mvp-realfail-1031`
@@ -8,7 +8,9 @@ Base: `origin/bot/mvp-cloud-1031`
 
 ## Done
 
-None yet.
+- exits `07c45ca`: exit card, pending report, receipt checker.
+- merge `c0cf507`: `origin/bot/mvp-cloud-1031` at `d94d2b6`.
+- interrupted: real SIGINT and SIGTERM. Exit 1, status FAIL, reason interrupted, no branch, caller unchanged, grok session gone. Receipts under `eval/mvp-1031/realfail/interrupted-sigint/` and `interrupted-sigterm/`.
 
 ## Skipped
 
@@ -32,4 +34,4 @@ Docs, eval, and test only. Pregate plus Reviewer when the lane finishes. Pregate
 
 ## Next
 
-Merge `origin/bot/mvp-cloud-1031`, then the interrupted-run case on a throwaway repo under `tmp/`.
+SIGKILL a real run, then `./pfy build --reap`, with a planted local sleep that must survive.
