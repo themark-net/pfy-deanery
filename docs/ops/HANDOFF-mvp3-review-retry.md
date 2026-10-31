@@ -1,6 +1,6 @@
 # Handoff: MVP-3 review-and-retry loop for `./pfy build --local`
 
-Branch `bot/mvp3-review-retry`. Worktree `~/DEVELOP/pfy-mentat/tmp/mvp3`. Base of the branch is `bot/mvp2-report` `85c53dc`. Trial base for every arm is `997d89264495861a178713ccf7d4447ea828afc4`. No PR. Mark merges after the gate.
+Branch `bot/mvp3-review-retry`. Worktree `~/DEVELOP/pfy-mentat/tmp/mvp3`. Base of the branch is `bot/mvp2-report` `85c53dc`. Trial base for every arm is `997d89264495861a178713ccf7d4447ea828afc4`. No PR. After Tester and Reviewer PASS, the bot fast-forwards main.
 
 ## Status (2026-10-30 PT)
 
