@@ -46,6 +46,7 @@ import json
 import os
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -112,12 +113,39 @@ def tree_sig(p: Path) -> str | None:
     if not p.exists():
         return None
     h = hashlib.sha256()
-    for f in sorted(p.rglob("*")):
+    # when p itself is a symlink, its lstat permission bits and readlink string join the signature so a retarget
+    # shows even when both directories hold the same bytes. entries under p are still hashed below. mtime stays out.
+    if p.is_symlink():
         try:
-            st = f.stat()
-            h.update(f"{f}:{st.st_size}:{st.st_mtime_ns}".encode())
+            st = p.lstat()
+            mode = f"{stat.S_IMODE(st.st_mode):o}"
+            h.update(f"{p}:{mode}:link:{os.readlink(p)}\n".encode())
         except OSError:
-            pass
+            h.update(f"{p}:unreadable\n".encode())
+    for f in sorted(p.rglob("*")):
+        # permission bits plus a streamed content hash, not mtime: chmod and a same-size edit change the signature.
+        # a symlink is never opened: lstat mode and the readlink string, so a retarget changes the signature even
+        # when both targets hold the same bytes, and a file outside the tree is not hashed. an in-tree target stays
+        # its own entry and keeps its content hash.
+        try:
+            st = f.lstat()
+            mode = f"{stat.S_IMODE(st.st_mode):o}"
+            if stat.S_ISLNK(st.st_mode):
+                h.update(f"{f}:{mode}:link:{os.readlink(f)}\n".encode())
+            elif stat.S_ISREG(st.st_mode):
+                try:
+                    fh = hashlib.sha256()
+                    with f.open("rb") as fp:  # streamed in 1 MiB chunks, so a huge file doesn't load into RAM
+                        for chunk in iter(lambda: fp.read(1 << 20), b""):
+                            fh.update(chunk)
+                except OSError:
+                    h.update(f"{f}:{mode}:unreadable\n".encode())
+                else:
+                    h.update(f"{f}:{mode}:{st.st_size}:{fh.hexdigest()}\n".encode())
+            else:
+                h.update(f"{f}:{mode}:dir\n".encode())
+        except OSError:
+            h.update(f"{f}:unreadable\n".encode())
     return h.hexdigest()
 
 
@@ -163,6 +191,7 @@ def smoke_overtime(r: dict) -> int:
     before = tree_sig(real)
     r["containment"] = "real-home-check (daemon is detached; no bwrap)"
     timed_out: subprocess.TimeoutExpired | None = None
+    stop_timeout: str | None = None
     try:
         with tempfile.TemporaryDirectory(prefix="pfy-overtime-") as td:
             home = Path(td) / "home"
@@ -213,7 +242,8 @@ def smoke_overtime(r: dict) -> int:
                     p = sh(ot + ["daemon", "stop"], home=home_s, path=path)
                     steps.append({"daemon_stop": p.returncode})
                 except subprocess.TimeoutExpired as e:
-                    steps.append({"daemon_stop": timeout_reason("overtime daemon stop", float(e.timeout))})
+                    stop_timeout = timeout_reason("overtime daemon stop", float(e.timeout))
+                    steps.append({"daemon_stop": stop_timeout})
                 time.sleep(1)
             lock = home / "overtime/overtimed.lock"
             alive = False
@@ -227,6 +257,10 @@ def smoke_overtime(r: dict) -> int:
                         pass
             if alive:
                 r["reason"] = "daemon still running after `daemon stop`"
+                return 1
+            # A stop that never returned is a failure even when overtimed.lock is already gone.
+            if stop_timeout is not None:
+                r["reason"] = stop_timeout
                 return 1
     except subprocess.TimeoutExpired as e:
         timed_out = e
