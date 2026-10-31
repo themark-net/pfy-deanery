@@ -7,10 +7,15 @@ Nothing is pushed and no PR is opened.
 
 Exit codes:
   0  PASS, or a clean --dry-run, or --reap
-  1  FAIL, or PASS-REJECTED (the gate was green and the review rejected the patch),
-     or REVIEW-ERROR (reviewer HTTP error or timeout: not a reject, not retried)
+  1  FAIL (includes review-empty-diff, nothing committed),
+     or PASS-REJECTED (the gate was green and the review rejected the patch),
+     or reviewer-unavailable (reviewer HTTP error or review-call timeout:
+     not a reject, not retried, nothing committed),
+     or crash (the agent exited nonzero and wrote no diff: not a no-change, not retried).
+     A leftover tmp/local-build-* directory that cannot be removed is FAIL with
+     reason stale-worktree. It is not reused. A dry-run does not delete leftovers.
   2  usage, or opencode is missing
-  3  TIMEOUT (agent)
+  3  TIMEOUT (the agent, or the whole build and review loop when the reason is overall-timeout)
   4  BLOCKED (memory, busy host, ps error, model size, cloud tag, lock, no-model,
            no-sandbox, no-runtime-dir, runtime-dir-in-tmp, socket-path)
 
@@ -58,12 +63,35 @@ EXIT_USAGE = 2
 EXIT_TIMEOUT = 3
 EXIT_BLOCKED = 4
 
+# Receipt status and the stdout summary token. One list. _lab refuses the rest.
+LABELS = (
+    "PASS",
+    "FAIL",
+    "PASS-REJECTED",
+    "reviewer-unavailable",
+    "crash",
+    "TIMEOUT",
+    "BLOCKED",
+    "ABORTED",
+)
+
+
+class LabelError(Exception):
+    """A status is not in LABELS. Callers must not rewrite it to FAIL."""
+
+
+def _lab(status: str) -> str:
+    if status not in LABELS:
+        raise LabelError("undocumented status %r" % (status,))
+    return status
+
 SCHEMA = "pfy-local-build/1"
 DEFAULT_MODEL = "qwen3.6:35b"
 DEFAULT_ENDPOINT = "http://127.0.0.1:11434/v1"
 DEFAULT_TEST_CMD = "python3 -m unittest discover -s tests -t ."
 DEFAULT_TIMEOUT = 1200
 DEFAULT_TEST_TIMEOUT = 600
+DEFAULT_OVERALL_TIMEOUT = 7200.0
 DEFAULT_MIN_FREE_GB = 32.0
 DEFAULT_RETRIES = 2
 DEFAULT_MAX_FILES = 3
@@ -72,9 +100,25 @@ REVIEW_MARKER = "pfy-review-v1"
 DIFF_PROMPT_CAP = 8000
 # Shown on the final receipt when the review call itself fails. Not a reject.
 _REVIEW_OUTAGE_RECOVERY = (
-    "Reviewer was unavailable after an HTTP error or a timeout. "
-    "This attempt is not a reject and was not retried. "
+    "Status reviewer-unavailable. The reviewer was unreachable "
+    "(HTTP error or review-call timeout). This is not a reject and was not retried. "
+    "Nothing was committed. "
     "Recovery: run the build again when the reviewer answers, or pass --no-review."
+)
+_OVERALL_RECOVERY = (
+    "The wall-clock cap for the whole build and review loop fired. "
+    "Nothing was committed. "
+    "Recovery: run again with a larger --overall-timeout."
+)
+_CRASH_RECOVERY = (
+    "The agent exited %s and wrote no diff. This is a crash, not an empty edit. "
+    "Nothing was committed and the attempt was not retried. "
+    "Recovery: run the build again."
+)
+_STALE_RECOVERY = (
+    "A previous run left %s and it could not be removed. "
+    "It was not reused. Nothing was committed. "
+    "Recovery: delete that directory and run again."
 )
 _RETRYABLE = {
     "no-change",
@@ -310,6 +354,12 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser.add_argument("--endpoint", default=None, help="OpenAI base URL (env LOCAL_OPENAI_BASE_URL)")
     parser.add_argument("--test-cmd", default=None, help="gate command (env PFY_LOCAL_BUILD_TEST_CMD)")
     parser.add_argument("--timeout", type=float, default=None, help="agent seconds (env PFY_LOCAL_BUILD_TIMEOUT)")
+    parser.add_argument(
+        "--overall-timeout",
+        type=float,
+        default=None,
+        help="seconds for the whole build and review loop (default 7200, env PFY_LOCAL_BUILD_OVERALL_TIMEOUT)",
+    )
     parser.add_argument("--test-timeout", type=float, default=None, help="test command seconds")
     parser.add_argument("--min-free-gb", type=float, default=None, help="MemAvailable+SwapFree floor")
     parser.add_argument("--protect", action="append", default=[], help="glob the agent must not change")
@@ -338,7 +388,10 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser.add_argument(
         "--unsafe-no-sandbox",
         action="store_true",
-        help="run the agent without bwrap when bwrap is unavailable (recorded on the receipt)",
+        help=(
+            "when bwrap is missing, run the agent and the test gate without it "
+            "and record gate_unsandboxed on the receipt. A working bwrap still sandboxes both"
+        ),
     )
     parser.add_argument("--review", action="store_true", help="review a green gate before PASS (default)")
     parser.add_argument(
@@ -383,6 +436,9 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
         args.test_cmd_s = _pick_str(args.test_cmd, "PFY_LOCAL_BUILD_TEST_CMD", DEFAULT_TEST_CMD)
         args.timeout_s = _pick_float(args.timeout, "PFY_LOCAL_BUILD_TIMEOUT", DEFAULT_TIMEOUT)
         args.test_timeout_s = _pick_float(args.test_timeout, "PFY_LOCAL_BUILD_TEST_TIMEOUT", DEFAULT_TEST_TIMEOUT)
+        args.overall_timeout_s = _pick_float(
+            args.overall_timeout, "PFY_LOCAL_BUILD_OVERALL_TIMEOUT", DEFAULT_OVERALL_TIMEOUT
+        )
         args.min_free = _pick_float(args.min_free_gb, "PFY_LOCAL_BUILD_MIN_FREE_GB", DEFAULT_MIN_FREE_GB)
         _apply_review_flags(args)
         return args
@@ -395,11 +451,14 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
         args.test_cmd_s = _pick_str(args.test_cmd, "PFY_LOCAL_BUILD_TEST_CMD", DEFAULT_TEST_CMD)
         args.timeout_s = _pick_float(args.timeout, "PFY_LOCAL_BUILD_TIMEOUT", DEFAULT_TIMEOUT)
         args.test_timeout_s = _pick_float(args.test_timeout, "PFY_LOCAL_BUILD_TEST_TIMEOUT", DEFAULT_TEST_TIMEOUT)
+        args.overall_timeout_s = _pick_float(
+            args.overall_timeout, "PFY_LOCAL_BUILD_OVERALL_TIMEOUT", DEFAULT_OVERALL_TIMEOUT
+        )
         args.min_free = _pick_float(args.min_free_gb, "PFY_LOCAL_BUILD_MIN_FREE_GB", DEFAULT_MIN_FREE_GB)
     except ValueError as exc:
         raise UsageError("a numeric flag or env value is not a number") from exc
-    if args.timeout_s <= 0 or args.test_timeout_s <= 0 or args.min_free < 0:
-        raise UsageError("timeout and min-free-gb must be positive (min-free-gb may be 0)")
+    if args.timeout_s <= 0 or args.test_timeout_s <= 0 or args.overall_timeout_s <= 0 or args.min_free < 0:
+        raise UsageError("timeout, overall-timeout, and min-free-gb must be positive (min-free-gb may be 0)")
     _apply_review_flags(args)
     return args
 
@@ -781,6 +840,7 @@ def run_tests(
     prepared = None
     run_argv = argv
     run_env = dict(env)
+    mode = None
     if repo is not None:
         prepared = prepare_sandbox(
             argv,
@@ -789,19 +849,26 @@ def run_tests(
             endpoint=None,
             unsafe=unsafe,
         )
+        mode = prepared.mode
         run_argv = prepared.argv
         run_env.update(lockdown_env(cwd))
         run_env["GIT_TERMINAL_PROMPT"] = "0"
+
+    def _tagged(rec: dict) -> dict:
+        if mode is not None:
+            rec["sandbox"] = mode
+        return rec
+
     started = time.monotonic()
     try:
         try:
             status, code, out, err = run_bounded(run_argv, run_env, cwd, timeout, state)
         except FileNotFoundError:
-            return _test_record(cmd_s, False, None, "command not found", 0.0)
+            return _tagged(_test_record(cmd_s, False, None, "command not found", 0.0))
         except OSError as exc:
             if getattr(exc, "errno", None) == 2:
-                return _test_record(cmd_s, False, None, "command not found", 0.0)
-            return _test_record(cmd_s, False, None, str(exc), 0.0)
+                return _tagged(_test_record(cmd_s, False, None, "command not found", 0.0))
+            return _tagged(_test_record(cmd_s, False, None, str(exc), 0.0))
     finally:
         if prepared is not None:
             prepared.close()
@@ -810,12 +877,12 @@ def run_tests(
     if status == "timeout":
         rec = _test_record(cmd_s, True, code if code is not None else 124, text + "\ntest-timeout", elapsed)
         rec["exit"] = 124
-        return rec
+        return _tagged(rec)
     if status in ("interrupted", "mem-edge"):
         rec = _test_record(cmd_s, True, code, text, elapsed)
         rec["aborted"] = status
-        return rec
-    return _test_record(cmd_s, True, code if code is not None else 1, text, elapsed)
+        return _tagged(rec)
+    return _tagged(_test_record(cmd_s, True, code if code is not None else 1, text, elapsed))
 
 
 def _command_resolves(argv: list[str], cwd: Path, env: dict) -> bool:
@@ -1114,13 +1181,8 @@ def _write_receipt(path: Path, payload: dict) -> None:
 
 
 def _summary(status: str, reason: str, branch: str | None, receipt: Path) -> str:
-    label = status
-    if status == "BLOCKED":
-        label = "BLOCKED:"
-    if status == "PASS-REJECTED":
-        label = "PASS-REJECTED"
     shown = reason or ""
-    return "%s %s branch=%s receipt=%s" % (label, shown, branch or "none", receipt)
+    return "%s %s branch=%s receipt=%s" % (_lab(status), shown, branch or "none", receipt)
 
 
 def _install_signals(state: State) -> None:
@@ -1938,7 +2000,7 @@ def _write_aborted(repo: Path) -> list[str]:
             {
                 "schema": SCHEMA,
                 "id": entry.name,
-                "status": "ABORTED",
+                "status": _lab("ABORTED"),
                 "reason": "no-receipt",
                 "exit_code": EXIT_FAIL,
                 "finished_at": _now(),
@@ -1991,7 +2053,7 @@ def reap_stale(repo: Path) -> list[str]:
                             {
                                 "schema": SCHEMA,
                                 "id": dest.parent.name,
-                                "status": "ABORTED",
+                                "status": _lab("ABORTED"),
                                 "reason": "no-receipt",
                                 "exit_code": EXIT_FAIL,
                                 "finished_at": _now(),
@@ -2460,6 +2522,24 @@ def _parse_verdict(text: str) -> tuple[str, list[str], str]:
     return verdict, reasons, raw[:500]
 
 
+def _review_transport_error(raw: str) -> str | None:
+    """Poster failure shape: {"error": "..."} with no choices.
+
+    A model completion can also carry an error field next to choices. That
+    stays a verdict parse. Only the transport failure is fail-closed.
+    """
+    try:
+        data = json.loads(raw or "")
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(data, dict) or "choices" in data:
+        return None
+    err = data.get("error")
+    if not err:
+        return None
+    return str(err)
+
+
 def _content_from_model_body(raw: str) -> str:
     try:
         data = json.loads(raw)
@@ -2598,6 +2678,30 @@ def _drop_worktree(repo: Path, worktree: Path | None) -> None:
     _git(repo, ["worktree", "prune"])
 
 
+def _stale_worktree_dirs(repo: Path) -> list[Path]:
+    """Leftover local-build directories under this repo's tmp. Not the lock file."""
+    base = repo / "tmp"
+    if not base.is_dir():
+        return []
+    try:
+        entries = list(base.iterdir())
+    except OSError:
+        return []
+    found = [entry for entry in entries if entry.name.startswith("local-build-")]
+    return sorted(found, key=lambda entry: entry.name)
+
+
+def _drop_stale_worktree(repo: Path, path: Path) -> None:
+    if path.is_symlink():
+        try:
+            path.unlink()
+        except OSError:
+            return
+        _git(repo, ["worktree", "prune"])
+        return
+    _drop_worktree(repo, path)
+
+
 def _review_outage_kind(raw: str) -> str | None:
     """http-error or timeout when the poster recorded a transport failure.
 
@@ -2628,12 +2732,14 @@ def _run_model_review(
     gate_tail: str,
     state: State,
     repo: Path,
+    call_limit: float | None = None,
 ) -> tuple[str, dict | None]:
     """Return (status, review).
 
-    status is accept, reject, unavailable, interrupted, mem-edge, blocked, or
-    sandbox. unavailable means the review call had an HTTP error or timed out.
-    That is not a verdict.
+    status is accept, reject, unavailable, overall-timeout, interrupted,
+    mem-edge, blocked, or sandbox. unavailable means the review call had an
+    HTTP error or its own timeout. overall-timeout means the whole-loop cap
+    cut this call. Neither is a verdict. The caller does not commit or retry.
     """
     port = _loopback_port(openai_base)
     if port is None:
@@ -2683,9 +2789,16 @@ def _run_model_review(
     if prepared.mode == "bwrap-unshare-net":
         child["OPENAI_BASE_URL"] = "http://127.0.0.1:%d/v1" % port
     child.update(lockdown_env(worktree))
+    limit = float(args.timeout_s)
+    cut_by_overall = False
+    if call_limit is not None and call_limit < limit:
+        limit = call_limit
+        cut_by_overall = True
+    if limit <= 0:
+        return "overall-timeout", None
     try:
         run_status, _code, out, err = run_bounded(
-            prepared.argv, child, worktree, float(args.timeout_s), state
+            prepared.argv, child, worktree, limit, state
         )
     finally:
         prepared.close()
@@ -2693,18 +2806,20 @@ def _run_model_review(
         return "interrupted", None
     if run_status == "mem-edge":
         return "mem-edge", None
+    if run_status == "timeout" and cut_by_overall:
+        return "overall-timeout", None
     raw = ""
     try:
         raw = out_path.read_text(encoding="utf-8")
     except OSError:
         raw = (out or "") + (err or "")
-    # HTTP error and the bounded-call timeout share one status. A verdict
-    # reject is a later return and is retried. An outage is not.
-    if run_status == "timeout" or _review_outage_kind(raw):
+    # HTTP error and the bounded-call timeout are the same outage.
+    # A verdict reject is a later return and is retried. An outage is not.
+    if run_status == "timeout" or _review_transport_error(raw) or _review_outage_kind(raw):
         detail = "review call timed out" if run_status == "timeout" else raw[:500]
         return "unavailable", {
-            "verdict": "unavailable",
-            "reasons": ["review-unavailable"],
+            "verdict": "reviewer-unavailable",
+            "reasons": ["reviewer-unavailable"],
             "raw_tail": redact(detail)[:500],
         }
     content = _content_from_model_body(raw)
@@ -2725,6 +2840,7 @@ def build_local(argv: list[str] | None = None) -> int:
         return _reap_only(args)
 
     started = time.monotonic()
+    loop_deadline = started + float(args.overall_timeout_s)
     started_at = _now()
     stamp = _stamp()
     slug = _slug(args.task_text)
@@ -2738,6 +2854,7 @@ def build_local(argv: list[str] | None = None) -> int:
     exit_code = EXIT_FAIL
     recovery = ""
     warnings: list[str] = []
+    stale_worktrees: list[str] = []
     sandbox_extra_rw: list[str] = []
     tests_before = None
     tests_after = None
@@ -2755,6 +2872,7 @@ def build_local(argv: list[str] | None = None) -> int:
     repo = None
     ollama_root = None
     sandbox_mode = None
+    gate_unsandboxed = False
     lock_path: Path | None = None
     pid_path: Path | None = None
     git_saved: bytes | None = None
@@ -2775,6 +2893,7 @@ def build_local(argv: list[str] | None = None) -> int:
             prepared = None
         finished_at = _now()
         if receipt_path is not None:
+            label = _lab(status)
             payload = {
                 "schema": SCHEMA,
                 "id": stamp + "-" + slug,
@@ -2783,7 +2902,7 @@ def build_local(argv: list[str] | None = None) -> int:
                 "base_sha": base_sha,
                 "model": args.model_name,
                 "endpoint": _host_only(args.endpoint_raw),
-                "status": status,
+                "status": label,
                 "reason": reason,
                 "exit_code": exit_code,
                 "wall_seconds": round(time.monotonic() - started, 3),
@@ -2801,6 +2920,7 @@ def build_local(argv: list[str] | None = None) -> int:
                     "require_wiring": list(args.require_wiring or []),
                 },
                 "warnings": list(warnings),
+                "stale_worktrees": list(stale_worktrees),
                 "sandbox_extra_rw": list(sandbox_extra_rw),
                 "attempt_receipts": list(attempt_receipts),
                 "branch": branch,
@@ -2816,13 +2936,14 @@ def build_local(argv: list[str] | None = None) -> int:
                 "opencode_version": opencode_version,
                 "agent_log": None if agent_log is None else str(agent_log),
                 "sandbox": sandbox_mode,
+                "gate_unsandboxed": gate_unsandboxed,
                 "started_at": started_at,
                 "finished_at": finished_at,
             }
             if recovery:
                 payload["recovery"] = recovery
             _write_receipt(receipt_path, payload)
-            print(_summary(status, reason, branch, receipt_path))
+            print(_summary(label, reason, branch, receipt_path))
         stop_watch.set()
         if watcher is not None:
             watcher.join(timeout=1)
@@ -2871,6 +2992,17 @@ def build_local(argv: list[str] | None = None) -> int:
         # so an empty directory from that run becomes ABORTED, not this one.
         reap_stale(repo)
         receipt_dir.mkdir(parents=True, exist_ok=True)
+        stale_paths = _stale_worktree_dirs(repo)
+        stale_worktrees = [path.name for path in stale_paths]
+        # Dry-run reports leftovers and leaves them. Every other run removes
+        # them before git worktree add, and stops if one is still there.
+        if not args.dry_run:
+            for path in stale_paths:
+                _drop_stale_worktree(repo, path)
+                if path.exists():
+                    recovery = _STALE_RECOVERY % path
+                    status, reason, exit_code = "FAIL", "stale-worktree", EXIT_FAIL
+                    return finish()
 
         if state.interrupted:
             status, reason, exit_code = "FAIL", "interrupted", EXIT_FAIL
@@ -2962,6 +3094,7 @@ def build_local(argv: list[str] | None = None) -> int:
         def _record_attempt(number, t0, mem_snap, attempt_status, attempt_reason, checks, model_review, diff_stats, diff_text):
             if not args.review:
                 return
+            attempt_status = _lab(attempt_status)
             payload = {
                 "schema": SCHEMA,
                 "attempt": number,
@@ -2986,7 +3119,59 @@ def build_local(argv: list[str] | None = None) -> int:
                 except OSError:
                     pass
 
+        def _watch_gate(rec: dict) -> dict:
+            nonlocal gate_unsandboxed
+            if rec.get("sandbox") == "unsafe-no-sandbox":
+                gate_unsandboxed = True
+            return rec
+
+        def _finish_overall(checks=None, model_review=None):
+            nonlocal status, reason, exit_code, recovery
+            recovery = _OVERALL_RECOVERY
+            status, reason, exit_code = "TIMEOUT", "overall-timeout", EXIT_TIMEOUT
+            if attempts_used:
+                _record_attempt(
+                    attempts_used,
+                    attempt_t0,
+                    mem_snap,
+                    "TIMEOUT",
+                    "overall-timeout",
+                    checks,
+                    model_review,
+                    diff_stats,
+                    diff_text,
+                )
+            return finish()
+
+        def _gate_run():
+            remain = loop_deadline - time.monotonic()
+            if remain <= 0:
+                return {"aborted": "overall-timeout", "started": False, "exit": None}
+            limit = float(args.test_timeout_s)
+            cut = remain < limit
+            rec = _watch_gate(run_tests(
+                args.test_cmd_s,
+                worktree,
+                test_env,
+                remain if cut else limit,
+                state,
+                repo=repo,
+                unsafe=bool(args.unsafe_no_sandbox),
+            ))
+            if cut and rec.get("exit") == 124:
+                rec["aborted"] = "overall-timeout"
+            return rec
+
+        def _overall_stop(rec, checks=None, model_review=None):
+            if rec.get("aborted") == "overall-timeout":
+                return _finish_overall(checks, model_review)
+            return None
+
         while attempts_used < max_attempts:
+            if time.monotonic() >= loop_deadline:
+                recovery = _OVERALL_RECOVERY
+                status, reason, exit_code = "TIMEOUT", "overall-timeout", EXIT_TIMEOUT
+                return finish()
             attempts_used += 1
             attempt_t0 = time.monotonic()
             mem_snap = state.min_avail
@@ -3000,6 +3185,7 @@ def build_local(argv: list[str] | None = None) -> int:
             diff_stats = {"files": 0, "added": 0, "removed": 0, "lines": 0, "paths": []}
             checks = None
             model_review = None
+            agent_cut = False
 
             if worktree is not None:
                 if git_saved is not None:
@@ -3058,15 +3244,10 @@ def build_local(argv: list[str] | None = None) -> int:
                 watcher.start()
                 watcher_started = True
 
-            tests_before = run_tests(
-                args.test_cmd_s,
-                worktree,
-                test_env,
-                args.test_timeout_s,
-                state,
-                repo=repo,
-                unsafe=bool(args.unsafe_no_sandbox),
-            )
+            tests_before = _gate_run()
+            stopped = _overall_stop(tests_before)
+            if stopped is not None:
+                return stopped
             if tests_before.get("aborted") == "interrupted" or state.interrupted:
                 status, reason, exit_code = "FAIL", "interrupted", EXIT_FAIL
                 _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "interrupted", None, None, diff_stats, "")
@@ -3117,7 +3298,14 @@ def build_local(argv: list[str] | None = None) -> int:
             agent_started = True
             _mark_loaded(state, not model_was_loaded)
             agent_t0 = time.monotonic()
-            run_status, _code, out, err = run_bounded(prepared.argv, child, worktree, args.timeout_s, state)
+            remain = loop_deadline - time.monotonic()
+            if remain <= 0:
+                return _finish_overall()
+            agent_limit = float(args.timeout_s)
+            if remain < agent_limit:
+                agent_limit = remain
+                agent_cut = True
+            run_status, agent_code, out, err = run_bounded(prepared.argv, child, worktree, agent_limit, state)
             agent_seconds += time.monotonic() - agent_t0
             prepared.close()
             prepared = None
@@ -3147,6 +3335,8 @@ def build_local(argv: list[str] | None = None) -> int:
                 status, reason, exit_code = "FAIL", "mem-edge", EXIT_FAIL
                 _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "mem-edge", None, None, diff_stats, "")
                 return finish()
+            if run_status == "timeout" and agent_cut:
+                return _finish_overall()
             if run_status == "timeout" and not args.run_tests_on_timeout:
                 status, reason, exit_code = "TIMEOUT", "timeout", EXIT_TIMEOUT
                 _record_attempt(attempts_used, attempt_t0, mem_snap, "TIMEOUT", "timeout", None, None, diff_stats, "")
@@ -3154,16 +3344,18 @@ def build_local(argv: list[str] | None = None) -> int:
 
             changed = files_changed(worktree, test_env)
             diff_text, diff_stats = _collect_diff(worktree, test_env, changed)
-            if not changed:
-                tests_after = run_tests(
-                    args.test_cmd_s,
-                    worktree,
-                    test_env,
-                    args.test_timeout_s,
-                    state,
-                    repo=repo,
-                    unsafe=bool(args.unsafe_no_sandbox),
+            if not changed and run_status == "done" and isinstance(agent_code, int) and agent_code != 0:
+                recovery = _CRASH_RECOVERY % agent_code
+                status, reason, exit_code = "crash", "crash", EXIT_FAIL
+                _record_attempt(
+                    attempts_used, attempt_t0, mem_snap, "crash", "crash", None, None, diff_stats, diff_text
                 )
+                return finish()
+            if not changed:
+                tests_after = _gate_run()
+                stopped = _overall_stop(tests_after)
+                if stopped is not None:
+                    return stopped
                 if tests_after.get("aborted") == "interrupted" or state.interrupted:
                     status, reason, exit_code = "FAIL", "interrupted", EXIT_FAIL
                     _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "interrupted", None, None, diff_stats, diff_text)
@@ -3203,15 +3395,10 @@ def build_local(argv: list[str] | None = None) -> int:
                 )
                 return finish()
 
-            tests_after = run_tests(
-                args.test_cmd_s,
-                worktree,
-                test_env,
-                args.test_timeout_s,
-                state,
-                repo=repo,
-                unsafe=bool(args.unsafe_no_sandbox),
-            )
+            tests_after = _gate_run()
+            stopped = _overall_stop(tests_after)
+            if stopped is not None:
+                return stopped
             if tests_after.get("aborted") == "interrupted" or state.interrupted:
                 status, reason, exit_code = "FAIL", "interrupted", EXIT_FAIL
                 _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "interrupted", None, None, diff_stats, diff_text)
@@ -3240,15 +3427,10 @@ def build_local(argv: list[str] | None = None) -> int:
                     attempts_used, attempt_t0, mem_snap, "FAIL", "tests-tampered", None, None, diff_stats, diff_text
                 )
                 return finish()
-            again = run_tests(
-                args.test_cmd_s,
-                worktree,
-                test_env,
-                args.test_timeout_s,
-                state,
-                repo=repo,
-                unsafe=bool(args.unsafe_no_sandbox),
-            )
+            again = _gate_run()
+            stopped = _overall_stop(again)
+            if stopped is not None:
+                return stopped
             if again.get("aborted") == "interrupted" or state.interrupted:
                 status, reason, exit_code = "FAIL", "interrupted", EXIT_FAIL
                 _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "interrupted", None, None, diff_stats, diff_text)
@@ -3269,6 +3451,8 @@ def build_local(argv: list[str] | None = None) -> int:
                 return finish()
             gated_tree = tree_digest(worktree)
             if run_status == "timeout":
+                if agent_cut:
+                    return _finish_overall()
                 status, reason, exit_code = "TIMEOUT", "timeout", EXIT_TIMEOUT
                 _record_attempt(attempts_used, attempt_t0, mem_snap, "TIMEOUT", "timeout", None, None, diff_stats, diff_text)
                 return finish()
@@ -3310,7 +3494,27 @@ def build_local(argv: list[str] | None = None) -> int:
                 )
                 continue
 
+            # A changed path with an empty diff would let the model accept a
+            # path it never saw. Stop before the call.
+            if not (diff_text or "").strip():
+                status, reason, exit_code = "FAIL", "review-empty-diff", EXIT_FAIL
+                _record_attempt(
+                    attempts_used,
+                    attempt_t0,
+                    mem_snap,
+                    "FAIL",
+                    "review-empty-diff",
+                    checks,
+                    None,
+                    diff_stats,
+                    diff_text,
+                )
+                return finish()
+
             gate_tail = str(tests_after.get("tail") or "") if isinstance(tests_after, dict) else ""
+            remain = loop_deadline - time.monotonic()
+            if remain <= 0:
+                return _finish_overall(checks, None)
             review_status, model_review = _run_model_review(
                 args,
                 worktree,
@@ -3320,17 +3524,20 @@ def build_local(argv: list[str] | None = None) -> int:
                 gate_tail,
                 state,
                 repo,
+                call_limit=remain,
             )
+            if review_status == "overall-timeout":
+                return _finish_overall(checks, model_review)
             if review_status == "unavailable":
-                # Not a reject and not retried, even when attempts remain.
+                # Not a generic FAIL and not an agent TIMEOUT. Not retried.
                 recovery = _REVIEW_OUTAGE_RECOVERY
-                status, reason, exit_code = "REVIEW-ERROR", "review-unavailable", EXIT_FAIL
+                status, reason, exit_code = "reviewer-unavailable", "reviewer-unavailable", EXIT_FAIL
                 _record_attempt(
                     attempts_used,
                     attempt_t0,
                     mem_snap,
-                    "REVIEW-ERROR",
-                    "review-unavailable",
+                    "reviewer-unavailable",
+                    "reviewer-unavailable",
                     checks,
                     model_review,
                     diff_stats,
@@ -3464,6 +3671,8 @@ def build_local(argv: list[str] | None = None) -> int:
         print("FAIL: %s" % exc, file=sys.stderr)
         status, reason, exit_code = "BLOCKED", "usage", EXIT_USAGE
         return finish()
+    except LabelError:
+        raise
     except Exception:
         traceback.print_exc()
         status, reason, exit_code = "FAIL", "runner-crash", EXIT_FAIL

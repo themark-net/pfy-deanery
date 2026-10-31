@@ -1,0 +1,269 @@
+{
+  "label": "after",
+  "baseline_only": false,
+  "modules": [
+    "tests.test_build_preflight",
+    "tests.test_mvp_1031_receipt",
+    "tests.test_mut_preflight_survivors"
+  ],
+  "head": "b5d57f8ec468522b414802beda83d2789194d948",
+  "integrate": "0c3f133d4d2ea2bf104f6390416fa8d26f394803",
+  "sources": {
+    "pfylib/build_preflight.py": "050aeff48ca27e50203633f3fcbc115503eb41f758b4f043ef3c84067251d635",
+    "eval/mvp-1031/check_receipt.py": "2eb55d7fdce8012e1f07e57237c8b28ea404c1949d1d587b53f9274fddcf1298"
+  },
+  "base": {
+    "id": "base",
+    "title": "unmutated suite",
+    "target": "pfylib/build_preflight.py",
+    "status": "survived",
+    "returncode": 0,
+    "seconds": 1.753,
+    "detail": "Ran 40 tests in 1.597s"
+  },
+  "rows": [
+    {
+      "id": "P1",
+      "title": "zero exit still classified",
+      "target": "pfylib/build_preflight.py",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 1.903,
+      "detail": "FAIL: test_zero_exit_is_other_even_when_the_text_matches (tests.test_build_preflight.ClassifyCloudFailureTests.test_zero_exit_is_other_even_when_the_text_matches)"
+    },
+    {
+      "id": "P2",
+      "title": "auth rule runs before rate-limit",
+      "target": "pfylib/build_preflight.py",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 1.91,
+      "detail": "FAIL: test_each_rate_limit_phrase_wins_even_with_not_logged_in (tests.test_build_preflight.ClassifyCloudFailureTests.test_each_rate_limit_phrase_wins_even_with_not_logged_in) (phrase='rate limit', text='rate limit')"
+    },
+    {
+      "id": "P3",
+      "title": "429 phrase removed",
+      "target": "pfylib/build_preflight.py",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 1.03,
+      "detail": "FAIL: test_each_rate_limit_phrase_wins_even_with_not_logged_in (tests.test_build_preflight.ClassifyCloudFailureTests.test_each_rate_limit_phrase_wins_even_with_not_logged_in) (phrase='429', text='429')"
+    },
+    {
+      "id": "P5",
+      "title": "case fold removed",
+      "target": "pfylib/build_preflight.py",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 1.455,
+      "detail": "FAIL: test_each_auth_phrase_without_a_rate_limit_phrase (tests.test_build_preflight.ClassifyCloudFailureTests.test_each_auth_phrase_without_a_rate_limit_phrase) (phrase='unauthenticated', text='UNAUTHENTICATED')"
+    },
+    {
+      "id": "P6",
+      "title": "stdout and stderr joined without a newline",
+      "target": "pfylib/build_preflight.py",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 1.713,
+      "detail": "FAIL: test_phrase_split_across_the_newline_join_is_other (tests.test_build_preflight.ClassifyCloudFailureTests.test_phrase_split_across_the_newline_join_is_other)"
+    },
+    {
+      "id": "P7",
+      "title": "negative rc treated as success",
+      "target": "pfylib/build_preflight.py",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 1.89,
+      "detail": "FAIL: test_negative_rc_still_classifies_quota_and_auth (tests.test_mut_preflight_survivors.ClassifierGapTests.test_negative_rc_still_classifies_quota_and_auth)"
+    },
+    {
+      "id": "P8",
+      "title": "repeated spaces collapsed before match",
+      "target": "pfylib/build_preflight.py",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 1.949,
+      "detail": "FAIL: test_double_spaced_phrases_stay_other (tests.test_mut_preflight_survivors.ClassifierGapTests.test_double_spaced_phrases_stay_other)"
+    },
+    {
+      "id": "P9",
+      "title": "zero float clause added",
+      "target": "pfylib/build_preflight.py",
+      "status": "survived",
+      "returncode": 0,
+      "seconds": 1.844,
+      "detail": "Ran 40 tests in 1.710s"
+    },
+    {
+      "id": "P10",
+      "title": "429 must be a whole token",
+      "target": "pfylib/build_preflight.py",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 1.837,
+      "detail": "FAIL: test_429_inside_a_longer_token_is_rate_limit (tests.test_mut_preflight_survivors.ClassifierGapTests.test_429_inside_a_longer_token_is_rate_limit)"
+    },
+    {
+      "id": "R1",
+      "title": "status check skipped",
+      "target": "eval/mvp-1031/check_receipt.py",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 1.808,
+      "detail": "FAIL: test_status_other_than_pass_is_rejected (tests.test_mut_preflight_survivors.ReceiptGapTests.test_status_other_than_pass_is_rejected)"
+    },
+    {
+      "id": "R2",
+      "title": "reason check skipped",
+      "target": "eval/mvp-1031/check_receipt.py",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 1.174,
+      "detail": "FAIL: test_reason_other_than_ok_is_rejected (tests.test_mut_preflight_survivors.ReceiptGapTests.test_reason_other_than_ok_is_rejected)"
+    },
+    {
+      "id": "R3",
+      "title": "exit_code check skipped",
+      "target": "eval/mvp-1031/check_receipt.py",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 1.671,
+      "detail": "FAIL: test_nonzero_and_boolean_exit_codes_are_rejected (tests.test_mut_preflight_survivors.ReceiptGapTests.test_nonzero_and_boolean_exit_codes_are_rejected)"
+    },
+    {
+      "id": "R4",
+      "title": "gate cmd check skipped",
+      "target": "eval/mvp-1031/check_receipt.py",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 1.713,
+      "detail": "FAIL: test_empty_gate_cmd_is_rejected (tests.test_mut_preflight_survivors.ReceiptGapTests.test_empty_gate_cmd_is_rejected)"
+    },
+    {
+      "id": "R5",
+      "title": "invalid json accepted",
+      "target": "eval/mvp-1031/check_receipt.py",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 1.031,
+      "detail": "FAIL: test_truncated_json_is_rejected (tests.test_mut_preflight_survivors.ReceiptGapTests.test_truncated_json_is_rejected)"
+    },
+    {
+      "id": "R7",
+      "title": "pushed 0 accepted",
+      "target": "eval/mvp-1031/check_receipt.py",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 1.323,
+      "detail": "FAIL: test_pushed_zero_is_rejected (tests.test_mut_preflight_survivors.ReceiptGapTests.test_pushed_zero_is_rejected)"
+    },
+    {
+      "id": "R8",
+      "title": "attempts accepts any truthy value",
+      "target": "eval/mvp-1031/check_receipt.py",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 1.778,
+      "detail": "FAIL: test_attempts_string_is_rejected (tests.test_mut_preflight_survivors.ReceiptGapTests.test_attempts_string_is_rejected)"
+    },
+    {
+      "id": "R10",
+      "title": "branch prefix allows cloudy",
+      "target": "eval/mvp-1031/check_receipt.py",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 1.81,
+      "detail": "FAIL: test_branch_without_the_cloud_slash_is_rejected (tests.test_mut_preflight_survivors.ReceiptGapTests.test_branch_without_the_cloud_slash_is_rejected)"
+    },
+    {
+      "id": "R11",
+      "title": "AKIA check skipped",
+      "target": "eval/mvp-1031/check_receipt.py",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 1.15,
+      "detail": "FAIL: test_rejects_secret_markers_in_pass_shaped_json (tests.test_mvp_1031_receipt.CheckReceiptTests.test_rejects_secret_markers_in_pass_shaped_json)"
+    },
+    {
+      "id": "R12",
+      "title": "missing receipt file accepted",
+      "target": "eval/mvp-1031/check_receipt.py",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 1.371,
+      "detail": "FAIL: test_missing_receipt_file_is_rejected (tests.test_mut_preflight_survivors.ReceiptGapTests.test_missing_receipt_file_is_rejected)"
+    },
+    {
+      "id": "R13",
+      "title": "json array accepted",
+      "target": "eval/mvp-1031/check_receipt.py",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 1.985,
+      "detail": "FAIL: test_json_array_is_rejected (tests.test_mut_preflight_survivors.ReceiptGapTests.test_json_array_is_rejected)"
+    },
+    {
+      "id": "R14",
+      "title": "commit suffix ignored",
+      "target": "eval/mvp-1031/check_receipt.py",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 1.792,
+      "detail": "FAIL: test_commit_suffix_is_rejected (tests.test_mut_preflight_survivors.ReceiptGapTests.test_commit_suffix_is_rejected)"
+    },
+    {
+      "id": "R15",
+      "title": "uppercase commit accepted",
+      "target": "eval/mvp-1031/check_receipt.py",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 1.915,
+      "detail": "FAIL: test_uppercase_commit_is_rejected (tests.test_mut_preflight_survivors.ReceiptGapTests.test_uppercase_commit_is_rejected)"
+    },
+    {
+      "id": "R16",
+      "title": "review string accepted as verdict",
+      "target": "eval/mvp-1031/check_receipt.py",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 1.96,
+      "detail": "FAIL: test_review_string_is_rejected (tests.test_mut_preflight_survivors.ReceiptGapTests.test_review_string_is_rejected)"
+    },
+    {
+      "id": "R17",
+      "title": "usage failure exits 0",
+      "target": "eval/mvp-1031/check_receipt.py",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 1.561,
+      "detail": "FAIL: test_usage_without_a_path_is_rejected (tests.test_mut_preflight_survivors.ReceiptGapTests.test_usage_without_a_path_is_rejected)"
+    },
+    {
+      "id": "R18",
+      "title": "non-utf8 receipt accepted",
+      "target": "eval/mvp-1031/check_receipt.py",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 1.757,
+      "detail": "FAIL: test_non_utf8_receipt_is_rejected (tests.test_mut_preflight_survivors.ReceiptGapTests.test_non_utf8_receipt_is_rejected)"
+    },
+    {
+      "id": "R19",
+      "title": "schema case folded",
+      "target": "eval/mvp-1031/check_receipt.py",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 1.839,
+      "detail": "FAIL: test_schema_case_is_rejected (tests.test_mut_preflight_survivors.ReceiptGapTests.test_schema_case_is_rejected)"
+    },
+    {
+      "id": "R20",
+      "title": "non-string gate accepted",
+      "target": "eval/mvp-1031/check_receipt.py",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 1.695,
+      "detail": "FAIL: test_non_string_gate_is_rejected (tests.test_mut_preflight_survivors.ReceiptGapTests.test_non_string_gate_is_rejected)"
+    }
+  ]
+}

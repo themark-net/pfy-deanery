@@ -154,6 +154,32 @@ class CloudBuildSkeletonTests(unittest.TestCase):
         self.assertIn(str(receipt), proc.stdout)
         self.assertFalse((self.repo / "tmp" / "cloud-build").exists())
 
+    def test_dry_run_uses_origin_main_when_it_matches_head(self) -> None:
+        # Fail: a matching origin/main is ignored and the receipt says HEAD.
+        # Recover: the default base name is origin/main when the shas match.
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        ref = _git(self.repo, "update-ref", "refs/remotes/origin/main", head)
+        self.assertEqual(ref.returncode, 0, ref.stderr)
+        receipt_dir = SCRATCH / (self.id().replace(".", "_") + "-receipt")
+        proc = _run(
+            [
+                sys.executable,
+                str(CLOUD),
+                "add a note",
+                "--repo",
+                str(self.repo),
+                "--dry-run",
+                "--receipt-dir",
+                str(receipt_dir),
+            ],
+            self.repo,
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        payload = json.loads((receipt_dir / "receipt.json").read_text(encoding="utf-8"))
+        self.assertEqual(payload["base"], "origin/main")
+        self.assertEqual(payload["status"], "DRY-RUN")
+
 
 class CloudBuildDispatchTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -315,7 +341,56 @@ class CloudBuildPassTests(unittest.TestCase):
             "raise SystemExit(0)\n",
         )
 
-    def test_default_base_is_origin_main_not_the_caller_head(self) -> None:
+    def test_head_that_is_not_origin_main_exits_2_before_grok(self) -> None:
+        # Fail: the run builds origin/main and drops the caller HEAD with no
+        # warning, which is how the gom clone lost its bot-branch commits.
+        # Recover: exit 2 and name --base. Pass --base origin/main to build
+        # that older commit on purpose (see the next test).
+        first = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        (self.repo / "later.txt").write_text("later\n", encoding="utf-8")
+        _git(self.repo, "add", "later.txt")
+        later = _git(self.repo, "commit", "-m", "later")
+        self.assertEqual(later.returncode, 0, later.stderr)
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        ref = _git(self.repo, "update-ref", "refs/remotes/origin/main", first)
+        self.assertEqual(ref.returncode, 0, ref.stderr)
+        marker = self.side / "grok-was-started"
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "Path(%r).write_text('started\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n" % str(marker),
+        )
+        proc = _run(
+            [
+                sys.executable,
+                str(CLOUD),
+                "add kept",
+                "--repo",
+                str(self.repo),
+                "--retries",
+                "0",
+                "--grok-cmd",
+                str(grok),
+                "--timeout",
+                "30",
+            ],
+            self.repo,
+            timeout=60,
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 2, text)
+        self.assertIn("Pass --base", text)
+        self.assertIn(head[:12], text)
+        self.assertIn(first[:12], text)
+        self.assertFalse(marker.exists(), text)
+        self.assertEqual(_git(self.repo, "branch", "--list", "cloud/*").stdout.strip(), "")
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+
+    def test_explicit_origin_main_still_excludes_caller_only_commits(self) -> None:
+        # Fail: --base origin/main builds the caller HEAD and commits later.txt.
+        # Recover: the worktree parent is origin/main, and later.txt stays out.
         first = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
         (self.repo / "later.txt").write_text("later\n", encoding="utf-8")
         _git(self.repo, "add", "later.txt")
@@ -332,6 +407,8 @@ class CloudBuildPassTests(unittest.TestCase):
                 "add kept",
                 "--repo",
                 str(self.repo),
+                "--base",
+                "origin/main",
                 "--retries",
                 "0",
                 "--test-cmd",
@@ -1046,6 +1123,7 @@ class CloudBuildFailureTests(unittest.TestCase):
         self.assertIsNone(payload["branch"])
         self.assertIsNone(payload["commit"])
         self.assertEqual(payload["recovery"], "./pfy build --local hit-the-limit")
+        self.assertIn("./pfy build --local hit-the-limit", proc.stderr or "")
         self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
         self.assertFalse(sentinel.exists())
 
@@ -1675,6 +1753,173 @@ class CloudBuildFailureTests(unittest.TestCase):
         shown = _git(self.repo, "show", payload["commit"] + ":kept.py")
         self.assertEqual(shown.stdout, "value = 1\n")
 
+    def test_receipt_keeps_fixture_ids_and_still_hides_secret_assignments(self) -> None:
+        # Fail: user_key=list-user and token=RAWTOKEN-only-in-source become
+        # [redacted], so the gate tail no longer shows the assertion.
+        # Recover: leave those fixture values, and still hide API_TOKEN and
+        # password values.
+        secret_value = "abcd1234EFGHijkl"
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "print('user_key=list-user')\n"
+            "print('token=land-user')\n"
+            "print('token=RAWTOKEN-only-in-source')\n"
+            "print('API_TOKEN=%s')\n"
+            "print('password=hunter2')\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n" % secret_value,
+        )
+        proc = self._run_task(grok, self._gate(), "add kept", extra=["--no-review", "--retries", "0"])
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        raw = list((self.repo / "pipelines" / "dogfood" / "build-cloud").glob("*/receipt.json"))[0].read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("user_key=list-user", raw)
+        self.assertIn("token=land-user", raw)
+        self.assertIn("token=RAWTOKEN-only-in-source", raw)
+        self.assertNotIn(secret_value, raw)
+        self.assertNotIn("hunter2", raw)
+        self.assertIn("API_TOKEN=[redacted]", raw)
+        self.assertIn("password=[redacted]", raw)
+
+    def test_gate_drops_secret_env_and_grok_still_sees_it(self) -> None:
+        # Fail: the product gate prints GROK_API_KEY set, so a foreign test
+        # can read the operator environment.
+        # Recover: the gate reports those names unset and still has PATH.
+        # Grok still sees the key, so an env login is not stripped from it.
+        marker = "fixture-not-a-live-key"
+        saw = self.side / "grok-saw.txt"
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import os\n"
+            "from pathlib import Path\n"
+            "Path(%r).write_text(\n"
+            "    'GROK-SAW' if os.environ.get('GROK_API_KEY') == %r else 'GROK-MISSED',\n"
+            "    encoding='utf-8',\n"
+            ")\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n" % (str(saw), marker),
+        )
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\n"
+            "import os\n"
+            "for name in ('GROK_API_KEY', 'MY_PASSWORD', 'PATH'):\n"
+            "    print('%s %s' % (name, 'set' if os.environ.get(name) else 'unset'))\n"
+            "print('GATE-OK')\n"
+            "raise SystemExit(0)\n",
+        )
+        proc = self._run_task(
+            grok,
+            gate,
+            "add kept",
+            extra=["--no-review", "--retries", "0"],
+            env={"GROK_API_KEY": marker, "MY_PASSWORD": "fixture-password"},
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        raw = list((self.repo / "pipelines" / "dogfood" / "build-cloud").glob("*/receipt.json"))[0].read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("GROK_API_KEY unset", raw)
+        self.assertIn("MY_PASSWORD unset", raw)
+        self.assertIn("PATH set", raw)
+        self.assertNotIn(marker, raw)
+        self.assertNotIn("fixture-password", raw)
+        self.assertEqual(saw.read_text(encoding="utf-8"), "GROK-SAW")
+
+    def test_missing_gate_binary_exits_2_before_grok(self) -> None:
+        # Fail: a missing gate is a product FAIL and grok still runs.
+        # Recover: exit 2, reason gate-missing, and no grok call.
+        marker = self.side / "grok-was-started"
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "Path(%r).write_text('started\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n" % str(marker),
+        )
+        proc = self._run_task(
+            grok,
+            None,
+            "add kept",
+            extra=["--test-cmd", "/no/such/pfy-gate-1031", "--no-review", "--retries", "0"],
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 2, text)
+        self.assertIn("Pass --test-cmd", text)
+        payload = self._receipt()
+        self.assertEqual(payload["reason"], "gate-missing")
+        self.assertEqual(payload["exit_code"], 2)
+        self.assertIsNone(payload["branch"])
+        self.assertFalse(marker.exists(), text)
+        self.assertIn("--test-cmd", payload["recovery"])
+
+    def test_default_gate_import_error_exits_2_before_grok(self) -> None:
+        # Fail: python3 -m unittest discover cannot import the repo, and the
+        # runner spends grok retries as if the product tests were red.
+        # Recover: exit 2, reason gate-unusable, and ask for --test-cmd.
+        tests = self.repo / "tests"
+        tests.mkdir()
+        (tests / "__init__.py").write_text("", encoding="utf-8")
+        (tests / "test_env.py").write_text(
+            "import definitely_missing_pfy_mod_1031\n",
+            encoding="utf-8",
+        )
+        added = _git(self.repo, "add", "tests/__init__.py", "tests/test_env.py")
+        self.assertEqual(added.returncode, 0, added.stderr)
+        committed = _git(self.repo, "commit", "-m", "red import")
+        self.assertEqual(committed.returncode, 0, committed.stderr)
+        marker = self.side / "grok-was-started"
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "Path(%r).write_text('started\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n" % str(marker),
+        )
+        proc = self._run_task(grok, None, "add kept", extra=["--no-review", "--retries", "0"])
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 2, text)
+        payload = self._receipt()
+        self.assertEqual(payload["reason"], "gate-unusable")
+        self.assertEqual(payload["exit_code"], 2)
+        self.assertFalse(marker.exists(), text)
+        self.assertIn("definitely_missing_pfy_mod_1031", payload["gate"]["before"]["tail"])
+        self.assertIn("--test-cmd", payload["recovery"])
+
+    def test_custom_gate_import_error_still_reaches_grok(self) -> None:
+        # Fail: any "No module named" line exits 2, so a red product import
+        # never reaches the model.
+        # Recover: a custom --test-cmd that fails this way still calls grok
+        # and records reason tests.
+        marker = self.side / "grok-was-started"
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "Path(%r).write_text('started\\n', encoding='utf-8')\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n" % str(marker),
+        )
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\n"
+            "print(\"No module named 'kept'\")\n"
+            "raise SystemExit(1)\n",
+        )
+        proc = self._run_task(grok, gate, "add kept", extra=["--no-review", "--retries", "0"])
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 1, text)
+        payload = self._receipt()
+        self.assertEqual(payload["reason"], "tests")
+        self.assertTrue(marker.exists(), text)
+        self.assertNotEqual(payload["reason"], "gate-unusable")
+
     def test_protected_auth_json_is_not_committed(self) -> None:
         grok = _write_exe(
             self.side / "grok.py",
@@ -1893,6 +2138,57 @@ class CloudBuildFailureTests(unittest.TestCase):
         self.assertNotEqual(payload["review"]["verdict"], "accept")
         self.assertEqual(count.read_text(encoding="utf-8"), "1")
         self.assertEqual(len(payload["attempts"]), 1)
+
+    def test_long_task_subject_stops_on_a_word_and_the_body_keeps_the_rest(self) -> None:
+        # Fail: the subject is task[:72], which ends inside "rather".
+        # Recover: stop on the previous word and put the full task in the body.
+        task = (
+            "Timeout reasons must name the sub-step command overtimeandfestival "
+            "rather than the entry"
+        )
+        flat = " ".join(task.split())
+        self.assertGreater(len(flat), 72)
+        self.assertNotEqual(flat[71], " ")
+        self.assertNotEqual(flat[72], " ")
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        proc = self._run_task(grok, self._gate(), task, extra=["--no-review", "--retries", "0"])
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        payload = self._receipt()
+        subject = _git(self.repo, "log", "-1", "--format=%s", payload["commit"]).stdout.strip()
+        body = _git(self.repo, "log", "-1", "--format=%b", payload["commit"]).stdout
+        self.assertLessEqual(len(subject), 72, subject)
+        self.assertTrue(subject.endswith("..."), subject)
+        prefix = subject[:-3]
+        self.assertTrue(flat.startswith(prefix + " "), subject)
+        self.assertNotIn("rathe", subject)
+        self.assertIn(flat, body)
+        self.assertIn("rather than the entry", body)
+
+    def test_short_task_subject_is_the_whole_task(self) -> None:
+        # Fail: a short task grows an ellipsis or drops a word.
+        # Recover: the subject is the task, and the body does not repeat it.
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        proc = self._run_task(grok, self._gate(), "add kept", extra=["--no-review", "--retries", "0"])
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        payload = self._receipt()
+        subject = _git(self.repo, "log", "-1", "--format=%s", payload["commit"]).stdout.strip()
+        body = _git(self.repo, "log", "-1", "--format=%b", payload["commit"]).stdout.strip()
+        self.assertEqual(subject, "add kept")
+        self.assertEqual(body, "")
 
 
 class CloudBuildGateReasonTests(unittest.TestCase):
