@@ -89,6 +89,7 @@ Owned files:
 - `scripts/pfy_build_cloud.py` (new)
 - `tests/test_pfy_build_cloud.py` (new)
 - `scripts/pfy`, only the build help paragraph and `cmd_build`
+- `.gitignore`, one added line: `pipelines/dogfood/build-cloud/`
 - `docs/ops/HANDOFF-mvp-cloud-1031.md`, `docs/ops/RUN-LOG-mvp-cloud-1031.md`, `docs/ops/AUTONOMOUS-DECISIONS-mvp-cloud-1031.md`
 
 Must not touch: `scripts/pfy_build_local.py`, `scripts/pfy_build_p.py`, `scripts/pfy_local_build_eval.py`, `tests/test_pfy_build_local.py`, `tests/test_pfy_build_local_review.py`, `tests/test_pfy_build_p.py` (run it, do not edit), `tests/test_pfy_local_build_eval.py`, `pfylib/build_preflight.py`, `pfylib/attach.py`, `eval/mvp-1031/`, `eval/mvp3/`, `docs/modules/pfy-build.md`, `docs/ops/pfy-build-daily.md`, `docs/TODO.md`, `docs/PENDING-HANDOFF.md`, `docs/modules/README.md`, `data/tools.json`, `TOOLS.md`, `sources/`.
@@ -244,6 +245,7 @@ Round-1 lanes. One owner per file. Integration is the only later writer, and onl
 | `scripts/pfy_build_cloud.py` | mvp-cloud-1031 | Integration may replace the inline classifier with an import, under 40 lines, after the merges. Else mvp-dedupe-1031 (round 2). |
 | `tests/test_pfy_build_cloud.py` | mvp-cloud-1031 | Round 2 dedupe may extend it. |
 | `scripts/pfy` build help and `cmd_build` only | mvp-cloud-1031 | Nobody else in round 1. |
+| `.gitignore` | mvp-cloud-1031 | One added line only: `pipelines/dogfood/build-cloud/`. Nobody else edits this file. |
 | `scripts/pfy_build_local.py` | mvp-review-fix-1031 | Round 2 sandbox-gate, after integrate. |
 | `tests/test_pfy_build_local.py` | mvp-review-fix-1031 | Round 2 sandbox-gate. |
 | `tests/test_pfy_build_local_review.py` | mvp-review-fix-1031 | Nobody else. |
@@ -355,3 +357,5 @@ D16. Default test command stays unittest discover, matching the local runner. Th
 D17. No new ADR in this session. The default stays Grok (ADR-0002, ADR-0011). Local stays opt-in (ADR-0014 is the inference spine, not the build default). The measured MVP-2 result is the reason cloud is the daily path.
 
 D18. G10 items are not silent skips inside a lane. They are excluded here so a lane that runs out of owned work stops on "lane empty" instead of inventing a scorer, a cage smoke, or a stage promotion.
+
+D19. The cloud lane may add one `.gitignore` line, `pipelines/dogfood/build-cloud/`, so default receipts are not committed. No other lane edits `.gitignore`. The demo receipt that is meant to be kept is the copy at `eval/mvp-1031/demo-receipt.json`.
