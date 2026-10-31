@@ -19,5 +19,5 @@ Expected values come from the Functional MVP failure table and from the mvp-real
 | keep-worktree | real | PASS | ok | 0 | PASS | ok | 0 | matches | 1 | empty | `--keep-worktree` left the directory on disk. Receipt `worktree_removed` is false. |
 | worktree-default | real | PASS | ok | 0 | PASS | ok | 0 | matches | 1 | empty | Default run removed the directory. Receipt `worktree_removed` is true. |
 | protected-paths | real | FAIL | protected-path-changed | 1 | FAIL | protected-path-changed | 1 | matches | 1 | empty | auth.json and .env are absent from every commit. Reason protected-path-changed. No branch. Caller unchanged. Recovery is empty. |
-| concurrent | real | PASS | intact | 0 | pending | pending | pending | pending | - | - | Two builds on one clone. Distinct branches or a clean refusal. Repo stays valid. |
+| concurrent | real | PASS | intact | 0 | PASS | intact | 0 | matches | 0 | empty | Two builds exited 0 on distinct cloud branches. git fsck exit 0. Caller unchanged. |
 | review-cap | real | PASS | ok | 0 | pending | pending | pending | pending | - | - | A task that needs 4 files. Record the cap and whether recovery text is usable. |
