@@ -1691,11 +1691,21 @@ class CloudBuildUnchangedTests(unittest.TestCase):
         Recover: bare help names ./pfy build "<task>" and points at -p and
         --local. -p --help lists the dogfood flags. -p x --dry-run still
         prints READY and leaves no new receipt directory entries.
+        A host with no grok binary, including the ubuntu G0 job, still runs
+        these checks. A fake grok on PATH is enough: dry-run does not exec it.
+        Fail: the test skips when grok is missing, so the cloud card is never
+        compared to the dogfood help.
         """
-        if shutil.which("grok") is None:
-            self.skipTest("SKIP: grok-missing")
         env = os.environ.copy()
-        env["TMPDIR"] = str(ROOT / "tmp" / "scratch")
+        scratch = ROOT / "tmp" / "scratch"
+        scratch.mkdir(parents=True, exist_ok=True)
+        env["TMPDIR"] = str(scratch)
+        fake_bin = scratch / "fake-grok-path"
+        fake_bin.mkdir(parents=True, exist_ok=True)
+        fake = fake_bin / "grok"
+        fake.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        fake.chmod(0o755)
+        env["PATH"] = str(fake_bin) + os.pathsep + env.get("PATH", "")
         receipt_roots = (
             ROOT / "pipelines" / "dogfood" / "build",
             ROOT / "pipelines" / "dogfood" / "build-cloud",
