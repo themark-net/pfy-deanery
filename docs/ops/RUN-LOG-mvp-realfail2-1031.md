@@ -68,4 +68,4 @@ Format: `item | commit | tests | result`
 - dry-run | 2f14df0 | tests.test_mvp_1031_realfail2_receipts | PASS. Exit 0, receipt DRY-RUN, shim grok_calls 0, no branch.
 - worktree-failed | c592c8d | tests.test_mvp_1031_realfail2_receipts | FINDING. Missing base exits 2 as usage. Caller unchanged. No runner edit.
 - sigkill-reap | 43d20c3 | tests.test_mvp_1031_realfail2_receipts | PASS. Reap killed the live grok and left the planted sleeper. Receipt ABORTED / no-receipt.
-- review-reject | (this commit) | tests.test_mvp_1031_realfail2_receipts | PASS. Exit 1, review-rejected, no branch. Real reviewer rejected the planted root delete.
+- review-reject | 3092ebc | tests.test_mvp_1031_realfail2_receipts | PASS. Exit 1, review-rejected, no branch. Real reviewer rejected the planted root delete.
