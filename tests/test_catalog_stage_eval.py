@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import shutil
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -54,31 +56,62 @@ class CatalogStageEvalTests(unittest.TestCase):
         self.assertEqual(card["tier_ceiling"], ev["tier_ceiling"])
         self.assertEqual(card["potential"], ev["handoff"]["potential"])
 
-    def test_blind_apply_would_drop_live_receipts_so_disk_keeps_them(self):
-        """--apply copies recomputed facts over the card. Those facts omit the
-        live ATG and harness2 receipts and would replace measured-probe with
-        the older handoff potential. Recovery: restore the card from git and
-        do not re-apply. Update this test only after evidence_for keeps the
-        receipt path."""
-        stages = json.loads((ROOT / "data" / "tool_integration_stages.json").read_text(encoding="utf-8"))
-        by = {r["name"]: r for r in self.mod.evaluations()}
-        atg = stages["tools"]["Atomic Task Graph (ATG)"]
-        harness = stages["tools"]["harness2"]
+    def test_apply_keeps_live_receipts_and_does_not_rewind(self):
+        """Fail: --apply drops a receipt whose file still exists, rewinds
+        last_updated to 2026-09-25, lowers the ATG tier ceiling, or replaces
+        measured-probe with the older handoff potential.
+        Recovery: keep file-backed receipt evidence, keep the existing stamp,
+        do not lower tier_ceiling, and do not replace a potential the card
+        already has. A receipt path whose file is missing is not kept.
+        The real stage file on disk must be unchanged."""
+        mod = self.mod
+        stages_file = ROOT / "data" / "tool_integration_stages.json"
+        real_bytes = stages_file.read_bytes()
+        stages = json.loads(real_bytes)
         atg_receipt = "receipt:pipelines/dogfood/atg-compile/receipt-live-qwen36-35b.json"
         harness_receipt = "pipelines/dogfood/harness2-local/receipt.json"
-        proposed_atg = by["Atomic Task Graph (ATG)"]
-        proposed_harness = by["harness2"]
+        missing = "receipt:pipelines/dogfood/atg-compile/does-not-exist.json"
+        self.assertTrue((ROOT / atg_receipt.split(":", 1)[1]).is_file())
+        self.assertTrue((ROOT / harness_receipt).is_file())
+        self.assertFalse((ROOT / missing.split(":", 1)[1]).exists())
+        stages["tools"]["Atomic Task Graph (ATG)"]["evidence"].append(missing)
+        before_stamp = stages["last_updated"]
+        self.assertNotEqual(before_stamp, "2026-09-25")
+        saved = (mod.STAGES_PATH, mod.HANDOFF_PATH, mod.METHODS_PATH)
+        try:
+            with tempfile.TemporaryDirectory(prefix="stage-apply-") as td:
+                tdir = Path(td)
+                stage_path = tdir / "stages.json"
+                handoff_path = tdir / "handoff.json"
+                methods_path = tdir / "methods.json"
+                stage_path.write_text(json.dumps(stages) + "\n", encoding="utf-8")
+                shutil.copy(ROOT / "data" / "catalog_stage_handoff.json", handoff_path)
+                methods_src = ROOT / "data" / "catalog_stage_methods.json"
+                if methods_src.is_file():
+                    shutil.copy(methods_src, methods_path)
+                else:
+                    methods_path.write_text("{}\n", encoding="utf-8")
+                mod.STAGES_PATH = stage_path
+                mod.HANDOFF_PATH = handoff_path
+                mod.METHODS_PATH = methods_path
+                self.assertEqual(mod.apply(), 0)
+                got = json.loads(stage_path.read_text(encoding="utf-8"))
+        finally:
+            mod.STAGES_PATH, mod.HANDOFF_PATH, mod.METHODS_PATH = saved
+        atg = got["tools"]["Atomic Task Graph (ATG)"]
+        harness = got["tools"]["harness2"]
         self.assertIn(atg_receipt, atg["evidence"])
-        self.assertNotIn(atg_receipt, proposed_atg["evidence"])
+        self.assertNotIn(missing, atg["evidence"])
         self.assertEqual(atg["potential"], "measured-probe")
-        self.assertEqual(proposed_atg["handoff"]["potential"], "ambiguous")
-        self.assertEqual(atg["integration_stage"], "I2")
         self.assertEqual(atg["tier_ceiling"], "I2")
-        self.assertEqual(proposed_atg["tier_ceiling"], "I1")
+        self.assertEqual(atg["integration_stage"], "I2")
         self.assertIn(harness_receipt, harness["evidence"])
-        self.assertNotIn(harness_receipt, proposed_harness["evidence"])
         self.assertEqual(harness["integration_stage"], "I1")
-        self.assertNotEqual(stages["last_updated"], "2026-09-25")
+        self.assertEqual(got["last_updated"], before_stamp)
+        by = {row["name"]: row for row in mod.evaluations()}
+        self.assertIn(atg_receipt, by["Atomic Task Graph (ATG)"]["evidence"])
+        self.assertIn(harness_receipt, by["harness2"]["evidence"])
+        self.assertEqual(stages_file.read_bytes(), real_bytes)
 
 
 if __name__ == "__main__":
