@@ -58,4 +58,4 @@ Format: `item | commit | tests | result`
 - t4 | 58a178f | ./pfy build exit 1 wall 1439.7s attempts 3 status FAIL reason tests-tampered review none gate_rerun 0 human accept of the diff | FINDING runner rejected a good diff
 - t5 | 306f703 | ./pfy build exit 1 wall 707.7s attempts 3 status FAIL reason tests-tampered review none gate_rerun 0 human accept of the diff | FINDING same tests-tampered gap
 - t6 | f5ca6ac | ./pfy build exit 0 wall 93.4s attempts 1 review accept gate_rerun 0 human accept | PASS
-- report | pending | nice python3 -m unittest tests.test_mvp_1031_sixtask_report (8 tests OK, live REPORT checked) | NO-GO, 4/6 runner PASS, 6/6 canonical gate, 4/6 review, 6/6 human, 2778.0s
+- report | e662d04 | nice python3 -m unittest tests.test_mvp_1031_sixtask_report (8 tests OK, live REPORT checked) | NO-GO, 4/6 runner PASS, 6/6 canonical gate, 4/6 review, 6/6 human, 2778.0s
