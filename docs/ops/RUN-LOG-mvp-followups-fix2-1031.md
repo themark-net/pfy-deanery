@@ -60,3 +60,5 @@ Risks:
 ## Items
 
 (one line per finished item: `item | commit | tests | result`)
+
+item-1-ci-image-pin | a5805d9 | nice -n 19 python3 -m unittest tests.test_workflow_image_pin: 16 OK in 6.850s | hosted job structural-github stays on ubuntu-24.04; parsed step runs the helper (recording PATH python3); real workflows still pass; pregate --only lint still OVERALL=PASS
