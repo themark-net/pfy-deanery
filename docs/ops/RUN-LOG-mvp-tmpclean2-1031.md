@@ -69,5 +69,5 @@ Progress:
 - state: DONE | tests: tests.test_x_intake_smoke_149 29 OK in 2.792s | files: 1 | err: none
 - FU4 PATH python3 yaml skip | 2abd8c9 | TMPDIR=$PWD/tmp nice -n 19 python3 -m unittest tests.test_workflow_image_pin | 21 OK in 6.800s | pass
 - state: DONE | tests: tests.test_workflow_image_pin 21 OK in 6.800s | files: 1 | err: none
-- FU5 lint helper without pregate | SHA5 | TMPDIR=$PWD/tmp nice -n 19 python3 -m unittest tests.test_workflow_image_pin | 21 OK in 0.561s | pass
+- FU5 lint helper without pregate | d5422c9 | TMPDIR=$PWD/tmp nice -n 19 python3 -m unittest tests.test_workflow_image_pin | 21 OK in 0.561s | pass
 - state: DONE | tests: tests.test_workflow_image_pin 21 OK in 0.561s | files: 1 | err: none
