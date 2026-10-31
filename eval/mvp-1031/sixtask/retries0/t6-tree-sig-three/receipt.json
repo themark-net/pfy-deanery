@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/t6-content-hash-for-the-three-older-tree-20261031T222336672774Z",
+  "commit": "2c9834500584a972cec5a5f8dd9f0d34879d49d9",
+  "base": "demo-base",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll replace the three older `tree_sig` functions with the content hash from `smoke_122_124.py`, then run the acceptance test. First I'm reading the current implementations and the gate test.The three copies still hash size and mtime and skip unreadable paths. `hashlib` is already imported, so I’ll swap in the content-hash `tree_sig` from `smoke_122_124.py`.`tree_sig` in the three older smoke modules now uses the same content hash as `smoke_122_124.py`.\n\nEach copy still returns `None` when the path is missing. Files are hashed by streamed content plus size, directories are marked `:dir`, and a file the process cannot read is recorded as `:unreadable` instead of being dropped. An mtime-only touch no longer changes the signature. A same-size byte change does.\n\n`python3 -m unittest tests.test_mvp2_t6_tree_sig_three` passed. No commit was made.\n\nI'll compare the three `tree_sig` edits to the reference in `smoke_122_124.py` and check the diff stays inside the task.verdict: accept\n\nThe three `tree_sig` functions match `smoke_122_124.py`: content hash, `:dir`, `:unreadable`, and `None` when the path is missing. Callers are unchanged. The diff touches only the three named files, and `python3 -m unittest tests.test_mvp2_t6_tree_sig_three` passes.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "python3 -m unittest tests.test_mvp2_t6_tree_sig_three",
+    "before": {
+      "cmd": "python3 -m unittest tests.test_mvp2_t6_tree_sig_three",
+      "exit": 1,
+      "tail": "\nFFF\n======================================================================\nFAIL: test_each_copy_hashes_content (tests.test_mvp2_t6_tree_sig_three.TreeSigThreeTests.test_each_copy_hashes_content) (module='smoke_112_114.py')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-sixtask-1031/tmp/sixtask-clones/retries0/t6-tree-sig-three/tmp/cloud-build/20261031T222336672774Z/tests/test_mvp2_t6_tree_sig_three.py\", line 49, in test_each_copy_hashes_content\n    self.assertEqual(tree_sig(root), before, filename + \" mtime-only touch\")\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: '0c14a6812a8cc9c4a1db43b05ef65b0a0e3bb885cbb847e3aee23b62f7ab4614' != '36c5d4c11fc74fe5d148661c91ac59ba5a6b7f69593d109ffe67d80d1e25ed74'\n- 0c14a6812a8cc9c4a1db43b05ef65b0a0e3bb885cbb847e3aee23b62f7ab4614\n+ 36c5d4c11fc74fe5d148661c91ac59ba5a6b7f69593d109ffe67d80d1e25ed74\n : smoke_112_114.py mtime-only touch\n\n======================================================================\nFAIL: test_each_copy_hashes_content (tests.test_mvp2_t6_tree_sig_three.TreeSigThreeTests.test_each_copy_hashes_content) (module='smoke_115_116.py')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-sixtask-1031/tmp/sixtask-clones/retries0/t6-tree-sig-three/tmp/cloud-build/20261031T222336672774Z/tests/test_mvp2_t6_tree_sig_three.py\", line 49, in test_each_copy_hashes_content\n    self.assertEqual(tree_sig(root), before, filename + \" mtime-only touch\")\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: '74468790bf1c579c00ef8c8498fefd1b3eb5a5f69b428dfe03c66587bb3ae189' != 'bd347ecb0aca1acada3a04307300bf831244e02eae05d874209b70846bd04a2d'\n- 74468790bf1c579c00ef8c8498fefd1b3eb5a5f69b428dfe03c66587bb3ae189\n+ bd347ecb0aca1acada3a04307300bf831244e02eae05d874209b70846bd04a2d\n : smoke_115_116.py mtime-only touch\n\n======================================================================\nFAIL: test_each_copy_hashes_content (tests.test_mvp2_t6_tree_sig_three.TreeSigThreeTests.test_each_copy_hashes_content) (module='smoke_117_118.py')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-sixtask-1031/tmp/sixtask-clones/retries0/t6-tree-sig-three/tmp/cloud-build/20261031T222336672774Z/tests/test_mvp2_t6_tree_sig_three.py\", line 49, in test_each_copy_hashes_content\n    self.assertEqual(tree_sig(root), before, filename + \" mtime-only touch\")\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: '02dde7889ce07b91915f1cbc21045a9ceb1c31b2b7f0158a7e1e7df6804de3b6' != 'a905c5e3f549e7afa33e1a30a9bc151f314b1043cb82186441e82cb3aa7483e2'\n- 02dde7889ce07b91915f1cbc21045a9ceb1c31b2b7f0158a7e1e7df6804de3b6\n+ a905c5e3f549e7afa33e1a30a9bc151f314b1043cb82186441e82cb3aa7483e2\n : smoke_117_118.py mtime-only touch\n\n----------------------------------------------------------------------\nRan 1 test in 0.021s\n\nFAILED (failures=3)\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "python3 -m unittest tests.test_mvp2_t6_tree_sig_three",
+      "exit": 0,
+      "tail": "\n.\n----------------------------------------------------------------------\nRan 1 test in 0.021s\n\nOK\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": false,
+  "task": "# t6 content hash for the three older tree signatures\n\nLevel: slightly hard\nBase SHA: 997d89264495861a178713ccf7d4447ea828afc4\nFiles likely touched: examples/x-intake-local/smoke_112_114.py, examples/x-intake-local/smoke_115_116.py, examples/x-intake-local/smoke_117_118.py\nGate: python3 -m unittest tests.test_mvp2_t6_tree_sig_three\n\nThe acceptance test is already in the tree. Do not edit it. Do not edit any other test file. Do not commit. Do not change `smoke_119_121.py` or `smoke_122_124.py`.\n\n`tree_sig` in these three files still hashes size and mtime, and it drops a path on `OSError`:\n\n- examples/x-intake-local/smoke_112_114.py\n- examples/x-intake-local/smoke_115_116.py\n- examples/x-intake-local/smoke_117_118.py\n\nReplace each function with the content hash already used by `tree_sig` in `examples/x-intake-local/smoke_122_124.py`, including the `:unreadable` marker and the directory marker. Keep the name `tree_sig` and return None when the path does not exist. Callers stay as they are. An mtime-only touch must not change the signature. A same-size byte change that restores mtime must change it. A file the process cannot read must be recorded, not omitted.\n\nGate command: `python3 -m unittest tests.test_mvp2_t6_tree_sig_three`\n",
+  "finished_at": "2026-10-31T22:25:35Z"
+}
