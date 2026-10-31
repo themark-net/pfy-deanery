@@ -350,6 +350,37 @@ class ReviewLoopTests(unittest.TestCase):
         self.assertIn("tests-failed", rows[1]["prompt"])
         self.assertIn("AssertionError", rows[1]["prompt"])
 
+    def test_missing_allow_list_warns_and_a_named_list_does_not(self):
+        bare, bare_receipt = self.inner.run_build(
+            "fix",
+            extra=["--no-review"],
+            task="fix add so one plus one is two",
+        )
+        self.assertEqual(bare.returncode, 0, bare.stdout + bare.stderr)
+        bare_data = self._receipt(bare, bare_receipt)
+        self.assertEqual(bare_data["status"], "PASS")
+        self.assertIn("no allow list", " ".join(bare_data.get("warnings") or []))
+
+        named, named_receipt = self._run(
+            "fix add so one plus one is two\nfiles: src/calc.py\n",
+            [{"mode": "fix"}],
+            extra=["--no-review"],
+        )
+        self.assertEqual(named.returncode, 0, named.stdout + named.stderr)
+        named_data = self._receipt(named, named_receipt)
+        self.assertEqual(named_data["status"], "PASS")
+        self.assertNotIn("no allow list", " ".join(named_data.get("warnings") or []))
+
+        flagged, flagged_receipt = self.inner.run_build(
+            "fix",
+            extra=["--no-review", "--allow-path", "src/*.py"],
+            task="fix add so one plus one is two",
+        )
+        self.assertEqual(flagged.returncode, 0, flagged.stdout + flagged.stderr)
+        flagged_data = self._receipt(flagged, flagged_receipt)
+        self.assertEqual(flagged_data["status"], "PASS")
+        self.assertNotIn("no allow list", " ".join(flagged_data.get("warnings") or []))
+
     def test_no_review_is_one_attempt_and_a_green_gate_passes(self):
         proc, receipt = self.inner.run_build("fix", extra=["--no-review"])
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)

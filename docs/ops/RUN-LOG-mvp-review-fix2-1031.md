@@ -146,4 +146,15 @@ How it fails: an operator reads `--help` or the MVP-3 handoff and does not learn
 How we recover: the help test fails if the sentence is dropped. `--no-review` remains the one-attempt path. `--max-files` and `--max-lines` still override the cap.
 
 item | commit | tests | result
-item-5-docs | (sha next) | nice python3 -m unittest tests.test_pfy_build_local_review | Ran 15 tests in 29.461s OK
+item-5-docs | 34a6eaf | nice python3 -m unittest tests.test_pfy_build_local_review | Ran 15 tests in 29.461s OK
+
+### item-6-allow
+
+A task with no `files:` line and no `--allow-path` adds a `warnings` entry that says `no allow list`. A `files:` line or `--allow-path` leaves that entry out. The run still PASSes. This is a warning, not a reject.
+
+How it fails: scope is skipped, so a wide patch can be accepted and the receipt looks clean.
+
+How we recover: the warning names the gap. The operator adds `files:` or `--allow-path` and runs again. The branch from the warned run is still a normal PASS when the gate is green.
+
+item | commit | tests | result
+item-6-allow | (sha next) | nice python3 -m unittest tests.test_pfy_build_local tests.test_pfy_build_local_review | Ran 77 tests in 113.162s OK

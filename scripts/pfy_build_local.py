@@ -2731,6 +2731,7 @@ def build_local(argv: list[str] | None = None) -> int:
     reason = "runner-crash"
     exit_code = EXIT_FAIL
     recovery = ""
+    warnings: list[str] = []
     tests_before = None
     tests_after = None
     changed: list[str] = []
@@ -2792,6 +2793,7 @@ def build_local(argv: list[str] | None = None) -> int:
                     "allow_path": list(args.allow_path or []),
                     "require_wiring": list(args.require_wiring or []),
                 },
+                "warnings": list(warnings),
                 "attempt_receipts": list(attempt_receipts),
                 "branch": branch,
                 "commit": commit,
@@ -2942,6 +2944,11 @@ def build_local(argv: list[str] | None = None) -> int:
         pid_written = False
         watcher_started = False
         allow_patterns, allow_declared = _task_allow(args.task_text, list(args.allow_path or []))
+        if not allow_declared:
+            warnings.append(
+                "no allow list: scope was not checked. "
+                "Name paths with files: in the task or with --allow-path."
+            )
         wiring_rules = _wiring_rules(args.task_text, list(args.require_wiring or []))
 
         def _record_attempt(number, t0, mem_snap, attempt_status, attempt_reason, checks, model_review, diff_stats, diff_text):
