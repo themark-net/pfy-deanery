@@ -69,3 +69,4 @@ Format: `item | commit | tests | result`
 - retries0-t1 | 5d2c362 | ./pfy build --retries 0 exit 0 wall 174.7s attempts 1 review accept gate_rerun 0 human accept | PASS
 - retries0-t2 | 07f65e8 | ./pfy build --retries 0 exit 0 wall 58.7s attempts 1 review accept gate_rerun 0 human accept | PASS, tree_sig matches canonical
 - retries0-t3 | 8932ae3 | ./pfy build --retries 0 exit 0 wall 253.5s attempts 1 review accept gate_rerun 0 human accept | PASS, timeout return is after the real HOME check
+- retries0-t4 | pending | ./pfy build --retries 0 exit 1 wall 229.7s attempts 1 status FAIL reason tests-tampered review none gate_rerun 0 human accept of the diff | FINDING one attempt, same reject
