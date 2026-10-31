@@ -138,6 +138,7 @@ class CloudBuildSkeletonTests(unittest.TestCase):
         self.assertEqual(payload["status"], "DRY-RUN")
         self.assertIsNone(payload["commit"])
         self.assertFalse(payload["pushed"])
+        self.assertEqual(payload["gate"]["cmd"], "python3 -m unittest discover -s tests -t .")
         self.assertEqual(payload["base"], "HEAD")
         self.assertIn(str(receipt), proc.stdout)
         self.assertFalse((self.repo / "tmp" / "cloud-build").exists())
@@ -383,6 +384,51 @@ class CloudBuildPassTests(unittest.TestCase):
         names = _git(self.repo, "ls-tree", "-r", "--name-only", match.group(1)).stdout.splitlines()
         self.assertIn("later.txt", names)
         self.assertIn("kept.py", names)
+
+    def test_pass_does_not_push_the_cloud_branch(self) -> None:
+        remote = self.side / "origin.git"
+        bare = _git(self.side, "init", "--bare", str(remote))
+        self.assertEqual(bare.returncode, 0, bare.stderr)
+        added = _git(self.repo, "remote", "add", "origin", str(remote))
+        self.assertEqual(added.returncode, 0, added.stderr)
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\nprint('GATE-OK')\nraise SystemExit(0)\n",
+        )
+        proc = _run(
+            [
+                sys.executable,
+                str(CLOUD),
+                "add kept",
+                "--repo",
+                str(self.repo),
+                "--base",
+                "HEAD",
+                "--retries",
+                "0",
+                "--test-cmd",
+                "%s %s" % (sys.executable, gate),
+                "--grok-cmd",
+                str(self._accepting_grok()),
+                "--timeout",
+                "30",
+            ],
+            self.repo,
+            timeout=60,
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        match = re.search(r"PASS ok branch=(\S+) receipt=(\S+)", proc.stdout or "")
+        self.assertIsNotNone(match, proc.stdout)
+        branch = match.group(1)
+        payload = json.loads(Path(match.group(2)).read_text(encoding="utf-8"))
+        self.assertTrue(branch.startswith("cloud/"), branch)
+        self.assertIs(payload["pushed"], False)
+        remote_refs = _git(self.repo, "ls-remote", "origin")
+        self.assertEqual(remote_refs.returncode, 0, remote_refs.stderr)
+        self.assertNotIn("cloud/", remote_refs.stdout)
+        self.assertEqual(remote_refs.stdout.strip(), "")
+        self.assertEqual(_git(self.repo, "rev-parse", branch).stdout.strip(), payload["commit"])
 
 
 class CloudBuildRetryTests(unittest.TestCase):
@@ -1561,6 +1607,8 @@ class CloudBuildFailureTests(unittest.TestCase):
             "from pathlib import Path\n"
             "print('key AKIAIOSFODNN7EXAMPLE')\n"
             "print('sk_live_abcdefghij')\n"
+            "print('Authorization: Bearer FAKEBEARERTOKEN')\n"
+            "print('API_TOKEN=FAKETOKENVALUE')\n"
             "print('-----BEGIN PRIVATE KEY-----')\n"
             "print('MIIBsecret')\n"
             "print('-----END PRIVATE KEY-----')\n"
@@ -1574,7 +1622,12 @@ class CloudBuildFailureTests(unittest.TestCase):
         self.assertNotIn("AKIA", raw)
         self.assertNotIn("BEGIN PRIVATE KEY", raw)
         self.assertNotIn("sk_", raw)
+        self.assertNotIn("FAKEBEARERTOKEN", raw)
+        self.assertNotIn("FAKETOKENVALUE", raw)
         self.assertIn("[redacted]", raw)
+        payload = json.loads(raw)
+        shown = _git(self.repo, "show", payload["commit"] + ":kept.py")
+        self.assertEqual(shown.stdout, "value = 1\n")
 
     def test_receipt_redacts_an_xai_marker_in_the_task_and_the_reply(self) -> None:
         marker = "xai-FAKE0000"
