@@ -2655,7 +2655,7 @@ def _stub_extra_rw() -> list[Path]:
     Production does not read PFY_STUB_PLAN, PFY_STUB_COUNT, or PFY_STUB_PROMPTS.
     Those names are consulted only when PFY_LOCAL_BUILD_TEST_SEAM=1. A normal
     run leaves the seam unset and returns no extra binds. The same switch gates
-    the extra-file inject in _stage_reviewed.
+    the extra-file inject in _stage_reviewed and the review-poster crash argv.
     """
     if not _test_seam_on():
         return []
@@ -2735,6 +2735,22 @@ def _review_outage_kind(raw: str) -> str | None:
     return None
 
 
+def _review_poster_argv(script_path: Path) -> list[str]:
+    """The poster command. A crash exit is test-only and seam-gated.
+
+    PFY_LOCAL_BUILD_REVIEW_CRASH=1 makes the child exit before it writes the
+    out file. Without PFY_LOCAL_BUILD_TEST_SEAM=1 that variable is ignored, so
+    a stray value cannot turn a real run into a reviewer failure.
+    """
+    if _test_seam_on() and os.environ.get("PFY_LOCAL_BUILD_REVIEW_CRASH") == "1":
+        return [
+            "python3",
+            "-c",
+            "import sys; sys.stderr.write('review poster crashed before out\\n'); raise SystemExit(1)",
+        ]
+    return ["python3", str(script_path)]
+
+
 def _run_model_review(
     args,
     worktree: Path,
@@ -2749,9 +2765,10 @@ def _run_model_review(
     """Return (status, review).
 
     status is accept, reject, unavailable, overall-timeout, interrupted,
-    mem-edge, blocked, or sandbox. unavailable means the review call had an
-    HTTP error or its own timeout. overall-timeout means the whole-loop cap
-    cut this call. Neither is a verdict. The caller does not commit or retry.
+    mem-edge, blocked, sandbox, or crashed. unavailable means the review call
+    had an HTTP error or its own timeout. overall-timeout means the whole-loop
+    cap cut this call. crashed means the poster wrote no out file. None of
+    those three is a verdict. The caller does not commit or retry.
     """
     port = _loopback_port(openai_base)
     if port is None:
@@ -2790,7 +2807,7 @@ def _run_model_review(
     )
     try:
         prepared = prepare_sandbox(
-            ["python3", str(script_path)],
+            _review_poster_argv(script_path),
             worktree,
             hide=hide_paths(repo, worktree),
             endpoint=openai_base,
@@ -2824,9 +2841,18 @@ def _run_model_review(
     try:
         raw = out_path.read_text(encoding="utf-8")
     except OSError:
-        raw = (out or "") + (err or "")
+        # The poster never opened the out file (python missing, or it died
+        # first). Stdout is not a verdict. Do not retry this as a reject.
+        tail = redact(((out or "") + "\n" + (err or "")).strip())[:500]
+        return "crashed", {
+            "verdict": "reject",
+            "reasons": ["review-crashed"],
+            "raw_tail": tail,
+        }
     # HTTP error and the bounded-call timeout are the same outage.
     # A verdict reject is a later return and is retried. An outage is not.
+    # review-http-error from the mvp3 side is the same stop, under the name
+    # the integrate caller already handles: unavailable, not a retry.
     if run_status == "timeout" or _review_transport_error(raw) or _review_outage_kind(raw):
         detail = "review call timed out" if run_status == "timeout" else raw[:500]
         return "unavailable", {
@@ -3557,6 +3583,20 @@ def build_local(argv: list[str] | None = None) -> int:
                     mem_snap,
                     "reviewer-unavailable",
                     "reviewer-unavailable",
+                    checks,
+                    model_review,
+                    diff_stats,
+                    diff_text,
+                )
+                return finish()
+            if review_status == "crashed":
+                status, reason, exit_code = "FAIL", "review-crashed", EXIT_FAIL
+                _record_attempt(
+                    attempts_used,
+                    attempt_t0,
+                    mem_snap,
+                    "FAIL",
+                    "review-crashed",
                     checks,
                     model_review,
                     diff_stats,

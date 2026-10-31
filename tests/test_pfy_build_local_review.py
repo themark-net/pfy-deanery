@@ -704,6 +704,41 @@ class ReviewLoopTests(unittest.TestCase):
         self.assertNotIn(marker, rows[1]["prompt"].split("Previous diff:", 1)[0])
         self.inner.assert_clean_origin()
 
+    def test_poster_with_no_out_file_is_review_crashed_and_not_retried(self):
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        proc, receipt = self._run(
+            task,
+            [{"mode": "fix"}, {"mode": "fix"}],
+            extra=["--retries", "2"],
+            env_extra={"PFY_LOCAL_BUILD_REVIEW_CRASH": "1"},
+        )
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "FAIL")
+        self.assertEqual(data["reason"], "review-crashed")
+        self.assertEqual(data["attempts"], 1)
+        self.assertIsNone(data["commit"])
+        self.assertIsNone(data["branch"])
+        self.assertEqual(harness._branches(self.inner.repo), [])
+        self.assertFalse((receipt / "attempt-2").exists())
+        first = json.loads((receipt / "attempt-1" / "receipt.json").read_text(encoding="utf-8"))
+        self.assertEqual(first["reason"], "review-crashed")
+        self.assertIn("review-crashed", first["model_review"]["reasons"])
+        self.assertNotIn("review-unparseable", first["model_review"]["reasons"])
+        self.inner.assert_clean_origin()
+
+        off, off_receipt = self.inner.run_build(
+            "fix",
+            extra=["--retries", "2"],
+            env_extra={"PFY_LOCAL_BUILD_REVIEW_CRASH": "1"},
+            task=task,
+        )
+        self.assertEqual(off.returncode, 0, off.stdout + off.stderr)
+        off_data = self._receipt(off, off_receipt)
+        self.assertEqual(off_data["status"], "PASS")
+        self.assertNotEqual(off_data["reason"], "review-crashed")
+        self.assertIsNotNone(off_data["commit"])
+
     def test_only_excluded_paths_are_no_reviewable_change(self):
         cmd = self._commit_gate(
             "print('PFY_EXCLUDED_ONLY_GATE')\nprint('Ran 1 test in 0.001s')\nprint('OK')\n",

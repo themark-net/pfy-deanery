@@ -132,7 +132,7 @@ The scope check runs only when the task has a `files:` line or the command passe
 
 The reviewer is the same local model as the agent. `--model` (default `qwen3.6:35b`) is the tag for the edit and for the review call. That is a self-review, not an independent reader. A mistake the model cannot see in its own patch is a mistake this step will not catch. The scope, size, and wiring checks do not call the model. The receipt `model` field is that tag. `review.same_model` is true, and `review.reviewer` is `same local model as the agent`. The review HTTP body uses that same `model` tag. Read the attempt receipt for the verdict. Do not treat a model accept as a second person.
 
-`PFY_LOCAL_BUILD_TEST_SEAM` is a test-only switch. It is off unless the value is exactly `1`. Off, the runner does not read `PFY_STUB_PLAN`, `PFY_STUB_COUNT`, or `PFY_STUB_PROMPTS`, so those paths are not bound read-write into the sandbox, and `PFY_LOCAL_BUILD_INJECT_EXTRA_STAGE` does not write `injected-extra.txt`. On, the review tests can record the prompt outside the worktree, and the inject env can force a scope-commit mismatch. Leave the seam unset for a real run. A stray stub env or inject env then changes nothing.
+`PFY_LOCAL_BUILD_TEST_SEAM` is a test-only switch. It is off unless the value is exactly `1`. Off, the runner does not read `PFY_STUB_PLAN`, `PFY_STUB_COUNT`, or `PFY_STUB_PROMPTS`, so those paths are not bound read-write into the sandbox, and `PFY_LOCAL_BUILD_INJECT_EXTRA_STAGE` does not write `injected-extra.txt`. `PFY_LOCAL_BUILD_REVIEW_CRASH` is ignored too. On, the review tests can record the prompt outside the worktree, the inject env can force a scope-commit mismatch, and `PFY_LOCAL_BUILD_REVIEW_CRASH=1` makes the poster exit before it writes its out file. Leave the seam unset for a real run. A stray stub env, inject env, or crash env then changes nothing.
 
 ## Receipt schema `pfy-local-build/1`
 
@@ -173,6 +173,7 @@ Exit codes: 0 PASS, a clean dry-run, or `--reap`. 1 FAIL. 2 usage, or `no-openco
 | the worktree digest changes after the gate and before `git add` | 1 | `worktree-changed-after-gate` | the pid namespace should have died with bwrap. A survivor that rewrites `src` fails here |
 | the fresh checkout of the new commit fails the gate | 1 | `commit-recheck-failed` | the commit is reset before the branch is created. A gitignored helper cannot be the only copy of the fix |
 | the only changed paths are excluded from the commit (tmp, bytecode, pytest cache) | 1 | `no-reviewable-change` | nothing is committed and no branch is created. The index is reset. Change a path the commit will keep. This is not retried |
+| the review poster writes no out file | 1 | `review-crashed` | not retried. An HTTP body `{"error": ...}` stays `review-http-error` and is also not retried. A model reply that is not a verdict stays `review-unparseable` and is retried. Fix the poster, then run again |
 | test command cannot start | 1 | `test-cmd-failed-to-start` | a command that exists |
 | agent exceeds `--timeout` | 3 | `timeout` | longer timeout, or `--run-tests-on-timeout` to still run the gate. No commit by default |
 | SIGINT or SIGTERM | 1 | `interrupted` | run again. The lock is released |
