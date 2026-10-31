@@ -1,0 +1,20 @@
+{
+  "process_exit": 1,
+  "status": "FAIL",
+  "reason": "tests",
+  "recovery": "",
+  "attempts": "1",
+  "verdict": "FINDING",
+  "exp_status": "TIMEOUT",
+  "exp_reason": "timeout",
+  "exp_exit": 3,
+  "invariant_problems": [
+    "a hung gate was recorded as tests, not timeout"
+  ],
+  "head": "6d0492327b34f8400ade0c1b3f658146f8f6b5ee",
+  "detached": false,
+  "porcelain": "",
+  "cloud_branches": [],
+  "runner_sha": "91ce285c5afaf76377e4024965071951c2e0c6f9",
+  "elapsed_note": "see the driver clock in stdout of this process"
+}

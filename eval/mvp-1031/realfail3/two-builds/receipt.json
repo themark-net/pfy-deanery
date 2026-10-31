@@ -1,0 +1,11 @@
+{
+  "schema": "pfy-realfail3-observe/1",
+  "status": "PASS",
+  "reason": "intact",
+  "exit_code": 0,
+  "recovery": "",
+  "attempts": [],
+  "pushed": false,
+  "branch": null,
+  "commit": null
+}

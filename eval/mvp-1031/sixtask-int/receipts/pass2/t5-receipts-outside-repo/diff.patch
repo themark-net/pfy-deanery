@@ -1,0 +1,97 @@
+diff --git a/tests/test_x_intake_smoke_117_118.py b/tests/test_x_intake_smoke_117_118.py
+index 60720a8..91132ab 100644
+--- a/tests/test_x_intake_smoke_117_118.py
++++ b/tests/test_x_intake_smoke_117_118.py
+@@ -17,6 +17,7 @@ from pathlib import Path
+ 
+ ROOT = Path(__file__).resolve().parents[1]
+ SCRIPT = "examples/x-intake-local/smoke_117_118.py"
++_RECEIPTS: Path | None = None
+ 
+ 
+ def _write_exe(path: Path, body: str) -> None:
+@@ -31,6 +32,9 @@ def _env(home: Path, **extra: str) -> dict[str, str]:
+         if key.startswith(("KANDER_", "MOIRA_", "DOCKER_")) or key == "PFY_XINTAKE_TIMEOUT":
+             env.pop(key, None)
+     env.update(extra)
++    if _RECEIPTS is None:
++        raise RuntimeError("PFY_SMOKE_RECEIPT_DIR is unset")
++    env["PFY_SMOKE_RECEIPT_DIR"] = str(_RECEIPTS)
+     return env
+ 
+ 
+@@ -52,13 +56,24 @@ def _moira_dir(root: Path, image: str, traefik: str = TRAEFIK_PINNED) -> Path:
+ 
+ 
+ def _receipt(entry: str) -> dict:
+-    return json.loads((ROOT / f"pipelines/smoke/{entry}/latest.json").read_text(encoding="utf-8"))
++    path = Path(_RECEIPTS) / entry / "latest.json"
++    return json.loads(path.read_text(encoding="utf-8"))
+ 
+ 
+ PINNED = "ghcr.io/moira-mcp/moira@sha256:" + "0" * 64
+ 
+ 
+ class XIntakeSmoke117118Tests(unittest.TestCase):
++    def setUp(self) -> None:
++        global _RECEIPTS
++        self._receipt_tmp = tempfile.TemporaryDirectory(prefix="pfy-xintake-117-receipts-")
++        self.addCleanup(self._receipt_tmp.cleanup)
++        _RECEIPTS = Path(self._receipt_tmp.name)
++
++    def tearDown(self) -> None:
++        global _RECEIPTS
++        _RECEIPTS = None
++
+     def test_wrong_kander_version_exits_2(self) -> None:
+         with tempfile.TemporaryDirectory(prefix="pfy-xintake-117-") as td:
+             home = Path(td, "home")
+diff --git a/tests/test_x_intake_smoke_119_121.py b/tests/test_x_intake_smoke_119_121.py
+index b7f4759..c703909 100644
+--- a/tests/test_x_intake_smoke_119_121.py
++++ b/tests/test_x_intake_smoke_119_121.py
+@@ -23,6 +23,7 @@ from pathlib import Path
+ ROOT = Path(__file__).resolve().parents[1]
+ SCRIPT = "examples/x-intake-local/smoke_119_121.py"
+ PORT = 7077
++_RECEIPTS: Path | None = None
+ 
+ 
+ def _write_exe(path: Path, body: str) -> None:
+@@ -38,6 +39,9 @@ def _env(home: Path, **extra: str) -> dict[str, str]:
+         if key.startswith(("AGENTDESCENT_", "KENFOLD_", "TSA_", "DOCKER_")) or key == "PFY_XINTAKE_TIMEOUT":
+             env.pop(key, None)
+     env.update(extra)
++    if _RECEIPTS is None:
++        raise RuntimeError("PFY_SMOKE_RECEIPT_DIR is unset")
++    env["PFY_SMOKE_RECEIPT_DIR"] = str(_RECEIPTS)
+     return env
+ 
+ 
+@@ -49,7 +53,8 @@ def _run(entry: str, env: dict[str, str]) -> subprocess.CompletedProcess[str]:
+ 
+ 
+ def _receipt(entry: str) -> dict:
+-    return json.loads((ROOT / f"pipelines/smoke/{entry}/latest.json").read_text(encoding="utf-8"))
++    path = Path(_RECEIPTS) / entry / "latest.json"
++    return json.loads(path.read_text(encoding="utf-8"))
+ 
+ 
+ def _port_answers(port: int = PORT) -> bool:
+@@ -191,6 +196,16 @@ class _OkHandler(BaseHTTPRequestHandler):
+ 
+ 
+ class XIntakeSmoke119121Tests(unittest.TestCase):
++    def setUp(self) -> None:
++        global _RECEIPTS
++        self._receipt_tmp = tempfile.TemporaryDirectory(prefix="pfy-xintake-119-receipts-")
++        self.addCleanup(self._receipt_tmp.cleanup)
++        _RECEIPTS = Path(self._receipt_tmp.name)
++
++    def tearDown(self) -> None:
++        global _RECEIPTS
++        _RECEIPTS = None
++
+     def test_agentdescent_real_home_write_fails(self) -> None:
+         with tempfile.TemporaryDirectory(prefix="pfy-xintake-119-") as td:
+             home, bindir = Path(td, "home"), Path(td, "bin")

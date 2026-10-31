@@ -1,0 +1,9 @@
+name: container-mapping-latest
+on: push
+jobs:
+  job:
+    runs-on: ubuntu-24.04
+    container:
+      image: ghcr.io/example/app:latest
+    steps:
+      - run: "true"

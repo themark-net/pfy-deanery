@@ -1,0 +1,8 @@
+name: container-no-tag
+on: push
+jobs:
+  job:
+    runs-on: ubuntu-24.04
+    container: ubuntu
+    steps:
+      - run: "true"

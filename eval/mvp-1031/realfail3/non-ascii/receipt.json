@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/in-the-file-my-app-py-set-the-only-line-20261031T225836028576Z",
+  "commit": "aa4ee826fe8495e9f16ae3b92e732c9f86d79ffa",
+  "base": "HEAD",
+  "review": {
+    "verdict": "skipped",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll set the only line in `my app.py` to `café = 2` and leave every other file alone.The file currently has `value = 0`. I'll check the gate so the replacement matches exactly, then write that one line.`my app.py` now contains only the line `café = 2`.\n\nThe gate passed with exit code 0 and printed `got café = 2`. No other files were edited, and nothing was committed.\n",
+      "review": {
+        "verdict": "skipped",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "/usr/bin/python3 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-realfail3-1031/eval/mvp-1031/realfail3/gates/value_is.py 'my app.py' 'café = 2'",
+    "before": {
+      "cmd": "/usr/bin/python3 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-realfail3-1031/eval/mvp-1031/realfail3/gates/value_is.py 'my app.py' 'café = 2'",
+      "exit": 1,
+      "tail": "got value = 0\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "/usr/bin/python3 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-realfail3-1031/eval/mvp-1031/realfail3/gates/value_is.py 'my app.py' 'café = 2'",
+      "exit": 0,
+      "tail": "got café = 2\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": true,
+  "task": "In the file \"my app.py\", set the only line to café = 2. Do not edit any other file. Do not commit.",
+  "finished_at": "2026-10-31T22:58:57Z"
+}

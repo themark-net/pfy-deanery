@@ -1,0 +1,40 @@
+diff --git a/examples/x-intake-local/smoke_109_111.py b/examples/x-intake-local/smoke_109_111.py
+index 7a37abd..427e6a7 100644
+--- a/examples/x-intake-local/smoke_109_111.py
++++ b/examples/x-intake-local/smoke_109_111.py
+@@ -26,9 +26,10 @@ created or modified. The receipt records which mode ran (`containment`).
+            created or modified. The ref is SMOLVM_IMAGE_PIN unless $SMOLVM_IMAGE is itself digest-pinned
+            (`name@sha256:<64 hex>`); anything else exits 2 before the KVM check. The receipt records `image`,
+            `image_digest` (the sha256 part of that ref) and `image_digest_source` (`pin` or `env`). A digest is
+-           never taken from tool or guest output. After `machine run` succeeds, stderr must contain
+-           `Pulling image <ref>` or stdout must have a `Using cached image` / `Caching image` line; that line
+-           is `image_evidence`, and missing evidence FAILs. A passing run sets a short `reason`.
++           never taken from tool or guest output. After `machine run` succeeds, a stderr
++           `Pulling image <ref>` line is `image_evidence` and wins when stdout also has a
++           `Using cached image` / `Caching image` line. When stderr has no pull line, that stdout
++           cache line is the evidence. Missing evidence FAILs. A passing run sets a short `reason`.
+            SMOLVM_CHECKPOINT=1 adds checkpoint and
+            rewind: write gen1 in a persistent machine, `machine checkpoint`, write gen2, `machine create --from`
+            the checkpoint, and the restored machine must read gen1 while the source reads gen2; both machines
+@@ -195,16 +196,16 @@ def smolvm_image(r: dict) -> str | None:
+ 
+ 
+ def smolvm_image_evidence(stdout: str, stderr: str, image: str) -> str | None:
+-    """Cache line from stdout, else the pull line from stderr. Not a digest from the output."""
+-    for raw_line in stdout.splitlines():
+-        line = raw_line.split("\r")[-1].strip()
+-        if _IMAGE_CACHE_LINE.match(line):
+-            return line
++    """Pull line from stderr when present, else a cache line from stdout. Not a digest from the output."""
+     needle = "Pulling image " + image
+     for raw_line in stderr.splitlines():
+         line = raw_line.split("\r")[-1].strip()
+         if needle in line:
+             return line
++    for raw_line in stdout.splitlines():
++        line = raw_line.split("\r")[-1].strip()
++        if _IMAGE_CACHE_LINE.match(line):
++            return line
+     return None
+ 
+ 

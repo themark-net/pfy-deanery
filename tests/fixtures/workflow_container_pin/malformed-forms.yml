@@ -1,0 +1,47 @@
+name: malformed-forms
+on: push
+jobs:
+  bad-container:
+    runs-on: ubuntu-24.04
+    container: 5
+    steps:
+      - run: "true"
+  missing-image:
+    runs-on: ubuntu-24.04
+    container:
+      credentials:
+        username: someone
+    steps:
+      - run: "true"
+  bad-services:
+    runs-on: ubuntu-24.04
+    services:
+      - redis
+    steps:
+      - run: "true"
+  empty-services:
+    runs-on: ubuntu-24.04
+    services: {}
+    steps:
+      - run: "true"
+  missing-service-image:
+    runs-on: ubuntu-24.04
+    services:
+      db:
+        ports:
+          - 5432:5432
+    steps:
+      - run: "true"
+  image-number:
+    runs-on: ubuntu-24.04
+    services:
+      db:
+        image: 1
+    steps:
+      - run: "true"
+  service-string:
+    runs-on: ubuntu-24.04
+    services:
+      db: redis:16
+    steps:
+      - run: "true"

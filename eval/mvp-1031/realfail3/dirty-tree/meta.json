@@ -1,0 +1,20 @@
+{
+  "process_exit": 0,
+  "status": "PASS",
+  "reason": "ok",
+  "recovery": "",
+  "attempts": "1",
+  "verdict": "matches",
+  "exp_status": "PASS",
+  "exp_reason": "ok",
+  "exp_exit": 0,
+  "invariant_problems": [],
+  "head": "d4bebd3b48bb3d5a0911d71adab955034fcf2e02",
+  "detached": false,
+  "porcelain": " M kept-dirty.txt\n?? untracked-dirty.txt\n",
+  "cloud_branches": [
+    "cloud/in-app-py-change-the-line-value-0-to-val-20261031T225650994106Z"
+  ],
+  "runner_sha": "40049adb9463c501399a4c9a6672a5e120c48731",
+  "elapsed_note": "see the driver clock in stdout of this process"
+}

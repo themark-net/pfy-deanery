@@ -83,7 +83,7 @@ suite | 444af7b | TMPDIR=$PWD/tmp nice -n 19 flock ~/DEVELOP/pfy-mentat/tmp/heav
 demo | a73e9ae | ./pfy build on tmp fixture; python3 eval/mvp-1031/check_receipt.py eval/mvp-1031/demo-receipt.json | build exit 0, checker exit 0, PASS, review accept, commit ebef4238a7eff8f938747623f7920b3fde74e586
 notes | 0338b67 | nice -n 19 python3 -m unittest tests.test_docs_hygiene tests.test_pfy_build_docs | 7 OK in 0.025s; one TODO note, one pending section, one modules row
 
-state: DONE | exit: lane empty | tests: discover 1048 ran, failures=2, skipped=16; checker exit 0 | files: merges, classifier import, demo receipt, report, TODO note, pending section, modules row, handoff | err: help contract and TMPDIR local-bench recorded, not rewritten
+prior-state: DONE | exit: lane empty | tests: discover 1048 ran, failures=2, skipped=16; checker exit 0 | files: merges, classifier import, demo receipt, report, TODO note, pending section, modules row, handoff | err: help contract and TMPDIR local-bench recorded, not rewritten
 
 ## PASS 2
 
@@ -194,4 +194,81 @@ classifier-2 | 135eebb | nice -n 19 python3 -m unittest tests.test_pfy_build_clo
 suite-2 | 135eebb | TMPDIR=$PWD/tmp nice -n 19 flock ~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock python3 -m unittest discover -s tests -t . | Ran 1098 in 731.925s, FAILED failures=2 skipped=16. Same help contract and TMPDIR local-bench. Not rewritten
 demo-2 | 7997dd6 | ./pfy build on tmp/demo2-target; python3 eval/mvp-1031/check_receipt.py eval/mvp-1031/demo-receipt-pass2.json | build exit 0, checker exit 0, PASS, review accept, human yes, commit 535d000075744709b2752cec7511d087801f2aa5, wall 91s, attempts 1
 
-state: DONE | exit: goal met | tests: discover 1098 ran, failures=2, skipped=16; cloud+preflight 54 OK; checker exit 0 | files: pass 2 merges, cloudfix conflict kept their runner, demo-receipt-pass2.json, REPORT pass 2, handoff 7997dd6, this stamp is the tip | err: help contract and TMPDIR local-bench recorded, not rewritten. selfhost not merged. pregate not run by this lane
+prior-state: DONE | exit: goal met | tests: discover 1098 ran, failures=2, skipped=16; cloud+preflight 54 OK; checker exit 0 | files: pass 2 merges, cloudfix conflict kept their runner, demo-receipt-pass2.json, REPORT pass 2, handoff 7997dd6, this stamp is the tip | err: help contract and TMPDIR local-bench recorded, not rewritten. selfhost not merged. pregate not run by this lane
+
+## PASS 3
+
+Operator addendum, checked 2026-10-31T23:26:00Z. Pass 1 and pass 2 prior-state lines stay. Pass 2 tip `0c3f133` passed pregate (operator: 6 pass, 1 skip). HEAD at this card is `f10926d` (reopen plus the pass 3 drop-in). `origin/main` `c0d38af` is already in this branch. MemAvailable about 52 GiB. Load about 5.0 on 32 cores. Wall cap still 2026-11-01T04:42:00Z. Handoff buffer still 2026-11-01T04:22:00Z. About 5 hours remain. No pregate in this pass. The operator runs pregate on the final tip. `Runner.Worker` was running at the check. This lane does not run pregate anyway.
+
+Overview: Fetch origin. Merge the pass 3 lane branches that exist, in the listed order, each at the tip present when this lane reaches it. Skip a missing branch. Do not merge `bot/mvp3-followups-1031`. Do not merge `bot/mvp3-review-retry` past what is already in. On `scripts/pfy_build_cloud.py`, keep cloudfix structure and dogfood-fix behavior, with one classifier import and no inline copy. After each merge, run the targeted tests named in that lane's handoff. Fix only integration breakage with a small commit. Run the suite once under the lock. Target 0 failures. Record a failure that belongs to a lane. Run one real cloud demo on a 3 to 5 file backlog task in a throwaway clone. Commit the receipt even if it does not PASS. Record GO or NO-GO for cloud-default daily use from the sixtask-int report when that file is present. Update the handoff with the pass 3 tip SHA and push.
+
+## LOOP EXIT CARD PASS 3
+
+```text
+LOOP EXIT CARD PASS 3
+Goal (success criteria): merge commits for every listed pass-3 origin branch that exists; dogfood-fix behavior kept on the cloudfix cloud runner; one flock suite with counts and a target of 0 failures; one honest demo-3 receipt and a Pass 3 report section; GO or NO-GO copied from the sixtask-int report when present; handoff names the pass 3 tip SHA. No Feature GO. No pregate by this lane. No merge of bot/mvp3-followups-1031. No extra merge of bot/mvp3-review-retry.
+1 Goal met:                  suite counts in the handoff; check_receipt.py exit recorded for demo-receipt-pass3.json; REPORT.md Pass 3 section has command, task, wall time, exit, attempts, branch, commit, review verdict, human verdict, and the sixtask-int GO or NO-GO line
+2 Turn cap:                  the pass-3 merge list with each lane's targeted tests, the suite, demo 3, then the handoff. Stop at the first exit.
+3 Budget cap:                one real cloud ./pfy build for demo 3. No second cloud call. No --local. No Ollama.
+4 Wall clock:                2026-11-01T04:42:00Z, or 2026-11-02T02:00Z, whichever is first. Handoff buffer starts 2026-11-01T04:22:00Z. Checked at 2026-10-31T23:26:00Z, inside the cap.
+5 No-progress:               same failure twice with no new information, or 3 items in a row skipped
+6 Human interrupt:           user stop. Do not ask. Conservative default, one decisions line, continue.
+7 Error threshold:           3 consecutive same failures, or the drop-in "same failure twice" rule, then stop
+8 External event:            a missing origin branch is skipped and logged, not polled. A lane still running is merged at its current pushed tip and the SHA is recorded.
+Loop type:                   goal
+Human gate:                  no merge to main, no PR, no tag, no force push. Push only bot/mvp-integrate-1031.
+```
+
+Drop-in exits (checked before every pass-3 item):
+
+1. Wall cap with the 20 minute handoff buffer above.
+2. Lane empty: the pass-3 list, the suite, demo 3, and the handoff are done, or no remaining item fits the owned files.
+3. No progress: same failure twice with no new information, or 3 skipped items in a row.
+4. Host pressure: MemAvailable under 16 GiB, or load over 64 for 5 minutes. Pause 10 minutes, then stop if it persists.
+5. Red base: a failure that also fails before this pass's change is recorded and that area is skipped. Do not stop the lane. A failure another lane owns is recorded with that lane. Fix integration breakage with a small commit. Do not rewrite a lane feature.
+
+Named skills `write-loop-exits-first` and `repo-handoff-doc-required` are still not files. This card, the drop-in exit list, and `docs/ops/HANDOFF-mvp-integrate-1031.md` stay the binding.
+
+## Pass 3 phases
+
+- exits-3 | this log, `docs/ops/AUTONOMOUS-DECISIONS-mvp-integrate-1031.md` | pass-3 exit card committed and pushed before any pass-3 merge | none | lead
+- merge-3 | incoming branch files only, plus a small integration fix when a conflict breaks a targeted test | each listed origin branch merged at its current tip or logged missing; targeted tests from that lane's handoff; push after each green step | exits-3 | lead
+- suite-3 | no feature edits beyond an integration fix | one `TMPDIR=$PWD/tmp nice -n 19 flock` unittest discover; target 0 failures; a lane-owned failure is recorded with the lane name | merge-3 | lead
+- demo-3 | `eval/mvp-1031/demo-receipt-pass3.json`, `eval/mvp-1031/REPORT.md` | one real `./pfy build` on `tmp/demo3-target`; honest receipt even when it does not PASS; sixtask-int GO or NO-GO recorded when that report exists | suite-3 | lead
+- handoff-3 | `docs/ops/HANDOFF-mvp-integrate-1031.md`, this log | pass 3 tip SHA, skips, evidence, fail/recover, cross-lane, gate, next step, final `state:` line, push. No pregate | demo-3 | lead
+
+Pass 3 merge order:
+
+1. `origin/bot/mvp-review-fix2-1031`
+2. `origin/bot/mvp-cloudfix-1031`
+3. `origin/bot/mvp-dogfood-fix-1031` (keep cloudfix structure plus dogfood-fix behavior on `scripts/pfy_build_cloud.py`)
+4. `origin/bot/mvp-mutate-preflight-1031`
+5. `origin/bot/mvp-ci-cover-1031`
+6. `origin/bot/mvp-realfail3-1031`
+7. `origin/bot/mvp-followups-fix2-1031`
+8. `origin/bot/mvp-selfhost-1031` (include it; 13 human-accepted cloud-built product commits)
+9. `origin/bot/mvp-gom-dogfood-1031`
+10. `origin/bot/mvp-sixtask-1031`
+11. `origin/bot/mvp-sixtask-int-1031`
+12. `origin/bot/mvp-tmpclean2-1031`
+13. `origin/bot/mvp-backlog-burn-1031`
+
+Not merged: `origin/bot/mvp3-followups-1031`. `origin/bot/mvp3-review-retry` stays at whatever is already in this branch. mvp3 is gated separately.
+
+Conflict rule: round-1 owner wins when the plan matrix names one. For `docs/TODO.md` and `docs/modules/pfylib.md`, keep both sides' facts. Do not drop a done row. For `scripts/pfy_build_cloud.py`, keep cloudfix's structure plus dogfood-fix's behavior, exactly one `classify_cloud_failure` import, no inline duplicate. One decisions line per conflict.
+
+## Pass 3 risks
+
+- Shared host and the heavy lock: the full suite waits on `~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock`. Do not start a second discover. Do not signal processes this lane did not start.
+- A branch whose lane is still running is merged at the fetched tip. Later commits on that branch are not polled.
+- Cloud rate limit or auth failure on demo 3: commit the receipt, mark the demo as not PASS, do not retry with `--local`, do not invent a green result.
+- Dogfood-fix touches a few functions in the cloud runner. Do not take either file wholesale if both sides changed those functions. Keep cloudfix structure and add the dogfood-fix behavior.
+- Selfhost is now in scope. Do not drop its product commits during a conflict.
+- Demo 3 target is a throwaway clone under `tmp/demo3-target`. The integrate branch is not the task target. Do not commit `tmp/`.
+- One worktree: merges stay serial on the lead.
+- Suite target is 0 failures. The pass 2 help-contract and TMPDIR local-bench failures may still be present. If they still fail the same way, record them with the owning lane and do not rewrite those tests. Fix a new failure only when this pass's merge caused it.
+
+## Pass 3 item log
+
+Format: `item | commit | tests | result`
+

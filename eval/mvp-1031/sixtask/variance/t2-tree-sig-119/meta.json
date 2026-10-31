@@ -1,0 +1,39 @@
+{
+  "task": "t2-tree-sig-119",
+  "label": "variance",
+  "command": [
+    "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-sixtask-1031/pfy",
+    "build",
+    "# t2 content hash for the 119 tree signature\n\nLevel: trivial\nBase SHA: 997d89264495861a178713ccf7d4447ea828afc4\nFiles likely touched: examples/x-intake-local/smoke_119_121.py\nGate: python3 -m unittest tests.test_mvp2_t2_tree_sig_119\n\nThe acceptance test is already in the tree. Do not edit it. Do not edit any other test file. Do not commit.\n\n`tree_sig` in `examples/x-intake-local/smoke_119_121.py` still hashes size and mtime. Replace that function with the content hash already used by `tree_sig` in `examples/x-intake-local/smoke_122_124.py`, including the unreadable marker. Same function name and None for a missing path. Do not change the other smoke files. An unchanged tree, including an mtime-only touch, must keep the same signature. A same-size byte change that restores mtime must change it.\n\nGate command: `python3 -m unittest tests.test_mvp2_t2_tree_sig_119`\n",
+    "--repo",
+    "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-sixtask-1031/tmp/sixtask-clones/variance/t2-tree-sig-119",
+    "--base",
+    "demo-base",
+    "--test-cmd",
+    "python3 -m unittest tests.test_mvp2_t2_tree_sig_119",
+    "--receipt-dir",
+    "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-sixtask-1031/eval/mvp-1031/sixtask/variance/t2-tree-sig-119",
+    "--timeout",
+    "900",
+    "--keep-worktree"
+  ],
+  "wall_s": 51.1,
+  "exit_code": 0,
+  "receipt_status": "PASS",
+  "receipt_reason": "ok",
+  "attempts": 1,
+  "review_verdict": "accept",
+  "review_reasons": [],
+  "commit": "a0aa067ab7c9e49524a2350548c2b2b5011abd5c",
+  "branch": "cloud/t2-content-hash-for-the-119-tree-signatu-20261031T212413651115Z",
+  "base": "997d89264495861a178713ccf7d4447ea828afc4",
+  "planted": "0665c4c26694f8c9e29dbdc40da61be7fd784db3",
+  "lane_head": "c8cf32fe9b647ed90bc290457d97664f07e4d2f4",
+  "gate_rerun": {
+    "exit": 0,
+    "acceptance_unchanged": true
+  },
+  "human": "accept",
+  "human_note": "tree_sig matches smoke_122_124.py exactly. Only smoke_119_121.py changed. Canonical gate rerun passed.",
+  "timeout_s": 900
+}

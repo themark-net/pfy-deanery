@@ -1,0 +1,47 @@
+{
+  "task": "t5-receipts-outside-repo",
+  "label": "pass1",
+  "command": [
+    "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-sixtask-int-1031/pfy",
+    "build",
+    "# t5 117 and 119 tests must not write repo receipts\n\nLevel: slightly hard\nBase SHA: 997d89264495861a178713ccf7d4447ea828afc4\nFiles likely touched: tests/test_x_intake_smoke_117_118.py, tests/test_x_intake_smoke_119_121.py\nGate: python3 -m unittest tests.test_mvp2_t5_receipts\n\nThe acceptance test `tests/test_mvp2_t5_receipts.py` is already in the tree. Do not edit it. Do not commit. Do not change the smoke scripts.\n\n`tests/test_x_intake_smoke_117_118.py` and `tests/test_x_intake_smoke_119_121.py` call the smoke without `PFY_SMOKE_RECEIPT_DIR`, so `write()` in `examples/x-intake-local/smoke.py` drops `pipelines/smoke/<entry>/latest.json` inside the repo. Later suites already avoid that. Match `tests/test_x_intake_smoke_112_114.py`: one temp directory per test, put it in `PFY_SMOKE_RECEIPT_DIR` on the env passed to the smoke, and read the receipt from that directory.\n\n`test_wrong_kander_version_exits_2` and `test_agentdescent_wrong_version_exits_2` must still pass and must not create or modify `pipelines/smoke/kander/latest.json` or `pipelines/smoke/agentdescent/latest.json`. The gitignore tests in both modules must still pass. Do not skip tests. Do not weaken assertions. Only these two test modules may change.\n\nGate command: `python3 -m unittest tests.test_mvp2_t5_receipts`\n",
+    "--repo",
+    "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-sixtask-int-1031/tmp/sixtask-int-clones/pass1/t5-receipts-outside-repo",
+    "--base",
+    "demo-base",
+    "--test-cmd",
+    "python3 -m unittest tests.test_mvp2_t5_receipts",
+    "--receipt-dir",
+    "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-sixtask-int-1031/eval/mvp-1031/sixtask-int/receipts/pass1/t5-receipts-outside-repo",
+    "--timeout",
+    "900",
+    "--writable-test",
+    "tests/test_x_intake_smoke_117_118.py",
+    "--writable-test",
+    "tests/test_x_intake_smoke_119_121.py",
+    "--keep-worktree"
+  ],
+  "writable_test": [
+    "tests/test_x_intake_smoke_117_118.py",
+    "tests/test_x_intake_smoke_119_121.py"
+  ],
+  "wall_s": 215.3,
+  "exit_code": 0,
+  "receipt_status": "PASS",
+  "receipt_reason": "ok",
+  "attempts": 1,
+  "review_verdict": "accept",
+  "review_reasons": [],
+  "commit": "b212478f521d312f14daa6e83c4c79de520b43ca",
+  "branch": "cloud/t5-117-and-119-tests-must-not-write-repo-20261031T230613356284Z",
+  "base": "997d89264495861a178713ccf7d4447ea828afc4",
+  "planted": "b69e54da872f0d789e1cff9bf11adb1f443fe763",
+  "lane_head": "1ed9e8cb0cb6619bcdba3fe7acf895ed1f9950f6",
+  "gate_rerun": {
+    "exit": 0,
+    "acceptance_unchanged": true
+  },
+  "human": "accept",
+  "human_note": "Both test modules set PFY_SMOKE_RECEIPT_DIR to a per-test temp dir and read the receipt from there. No smoke script changed. No assertion was skipped or weakened. The planted gate was not edited and the canonical rerun passed.",
+  "timeout_s": 900
+}

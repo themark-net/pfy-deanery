@@ -141,12 +141,43 @@ def _slug(text: str) -> str:
     return raw or "task"
 
 
+def commit_subject(task_text: str) -> str:
+    """Cloud commit subject: whole words, at most 72 characters.
+
+    Dogfood2 cut the task at 72 characters and stopped mid-word, so git log
+    showed a fragment. The unread words stay in the commit body.
+    """
+    flat = " ".join((task_text or "").split())
+    if not flat:
+        return "task"
+    if len(flat) <= 72:
+        return flat
+    cut = flat[:69]
+    if " " in cut:
+        cut = cut.rsplit(" ", 1)[0]
+    cut = cut.rstrip()
+    if not cut:
+        cut = flat[:69].rstrip()
+    return (cut or "task") + "..."
+
+
 def redact(text: str) -> str:
     if not text:
         return ""
 
     def _eq(match: re.Match) -> str:
-        return match.group(1) + match.group(2) + "[redacted]"
+        # Fail: every name containing KEY or TOKEN hid fixture ids such as
+        # user_key=list-user. Recover: keep a short lowercase fixture value.
+        # Still hide an uppercase env name, a password or secret name, and a
+        # value that is long or mixes letters and digits.
+        name, sep, value = match.group(1), match.group(2), match.group(3)
+        lower = name.lower()
+        explicit = any(word in lower for word in ("password", "passwd", "secret"))
+        mixed = any(ch.isalpha() for ch in value) and any(ch.isdigit() for ch in value)
+        looks = len(value) >= 32 or (len(value) >= 8 and mixed)
+        if explicit or name.isupper() or looks or value == "[redacted]":
+            return name + sep + "[redacted]"
+        return match.group(0)
 
     text = _PEM.sub("[redacted-private-key]", text)
     text = text.replace("BEGIN PRIVATE KEY", "[redacted-private-key]")
@@ -199,15 +230,37 @@ def resolve_repo(raw: str | None) -> Path:
 
 
 def resolve_base(repo: Path, requested: str | None) -> tuple[str, str]:
+    """Pick the commit the worktree is built from.
+
+    Fail: HEAD is a bot branch and origin/main is an older main, and the
+    run silently builds main. Recover: exit 2 and ask for --base.
+    When the two shas match, origin/main stays the default. When
+    origin/main is absent, HEAD stays the default.
+    A requested ref that does not resolve raises BaseMissing so the
+    caller records worktree-failed instead of a usage error.
+    """
     if requested and requested.strip():
         ref = requested.strip()
-    else:
-        probe = _git(repo, ["rev-parse", "--verify", "--quiet", "origin/main"])
-        ref = "origin/main" if probe.returncode == 0 else "HEAD"
-    sha = _git(repo, ["rev-parse", "--verify", ref])
-    if sha.returncode != 0 or not (sha.stdout or "").strip():
-        raise BaseMissing(ref)
-    return ref, sha.stdout.strip()
+        sha = _git(repo, ["rev-parse", "--verify", ref])
+        if sha.returncode != 0 or not (sha.stdout or "").strip():
+            raise BaseMissing(ref)
+        return ref, sha.stdout.strip()
+    probe = _git(repo, ["rev-parse", "--verify", "--quiet", "origin/main"])
+    head = _git(repo, ["rev-parse", "--verify", "HEAD"])
+    if head.returncode != 0 or not (head.stdout or "").strip():
+        raise BaseMissing("HEAD")
+    head_sha = head.stdout.strip()
+    if probe.returncode != 0:
+        return "HEAD", head_sha
+    main_sha = (probe.stdout or "").strip()
+    if not main_sha:
+        raise BaseMissing("origin/main")
+    if main_sha != head_sha:
+        raise UsageError(
+            "HEAD %s is not origin/main %s. Pass --base origin/main or --base HEAD."
+            % (head_sha[:12], main_sha[:12])
+        )
+    return "origin/main", main_sha
 
 
 def default_receipt_dir(repo: Path, stamp: str) -> Path:
@@ -359,7 +412,10 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument(
         "--base",
         default=None,
-        help="base ref (default: origin/main if it exists, else HEAD)",
+        help=(
+            "base ref. Required when HEAD is not origin/main. "
+            "Default is origin/main when it matches HEAD, else HEAD if origin/main is absent"
+        ),
     )
     parser.add_argument("--test-cmd", default=DEFAULT_TEST_CMD, help="gate command")
     parser.add_argument(
@@ -785,6 +841,28 @@ def run_command(
     return "done", code, out or "", err or ""
 
 
+def before_gate_block(record: dict | None, test_cmd: str) -> str | None:
+    """Usage reason when the gate cannot run, else None.
+
+    A red assertion returns None so the task can fix it. A missing binary
+    always blocks. An import error blocks only the default unittest command.
+    A custom gate that imports the product module is the bug under test.
+    """
+    if not record or not record.get("started"):
+        return "gate-missing"
+    if (test_cmd or "").strip() != DEFAULT_TEST_CMD:
+        return None
+    tail = str(record.get("tail") or "")
+    blocked = (
+        "ModuleNotFoundError" in tail
+        or "No module named" in tail
+        or "Start directory is not importable" in tail
+    )
+    if record.get("exit") not in (0, None) and blocked:
+        return "gate-unusable"
+    return None
+
+
 class CloudBuild:
     def __init__(self, args, repo: Path, base_ref: str, base_sha: str, grok: str | None) -> None:
         self.args = args
@@ -849,12 +927,27 @@ class CloudBuild:
         where = cwd or self.worktree
         if where is None:
             return {"cmd": self.args.test_cmd, "exit": None, "tail": "no worktree", "started": False}
+        # The product gate must not read the operator's secret env. Grok still
+        # uses child_env(), because an operator login may live there.
+        env = self.child_env()
+        for key in list(env):
+            upper = key.upper()
+            if (
+                any(
+                    word in upper
+                    for word in ("TOKEN", "SECRET", "PASSWORD", "PASSWD", "CREDENTIAL", "AUTHORIZATION")
+                )
+                or upper == "KEY"
+                or upper.endswith("_KEY")
+                or "_KEY_" in upper
+            ):
+                env.pop(key, None)
         status, code, out, err = run_command(
             argv,
             where,
             self.args.timeout,
             self.state,
-            self.child_env(),
+            env,
             on_start=self.save_pid,
         )
         text = (out or "") + ("\n" + err if err else "")
@@ -966,7 +1059,13 @@ class CloudBuild:
             _git(self.worktree, ["reset"])
             self.reason = "interrupted"
             return "interrupted"
-        message = redact(" ".join(self.args.task_text.split())[:72] or "task") + "\n"
+        flat = " ".join((self.args.task_text or "").split())
+        subject = redact(commit_subject(flat))
+        body = redact(flat)
+        if body and body != subject:
+            message = subject + "\n\n" + body + "\n"
+        else:
+            message = subject + "\n"
         committed = _git(
             self.worktree,
             [
@@ -1092,6 +1191,10 @@ class CloudBuild:
         print(_summary(self.status, self.reason, self.branch, self.receipt_path))
         if self.exit_code != EXIT_OK:
             print("FAIL: %s" % self.reason, file=sys.stderr)
+            if self.recovery:
+                # The receipt holds the same line. Print it so the terminal
+                # says what to run next without opening the json.
+                print(self.recovery, file=sys.stderr)
         return self.exit_code
 
     def _gate_timeout_fail(self, number: int, output: str) -> int:
@@ -1143,6 +1246,16 @@ class CloudBuild:
         if self.state.interrupted or (self.gate_before or {}).get("aborted") == "interrupted":
             self.record(0, "FAIL", "interrupted", "")
             return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
+        blocked = before_gate_block(self.gate_before, self.args.test_cmd)
+        if blocked:
+            tail = str((self.gate_before or {}).get("tail") or "")
+            self.record(0, "FAIL", blocked, tail)
+            recovery = (
+                "The gate did not start as a product failure. "
+                'Pass --test-cmd with an interpreter that can import this repo. '
+                'The default is "%s".' % DEFAULT_TEST_CMD
+            )
+            return self.fail("FAIL", blocked, EXIT_USAGE, recovery)
         base_tests = snapshot_tests(self.worktree)
         feedback = ""
         previous_diff = ""

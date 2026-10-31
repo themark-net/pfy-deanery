@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/make-smoke-149-refuse-a-relative-pfy-smo-20261031T224738464958Z",
+  "commit": "ffc477cd298969d3310809580cb70ebce1aee77b",
+  "base": "HEAD",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll match `smoke.write` so `smoke_149` rejects a relative `PFY_SMOKE_RECEIPT_DIR`. First I'll read that function and the receipt path in `smoke_149.py`.`finish` still writes whatever `PFY_SMOKE_RECEIPT_DIR` points at. I'll refuse a non-empty relative path the same way `smoke.write` does, and leave absolute, empty, and unset paths alone.`finish` in `examples/x-intake-local/smoke_149.py` now refuses a non-empty relative `PFY_SMOKE_RECEIPT_DIR` the same way `smoke.write` does.\n\nA relative value prints `PFY_SMOKE_RECEIPT_DIR must be absolute; directory refused: ...`, writes nothing, and returns 1. An absolute directory still writes `latest.json` there and returns the given code. An unset or empty value still uses `pipelines/smoke/mempalace`.\n\n`python3 -m unittest tests.test_smoke_149_receipt_absolute tests.test_x_intake_smoke_149.Smoke149.test_missing_binary_exit_2` passed (2 tests).\n\nI'll check the smoke_149 change against `smoke.write` and the task limits before giving a verdict.The tree matches the diff. I'll confirm nothing else changed and that the refusal matches `smoke.write`.verdict: accept\n\nThe edit is only in `finish` in `examples/x-intake-local/smoke_149.py`. A non-empty relative `PFY_SMOKE_RECEIPT_DIR` prints a line containing \"absolute\", writes nothing, and returns 1. An absolute directory still writes `latest.json` and returns the given code. Unset or empty still uses `pipelines/smoke/mempalace`. That matches `smoke.write`. No other files changed.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "python3 -m unittest tests.test_smoke_149_receipt_absolute tests.test_x_intake_smoke_149.Smoke149.test_missing_binary_exit_2",
+    "before": {
+      "cmd": "python3 -m unittest tests.test_smoke_149_receipt_absolute tests.test_x_intake_smoke_149.Smoke149.test_missing_binary_exit_2",
+      "exit": 1,
+      "tail": "\nF.\n======================================================================\nFAIL: test_relative_dir_is_refused_and_absolute_still_writes (tests.test_smoke_149_receipt_absolute.Smoke149ReceiptAbsoluteTests.test_relative_dir_is_refused_and_absolute_still_writes)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-selfhost-1031/tmp/selfhost-clones/target-14/tmp/cloud-build/20261031T224738464958Z/tests/test_smoke_149_receipt_absolute.py\", line 50, in test_relative_dir_is_refused_and_absolute_still_writes\n    self.assertEqual(code, 1, buf.getvalue())\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 2 != 1 : {\"status\": \"SKIP\", \"reason\": \"relative\", \"failed\": []}\n\n\n----------------------------------------------------------------------\nRan 2 tests in 0.025s\n\nFAILED (failures=1)\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "python3 -m unittest tests.test_smoke_149_receipt_absolute tests.test_x_intake_smoke_149.Smoke149.test_missing_binary_exit_2",
+      "exit": 0,
+      "tail": "\n..\n----------------------------------------------------------------------\nRan 2 tests in 0.031s\n\nOK\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": true,
+  "task": "Make smoke_149 refuse a relative PFY_SMOKE_RECEIPT_DIR like smoke.write.\n\nEdit only receipt_dir or finish in examples/x-intake-local/smoke_149.py. Do not edit tests. Do not commit. Do not edit smoke.py. Do not edit smoke_148.py. Do not edit home_sig.\n\nMatch smoke.write in examples/x-intake-local/smoke.py. A non-empty relative PFY_SMOKE_RECEIPT_DIR prints a line containing \"absolute\", writes nothing, and returns 1. An absolute directory still writes latest.json in that directory and returns the given code. Unset or empty still uses pipelines/smoke/mempalace.\n\nNo em dashes or en dashes.\n\nGate already in the tree. Do not edit it:\ntests.test_smoke_149_receipt_absolute\ntests.test_x_intake_smoke_149.Smoke149.test_missing_binary_exit_2",
+  "finished_at": "2026-10-31T22:49:34Z"
+}

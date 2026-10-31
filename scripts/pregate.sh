@@ -391,10 +391,18 @@ check_lint() {
   # that may have PyYAML while the venv does not. Missing PyYAML fails closed
   # and the helper names that path.
   pin_py="$(command -v python3 || true)"
+  # PREGATE_IMAGE_PIN_ROOT is a test hook. Unset or empty, the helper checks
+  # this repo's workflows. Set to a directory or file, it checks that path,
+  # so a fixture can fail the lint without editing the real rules. A missing
+  # path fails closed inside the helper.
+  pin_root=".github/workflows"
+  if [[ -n "${PREGATE_IMAGE_PIN_ROOT:-}" ]]; then
+    pin_root="$PREGATE_IMAGE_PIN_ROOT"
+  fi
   if [[ -z "$pin_py" ]]; then
     echo "FAIL: workflow image pin: python3 not on PATH"
     fail=1
-  elif ! "$pin_py" scripts/check_workflow_image_pin.py .github/workflows; then
+  elif ! "$pin_py" scripts/check_workflow_image_pin.py "$pin_root"; then
     fail=1
   fi
   if ! grep -q 'ripgrep' .github/workflows/eval-structural.yml; then
