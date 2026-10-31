@@ -45,4 +45,5 @@ Drop-in exits (same loop, checked before every item):
 ## Items
 
 - exits | a2302df | none (log only) | pushed
-- operator card | this commit | link and contract strings checked locally; unittest is the next item | written
+- operator card | c73ef00 | link targets and contract strings checked before commit; unittest is the next item | pushed
+- contract test | this commit | nice -n 19 python3 -m unittest tests.test_pfy_build_docs : 5 tests OK | green
