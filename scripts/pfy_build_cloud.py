@@ -229,6 +229,30 @@ def _norm_rel(path: str) -> str:
     return normalized
 
 
+def _glob_match(rel: str, name: str, pat: str) -> bool:
+    if fnmatch_path(rel, pat) or fnmatch_path(name, pat):
+        return True
+    if pat.endswith("/**"):
+        prefix = pat[:-3].rstrip("/")
+        if prefix and (rel == prefix or rel.startswith(prefix + "/")):
+            return True
+    if "**" not in pat:
+        return False
+    if fnmatch_path(rel, pat.replace("**", "*")):
+        return True
+    # ** matches zero directories, so dogfood/**/grok-home also covers dogfood/grok-home.
+    collapsed = pat
+    while "/**/" in collapsed:
+        collapsed = collapsed.replace("/**/", "/", 1)
+        if fnmatch_path(rel, collapsed) or fnmatch_path(name, collapsed):
+            return True
+        if collapsed.endswith("/**"):
+            prefix = collapsed[:-3].rstrip("/")
+            if prefix and (rel == prefix or rel.startswith(prefix + "/")):
+                return True
+    return False
+
+
 def _protected(path: str, patterns: tuple[str, ...] = DEFAULT_PROTECT) -> bool:
     rel = _norm_rel(path)
     if not rel or rel.startswith("../") or rel == ".." or "/../" in "/%s/" % rel:
@@ -236,15 +260,7 @@ def _protected(path: str, patterns: tuple[str, ...] = DEFAULT_PROTECT) -> bool:
     name = Path(rel).name
     for pattern in patterns:
         pat = _norm_rel(pattern)
-        if not pat:
-            continue
-        if fnmatch_path(rel, pat) or fnmatch_path(name, pat):
-            return True
-        if pat.endswith("/**"):
-            prefix = pat[:-3].rstrip("/")
-            if rel == prefix or rel.startswith(prefix + "/"):
-                return True
-        if "**" in pat and fnmatch_path(rel, pat.replace("**", "*")):
+        if pat and _glob_match(rel, name, pat):
             return True
     return False
 
