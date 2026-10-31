@@ -330,4 +330,12 @@ How it fails: a previous worktree is mode 000, so remove cannot delete it. The r
 How we recover: nothing is committed. Delete that directory and run again. A removable leftover is deleted and named on the receipt, and the new worktree is a different directory.
 
 item | commit | tests | result
-S5-stale | this commit | nice python3 -m unittest tests.test_pfy_build_local | Ran 68 tests in 87.750s OK
+S5-stale | 08ca29b | nice python3 -m unittest tests.test_pfy_build_local | Ran 68 tests in 87.750s OK
+
+## Wave 4 finish
+
+Checked 2026-10-31T23:18:15Z. MemAvailable about 79 GiB. Load about 3.71 on 32 cores. Wall cap 2026-11-01T04:22:04Z has not fired. `Runner.Worker` pid 3510235 is live. pregate not run: host busy.
+
+S1 through S5 are pushed. No further row in the parallel plan fits these owned files. G1 through G3 and G6 through G9 are other lanes. G4 and G5 are already on the base. G10 is excluded. Round 2 `mvp-sandbox-gate-1031` is already item 11 (`b483166`). `mvp-local-t5-1031` needs a local model and `eval/mvp-1031/`, which this lane must not touch. Lane empty.
+
+state: DONE | exit: lane empty | product: 08ca29b | pregate not run: host busy

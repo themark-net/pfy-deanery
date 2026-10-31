@@ -1,71 +1,83 @@
 # Handoff: reviewer follow-ups (mvp-review-fix2-1031)
 
-Branch `bot/mvp-review-fix2-1031`. Worktree `~/DEVELOP/pfy-mentat/tmp/mvp-review-fix2-1031`. Base `origin/bot/mvp-review-fix-1031`, plus merge `fbb2835` of `origin/bot/mvp3-review-retry` (`d624535`). No PR. No force push. Mark merges after Tester plus Reviewer. This run does not merge.
+Branch `bot/mvp-review-fix2-1031`. Worktree `~/DEVELOP/pfy-mentat/tmp/mvp-review-fix2-1031`. No PR. No force push. Mark merges after Tester plus Reviewer. This run does not merge.
 
-Integrate after `bot/mvp-review-fix-1031`. `./pfy build --local` stays opt-in. Review stays on unless `--no-review`. `--retries` default stays 2. Exit codes are unchanged (0 PASS, 1 FAIL including REVIEW-ERROR and PASS-REJECTED, 2 usage, 3 TIMEOUT, 4 BLOCKED). No Ollama process was started. No model was loaded.
+Integrate after `bot/mvp-review-fix-1031`. `./pfy build --local` stays opt-in. Review stays on unless `--no-review`. `--retries` default stays 2. Exit codes stay 0 PASS, 1 FAIL (including reviewer-unavailable, crash, PASS-REJECTED, and stale-worktree), 2 usage, 3 TIMEOUT, 4 BLOCKED. No Ollama process was started. No model was loaded.
 
-## Items done
+Wave 4 supersedes the earlier lane-empty handoff. The merge of `origin/bot/mvp3-review-retry` at `582414b` is `ae4ad38`. Product tip for the runtime changes is `08ca29b`.
+
+## Wave 4 items
 
 | Item | SHA | Tests |
 |------|-----|-------|
-| Exit card | `9fee546` | docs only |
-| Merge MVP-3 tip | `fbb2835` | merge, no rebase |
-| 1 Reviewer outage | `e685f70` | both modules, Ran 74 in 109.054s OK |
-| 2 Mutant M4 | `d5f4812` | outage tests; mutant failed, then restored |
-| 3 Mutant M7 | `5079532` | review module, Ran 14 in 29.210s OK |
-| 5 Review defaults | `34a6eaf` | review module, Ran 15 in 29.461s OK |
-| 6 No allow list warning | `cef308c` | both modules, Ran 77 in 113.162s OK |
-| 7 Stub seam | `8dd5baf` | review Ran 17 in 32.132s OK; local Ran 61 in 81.253s OK |
-| 8 Same-model note | `db3dfcb` | docs only. Trial numbers were not re-run |
-| 9 Scratch path | `23ea0cd` | eval module, Ran 19 in 47.288s OK |
-| 10 Ubuntu review parity | `187efde` | parity test Ran 1 in 31.601s OK; inner review ran=17 skipped=0 |
-| 11 Sandbox gate | `b483166` | local plus review, Ran 79 in 115.311s OK |
+| Wave 4 exit card | `c527aa9` | docs only |
+| Merge 582414b | `ae4ad38` | local plus review, Ran 85 in 148.861s OK |
+| S1 reviewer outage | `5cdc5c2` | review module, Ran 23 in 67.088s OK |
+| S2 overall timeout | `55ca386` | review Ran 24 in 122.108s OK; local Ran 62 in 112.159s OK |
+| S3 crash, not no-change | `c114c7f` | local module, Ran 64 in 84.626s OK |
+| S4 one label list | `2bd11ce` | local module, Ran 65 in 85.031s OK |
+| S5 stale worktrees | `08ca29b` | local module, Ran 68 in 87.750s OK |
 
-## What changed
+## Earlier items still on the branch
 
-Reviewer HTTP error or timeout is status `REVIEW-ERROR`, reason `review-unavailable`, exit 1. It is not retried and not a reject. The receipt carries a recovery line. Unparseable JSON stays `review-unparseable` and is still retried.
+| Item | SHA | Note |
+|------|-----|------|
+| 1 First outage token | `e685f70` | Superseded by S1. Current token is `reviewer-unavailable`, not `REVIEW-ERROR`. |
+| 2 Mutant M4 | `d5f4812` | Outage is not a reject. Mutant failed, then the file was restored. |
+| 3 Mutant M7 | `5079532` | Previous diff reaches the retry prompt. |
+| 4 Scope vs commit | `7bdede7` | Already on the base. Reconfirmed by `582414b`. Not rewritten. |
+| 5 Review defaults | `34a6eaf` | Help text and the MVP-3 handoff: review on, cap 3 files / 250 lines. |
+| 6 No allow list | `cef308c` | Receipt `warnings` entry. The run can still PASS. |
+| 7 Stub seam | `8dd5baf` | `PFY_STUB_*` only when `PFY_LOCAL_BUILD_TEST_SEAM=1`. |
+| 8 Same-model note | `db3dfcb` | `eval/mvp3/REPORT.md`. Trial numbers were not re-run. |
+| 9 Scratch path | `23ea0cd` | Eval scratch under the script repo `tmp/`. |
+| 10 Ubuntu review parity | `187efde` | Review module ran 17, skipped 0, with bwrap hidden. |
+| 11 Sandbox gate | `b483166` | This lane's copy of round-2 `mvp-sandbox-gate-1031`. |
 
-The retry prompt includes the previous diff. M4 (outage reported as `review-unparseable`) and M7 (empty previous diff) fail the new tests.
+## What changed in wave 4
 
-A task with no `files:` line and no `--allow-path` adds a `warnings` entry. The run can still PASS. `PFY_STUB_PLAN`, `PFY_STUB_COUNT`, and `PFY_STUB_PROMPTS` are read only when `PFY_LOCAL_BUILD_TEST_SEAM=1`. The receipt lists `sandbox_extra_rw`.
+An unreachable reviewer (HTTP error or a review-call timeout) sets receipt and attempt status `reviewer-unavailable`, exit 1. It is not `FAIL`, not `TIMEOUT`, and not `PASS-REJECTED`. Nothing is committed and the attempt is not retried. Empty diff stays `review-empty-diff`. An agent timeout stays reason `timeout`.
 
-Help text and `docs/ops/HANDOFF-mvp3-review-retry.md` say review is on by default and the cap is 3 files and 250 added plus removed lines. `eval/mvp3/REPORT.md` says the reviewer is the same model as the agent (`qwen3.6:35b` on the same endpoint), so a shared blind spot is not an independent review. The human column is the independent read.
+`--overall-timeout` (default 7200, env `PFY_LOCAL_BUILD_OVERALL_TIMEOUT`) caps the whole build and review loop from the start stamp. Hitting it sets status `TIMEOUT`, reason `overall-timeout`, exit 3. A shorter overall cap wins over the review-call timeout, so that case is `overall-timeout` rather than `reviewer-unavailable`.
 
-Eval copies and `TMPDIR` stay under the script repo's `tmp/` (or `--repo` under that tree). `--repo` elsewhere in the main checkout exits 2 before any write. `eval/mvp3/run_trial.py` already used its own file path. A hostile cwd and `TMPDIR` still create `tmp/mvp3-trial-tmp` here.
+A nonzero agent exit with an empty diff is status and reason `crash`, exit 1. It is not retried. Exit 0 with an empty diff stays `no-change`. A nonzero exit that wrote a diff still reaches the gate and can PASS.
 
-The review module has no bwrap skip and no model skip. A PATH with every executable except `bwrap` runs all 17 review tests, skipped 0.
+Receipt status and the stdout summary token are the same word from `LABELS`: PASS, FAIL, PASS-REJECTED, reviewer-unavailable, crash, TIMEOUT, BLOCKED, ABORTED. `BLOCKED` no longer prints as `BLOCKED:`. `_lab` raises `LabelError` for any other word and that error is not rewritten to FAIL.
 
-`--unsafe-no-sandbox` sandboxes the test gate whenever bwrap works. The receipt field `gate_unsandboxed` is true only when a gate run took `unsafe-no-sandbox` because bwrap was missing and the flag was set. Without the flag, a missing bwrap is still `BLOCKED` `no-sandbox` and the field stays false. A stub bwrap that logs argv and execs the command after `--` proves the gate line contains `--unshare-net` and `unittest` while the flag is set.
+After the lock, leftover `tmp/local-build-*` directories are listed on `stale_worktrees` and removed before `git worktree add`. A path that is still there stops the run with status FAIL, reason `stale-worktree`, exit 1, worktree null. The agent does not start. Dry-run lists the leftovers and does not delete them.
 
 ## How this fails and how we recover
 
 | Risk | How it fails | Recovery |
 |------|--------------|----------|
-| Reviewer HTTP 500 or timeout | Status `REVIEW-ERROR`, one attempt, no branch | Recovery line: run again when the reviewer answers, or pass `--no-review` |
-| Outage counted as a reject | M4 tests expect `REVIEW-ERROR`, not `PASS-REJECTED` | Restore the unavailable return. Do not retry |
-| Retry prompt drops the last diff | M7 test looks for the removed calc line under `Previous diff:` | The agent sees the prior patch and the reject reason |
-| No allow list | PASS receipt carries `warnings` that scope was not checked | Add `files:` or `--allow-path`. The warning goes away. Exit code stays a normal PASS |
-| Stub env in production | Seam unset. `sandbox_extra_rw` is empty | Set `PFY_LOCAL_BUILD_TEST_SEAM=1` only in the review harness |
-| Same model reviews itself | Report states the human column is the independent read | Do not treat the model accept as a second opinion |
-| Scratch follows cwd or `TMPDIR` into the main checkout | Eval refuses that `--repo` (exit 2) and pins `TMPDIR` to the script repo `tmp/` | Run the script from its worktree, or pass `--repo` under that tree |
-| Review tests skip on ubuntu | Parity test hides bwrap and requires OK with no `skipped=` | Keep the stub HTTP reviewer. Do not add a bwrap skip |
-| Flag unsandboxes a working gate | Stub log must show `--unshare-net` and `unittest` on one line, and `gate_unsandboxed` false | Install bwrap, or pass the flag only when it is missing and accept `gate_unsandboxed` true plus the stderr WARN |
+| Reviewer HTTP 500 or review-call timeout | Status `reviewer-unavailable`, one attempt, no branch | Run again when the reviewer answers, or pass `--no-review` |
+| Whole loop exceeds the wall cap | Status `TIMEOUT`, reason `overall-timeout`, exit 3, no branch | Run again with a larger `--overall-timeout` |
+| Agent exits nonzero and writes nothing | Status `crash`, exit 1, not retried | Run the build again. An exit 0 empty diff can still retry as `no-change` |
+| Summary token drifts from the receipt | Stdout first token must equal the receipt status, including `BLOCKED` with no colon | The eight words live in `LABELS` and in the module docstring |
+| Unknown status rewritten to FAIL | `_lab("NOT-A-STATUS")` raises `LabelError` | Fix the word. Do not store it as FAIL |
+| Leftover worktree cannot be removed | Reason `stale-worktree`, worktree null, agent does not start, directory remains | Delete that directory and run again. A removable leftover is deleted and named on the receipt |
+| Dry-run deletes a leftover | Dry-run leaves the directory and still lists it | Dry-run starts nothing |
+| Flag unsandboxes a working gate | Stub log must show `--unshare-net` and `unittest`, and `gate_unsandboxed` false | Install bwrap, or pass the flag only when it is missing |
+| No allow list | PASS receipt carries a `warnings` entry | Add `files:` or `--allow-path` |
+| Stub env in production | Seam unset. `sandbox_extra_rw` stays empty | Set `PFY_LOCAL_BUILD_TEST_SEAM=1` only in the harness |
+| Review tests skip on ubuntu | Parity test hides bwrap and requires OK with no skips | Keep the stub HTTP reviewer |
 
 ## Skipped
 
-- Item 4 (scope vs commit, gitignored extra file). Already on the base at `7bdede7`, which is an ancestor of this branch. Not on `origin/main`. Not rewritten.
-- Further plan rows. G1, G2, G3, G6, G7, G8, and G9 belong to other lanes and other files. G10 is excluded. `mvp-local-t5-1031` needs a local model and `eval/mvp-1031/`. Lane empty.
-- Official `./scripts/pregate.sh`. pregate not run: host busy. At 2026-10-31T21:26:33Z `Runner.Worker` pid 2242260 was live and the heavy lock was held by unittest discover pids 2291979 and 2294586. The script would also add a worktree under the main checkout `tmp/pg/`.
+- Further plan rows after S5. G1, G2, G3, G6, G7, G8, and G9 belong to other lanes and other files. G4 and G5 are already on the base. G10 is excluded. Round 2 `mvp-sandbox-gate-1031` is item 11.
+- `mvp-local-t5-1031`. It needs a local model and it writes `eval/mvp-1031/`, which this lane must not touch. This drop-in says never load a model.
+- Official `./scripts/pregate.sh`. pregate not run: host busy. At 2026-10-31T23:18:15Z `Runner.Worker` pid 3510235 was live. MemAvailable was about 79 GiB and load was about 3.71 on 32 cores, so this was the runner, not host pressure.
 
 ## Cross-lane
 
 - `scripts/pregate.sh` still sets scratch from `git rev-parse --git-common-dir`, so a linked worktree writes `tmp/pgs` under the main checkout. That file is not owned. Do not move it into a long worktree path: `docs/ops/PREGATE.md` keeps run roots at or under 60 characters so harness2 unix sockets fit `sun_path`. OQ draft: if pregate scratch must stay inside the invoking worktree, the short-path rule needs a new design. This lane did not write that ADR.
-- Cloud runner: if it copies `--unsafe-no-sandbox`, copy the gate rule too. `gate_unsandboxed` is true only when bwrap is missing and the flag is set. Do not copy a path that unsandboxes the gate while bwrap works.
+- Cloud runner: if it copies `--unsafe-no-sandbox`, copy the gate rule too. `gate_unsandboxed` is true only when bwrap is missing and the flag is set.
+- Cloud runner: if it copies the review loop, copy `reviewer-unavailable` (not retried, not a reject), the overall cap, crash versus no-change, the label list, and stale-worktree. Do not import this lane's file. Those files are not owned here.
 - Integrate: merge `bot/mvp-review-fix2-1031` after `bot/mvp-review-fix-1031`.
 
 ## Gate
 
-Runtime changes in `scripts/pfy_build_local.py` and `scripts/pfy_local_build_eval.py`. Needs Tester plus Reviewer at the handoff SHA. Official pregate was not run (host busy). Owned modules exercised here are green. No Feature GO.
+Runtime changes in `scripts/pfy_build_local.py`. Needs Tester plus Reviewer at the branch tip. Official pregate was not run (host busy). The local module at S5 was Ran 68 in 87.750s OK. The review module was last run green at S2 (Ran 24 in 122.108s OK) and was not re-run for S3 through S5, which did not change the review verdict path. No Feature GO.
 
 ## Next
 
