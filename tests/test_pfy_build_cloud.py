@@ -1493,6 +1493,36 @@ class CloudBuildFailureTests(unittest.TestCase):
         self.assertNotIn("sk_", raw)
         self.assertIn("[redacted]", raw)
 
+    def test_receipt_redacts_an_xai_marker_in_the_task_and_the_reply(self) -> None:
+        marker = "xai-FAKE0000"
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "print(%r)\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n" % marker,
+        )
+        proc = self._run_task(
+            grok,
+            self._gate(),
+            "Create kept.py containing exactly the line value = 1. Print %s once." % marker,
+            extra=["--no-review", "--retries", "0"],
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        path = list((self.repo / "pipelines" / "dogfood" / "build-cloud").glob("*/receipt.json"))[0]
+        raw = path.read_text(encoding="utf-8")
+        payload = json.loads(raw)
+        self.assertEqual(payload["status"], "PASS")
+        self.assertNotIn(marker, raw)
+        self.assertNotIn(marker.lower(), raw)
+        self.assertIn("[redacted]", raw)
+        self.assertNotIn(marker, payload["task"])
+        self.assertNotIn(marker, payload["attempts"][0]["output_tail"])
+        shown = _git(self.repo, "show", payload["commit"] + ":kept.py")
+        self.assertEqual(shown.stdout, "value = 1\n")
+
     def test_protected_auth_json_is_not_committed(self) -> None:
         grok = _write_exe(
             self.side / "grok.py",
