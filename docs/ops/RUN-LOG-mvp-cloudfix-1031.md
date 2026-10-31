@@ -132,3 +132,5 @@ Risks:
 ## Item log (wave 4)
 
 Format: `item | commit | tests | result`
+
+- wave4-card | 848411c | docs only | PASS
