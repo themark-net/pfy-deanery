@@ -1,0 +1,6 @@
+# Autonomous decisions: mvp-dogfood-fix-1031
+
+- 2026-10-31T22:38:38Z | Skills `write-loop-exits-first` and `repo-handoff-doc-required` are not files in this worktree or `~/.grok/skills`. Bound the loop to the drop-in exit list, the agent-loops card in `docs/ops/RUN-LOG-mvp-dogfood-fix-1031.md`, and `docs/ops/HANDOFF-mvp-dogfood-fix-1031.md`. | Stop and ask. | The drop-in says do not ask, and it already names the exits and the handoff path.
+- 2026-10-31T22:38:38Z | Lead implements each friction item itself. No parallel implementation sub-agents. | Spawn one agent per item. | The items share `scripts/pfy_build_cloud.py`. Cloudfix may still touch that file. One function per commit keeps the conflict small. The project-map agent is the only spawn.
+- 2026-10-31T22:38:38Z | Do not edit `docs/TODO.md`. | Add a TODO row per friction item. | The plan leaves that file to other lanes. This run's handoff is the record.
+- 2026-10-31T22:38:38Z | Treat dogfood F1 (new test file is `tests-tampered`) as already done on this base. `tests_tampered` only hashes paths from the base snapshot. `--writable-test` covers an edit of a base test. | Re-apply the cloudfix patch. | Integrate pass 2 already took the cloudfix file. A second copy would fight that lane.
