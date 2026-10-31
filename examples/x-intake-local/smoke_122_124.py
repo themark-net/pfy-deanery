@@ -79,11 +79,16 @@ def tree_sig(p: Path) -> str | None:
         return None
     h = hashlib.sha256()
     for f in sorted(p.rglob("*")):
-        # permission bits plus a streamed content hash, not mtime: chmod and a same-size edit change the signature
+        # permission bits plus a streamed content hash, not mtime: chmod and a same-size edit change the signature.
+        # a symlink is never opened: lstat mode and the readlink string, so a retarget changes the signature even
+        # when both targets hold the same bytes, and a file outside the tree is not hashed. an in-tree target stays
+        # its own entry and keeps its content hash.
         try:
-            if f.is_file():
-                st = f.stat()
-                mode = f"{stat.S_IMODE(st.st_mode):o}"
+            st = f.lstat()
+            mode = f"{stat.S_IMODE(st.st_mode):o}"
+            if stat.S_ISLNK(st.st_mode):
+                h.update(f"{f}:{mode}:link:{os.readlink(f)}\n".encode())
+            elif stat.S_ISREG(st.st_mode):
                 try:
                     fh = hashlib.sha256()
                     with f.open("rb") as fp:  # streamed in 1 MiB chunks, so a huge file doesn't load into RAM
@@ -94,8 +99,6 @@ def tree_sig(p: Path) -> str | None:
                 else:
                     h.update(f"{f}:{mode}:{st.st_size}:{fh.hexdigest()}\n".encode())
             else:
-                # lstat keeps a symlink recorded as itself; do not follow it or hash its target
-                mode = f"{stat.S_IMODE(f.lstat().st_mode):o}"
                 h.update(f"{f}:{mode}:dir\n".encode())
         except OSError:
             h.update(f"{f}:unreadable\n".encode())
