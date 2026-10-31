@@ -448,6 +448,148 @@ class EvalRunnerTests(unittest.TestCase):
         self.assertEqual(data["skip"], "busy-host unknown")
         self.assertEqual(data["tasks"], [])
 
+    def test_scratch_stays_in_this_worktree_when_cwd_and_tmpdir_point_elsewhere(self):
+        hostile = self.tmp / "hostile"
+        cwd = hostile / "cwd"
+        foreign = hostile / "pgs"
+        cwd.mkdir(parents=True)
+        foreign.mkdir()
+        copy_root = ROOT / "tmp"
+        summary_root = ROOT / "pipelines" / "dogfood" / "build-local-eval"
+        before_copies = {p.name for p in copy_root.glob("local-build-eval-*")} if copy_root.is_dir() else set()
+        before_summaries = {p.name for p in summary_root.glob("*")} if summary_root.is_dir() else set()
+        self.addCleanup(_drop_new_children, copy_root, "local-build-eval-*", before_copies)
+        self.addCleanup(_drop_new_children, summary_root, "*", before_summaries)
+        env = self.env("solve")
+        env["TMPDIR"] = str(foreign)
+        proc = subprocess.run(
+            [
+                "python3",
+                str(ROOT / "scripts" / "pfy_local_build_eval.py"),
+                "--model",
+                "fixture:small",
+                "--endpoint",
+                "http://127.0.0.1:%d/v1" % self.port,
+                "--timeout",
+                "60",
+                "--test-timeout",
+                "60",
+                "--limit",
+                "1",
+                "--only",
+                "t01-fix-off-by-one",
+            ],
+            cwd=cwd,
+            env=env,
+            text=True,
+            capture_output=True,
+            timeout=180,
+            check=False,
+        )
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        data, path = self.summary(proc)
+        scratch = Path(data["scratch"]).resolve()
+        self.assertEqual(scratch, (ROOT / "tmp").resolve())
+        self.assertTrue(any(scratch.glob("local-build-eval-*")))
+        self.assertEqual(data["passed"], 1)
+        worktree = Path(data["tasks"][0]["worktree"]).resolve()
+        self.assertEqual(worktree.parts[: len(scratch.parts)], scratch.parts)
+        self.assertEqual(list(foreign.rglob("*")), [])
+        self.assertEqual(path.resolve().parts[: len(ROOT.resolve().parts)], ROOT.resolve().parts)
+        main = _common_main()
+        pgs = (main / "tmp" / "pgs").resolve()
+        self.assertNotEqual(scratch, pgs)
+        self.assertFalse(scratch.parts[: len(pgs.parts)] == pgs.parts and len(scratch.parts) >= len(pgs.parts))
+
+
+def _common_main() -> Path:
+    proc = subprocess.run(
+        ["git", "-C", str(ROOT), "rev-parse", "--path-format=absolute", "--git-common-dir"],
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+    return Path(proc.stdout.strip()).resolve().parent
+
+
+def _drop_new_children(root: Path, pattern: str, before: set[str]) -> None:
+    if not root.is_dir():
+        return
+    for path in root.glob(pattern):
+        if path.name not in before:
+            shutil.rmtree(path, ignore_errors=True)
+
+
+def _drop_empty_dir(path: Path, existed: bool) -> None:
+    if existed or not path.is_dir():
+        return
+    try:
+        if any(path.iterdir()):
+            return
+        path.rmdir()
+    except OSError:
+        return
+
+
+class ScratchPathTests(unittest.TestCase):
+    def test_trial_usage_creates_scratch_under_the_script_repo(self):
+        base = ROOT / "tmp" / "local-build-eval-tests"
+        base.mkdir(parents=True, exist_ok=True)
+        decoy = Path(tempfile.mkdtemp(prefix="hostile-", dir=base))
+        self.addCleanup(shutil.rmtree, decoy, True)
+        cwd = decoy / "cwd"
+        foreign = decoy / "pgs"
+        cwd.mkdir()
+        foreign.mkdir()
+        trial_scratch = ROOT / "tmp" / "mvp3-trial-tmp"
+        existed = trial_scratch.exists()
+        self.addCleanup(_drop_empty_dir, trial_scratch, existed)
+        proc = subprocess.run(
+            ["python3", str(ROOT / "eval" / "mvp3" / "run_trial.py")],
+            cwd=cwd,
+            env={**os.environ, "TMPDIR": str(foreign), "PYTHONDONTWRITEBYTECODE": "1"},
+            text=True,
+            capture_output=True,
+            timeout=30,
+            check=False,
+        )
+        text = proc.stdout + proc.stderr
+        self.assertNotEqual(proc.returncode, 0, text)
+        self.assertIn("usage:", text)
+        self.assertTrue(trial_scratch.is_dir(), text)
+        self.assertEqual(list(foreign.rglob("*")), [])
+        main = _common_main()
+        self.assertNotEqual(trial_scratch.resolve(), (main / "tmp" / "pgs").resolve())
+        self.assertEqual(trial_scratch.resolve().parts[: len((ROOT / "tmp").resolve().parts)], (ROOT / "tmp").resolve().parts)
+
+    def test_eval_refuses_scratch_in_the_main_checkout(self):
+        main = _common_main()
+        self.assertNotEqual(main.resolve(), ROOT.resolve())
+        watched = main / "tmp"
+        before = {p.name for p in watched.glob("local-build-eval-*")} if watched.is_dir() else set()
+        proc = subprocess.run(
+            [
+                "python3",
+                str(ROOT / "scripts" / "pfy_local_build_eval.py"),
+                "--repo",
+                str(main),
+                "--limit",
+                "1",
+            ],
+            cwd=ROOT / "tmp",
+            env={**os.environ, "TMPDIR": str(ROOT / "tmp"), "PYTHONDONTWRITEBYTECODE": "1"},
+            text=True,
+            capture_output=True,
+            timeout=30,
+            check=False,
+        )
+        after = {p.name for p in watched.glob("local-build-eval-*")} if watched.is_dir() else set()
+        self.assertEqual(before, after)
+        self.assertEqual(proc.returncode, 2, proc.stdout + proc.stderr)
+        self.assertIn("main checkout", proc.stderr)
+        self.assertIn("Recovery:", proc.stderr)
+        self.assertIn(str(main), proc.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()
