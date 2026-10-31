@@ -214,4 +214,12 @@ The proof uses a stub `bwrap` that logs its argv and execs the command after `--
 How it fails: a flag that unsandboxes a working bwrap makes the stub log miss the wrapped unittest line, or sets `gate_unsandboxed` true. A missing bwrap without the flag still blocks. Recovery: install bwrap, or pass the flag and accept `gate_unsandboxed` true plus the stderr WARN. Re-run the build. The blocked receipt did not claim the gate ran unsandboxed.
 
 item | commit | tests | result
-item-11-sandbox | (sha next) | nice python3 -m unittest tests.test_pfy_build_local tests.test_pfy_build_local_review | Ran 79 tests in 115.311s OK
+item-11-sandbox | b483166 | nice python3 -m unittest tests.test_pfy_build_local tests.test_pfy_build_local_review | Ran 79 tests in 115.311s OK
+
+## Finish
+
+Checked 2026-10-31T21:26:33Z. MemAvailable about 59 GiB. Load about 3.84 on 32 cores. Wall cap 2026-11-01T04:22:04Z has not fired. `pgrep -f 'Runner[.]Worker'` found pid 2242260. The heavy lock was held by two `unittest discover` runs (pids 2291979 and 2294586). pregate not run: host busy.
+
+No further row in `docs/plans/MVP-PARALLEL-1031.md` fits these owned files. G1 through G3 and G6 through G9 are other lanes. G4 and G5 are already on the base. G10 is excluded. Round 2 `mvp-local-t5-1031` needs a local model and `eval/mvp-1031/`, which this lane must not touch. Lane empty.
+
+state: DONE | exit: lane empty | product: b483166 | pregate not run: host busy
