@@ -161,3 +161,37 @@ Conflict rule: round-1 owner wins when the plan matrix names one. For `docs/TODO
 ## Pass 2 item log
 
 Format: `item | commit | tests | result`
+
+exits-2 | 6eb5d83 | none | pass 2 exit card pushed before any pass 2 merge
+merge pfy-followups-1030 | 0f478ed | none | tip c0d38af, clean
+merge backlog-catalog-1030 | already e04e926 | none | no new commits
+merge mvp3-review-retry | already d624535 | none | pin already in HEAD
+merge mvp-review-fix-1031 | already 1140434 | none | no new commits
+merge mvp-preflight-1031 | already 100348d | none | no new commits
+merge mvp-surface-1031 | already 30cdd24 | none | no new commits
+merge mvp-eval-1031 | already 1768037 | none | no new commits
+merge mvp-cloud-1031 | already d94d2b6 | none | no new commits
+merge mvp-cloudfix-1031 | 52354f0 | none | tip 57c6dad, conflict scripts/pfy_build_cloud.py, took cloudfix file, one import
+merge mvp-review-fix2-1031 | 21b8b57 | none | tip 23ea0cd, clean
+merge mvp-intfix-1031 | 51eb0b3 | none | tip 13e967d drop-in, clean
+merge mvp-followups-fix2-1031 | 808bc6c | none | tip c328da2, clean
+merge mvp-tmpclean-1031 | 0287ffb | none | tip db1ca11 drop-in, clean
+merge mvp-docs-1031 | 9af137d | none | tip bc6d5e0 drop-in, clean
+merge mvp-mutate-cloud-1031 | 791c682 | none | tip 6e34a1b drop-in, clean
+merge mvp-mutate-review-1031 | 280e12d | none | tip a6fbf18 exit card, clean
+merge mvp-realfail-1031 | 06fa79c | none | tip d09647a, clean
+merge mvp-realfail2-1031 | 074f5e9 | none | tip 884a16a drop-in, clean
+merge mvp-sixtask-1031 | 9dbf718 | none | tip a8a7ca4, clean
+merge mvp-dogfood-1031 | 4d0991e | none | tip e404b42, clean
+merge mvp-dogfood2-1031 | 94612ca | none | tip b6d5b76 drop-in, clean
+merge mvp-gom-dogfood-1031 | 6921552 | none | tip 86639b7 exit card, clean
+merge mvp-cloudfix-1031 catch-up | 152448f | none | tip f316036, clean, still one import
+merge mvp-review-fix2-1031 catch-up | 284c2c9 | none | tip 187efde, clean
+merge mvp-intfix-1031 catch-up | 3fa6062 | none | tip 7209ff2 exit card, clean
+merge mvp-sixtask-1031 catch-up | 31438fd | none | tip dbf104a, clean
+merge mvp-docs-1031 catch-up | 135eebb | none | tip 981f1d7 exit card, clean. Freeze. selfhost 62ae324 not merged
+classifier-2 | 135eebb | nice -n 19 python3 -m unittest tests.test_pfy_build_cloud tests.test_build_preflight | 54 OK in 10.080s, one import, no inline copy
+suite-2 | 135eebb | TMPDIR=$PWD/tmp nice -n 19 flock ~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock python3 -m unittest discover -s tests -t . | Ran 1098 in 731.925s, FAILED failures=2 skipped=16. Same help contract and TMPDIR local-bench. Not rewritten
+demo-2 | content commit | ./pfy build on tmp/demo2-target; python3 eval/mvp-1031/check_receipt.py eval/mvp-1031/demo-receipt-pass2.json | build exit 0, checker exit 0, PASS, review accept, human yes, commit 535d000075744709b2752cec7511d087801f2aa5, wall 91s, attempts 1
+
+state: DONE | exit: goal met | tests: discover 1098 ran, failures=2, skipped=16; cloud+preflight 54 OK; checker exit 0 | files: pass 2 merges, cloudfix conflict kept their runner, demo-receipt-pass2.json, REPORT pass 2, handoff | err: help contract and TMPDIR local-bench recorded, not rewritten. selfhost not merged. pregate not run by this lane

@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/on-the-not-ok-branch-of-arm-launch-env-s-20261031T213959467597Z",
+  "commit": "535d000075744709b2752cec7511d087801f2aa5",
+  "base": "demo-base",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll look at the not-ok path in `arm_launch_env_session` and the existing attach tests so the stale `enterable` step is dropped before that early return.The not-ok return strips `enterable` and `session` into a local list and then returns the original result. I'll store that stripped list and add the test that catches the stale id.The not-ok path in `arm_launch_env_session` now writes the stripped `next_steps` back onto the result before it returns.\n\n`python3 -m unittest tests.test_attach.OpenCodeEnterableTests.test_not_ok_drops_stale_enterable_step` passed. When `ok` is false, a caller that passed steps with id `enterable` or `session` no longer sees those ids. `session_reach` is `FAIL` and `enterable` is false. Other step ids stay.\n\nThe review needs the not-ok branch and how `next_steps` is built before I can accept or reject. I'll read those two files.verdict: accept\n\nThe not-ok branch writes the already-stripped `next_steps` back onto the result before returning, so `enterable` and `session` ids are gone while other steps stay. The new test calls `arm_launch_env_session` with `ok` false, `live` FAIL, and a stale `enterable` step, and checks that id is absent, `session_reach` is FAIL, and `enterable` is false. Only those two files change. No tests are deleted, and there is no recursive delete or root filesystem command.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "python3 -m unittest tests.test_attach.OpenCodeEnterableTests.test_not_ok_drops_stale_enterable_step",
+    "before": {
+      "cmd": "python3 -m unittest tests.test_attach.OpenCodeEnterableTests.test_not_ok_drops_stale_enterable_step",
+      "exit": 1,
+      "tail": "\nE\n======================================================================\nERROR: test_not_ok_drops_stale_enterable_step (unittest.loader._FailedTest.test_not_ok_drops_stale_enterable_step)\n----------------------------------------------------------------------\nAttributeError: type object 'OpenCodeEnterableTests' has no attribute 'test_not_ok_drops_stale_enterable_step'\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nFAILED (errors=1)\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "python3 -m unittest tests.test_attach.OpenCodeEnterableTests.test_not_ok_drops_stale_enterable_step",
+      "exit": 0,
+      "tail": "\n.\n----------------------------------------------------------------------\nRan 1 test in 0.005s\n\nOK\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": true,
+  "task": "On the not-ok branch of arm_launch_env_session in scripts/pfy_enterable_162.py, store the stripped next_steps on the result before returning. A caller that passed next_steps with id enterable or session must not see those ids when ok is false. Add tests.test_attach.OpenCodeEnterableTests.test_not_ok_drops_stale_enterable_step in tests/test_attach.py. The test calls arm_launch_env_session with ok false, live FAIL, and a next_steps entry whose id is enterable, then asserts that id is absent, session_reach is FAIL, and enterable is false. The test fails if the early return keeps the stale id. Edit only those two files.",
+  "finished_at": "2026-10-31T21:41:30Z"
+}

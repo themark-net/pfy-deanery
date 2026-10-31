@@ -1,5 +1,94 @@
 # Handoff mvp-integrate-1031
 
+Pass 2 goal met. No rebase, no force push, no PR, no merge to main, no tag. Not a Feature GO. Catalog HOLD 70-75 unchanged. No GitHub issue opened or closed. No local model. No `--local`. Pregate not run by this lane. The operator runs pregate on the final tip. The final tip SHA is filled in the stamp commit that follows the content commit. Until that stamp, read `git rev-parse origin/bot/mvp-integrate-1031`.
+
+## Pass 2
+
+| Item | Commit | Result |
+|------|--------|--------|
+| Exit card before pass 2 merges | `6eb5d83` | Pushed |
+| `origin/bot/backlog-catalog-1030` | already in at `e04e926` | No new commits |
+| `origin/bot/pfy-followups-1030` | `0f478ed` | Tip `c0d38af`. Clean |
+| `origin/bot/mvp3-review-retry` | already in at `d624535` | Pin held |
+| `origin/bot/mvp-review-fix-1031` | already in at `1140434` | No new commits |
+| `origin/bot/mvp-preflight-1031` | already in at `100348d` | No new commits |
+| `origin/bot/mvp-surface-1031` | already in at `30cdd24` | No new commits |
+| `origin/bot/mvp-eval-1031` | already in at `1768037` | No new commits |
+| `origin/bot/mvp-cloud-1031` | already in at `d94d2b6` | No new commits |
+| `origin/bot/mvp-cloudfix-1031` | `52354f0`, then `152448f` | First tip `57c6dad` conflicted in `scripts/pfy_build_cloud.py`. Took the cloudfix file. Catch-up tip `f316036` merged clean |
+| `origin/bot/mvp-review-fix2-1031` | `21b8b57`, then `284c2c9` | Tips `23ea0cd`, then `187efde`. Clean |
+| `origin/bot/mvp-intfix-1031` | `51eb0b3`, then `3fa6062` | Tips `13e967d` (drop-in), then `7209ff2` (exit card). Clean |
+| `origin/bot/mvp-followups-fix2-1031` | `808bc6c` | Tip `c328da2`. Clean |
+| `origin/bot/mvp-tmpclean-1031` | `0287ffb` | Tip `db1ca11` (drop-in only). Clean |
+| `origin/bot/mvp-docs-1031` | `9af137d`, then `135eebb` | Tips `bc6d5e0` (drop-in), then `981f1d7` (exit card). Clean |
+| `origin/bot/mvp-mutate-cloud-1031` | `791c682` | Tip `6e34a1b` (drop-in only). Contains cloudfix. Clean |
+| `origin/bot/mvp-mutate-review-1031` | `280e12d` | Tip `a6fbf18` (exit card only). Clean |
+| `origin/bot/mvp-realfail-1031` | `06fa79c` | Tip `d09647a`. Clean |
+| `origin/bot/mvp-realfail2-1031` | `074f5e9` | Tip `884a16a` (drop-in only). Clean |
+| `origin/bot/mvp-sixtask-1031` | `9dbf718`, then `31438fd` | Tips `a8a7ca4`, then `dbf104a`. Clean |
+| `origin/bot/mvp-dogfood-1031` | `4d0991e` | Tip `e404b42`. Clean |
+| `origin/bot/mvp-dogfood2-1031` | `94612ca` | Tip `b6d5b76` (drop-in only). Clean |
+| `origin/bot/mvp-gom-dogfood-1031` | `6921552` | Tip `86639b7` (exit card). Clean |
+| `origin/bot/mvp-selfhost-1031` | not merged | Seen at `62ae324`. Mark cherry-picks from it |
+| Classifier proof | tree `135eebb` | One import. No inline classifier. `tests.test_pfy_build_cloud` and `tests.test_build_preflight`: 54 OK in 10.080s |
+| Suite | tree `135eebb` | Ran 1098 in 731.925s. Failures 2, skipped 16 |
+| Demo 2 receipt and report | this content commit | PASS. Checker exit 0. Commit `535d000075744709b2752cec7511d087801f2aa5` |
+
+Merge freeze is `135eebb`. One catch-up merged tips that moved during the first wave. This lane did not wait for lanes that were still on a drop-in or an exit card.
+
+## Demo 2
+
+PASS. Details are in `eval/mvp-1031/REPORT.md` under Pass 2.
+
+- Command used `--repo tmp/demo2-target`, `--base demo-base`, `--test-cmd` the new test, `--writable-test tests/test_attach.py`, `--receipt-dir tmp/demo2-receipt`. No `--local`.
+- Build exit 0. Wall 91 seconds. Attempts 1. Review accept. Human verdict yes.
+- Checker: `python3 eval/mvp-1031/check_receipt.py eval/mvp-1031/demo-receipt-pass2.json` exit 0.
+- Branch: `cloud/on-the-not-ok-branch-of-arm-launch-env-s-20261031T213959467597Z`
+- Commit: `535d000075744709b2752cec7511d087801f2aa5` on the throwaway clone only.
+- Caller during the run: `bot/mvp-integrate-1031` at `135eebb`, porcelain empty.
+
+The behavior test fails without the one-line store (`enterable` stays in the id list) and passes on the cloud commit.
+
+## Suite (pass 2)
+
+```text
+TMPDIR=$PWD/tmp nice -n 19 flock ~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock python3 -m unittest discover -s tests -t .
+```
+
+Started 2026-10-31T21:23:55Z. Finished 2026-10-31T21:38:19Z. Ran 1098 tests in 731.925s. FAILED (failures=2, skipped=16).
+
+Same two failures as pass 1. Not introduced by a conflict resolution in this pass. Not rewritten.
+
+1. `tests.test_pfy_build_local.CloudBuildUnchangedTests.test_help_and_dry_run_stay_the_same`. Bare `./pfy build --help` is the cloud card. The test still expects `--prompt-file` there.
+2. `tests.test_local_bench.OutdirPathTests.test_relative_outdir_log_path_safe`. `TMPDIR` is this worktree `tmp/`, so the out-of-tree assertion sees a relative path.
+
+`tests.test_pfy_build_p` is not in the failure list. The dogfood path was not edited by this lane.
+
+## How pass 2 fails and recovers
+
+- Classifier: `scripts/pfy_build_cloud.py` imports `classify_cloud_failure` once and wraps "not signed in" in `classify_runner_failure`. There is no second copy of the phrase list. The 54 cloud and preflight tests cover that import. A bad import fails those tests.
+- Cloudfix conflict: the resolved file matched tip `57c6dad`. The later tip `f316036` merged with no conflict.
+- Demo 2: a rate limit or auth failure would still be committed, and the report would say the demo did not PASS. This run exited 0. No retry. No `--local`.
+- The stale enterable fix is only on the throwaway commit. The integrate tree still returns before storing `next_steps`. Recovery is a later lane that owns `scripts/pfy_enterable_162.py` and `tests/test_attach.py`. This lane did not edit those files.
+- Help clash and the local-bench path stay as recorded in pass 1.
+
+## Cross-lane requests
+
+- Land the two-file cloud commit `535d000075744709b2752cec7511d087801f2aa5` (one assignment in `arm_launch_env_session`, plus `test_not_ok_drops_stale_enterable_step`) from a lane that may edit those files. It is not on origin. The report describes the diff. This lane does not own the files.
+- The pass 1 help-test request still stands. This lane did not edit `tests/test_pfy_build_local.py`.
+- `bot/mvp-selfhost-1031` was not merged. Last seen tip `62ae324`.
+- Lanes still at a drop-in or an exit card when frozen: mutate-cloud `6e34a1b`, mutate-review `a6fbf18`, realfail2 `884a16a`, dogfood2 `b6d5b76`, tmpclean `db1ca11`, intfix `7209ff2`, docs `981f1d7`, gom-dogfood `86639b7`. Later commits on those branches are not in this tip.
+
+## Gate
+
+Pass 2's own resolution took the cloudfix runner as-is. Runtime files arrived through the merges (cloud runner, local runner, followups fixes). Gate for this tip: Tester plus Reviewer. Pregate is not run here. The operator runs it on the final tip. Do not treat this handoff as a Feature GO.
+
+## Next
+
+Operator pregates `origin/bot/mvp-integrate-1031` at the stamp tip. Next work that is not this lane: land the stale-enterable test from the demo 2 report, then the help-test cross-lane request. Do not merge `bot/mvp-selfhost-1031` from this lane.
+
+## Pass 1
+
 Branch `bot/mvp-integrate-1031`. Base `origin/main` (`85c53dc`). No rebase, no force push, no PR, no merge to main, no tag. Not a Feature GO. Catalog HOLD 70-75 unchanged. No GitHub issue opened or closed. No local model. No `--local`.
 
 Exit: lane empty, after the definition of done. Wall cap was 2026-11-01T04:42:00Z. This handoff is earlier than that.
