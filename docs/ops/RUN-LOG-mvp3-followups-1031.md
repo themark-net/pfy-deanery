@@ -51,7 +51,8 @@ Risks:
 
 - exits | `0f6fa08` | none (card only) | pushed
 - item 1 | `d3e73f6` | docs only, no test | Review section in the operator usage doc: default on, cap 3 files / 250 lines, larger legitimate diffs are PASS-REJECTED
-- item 4 | (this commit) | docs only, no test | Same section now says the reviewer is the same local model as the agent. Receipt field is cross-lane.
+- item 4 | `16f7c07` | docs only, no test | Same section now says the reviewer is the same local model as the agent. Receipt field is cross-lane.
+- item 10 | (this commit) | docs only, no test | Standing TMPDIR note is now TMPDIR=$PWD/tmp in the worktree. The old tmp/pgs line stays as history of that run.
 
 ## Host checks
 

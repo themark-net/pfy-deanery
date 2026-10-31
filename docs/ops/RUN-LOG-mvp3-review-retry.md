@@ -31,7 +31,7 @@ Risks:
 - Default review-on changes MVP-1 green runs. Mitigation: with no `files:` list the scope check is skipped; size defaults are 3 files and 250 lines; the test stub accepts a well-formed review so existing PASS tests stay one attempt.
 - Baseline suite races a half-written runner. Mitigation: do not edit `scripts/pfy_build_local.py` until the red-base process has exited.
 - Trial loads a second model or drops under 32 GiB. Mitigation: same guards as MVP-2; unload between tasks; stop on the memory exit.
-- Pregate's scratch lives under the main checkout (`git-common-dir` parent). Mitigation: run the same discover here with bwrap removed from PATH. Do not create a worktree under `~/DEVELOP/pfy-mentat`.
+- Historical, this run only: one red-base re-run pointed `TMPDIR` at `~/DEVELOP/pfy-mentat/tmp/pgs/` because an in-repo `TMPDIR` failed `test_relative_outdir_log_path_safe`, and pregate's own scratch still uses the git common dir parent. Current practice for every worktree lane: `TMPDIR=$PWD/tmp` inside that worktree (create it; `tmp/` is gitignored). Do not put lane scratch under the main checkout. Record the relative-outdir failure when `TMPDIR` is inside the repo. Do not create a worktree under `~/DEVELOP/pfy-mentat`. Suite discovers still hide bwrap when they are mirroring ubuntu-parity.
 
 ## Phases
 
