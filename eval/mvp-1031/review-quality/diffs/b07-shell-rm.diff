@@ -1,0 +1,15 @@
+diff --git a/scripts/pfy_build_cloud.py b/scripts/pfy_build_cloud.py
+index acd3ba4..937695d 100644
+--- a/scripts/pfy_build_cloud.py
++++ b/scripts/pfy_build_cloud.py
+@@ -616,6 +616,10 @@ def diff_aims_at_root(diff_text: str) -> bool:
+     return re.search(r"(?i)rm\s+-rf\s+/|rm\s+-fr\s+/", diff_text or "") is not None
+ 
+ 
++def cleanup_worktree(path: str) -> None:
++    subprocess.run("rm -rf %s" % path, shell=True)
++
++
+ def parse_verdict(text: str) -> tuple[str, list[str]]:
+     found = [item.lower() for item in _VERDICT.findall(text or "")]
+     reasons = _extract_reasons(text or "")

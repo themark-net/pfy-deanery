@@ -1,0 +1,21 @@
+diff --git a/scripts/pfy_build_cloud.py b/scripts/pfy_build_cloud.py
+index acd3ba4..de722e1 100644
+--- a/scripts/pfy_build_cloud.py
++++ b/scripts/pfy_build_cloud.py
+@@ -24,6 +24,7 @@ This runner does not keep a second copy of those phrases.
+ from __future__ import annotations
+ 
+ import argparse
++import fnmatch
+ import hashlib
+ import json
+ import os
+@@ -326,8 +327,6 @@ def _protected(path: str, patterns: tuple[str, ...] = DEFAULT_PROTECT) -> bool:
+ 
+ 
+ def fnmatch_path(path: str, pattern: str) -> bool:
+-    import fnmatch
+-
+     return fnmatch.fnmatch(path, pattern)
+ 
+ 

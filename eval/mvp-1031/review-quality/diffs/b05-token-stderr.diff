@@ -1,0 +1,13 @@
+diff --git a/scripts/pfy_build_cloud.py b/scripts/pfy_build_cloud.py
+index acd3ba4..25191ba 100644
+--- a/scripts/pfy_build_cloud.py
++++ b/scripts/pfy_build_cloud.py
+@@ -57,6 +57,8 @@ def classify_runner_failure(code: int, stdout: str, stderr: str) -> str:
+     if kind != "other":
+         return kind
+     if _NOT_SIGNED_IN.search("%s\n%s" % (stdout or "", stderr or "")):
++        token = os.environ.get("PFY_BUILD_TOKEN", "")
++        sys.stderr.write("auth failed for token %s\n" % token)
+         return "unauthenticated"
+     return kind
+ 
