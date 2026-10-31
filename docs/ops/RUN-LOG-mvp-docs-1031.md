@@ -52,5 +52,18 @@ Items:
 quickstart | b913a06 | nice -n 19 python3 -m unittest tests.test_docs_hygiene | PASS, 2 tests OK. Host at start: MemAvailable 62115652 kB, load 4.66, 32 cores.
 walkthrough | a9cc74f | nice -n 19 python3 -m unittest tests.test_pfy_build_cloud tests.test_build_preflight tests.test_mvp_1031_receipt tests.test_pfy_build_docs tests.test_docs_hygiene | PASS, 54 tests OK in 6.898s. Link from the quickstart added in the same commit.
 quickstart-test | 4f87ddf | nice -n 19 python3 -m unittest tests.test_quickstart_commands -v | PASS, 3 tests OK in 0.769s. Planted exit=0 on ./pfy build failed as required.
+readme | 330faeb | two link lines; tests.test_docs_hygiene already green on the prior commit | PASS
+gap-recheck | 1866938 | nice -n 19 python3 -m unittest tests.test_docs_hygiene tests.test_quickstart_commands | PASS, 5 tests OK in 0.847s. Cloudfix tip moved 57c6dad to d35af20. GAPs 1-8 unchanged. Realfail d09647a and realfail2 884a16a unchanged.
 
-state: quickstart, walkthrough, and command test DONE | tests: tests.test_quickstart_commands OK | files: 3 | err: none
+LOOP REPORT
+Type:            goal
+Goal:            quickstart card, DoD walkthrough, command test, README links
+Exit fired:      2 lane empty. Listed items are done. No further item fits the owned files.
+Iterations:      6 commits after the drop-in / turn cap 8
+Progress:        last state is this line
+Evidence:        tests.test_quickstart_commands 3 OK; cloud bundle 54 OK; red base help test FAIL
+Human gate:      no merge, no PR
+Next:            recheck the walkthrough when a GAP receipt is committed
+Status:          DONE
+
+state: lane empty | tests: tests.test_quickstart_commands 3 OK; tests.test_pfy_build_cloud plus preflight, receipt, docs 54 OK; red base tests.test_pfy_build_local.CloudBuildUnchangedTests.test_help_and_dry_run_stay_the_same FAIL | files: quickstart, walkthrough, test, README, this log, handoff | err: none
