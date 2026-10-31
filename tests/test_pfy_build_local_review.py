@@ -218,6 +218,34 @@ class ReviewLoopTests(unittest.TestCase):
         self.assertNotEqual(shown.returncode, 0, shown.stderr)
         self.inner.assert_clean_origin()
 
+    def test_inject_stage_does_nothing_when_the_test_seam_is_off(self):
+        """PFY_LOCAL_BUILD_INJECT_EXTRA_STAGE must not write a file unless the seam is on.
+
+        Fail: the inject env alone stages injected-extra.txt and the green
+        fix becomes scope-commit-mismatch.
+        Recover: with the seam off, the fix commits and that name is absent.
+        With the seam on, the existing mismatch test still injects.
+        """
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        proc, receipt = self._run(
+            task,
+            [{"mode": "fix"}],
+            extra=["--no-review"],
+            env_extra={
+                "PFY_LOCAL_BUILD_TEST_SEAM": "0",
+                "PFY_LOCAL_BUILD_INJECT_EXTRA_STAGE": "1",
+            },
+        )
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "PASS")
+        self.assertNotIn("injected-extra.txt", data.get("files_changed") or [])
+        names = harness._git(
+            self.inner.repo, "diff-tree", "--no-commit-id", "--name-only", "-r", data["commit"]
+        ).strip().splitlines()
+        self.assertEqual(names, ["src/calc.py"])
+        self.inner.assert_clean_origin()
+
     def test_staged_names_that_differ_reset_and_do_not_branch(self):
         task = "fix add so one plus one is two\nfiles: src/calc.py\n"
         proc, receipt = self._run(

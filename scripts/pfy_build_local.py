@@ -2205,8 +2205,12 @@ def _stage_reviewed(worktree: Path, env: dict, reviewed: list[str]) -> str | Non
         if added.returncode != 0:
             _reset_index(worktree, env)
             return "commit-failed"
-    # Fault injection for the mismatch recovery. Unset in normal runs.
-    if os.environ.get("PFY_LOCAL_BUILD_INJECT_EXTRA_STAGE") == "1":
+    # Fault injection for the mismatch recovery. Same seam as _stub_extra_rw.
+    # PFY_LOCAL_BUILD_TEST_SEAM unset: this hook does not write a file.
+    if (
+        os.environ.get("PFY_LOCAL_BUILD_TEST_SEAM") == "1"
+        and os.environ.get("PFY_LOCAL_BUILD_INJECT_EXTRA_STAGE") == "1"
+    ):
         extra = worktree / "injected-extra.txt"
         extra.write_text("injected\n", encoding="utf-8")
         _git(worktree, ["add", "-f", "--", "injected-extra.txt"], env=env)
