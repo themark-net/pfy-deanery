@@ -385,6 +385,51 @@ class CloudBuildPassTests(unittest.TestCase):
         self.assertIn("later.txt", names)
         self.assertIn("kept.py", names)
 
+    def test_pass_does_not_push_the_cloud_branch(self) -> None:
+        remote = self.side / "origin.git"
+        bare = _git(self.side, "init", "--bare", str(remote))
+        self.assertEqual(bare.returncode, 0, bare.stderr)
+        added = _git(self.repo, "remote", "add", "origin", str(remote))
+        self.assertEqual(added.returncode, 0, added.stderr)
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\nprint('GATE-OK')\nraise SystemExit(0)\n",
+        )
+        proc = _run(
+            [
+                sys.executable,
+                str(CLOUD),
+                "add kept",
+                "--repo",
+                str(self.repo),
+                "--base",
+                "HEAD",
+                "--retries",
+                "0",
+                "--test-cmd",
+                "%s %s" % (sys.executable, gate),
+                "--grok-cmd",
+                str(self._accepting_grok()),
+                "--timeout",
+                "30",
+            ],
+            self.repo,
+            timeout=60,
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        match = re.search(r"PASS ok branch=(\S+) receipt=(\S+)", proc.stdout or "")
+        self.assertIsNotNone(match, proc.stdout)
+        branch = match.group(1)
+        payload = json.loads(Path(match.group(2)).read_text(encoding="utf-8"))
+        self.assertTrue(branch.startswith("cloud/"), branch)
+        self.assertIs(payload["pushed"], False)
+        remote_refs = _git(self.repo, "ls-remote", "origin")
+        self.assertEqual(remote_refs.returncode, 0, remote_refs.stderr)
+        self.assertNotIn("cloud/", remote_refs.stdout)
+        self.assertEqual(remote_refs.stdout.strip(), "")
+        self.assertEqual(_git(self.repo, "rev-parse", branch).stdout.strip(), payload["commit"])
+
 
 class CloudBuildRetryTests(unittest.TestCase):
     def setUp(self) -> None:
