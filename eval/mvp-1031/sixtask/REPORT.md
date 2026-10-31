@@ -53,3 +53,11 @@ t5. Task `t5-receipts-outside-repo.md`. Exit 1. 707.7 s. 3 attempts. Review none
 t6. Task `t6-tree-sig-three.md`, gate `python3 -m unittest tests.test_mvp2_t6_tree_sig_three`. Exit 0. 93.4 s. 1 attempt. Review accept. Human accept. The three older `tree_sig` functions match `smoke_122_124.py`. `smoke_119_121.py` and `smoke_122_124.py` were not edited.
 
 Receipts: `eval/mvp-1031/sixtask/<task>/receipt.json`. Diffs: `diff.patch` next to each receipt. Nothing was pushed from the target clones.
+
+## Variance (second pass)
+
+A second full pass, same flags, fresh clones. Detail table: `eval/mvp-1031/sixtask/variance/REPORT.md`.
+
+Runner PASS 4/6 again. Canonical gate 6/6. Review accept 4/6. Human accept 6/6. Wall 2356.0 s (pass 1 was 2778.0 s). t4 and t5 were `tests-tampered` again, 999.4 s and 839.0 s, three attempts, no commit. The four PASS tasks were one attempt each: 130.2 s, 51.1 s, 225.8 s, 110.5 s.
+
+What moved: t1's comment wording, and t3's stop-timeout return sits before the real HOME check (MVP-2 already accepted that order). t2 and t6 match the canonical `tree_sig` again. The outcome class did not move. The retry budget did not turn t4 or t5 into a commit.

@@ -239,6 +239,12 @@ class ReportCheckTests(unittest.TestCase):
             self.skipTest("REPORT.md not written yet")
         self.assertEqual(CHECK.check_report(SIX), [])
 
+    def test_variance_report_when_present(self) -> None:
+        root = SIX / "variance"
+        if not (root / "REPORT.md").is_file():
+            self.skipTest("variance REPORT.md not written yet")
+        self.assertEqual(CHECK.check_report(root), [])
+
 
 class TrialCommandTests(unittest.TestCase):
     def test_argv_targets_the_clone_and_keeps_review(self) -> None:
