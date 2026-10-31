@@ -62,7 +62,7 @@ Risks:
 - item 9 | this handoff | `tests.test_pfy_build_local_review` with bwrap hidden: Ran 19 in 60.511s OK, skipped 0. Local-build bwrap cases: Ran 10 skipped 10 in 2.119s. Harness2 plus three x-intake modules: Ran 167 skipped 89 in 61.986s. | Review E2E already runs without bwrap. No code change. Full discover not run: heavy lock held by pregate on 6664713. At finish, origin/bot/mvp-review-fix2-1031 is 8c40087 and the seven code requests are still open there.
 - item 4 receipt half | none | docs half is `16f7c07` | SKIPPED the receipt field. Same owner as the runner.
 
-state: lane empty | tests: review module 19 OK skipped 0 in 60.511s with bwrap hidden; ignored-helper reason commit-recheck-failed; local-build bwrap cases 10 skipped | files: docs | err: none
+prior-state: lane empty | tests: review module 19 OK skipped 0 in 60.511s with bwrap hidden; ignored-helper reason commit-recheck-failed; local-build bwrap cases 10 skipped | files: docs | err: none
 
 ## Host checks
 
