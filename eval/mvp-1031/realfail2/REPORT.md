@@ -13,7 +13,7 @@ Expected values come from the Functional MVP failure table and from the mvp-real
 | review-retry-accept | real | PASS | ok | 0 | pending | pending | pending | pending | - | - | Real reviewer. Attempt 1 rejected, attempt 2 accepted. |
 | scope-commit-mismatch | real | FAIL | scope-commit-mismatch | 1 | pending | pending | pending | pending | - | - | Staged path outside the reviewed set. Index reset. No branch. |
 | worktree-failed | real | FAIL | worktree-failed | 1 | pending | pending | pending | pending | - | - | `--base` is a ref that does not exist. Caller unchanged. |
-| dry-run | shim | DRY-RUN | dry-run | 0 | pending | pending | pending | pending | - | - | PATH shim records grok calls. Expect zero calls and no branch. |
+| dry-run | shim | DRY-RUN | dry-run | 0 | DRY-RUN | dry-run | 0 | matches | 0 | empty | PATH shim recorded 0 grok calls. No branch. Caller unchanged. |
 | usage | real | none | usage | 2 | none | usage | 2 | matches | - | - | No task. Exit 2. Text has `./pfy build "<task>"`, the `-p` dogfood line, and the `--local` line. No receipt. |
 | dogfood-p | real | PASS | ok | 0 | pending | pending | pending | pending | - | - | `./pfy build -p --help` and one real `-p` run on a clone. |
 | keep-worktree | real | PASS | ok | 0 | pending | pending | pending | pending | - | - | `--keep-worktree` keeps the worktree and the receipt records that. |

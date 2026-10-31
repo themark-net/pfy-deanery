@@ -1,0 +1,24 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "DRY-RUN",
+  "reason": "dry-run",
+  "exit_code": 0,
+  "branch": null,
+  "commit": null,
+  "base": "HEAD",
+  "review": {
+    "verdict": null,
+    "reasons": []
+  },
+  "attempts": [],
+  "gate": {
+    "cmd": "python3 -c 'print(\"gate-ok\")'",
+    "before": null,
+    "after": null
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": false,
+  "task": "Create kept.py containing exactly the line value = 1.",
+  "finished_at": "2026-10-31T21:33:47Z"
+}

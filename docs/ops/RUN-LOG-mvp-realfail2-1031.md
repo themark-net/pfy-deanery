@@ -64,4 +64,5 @@ Risks:
 Format: `item | commit | tests | result`
 
 - loop-card | a480afa | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail2_receipts | PASS, 4 tests OK. Pending report, no case run yet.
-- usage | 34d8c98 | tests.test_mvp_1031_realfail2_receipts | PASS if the row matches. Exit 2, no receipt, daily command and both pointers present.
+- usage | 34d8c98 | tests.test_mvp_1031_realfail2_receipts | PASS, 4 tests OK. Exit 2, no receipt, daily command and both pointers present.
+- dry-run | (this commit) | tests.test_mvp_1031_realfail2_receipts | PASS. Exit 0, receipt DRY-RUN, shim grok_calls 0, no branch.
