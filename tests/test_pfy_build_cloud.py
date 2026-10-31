@@ -1561,6 +1561,8 @@ class CloudBuildFailureTests(unittest.TestCase):
             "from pathlib import Path\n"
             "print('key AKIAIOSFODNN7EXAMPLE')\n"
             "print('sk_live_abcdefghij')\n"
+            "print('Authorization: Bearer FAKEBEARERTOKEN')\n"
+            "print('API_TOKEN=FAKETOKENVALUE')\n"
             "print('-----BEGIN PRIVATE KEY-----')\n"
             "print('MIIBsecret')\n"
             "print('-----END PRIVATE KEY-----')\n"
@@ -1574,7 +1576,12 @@ class CloudBuildFailureTests(unittest.TestCase):
         self.assertNotIn("AKIA", raw)
         self.assertNotIn("BEGIN PRIVATE KEY", raw)
         self.assertNotIn("sk_", raw)
+        self.assertNotIn("FAKEBEARERTOKEN", raw)
+        self.assertNotIn("FAKETOKENVALUE", raw)
         self.assertIn("[redacted]", raw)
+        payload = json.loads(raw)
+        shown = _git(self.repo, "show", payload["commit"] + ":kept.py")
+        self.assertEqual(shown.stdout, "value = 1\n")
 
     def test_receipt_redacts_an_xai_marker_in_the_task_and_the_reply(self) -> None:
         marker = "xai-FAKE0000"
