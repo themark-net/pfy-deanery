@@ -10,7 +10,8 @@ Exit codes:
   1  FAIL (includes review-empty-diff, nothing committed),
      or PASS-REJECTED (the gate was green and the review rejected the patch),
      or reviewer-unavailable (reviewer HTTP error or review-call timeout:
-     not a reject, not retried, nothing committed)
+     not a reject, not retried, nothing committed),
+     or crash (the agent exited nonzero and wrote no diff: not a no-change, not retried)
   2  usage, or opencode is missing
   3  TIMEOUT (the agent, or the whole build and review loop when the reason is overall-timeout)
   4  BLOCKED (memory, busy host, ps error, model size, cloud tag, lock, no-model,
@@ -84,6 +85,11 @@ _OVERALL_RECOVERY = (
     "The wall-clock cap for the whole build and review loop fired. "
     "Nothing was committed. "
     "Recovery: run again with a larger --overall-timeout."
+)
+_CRASH_RECOVERY = (
+    "The agent exited %s and wrote no diff. This is a crash, not an empty edit. "
+    "Nothing was committed and the attempt was not retried. "
+    "Recovery: run the build again."
 )
 _RETRYABLE = {
     "no-change",
@@ -3236,7 +3242,7 @@ def build_local(argv: list[str] | None = None) -> int:
             if remain < agent_limit:
                 agent_limit = remain
                 agent_cut = True
-            run_status, _code, out, err = run_bounded(prepared.argv, child, worktree, agent_limit, state)
+            run_status, agent_code, out, err = run_bounded(prepared.argv, child, worktree, agent_limit, state)
             agent_seconds += time.monotonic() - agent_t0
             prepared.close()
             prepared = None
@@ -3275,6 +3281,13 @@ def build_local(argv: list[str] | None = None) -> int:
 
             changed = files_changed(worktree, test_env)
             diff_text, diff_stats = _collect_diff(worktree, test_env, changed)
+            if not changed and run_status == "done" and isinstance(agent_code, int) and agent_code != 0:
+                recovery = _CRASH_RECOVERY % agent_code
+                status, reason, exit_code = "crash", "crash", EXIT_FAIL
+                _record_attempt(
+                    attempts_used, attempt_t0, mem_snap, "crash", "crash", None, None, diff_stats, diff_text
+                )
+                return finish()
             if not changed:
                 tests_after = _gate_run()
                 stopped = _overall_stop(tests_after)

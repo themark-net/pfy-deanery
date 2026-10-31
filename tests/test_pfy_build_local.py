@@ -311,6 +311,11 @@ elif scenario == "plan":
         if dest.is_symlink() or dest.exists():
             dest.unlink()
         os.symlink(str(target), dest)
+if scenario == "crash":
+    raise SystemExit(2)
+if scenario == "crash-after-fix" and calc.exists():
+    calc.write_text(calc.read_text(encoding="utf-8").replace("return a + b + 1", "return a + b"), encoding="utf-8")
+    raise SystemExit(2)
 raise SystemExit(0)
 """
 
@@ -730,6 +735,35 @@ class LocalBuildTests(unittest.TestCase):
         data = self.assert_no_commit(proc, receipt)
         self.assertEqual(data["status"], "FAIL")
         self.assertEqual(data["reason"], "no-change")
+
+    def test_nonzero_exit_with_no_diff_is_a_crash_and_is_not_retried(self):
+        proc, receipt = self.run_build("crash", extra=["--retries", "2"])
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self.assert_no_commit(proc, receipt)
+        self.assertEqual(data["status"], "crash")
+        self.assertEqual(data["reason"], "crash")
+        self.assertNotEqual(data["reason"], "no-change")
+        self.assertNotEqual(data["status"], "FAIL")
+        self.assertEqual(data["attempts"], 1)
+        self.assertIn("exited 2", data.get("recovery") or "")
+        self.assertIn("not an empty edit", data.get("recovery") or "")
+        self.assertIn("not retried", data.get("recovery") or "")
+        self.assertIn("Recovery:", data.get("recovery") or "")
+        self.assertFalse((receipt / "attempt-2").exists())
+        first = json.loads((receipt / "attempt-1" / "receipt.json").read_text(encoding="utf-8"))
+        self.assertEqual(first["status"], "crash")
+        self.assertEqual(first["reason"], "crash")
+
+    def test_nonzero_exit_with_a_diff_still_reaches_the_gate(self):
+        proc, receipt = self.run_build("crash-after-fix")
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        data = self.receipt(proc, receipt)
+        self.assertEqual(data["status"], "PASS")
+        self.assertNotEqual(data["status"], "crash")
+        self.assertIsNotNone(data["commit"])
+        shown = _git(self.repo, "show", "%s:src/calc.py" % data["branch"])
+        self.assertIn("return a + b\n", shown)
+        self.assert_clean_origin()
 
     def test_protected_test_edit_does_not_commit(self):
         proc, receipt = self.run_build("protect", extra=["--protect", "tests/*"])

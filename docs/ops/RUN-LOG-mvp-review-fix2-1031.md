@@ -297,4 +297,15 @@ How it fails: the review call is still blocked when the wall cap expires, while 
 How we recover: no branch. Run again with a larger `--overall-timeout`.
 
 item | commit | tests | result
-S2-overall | this commit | review module Ran 24 in 122.108s OK; local module Ran 62 in 112.159s OK; hang test still reason timeout
+S2-overall | 55ca386 | review module Ran 24 in 122.108s OK; local module Ran 62 in 112.159s OK; hang test still reason timeout
+
+### S3-crash
+
+A nonzero agent exit with an empty diff is status and reason `crash`, exit 1. It is not `no-change` and not `FAIL`. Nothing is committed and `--retries 2` does not start attempt 2. The recovery line names the exit code and says this is not an empty edit. A nonzero exit that did write a diff still reaches the gate and can PASS.
+
+How it fails: the agent raises SystemExit 2 and leaves the worktree unchanged.
+
+How we recover: no branch. Run the build again. An exit 0 empty diff stays `no-change` and can still retry.
+
+item | commit | tests | result
+S3-crash | this commit | nice python3 -m unittest tests.test_pfy_build_local | Ran 64 tests in 84.626s OK
