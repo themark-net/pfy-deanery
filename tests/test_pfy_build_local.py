@@ -305,6 +305,12 @@ elif scenario == "plan":
         dest.parent.mkdir(parents=True, exist_ok=True)
         prev = dest.read_text(encoding="utf-8") if dest.is_file() else ""
         dest.write_text(prev + extra, encoding="utf-8")
+    for rel, target in (step.get("symlink") or {}).items():
+        dest = root / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        if dest.is_symlink() or dest.exists():
+            dest.unlink()
+        os.symlink(str(target), dest)
 raise SystemExit(0)
 """
 
@@ -390,6 +396,10 @@ class Handler(BaseHTTPRequestHandler):
                     content = queue.pop(0)
                 else:
                     content = json.dumps({"verdict": "accept", "reasons": []})
+                http_status = getattr(self.server, "review_http_status", None)
+                if http_status not in (None, 200):
+                    self._send(int(http_status), {"error": "review-unavailable"})
+                    return
             self._send(200, {"id": "c", "choices": [{"message": {"role": "assistant", "content": content}}]})
             return
         self._send(200, {"ok": True})

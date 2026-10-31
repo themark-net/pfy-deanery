@@ -7,10 +7,10 @@ Nothing is pushed and no PR is opened.
 
 Exit codes:
   0  PASS, or a clean --dry-run, or --reap
-  1  FAIL, or PASS-REJECTED (the gate was green and the review rejected the patch),
-     or REVIEW-ERROR (reviewer HTTP error or timeout: not a reject, not retried)
+  1  FAIL (includes review-http-error and review-empty-diff, nothing committed),
+     or PASS-REJECTED (the gate was green and the review rejected the patch)
   2  usage, or opencode is missing
-  3  TIMEOUT (agent)
+  3  TIMEOUT (agent or the review call)
   4  BLOCKED (memory, busy host, ps error, model size, cloud tag, lock, no-model,
            no-sandbox, no-runtime-dir, runtime-dir-in-tmp, socket-path)
 
@@ -2471,6 +2471,24 @@ def _parse_verdict(text: str) -> tuple[str, list[str], str]:
     return verdict, reasons, raw[:500]
 
 
+def _review_transport_error(raw: str) -> str | None:
+    """Poster failure shape: {"error": "..."} with no choices.
+
+    A model completion can also carry an error field next to choices. That
+    stays a verdict parse. Only the transport failure is fail-closed.
+    """
+    try:
+        data = json.loads(raw or "")
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(data, dict) or "choices" in data:
+        return None
+    err = data.get("error")
+    if not err:
+        return None
+    return str(err)
+
+
 def _content_from_model_body(raw: str) -> str:
     try:
         data = json.loads(raw)
@@ -2642,9 +2660,9 @@ def _run_model_review(
 ) -> tuple[str, dict | None]:
     """Return (status, review).
 
-    status is accept, reject, unavailable, interrupted, mem-edge, blocked, or
-    sandbox. unavailable means the review call had an HTTP error or timed out.
-    That is not a verdict.
+    status is accept, reject, timeout, http-error, interrupted, mem-edge,
+    blocked, or sandbox. timeout and http-error are not verdicts. The caller
+    does not commit and does not retry them.
     """
     port = _loopback_port(openai_base)
     if port is None:
@@ -2709,14 +2727,17 @@ def _run_model_review(
         raw = out_path.read_text(encoding="utf-8")
     except OSError:
         raw = (out or "") + (err or "")
-    # HTTP error and the bounded-call timeout share one status. A verdict
-    # reject is a later return and is retried. An outage is not.
-    if run_status == "timeout" or _review_outage_kind(raw):
-        detail = "review call timed out" if run_status == "timeout" else raw[:500]
-        return "unavailable", {
-            "verdict": "unavailable",
-            "reasons": ["review-unavailable"],
-            "raw_tail": redact(detail)[:500],
+    # A hung review call is not a verdict. The caller stops with TIMEOUT.
+    if run_status == "timeout":
+        return "timeout", None
+    transport = _review_transport_error(raw)
+    if transport is not None:
+        # An HTTP failure is not a verdict. Do not parse it as reject and retry
+        # into an accept. The caller stops with review-http-error.
+        return "http-error", {
+            "verdict": "reject",
+            "reasons": ["review-http-error"],
+            "raw_tail": redact(transport)[:500],
         }
     content = _content_from_model_body(raw)
     verdict, reasons, raw_tail = _parse_verdict(content)
@@ -3329,6 +3350,23 @@ def build_local(argv: list[str] | None = None) -> int:
                 )
                 continue
 
+            # A changed path with an empty diff would let the model accept a
+            # path it never saw. Stop before the call.
+            if not (diff_text or "").strip():
+                status, reason, exit_code = "FAIL", "review-empty-diff", EXIT_FAIL
+                _record_attempt(
+                    attempts_used,
+                    attempt_t0,
+                    mem_snap,
+                    "FAIL",
+                    "review-empty-diff",
+                    checks,
+                    None,
+                    diff_stats,
+                    diff_text,
+                )
+                return finish()
+
             gate_tail = str(tests_after.get("tail") or "") if isinstance(tests_after, dict) else ""
             review_status, model_review = _run_model_review(
                 args,
@@ -3340,16 +3378,28 @@ def build_local(argv: list[str] | None = None) -> int:
                 state,
                 repo,
             )
-            if review_status == "unavailable":
-                # Not a reject and not retried, even when attempts remain.
-                recovery = _REVIEW_OUTAGE_RECOVERY
-                status, reason, exit_code = "REVIEW-ERROR", "review-unavailable", EXIT_FAIL
+            if review_status == "timeout":
+                status, reason, exit_code = "TIMEOUT", "timeout", EXIT_TIMEOUT
                 _record_attempt(
                     attempts_used,
                     attempt_t0,
                     mem_snap,
-                    "REVIEW-ERROR",
-                    "review-unavailable",
+                    "TIMEOUT",
+                    "timeout",
+                    checks,
+                    model_review,
+                    diff_stats,
+                    diff_text,
+                )
+                return finish()
+            if review_status == "http-error":
+                status, reason, exit_code = "FAIL", "review-http-error", EXIT_FAIL
+                _record_attempt(
+                    attempts_used,
+                    attempt_t0,
+                    mem_snap,
+                    "FAIL",
+                    "review-http-error",
                     checks,
                     model_review,
                     diff_stats,

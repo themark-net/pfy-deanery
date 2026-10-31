@@ -269,3 +269,10 @@ Risks:
 - Cleaning a live worktree. Mitigation: only paths under this repo's tmp/ named local-build-*, after the lock is held, and a path that remains on disk aborts the run.
 
 prior-state: IN PROGRESS | tests: none yet | files: 0 | err: none
+
+### wave4-merge
+
+`git merge --no-edit origin/bot/mvp3-review-retry` conflicted in `scripts/pfy_build_local.py` and `tests/test_pfy_build_local_review.py`. Staging stays `_stage_reviewed`. Fail-closed matches 582414b: HTTP error is `FAIL` / `review-http-error`, a review-call timeout is `TIMEOUT` / `timeout` (exit 3), an empty diff is `review-empty-diff`, and none of those commit. The no-change gate still goes through `_watch_gate` so `gate_unsandboxed` is recorded. Both previous-diff tests stay. S1 will replace the generic outage statuses.
+
+item | commit | tests | result
+wave4-merge | this commit | nice python3 -m unittest tests.test_pfy_build_local_review tests.test_pfy_build_local | Ran 85 tests in 148.861s OK
