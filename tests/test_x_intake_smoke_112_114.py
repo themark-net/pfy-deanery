@@ -350,7 +350,7 @@ class XIntakeSmoke112114Tests(unittest.TestCase):
             self.assertNotIn("Traceback", proc.stderr, blob)
             self.assertEqual(proc.returncode, 1, blob)
             self.assertFalse((home / "overtime").exists(), blob)
-            self.assertEqual(_receipt("overtime").get("reason"), "overtime timeout after 0.4s", blob)
+            self.assertEqual(_receipt("overtime").get("reason"), "new timeout after 0.4s", blob)
 
     def test_festival_timeout_reason_is_shared_text(self) -> None:
         # Fail: a timed-out fest --version records "timeout after <s>s: <cmd>" from main().
@@ -376,7 +376,7 @@ class XIntakeSmoke112114Tests(unittest.TestCase):
             blob = proc.stdout + proc.stderr
             self.assertNotIn("Traceback", proc.stderr, blob)
             self.assertEqual(proc.returncode, 1, blob)
-            self.assertEqual(_receipt("festival").get("reason"), "festival timeout after 0.4s", blob)
+            self.assertEqual(_receipt("festival").get("reason"), "version timeout after 0.4s", blob)
 
     def test_overtime_daemon_stop_timeout_uses_shared_text(self) -> None:
         # Fail: a daemon-stop timeout is recorded as the bare word "timeout".

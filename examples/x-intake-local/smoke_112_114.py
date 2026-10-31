@@ -180,6 +180,7 @@ def smoke_overtime(r: dict) -> int:
     before = tree_sig(real)
     r["containment"] = "real-home-check (daemon is detached; no bwrap)"
     timed_out: subprocess.TimeoutExpired | None = None
+    timeout_step = "overtime"
     try:
         with tempfile.TemporaryDirectory(prefix="pfy-overtime-") as td:
             home = Path(td) / "home"
@@ -191,7 +192,11 @@ def smoke_overtime(r: dict) -> int:
             ot = [node, str(pkg / "dist/bin.js")]
             steps = r.setdefault("steps", [])
             try:
-                p = sh(ot + ["new", "smoke-agent"], home=home_s, path=path)
+                try:
+                    p = sh(ot + ["new", "smoke-agent"], home=home_s, path=path)
+                except subprocess.TimeoutExpired:
+                    timeout_step = "new"
+                    raise
                 steps.append({"new": p.returncode})
                 a = home / "overtime/agents/smoke-agent"
                 if p.returncode != 0 or not (a / "AGENT.md").is_file() or not (a / ".overtime/settings.json").is_file():
@@ -251,7 +256,7 @@ def smoke_overtime(r: dict) -> int:
         r["reason"] = "real HOME ~/overtime was created or changed"
         return 1
     if timed_out is not None:
-        r["reason"] = timeout_reason("overtime", float(timed_out.timeout))
+        r["reason"] = timeout_reason(timeout_step, float(timed_out.timeout))
         return 1
     r["reason"] = "agent created, listed, budget/protect set and shown, no session run, daemon stopped, real HOME untouched"
     return 0
@@ -287,7 +292,11 @@ def smoke_festival(r: dict) -> int:
                  "GIT_COMMITTER_NAME": "smoke", "GIT_COMMITTER_EMAIL": "smoke@localhost"}
         r["containment"] = containment(home_s, [td], "real-home-check")
         W = lambda c, cwd=None: sh(c, home=home_s, path=path, cwd=cwd, extra=extra, bwrap_writable=[td])
-        p = W([fest, "--version"])
+        try:
+            p = W([fest, "--version"])
+        except subprocess.TimeoutExpired as e:
+            r["reason"] = timeout_reason("version", float(e.timeout))
+            return 1
         r["version"] = p.stdout.strip()
         p = W([camp, "create", "smokecamp", "-d", "smoke", "-m", "smoke mission"])
         root = home / "campaigns/smokecamp"
