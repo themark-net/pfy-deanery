@@ -273,5 +273,25 @@ class CheckReceiptTests(unittest.TestCase):
         self.assertNotIn(".grok/", text)
 
 
+class ReadmeDemoTests(unittest.TestCase):
+    def test_readme_states_demo_command_without_plan_link(self):
+        # Fail: a markdown link to the plan file 404s on this branch, and a drifted command breaks the demo.
+        # Recover: keep the three inline commands and do not link the plan.
+        text = (ROOT / "eval" / "mvp-1031" / "README.md").read_text(encoding="utf-8")
+        self.assertIn(
+            'bash eval/mvp-1031/init_fixture.sh "$PWD/tmp/mvp-fixture-repo"',
+            text,
+        )
+        self.assertIn(
+            'python3 -m unittest test_add',
+            text,
+        )
+        self.assertIn(
+            'python3 eval/mvp-1031/check_receipt.py "$PWD/tmp/mvp-fixture-receipt/receipt.json"',
+            text,
+        )
+        self.assertNotRegex(text, r"\[[^\]]*\]\([^)]*MVP-PARALLEL-1031\.md\)")
+
+
 if __name__ == "__main__":
     unittest.main()
