@@ -1504,6 +1504,16 @@ class CloudBuildGateReasonTests(unittest.TestCase):
         return json.loads(path.read_text(encoding="utf-8"))
 
     def test_changed_test_file_fails_before_the_gate_and_is_not_committed(self) -> None:
+        tests = self.repo / "tests"
+        tests.mkdir()
+        (tests / "test_keep.py").write_text(
+            "def test_keep():\n    assert True\n",
+            encoding="utf-8",
+        )
+        added = _git(self.repo, "add", "tests/test_keep.py")
+        self.assertEqual(added.returncode, 0, added.stderr)
+        committed = _git(self.repo, "commit", "-m", "keep")
+        self.assertEqual(committed.returncode, 0, committed.stderr)
         count = self.side / "gate-count"
         gate = _write_exe(
             self.side / "gate.py",
@@ -1520,8 +1530,7 @@ class CloudBuildGateReasonTests(unittest.TestCase):
             self.side / "grok.py",
             "#!/usr/bin/env python3\n"
             "from pathlib import Path\n"
-            "Path('tests').mkdir(exist_ok=True)\n"
-            "Path('tests/test_sneak.py').write_text('def test_sneak():\\n    assert True\\n', encoding='utf-8')\n"
+            "Path('tests/test_keep.py').write_text('def test_keep():\\n    assert False\\n', encoding='utf-8')\n"
             "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
             "raise SystemExit(0)\n",
         )
@@ -1552,6 +1561,140 @@ class CloudBuildGateReasonTests(unittest.TestCase):
         self.assertIsNone(payload["commit"])
         self.assertEqual(count.read_text(encoding="utf-8"), "1")
         self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
+
+    def test_deleted_base_test_fails_before_the_gate_and_is_not_committed(self) -> None:
+        tests = self.repo / "tests"
+        tests.mkdir()
+        (tests / "test_keep.py").write_text(
+            "def test_keep():\n    assert True\n",
+            encoding="utf-8",
+        )
+        added = _git(self.repo, "add", "tests/test_keep.py")
+        self.assertEqual(added.returncode, 0, added.stderr)
+        committed = _git(self.repo, "commit", "-m", "keep")
+        self.assertEqual(committed.returncode, 0, committed.stderr)
+        count = self.side / "gate-count"
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\n"
+            "import os\n"
+            "from pathlib import Path\n"
+            "path = Path(os.environ['PFY_GATE_COUNT'])\n"
+            "n = int(path.read_text()) + 1 if path.exists() else 1\n"
+            "path.write_text(str(n))\n"
+            "print('GATE-SHOULD-NOT-RERUN')\n"
+            "raise SystemExit(0)\n",
+        )
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "Path('tests/test_keep.py').unlink()\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        proc = _run(
+            [
+                sys.executable,
+                str(CLOUD),
+                "do not delete tests",
+                "--repo",
+                str(self.repo),
+                "--retries",
+                "0",
+                "--timeout",
+                "30",
+                "--test-cmd",
+                "%s %s" % (sys.executable, gate),
+                "--grok-cmd",
+                str(grok),
+            ],
+            self.repo,
+            env={"PFY_GATE_COUNT": str(count)},
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 1, text)
+        payload = self._receipt()
+        self.assertEqual(payload["reason"], "tests-tampered")
+        self.assertIsNone(payload["branch"])
+        self.assertIsNone(payload["commit"])
+        self.assertIsNone(payload["gate"]["after"])
+        self.assertEqual(count.read_text(encoding="utf-8"), "1")
+        self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
+
+    def test_new_test_file_reaches_the_gate_and_lands(self) -> None:
+        tests = self.repo / "tests"
+        tests.mkdir()
+        (tests / "test_keep.py").write_text(
+            "def test_keep():\n    assert True\n",
+            encoding="utf-8",
+        )
+        added = _git(self.repo, "add", "tests/test_keep.py")
+        self.assertEqual(added.returncode, 0, added.stderr)
+        committed = _git(self.repo, "commit", "-m", "keep")
+        self.assertEqual(committed.returncode, 0, committed.stderr)
+        count = self.side / "gate-count"
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\n"
+            "import os\n"
+            "from pathlib import Path\n"
+            "path = Path(os.environ['PFY_GATE_COUNT'])\n"
+            "n = int(path.read_text()) + 1 if path.exists() else 1\n"
+            "path.write_text(str(n))\n"
+            "if not Path('tests/test_added.py').is_file():\n"
+            "    print('GATE-NEED-NEW-TEST')\n"
+            "    raise SystemExit(1)\n"
+            "print('GATE-OK')\n"
+            "raise SystemExit(0)\n",
+        )
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "from pathlib import Path\n"
+            "blob = '\\n'.join(sys.argv)\n"
+            "if 'PFY-CLOUD-REVIEW' in blob:\n"
+            "    print('verdict: accept')\n"
+            "    raise SystemExit(0)\n"
+            "Path('tests').mkdir(exist_ok=True)\n"
+            "Path('tests/test_added.py').write_text('def test_added():\\n    assert True\\n', encoding='utf-8')\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        proc = _run(
+            [
+                sys.executable,
+                str(CLOUD),
+                "add a new test",
+                "--repo",
+                str(self.repo),
+                "--retries",
+                "0",
+                "--timeout",
+                "30",
+                "--test-cmd",
+                "%s %s" % (sys.executable, gate),
+                "--grok-cmd",
+                str(grok),
+            ],
+            self.repo,
+            env={"PFY_GATE_COUNT": str(count)},
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        payload = self._receipt()
+        self.assertEqual(payload["status"], "PASS")
+        self.assertEqual(payload["reason"], "ok")
+        self.assertEqual(payload["gate"]["before"]["exit"], 1)
+        self.assertEqual(payload["gate"]["after"]["exit"], 0)
+        self.assertIn("GATE-OK", payload["gate"]["after"]["tail"])
+        self.assertEqual(count.read_text(encoding="utf-8"), "3")
+        names = _git(self.repo, "ls-tree", "-r", "--name-only", payload["commit"]).stdout.splitlines()
+        self.assertIn("tests/test_added.py", names)
+        self.assertIn("kept.py", names)
+        shown = _git(self.repo, "show", payload["commit"] + ":tests/test_keep.py")
+        self.assertEqual(shown.stdout, "def test_keep():\n    assert True\n")
 
     def test_second_green_gate_that_goes_red_is_flaky_and_not_committed(self) -> None:
         count = self.side / "gate-count"

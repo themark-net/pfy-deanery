@@ -521,10 +521,6 @@ def tests_tampered(worktree: Path, snap: dict[str, str]) -> list[str]:
                 bad.append(rel)
         except OSError:
             bad.append(rel)
-    current = snapshot_tests(worktree)
-    for rel in current:
-        if rel not in snap and rel not in bad:
-            bad.append(rel)
     return bad
 
 
