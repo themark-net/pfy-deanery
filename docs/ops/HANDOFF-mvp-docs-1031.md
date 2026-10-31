@@ -70,4 +70,6 @@ Docs and one test module. No runtime change. Gate: pregate plus Reviewer. Pregat
 
 Lane empty for work this branch can do. GAPs 7 and 8 need a runner change or a real receipt from another lane. Next step on this branch is a walkthrough update when a fetched branch commits a `worktree-failed` receipt or a receipt whose attempts go from `tests` to `PASS`.
 
+After the push of `d2c7680`, realfail2 advanced to `521b910` (concurrent). Two cloud receipts are each one `PASS` attempt. The observe receipt is `PASS` / `intact`. That does not close GAP 7 or GAP 8. The walkthrough tip citation stays `8edff42` until one of those two receipts lands.
+
 Decisions: `docs/ops/AUTONOMOUS-DECISIONS-mvp-docs-1031.md`.

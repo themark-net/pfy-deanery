@@ -55,6 +55,7 @@ quickstart-test | 4f87ddf | nice -n 19 python3 -m unittest tests.test_quickstart
 readme | 330faeb | two link lines; tests.test_docs_hygiene already green on the prior commit | PASS
 gap-recheck | 1866938 | nice -n 19 python3 -m unittest tests.test_docs_hygiene tests.test_quickstart_commands | PASS, 5 tests OK in 0.847s. Cloudfix tip moved 57c6dad to d35af20. GAPs 1-8 unchanged. Realfail d09647a and realfail2 884a16a unchanged.
 gap-recheck-2 | d2c7680 | nice -n 19 python3 -m unittest tests.test_docs_hygiene tests.test_quickstart_commands | PASS, 5 tests OK in 0.893s. Integrate moved to 6372dcc. Realfail2 moved to 8edff42 and closed GAPs 1-6. GAPs 7 and 8 stay open. Host MemAvailable 61576936 kB, load 4.33, 32 cores.
+post-push note | 521b910 concurrent | no new test | Two cloud receipts are each one PASS attempt. Does not close GAP 7 or 8. Walkthrough tip stays 8edff42.
 
 LOOP REPORT
 Type:            goal
