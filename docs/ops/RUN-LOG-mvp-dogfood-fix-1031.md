@@ -82,6 +82,7 @@ item | commit | tests | result
 F-subject | 13a63ea | tests.test_pfy_build_cloud.CloudBuildFailureTests.test_long_task_subject_stops_on_a_word_and_the_body_keeps_the_rest and test_short_task_subject_is_the_whole_task, 2 OK | PASS
 F-redact | 599d2d2 | test_receipt_keeps_fixture_ids_and_still_hides_secret_assignments plus the two existing redact tests and tests.test_pfy_build_docs, 8 OK | PASS
 F-env | 50ac9ba | tests.test_pfy_build_cloud 50 OK, including test_gate_drops_secret_env_and_grok_still_sees_it | PASS
+F-base | 2348080 | test_head_that_is_not_origin_main_exits_2_before_grok, test_explicit_origin_main_still_excludes_caller_only_commits, test_dry_run_uses_origin_main_when_it_matches_head, dry-run and help and docs, 11 OK | PASS
 
 ## States
 
@@ -89,3 +90,4 @@ state: exits written | tests: none yet | files: 2 | err: none
 state: F-subject PASS | tests: 2 OK in 0.265s | files: pfy_build_cloud.py commit_subject plus one call in commit_paths | err: none
 state: F-redact PASS | tests: 8 OK in 0.395s | files: redact only, plus one card sentence | err: none
 state: F-env PASS | tests: tests.test_pfy_build_cloud 50 OK in 10.465s | files: gate env scrub only | err: none
+state: F-base PASS | tests: 9 OK in 0.354s plus help 2 OK | files: resolve_base, --base help, two card rows, pfy help line | err: none
