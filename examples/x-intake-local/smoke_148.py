@@ -47,6 +47,11 @@ def receipt_dir() -> Path:
 
 
 def finish(code: int, rec: dict) -> int:
+    # Unset or empty keeps pipelines/smoke/skillspector. A relative path is refused: resolving it from cwd can clobber a real receipt.
+    raw = os.environ.get("PFY_SMOKE_RECEIPT_DIR")
+    if raw and not Path(raw).is_absolute():
+        print(f"PFY_SMOKE_RECEIPT_DIR must be absolute; directory refused: {raw}")
+        return 1
     rec["exit"] = code
     rec["status"] = {0: "PASS", 1: "FAIL", 2: "SKIP"}[code]
     rec["finished_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
