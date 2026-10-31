@@ -68,6 +68,7 @@ Format: `item | commit | tests | result`
 - tree sig root link | f8fcac9 | nice python3 -m unittest tests.test_tree_sig_root_link tests.test_tree_sig_symlink tests.test_tree_sig_mode tests.test_x_intake_smoke_122_124.XIntakeSmoke122124Tests.test_tree_sig_streams_file_contents tests.test_selfhost_1031_log (6 OK) | PASS human-accept
 - home sig docstring | 4b01771 | nice python3 -m unittest tests.test_home_sig_doc tests.test_selfhost_1031_log (3 OK) | PASS human-accept
 - tree sig 119 | c6f0cbd | nice python3 -m unittest tests.test_tree_sig_119 tests.test_selfhost_1031_log tests.test_x_intake_smoke_119_121 (real-home write and clean, 7 OK) | PASS human-accept
+- smolvm stderr pull | none | runner exit 1 review-rejected after 3 attempts | REJECT not cherry-picked. test_h expects the cache line when stderr also has pull progress.
 
 Skips logged before the first build (not three in a row of attempted items; these are out of scope up front):
 
