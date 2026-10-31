@@ -16,14 +16,15 @@ Gate pass means the receipt's last attempt reached a green gate (status PASS, or
 | 06-digest-after-add | PASS | 0 | pass | accept | yes | 68 | ok |
 | 07-pregate-lock | PASS | 0 | pass | accept | yes | 94 | ok |
 | 08-board-loaders-next | PASS | 0 | pass | accept | yes | 130 | ok |
+| 09-splice-close | PASS | 0 | pass | accept | yes | 85 | ok |
 
 ## Rates
 
-- runs: 8
-- gate_pass_rate: 7/8
-- review_accept_rate: 7/8
-- human_accept_rate: 7/8
-- median_wall_s: 112
+- runs: 9
+- gate_pass_rate: 8/9
+- review_accept_rate: 8/9
+- human_accept_rate: 8/9
+- median_wall_s: 94
 
 Gate pass means the receipt status is PASS (the after-gate exited 0 twice). Review accept means `review.verdict` is `accept`. Human accept means this lane would hand that cloud commit to Mark. Median is the middle wall time in seconds, or the average of the two middle values when the count is even.
 

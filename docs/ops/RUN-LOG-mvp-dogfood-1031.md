@@ -65,4 +65,5 @@ merge-cloud-2 | 73b5581 | cloud lane docs only, runner bytes unchanged | merged 
 05-board-loaders | 6cd05a5 cloud 5e44ca0 | tests.test_mvp_1031_dogfood_reports | PASS exit 0 wall 133s review accept human yes
 06-digest-after-add | e5141f6 cloud 6c9db24 | tests.test_mvp_1031_dogfood_reports | PASS exit 0 wall 68s review accept human yes
 07-pregate-lock | 22aa6b5 cloud f7d00a2 | tests.test_mvp_1031_dogfood_reports | PASS exit 0 wall 94s review accept human yes
-08-board-loaders-next | (this commit) cloud 51f4cd7 | tests.test_mvp_1031_dogfood_reports | PASS exit 0 wall 130s review accept human yes
+08-board-loaders-next | d6b8819 cloud 51f4cd7 | tests.test_mvp_1031_dogfood_reports | PASS exit 0 wall 130s review accept human yes
+09-splice-close | (this commit) cloud 24e73be | tests.test_mvp_1031_dogfood_reports | PASS exit 0 wall 85s review accept human yes
