@@ -61,4 +61,5 @@ Risks:
 
 Progress:
 
-- (none yet)
+- FU16 separate-process immunity | SHA16 | TMPDIR=$PWD/tmp/tmpclean nice -n 19 python3 -m unittest tests.test_pfylib_tmp_cleanup | 3 OK in 61.781s | pass
+- state: DONE | tests: tests.test_pfylib_tmp_cleanup 3 OK in 61.781s | files: 2 | err: none

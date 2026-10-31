@@ -2,10 +2,12 @@
 
 The child gets a fresh TMPDIR from tempfile (the runner's TMPDIR is honored)
 and a sitecustomize that records mkdir calls on the host /tmp outside that
-directory. A sibling /tmp/pfy-hr-* directory is not one of those calls.
+directory. A /tmp/pfy-hr-* directory created by a separate process during
+the run is not one of those calls.
 
 A planted leaker must fail the same checker: one leak stays in the private
 TMPDIR, and one leak is a host /tmp directory that ignores TMPDIR.
+The checker's own scratch lives under the repo tmp/, not on /tmp.
 """
 from __future__ import annotations
 
@@ -14,8 +16,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import threading
-import time
 import unittest
 import uuid
 from pathlib import Path
@@ -117,12 +117,27 @@ def _marker_ok(marker: str) -> bool:
     return bool(marker) and marker not in (".", "..") and "/" not in marker and "\\" not in marker
 
 
-def _assert_child_clean(argv: list[str], marker: str | None = None) -> None:
-    """Run argv with a private TMPDIR. Raise AssertionError('leaked: ...') on a leftover."""
+def _scratch() -> Path:
+    """Checker scratch. Never the host /tmp, so this file does not plant pfy-* there."""
+    path = ROOT / "tmp" / "tmpclean"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def _assert_child_clean(
+    argv: list[str],
+    marker: str | None = None,
+    foreign: Path | None = None,
+) -> None:
+    """Run argv with a private TMPDIR. Raise AssertionError('leaked: ...') on a leftover.
+
+    `foreign` is a host /tmp directory created by another process. It must
+    still exist at the end and must not be blamed as a leak.
+    """
     marker = marker or ("pfy-tmpclean-" + uuid.uuid4().hex)
     if not _marker_ok(marker):
         raise AssertionError("bad marker")
-    base = Path(tempfile.mkdtemp(prefix="pfy-tmpclean-"))
+    base = Path(tempfile.mkdtemp(prefix="pfy-tmpclean-", dir=_scratch()))
     marker_path = Path("/tmp") / marker
     try:
         hook_dir = base / "hook"
@@ -162,6 +177,13 @@ def _assert_child_clean(argv: list[str], marker: str | None = None) -> None:
             problems.append("private TMPDIR not empty: " + ", ".join(names))
         if still:
             problems.append("host /tmp paths still present: " + ", ".join(still))
+        if foreign is not None:
+            foreign_real = os.path.realpath(foreign)
+            if not foreign.is_dir():
+                problems.append("foreign dir missing: " + foreign_real)
+            logged = log_path.read_text(encoding="utf-8") if log_path.is_file() else ""
+            if foreign_real in logged.splitlines():
+                problems.append("foreign dir blamed: " + foreign_real)
         if problems:
             raise AssertionError("leaked: " + "; ".join(problems))
     finally:
@@ -171,33 +193,41 @@ def _assert_child_clean(argv: list[str], marker: str | None = None) -> None:
 
 
 class PfylibTmpCleanupTests(unittest.TestCase):
-    def test_module_run_stays_clean_when_sibling_creates_pfy_hr_dir(self):
-        sibling = Path("/tmp") / f"pfy-hr-{os.getpid()}"
-        stop = threading.Event()
-        created: list[Path] = []
-        errors: list[BaseException] = []
-
-        def hold() -> None:
-            try:
-                time.sleep(0.3)
-                sibling.mkdir()
-                created.append(sibling)
-                stop.wait()
-            except Exception as exc:
-                errors.append(exc)
-
-        thread = threading.Thread(target=hold, daemon=True)
-        thread.start()
+    def test_module_run_stays_clean_when_separate_process_creates_pfy_hr_dir(self):
+        sibling = Path("/tmp") / ("pfy-hr-" + uuid.uuid4().hex)
+        ready = _scratch() / ("hold-ready-" + sibling.name)
+        stop = _scratch() / ("hold-stop-" + sibling.name)
+        env = os.environ.copy()
+        env["PFY_TMPCLEAN_HOLD"] = str(sibling)
+        env["PFY_TMPCLEAN_HOLD_READY"] = str(ready)
+        env["PFY_TMPCLEAN_HOLD_STOP"] = str(stop)
+        proc = subprocess.Popen(
+            [sys.executable, str(LEAKER), "hold"],
+            cwd=ROOT,
+            env=env,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
         try:
-            _assert_child_clean([sys.executable, "-m", "unittest", *MODULES])
-            self.assertEqual(errors, [])
-            self.assertTrue(created, "sibling dir was not created during the run")
+            _assert_child_clean(
+                [sys.executable, "-m", "unittest", *MODULES],
+                foreign=sibling,
+            )
+            self.assertTrue(ready.is_file(), "separate process did not create the dir during the run")
             self.assertTrue(sibling.is_dir())
+            self.assertIsNone(proc.poll())
         finally:
-            stop.set()
-            thread.join(timeout=5)
-            if created and sibling.is_dir():
+            stop.write_text("stop\n", encoding="utf-8")
+            try:
+                proc.communicate(timeout=5)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                proc.communicate(timeout=5)
+            if sibling.is_dir():
                 sibling.rmdir()
+            ready.unlink(missing_ok=True)
+            stop.unlink(missing_ok=True)
 
     def test_private_tmpdir_leak_fails_the_checker(self):
         with self.assertRaisesRegex(AssertionError, "leaked"):
