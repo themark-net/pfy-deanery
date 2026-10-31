@@ -64,4 +64,5 @@ Six more cloud runs after `origin/bot/mvp-integrate-1031` was merged (`d6d62db`)
 | 07 | catch-view-to | 0 | PASS | 1 | accept | accept | 112 | 57e15700113ea1949526cb97a16f1f9a74db141a |
 | 08 | catch-view-cc | 0 | PASS | 1 | accept | accept | 102 | b2b1981c78666b0d7d55828545cc13feea3a11a4 |
 | 09 | catch-view-date | 0 | PASS | 1 | accept | accept | 107 | 2987c4f30a35371ea739f25ada733cefc7153d34 |
+| 10 | land-mailbox-parties | 0 | PASS | 1 | accept | accept | 121 | 973cedd1e4cc831d114e78e0734e04207f4fcb31 |
 
