@@ -52,7 +52,8 @@ Risks:
 - exits | `0f6fa08` | none (card only) | pushed
 - item 1 | `d3e73f6` | docs only, no test | Review section in the operator usage doc: default on, cap 3 files / 250 lines, larger legitimate diffs are PASS-REJECTED
 - item 4 | `16f7c07` | docs only, no test | Same section now says the reviewer is the same local model as the agent. Receipt field is cross-lane.
-- item 10 | (this commit) | docs only, no test | Standing TMPDIR note is now TMPDIR=$PWD/tmp in the worktree. The old tmp/pgs line stays as history of that run.
+- item 10 | `6d562a1` | docs only, no test | Standing TMPDIR note is now TMPDIR=$PWD/tmp in the worktree. The old tmp/pgs line stays as history of that run.
+- item 6 | (this commit) | `tests.test_pfy_build_local.LocalBuildTests.test_ignored_helper_is_not_committed` OK in 1.099s, reason `commit-recheck-failed` | Pin not edited. The test file is owned by bot/mvp-review-fix2-1031. The inversion is noted in the operator handoff. The old test name proved the helper was committed. The new name proves it is not. That inversion was the point of 0f0d889.
 
 ## Host checks
 
