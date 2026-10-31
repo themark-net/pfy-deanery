@@ -82,3 +82,7 @@ Host before 02: 2026-10-31T21:31:47Z MemAvailable 58.7 GiB, load 4.48, 32 cores.
 Host before 03: 2026-10-31T21:34:42Z MemAvailable 57.7 GiB, load 4.30, 32 cores. Under the pressure line.
 
 - 03-catch-view-index | cloud 3960757fce438fe83adadafe0dc8ecba38160fba landed 038e18cf69d0a2cc086c7a0e679ff27668b04e53 (test 4b2f29e72cd826b0da13363faa0a0c93c8113d7e) | gate before exit 1, after exit 0; land pytest 3 passed | PASS review accept human accept wall 106s
+
+Host before 04: 2026-10-31T21:37:38Z MemAvailable 59.3 GiB, load 4.50, 32 cores. Under the pressure line.
+
+- 04-catch-view-parties | cloud 26a6d07230c962068491ce7ffa6b6ace14f3bcc3 landed 760a163f67c2ea236442b9e6a4261de089e0b2e6 (test bb69b6460f5489ed61cbf37294d3655593decb52) | gate before exit 1, after exit 0; land pytest 4 passed | PASS review accept human accept wall 84s
