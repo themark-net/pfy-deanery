@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/correct-the-home-sig-docstring-it-must-n-20261031T213548369713Z",
+  "commit": "7968f607917fc0485e433030903194b87c9b836f",
+  "base": "HEAD",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll correct only the `home_sig` docstring so it no longer claims `tree_sig` was left as is. First I'll read that docstring and the existing test gate.The parenthetical still says `tree_sig` was left as is. `tree_sig` now records permission bits and symlink readlink, and it still omits mtime. I'll replace only that parenthetical.The `home_sig` docstring in `examples/x-intake-local/smoke_128_130.py` no longer says `smoke_122_124.tree_sig` was left as is.\n\nThe parenthetical now says `tree_sig` records permission bits and symlink readlink, including when the path itself is a symlink, and still does not record mtime. `home_sig` stays stricter because it records mtime. No executable line changed.\n\n`python3 -m unittest tests.test_home_sig_doc` passed.\n\nI'll check the docstring edit against the task and the existing gate, then give a verdict.verdict: accept\n\nThe edit replaces only the false `home_sig` parenthetical in `examples/x-intake-local/smoke_128_130.py`. The new text says `tree_sig` records permission bits and symlink readlink, including when the path itself is a symlink, and still does not record mtime. The rest of the docstring is unchanged, it still mentions mtime, and it does not say \"left as is\". No executable line, test, or `smoke_122_124.py` changed, and the change is uncommitted.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "python3 -m unittest tests.test_home_sig_doc",
+    "before": {
+      "cmd": "python3 -m unittest tests.test_home_sig_doc",
+      "exit": 1,
+      "tail": "\nF\n======================================================================\nFAIL: test_doc_does_not_say_tree_sig_was_left_as_is_and_mtime_stays_stricter (tests.test_home_sig_doc.HomeSigDocTests.test_doc_does_not_say_tree_sig_was_left_as_is_and_mtime_stays_stricter)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-selfhost-1031/tmp/selfhost-clones/target-6/tmp/cloud-build/20261031T213548369713Z/tests/test_home_sig_doc.py\", line 39, in test_doc_does_not_say_tree_sig_was_left_as_is_and_mtime_stays_stricter\n    self.assertNotIn(\"left as is\", doc)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^\nAssertionError: 'left as is' unexpectedly found in \"Real-HOME fingerprint of p, or None when p doesn't exist. Stricter than smoke_122_124.tree_sig (left as is for\\nthe 122-124 smokes): one line per entry, p included, with path, file type, permission bits and mtime_ns, plus size\\nand content hash for a regular file, or size and inode when it can't be read (a rewrite still shows in size, mtime\\nor inode), and the target string for a symlink. Symlinks below p are never followed; a symlinked p is recorded as\\na link and then its target is walked.\"\n\n----------------------------------------------------------------------\nRan 1 test in 0.028s\n\nFAILED (failures=1)\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "python3 -m unittest tests.test_home_sig_doc",
+      "exit": 0,
+      "tail": "\n.\n----------------------------------------------------------------------\nRan 1 test in 0.021s\n\nOK\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": true,
+  "task": "Correct the home_sig docstring. It must not say tree_sig was left as is.\n\nEdit only the home_sig docstring in examples/x-intake-local/smoke_128_130.py. Do not change any executable line. Do not edit tests. Do not commit. Do not edit smoke_122_124.py.\n\nThe parenthetical says smoke_122_124.tree_sig was left as is. That is no longer true. tree_sig records permission bits and symlink readlink, including when the path itself is a symlink, and it still does not record mtime. home_sig remains stricter because it records mtime.\n\nKeep the rest of the docstring. Replace only that false parenthetical. The docstring must still mention mtime. Do not use the phrase \"left as is\".\n\nNo em dashes or en dashes.\n\nAn mtime-only touch must still change home_sig and must still leave tree_sig unchanged. Do not add mtime to tree_sig. Do not remove mtime from home_sig.\n\nGate already in the tree. Do not edit it:\ntests.test_home_sig_doc",
+  "finished_at": "2026-10-31T21:37:16Z"
+}
