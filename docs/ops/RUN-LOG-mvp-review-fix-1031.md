@@ -90,4 +90,4 @@ How it fails: a gitignored receipt is not in the reviewed set, so it is not stag
 How we recover: no `local/` branch, origin HEAD unchanged, the extra name is not on any ref.
 
 item | commit | tests | result
-scope-commit | (this commit) | nice python3 -m unittest tests.test_pfy_build_local tests.test_pfy_build_local_review | Ran 70 tests in 91.800s OK
+scope-commit | 7bdede7 | nice python3 -m unittest tests.test_pfy_build_local tests.test_pfy_build_local_review | Ran 70 tests in 91.800s OK
