@@ -51,5 +51,6 @@ exits | 9903e70 | none (docs only, before code) | PASS
 confirm-base | 9903e70 | origin/main has no scripts/pfy_build_cloud.py | PASS
 skeleton | 62d7e3a | nice -n 19 python3 -m unittest tests.test_pfy_build_cloud (3 tests OK) | PASS
 dispatch | 860df72 | nice -n 19 python3 -m unittest tests.test_pfy_build_cloud (4 tests OK) | PASS
+pass | 141b203 | nice -n 19 python3 -m unittest tests.test_pfy_build_cloud (5 tests OK) | PASS
 
-state: IN PROGRESS | tests: tests.test_pfy_build_cloud 4 OK | files: scripts/pfy cmd_build and help | err: none
+state: IN PROGRESS | tests: tests.test_pfy_build_cloud 5 OK | files: scripts/pfy_build_cloud.py | err: none
