@@ -74,6 +74,7 @@ Format: `item | commit | tests | result`
 - tree sig 112 | 828063b | nice python3 -m unittest tests.test_tree_sig_112 tests.test_selfhost_1031_log tests.test_x_intake_smoke_112_114 (11 OK) | PASS human-accept
 - daemon stop timeout | 15fbf71 | nice python3 -m unittest tests.test_mvp2_t3_daemon_stop tests.test_tree_sig_112 tests.test_selfhost_1031_log tests.test_x_intake_smoke_112_114 (12 OK) | PASS human-accept
 - skillspector receipt dir | a663854 | nice python3 -m unittest tests.test_smoke_148_receipt_absolute tests.test_x_intake_smoke_148.Smoke148.test_missing_binary_exit_2 tests.test_selfhost_1031_log (4 OK) | PASS human-accept
+- mempalace receipt dir | b06e41a | nice python3 -m unittest tests.test_smoke_149_receipt_absolute tests.test_x_intake_smoke_149.Smoke149.test_missing_binary_exit_2 tests.test_selfhost_1031_log (4 OK) | PASS human-accept
 
 Skips logged before the first build (not three in a row of attempted items; these are out of scope up front):
 

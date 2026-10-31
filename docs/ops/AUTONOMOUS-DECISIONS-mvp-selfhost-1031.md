@@ -23,3 +23,5 @@
 - 2026-10-31: Human-accept the overtime daemon-stop build. A stop timeout with no live lock returns 1 and reuses the step timeout text. A live lock still fails as daemon still running. tree_sig and other timeout text were not edited.
 - 2026-10-31: Next product item is a relative PFY_SMOKE_RECEIPT_DIR in smoke_148. smoke.write already refuses one. smoke_148.finish still writes it. dogfood2 is on the daemon-stop path in smoke_112_114.py, so this item leaves that file alone. Alternative was to hash file bytes in smoke_148.home_sig, which would read real HOME trees during the existing smoke.
 - 2026-10-31: Human-accept the smoke_148 receipt build. finish refuses a relative directory and still writes an absolute latest.json. home_sig was not edited.
+- 2026-10-31: Next product item is the same relative receipt hole in smoke_149.finish. The other smokes already call smoke.write. Alternative was to stop after smoke_148 and leave mempalace able to clobber a cwd receipt.
+- 2026-10-31: Human-accept the smoke_149 receipt build. finish refuses a relative directory and still writes an absolute latest.json. home_sig was not edited.
