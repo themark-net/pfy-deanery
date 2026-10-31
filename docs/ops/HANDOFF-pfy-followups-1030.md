@@ -1,6 +1,6 @@
 # Handoff: pfy-followups-1030 (Run A)
 
-Status: stopped. Branch `bot/pfy-followups-1030`, worktree `~/DEVELOP/pfy-mentat/tmp/pfy-followups-1030`. Exit 3: three items in a row skipped (T-0070, T-0081, T-0074) after T-0124. Do not merge. No PR.
+Status: stopped. Branch `bot/pfy-followups-1030`, worktree `~/DEVELOP/pfy-mentat/tmp/pfy-followups-1030`. Exit 3: three items in a row skipped (T-0070, T-0081, T-0074) after T-0124. No PR. After Tester and Reviewer PASS, the bot fast-forwards main.
 
 Checked 2026-10-31T04:13:02Z: MVP-3 pid 1695827 is alive. `ollama ps` listed no model at that instant. The host stays busy while that pid is alive. Pregate not run: host busy.
 
@@ -42,4 +42,8 @@ A later run can take code or test follow-ups named in recent `docs/ops/HANDOFF-*
 
 When MVP-3 pid 1695827 is gone and `ollama ps` is empty, and `pgrep -f 'Runner[.]Worker'` is empty, and no other pregate is running, run pregate once under `flock ~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock`. Until then, pregate not run: host busy.
 
-Reviewer for the docs. Tester plus Reviewer for the smoke, the image-pin helper, and T-0124. Do not merge.
+Reviewer for the docs. Tester plus Reviewer for the smoke, the image-pin helper, and T-0124. After both PASS, the bot fast-forwards main.
+
+## Gate update 2026-10-31
+
+The "host busy" notes above are from 04:13Z, during the run. After MVP-3 finished, pregate ran on nimo at `654efa7` (run `654efa7-20261031T194548Z-1363860`) and passed overall. Tester then found nimo G0 red on `tests/test_workflow_image_pin.py::test_pregate_lint_calls_helper`: the CI checkout path under `actions-runner/_work` is longer than pregate's 60-char root guard. The test now sets `PREGATE_MAX_ROOT_LEN=200` for the lint-only call. Pregate re-runs at the fix pin.

@@ -5,8 +5,14 @@ set -euo pipefail
 
 GATEWAY_PORT="${OLLAMA_GATEWAY_PORT:-11435}"
 OLLAMA_PORT="${OLLAMA_PORT:-11434}"
-PID_FILE="${OLLAMA_GATEWAY_PID_FILE:-${XDG_RUNTIME_DIR:-/tmp}/pfy-mentat-ollama-gateway.pid}"
-LOG_FILE="${OLLAMA_GATEWAY_LOG:-${XDG_RUNTIME_DIR:-/tmp}/pfy-mentat-ollama-gateway.log}"
+# Pid and log follow XDG_RUNTIME_DIR, then TMPDIR, then /tmp.
+PID_FILE="${OLLAMA_GATEWAY_PID_FILE:-${XDG_RUNTIME_DIR:-${TMPDIR:-/tmp}}/pfy-mentat-ollama-gateway.pid}"
+LOG_FILE="${OLLAMA_GATEWAY_LOG:-${XDG_RUNTIME_DIR:-${TMPDIR:-/tmp}}/pfy-mentat-ollama-gateway.log}"
+
+if [[ "${1:-}" == "--paths" ]]; then
+  printf '%s\n' "$PID_FILE" "$LOG_FILE"
+  exit 0
+fi
 
 cmd="${1:-status}"
 

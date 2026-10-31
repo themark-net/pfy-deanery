@@ -40,6 +40,17 @@ def _git(repo: Path, *args: str) -> subprocess.CompletedProcess:
     return _run(["git", *args], repo)
 
 
+def _load_cloud():
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("pfy_build_cloud_under_test", CLOUD)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("could not load the cloud runner")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
 def _write_exe(path: Path, body: str) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(body, encoding="utf-8")
@@ -1517,6 +1528,9 @@ class CloudBuildFailureTests(unittest.TestCase):
         aborted = json.loads((receipt_dir / "receipt.json").read_text(encoding="utf-8"))
         self.assertEqual(aborted["status"], "ABORTED")
         self.assertEqual(aborted["reason"], "no-receipt")
+        self.assertIn("Mark:", aborted["recovery"])
+        self.assertIn("--reap", aborted["recovery"])
+        self.assertNotIn("--local", aborted["recovery"])
         self.assertIsNone(aborted["branch"])
         self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
 
@@ -1572,6 +1586,8 @@ class CloudBuildFailureTests(unittest.TestCase):
         aborted = json.loads((stale / "receipt.json").read_text(encoding="utf-8"))
         self.assertEqual(aborted["status"], "ABORTED")
         self.assertEqual(aborted["reason"], "no-receipt")
+        self.assertIn("Mark:", aborted["recovery"])
+        self.assertIn("--reap", aborted["recovery"])
         self.assertFalse(cloud_pids.exists())
 
     def test_reap_leaves_a_live_recorded_pid_alone(self) -> None:
@@ -1673,9 +1689,82 @@ class CloudBuildFailureTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 1, text)
         payload = self._receipt()
         self.assertEqual(payload["reason"], "protected-path-changed")
+        self.assertIn("Mark:", payload["recovery"])
+        self.assertIn("auth.json", payload["recovery"])
+        self.assertNotIn("--local", payload["recovery"])
         self.assertIsNone(payload["branch"])
         self.assertIsNone(payload["commit"])
         self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
+
+    def test_every_failure_reason_receipt_has_a_recovery_line(self) -> None:
+        mod = _load_cloud()
+        samples = (
+            (1, "rate limit hit", "", "rate-limit"),
+            (1, "please log in", "", "unauthenticated"),
+            (1, "Not signed in", "", "other"),
+            (0, "rate limit", "", "other"),
+            (1, "boom", "", "other"),
+        )
+        seen = set()
+        for rc, out, err, expected in samples:
+            got = mod.classify_cloud_failure(rc, out, err)
+            self.assertEqual(got, expected, "%s %s" % (rc, out))
+            seen.add(got)
+        self.assertEqual(seen, {"rate-limit", "unauthenticated", "other"})
+        reasons = tuple(mod.TERMINAL_FAILURE_REASONS)
+        self.assertNotIn("other", reasons)
+        self.assertNotIn("ok", reasons)
+        self.assertNotIn("dry-run", reasons)
+        for kind in ("rate-limit", "unauthenticated"):
+            self.assertIn(kind, reasons)
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        for reason in reasons:
+            args = mod.parse_args(
+                [
+                    "task %s" % reason,
+                    "--repo",
+                    str(self.repo),
+                    "--retries",
+                    "0",
+                    "--timeout",
+                    "30",
+                    "--test-cmd",
+                    "true",
+                ]
+            )
+            build = mod.CloudBuild(args, self.repo, "HEAD", head, None)
+            status = "BLOCKED" if reason == "rate-limit" else "TIMEOUT" if reason == "timeout" else "FAIL"
+            code = 4 if reason == "rate-limit" else 3 if reason == "timeout" else 1
+            build.fail(status, reason, code, "")
+            payload = json.loads(build.receipt_path.read_text(encoding="utf-8"))
+            self.assertEqual(payload["reason"], reason)
+            self.assertNotEqual(payload["status"], "PASS")
+            self.assertTrue((payload.get("recovery") or "").strip(), reason)
+            if reason == "rate-limit":
+                self.assertIn("./pfy build --local", payload["recovery"])
+            elif reason == "unauthenticated":
+                self.assertIn("run grok once", payload["recovery"])
+                self.assertNotIn("--local", payload["recovery"])
+            else:
+                self.assertNotIn("--local", payload["recovery"])
+                self.assertIn("Mark:", payload["recovery"])
+        crashed = mod.CloudBuild(
+            mod.parse_args(["task crash", "--repo", str(self.repo), "--retries", "0", "--test-cmd", "true"]),
+            self.repo,
+            "HEAD",
+            head,
+            None,
+        )
+        crashed.reason = "runner-crash"
+        crashed.status = "FAIL"
+        crashed.exit_code = 1
+        crashed.recovery = ""
+        crashed.record(0, "FAIL", "runner-crash", "boom")
+        crashed.finish()
+        crash_payload = json.loads(crashed.receipt_path.read_text(encoding="utf-8"))
+        self.assertEqual(crash_payload["reason"], "runner-crash")
+        self.assertIn("Mark:", crash_payload["recovery"])
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
 
     def test_direct_grok_home_fails_then_a_clean_retry_lands(self) -> None:
         grok = _write_exe(
@@ -2339,10 +2428,99 @@ class CloudBuildGateReasonTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 1, text)
         payload = self._receipt()
         self.assertEqual(payload["reason"], "worktree-failed")
+        self.assertIn("Mark:", payload["recovery"])
+        self.assertIn("worktree", payload["recovery"].lower())
+        self.assertNotIn("--local", payload["recovery"])
         self.assertIsNone(payload["branch"])
         self.assertIsNone(payload["commit"])
         self.assertFalse(calls.exists())
         self.assertEqual(_git(self.repo, "status", "--porcelain").stdout, before)
         self.assertIn("caller-dirty.txt", before)
         self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+
+    def test_missing_base_is_worktree_failed_and_leaves_the_caller(self) -> None:
+        calls = self.side / "calls.txt"
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import os\n"
+            "from pathlib import Path\n"
+            "Path(os.environ['PFY_CALL_COUNT']).write_text('called\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        (self.repo / "caller-dirty.txt").write_text("stay\n", encoding="utf-8")
+        before = _git(self.repo, "status", "--porcelain").stdout
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        ref = "does-not-exist-realfail2-1031"
+        proc = _run(
+            [
+                sys.executable,
+                str(CLOUD),
+                "add kept",
+                "--repo",
+                str(self.repo),
+                "--base",
+                ref,
+                "--retries",
+                "0",
+                "--timeout",
+                "30",
+                "--test-cmd",
+                "true",
+                "--grok-cmd",
+                str(grok),
+            ],
+            self.repo,
+            env={"PFY_CALL_COUNT": str(calls)},
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 1, text)
+        self.assertNotIn("usage:", text)
+        payload = self._receipt()
+        self.assertEqual(payload["status"], "FAIL")
+        self.assertEqual(payload["reason"], "worktree-failed")
+        self.assertEqual(payload["exit_code"], 1)
+        self.assertEqual(payload["base"], ref)
+        self.assertIsNone(payload["branch"])
+        self.assertIsNone(payload["commit"])
+        self.assertIs(payload["pushed"], False)
+        recovery = payload["recovery"]
+        self.assertTrue(recovery.strip(), recovery)
+        self.assertIn("Mark:", recovery)
+        self.assertIn(ref, recovery)
+        self.assertIn("--base", recovery)
+        self.assertIn("fetch", recovery.lower())
+        self.assertNotIn("--local", recovery)
+        self.assertFalse(calls.exists())
+        self.assertEqual(_git(self.repo, "status", "--porcelain").stdout, before)
+        self.assertIn("caller-dirty.txt", before)
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+        self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
+        self.assertFalse((self.repo / "tmp" / "cloud-build").exists())
+        dry_dir = self.side / "dry-receipt"
+        dry = _run(
+            [
+                sys.executable,
+                str(CLOUD),
+                "add kept",
+                "--repo",
+                str(self.repo),
+                "--base",
+                ref,
+                "--dry-run",
+                "--receipt-dir",
+                str(dry_dir),
+                "--grok-cmd",
+                str(grok),
+            ],
+            self.repo,
+            env={"PFY_CALL_COUNT": str(calls)},
+        )
+        dry_text = (dry.stdout or "") + (dry.stderr or "")
+        self.assertEqual(dry.returncode, 1, dry_text)
+        dry_payload = json.loads((dry_dir / "receipt.json").read_text(encoding="utf-8"))
+        self.assertEqual(dry_payload["status"], "FAIL")
+        self.assertEqual(dry_payload["reason"], "worktree-failed")
+        self.assertIn(ref, dry_payload["recovery"])
+        self.assertFalse(calls.exists())
 

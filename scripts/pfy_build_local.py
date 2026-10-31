@@ -7,7 +7,8 @@ Nothing is pushed and no PR is opened.
 
 Exit codes:
   0  PASS, or a clean --dry-run, or --reap
-  1  FAIL, or PASS-REJECTED (the gate was green and the review rejected the patch)
+  1  FAIL, or PASS-REJECTED (the gate was green and the review rejected the patch),
+     or REVIEW-ERROR (reviewer HTTP error or timeout: not a reject, not retried)
   2  usage, or opencode is missing
   3  TIMEOUT (agent)
   4  BLOCKED (memory, busy host, ps error, model size, cloud tag, lock, no-model,
@@ -69,6 +70,12 @@ DEFAULT_MAX_FILES = 3
 DEFAULT_MAX_LINES = 250
 REVIEW_MARKER = "pfy-review-v1"
 DIFF_PROMPT_CAP = 8000
+# Shown on the final receipt when the review call itself fails. Not a reject.
+_REVIEW_OUTAGE_RECOVERY = (
+    "Reviewer was unavailable after an HTTP error or a timeout. "
+    "This attempt is not a reject and was not retried. "
+    "Recovery: run the build again when the reviewer answers, or pass --no-review."
+)
 _RETRYABLE = {
     "no-change",
     "protected-path-changed",
@@ -289,7 +296,11 @@ def _apply_review_flags(args: argparse.Namespace) -> None:
 def parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="pfy build --local",
-        description="Headless local-model build. One task, one tested branch, no push.",
+        description=(
+            "Headless local-model build. One task, one tested branch, no push. "
+            "Review is on by default (--no-review turns it off). "
+            "A green patch is rejected above 3 changed files or 250 added plus removed lines."
+        ),
     )
     parser.add_argument("task", nargs="?", help="task text")
     parser.add_argument("--local", action="store_true", help=argparse.SUPPRESS)
@@ -2481,6 +2492,8 @@ def _content_from_model_body(raw: str) -> str:
 _REVIEW_POSTER = """\
 import json
 import os
+import socket
+import urllib.error
 import urllib.request
 
 url = os.environ["OPENAI_BASE_URL"].rstrip("/") + "/chat/completions"
@@ -2489,11 +2502,34 @@ data = json.dumps(body).encode("utf-8")
 req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
 timeout = float(os.environ.get("PFY_REVIEW_HTTP_TIMEOUT") or "60")
 out = os.environ["PFY_REVIEW_OUT"]
+
+
+def _timed_out(exc):
+    if isinstance(exc, (TimeoutError, socket.timeout)):
+        return True
+    reason = getattr(exc, "reason", None)
+    if isinstance(reason, (TimeoutError, socket.timeout)):
+        return True
+    return "timed out" in str(exc).lower()
+
+
 try:
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         raw = resp.read().decode("utf-8", "replace")
+        code = getattr(resp, "status", None)
+        if not isinstance(code, int):
+            code = getattr(resp, "code", 200)
+        if isinstance(code, int) and code >= 400:
+            raw = json.dumps(
+                {"kind": "http-error", "http_status": code, "error": "http-%s" % code}
+            )
+except urllib.error.HTTPError as exc:
+    raw = json.dumps(
+        {"kind": "http-error", "http_status": int(exc.code), "error": "http-%s" % exc.code}
+    )
 except Exception as exc:
-    raw = json.dumps({"error": "%s" % exc})
+    kind = "timeout" if _timed_out(exc) else "http-error"
+    raw = json.dumps({"kind": kind, "error": str(exc)[:500]})
 open(out, "w", encoding="utf-8").write(raw)
 """
 
@@ -2519,12 +2555,18 @@ def _attempt_low(state: State, snap: float | None) -> float | None:
 
 
 def _stub_extra_rw() -> list[Path]:
-    """Parents of the test stub's plan files. A normal run sets none of these.
+    """Parents of the test stub's plan files.
 
     The sandbox root is read-only, so the stub cannot record the prompt or the
     attempt counter unless those files' directory is bound read-write. The
     agent cannot add binds of its own: this list is fixed before it starts.
+
+    Production does not read PFY_STUB_*. Those names are consulted only when
+    PFY_LOCAL_BUILD_TEST_SEAM=1, which the review tests set. A normal run
+    leaves the seam unset and returns no extra binds.
     """
+    if os.environ.get("PFY_LOCAL_BUILD_TEST_SEAM") != "1":
+        return []
     found: list[Path] = []
     seen: set[str] = set()
     for key in ("PFY_STUB_PLAN", "PFY_STUB_COUNT", "PFY_STUB_PROMPTS"):
@@ -2556,6 +2598,27 @@ def _drop_worktree(repo: Path, worktree: Path | None) -> None:
     _git(repo, ["worktree", "prune"])
 
 
+def _review_outage_kind(raw: str) -> str | None:
+    """http-error or timeout when the poster recorded a transport failure.
+
+    A normal model body has choices or response text and is not an outage,
+    even when that text is unparseable. Unparseable stays a reject.
+    """
+    try:
+        data = json.loads(raw or "")
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(data, dict) or "choices" in data or "response" in data:
+        return None
+    kind = data.get("kind")
+    if kind in ("http-error", "timeout"):
+        return str(kind)
+    status = data.get("http_status")
+    if isinstance(status, int) and status >= 400:
+        return "http-error"
+    return None
+
+
 def _run_model_review(
     args,
     worktree: Path,
@@ -2566,7 +2629,12 @@ def _run_model_review(
     state: State,
     repo: Path,
 ) -> tuple[str, dict | None]:
-    """Return (status, review). status is accept, reject, timeout, interrupted, mem-edge, blocked, sandbox."""
+    """Return (status, review).
+
+    status is accept, reject, unavailable, interrupted, mem-edge, blocked, or
+    sandbox. unavailable means the review call had an HTTP error or timed out.
+    That is not a verdict.
+    """
     port = _loopback_port(openai_base)
     if port is None:
         return "blocked", {
@@ -2621,8 +2689,6 @@ def _run_model_review(
         )
     finally:
         prepared.close()
-    if run_status == "timeout":
-        return "timeout", None
     if run_status == "interrupted":
         return "interrupted", None
     if run_status == "mem-edge":
@@ -2632,6 +2698,15 @@ def _run_model_review(
         raw = out_path.read_text(encoding="utf-8")
     except OSError:
         raw = (out or "") + (err or "")
+    # HTTP error and the bounded-call timeout share one status. A verdict
+    # reject is a later return and is retried. An outage is not.
+    if run_status == "timeout" or _review_outage_kind(raw):
+        detail = "review call timed out" if run_status == "timeout" else raw[:500]
+        return "unavailable", {
+            "verdict": "unavailable",
+            "reasons": ["review-unavailable"],
+            "raw_tail": redact(detail)[:500],
+        }
     content = _content_from_model_body(raw)
     verdict, reasons, raw_tail = _parse_verdict(content)
     return verdict, {"verdict": verdict, "reasons": reasons, "raw_tail": redact(raw_tail)[:500]}
@@ -2661,6 +2736,9 @@ def build_local(argv: list[str] | None = None) -> int:
     status = "FAIL"
     reason = "runner-crash"
     exit_code = EXIT_FAIL
+    recovery = ""
+    warnings: list[str] = []
+    sandbox_extra_rw: list[str] = []
     tests_before = None
     tests_after = None
     changed: list[str] = []
@@ -2722,6 +2800,8 @@ def build_local(argv: list[str] | None = None) -> int:
                     "allow_path": list(args.allow_path or []),
                     "require_wiring": list(args.require_wiring or []),
                 },
+                "warnings": list(warnings),
+                "sandbox_extra_rw": list(sandbox_extra_rw),
                 "attempt_receipts": list(attempt_receipts),
                 "branch": branch,
                 "commit": commit,
@@ -2739,6 +2819,8 @@ def build_local(argv: list[str] | None = None) -> int:
                 "started_at": started_at,
                 "finished_at": finished_at,
             }
+            if recovery:
+                payload["recovery"] = recovery
             _write_receipt(receipt_path, payload)
             print(_summary(status, reason, branch, receipt_path))
         stop_watch.set()
@@ -2870,6 +2952,11 @@ def build_local(argv: list[str] | None = None) -> int:
         pid_written = False
         watcher_started = False
         allow_patterns, allow_declared = _task_allow(args.task_text, list(args.allow_path or []))
+        if not allow_declared:
+            warnings.append(
+                "no allow list: scope was not checked. "
+                "Name paths with files: in the task or with --allow-path."
+            )
         wiring_rules = _wiring_rules(args.task_text, list(args.require_wiring or []))
 
         def _record_attempt(number, t0, mem_snap, attempt_status, attempt_reason, checks, model_review, diff_stats, diff_text):
@@ -2888,6 +2975,8 @@ def build_local(argv: list[str] | None = None) -> int:
                 "wall_seconds": round(time.monotonic() - t0, 3),
                 "mem_min_available_gb": _attempt_low(state, mem_snap),
             }
+            if recovery:
+                payload["recovery"] = recovery
             dest = receipt_dir / ("attempt-%d" % number) / "receipt.json"
             _write_receipt(dest, payload)
             attempt_receipts.append(str(dest))
@@ -3004,13 +3093,15 @@ def build_local(argv: list[str] | None = None) -> int:
             prompt = _agent_prompt(args.task_text, args.test_cmd_s, feedback, previous_diff)
             cmd = [binary, "run", "--pure", "--model", "ollama/%s" % args.model_name, "--variant", "none", prompt]
             git_saved = isolate_worktree_git(worktree)
+            stub_binds = _stub_extra_rw()
+            sandbox_extra_rw = [str(path) for path in stub_binds]
             try:
                 prepared = prepare_sandbox(
                     cmd,
                     worktree,
                     hide=hide_paths(repo, worktree),
                     endpoint=openai_base,
-                    extra_rw=_stub_extra_rw(),
+                    extra_rw=stub_binds,
                     unsafe=bool(args.unsafe_no_sandbox),
                 )
             except SandboxUnavailable as exc:
@@ -3230,9 +3321,21 @@ def build_local(argv: list[str] | None = None) -> int:
                 state,
                 repo,
             )
-            if review_status == "timeout":
-                status, reason, exit_code = "TIMEOUT", "timeout", EXIT_TIMEOUT
-                _record_attempt(attempts_used, attempt_t0, mem_snap, "TIMEOUT", "timeout", checks, model_review, diff_stats, diff_text)
+            if review_status == "unavailable":
+                # Not a reject and not retried, even when attempts remain.
+                recovery = _REVIEW_OUTAGE_RECOVERY
+                status, reason, exit_code = "REVIEW-ERROR", "review-unavailable", EXIT_FAIL
+                _record_attempt(
+                    attempts_used,
+                    attempt_t0,
+                    mem_snap,
+                    "REVIEW-ERROR",
+                    "review-unavailable",
+                    checks,
+                    model_review,
+                    diff_stats,
+                    diff_text,
+                )
                 return finish()
             if review_status == "interrupted" or state.interrupted:
                 status, reason, exit_code = "FAIL", "interrupted", EXIT_FAIL

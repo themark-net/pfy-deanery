@@ -343,7 +343,10 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
-        self.wfile.write(data)
+        try:
+            self.wfile.write(data)
+        except BrokenPipeError:
+            return
 
     def do_GET(self):  # noqa: N802
         if self.path.startswith("/api/tags"):
@@ -378,6 +381,10 @@ class Handler(BaseHTTPRequestHandler):
                 blocker = getattr(self.server, "review_block", None)
                 if blocker is not None:
                     blocker.wait()
+                http_status = getattr(self.server, "review_http_status", 200)
+                if http_status != 200:
+                    self._send(int(http_status), {"error": "review-down"})
+                    return
                 queue = getattr(self.server, "review_queue", None)
                 if queue:
                     content = queue.pop(0)
@@ -1482,12 +1489,28 @@ class LocalBuildTests(unittest.TestCase):
 
 class CloudBuildUnchangedTests(unittest.TestCase):
     def test_help_and_dry_run_stay_the_same(self):
+        """Bare help is the cloud card. ./pfy build -p --help keeps dogfood flags.
+
+        Fail: bare ./pfy build --help still lists --prompt-file, so the daily
+        cloud card from plan D1 is hidden. The reverse fail is -p --help
+        showing Daily cloud build and dropping -p, --prompt.
+        Recover: bare help names ./pfy build "<task>" and points at -p and
+        --local. -p --help lists the dogfood flags. -p x --dry-run still
+        prints READY and leaves no new receipt directory entries.
+        """
         if shutil.which("grok") is None:
             self.skipTest("SKIP: grok-missing")
         env = os.environ.copy()
         env["TMPDIR"] = str(ROOT / "tmp" / "scratch")
-        receipt_root = ROOT / "pipelines" / "dogfood" / "build"
-        before = {path.name for path in receipt_root.iterdir()} if receipt_root.is_dir() else set()
+        receipt_roots = (
+            ROOT / "pipelines" / "dogfood" / "build",
+            ROOT / "pipelines" / "dogfood" / "build-cloud",
+        )
+
+        def names(path):
+            return {child.name for child in path.iterdir()} if path.is_dir() else set()
+
+        before = {path: names(path) for path in receipt_roots}
         try:
             help_proc = subprocess.run(
                 [str(ROOT / "pfy"), "build", "--help"],
@@ -1498,11 +1521,32 @@ class CloudBuildUnchangedTests(unittest.TestCase):
                 timeout=30,
             )
             self.assertEqual(help_proc.returncode, 0, help_proc.stderr)
-            help_text = help_proc.stdout or ""
+            help_text = (help_proc.stdout or "") + (help_proc.stderr or "")
             self.assertIn("usage: pfy build", help_text)
+            self.assertIn("Daily cloud build", help_text)
+            self.assertIn('./pfy build "<task>"', help_text)
+            self.assertIn("jev dogfood wrap", help_text)
+            self.assertIn("opt-in fallback", help_text)
+            self.assertIn("--local", help_text)
             self.assertIn("--dry-run", help_text)
-            self.assertIn("--prompt-file", help_text)
-            self.assertIn("-p, --prompt", help_text)
+            self.assertNotIn("--prompt-file", help_text)
+            self.assertNotIn("-p, --prompt", help_text)
+            dogfood = subprocess.run(
+                [str(ROOT / "pfy"), "build", "-p", "--help"],
+                cwd=ROOT,
+                env=env,
+                text=True,
+                capture_output=True,
+                timeout=30,
+            )
+            self.assertEqual(dogfood.returncode, 0, dogfood.stderr)
+            dogfood_text = (dogfood.stdout or "") + (dogfood.stderr or "")
+            self.assertIn("usage: pfy build", dogfood_text)
+            self.assertIn("Apply local jev toolset", dogfood_text)
+            self.assertIn("--dry-run", dogfood_text)
+            self.assertIn("--prompt-file", dogfood_text)
+            self.assertIn("-p, --prompt", dogfood_text)
+            self.assertNotIn("Daily cloud build", dogfood_text)
             dry = subprocess.run(
                 [str(ROOT / "pfy"), "build", "-p", "x", "--dry-run"],
                 cwd=ROOT,
@@ -1516,15 +1560,17 @@ class CloudBuildUnchangedTests(unittest.TestCase):
             self.assertIn("READY", dry.stdout)
             self.assertIn("receipt:", dry.stdout)
         finally:
-            if receipt_root.is_dir():
+            for receipt_root, seen in before.items():
+                if not receipt_root.is_dir():
+                    continue
                 for child in list(receipt_root.iterdir()):
-                    if child.name not in before:
+                    if child.name not in seen:
                         if child.is_dir():
                             shutil.rmtree(child, ignore_errors=True)
                         else:
                             child.unlink(missing_ok=True)
-        after = {path.name for path in receipt_root.iterdir()} if receipt_root.is_dir() else set()
-        self.assertEqual(after, before)
+        for receipt_root, seen in before.items():
+            self.assertEqual(names(receipt_root), seen)
 
     def test_real_opencode_accepts_the_flags_we_pass(self):
         binary = shutil.which("opencode")

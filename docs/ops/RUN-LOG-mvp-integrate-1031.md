@@ -84,3 +84,114 @@ demo | a73e9ae | ./pfy build on tmp fixture; python3 eval/mvp-1031/check_receipt
 notes | 0338b67 | nice -n 19 python3 -m unittest tests.test_docs_hygiene tests.test_pfy_build_docs | 7 OK in 0.025s; one TODO note, one pending section, one modules row
 
 state: DONE | exit: lane empty | tests: discover 1048 ran, failures=2, skipped=16; checker exit 0 | files: merges, classifier import, demo receipt, report, TODO note, pending section, modules row, handoff | err: help contract and TMPDIR local-bench recorded, not rewritten
+
+## PASS 2
+
+Operator addendum, checked 2026-10-31T21:16:21Z. Pass 1 state above stays. This section is the pass 2 loop. MemAvailable about 60 GiB. Load about 4.7 on 32 cores. Wall cap still 2026-11-01T04:42:00Z. Handoff buffer still 2026-11-01T04:22:00Z. No pregate in this pass. The operator runs pregate on the final tip.
+
+Overview: Fetch origin. Merge newer tips of the eight pass-1 branches, then the pass-2 lane branches that exist, in the listed order. Skip a missing branch. Do not merge `bot/mvp-selfhost-1031`. Resolve `scripts/pfy_build_cloud.py` in favor of cloudfix when that branch is merged, with one import and no inline classifier. Run the suite once under the lock. Run one real cloud demo on a small real backlog task in a throwaway clone. Commit the receipt even if it does not PASS. Update the handoff with the final tip SHA and push.
+
+## LOOP EXIT CARD PASS 2
+
+```text
+LOOP EXIT CARD PASS 2
+Goal (success criteria): merge commits for every listed pass-2 origin branch that exists, including newer tips of the eight pass-1 branches; cloudfix owns scripts/pfy_build_cloud.py with exactly one classify_cloud_failure import; one flock suite with counts; one honest demo-2 receipt and a Pass 2 report section; handoff names the final tip SHA. No Feature GO. No pregate by this lane. No merge of bot/mvp-selfhost-1031.
+1 Goal met:                  suite counts in the handoff; check_receipt.py exit recorded for demo-receipt-pass2.json; REPORT.md Pass 2 section has command, task, wall time, exit, attempts, branch, commit, review verdict, human verdict, and DoD lines 1 to 6
+2 Turn cap:                  the pass-2 merge list, the classifier proof, the suite, demo 2, then the handoff. Stop at the first exit.
+3 Budget cap:                one real cloud ./pfy build for demo 2. No second cloud call. No --local. No Ollama.
+4 Wall clock:                2026-11-01T04:42:00Z, or 2026-11-02T02:00Z, whichever is first. Handoff buffer starts 2026-11-01T04:22:00Z. Checked at 2026-10-31T21:16:21Z, inside the cap.
+5 No-progress:               same failure twice with no new information, or 3 items in a row skipped
+6 Human interrupt:           user stop. Do not ask. Conservative default, one decisions line, continue.
+7 Error threshold:           3 consecutive same failures, or the drop-in "same failure twice" rule, then stop
+8 External event:            a missing origin branch is skipped and logged, not polled. A lane still running is merged at its current pushed tip and the SHA is recorded.
+Loop type:                   goal
+Human gate:                  no merge to main, no PR, no tag, no force push. Push only bot/mvp-integrate-1031.
+```
+
+Drop-in exits (checked before every pass-2 item):
+
+1. Wall cap with the 20 minute handoff buffer above.
+2. Lane empty: the pass-2 list, the classifier proof, the suite, demo 2, and the handoff are done, or no remaining item fits the owned files.
+3. No progress: same failure twice with no new information, or 3 skipped items in a row.
+4. Host pressure: MemAvailable under 16 GiB, or load over 64 for 5 minutes. Pause 10 minutes, then stop if it persists.
+5. Red base: a failure that also fails before this pass's change is recorded and that area is skipped. Do not stop the lane. A failure another lane owns is recorded with that lane. Fix only a failure this pass's conflict resolution caused.
+
+Named skills `write-loop-exits-first` and `repo-handoff-doc-required` are still not files. This card, the drop-in exit list, and `docs/ops/HANDOFF-mvp-integrate-1031.md` stay the binding.
+
+## Pass 2 phases
+
+- exits-2 | this log, `docs/ops/AUTONOMOUS-DECISIONS-mvp-integrate-1031.md` | pass-2 exit card committed and pushed before any pass-2 merge | none | lead
+- merge-2 | incoming branch files only, merge commits | each listed origin branch merged at its current tip or logged missing; push after each success; selfhost not merged | exits-2 | lead
+- classifier-2 | `scripts/pfy_build_cloud.py` only when the merge does not already leave one import | cloudfix version wins; exactly one import; no inline duplicate; `tests.test_pfy_build_cloud*` and `tests.test_build_preflight` | merge-2 | lead
+- suite-2 | no feature edits | one `TMPDIR=$PWD/tmp nice -n 19 flock` unittest discover; conflict-caused failures fixed inside the conflict; other failures recorded with the owning lane | merge-2 | lead
+- demo-2 | `eval/mvp-1031/demo-receipt-pass2.json`, `eval/mvp-1031/REPORT.md` | one real `./pfy build` on `tmp/demo2-target`; honest receipt even when it does not PASS | suite-2 | lead
+- handoff-2 | `docs/ops/HANDOFF-mvp-integrate-1031.md`, this log | final tip SHA, skips, evidence, fail/recover, cross-lane, gate, next step, final `state:` line, push. No pregate | demo-2 | lead
+
+Pass 2 merge order:
+
+1. Newer tips: `origin/bot/backlog-catalog-1030`, `origin/bot/pfy-followups-1030` (c0d38af or newer), `origin/bot/mvp3-review-retry` (d624535 or newer), `origin/bot/mvp-review-fix-1031`, `origin/bot/mvp-preflight-1031`, `origin/bot/mvp-surface-1031`, `origin/bot/mvp-eval-1031`, `origin/bot/mvp-cloud-1031`
+2. `origin/bot/mvp-cloudfix-1031`
+3. `origin/bot/mvp-review-fix2-1031`
+4. `origin/bot/mvp-intfix-1031`
+5. `origin/bot/mvp-followups-fix2-1031`
+6. `origin/bot/mvp-tmpclean-1031`
+7. `origin/bot/mvp-docs-1031`
+8. `origin/bot/mvp-mutate-cloud-1031`
+9. `origin/bot/mvp-mutate-review-1031`
+10. `origin/bot/mvp-realfail-1031`
+11. `origin/bot/mvp-realfail2-1031`
+12. `origin/bot/mvp-sixtask-1031`
+13. `origin/bot/mvp-dogfood-1031`
+14. `origin/bot/mvp-dogfood2-1031`
+15. `origin/bot/mvp-gom-dogfood-1031`
+
+Not merged: `origin/bot/mvp-selfhost-1031` (Mark cherry-picks from it).
+
+Conflict rule: round-1 owner wins when the plan matrix names one. For `docs/TODO.md` and `docs/modules/pfylib.md`, keep both sides' facts. Do not drop a done row. For `scripts/pfy_build_cloud.py`, cloudfix wins: one import, no inline duplicate classifier. One decisions line per conflict.
+
+## Pass 2 risks
+
+- Shared host and the heavy lock: the full suite waits on `~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock`. Do not start a second discover. Do not signal processes this lane did not start.
+- A branch whose lane is still running is merged at the fetched tip. Later commits on that branch are not polled.
+- Cloud rate limit or auth failure on demo 2: commit the receipt, mark the demo as not PASS, do not retry with `--local`, do not invent a green result.
+- Classifier overlap: do not keep both the pass-1 import commit and an inline copy. Cloudfix's file is the source when that branch merges.
+- Demo 2 target is a throwaway clone under `tmp/demo2-target`. The integrate branch is not the task target. Do not commit `tmp/`.
+- One worktree: merges stay serial on the lead.
+
+## Pass 2 item log
+
+Format: `item | commit | tests | result`
+
+exits-2 | 6eb5d83 | none | pass 2 exit card pushed before any pass 2 merge
+merge pfy-followups-1030 | 0f478ed | none | tip c0d38af, clean
+merge backlog-catalog-1030 | already e04e926 | none | no new commits
+merge mvp3-review-retry | already d624535 | none | pin already in HEAD
+merge mvp-review-fix-1031 | already 1140434 | none | no new commits
+merge mvp-preflight-1031 | already 100348d | none | no new commits
+merge mvp-surface-1031 | already 30cdd24 | none | no new commits
+merge mvp-eval-1031 | already 1768037 | none | no new commits
+merge mvp-cloud-1031 | already d94d2b6 | none | no new commits
+merge mvp-cloudfix-1031 | 52354f0 | none | tip 57c6dad, conflict scripts/pfy_build_cloud.py, took cloudfix file, one import
+merge mvp-review-fix2-1031 | 21b8b57 | none | tip 23ea0cd, clean
+merge mvp-intfix-1031 | 51eb0b3 | none | tip 13e967d drop-in, clean
+merge mvp-followups-fix2-1031 | 808bc6c | none | tip c328da2, clean
+merge mvp-tmpclean-1031 | 0287ffb | none | tip db1ca11 drop-in, clean
+merge mvp-docs-1031 | 9af137d | none | tip bc6d5e0 drop-in, clean
+merge mvp-mutate-cloud-1031 | 791c682 | none | tip 6e34a1b drop-in, clean
+merge mvp-mutate-review-1031 | 280e12d | none | tip a6fbf18 exit card, clean
+merge mvp-realfail-1031 | 06fa79c | none | tip d09647a, clean
+merge mvp-realfail2-1031 | 074f5e9 | none | tip 884a16a drop-in, clean
+merge mvp-sixtask-1031 | 9dbf718 | none | tip a8a7ca4, clean
+merge mvp-dogfood-1031 | 4d0991e | none | tip e404b42, clean
+merge mvp-dogfood2-1031 | 94612ca | none | tip b6d5b76 drop-in, clean
+merge mvp-gom-dogfood-1031 | 6921552 | none | tip 86639b7 exit card, clean
+merge mvp-cloudfix-1031 catch-up | 152448f | none | tip f316036, clean, still one import
+merge mvp-review-fix2-1031 catch-up | 284c2c9 | none | tip 187efde, clean
+merge mvp-intfix-1031 catch-up | 3fa6062 | none | tip 7209ff2 exit card, clean
+merge mvp-sixtask-1031 catch-up | 31438fd | none | tip dbf104a, clean
+merge mvp-docs-1031 catch-up | 135eebb | none | tip 981f1d7 exit card, clean. Freeze. selfhost 62ae324 not merged
+classifier-2 | 135eebb | nice -n 19 python3 -m unittest tests.test_pfy_build_cloud tests.test_build_preflight | 54 OK in 10.080s, one import, no inline copy
+suite-2 | 135eebb | TMPDIR=$PWD/tmp nice -n 19 flock ~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock python3 -m unittest discover -s tests -t . | Ran 1098 in 731.925s, FAILED failures=2 skipped=16. Same help contract and TMPDIR local-bench. Not rewritten
+demo-2 | 7997dd6 | ./pfy build on tmp/demo2-target; python3 eval/mvp-1031/check_receipt.py eval/mvp-1031/demo-receipt-pass2.json | build exit 0, checker exit 0, PASS, review accept, human yes, commit 535d000075744709b2752cec7511d087801f2aa5, wall 91s, attempts 1
+
+state: DONE | exit: goal met | tests: discover 1098 ran, failures=2, skipped=16; cloud+preflight 54 OK; checker exit 0 | files: pass 2 merges, cloudfix conflict kept their runner, demo-receipt-pass2.json, REPORT pass 2, handoff 7997dd6, this stamp is the tip | err: help contract and TMPDIR local-bench recorded, not rewritten. selfhost not merged. pregate not run by this lane

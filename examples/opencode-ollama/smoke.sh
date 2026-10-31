@@ -9,6 +9,11 @@
 #
 # Exit: 0 PASS · 1 FAIL · 2 SKIP (opencode binary missing — Ollama+skills still checked)
 set -euo pipefail
+tags_file() { mktemp; }
+if [[ "${1:-}" == "--scratch-path" ]]; then
+  tags_file
+  exit 0
+fi
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
@@ -51,13 +56,15 @@ echo "  SKILLS_SRC=$SKILLS_SRC"
 
 # --- 1) Ollama tags ---
 log "Ollama tags"
-if ! curl -sS -m 8 --noproxy '*' "${OLLAMA_ROOT}/api/tags" -o /tmp/oc-ollama-tags.json; then
+OC_TAGS=$(tags_file)
+export OC_TAGS
+if ! curl -sS -m 8 --noproxy '*' "${OLLAMA_ROOT}/api/tags" -o "$OC_TAGS"; then
   bad "cannot reach ${OLLAMA_ROOT}/api/tags — start Ollama on host"
   exit 1
 fi
 python3 - <<PY
 import json, os, sys
-raw=open("/tmp/oc-ollama-tags.json").read().strip()
+raw=open(os.environ["OC_TAGS"]).read().strip()
 if not raw or raw[0] not in "{[":
     print("error: non-JSON from Ollama", raw[:120], file=sys.stderr)
     sys.exit(1)

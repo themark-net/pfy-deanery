@@ -74,7 +74,10 @@ def find_bin() -> str | None:
 def bwrap_ok() -> bool:
     if not shutil.which("bwrap"):
         return False
-    p = subprocess.run(["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--unshare-net", "true"],
+    # Probe with the same required mounts the real run uses, so a bwrap that
+    # cannot mount /proc or a tmpfs /dev/shm fails here as "bwrap is not usable".
+    p = subprocess.run(["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--tmpfs", SHM_PATH,
+                        "--proc", PROC_PATH, "--unshare-net", "true"],
                        capture_output=True)
     return p.returncode == 0
 

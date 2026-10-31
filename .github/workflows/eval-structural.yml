@@ -20,6 +20,23 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Install PyYAML for the workflow image pin
+        run: |
+          set -euo pipefail
+          # setup-python's interpreter does not ship PyYAML. Install into the
+          # same absolute PATH python3 the next step runs. Do not apt-install:
+          # that package would not be on this interpreter.
+          pin_py="$(command -v python3)"
+          test -n "$pin_py"
+          "$pin_py" -m pip install --disable-pip-version-check -q pyyaml
+      - name: Workflow image pin
+        run: |
+          set -euo pipefail
+          # Explicit interpreter: absolute PATH python3, symlinks left intact.
+          # A missing PyYAML fails this step and names that path.
+          pin_py="$(command -v python3)"
+          test -n "$pin_py"
+          "$pin_py" scripts/check_workflow_image_pin.py .github/workflows
       - name: Install ripgrep (harness2 sandbox tests need rg)
         run: |
           set -euo pipefail

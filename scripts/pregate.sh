@@ -403,9 +403,16 @@ check_lint() {
   echo "== workflow image pin =="
   # GitHub-hosted jobs must pin ubuntu-24.04 (the image ubuntu-parity mirrors;
   # bwrap is unusable there, so bwrap-gated tests skip). Parsed as YAML so a
-  # list or a matrix expression cannot hide ubuntu-latest. Missing PyYAML
-  # fails closed: the helper exits 1 and does not treat that as a pass.
-  if ! python3 scripts/check_workflow_image_pin.py .github/workflows; then
+  # list or a matrix expression cannot hide ubuntu-latest. The interpreter is
+  # the absolute PATH python3 (the same lookup the hosted G0 step uses). Do
+  # not resolve symlinks: a venv python3 is a symlink to a base interpreter
+  # that may have PyYAML while the venv does not. Missing PyYAML fails closed
+  # and the helper names that path.
+  pin_py="$(command -v python3 || true)"
+  if [[ -z "$pin_py" ]]; then
+    echo "FAIL: workflow image pin: python3 not on PATH"
+    fail=1
+  elif ! "$pin_py" scripts/check_workflow_image_pin.py .github/workflows; then
     fail=1
   fi
   if ! grep -q 'ripgrep' .github/workflows/eval-structural.yml; then

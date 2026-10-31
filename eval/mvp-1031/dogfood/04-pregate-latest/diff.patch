@@ -1,0 +1,49 @@
+diff --git a/scripts/pregate.sh b/scripts/pregate.sh
+index 0e56acb..e9c95d8 100755
+--- a/scripts/pregate.sh
++++ b/scripts/pregate.sh
+@@ -239,6 +239,23 @@ should_run() {
+   [[ ",$ONLY," == *",$1,"* ]]
+ }
+ 
++# True when the shared latest summary was started after this run.
++# No extra lock: a missing file, a summary with no epoch line, or an
++# older-or-equal epoch all fail so the caller still publishes.
++latest_summary_is_newer() {
++  local path="$MAIN_ROOT/tmp/pregate-latest-summary.md"
++  local line n
++  [[ -f "$path" && -r "$path" ]] || return 1
++  while IFS= read -r line || [[ -n "$line" ]]; do
++    [[ "$line" =~ ^-[[:space:]]start[[:space:]]epoch:[[:space:]]([0-9]+)[[:space:]]*$ ]] || continue
++    n="${BASH_REMATCH[1]}"
++    if [[ $((10#$n)) -gt $START_EPOCH ]]; then
++      return 0
++    fi
++  done <"$path"
++  return 1
++}
++
+ write_summary() {
+   local end wall overall row st name detail
+   end="$(date +%s)"; wall=$((end - START_EPOCH))
+@@ -256,6 +273,7 @@ write_summary() {
+     echo "- base for gate-file diff: \`$BASE_REF\` = \`$BASE_SHA\`"
+     echo "- host: $HOST, python: $(python3 -V 2>&1), bwrap on host PATH: $(command -v bwrap >/dev/null && echo yes || echo no)"
+     echo "- started (local): $(date -d "@$START_EPOCH" '+%Y-%m-%d %H:%M %Z')"
++    echo "- start epoch: $START_EPOCH"
+     echo "- wall seconds: $wall"
+     echo "- counts: pass=$PASS_COUNT fail=$FAIL_COUNT skip=$SKIP_COUNT"
+     echo "- run id: \`$RUN_ID\`"
+@@ -272,7 +290,11 @@ write_summary() {
+     echo
+     echo "Attach this file to any Tester/Reviewer gate request. See docs/ops/PREGATE.md."
+   } >"$SUMMARY"
+-  cp "$SUMMARY" "$MAIN_ROOT/tmp/pregate-latest-summary.md" 2>/dev/null || true
++  if latest_summary_is_newer; then
++    echo "skip latest summary: newer run already recorded" >&2
++  else
++    cp "$SUMMARY" "$MAIN_ROOT/tmp/pregate-latest-summary.md" 2>/dev/null || true
++  fi
+   echo
+   echo "Summary: $SUMMARY"
+   echo "OVERALL=$overall wall=${wall}s pass=$PASS_COUNT fail=$FAIL_COUNT skip=$SKIP_COUNT"

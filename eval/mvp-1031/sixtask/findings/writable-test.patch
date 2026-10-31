@@ -1,0 +1,58 @@
+--- scripts/pfy_build_cloud.py	2026-10-31 13:16:36.269267995 -0700
++++ scripts/pfy_build_cloud.py	2026-10-31 14:19:58.413352215 -0700
+@@ -339,6 +339,12 @@
+     )
+     parser.add_argument("--test-cmd", default=DEFAULT_TEST_CMD, help="gate command")
+     parser.add_argument(
++        "--writable-test",
++        action="append",
++        default=[],
++        help="test path glob this task may edit (repeatable). Default: any test edit is tests-tampered",
++    )
++    parser.add_argument(
+         "--retries",
+         type=int,
+         default=DEFAULT_RETRIES,
+@@ -528,9 +534,20 @@
+     return found
+ 
+ 
+-def tests_tampered(worktree: Path, snap: dict[str, str]) -> list[str]:
++def tests_tampered(worktree: Path, snap: dict[str, str], writable: list[str] | None = None) -> list[str]:
++    """Return test paths that changed. Paths matching writable globs are allowed.
++
++    writable defaults to empty, so any test edit stays tests-tampered.
++    """
++    allowed = tuple(writable or ())
++
++    def _allowed(rel: str) -> bool:
++        return bool(allowed) and _protected(rel, allowed)
++
+     bad: list[str] = []
+     for rel, digest in snap.items():
++        if _allowed(rel):
++            continue
+         path = worktree / rel
+         if not path.is_file():
+             bad.append(rel)
+@@ -542,8 +559,9 @@
+             bad.append(rel)
+     current = snapshot_tests(worktree)
+     for rel in current:
+-        if rel not in snap and rel not in bad:
+-            bad.append(rel)
++        if rel in snap or rel in bad or _allowed(rel):
++            continue
++        bad.append(rel)
+     return bad
+ 
+ 
+@@ -916,7 +934,7 @@
+                 if number < self.max_attempts:
+                     continue
+                 return self.fail("FAIL", "protected-path-changed", EXIT_FAIL, "")
+-            bad_tests = tests_tampered(self.worktree, base_tests)
++            bad_tests = tests_tampered(self.worktree, base_tests, list(self.args.writable_test or []))
+             if bad_tests:
+                 feedback = "gate failed: tests-tampered\n%s" % "\n".join(bad_tests)
+                 self.record(number, "FAIL", "tests-tampered", output)

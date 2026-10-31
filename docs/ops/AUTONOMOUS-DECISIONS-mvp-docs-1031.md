@@ -1,0 +1,12 @@
+# Autonomous decisions mvp-docs-1031
+
+One line each. Choice, alternative, why.
+
+- 2026-10-31T21:20:00Z: Skills `write-loop-exits-first` and `repo-handoff-doc-required` are not files in this worktree or `~/.grok/skills`. Bound the loop to the drop-in exit list, the agent-loops card in `docs/ops/RUN-LOG-mvp-docs-1031.md`, and `docs/ops/HANDOFF-mvp-docs-1031.md`. Alternative was to stop and ask. The drop-in already states the exits and the handoff path, and it says not to ask.
+- 2026-10-31T21:20:00Z: The lead writes this lane. No editor sub-agents. Alternative was one sub-agent per phase. The phases share the run log, the decisions file, and the quickstart, and the card requires the lead to run each command. The project-map agent may write only `.project-map/` (gitignored).
+- 2026-10-31T21:20:00Z: Root `README.md` is not owned by another lane. `docs/modules/README.md` and `eval/mvp-1031/README.md` are. Item 4 will add two link lines to the root README. Alternative was a cross-lane request. No other drop-in lists the root README as owned.
+- 2026-10-31T21:20:00Z: The five flags on the card are `--repo`, `--base`, `--test-cmd`, `--receipt-dir`, and `--dry-run`. Alternative was all nine DoD flags under a "five" heading. These five are the ones in the integrate demo plus the safe preview. `--retries`, `--no-review`, `--reap`, `--keep-worktree`, and `--timeout` stay in the failure section.
+- 2026-10-31T21:20:00Z: Do not execute `./pfy build --local`. The drop-in says never pass `--local` to a real run. The recovery text is quoted from the DoD and from receipt fields. Alternative was a dry local start, which still loads a model.
+- 2026-10-31T21:20:00Z: Evidence receipts that exist only on another branch are cited as `branch:path`. Do not copy `eval/mvp-1031/realfail/` onto this branch. `eval/` is not owned here. Alternative was vendoring the JSON. That would fork the eval lane's files.
+- 2026-10-31T21:20:00Z: The round-1 plan forbids new files that are not in its matrix. This wave-3 drop-in names `docs/QUICKSTART-pfy-build.md`, `docs/ops/MVP-DOD-WALKTHROUGH.md`, and `tests/test_quickstart_commands.py`. The drop-in wins for those three paths. Alternative was to skip the lane as forbidden.
+- 2026-10-31T21:20:00Z: The land-a-branch proof pushes to a local bare remote under this worktree `tmp/`, named `origin` only inside that throwaway. Do not `git push` the demo `cloud/` ref to GitHub. Alternative was `git push --dry-run` against the real origin, which still talks to GitHub and the ref is not in this checkout.

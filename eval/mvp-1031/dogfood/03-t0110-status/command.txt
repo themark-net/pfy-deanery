@@ -1,0 +1,14 @@
+Started 2026-10-31T20:43:20Z. Finished 2026-10-31T20:44:06Z. Wall 46 seconds.
+
+./pfy build <task> \
+  --repo /home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood-1031/tmp/target-03 \
+  --base demo-base \
+  --test-cmd "python3 dogfood_gate.py" \
+  --receipt-dir /home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood-1031/eval/mvp-1031/dogfood/03-t0110-status
+
+Task: in docs/TODO.md only, mark the G8 T-0110 cell done and the GitHub-issues T-0110 cell "P1 done". Leave T-0091, T-0070, and T-0074 as doing. Keep the Done-table words "stays closed".
+
+Target: fresh clone, demo-base plus a local dogfood_gate.py commit (859ce1f), not pushed.
+No --local. Default retries and timeout. Review on.
+Exit 0. Cloud commit 96224de8a2527057da6bd38743644c773c0aaa40.
+Caller branch unchanged. Nothing pushed from the target.
