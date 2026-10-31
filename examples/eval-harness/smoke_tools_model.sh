@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 # T-0093: tools-model select/probe smoke (host Ollama).
 set -euo pipefail
+sel_json() { mktemp; }
+sel_err() { mktemp; }
+if [[ "${1:-}" == "--scratch-path" ]]; then
+  sel_json
+  sel_err
+  exit 0
+fi
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 PY="${PYTHON:-python3}"
@@ -11,8 +18,11 @@ bad() { printf '  FAIL %s\n' "$*" >&2; FAIL=1; }
 
 echo "== smoke-tools-model (T-0093) =="
 
-if ! "$PY" examples/eval-harness/select_tools_model.py --json > /tmp/tools-sel.json 2>/tmp/tools-sel.err; then
-  if grep -qi 'cannot reach Ollama\|no Ollama\|ollama_unreachable' /tmp/tools-sel.err /tmp/tools-sel.json 2>/dev/null; then
+SEL_JSON=$(sel_json)
+SEL_ERR=$(sel_err)
+export SEL_JSON SEL_ERR
+if ! "$PY" examples/eval-harness/select_tools_model.py --json > "$SEL_JSON" 2>"$SEL_ERR"; then
+  if grep -qi 'cannot reach Ollama\|no Ollama\|ollama_unreachable' "$SEL_ERR" "$SEL_JSON" 2>/dev/null; then
     echo "  SKIP Ollama unreachable (start ollama on host for full probe)"
     # structural: script importable
     "$PY" -m py_compile examples/eval-harness/select_tools_model.py && ok "select_tools_model.py compiles"
@@ -21,13 +31,13 @@ if ! "$PY" examples/eval-harness/select_tools_model.py --json > /tmp/tools-sel.j
     exit 0
   fi
   bad "select_tools_model failed"
-  cat /tmp/tools-sel.err | tail -20
+  cat "$SEL_ERR" | tail -20
   exit 1
 fi
 
-MODE=$("$PY" -c "import json;print(json.load(open('/tmp/tools-sel.json')).get('tools_mode',''))")
-CODER=$("$PY" -c "import json;print(json.load(open('/tmp/tools-sel.json')).get('LOCAL_CODER_MODEL',''))")
-TOOLS=$("$PY" -c "import json;print(json.load(open('/tmp/tools-sel.json')).get('LOCAL_TOOLS_MODEL',''))")
+MODE=$("$PY" -c 'import json,os; print(json.load(open(os.environ["SEL_JSON"])).get("tools_mode",""))')
+CODER=$("$PY" -c 'import json,os; print(json.load(open(os.environ["SEL_JSON"])).get("LOCAL_CODER_MODEL",""))')
+TOOLS=$("$PY" -c 'import json,os; print(json.load(open(os.environ["SEL_JSON"])).get("LOCAL_TOOLS_MODEL",""))')
 
 echo "  tools_mode=$MODE"
 echo "  LOCAL_CODER_MODEL=$CODER"

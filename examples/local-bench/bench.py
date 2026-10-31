@@ -282,12 +282,21 @@ def resolve_outdir(outdir_arg: str | None, receipt_path: Path) -> Path:
 
 
 def log_path_for_receipt(log_path: Path, root: Path | None = None) -> str:
-    """Store log path relative to repo when possible; never raise on out-of-tree outdir."""
+    """Repo-relative when the resolved log is inside the repo; absolute otherwise.
+
+    Path.relative_to raises ValueError for an out-of-tree outdir. That used to
+    escape into bench_one and record DROP. Recovery is the absolute resolved
+    path, including when the input still contains '..' or a symlink.
+    """
     root = root or ROOT
     try:
-        return str(log_path.resolve().relative_to(root.resolve()))
+        resolved = log_path.resolve()
+    except OSError:
+        resolved = Path(os.path.abspath(log_path))
+    try:
+        return str(resolved.relative_to(root.resolve()))
     except ValueError:
-        return str(log_path)
+        return str(resolved)
 
 def is_ollama_exe(exe: str) -> bool:
     """Match the Ollama binary / llama-server, not a parent whose argv quotes those words."""

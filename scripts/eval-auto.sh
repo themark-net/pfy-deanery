@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 # T-0074 eval-auto: structural always; implement ladder if Ollama up.
 set -euo pipefail
+# mktemp with no template honors TMPDIR. A template that already names a directory does not.
+exports_file() { mktemp; }
+if [[ "${1:-}" == "--exports-path" ]]; then
+  exports_file
+  exit 0
+fi
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 mkdir -p pipelines/eval
@@ -24,12 +30,13 @@ fi
 
 ./examples/litellm-ollama/host-ollama-gateway.sh start 2>/dev/null || true
 python3 examples/eval-harness/select_ollama_models.py --pull-gate
+exports=$(exports_file)
 python3 examples/eval-harness/select_ollama_models.py --exports 2>/dev/null \
-  | grep -E '^(EVAL_|LITELLM_)' > /tmp/pfy-eval-model-exports.sh
-echo "==> using selected models:"; cat /tmp/pfy-eval-model-exports.sh
+  | grep -E '^(EVAL_|LITELLM_)' > "$exports"
+echo "==> using selected models:"; cat "$exports"
 set -a
 # shellcheck disable=SC1091
-source /tmp/pfy-eval-model-exports.sh
+source "$exports"
 set +a
 mapfile -t arr < <(python3 scripts/eval_auto_candidates.py)
 ok=0

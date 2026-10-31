@@ -113,6 +113,10 @@ def run_task(task: dict, system: str, model: str, base_url: str, num_ctx: int, l
     for path in (data_home, cache_home, state_home, log_path.parent):
         path.mkdir(parents=True, exist_ok=True)
     _write_config(config_home, model, base_url, num_ctx, log_path, task["id"])
+    # Same rule as run.child_tmpdir: scratch stays under the repo tmp, never a
+    # hardcoded /tmp that ignores the caller TMPDIR.
+    from run import child_tmpdir
+
     home = os.environ.get("HOME") or str(Path.home())
     env = {
         "HOME": home,
@@ -121,7 +125,7 @@ def run_task(task: dict, system: str, model: str, base_url: str, num_ctx: int, l
         "LC_ALL": "C.UTF-8",
         "USER": os.environ.get("USER", "mark"),
         "LOGNAME": os.environ.get("LOGNAME", "mark"),
-        "TMPDIR": "/tmp",
+        "TMPDIR": child_tmpdir(),
         "XDG_CONFIG_HOME": str(config_home),
         "XDG_DATA_HOME": str(data_home),
         "XDG_CACHE_HOME": str(cache_home),

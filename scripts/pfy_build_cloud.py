@@ -16,7 +16,8 @@ Exit codes:
 
 Receipt schema: pfy-cloud-build/1
 
-classify_cloud_failure is imported from pfylib.build_preflight.
+Failure class comes from pfylib.build_preflight.classify_cloud_failure.
+This runner does not keep a second copy of those phrases.
 """
 
 from __future__ import annotations
@@ -34,6 +35,30 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+
+_ROOT = Path(__file__).resolve().parents[1]
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
+from pfylib.build_preflight import classify_cloud_failure  # noqa: E402
+
+_NOT_SIGNED_IN = re.compile(r"not signed in", re.IGNORECASE)
+
+
+def classify_runner_failure(code: int, stdout: str, stderr: str) -> str:
+    """Preflight class, plus the logged-out line it does not name.
+
+    `classify_cloud_failure` treats exit 0 as other, and its auth phrases
+    do not include "Not signed in". A successful reply that only mentions
+    auth.json stays other.
+    """
+    kind = classify_cloud_failure(code, stdout, stderr)
+    if kind != "other":
+        return kind
+    if _NOT_SIGNED_IN.search("%s\n%s" % (stdout or "", stderr or "")):
+        return "unauthenticated"
+    return kind
+
 
 EXIT_OK = 0
 EXIT_FAIL = 1
@@ -77,6 +102,7 @@ _PEM = re.compile(
 _BEARER = re.compile(r"(?i)(bearer\s+)([A-Za-z0-9._\-]{8,})")
 _SK = re.compile(r"\b(?:sk|ghp)_[A-Za-z0-9_\-]{8,}\b", re.IGNORECASE)
 _AKIA = re.compile(r"\bAKIA[0-9A-Z]{16}\b", re.IGNORECASE)
+_XAI = re.compile(r"\bxai-[A-Za-z0-9]{6,}\b", re.IGNORECASE)
 _SECRET_EQ = re.compile(
     r"(?i)\b([A-Za-z0-9_]*(?:TOKEN|KEY|SECRET|PASSWORD|PASSWD)[A-Za-z0-9_]*)\s*([:=])\s*(\S+)"
 )
@@ -108,12 +134,6 @@ def _slug(text: str) -> str:
     return raw or "task"
 
 
-_REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(_REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(_REPO_ROOT))
-from pfylib.build_preflight import classify_cloud_failure  # noqa: E402
-
-
 def redact(text: str) -> str:
     if not text:
         return ""
@@ -127,6 +147,7 @@ def redact(text: str) -> str:
     text = _BEARER.sub(lambda match: match.group(1) + "[redacted]", text)
     text = _SK.sub("[redacted]", text)
     text = _AKIA.sub("[redacted]", text)
+    text = _XAI.sub("[redacted]", text)
     text = _SECRET_EQ.sub(_eq, text)
     return text
 
@@ -208,6 +229,30 @@ def _norm_rel(path: str) -> str:
     return normalized
 
 
+def _glob_match(rel: str, name: str, pat: str) -> bool:
+    if fnmatch_path(rel, pat) or fnmatch_path(name, pat):
+        return True
+    if pat.endswith("/**"):
+        prefix = pat[:-3].rstrip("/")
+        if prefix and (rel == prefix or rel.startswith(prefix + "/")):
+            return True
+    if "**" not in pat:
+        return False
+    if fnmatch_path(rel, pat.replace("**", "*")):
+        return True
+    # ** matches zero directories, so dogfood/**/grok-home also covers dogfood/grok-home.
+    collapsed = pat
+    while "/**/" in collapsed:
+        collapsed = collapsed.replace("/**/", "/", 1)
+        if fnmatch_path(rel, collapsed) or fnmatch_path(name, collapsed):
+            return True
+        if collapsed.endswith("/**"):
+            prefix = collapsed[:-3].rstrip("/")
+            if prefix and (rel == prefix or rel.startswith(prefix + "/")):
+                return True
+    return False
+
+
 def _protected(path: str, patterns: tuple[str, ...] = DEFAULT_PROTECT) -> bool:
     rel = _norm_rel(path)
     if not rel or rel.startswith("../") or rel == ".." or "/../" in "/%s/" % rel:
@@ -215,15 +260,7 @@ def _protected(path: str, patterns: tuple[str, ...] = DEFAULT_PROTECT) -> bool:
     name = Path(rel).name
     for pattern in patterns:
         pat = _norm_rel(pattern)
-        if not pat:
-            continue
-        if fnmatch_path(rel, pat) or fnmatch_path(name, pat):
-            return True
-        if pat.endswith("/**"):
-            prefix = pat[:-3].rstrip("/")
-            if rel == prefix or rel.startswith(prefix + "/"):
-                return True
-        if "**" in pat and fnmatch_path(rel, pat.replace("**", "*")):
+        if pat and _glob_match(rel, name, pat):
             return True
     return False
 
@@ -325,6 +362,12 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         help="extra attempts after the first (default 2, so 3 total)",
     )
     parser.add_argument("--no-review", action="store_true", help="one attempt, no review call")
+    parser.add_argument(
+        "--writable-test",
+        action="append",
+        default=[],
+        help="test path the task may edit (repeatable). Other base tests stay hashed",
+    )
     parser.add_argument("--receipt-dir", default=None, help="directory for receipt.json")
     parser.add_argument("--dry-run", action="store_true", help="write a receipt and start no grok")
     parser.add_argument("--reap", action="store_true", help="recover a cloud pid with no receipt")
@@ -377,6 +420,11 @@ def rate_recovery(task: str) -> str:
 
 def auth_recovery(task: str) -> str:
     return "Mark: run grok once to log in, then rerun the same ./pfy build %s" % shlex.quote(task)
+
+
+def diff_aims_at_root(diff_text: str) -> bool:
+    """True when an added line runs rm -rf or rm -fr against the filesystem root."""
+    return re.search(r"(?i)rm\s+-rf\s+/|rm\s+-fr\s+/", diff_text or "") is not None
 
 
 def parse_verdict(text: str) -> tuple[str, list[str]]:
@@ -438,7 +486,8 @@ def review_prompt(task: str, diff_text: str, gate_tail: str) -> str:
     return (
         "%s\n"
         "Reply with a line `verdict: accept` or `verdict: reject`.\n"
-        "Accept only when the change does what the task says and does not widen it.\n\n"
+        "Accept only when the change does what the task says and does not widen it.\n"
+        "Reject a diff that deletes tests, adds a recursive delete, or writes a command aimed at the filesystem root, even when the task asks for it.\n\n"
         "Task:\n%s\n\nDiff:\n%s\n\nGate:\n%s\n"
         % (REVIEW_MARKER, (task or "")[:4000], shown, redact(gate_tail or "")[:TAIL_CAP])
     )
@@ -508,9 +557,24 @@ def snapshot_tests(worktree: Path) -> dict[str, str]:
     return found
 
 
-def tests_tampered(worktree: Path, snap: dict[str, str]) -> list[str]:
+def _writable_test(rel: str, patterns: list[str]) -> bool:
+    rel = _norm_rel(rel)
+    if not rel or rel.startswith("../") or rel == ".." or "/../" in "/%s/" % rel:
+        return False
+    name = Path(rel).name
+    for pattern in patterns:
+        pat = _norm_rel(pattern)
+        if pat and (fnmatch_path(rel, pat) or fnmatch_path(name, pat)):
+            return True
+    return False
+
+
+def tests_tampered(worktree: Path, snap: dict[str, str], writable: list[str] | None = None) -> list[str]:
+    allowed = list(writable or [])
     bad: list[str] = []
     for rel, digest in snap.items():
+        if _writable_test(rel, allowed):
+            continue
         path = worktree / rel
         if not path.is_file():
             bad.append(rel)
@@ -519,10 +583,6 @@ def tests_tampered(worktree: Path, snap: dict[str, str]) -> list[str]:
             if hashlib.sha256(path.read_bytes()).hexdigest() != digest:
                 bad.append(rel)
         except OSError:
-            bad.append(rel)
-    current = snapshot_tests(worktree)
-    for rel in current:
-        if rel not in snap and rel not in bad:
             bad.append(rel)
     return bad
 
@@ -550,7 +610,14 @@ def capture_diff(worktree: Path, paths: list[str]) -> str:
     return "\n".join(chunk for chunk in chunks if chunk)
 
 
-def run_command(argv: list[str], cwd: Path, timeout: float, state: State, env: dict) -> tuple[str, int, str, str]:
+def run_command(
+    argv: list[str],
+    cwd: Path,
+    timeout: float,
+    state: State,
+    env: dict,
+    on_start=None,
+) -> tuple[str, int, str, str]:
     try:
         proc = subprocess.Popen(
             argv,
@@ -565,6 +632,8 @@ def run_command(argv: list[str], cwd: Path, timeout: float, state: State, env: d
         return "missing", 127, "", "not found"
     state.pgid = proc.pid
     state.agent_pgid = proc.pid
+    if on_start is not None:
+        on_start()
     try:
         out, err = proc.communicate(timeout=timeout)
     except subprocess.TimeoutExpired:
@@ -614,6 +683,7 @@ class CloudBuild:
         self.worktree_removed = False
         self.finished = False
         self.max_attempts = 1 if args.no_review else args.retries + 1
+        self.recheck_tail = ""
 
     def child_env(self) -> dict[str, str]:
         env = os.environ.copy()
@@ -638,14 +708,20 @@ class CloudBuild:
         tmp.write_text(json.dumps(payload), encoding="utf-8")
         os.replace(tmp, self.pid_path)
 
-    def gate(self) -> dict:
+    def gate(self, cwd: Path | None = None) -> dict:
         argv = shlex.split(self.args.test_cmd or "")
         if not argv:
             return {"cmd": self.args.test_cmd, "exit": None, "tail": "empty test command", "started": False}
-        if self.worktree is None:
+        where = cwd or self.worktree
+        if where is None:
             return {"cmd": self.args.test_cmd, "exit": None, "tail": "no worktree", "started": False}
         status, code, out, err = run_command(
-            argv, self.worktree, self.args.timeout, self.state, self.child_env()
+            argv,
+            where,
+            self.args.timeout,
+            self.state,
+            self.child_env(),
+            on_start=self.save_pid,
         )
         text = (out or "") + ("\n" + err if err else "")
         if status == "timeout":
@@ -659,6 +735,40 @@ class CloudBuild:
         if status == "interrupted" or self.state.interrupted:
             record["aborted"] = "interrupted"
         return record
+
+    def recheck_sha(self, sha: str) -> tuple[str | None, str]:
+        """Run the gate on a fresh extract of sha. None means it passed."""
+        if not sha or self.worktree is None:
+            return "commit-recheck-failed", "archive failed"
+        dest = self.repo / "tmp" / ("recheck-" + sha[:12])
+        if dest.exists():
+            shutil.rmtree(dest, ignore_errors=True)
+        try:
+            archived = subprocess.run(
+                ["git", "-C", str(self.worktree), "archive", sha],
+                capture_output=True,
+                check=False,
+            )
+            if archived.returncode != 0 or not archived.stdout:
+                return "commit-recheck-failed", "archive failed"
+            dest.mkdir(parents=True, exist_ok=True)
+            extracted = subprocess.run(
+                ["tar", "-x", "-C", str(dest)],
+                input=archived.stdout,
+                capture_output=True,
+                check=False,
+            )
+            if extracted.returncode != 0:
+                return "commit-recheck-failed", "extract failed"
+            again = self.gate(dest)
+            tail = str(again.get("tail") or "")
+            if self.state.interrupted or again.get("aborted") == "interrupted":
+                return "interrupted", tail
+            if again.get("exit") != 0 or not again.get("started"):
+                return "commit-recheck-failed", tail
+            return None, tail
+        finally:
+            shutil.rmtree(dest, ignore_errors=True)
 
     def grok_call(self, prompt: str) -> tuple[str, int, str, str]:
         if not self.grok:
@@ -680,6 +790,7 @@ class CloudBuild:
             self.args.timeout,
             self.state,
             self.child_env(),
+            on_start=self.save_pid,
         )
         self.save_pid()
         return status, code, out, err
@@ -704,7 +815,7 @@ class CloudBuild:
             return "commit-failed"
         hooks = self.worktree / "tmp" / "empty-hooks"
         hooks.mkdir(parents=True, exist_ok=True)
-        added = _git(self.worktree, ["add", "--", *paths])
+        added = _git(self.worktree, ["add", "--", *[":(literal)%s" % path for path in paths]])
         if added.returncode != 0:
             _git(self.worktree, ["reset"])
             self.reason = "commit-failed"
@@ -742,6 +853,12 @@ class CloudBuild:
         if len(sha) != 40:
             self.reason = "commit-failed"
             return "commit-failed"
+        reason, tail = self.recheck_sha(sha)
+        self.recheck_tail = tail
+        if reason:
+            _git(self.worktree, ["reset", "--hard", "HEAD~1"])
+            self.reason = reason
+            return reason
         created = _git(self.repo, ["branch", self.branch_name, sha])
         if created.returncode != 0:
             _git(self.worktree, ["reset", "--soft", "HEAD~1"])
@@ -880,7 +997,7 @@ class CloudBuild:
             if status == "missing":
                 self.record(number, "FAIL", "unauthenticated", output)
                 return self.fail("FAIL", "unauthenticated", EXIT_FAIL, auth_recovery(self.args.task_text))
-            kind = classify_cloud_failure(code, out, err)
+            kind = classify_runner_failure(code, out, err)
             if kind == "rate-limit":
                 self.record(number, "BLOCKED", "rate-limit", output)
                 return self.fail("BLOCKED", "rate-limit", EXIT_BLOCKED, rate_recovery(self.args.task_text))
@@ -896,7 +1013,9 @@ class CloudBuild:
                 if number < self.max_attempts:
                     continue
                 return self.fail("FAIL", "protected-path-changed", EXIT_FAIL, "")
-            bad_tests = tests_tampered(self.worktree, base_tests)
+            bad_tests = tests_tampered(
+                self.worktree, base_tests, list(self.args.writable_test or [])
+            )
             if bad_tests:
                 feedback = "gate failed: tests-tampered\n%s" % "\n".join(bad_tests)
                 self.record(number, "FAIL", "tests-tampered", output)
@@ -951,7 +1070,7 @@ class CloudBuild:
                 if review_status == "missing":
                     self.record(number, "FAIL", "unauthenticated", output)
                     return self.fail("FAIL", "unauthenticated", EXIT_FAIL, auth_recovery(self.args.task_text))
-                review_kind = classify_cloud_failure(review_code, review_out, review_err)
+                review_kind = classify_runner_failure(review_code, review_out, review_err)
                 if review_kind == "rate-limit":
                     self.record(number, "BLOCKED", "rate-limit", output)
                     return self.fail("BLOCKED", "rate-limit", EXIT_BLOCKED, rate_recovery(self.args.task_text))
@@ -959,6 +1078,9 @@ class CloudBuild:
                     self.record(number, "FAIL", "unauthenticated", output)
                     return self.fail("FAIL", "unauthenticated", EXIT_FAIL, auth_recovery(self.args.task_text))
                 verdict, reasons = parse_verdict(review_output)
+                if verdict == "accept" and diff_aims_at_root(diff_text):
+                    verdict = "reject"
+                    reasons = ["review-rejected"]
                 self.review = {"verdict": verdict, "reasons": reasons}
                 if verdict != "accept":
                     feedback = "review-rejected\n%s" % "\n".join(reasons)
@@ -968,8 +1090,21 @@ class CloudBuild:
                         continue
                     return self.fail("FAIL", "review-rejected", EXIT_FAIL, "")
             else:
+                if diff_aims_at_root(diff_text):
+                    self.review = {"verdict": "reject", "reasons": ["review-rejected"]}
+                    feedback = "review-rejected\nrecursive delete aimed at the filesystem root"
+                    previous_diff = diff_text
+                    self.record(number, "PASS-REJECTED", "review-rejected", output)
+                    if number < self.max_attempts:
+                        continue
+                    return self.fail("FAIL", "review-rejected", EXIT_FAIL, "")
                 self.review = {"verdict": "skipped", "reasons": []}
             err = self.commit_paths(changed)
+            if err == "commit-recheck-failed" and number < self.max_attempts:
+                feedback = "commit-recheck-failed\n%s" % (self.recheck_tail or "")
+                previous_diff = diff_text
+                self.record(number, "FAIL", err, output)
+                continue
             if err:
                 self.record(number, "FAIL", err, output)
                 code_out = EXIT_FAIL

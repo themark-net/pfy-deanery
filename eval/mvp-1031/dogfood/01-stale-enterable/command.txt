@@ -1,0 +1,23 @@
+Started 2026-10-31T20:31:02Z. Finished 2026-10-31T20:31:41Z. Wall 39 seconds.
+
+./pfy build <task> \
+  --repo /home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood-1031/tmp/target-01 \
+  --base demo-base \
+  --test-cmd "python3 dogfood_gate.py" \
+  --receipt-dir /home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood-1031/eval/mvp-1031/dogfood/01-stale-enterable
+
+Task file at run time: tmp/task-01.txt (gitignored). Text:
+
+Edit only scripts/pfy_enterable_162.py.
+
+In arm_launch_env_session, when the launch result is not ok, the function builds a next_steps list with enterable and session markers removed, then returns without saving that list. A failed launch therefore keeps a stale enterable step.
+
+On that not-ok branch, set out["next_steps"] to the stripped list before returning. Keep session_reach as FAIL and enterable as False. Do not change the SKIP branch or the success branch. Do not call open_fn when the launch is not ok.
+
+Do not edit dogfood_gate.py. Do not edit any file under tests/. Do not add a test file. Do not commit. Do not push.
+
+Target: git clone --no-hardlinks of this worktree, branch demo-base, plus a local commit of dogfood_gate.py (86066ba) that is not pushed.
+No --local. Default retries (2) and timeout (1200). Review on.
+Exit 0. Summary: PASS ok branch=cloud/edit-only-scripts-pfy-enterable-162-py-i-20261031T203103057213Z
+Cloud commit 8d29f5d8d6bd0af5b8acf1c418fc3ade561e71de matches git rev-parse of that branch.
+Caller branch stayed bot/mvp-dogfood-1031. Nothing pushed from the target.

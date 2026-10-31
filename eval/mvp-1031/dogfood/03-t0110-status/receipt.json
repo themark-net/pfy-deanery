@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/edit-only-docs-todo-md-do-not-edit-dogfo-20261031T204320740680Z",
+  "commit": "96224de8a2527057da6bd38743644c773c0aaa40",
+  "base": "demo-base",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll update only the two T-0110 cells in `docs/TODO.md` and leave the Done-table row, issue 76, and the other tasks untouched. First I'm locating those cells and the gate check.The gate rejects any “doing” left in the G8 section. I’ll check that section before changing the two T-0110 cells.T-0110 now matches the Done table in both older cells. `python3 dogfood_gate.py` printed `gate-ok`.\n\n- **G8 table:** status is `**done**`, and the issue 76 link is unchanged.\n- **GitHub issues table:** priority is `P1 done`.\n\nT-0091, T-0070, and T-0074 are still `P1 doing`. The Done-table T-0110 row is still there, including the words \"stays closed\". No commit and no push.\n\nI'll check the diff against the task: only the two T-0110 cells in `docs/TODO.md`, with the issue 76 link and the \"stays closed\" wording left in place.verdict: accept\n\nThe diff changes only `docs/TODO.md`. The G8 status cell is now **done** and still links issue 76. The GitHub issues priority cell is now `P1 done`. T-0091, T-0070, and T-0074 are unchanged. The Done-table T-0110 row is still there and still says issue 76 stays closed. No other files, tests, commits, or pushes.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "python3 dogfood_gate.py",
+    "before": {
+      "cmd": "python3 dogfood_gate.py",
+      "exit": 1,
+      "tail": "g8 still says doing\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "python3 dogfood_gate.py",
+      "exit": 0,
+      "tail": "gate-ok\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": true,
+  "task": "Edit only docs/TODO.md. Do not edit dogfood_gate.py. Do not edit any file under tests/. Do not add a test file. Do not commit. Do not push.\n\nT-0110 is done in the Done table, and that row says issue 76 stays closed and must not be reopened. Two older cells still say the work is in progress.\n\n1. In the G8 table, change the T-0110 status cell from doing (partial) to done. Keep the issue 76 link.\n2. In the GitHub issues table, change the T-0110 priority cell from \"P1 doing/partial\" to \"P1 done\".\n\nDo not change T-0091, T-0070, or T-0074. Do not delete the Done-table T-0110 row, and do not remove the words \"stays closed\".",
+  "finished_at": "2026-10-31T20:44:06Z"
+}

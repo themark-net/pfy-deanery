@@ -1,0 +1,8 @@
+No cloud/ branch was created.
+Runner status FAIL, reason tests-tampered, exit 1.
+worktree_removed is true, so the attempt tree was deleted before this file was written.
+
+attempt.diff is a snapshot taken during attempt 1, while the worktree still existed.
+It is not a committed cloud branch diff.
+The snapshot shows the one-line production fix plus a new tests/test_enterable_not_ok.py.
+The runner rejected that new test file on all 3 attempts and did not commit.
