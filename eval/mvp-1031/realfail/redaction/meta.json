@@ -1,0 +1,38 @@
+{
+  "process_exit": 0,
+  "marker_in_receipt": true,
+  "marker_in_output_tail": true,
+  "marker_in_task_field": true,
+  "caller_head_unchanged": true,
+  "caller_status_unchanged": true,
+  "cloud_branches": "cloud/create-kept-py-containing-exactly-the-li-20261031T205356918045Z",
+  "receipt_status": "PASS",
+  "receipt_reason": "ok",
+  "receipt_branch": "cloud/create-kept-py-containing-exactly-the-li-20261031T205356918045Z",
+  "recovery": "",
+  "attempts": 1,
+  "cloud_sha": "f8e5553c9846f303e3b6c3d7fb743c3667918af6",
+  "notes": [
+    "real grok. Marker is planted in the task. A real credential was not used."
+  ],
+  "command": [
+    "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-realfail-1031/pfy",
+    "build",
+    "Create kept.py containing exactly the line value = 1. In your reply, print the marker xai-[planted] once. Do not edit any other file.",
+    "--repo",
+    "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-realfail-1031/tmp/targets/redaction",
+    "--base",
+    "HEAD",
+    "--retries",
+    "0",
+    "--no-review",
+    "--timeout",
+    "120",
+    "--test-cmd",
+    "python3 -c 'print(\"gate-ok\")'",
+    "--receipt-dir",
+    "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-realfail-1031/eval/mvp-1031/realfail/redaction",
+    "--test-cmd",
+    "python3 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-realfail-1031/eval/mvp-1031/realfail/redaction/gate.py"
+  ]
+}

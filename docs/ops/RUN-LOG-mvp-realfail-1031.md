@@ -57,4 +57,5 @@ gate-red | fae6bc3 | tests.test_mvp_1031_realfail_receipts 3 ok | exit 1 tests, 
 review-reject | d96f9a7 | tests.test_mvp_1031_realfail_receipts 3 ok | FINDING review accepted rm -rf script
 auth-failure | bb3d5be | tests.test_mvp_1031_realfail_receipts 3 ok | FINDING Not signed in became no-change
 rate-limit | b42c427 | tests.test_mvp_1031_realfail_receipts 3 ok | simulated BLOCKED rate-limit matches DoD
-gitignored-extra | (this commit) | tests.test_mvp_1031_realfail_receipts | PASS, ignored file absent from the commit
+gitignored-extra | f8e5553 | tests.test_mvp_1031_realfail_receipts 3 ok | PASS, ignored file absent from the commit
+redaction | (this commit) | tests.test_mvp_1031_realfail_receipts | FINDING planted marker stayed in the receipt
