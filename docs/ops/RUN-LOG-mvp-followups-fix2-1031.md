@@ -62,3 +62,4 @@ Risks:
 (one line per finished item: `item | commit | tests | result`)
 
 item-1-ci-image-pin | a5805d9 | nice -n 19 python3 -m unittest tests.test_workflow_image_pin: 16 OK in 6.850s | hosted job structural-github stays on ubuntu-24.04; parsed step runs the helper (recording PATH python3); real workflows still pass; pregate --only lint still OVERALL=PASS
+item-2-pyyaml-interpreter | 6d3f8de | nice -n 19 python3 -m unittest tests.test_workflow_image_pin: 17 OK in 12.846s | both call sites exec absolute PATH python3; a venv python3 without PyYAML fails pregate lint and the parsed hosted step, and the message names that interpreter path
