@@ -1,6 +1,6 @@
-# Module: `pfylib/` — toolset × harness handoff + hedge
+# Module: `pfylib/` - toolset × harness handoff + hedge
 
-**Architecture layer:** Handoff harness (product leg 3 of the triad, [ADR-0017](../adr/0017-product-catalog-evaluation-handoff-harness.md)).  
+**Architecture layer:** Handoff harness (product leg 3 of the triad). ADR-0017 is cited for this package and the file is not in `docs/adr/` yet ([pfy-launcher.md](../design/pfy-launcher.md)).  
 **Code:** `pfylib/` (`registry.py`, `toolsets.py`, `hedge.py`, `loop_paint.py`, `attach.py`, `cli.py`, `_legacy.py`) · data `data/toolsets.json` · `data/harnesses.json[].attach` · tests `tests/`  
 **Related:** [DESIGN G9](../DESIGN.md) · [ARCHITECTURE](../ARCHITECTURE.md) · [integration-stages.md](../ops/integration-stages.md) · [local-cloud-split.md](../ops/local-cloud-split.md) · [jev-230.md](jev-230.md) · T-0120..T-0125
 
@@ -8,7 +8,7 @@
 
 ### What it does
 
-Declares each **toolset** once (`data/toolsets.json`) and applies it to any **harness** row of `data/harnesses.json` (`role == "harness"`). The matrix cell is an *implementation* status — `implemented` / `partial` / `stub` — never a live health status. `plan` turns a cell into a concrete apply plan (env exports, files, config fragments, a brief) or an honest `STUB` with a next step. `hedge` picks the lane for a task: local compute first, cloud credits only within `PFY_CLOUD_BUDGET`, `FAIL` with a next step when neither can run. Loop paints that split plus the gathered modules (`pfylib/loop_paint.py`); **Launch session** is the proof they run in a grok/opencode session.
+Declares each **toolset** once (`data/toolsets.json`) and applies it to any **harness** row of `data/harnesses.json` (`role == "harness"`). The matrix cell is an *implementation* status - `implemented` / `partial` / `stub` - never a live health status. `plan` turns a cell into a concrete apply plan (env exports, files, config fragments, a brief) or an honest `STUB` with a next step. `hedge` picks the lane for a task: local compute first, cloud credits only within `PFY_CLOUD_BUDGET`, `FAIL` with a next step when neither can run. Loop paints that split plus the gathered modules (`pfylib/loop_paint.py`); **Launch session** is the proof they run in a grok/opencode session.
 
 ### How to run
 
@@ -33,7 +33,7 @@ python3 -m unittest discover -s tests              # offline; no runtime, no net
 | 0 | READY (plan / apply / decide succeeded, listing, dry-run of a READY plan) |
 | 1 | FAIL (unknown id, lane not offered, key missing on cloud lane, hedge cannot place the task, apply refused a path) |
 | 2 | usage |
-| 3 | STUB — cell not wired; the output says what exists today and the next step |
+| 3 | STUB - cell not wired; the output says what exists today and the next step |
 
 ### Where files go
 
@@ -41,7 +41,7 @@ python3 -m unittest discover -s tests              # offline; no runtime, no net
 
 ### Hedge units
 
-`PFY_CLOUD_BUDGET` is an integer number of **credits** for the ledger period (operator-defined unit — dollars, calls, tokens/1k; pick one and be consistent). One cloud decision costs `PFY_CLOUD_TASK_COST` credits (default 1). Ledger: `$PFY_STATE_DIR/hedge-ledger.json` (`entries[]`, `spent`). Live spend from real providers is **not** tracked yet — T-0122. `DEPLOY_PROFILE=local-only` forbids the cloud lane regardless of budget.
+`PFY_CLOUD_BUDGET` is an integer number of **credits** for the ledger period (operator-defined unit - dollars, calls, tokens/1k; pick one and be consistent). One cloud decision costs `PFY_CLOUD_TASK_COST` credits (default 1). Ledger: `$PFY_STATE_DIR/hedge-ledger.json` (`entries[]`, `spent`). Live spend from real providers is **not** tracked yet - T-0122. `DEPLOY_PROFILE=local-only` forbids the cloud lane regardless of budget.
 
 | Task | local ready | budget left | lane |
 |------|-------------|-------------|------|
@@ -99,18 +99,18 @@ data/toolsets.json ─┐                         data/harnesses.json (role=harn
 
 - The matrix status is derived from `data/toolsets.json` only; `plan()` never upgrades a `stub` and never fabricates a READY plan for a stub cell. Implemented/partial cells return READY (env/files/brief) or honest FAIL (missing live dep), never STUB.
 - `plan()` is pure (no writes). `apply()` writes only with `yes=True` and only under allowed roots; every write mode is idempotent (`write`, `append-marker`, `json-merge`, `symlink`, `legacy`).
-- Toolset semantics live in `scripts/pfy_*_NNN.py`; `pfylib` imports them by path via `_legacy` — do not copy constants or decision logic into `pfylib`. Who still goes through the bridge: see `_legacy.py` docstring.
+- Toolset semantics live in `scripts/pfy_*_NNN.py`; `pfylib` imports them by path via `_legacy` - do not copy constants or decision logic into `pfylib`. Who still goes through the bridge: see `_legacy.py` docstring.
 - Attach differences per harness live in `data/harnesses.json[].attach` (session id, label, install hint, bin fallbacks, config dir). Binary names come from `detect`. The four `pfy_attach_usable_*.py` files are ≤45-line shims so the board keeps loading `open_enterable_<x>_session`. OpenCode enterable (`pfy_enterable_162*`) is still its own path (T-0124).
 - `hedge.decide()` is deterministic given `(task, local, budget, ledger, profile)`; tests pass `local=` and `budget=` explicitly so no detector or network runs.
 - `catalog_tool` is a `TOOLS.md`/`tools.json` **name** or `null`; the reverse link is `tools.json[].implementation = {"toolset", "stage"}` with stages from [integration-stages.md](../ops/integration-stages.md). Do not invent catalog rows or scores to make the link exist.
-- Package is `pfylib/` because the repo root already has the executable file `pfy` (ADR-0017 § Consequences).
+- Package is `pfylib/` because the repo root already has the executable file `pfy`. ADR-0017 is cited for that split and is not written yet.
 
 ### Attach profiles (captured process, T-0121)
 
 | harness | session_id | label | script | detect / fallback | next_install | config_dir |
 |---------|------------|-------|--------|-------------------|--------------|------------|
-| grok | grok | Grok | `pfy_attach_usable_202` | `grok` | — | `GROK_HOME` → `~/.grok` |
-| hermes | hermes | Hermes | `pfy_attach_usable_196` | `hermes`, `hermes-agent` | — | none |
+| grok | grok | Grok | `pfy_attach_usable_202` | `grok` | - | `GROK_HOME` → `~/.grok` |
+| hermes | hermes | Hermes | `pfy_attach_usable_196` | `hermes`, `hermes-agent` | - | none |
 | claude-code | **claude** | Claude | `pfy_attach_usable_221` | `claude` | `curl -fsSL https://claude.ai/install.sh | bash` | `CLAUDE_CONFIG_DIR` → `~/.claude` |
 | codex | codex | Codex | `pfy_attach_usable_220` | `codex` then `~/.local/bin/codex` | `curl -fsSL https://chatgpt.com/codex/install.sh \| sh` | `CODEX_HOME` → `~/.codex` |
 
@@ -118,4 +118,4 @@ Shared body (FreeToken-first probe, child env via #205/#208, models+smoke prove,
 
 ### Extension points (T-0124)
 
-Add a `_plan_<toolset>()` in `toolsets.py`, register it in `_PLANNERS`, import the legacy module through `_legacy.load("<script stem>")`, and flip the relevant cells in `data/toolsets.json` only to the status the code earns. Add a test in `tests/test_toolsets.py` asserting non-empty `env`/`files`/`brief` (or honest FAIL) for every non-stub cell. OpenCode attach still lives in `pfy_enterable_162*` — fold it behind `attach.py` the same way when touching it.
+Add a `_plan_<toolset>()` in `toolsets.py`, register it in `_PLANNERS`, import the legacy module through `_legacy.load("<script stem>")`, and flip the relevant cells in `data/toolsets.json` only to the status the code earns. Add a test in `tests/test_toolsets.py` asserting non-empty `env`/`files`/`brief` (or honest FAIL) for every non-stub cell. OpenCode attach still lives in `pfy_enterable_162*` - fold it behind `attach.py` the same way when touching it.

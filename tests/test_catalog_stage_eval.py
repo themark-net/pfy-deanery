@@ -40,6 +40,46 @@ class CatalogStageEvalTests(unittest.TestCase):
         self.assertEqual(by["codebase-memory-mcp"]["integration_stage"], "I2")
         self.assertIn("make:smoke-codebase-memory", by["codebase-memory-mcp"]["evidence"])
 
+    def test_kolibri_facts_match_the_catalog_and_stage_stays_i0(self):
+        stages = json.loads((ROOT / "data" / "tool_integration_stages.json").read_text(encoding="utf-8"))
+        card = stages["tools"]["Kolibri-1"]
+        ev = {r["name"]: r for r in self.mod.evaluations()}["Kolibri-1"]
+        self.assertEqual(card["integration_stage"], "I0")
+        self.assertEqual(card["catalog_tier"], ev["tier"])
+        self.assertEqual(card["catalog_overall"], ev["overall"])
+        self.assertEqual(card["catalog_tags"], ev["tags"])
+        self.assertEqual(card["catalog_github"], ev["github"])
+        self.assertEqual(card["posture"], ev["posture"])
+        self.assertEqual(card["evidence"], ev["evidence"])
+        self.assertEqual(card["tier_ceiling"], ev["tier_ceiling"])
+        self.assertEqual(card["potential"], ev["handoff"]["potential"])
+
+    def test_blind_apply_would_drop_live_receipts_so_disk_keeps_them(self):
+        """--apply copies recomputed facts over the card. Those facts omit the
+        live ATG and harness2 receipts and would replace measured-probe with
+        the older handoff potential. Recovery: restore the card from git and
+        do not re-apply. Update this test only after evidence_for keeps the
+        receipt path."""
+        stages = json.loads((ROOT / "data" / "tool_integration_stages.json").read_text(encoding="utf-8"))
+        by = {r["name"]: r for r in self.mod.evaluations()}
+        atg = stages["tools"]["Atomic Task Graph (ATG)"]
+        harness = stages["tools"]["harness2"]
+        atg_receipt = "receipt:pipelines/dogfood/atg-compile/receipt-live-qwen36-35b.json"
+        harness_receipt = "pipelines/dogfood/harness2-local/receipt.json"
+        proposed_atg = by["Atomic Task Graph (ATG)"]
+        proposed_harness = by["harness2"]
+        self.assertIn(atg_receipt, atg["evidence"])
+        self.assertNotIn(atg_receipt, proposed_atg["evidence"])
+        self.assertEqual(atg["potential"], "measured-probe")
+        self.assertEqual(proposed_atg["handoff"]["potential"], "ambiguous")
+        self.assertEqual(atg["integration_stage"], "I2")
+        self.assertEqual(atg["tier_ceiling"], "I2")
+        self.assertEqual(proposed_atg["tier_ceiling"], "I1")
+        self.assertIn(harness_receipt, harness["evidence"])
+        self.assertNotIn(harness_receipt, proposed_harness["evidence"])
+        self.assertEqual(harness["integration_stage"], "I1")
+        self.assertNotEqual(stages["last_updated"], "2026-09-25")
+
 
 if __name__ == "__main__":
     unittest.main()
