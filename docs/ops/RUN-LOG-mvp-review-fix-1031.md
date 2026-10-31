@@ -64,3 +64,30 @@ Risks:
 ### exits
 
 Exit card and phase plan written before any product code. Skills `write-loop-exits-first` and `repo-handoff-doc-required` are not files in this worktree or `~/.grok/skills`. The card above plus the drop-in exits stand in for them. Decision logged in `docs/ops/AUTONOMOUS-DECISIONS-mvp-review-fix-1031.md`.
+
+state: DONE | tests: none (docs only) | files: 2 | err: none
+
+### confirm-holes
+
+Checked on `122e207` before the product edit. Host: MemAvailable about 63.6 GiB, load 3.02, nproc 32. Under the pressure line. Wall cap still 2026-11-01T03:50:34Z.
+
+Both holes are open:
+
+- `files_changed` runs `git status --porcelain -uall` and does not pass `--ignored`.
+- The commit path runs `git add -A -f -- .` with excludes for tmp, bytecode, and pytest cache.
+- An empty `changed` list records `no-change` and continues or returns before `run_tests`.
+
+A probe under `tmp/stage-probe` showed `git add -A -f -- .` stages `pipelines/smoke/kander/latest.json` when that path is gitignored, and `git add` of `:(literal)src/calc.py` plus the same excludes stages only `src/calc.py`.
+
+state: DONE | tests: read-only plus a throwaway git probe | files: 0 | err: none
+
+### scope-commit
+
+Stage only the reviewed names. After `git add`, `git diff --cached --name-only` must match that set. Mismatch resets the index, reason `scope-commit-mismatch`, exit 1, no branch.
+
+How it fails: a gitignored receipt is not in the reviewed set, so it is not staged. If the committed tree cannot pass the archive recheck (the ignored helper the tests import), the commit is rolled back and the reason is `commit-recheck-failed`. If the index gains a name the review did not see, the index is reset and the reason is `scope-commit-mismatch`.
+
+How we recover: no `local/` branch, origin HEAD unchanged, the extra name is not on any ref.
+
+item | commit | tests | result
+scope-commit | (this commit) | nice python3 -m unittest tests.test_pfy_build_local tests.test_pfy_build_local_review | Ran 70 tests in 91.800s OK

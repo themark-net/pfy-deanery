@@ -1311,18 +1311,17 @@ class LocalBuildTests(unittest.TestCase):
         data = self.assert_no_commit(proc, receipt)
         self.assertEqual(data["reason"], "tests-tampered")
 
-    def test_ignored_helper_is_in_the_commit(self):
+    def test_ignored_helper_is_not_committed(self):
         ignore = self.repo / ".gitignore"
         ignore.write_text(ignore.read_text(encoding="utf-8") + "helper.py\n", encoding="utf-8")
         self.commit_base("ignore helper.py")
         proc, receipt = self.run_build("ignored-helper")
-        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
-        data = self.receipt(proc, receipt)
-        self.assertEqual(data["status"], "PASS")
-        shown = _git(self.repo, "show", "%s:src/helper.py" % data["commit"])
-        self.assertIn("def add_impl", shown)
-        calc = _git(self.repo, "show", "%s:src/calc.py" % data["commit"])
-        self.assertIn("add_impl", calc)
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self.assert_no_commit(proc, receipt)
+        self.assertIn(data["reason"], ("commit-recheck-failed", "scope-commit-mismatch"))
+        names = _git(self.repo, "log", "--all", "--name-only", "--pretty=format:")
+        self.assertNotIn("src/helper.py", names)
+        self.assertNotIn("helper.py", data["files_changed"])
 
     def test_sandboxed_tests_block_push_write_and_tcp(self):
         if not BUILD.bwrap_works():

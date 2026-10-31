@@ -56,12 +56,15 @@ class ReviewLoopTests(unittest.TestCase):
             "PFY_STUB_PROMPTS": str(self.prompts),
         }
 
-    def _run(self, task, steps, extra=None, timeout=90):
+    def _run(self, task, steps, extra=None, timeout=90, env_extra=None):
         self._plan(steps)
+        env = self._env()
+        if env_extra:
+            env.update(env_extra)
         return self.inner.run_build(
             "plan",
             extra=extra,
-            env_extra=self._env(),
+            env_extra=env,
             timeout=timeout,
             task=task,
         )
@@ -87,6 +90,67 @@ class ReviewLoopTests(unittest.TestCase):
         self.assertGreaterEqual(len(rows), 2)
         self.assertIn("src/notes.py", rows[1]["prompt"])
         self.assertIsNotNone(data["commit"])
+        names = harness._git(
+            self.inner.repo,
+            "diff-tree",
+            "--no-commit-id",
+            "--name-only",
+            "-r",
+            data["commit"],
+        ).strip().splitlines()
+        self.assertEqual(names, ["src/calc.py"])
+
+    def test_gitignored_extra_file_is_absent_from_the_commit(self):
+        repo = self.inner.repo
+        ignore = repo / ".gitignore"
+        ignore.write_text(ignore.read_text(encoding="utf-8") + "pipelines/\n", encoding="utf-8")
+        self.inner.commit_base("ignore pipeline receipts")
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        steps = [
+            {
+                "mode": "fix",
+                "write": {"pipelines/smoke/kander/latest.json": '{"ok": true}\n'},
+            }
+        ]
+        proc, receipt = self._run(task, steps)
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "PASS")
+        self.assertIsNotNone(data["commit"])
+        self.assertNotIn("pipelines/smoke/kander/latest.json", data["files_changed"])
+        names = harness._git(
+            repo, "diff-tree", "--no-commit-id", "--name-only", "-r", data["commit"]
+        ).strip().splitlines()
+        self.assertEqual(names, ["src/calc.py"])
+        shown = subprocess.run(
+            ["git", "-C", str(repo), "cat-file", "-e", "%s:pipelines/smoke/kander/latest.json" % data["commit"]],
+            capture_output=True,
+            text=True,
+        )
+        self.assertNotEqual(shown.returncode, 0, shown.stderr)
+        self.inner.assert_clean_origin()
+
+    def test_staged_names_that_differ_reset_and_do_not_branch(self):
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        proc, receipt = self._run(
+            task,
+            [{"mode": "fix"}],
+            env_extra={"PFY_LOCAL_BUILD_INJECT_EXTRA_STAGE": "1"},
+        )
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["reason"], "scope-commit-mismatch")
+        self.assertEqual(data["status"], "FAIL")
+        self.assertIsNone(data["branch"])
+        self.assertIsNone(data["commit"])
+        self.assertEqual(harness._branches(self.inner.repo), [])
+        self.inner.assert_clean_origin()
+        worktree = data["worktree"]
+        self.assertTrue(worktree)
+        cached = harness._git(worktree, "diff", "--cached", "--name-only")
+        self.assertEqual(cached.strip(), "")
+        log = harness._git(self.inner.repo, "log", "--all", "--name-only", "--pretty=format:")
+        self.assertNotIn("injected-extra.txt", log)
 
     def test_missing_wiring_names_the_module_and_the_retry_wires_both(self):
         task = (
