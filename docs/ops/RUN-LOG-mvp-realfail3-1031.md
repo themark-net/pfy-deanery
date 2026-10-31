@@ -87,4 +87,5 @@ dirty-tree | 998d4af | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfa
 detached-head | 19eafd3 | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail3_receipts (6 ok) | MATCH PASS, HEAD stayed detached at the same SHA
 no-tests | 3b1c126 | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail3_receipts (6 ok) | MATCH FAIL tests, default discover exit 1, no branch. Before-gate was already red and grok still ran.
 non-ascii | ba55764 | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail3_receipts (6 ok) | MATCH PASS, receipt kept cafe-acute, commit includes "my app.py"
-over-cap | this commit | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail3_receipts (6 ok) | MATCH PASS with 4 files and 280 lines. The cloud table has no size row, so this is not a FINDING. The local cap was not applied.
+over-cap | 0511b60 | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail3_receipts (6 ok) | MATCH PASS with 4 files and 280 lines. The cloud table has no size row, so this is not a FINDING. The local cap was not applied.
+two-builds | this commit | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail3_receipts (6 ok) | MATCH intact, both PASS, two cloud branches, fsck 0, overlap true
