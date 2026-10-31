@@ -83,3 +83,7 @@ Phases still open:
 - item 7 | runner + review tests | missing poster out file is `review-crashed`, one attempt, not retried; the crash env does nothing unless the seam is on | item 3 | lead
 - item 8 | `docs/ops/HANDOFF-mvp3-review-retry.md` | lines 38, 45, and 51 marked superseded by mvp3-fix-1031 `582414b` | resume | lead
 - handoff | this lane's handoff and a new `state:` line | SHAs, fail/recover, gate | all open items | lead
+
+## Items after the override
+
+- item 2 | `d84e29f` | `tests.test_pfy_build_local_review` Ran 20 in 81.384s OK | stderr and receipt `warnings` say `scope check skipped: no allow list` only with no allow list. A `files:` line and `--allow-path` stay quiet.
