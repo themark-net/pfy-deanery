@@ -25,3 +25,5 @@
 - 2026-10-31: Human-accept the smoke_148 receipt build. finish refuses a relative directory and still writes an absolute latest.json. home_sig was not edited.
 - 2026-10-31: Next product item is the same relative receipt hole in smoke_149.finish. The other smokes already call smoke.write. Alternative was to stop after smoke_148 and leave mempalace able to clobber a cwd receipt.
 - 2026-10-31: Human-accept the smoke_149 receipt build. finish refuses a relative directory and still writes an absolute latest.json. home_sig was not edited.
+- 2026-10-31: Next product item is smoke_148.home_sig, which records size and mtime only, so a same-size edit that restores mtime is invisible. Keep mtime. Do not port this onto smoke_149, whose watched paths include .cache/chroma. Alternative was to stop once the relative receipt writers were closed.
+- 2026-10-31: Human-accept the smoke_148 home_sig build. Files keep mode, mtime, size, and a streamed hash. Symlinks keep readlink and are not opened. A missing path stays None. The real-HOME new-directory test stayed green.
