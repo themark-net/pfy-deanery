@@ -15,3 +15,5 @@
 7. 2026-10-31T22:05Z: A commit that contains a gitignored path is a failed rerun. Choice: the script exits 1 when that happens even if `./pfy` exited 0, and the note lists the paths. Alternative: leave the runner's exit 0 in place. Why: the drop-in says record the failure honestly and do not edit it away.
 
 8. 2026-10-31T22:05Z: The behavior test cannot live under `tests/` because that tree is outside this lane's owned files. Choice: `eval/mvp-1031/test_rerun_local.py` beside the script. Alternative: skip the test file and only run the script by hand. Why: the drop-in requires a behavior test for the code change.
+
+9. 2026-10-31T22:13Z: The heavy lock is held by `pregate.sh c0d38af` (flock pid 2652539) and three more waiters are queued (unittest discover, pregate 0c3f133, pregate fb759e9). Choice: wait until 2026-11-01T03:57Z for the lock, then run t5, and stop only this lane's t5 process at 2026-11-01T05:37Z if it is still going. Alternative: stop now and record host busy. Why: this lane must not cut ahead of another lane, and a t5 run still fits if the lock frees before 03:57Z. Do not signal any process this lane did not start.
