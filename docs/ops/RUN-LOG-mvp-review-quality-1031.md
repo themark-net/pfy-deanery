@@ -52,3 +52,5 @@ Host at launch: MemAvailable 40498608 kB, load 6.40, 6.71, 5.78 on 32 cores. Und
 
 item | commit | tests | result
 --- | --- | --- | ---
+exits | ebeaa55 | docs only | pass
+planted-set | 575c5cc | nice -n 19 python3 -m unittest tests.test_review_quality_replay (5 ok) | pass
