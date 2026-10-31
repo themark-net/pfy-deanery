@@ -1,6 +1,6 @@
 # Handoff: mvp-crosslane-1031
 
-Branch `bot/mvp-crosslane-1031`. Worktree `~/DEVELOP/pfy-mentat/tmp/mvp-crosslane-1031`. Tip `d6c5390`. Base at drop-in time was `origin/bot/mvp-integrate-1031` (`0c3f133`). This branch merged that ref at `cf5a11c` (`34b1de1`), then cloudfix `d78ed00`, then integrate `b6db528`. A later integrate tip `d078de6` was not merged: it does not change the two runners. No rebase, no force push, no PR, no merge, no tag. No local model. No `./pfy build --local` trial outside the stub tests.
+Branch `bot/mvp-crosslane-1031`. Worktree `~/DEVELOP/pfy-mentat/tmp/mvp-crosslane-1031`. Product tip `d6c5390`. Handoff commit `10fd155`. Base at drop-in time was `origin/bot/mvp-integrate-1031` (`0c3f133`). This branch merged that ref at `cf5a11c` (`34b1de1`), then cloudfix `d78ed00`, then integrate `b6db528`. A later integrate tip `d078de6` was not merged: it does not change the two runners. No rebase, no force push, no PR, no merge, no tag. No local model. No `./pfy build --local` trial outside the stub tests.
 
 Exit: lane empty. Every collected cross-lane note is in the table. Pregate not run: host busy (`Runner.Worker` pid 3751002, and the heavy lock was held).
 
@@ -111,7 +111,7 @@ Do not treat this handoff as a Feature GO. `./pfy build --local` stays opt-in. T
 
 ## Next
 
-Integrator: merge `bot/mvp-crosslane-1031` at `d6c5390` (or later, if this handoff commit is the tip) into the integrate branch. Do not Feature GO. Tester runs the modules named above. Reviewer reads the one-function diffs. Then mark the three stale sentences in `docs/ops/HANDOFF-mvp3-review-retry.md` when that file is free, and decide the t1 contradiction and the pregate scratch OQ.
+Integrator: merge `bot/mvp-crosslane-1031` at the branch tip (`10fd155` plus any later docs-only commit on this branch) into the integrate branch. Product code ends at `d6c5390`. Do not Feature GO. Tester runs the modules named above. Reviewer reads the one-function diffs. Then mark the three stale sentences in `docs/ops/HANDOFF-mvp3-review-retry.md` when that file is free, and decide the t1 contradiction and the pregate scratch OQ.
 
 ## Finish
 
