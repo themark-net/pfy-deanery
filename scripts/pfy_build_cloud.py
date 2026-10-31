@@ -346,6 +346,12 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         help="extra attempts after the first (default 2, so 3 total)",
     )
     parser.add_argument("--no-review", action="store_true", help="one attempt, no review call")
+    parser.add_argument(
+        "--writable-test",
+        action="append",
+        default=[],
+        help="test path the task may edit (repeatable). Other base tests stay hashed",
+    )
     parser.add_argument("--receipt-dir", default=None, help="directory for receipt.json")
     parser.add_argument("--dry-run", action="store_true", help="write a receipt and start no grok")
     parser.add_argument("--reap", action="store_true", help="recover a cloud pid with no receipt")
@@ -535,9 +541,24 @@ def snapshot_tests(worktree: Path) -> dict[str, str]:
     return found
 
 
-def tests_tampered(worktree: Path, snap: dict[str, str]) -> list[str]:
+def _writable_test(rel: str, patterns: list[str]) -> bool:
+    rel = _norm_rel(rel)
+    if not rel or rel.startswith("../") or rel == ".." or "/../" in "/%s/" % rel:
+        return False
+    name = Path(rel).name
+    for pattern in patterns:
+        pat = _norm_rel(pattern)
+        if pat and (fnmatch_path(rel, pat) or fnmatch_path(name, pat)):
+            return True
+    return False
+
+
+def tests_tampered(worktree: Path, snap: dict[str, str], writable: list[str] | None = None) -> list[str]:
+    allowed = list(writable or [])
     bad: list[str] = []
     for rel, digest in snap.items():
+        if _writable_test(rel, allowed):
+            continue
         path = worktree / rel
         if not path.is_file():
             bad.append(rel)
@@ -934,7 +955,9 @@ class CloudBuild:
                 if number < self.max_attempts:
                     continue
                 return self.fail("FAIL", "protected-path-changed", EXIT_FAIL, "")
-            bad_tests = tests_tampered(self.worktree, base_tests)
+            bad_tests = tests_tampered(
+                self.worktree, base_tests, list(self.args.writable_test or [])
+            )
             if bad_tests:
                 feedback = "gate failed: tests-tampered\n%s" % "\n".join(bad_tests)
                 self.record(number, "FAIL", "tests-tampered", output)
