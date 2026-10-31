@@ -2522,5 +2522,142 @@ class CloudBuildGateReasonTests(unittest.TestCase):
         self.assertEqual(dry_payload["status"], "FAIL")
         self.assertEqual(dry_payload["reason"], "worktree-failed")
         self.assertIn(ref, dry_payload["recovery"])
+
+    def test_unwritable_tmp_is_worktree_failed_and_does_not_call_grok(self) -> None:
+        calls = self.side / "calls.txt"
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import os\n"
+            "from pathlib import Path\n"
+            "Path(os.environ['PFY_CALL_COUNT']).write_text('called\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        (self.repo / "app.py").write_text("value = 0\n", encoding="utf-8")
+        added = _git(self.repo, "add", "app.py")
+        self.assertEqual(added.returncode, 0, added.stderr)
+        committed = _git(self.repo, "commit", "-m", "app")
+        self.assertEqual(committed.returncode, 0, committed.stderr)
+        blocked = self.repo / "tmp"
+        blocked.mkdir()
+        os.chmod(blocked, 0o555)
+
+        def _restore_tmp() -> None:
+            if blocked.exists():
+                os.chmod(blocked, 0o755)
+
+        self.addCleanup(_restore_tmp)
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        before = _git(self.repo, "status", "--porcelain").stdout
+        proc = _run(
+            [
+                sys.executable,
+                str(CLOUD),
+                "set value to 1",
+                "--repo",
+                str(self.repo),
+                "--base",
+                "HEAD",
+                "--retries",
+                "0",
+                "--no-review",
+                "--timeout",
+                "30",
+                "--test-cmd",
+                "true",
+                "--grok-cmd",
+                str(grok),
+            ],
+            self.repo,
+            env={"PFY_CALL_COUNT": str(calls)},
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 1, text)
+        payload = self._receipt()
+        self.assertEqual(payload["status"], "FAIL")
+        self.assertEqual(payload["reason"], "worktree-failed")
+        self.assertEqual(payload["exit_code"], 1)
+        self.assertIsNone(payload["branch"])
+        self.assertIsNone(payload["commit"])
+        self.assertIn("Mark:", payload["recovery"])
+        self.assertIn("writable", payload["recovery"].lower())
+        self.assertIn("worktree", payload["recovery"].lower())
+        self.assertNotIn("PermissionError", payload["recovery"])
+        self.assertIsNone(payload["gate"]["before"])
+        self.assertIsNone(payload["gate"]["after"])
         self.assertFalse(calls.exists())
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+        self.assertEqual(_git(self.repo, "status", "--porcelain").stdout, before)
+        self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
+
+    def test_hung_gate_is_timeout_and_does_not_commit(self) -> None:
+        count = self.side / "hang-count"
+        gate = _write_exe(
+            self.side / "hang.py",
+            "#!/usr/bin/env python3\n"
+            "import os, time\n"
+            "from pathlib import Path\n"
+            "path = Path(os.environ['PFY_HANG_COUNT'])\n"
+            "n = int(path.read_text()) + 1 if path.exists() else 1\n"
+            "path.write_text(str(n))\n"
+            "if n == 1:\n"
+            "    print('pass-before')\n"
+            "    raise SystemExit(0)\n"
+            "print('hang')\n"
+            "time.sleep(30)\n",
+        )
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "Path('app.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        (self.repo / "app.py").write_text("value = 0\n", encoding="utf-8")
+        added = _git(self.repo, "add", "app.py")
+        self.assertEqual(added.returncode, 0, added.stderr)
+        committed = _git(self.repo, "commit", "-m", "app")
+        self.assertEqual(committed.returncode, 0, committed.stderr)
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        proc = _run(
+            [
+                sys.executable,
+                str(CLOUD),
+                "set value to 1",
+                "--repo",
+                str(self.repo),
+                "--base",
+                "HEAD",
+                "--retries",
+                "2",
+                "--timeout",
+                "1",
+                "--test-cmd",
+                "%s %s" % (sys.executable, gate),
+                "--grok-cmd",
+                str(grok),
+            ],
+            self.repo,
+            env={"PFY_HANG_COUNT": str(count)},
+            timeout=30,
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 3, text)
+        payload = self._receipt()
+        self.assertEqual(payload["status"], "TIMEOUT")
+        self.assertEqual(payload["reason"], "timeout")
+        self.assertEqual(payload["exit_code"], 3)
+        self.assertIsNone(payload["branch"])
+        self.assertIsNone(payload["commit"])
+        self.assertIn("the gate timed out", payload["recovery"])
+        self.assertIn("--timeout", payload["recovery"])
+        self.assertNotIn("--local", payload["recovery"])
+        self.assertEqual(payload["gate"]["before"]["exit"], 0)
+        self.assertIn("pass-before", payload["gate"]["before"]["tail"])
+        self.assertEqual(payload["gate"]["after"]["exit"], 124)
+        self.assertIn("gate timeout", payload["gate"]["after"]["tail"])
+        self.assertEqual(len(payload["attempts"]), 1)
+        self.assertEqual(count.read_text(encoding="utf-8"), "2")
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+        self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
 
