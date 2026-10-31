@@ -65,3 +65,31 @@ Risks:
 Exit card and phase plan written before the merge and before any product code. Skills `write-loop-exits-first` and `repo-handoff-doc-required` are not files in this worktree or `~/.grok/skills`. The card above plus the drop-in exits stand in for them. Decision logged in `docs/ops/AUTONOMOUS-DECISIONS-mvp-crosslane-1031.md`.
 
 state: DONE | tests: none (docs only) | files: 2 | err: none
+
+### merge-base
+
+`git merge --no-edit origin/bot/mvp-integrate-1031` at tip `cf5a11c` (pass 3 exit card). Merge commit `34b1de1`. Only integrate docs changed (`mvp-integrate-1031` drop-in, decisions, run log). No rebase.
+
+Host before merge: MemAvailable 43805728 kB (about 41.8 GiB), load 6.65 5.14 4.61. Under the pressure line.
+
+item | 34b1de1 | tests: none (merge) | result: merged cf5a11c, docs only
+
+### later merges
+
+Merged `origin/bot/mvp-cloudfix-1031` at `d78ed00` and then `origin/bot/mvp-integrate-1031` at `b6db528` before the help-test commit. Those merges are in the history under `7d12860`. A later integrate tip `d078de6` was not merged. See decisions 4, 5, and 7.
+
+### fixes
+
+Host stayed above the pressure line (MemAvailable about 35 to 40 GiB, load about 6 to 9, nproc 32).
+
+ci-cover help skip | 7d12860 | tests.test_pfy_build_local.CloudBuildUnchangedTests.test_help_and_dry_run_stay_the_same, plus five cloud tests in the same run, 2.608s OK | pass
+selfhost :target review miss | 10328e3 | CloudBuildRetryTests.test_target_marker_is_rejected_even_when_review_accepts and test_root_delete_is_rejected_even_when_review_accepts, 0.830s OK | pass
+recheck TMPDIR | 7667b2e | CloudBuildNoChangeTests.test_recheck_tmpdir_stays_inside_the_extract, plus CloudBuildFailureTests secret-env tests, 0.624s OK | pass
+followups item 6 pin | bae035f | LocalBuildTests.test_ignored_helper_is_not_committed, 1.898s OK | pass
+followups item 3 inject seam | 351cf1d | ReviewLoopTests inject-off, staged-mismatch, and stub-bind seam, 5.093s OK | pass
+followups item 5 empty reviewed set | 0e49e1c | first run failed because the stand-in gate printed no summary (tests-failed). Rerun of test_excluded_only_change_does_not_commit 1.320s OK, then inject-off and staged-mismatch 3.318s OK | pass
+followups item 2 scope phrase | f46d726 | ReviewLoopTests.test_missing_allow_list_warns_and_a_named_list_does_not, 3.442s OK | pass
+followups item 4 same_model | f93e120 | ReviewLoopTests.test_no_review_is_one_attempt_and_a_green_gate_passes, 1.594s OK | pass
+followups item 7 review crash | d6c5390 | test_unparseable_review_is_a_reject_and_the_reason_is_fed_back passed with the runner change. The new test then passed after the fake python path was fixed, 1.396s OK | pass
+
+state: lane empty | tests: targeted unittest modules above, all final runs OK | files: cloud runner, local runner, their test modules, this log, decisions, handoff | err: none | pregate not run: host busy
