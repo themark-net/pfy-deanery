@@ -1624,6 +1624,84 @@ class CloudBuildFailureTests(unittest.TestCase):
         self.assertIsNone(payload["commit"])
         self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
 
+    def test_direct_grok_home_fails_then_a_clean_retry_lands(self) -> None:
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import shutil\n"
+            "import sys\n"
+            "from pathlib import Path\n"
+            "blob = '\\n'.join(sys.argv)\n"
+            "if 'PFY-CLOUD-REVIEW' in blob:\n"
+            "    print('verdict: accept')\n"
+            "    raise SystemExit(0)\n"
+            "if 'protected-path-changed' in blob:\n"
+            "    shutil.rmtree('pipelines/dogfood/grok-home', ignore_errors=True)\n"
+            "    Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "    raise SystemExit(0)\n"
+            "Path('pipelines/dogfood/grok-home').mkdir(parents=True, exist_ok=True)\n"
+            "Path('pipelines/dogfood/grok-home/token').write_text('secret-token\\n', encoding='utf-8')\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        proc = self._run_task(grok, self._gate(), "add kept", extra=["--retries", "1"])
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        match = re.search(r"PASS ok branch=(\S+) receipt=(\S+)", proc.stdout or "")
+        self.assertIsNotNone(match, proc.stdout)
+        branch = match.group(1)
+        payload = json.loads(Path(match.group(2)).read_text(encoding="utf-8"))
+        self.assertEqual(len(payload["attempts"]), 2)
+        self.assertEqual(payload["attempts"][0]["reason"], "protected-path-changed")
+        self.assertEqual(payload["attempts"][1]["status"], "PASS")
+        names = _git(self.repo, "ls-tree", "-r", "--name-only", branch).stdout.splitlines()
+        self.assertIn("kept.py", names)
+        self.assertNotIn("pipelines/dogfood/grok-home/token", names)
+        shown = _git(self.repo, "show", branch + ":kept.py")
+        self.assertEqual(shown.stdout, "value = 1\n")
+        self.assertEqual(_git(self.repo, "rev-list", "--count", head + ".." + branch).stdout.strip(), "1")
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+
+    def test_env_and_pem_fail_then_a_clean_retry_lands(self) -> None:
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "from pathlib import Path\n"
+            "blob = '\\n'.join(sys.argv)\n"
+            "if 'PFY-CLOUD-REVIEW' in blob:\n"
+            "    print('verdict: accept')\n"
+            "    raise SystemExit(0)\n"
+            "if 'protected-path-changed' in blob:\n"
+            "    Path('.env').unlink(missing_ok=True)\n"
+            "    Path('keys/id.pem').unlink(missing_ok=True)\n"
+            "    Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "    raise SystemExit(0)\n"
+            "Path('keys').mkdir(parents=True, exist_ok=True)\n"
+            "Path('.env').write_text('TOKEN=secret\\n', encoding='utf-8')\n"
+            "Path('keys/id.pem').write_text('pem-body\\n', encoding='utf-8')\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        proc = self._run_task(grok, self._gate(), "add kept", extra=["--retries", "1"])
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        match = re.search(r"PASS ok branch=(\S+) receipt=(\S+)", proc.stdout or "")
+        self.assertIsNotNone(match, proc.stdout)
+        branch = match.group(1)
+        payload = json.loads(Path(match.group(2)).read_text(encoding="utf-8"))
+        self.assertEqual(len(payload["attempts"]), 2)
+        self.assertEqual(payload["attempts"][0]["reason"], "protected-path-changed")
+        self.assertEqual(payload["attempts"][1]["status"], "PASS")
+        names = _git(self.repo, "ls-tree", "-r", "--name-only", branch).stdout.splitlines()
+        self.assertIn("kept.py", names)
+        self.assertNotIn(".env", names)
+        self.assertNotIn("keys/id.pem", names)
+        self.assertEqual(_git(self.repo, "show", branch + ":kept.py").stdout, "value = 1\n")
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+
     def test_keep_worktree_leaves_the_directory(self) -> None:
         grok = _write_exe(
             self.side / "grok.py",
