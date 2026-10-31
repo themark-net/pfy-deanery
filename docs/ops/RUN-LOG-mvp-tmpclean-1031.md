@@ -50,6 +50,7 @@ Drop-in exits (same loop, checked before every item):
 
 - exits | adb4168 | none (log only) | pushed
 - reproduce-red | f344d87 | nice -n 19 python3 -m unittest tests.test_pfylib_tmp_cleanup, TMPDIR=$PWD/tmp, sibling /tmp/pfy-hr-x created 2s after start | FAIL in 50.955s, AssertionError set difference was only '/tmp/pfy-hr-x'. Dir removed by this lane's cleanup. Tree stayed clean.
-- hermetic-test | this commit | nice -n 19 python3 -m unittest tests.test_pfylib_tmp_cleanup, TMPDIR=$PWD/tmp, sibling /tmp/pfy-hr-x created 1s after start | 3 tests OK in 50.098s. Planted private and host leaks failed the checker. Host marker removed. Sibling dir removed.
+- hermetic-test | a7ae331 | nice -n 19 python3 -m unittest tests.test_pfylib_tmp_cleanup, TMPDIR=$PWD/tmp, sibling /tmp/pfy-hr-x created 1s after start | 3 tests OK in 50.098s. Planted private and host leaks failed the checker. Host marker removed. Sibling dir removed.
+- honor-tmpdir | this commit | bash -n on the nine scripts; nice -n 19 python3 -m unittest tests.test_tmpdir_scripts tests.test_x_intake_smoke_149.Smoke149.test_inprocess_main_keeps_caller_tmpdir tests.test_x_intake_smoke_149.Smoke149.test_run_smoke_forwards_tmpdir tests.test_hermes_bakeoff.HermesBakeoffTests.test_opencode_run_tmpdir_stays_under_repo_tmp tests.test_hermes_bakeoff.HermesBakeoffTests.test_child_tmpdir_stays_in_the_worktree, TMPDIR=$PWD/tmp | 5 tests OK in 0.031s. First run had 2 failures (banned comment string, cached tempfile.tempdir); both fixed and re-run green.
 
 ## Finish

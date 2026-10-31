@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # T-0096: dual-tier orchestrator smoke (mock high+low — no cloud required).
 set -euo pipefail
+remote_log() { mktemp; }
+if [[ "${1:-}" == "--scratch-path" ]]; then
+  remote_log
+  exit 0
+fi
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 EDGE="$ROOT/examples/voice-stt-edge"
@@ -87,8 +92,9 @@ export VOICE_ORCH_MOCK=1
 export VOICE_ROUTE=high-first
 PORT="${VOICE_REMOTE_SMOKE_PORT:-18792}"
 TOKEN="t0096-$RANDOM"
+REMOTE_LOG=$(remote_log)
 "$VOICE_PY" "$EDGE/remote_server.py" --host 127.0.0.1 --port "$PORT" --token "$TOKEN" --out-dir "$OUT" \
-  >/tmp/voice-t0096-remote.log 2>&1 &
+  >"$REMOTE_LOG" 2>&1 &
 PID=$!
 cleanup() { kill "$PID" 2>/dev/null || true; wait "$PID" 2>/dev/null || true; }
 trap cleanup EXIT
