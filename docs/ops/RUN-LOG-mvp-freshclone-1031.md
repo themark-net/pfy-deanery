@@ -49,6 +49,28 @@ Risks:
 
 Items:
 
-(none yet)
+Clone of `origin/bot/mvp-integrate-1031` at `cf5a11c` (`docs: pass 3 exit card before merges`) into `tmp/fresh/` (git clone, not a worktree). Single-branch, so this clone has no `origin/main`.
 
-state: exits written | tests: none yet | files: 2 | err: none
+Walk, only the user-facing surfaces:
+
+- README simple path lists `./pfy`, `board`, `start grok`, `launch`, `models`. It does not name `./pfy build`. `make help` (the product surface that README points at) lists setup, stage, and ship, and does not name `./pfy build`. The clone section later says `make env-init` and `XAI_API_KEY` in `.env`. The cloud runner does not load `.env` and does not read `auth.json`.
+- No quickstart file in the clone. `origin/bot/mvp-docs-1031` adds `docs/QUICKSTART-pfy-build.md` and two README lines. That branch is DONE and not in this clone. Not edited here.
+- `./pfy --help` exits 0 and does name `./pfy build "<task>"`, the `cloud/` branch, no push, and the receipt directory.
+- `./pfy build --help` exits 0. It says the repo default is cwd, and the base default is `origin/main` if it exists, else `HEAD`. It does not state the default gate, the 1200 second grok timeout, the receipt directory, or that grok must already be logged in. Those facts are only in the operator card.
+- `./pfy build` with no task exits 2 and prints the daily command plus the `-p` and `--local` pointers. It does not reach the jev wrap.
+- `docs/ops/pfy-build-daily.md` and `docs/modules/pfy-build.md` say the default repo is the repo that contains `./pfy`. Help and `resolve_repo` say cwd. The card also says the cloud runner is not on this branch and that a bare `./pfy build` still reaches the jev wrap. Both of those sentences are false on this clone (`scripts/pfy_build_cloud.py` is present; no-args exited 2). Card and module doc are owned by other lanes. Not edited here.
+- Dry-run of `./pfy build "add a one-line note to README" --dry-run` from the clone exited 0. Receipt status `DRY-RUN`, base `HEAD` (no `origin/main` in this clone), gate `python3 -m unittest discover -s tests -t .`, pushed false, commit null. No grok.
+- Real build, one attempt, fixture from `eval/mvp-1031/README.md`, `--timeout 420`, started `2026-10-31T23:32:58Z`. Result PASS. Exit 0. Branch `cloud/make-add-return-the-sum-of-its-two-argum-20261031T233257307009Z`. Commit `af44f7df7e864ace57eb3f2cc16e286b6d4d9c39` (`add` returns `a + b`). Review `accept`. Gate before exit 1, after exit 0. Pushed false. Receipt `tmp/fresh/tmp/mvp-fixture-receipt/receipt.json` (gitignored). Caller fixture branch stayed `main`. Wall about 30 seconds. `grok` 1.0.70 was already on `PATH`. Login was reused. No auth file was read or printed.
+- Not run: bare `./pfy`, `board`, `start`, `launch`. They start inference or a window. Decision 6.
+
+Gaps to fix here: README and `make help` never show the daily command or the real defaults (cwd, HEAD fallback, full-suite gate, 1200s, existing `grok login`, no `.env`).
+
+Cross-lane, not edited:
+
+- mvp-docs-1031: merge `docs/QUICKSTART-pfy-build.md` (file absent on integrate).
+- mvp-daily-card-1031 and mvp-surface-1031: correct the default repo sentence, delete the stale "not on this branch" and "still reaches the jev wrap" sentences, and mention the HEAD fallback for base.
+- mvp-cloudfix-1031 or mvp-dogfood-fix-1031: add the default gate, 1200 second timeout, receipt directory, and existing grok login to `HELP_TEXT` in `scripts/pfy_build_cloud.py`. Do not take that file on this branch.
+
+naive-walk | (this commit) | no product tests; dry-run exit 0; fixture build PASS exit 0 | gaps recorded
+
+state: walk recorded | tests: dry-run and one cloud build | files: clone plus this log | err: none
