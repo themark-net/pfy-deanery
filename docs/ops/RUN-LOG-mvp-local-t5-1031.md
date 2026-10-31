@@ -81,4 +81,4 @@ rerun-script | b8b1003 | TMPDIR=tmp/scratch nice -n 19 python3 eval/mvp-1031/tes
 
 Lock acquired 2026-10-31T22:52:31Z. Runner finished 2026-10-31T23:02:02Z. Gate PASS ok, attempts 1, review on, retries 2, model qwen3.6:35b, model_was_loaded false, unloaded true. Commit 4aa36fd34d1b9007bbf4887dcd729977aded3ee2. Diff is the two allowed test modules. No gitignored path was added. ollama ps was empty after the wrapper.
 
-run-t5 | pending-sha | receipt eval/mvp-1031/local-rerun/t5-receipts-outside-repo/receipt.json | PASS ok, diff has no new gitignored path, model unloaded
+run-t5 | 771cc1f | receipt eval/mvp-1031/local-rerun/t5-receipts-outside-repo/receipt.json | PASS ok, diff has no new gitignored path, model unloaded
