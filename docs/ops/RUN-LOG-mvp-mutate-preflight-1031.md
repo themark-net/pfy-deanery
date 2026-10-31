@@ -48,4 +48,6 @@ Items:
 
 ```text
 item | commit | tests | result
+exits | b70c834 | none (docs only) | exit card and decisions written before the harness
+harness | 800e238 | nice -n 19 python3 -m unittest tests.test_mut_preflight_harness | 5 tests OK in 3.010s; anchors apply; source bytes unchanged
 ```
