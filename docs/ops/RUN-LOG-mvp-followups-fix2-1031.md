@@ -89,3 +89,4 @@ Risks:
 ## Round 2 items
 
 F1-bwrap-probe-flags | b5754cb | TMPDIR=$PWD/tmp nice -n 19 python3 -m unittest tests.test_x_intake_smoke_149: 27 OK in 2.889s | fake bwrap rejecting --bind or --die-with-parent exits 2 with the bwrap reason and does not init. Mutants that drop either flag from the probe go RED with a version-pin reason. Real probe with those flags returned 0 on this host.
+F2-tmpfs-only | f6a74ea | TMPDIR=$PWD/tmp nice -n 19 python3 -m unittest tests.test_x_intake_smoke_149: 28 OK in 2.940s | fake bwrap that exits 1 only for --tmpfs exits 2 with the bwrap reason. Mutant that drops --tmpfs from the probe goes RED with a version-pin reason. Host at 2026-10-31T21:53:24Z: MemAvailable about 57 GiB, load about 4.6 on 32 cores.
