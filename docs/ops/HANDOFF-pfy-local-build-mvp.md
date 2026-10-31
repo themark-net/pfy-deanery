@@ -118,6 +118,14 @@ Flag wins over env over default.
 
 `--keep-model` skips unload unless `--unload-at-end` is also set. A single `./pfy build --local` unloads only a model that this run loaded. `--dry-run` runs the pre-flight checks, prints the plan, starts nothing, and loads nothing.
 
+## Review (default on)
+
+Review is on for `./pfy build --local` unless the command passes `--no-review`. `--no-review` is one attempt and does not run the size cap or the model review. That is the MVP-1 path.
+
+The default cap is `--max-files 3` and `--max-lines 250`. A test file named by `--test-cmd` does not count toward the file cap. Added lines plus removed lines count toward the line cap. `./pfy build --local --help` prints the same defaults.
+
+A larger diff is `PASS-REJECTED` (exit 1) even when the tests are green and the change is a legitimate fix. The attempt receipt names the file count and the line count. Raise `--max-files` and `--max-lines` when the task is really that big. Three changed files, or 251 changed lines, is enough to reject.
+
 ## Receipt schema `pfy-local-build/1`
 
 File: `<receipt-dir>/receipt.json`, written atomically, including on BLOCKED (then `worktree` is null).

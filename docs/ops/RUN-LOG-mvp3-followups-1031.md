@@ -49,7 +49,8 @@ Risks:
 
 ## Items
 
-(appended as each item finishes)
+- exits | `0f6fa08` | none (card only) | pushed
+- item 1 | (this commit) | docs only, no test | Review section in the operator usage doc: default on, cap 3 files / 250 lines, larger legitimate diffs are PASS-REJECTED
 
 ## Host checks
 
