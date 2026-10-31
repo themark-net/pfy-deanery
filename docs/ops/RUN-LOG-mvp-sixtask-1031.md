@@ -56,3 +56,4 @@ Format: `item | commit | tests | result`
 - t2 | 9cf7a7c | ./pfy build exit 0 wall 66.3s attempts 1 review accept gate_rerun 0 human accept | PASS
 - t3 | f0f11eb | ./pfy build exit 0 wall 259.7s attempts 1 review accept gate_rerun 0 human accept | PASS
 - t4 | 58a178f | ./pfy build exit 1 wall 1439.7s attempts 3 status FAIL reason tests-tampered review none gate_rerun 0 human accept of the diff | FINDING runner rejected a good diff
+- t5 | pending | ./pfy build exit 1 wall 707.7s attempts 3 status FAIL reason tests-tampered review none gate_rerun 0 human accept of the diff | FINDING same tests-tampered gap
