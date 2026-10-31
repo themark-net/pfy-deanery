@@ -70,3 +70,7 @@ Other open TODO rows are skipped. Reasons are in the decisions file. Each task g
 | 06 | capture-list-thread | `format_item_line` shows `message_id` and `in_reply_to` when provenance has them |
 
 ## Items continued
+
+Host before 01: 2026-10-31T21:27:52Z MemAvailable 59.8 GiB, load 3.57, 32 cores. Under the pressure line.
+
+- 01-catch-view-thread | cloud ddb8e75693394b05e2a18880d68a6e309b1bb573 landed 69d99ceb5c6016bd4b5330596dd9b1094fa45f92 (test 38cacafe4a1b416b165d9ac0acec5bd024bab896) | gate before exit 1, after 1 passed in 0.18s; land pytest 1 passed | PASS review accept human accept wall 122s
