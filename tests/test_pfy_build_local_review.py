@@ -704,6 +704,43 @@ class ReviewLoopTests(unittest.TestCase):
         self.assertNotIn(marker, rows[1]["prompt"].split("Previous diff:", 1)[0])
         self.inner.assert_clean_origin()
 
+    def test_only_excluded_paths_are_no_reviewable_change(self):
+        cmd = self._commit_gate(
+            "print('PFY_EXCLUDED_ONLY_GATE')\nprint('Ran 1 test in 0.001s')\nprint('OK')\n",
+            "excluded_only_gate.py",
+        )
+        task = "fix add so one plus one is two\nfiles: .pytest_cache/note.txt\n"
+        steps = [{"mode": "noop", "write": {".pytest_cache/note.txt": "only excluded\n"}}]
+        proc, receipt = self._run(
+            task,
+            steps,
+            extra=["--retries", "2", "--test-cmd", cmd],
+        )
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "FAIL")
+        self.assertEqual(data["reason"], "no-reviewable-change")
+        self.assertEqual(data["attempts"], 1)
+        self.assertIsNone(data["branch"])
+        self.assertIsNone(data["commit"])
+        self.assertEqual(harness._branches(self.inner.repo), [])
+        worktree = data["worktree"]
+        self.assertTrue(worktree)
+        head = harness._git(worktree, "rev-parse", "HEAD").strip()
+        self.assertEqual(head, data["base_sha"])
+        cached = harness._git(worktree, "diff", "--cached", "--name-only")
+        self.assertEqual(cached.strip(), "")
+        log = harness._git(self.inner.repo, "log", "--all", "--name-only", "--pretty=format:")
+        self.assertNotIn(".pytest_cache/note.txt", log)
+        reviews = [
+            payload
+            for path, payload in self.inner.httpd.posts
+            if "chat" in path and "pfy-review-v1" in json.dumps(payload)
+        ]
+        self.assertEqual(len(reviews), 1)
+        self.assertFalse((receipt / "attempt-2").exists())
+        self.inner.assert_clean_origin()
+
     def test_receipt_says_the_reviewer_is_the_same_model(self):
         task = "fix add so one plus one is two\nfiles: src/calc.py\n"
         proc, receipt = self._run(task, [{"mode": "fix"}])

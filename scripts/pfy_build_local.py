@@ -2187,6 +2187,11 @@ def _stage_reviewed(worktree: Path, env: dict, reviewed: list[str]) -> str | Non
     itself failed. The index is reset in both cases.
     """
     wanted = _reviewed_names(reviewed)
+    if not wanted:
+        # Every changed path is excluded (tmp, bytecode, pytest cache).
+        # Do not run git commit. An empty commit used to come back as commit-failed.
+        _reset_index(worktree, env)
+        return "no-reviewable-change"
     if wanted:
         # :(literal) so a reviewed name cannot be read as pathspec magic.
         # Excludes stay, matching the previous commit pathspec.

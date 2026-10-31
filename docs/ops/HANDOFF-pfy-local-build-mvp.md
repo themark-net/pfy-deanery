@@ -172,6 +172,7 @@ Exit codes: 0 PASS, a clean dry-run, or `--reap`. 1 FAIL. 2 usage, or `no-openco
 | the same command fails on the second run | 1 | `tests-flaky` | no commit |
 | the worktree digest changes after the gate and before `git add` | 1 | `worktree-changed-after-gate` | the pid namespace should have died with bwrap. A survivor that rewrites `src` fails here |
 | the fresh checkout of the new commit fails the gate | 1 | `commit-recheck-failed` | the commit is reset before the branch is created. A gitignored helper cannot be the only copy of the fix |
+| the only changed paths are excluded from the commit (tmp, bytecode, pytest cache) | 1 | `no-reviewable-change` | nothing is committed and no branch is created. The index is reset. Change a path the commit will keep. This is not retried |
 | test command cannot start | 1 | `test-cmd-failed-to-start` | a command that exists |
 | agent exceeds `--timeout` | 3 | `timeout` | longer timeout, or `--run-tests-on-timeout` to still run the gate. No commit by default |
 | SIGINT or SIGTERM | 1 | `interrupted` | run again. The lock is released |
