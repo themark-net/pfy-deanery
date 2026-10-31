@@ -462,7 +462,8 @@ def write_report(root: Path) -> Path:
 
 
 def main(argv: list[str]) -> int:
-    root = Path(argv[1] if len(argv) > 1 else Path(__file__).resolve().parent)
+    args = [item for item in argv[1:] if item != "--write"]
+    root = Path(args[0]) if args else Path(__file__).resolve().parent
     if "--write" in argv:
         write_report(root)
     errors = check_report(root)

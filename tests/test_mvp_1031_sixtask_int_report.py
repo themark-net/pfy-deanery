@@ -179,6 +179,15 @@ class ReportCheckTests(unittest.TestCase):
             errors = CHECK.check_report(root)
             self.assertTrue(any("--local" in item for item in errors))
 
+    def test_write_flag_before_the_path_stays_in_the_receipt_root(self) -> None:
+        with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as tmp:
+            root = Path(tmp)
+            _full_green(root)
+            code = CHECK.main(["check_report.py", "--write", str(root)])
+            self.assertEqual(code, 0)
+            self.assertTrue((root / "REPORT.md").is_file())
+            self.assertFalse(Path("--write").exists())
+
     def test_live_report_when_present(self) -> None:
         report = INT / "REPORT.md"
         if not report.is_file():
