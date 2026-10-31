@@ -10,4 +10,5 @@ Rows: partial
 | dirty-tree | real | PASS | ok | 0 | PASS | ok | 0 | matches | 1 | empty | dirty porcelain must survive. elapsed 12s review skipped |
 | network-down | shim | FAIL | no-change | 1 | FAIL | no-change | 1 | matches | 1 | empty | PATH shim prints Network is unreachable and writes nothing review None |
 | no-tests | real | FAIL | tests | 1 | FAIL | tests | 1 | matches | 1 | empty | default gate on a repo with no tests directory before_exit 1 review None |
+| non-ascii | real | PASS | ok | 0 | PASS | ok | 0 | matches | 1 | empty | task keeps cafe-acute and the path contains a space review skipped |
 | tmp-unwritable | real | FAIL | worktree-failed | 1 | FAIL | runner-crash | 1 | FINDING | 1 | empty | repo tmp is mode 555 review None |

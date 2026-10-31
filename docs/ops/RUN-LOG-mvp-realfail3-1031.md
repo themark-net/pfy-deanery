@@ -85,4 +85,5 @@ tmp-unwritable | 2836356 | nice -n 19 python3 -m unittest tests.test_mvp_1031_re
 network-down | 40049ad | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail3_receipts (6 ok) | MATCH no-change, network text kept in the attempt tail, no branch
 dirty-tree | 998d4af | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail3_receipts (6 ok) | MATCH PASS, dirty porcelain kept, commit is app.py only, 12s
 detached-head | 19eafd3 | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail3_receipts (6 ok) | MATCH PASS, HEAD stayed detached at the same SHA
-no-tests | this commit | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail3_receipts (6 ok) | MATCH FAIL tests, default discover exit 1, no branch. Before-gate was already red and grok still ran.
+no-tests | 3b1c126 | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail3_receipts (6 ok) | MATCH FAIL tests, default discover exit 1, no branch. Before-gate was already red and grok still ran.
+non-ascii | this commit | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail3_receipts (6 ok) | MATCH PASS, receipt kept cafe-acute, commit includes "my app.py"
