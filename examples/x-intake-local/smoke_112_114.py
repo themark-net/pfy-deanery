@@ -114,10 +114,16 @@ def tree_sig(p: Path) -> str | None:
     h = hashlib.sha256()
     for f in sorted(p.rglob("*")):
         try:
-            st = f.stat()
-            h.update(f"{f}:{st.st_size}:{st.st_mtime_ns}".encode())
+            if f.is_file():
+                fh = hashlib.sha256()
+                with f.open("rb") as fp:
+                    for chunk in iter(lambda: fp.read(1 << 20), b""):
+                        fh.update(chunk)
+                h.update(f"{f}:{f.stat().st_size}:{fh.hexdigest()}\n".encode())
+            else:
+                h.update(f"{f}:dir\n".encode())
         except OSError:
-            pass
+            h.update(f"{f}:unreadable\n".encode())
     return h.hexdigest()
 
 
