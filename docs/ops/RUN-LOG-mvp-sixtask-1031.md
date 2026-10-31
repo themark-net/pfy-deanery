@@ -73,3 +73,5 @@ Format: `item | commit | tests | result`
 - retries0-t5 | 3e2d843 | ./pfy build --retries 0 exit 1 wall 108.9s attempts 1 status FAIL reason tests-tampered review none gate_rerun 0 human accept of the diff | FINDING one attempt, same reject
 - retries0-t6 | 7613bdc | ./pfy build --retries 0 exit 0 wall 118.8s attempts 1 review accept gate_rerun 0 human accept | PASS, three tree_sig copies match canonical
 - retries0-report | 627d8d7 | nice python3 -m unittest tests.test_mvp_1031_sixtask_report (10 tests OK, live variance and retries0 reports checked) | PASS, same 4/6 class, wall 944.3s, loop buys no commit
+- handoff | pending | docs only, pregate not run: host busy | lane empty, NO-GO
+state: lane empty | NO-GO cloud-default ./pfy build | 4/6 review accept on three passes | tests-tampered finding for mvp-cloud-1031 | pregate not run: host busy
