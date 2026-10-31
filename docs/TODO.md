@@ -27,7 +27,7 @@ Branch `bot/mvp-local-build`. Not a Feature GO. Catalog HOLD 70-75 stays. Handof
 | ID | Item | Status |
 |----|------|--------|
 | MVP-1 | Headless `./pfy build --local` plus the offline coding eval | done after fix 2 (Tester FAIL at 42fcc229 closed on `bot/mvp-local-build`; live 8/8 on `qwen3.6:35b`, 617.949 s, stamp `20261027T070700973123Z`, sandbox `bwrap-unshare-net`; stub cheater scores 0; fix-1 8/8 was stamp `20261027T031008578576Z`) |
-| MVP-2 | Use `pfy build --local` for a real build-only task from this file, and compare with cloud Build on cost and pass rate | done on `bot/mvp2-trial` (gate local 5/6, cloud 6/6; review accept local 4/6, cloud 6/6; wall 1694 s vs 584 s; no-go as the default). Handoff: [HANDOFF-mvp2-trial.md](ops/HANDOFF-mvp2-trial.md) |
+| MVP-2 | Use `pfy build --local` for a real build-only task from this file, and compare with cloud Build on cost and pass rate | done on `bot/mvp2-trial` (historical branch name; the report now lives on main; gate local 5/6, cloud 6/6; review accept local 4/6, cloud 6/6; wall 1694 s vs 584 s; no-go as the default). Handoff: [HANDOFF-mvp2-trial.md](ops/HANDOFF-mvp2-trial.md) |
 
 
 ## G8 — Simple harness-agnostic launch (2026-07-31)
@@ -134,7 +134,7 @@ Active work is also tracked as issues: https://github.com/themark-net/pfy-mentat
 |----|----------|--------|------|----------------|---------|-------|
 | T-0016 | P2 | todo | colibri/large model lab under 250GB pool | — | OQ-0008 | [#24](https://github.com/themark-net/pfy-mentat/issues/24) |
 | T-0005 | P2 | doing | Apply integration-stages broadly | — | OQ-0003 | [#21](https://github.com/themark-net/pfy-mentat/issues/21) · 50 handoff cards. Facts recomputed by `scripts/catalog_stage_eval.py`. Stage letter still does not auto-promote |
-| T-0124 | P2 | todo | Fold OpenCode enterable (`pfy_enterable_162*`) behind `pfylib/attach.py`; retire `_legacy` as remaining scripts move | — | T-0121 | OpenCode attach is still its own path; four usable shims already delegate |
+| T-0124 | P2 | done | Fold OpenCode enterable (`pfy_enterable_162*`) behind `pfylib/attach.py`; retire `_legacy` as remaining scripts move | - | T-0121 | OpenCode open path is `attach.open_opencode_session`; `pfy_enterable_162_b.py` is a shim. `_legacy` still loads the other scripts |
 | T-0127 | P2 | done | Live atg-compile once the host is quiet (one model: `qwen3.6:35b`, then opt-in coder-next) | — | T-0004 | 2026-10-06: `qwen3.6:35b` exit 0, 2/10 sink-correct, wall 478s. Stage I2. coder-next blocked: 48.19 GiB blob + 25 GiB > 65.3 GiB MemAvailable. Not a Feature GO. Catalog HOLD 70–75. Do not touch eval-harness. |
 
 ---

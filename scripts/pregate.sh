@@ -383,10 +383,12 @@ check_lint() {
   echo "== catalog_check =="
   python3 scripts/catalog_check.py
   echo "== workflow image pin =="
-  # GitHub-hosted jobs must pin the image ubuntu-parity mirrors (ubuntu-24.04:
-  # bwrap unusable there, so bwrap-gated tests skip). ubuntu-latest drifts.
-  if grep -nE '^[[:space:]]*runs-on:[[:space:]]*ubuntu-latest' .github/workflows/*.yml; then
-    echo "FAIL: unpinned ubuntu-latest above; pin ubuntu-24.04"; fail=1
+  # GitHub-hosted jobs must pin ubuntu-24.04 (the image ubuntu-parity mirrors;
+  # bwrap is unusable there, so bwrap-gated tests skip). Parsed as YAML so a
+  # list or a matrix expression cannot hide ubuntu-latest. Missing PyYAML
+  # fails closed: the helper exits 1 and does not treat that as a pass.
+  if ! python3 scripts/check_workflow_image_pin.py .github/workflows; then
+    fail=1
   fi
   if ! grep -q 'ripgrep' .github/workflows/eval-structural.yml; then
     echo "FAIL: eval-structural.yml does not install ripgrep"; fail=1

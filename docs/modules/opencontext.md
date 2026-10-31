@@ -23,7 +23,7 @@ Registry: [bootstrap/env/REGISTRY.md](../../bootstrap/env/REGISTRY.md).
 ## Agent
 
 - Entry: `scripts/pfy_opencontext_205.py` (`--prove` / `--export-env` / `--selftest`); `./pfy context` → `--prove`.
-- Callers: `scripts/pfy` (`cmd_context`, `apply_opencontext_env` in `exec_harness`); Attach `pfy_attach_usable_196.py`, `pfy_attach_usable_202.py`, `pfy_attach_usable_220.py`, `pfy_attach_usable_221.py`, `pfy_enterable_162_b.py`.
+- Callers: `scripts/pfy` (`cmd_context`, `apply_opencontext_env` in `exec_harness`); Attach `pfy_attach_usable_196.py`, `pfy_attach_usable_202.py`, `pfy_attach_usable_220.py`, `pfy_attach_usable_221.py`, and `pfylib/attach.py` (`open_opencode_session`, formerly `pfy_enterable_162_b.py`).
 - Invariants: painted OpenContext verb operate-or-FAIL; Attach missing-oc is skip not false READY; no GUI in pfy chrome; catalog HOLD (no TOOLS.md row).
 - ADR: ADR-0012 (simple launch) · ADR-0014 (FreeToken-first spine). Issue **#205** only.
 - Do not: `oc init` in this repo (rewrites `AGENTS.md`); reopen #76; unpark #198.

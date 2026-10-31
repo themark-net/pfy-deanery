@@ -1,0 +1,7 @@
+name: unresolved
+on: push
+jobs:
+  g:
+    runs-on: ${{ github.runner }}
+    steps:
+      - run: "true"
