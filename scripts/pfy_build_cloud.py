@@ -459,6 +459,13 @@ def worktree_recovery(task: str, ref: str, detail: str) -> str:
             "The caller checkout was not changed."
             % (ref, quoted)
         )
+    if detail == "unwritable":
+        return (
+            "Mark: the worktree directory could not be created for base %s. "
+            "Make the repo tmp directory writable, then rerun ./pfy build %s. "
+            "The caller checkout was not changed."
+            % (ref, quoted)
+        )
     return (
         "Mark: git worktree add failed for base %s. "
         "Fix the worktree error, then rerun ./pfy build %s. "
@@ -1074,14 +1081,25 @@ class CloudBuild:
 
     def prepare_worktree(self) -> str | None:
         dest = self.repo / "tmp" / "cloud-build" / self.stamp
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        proc = _git(self.repo, ["worktree", "add", "--detach", str(dest), self.base_sha])
+        try:
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            proc = _git(self.repo, ["worktree", "add", "--detach", str(dest), self.base_sha])
+        except OSError:
+            self.recovery_detail = "unwritable"
+            if dest.exists():
+                shutil.rmtree(dest, ignore_errors=True)
+            return "worktree-failed"
         if proc.returncode != 0 or not dest.is_dir():
+            self.recovery_detail = "add-failed"
             if dest.exists():
                 shutil.rmtree(dest, ignore_errors=True)
             return "worktree-failed"
         self.worktree = dest
-        (dest / "tmp").mkdir(parents=True, exist_ok=True)
+        try:
+            (dest / "tmp").mkdir(parents=True, exist_ok=True)
+        except OSError:
+            self.recovery_detail = "unwritable"
+            return "worktree-failed"
         self.save_pid()
         return None
 
@@ -1096,7 +1114,7 @@ class CloudBuild:
                 "FAIL",
                 problem,
                 EXIT_FAIL,
-                worktree_recovery(self.args.task_text, self.base_ref, "add-failed"),
+                worktree_recovery(self.args.task_text, self.base_ref, self.recovery_detail or "add-failed"),
             )
         assert self.worktree is not None
         self.gate_before = self.gate()

@@ -2522,5 +2522,72 @@ class CloudBuildGateReasonTests(unittest.TestCase):
         self.assertEqual(dry_payload["status"], "FAIL")
         self.assertEqual(dry_payload["reason"], "worktree-failed")
         self.assertIn(ref, dry_payload["recovery"])
+
+    def test_unwritable_tmp_is_worktree_failed_and_does_not_call_grok(self) -> None:
+        calls = self.side / "calls.txt"
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import os\n"
+            "from pathlib import Path\n"
+            "Path(os.environ['PFY_CALL_COUNT']).write_text('called\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        (self.repo / "app.py").write_text("value = 0\n", encoding="utf-8")
+        added = _git(self.repo, "add", "app.py")
+        self.assertEqual(added.returncode, 0, added.stderr)
+        committed = _git(self.repo, "commit", "-m", "app")
+        self.assertEqual(committed.returncode, 0, committed.stderr)
+        blocked = self.repo / "tmp"
+        blocked.mkdir()
+        os.chmod(blocked, 0o555)
+
+        def _restore_tmp() -> None:
+            if blocked.exists():
+                os.chmod(blocked, 0o755)
+
+        self.addCleanup(_restore_tmp)
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        before = _git(self.repo, "status", "--porcelain").stdout
+        proc = _run(
+            [
+                sys.executable,
+                str(CLOUD),
+                "set value to 1",
+                "--repo",
+                str(self.repo),
+                "--base",
+                "HEAD",
+                "--retries",
+                "0",
+                "--no-review",
+                "--timeout",
+                "30",
+                "--test-cmd",
+                "true",
+                "--grok-cmd",
+                str(grok),
+            ],
+            self.repo,
+            env={"PFY_CALL_COUNT": str(calls)},
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 1, text)
+        payload = self._receipt()
+        self.assertEqual(payload["status"], "FAIL")
+        self.assertEqual(payload["reason"], "worktree-failed")
+        self.assertEqual(payload["exit_code"], 1)
+        self.assertIsNone(payload["branch"])
+        self.assertIsNone(payload["commit"])
+        self.assertIn("Mark:", payload["recovery"])
+        self.assertIn("writable", payload["recovery"].lower())
+        self.assertIn("worktree", payload["recovery"].lower())
+        self.assertNotIn("PermissionError", payload["recovery"])
+        self.assertIsNone(payload["gate"]["before"])
+        self.assertIsNone(payload["gate"]["after"])
+        self.assertFalse(calls.exists())
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+        self.assertEqual(_git(self.repo, "status", "--porcelain").stdout, before)
+        self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
         self.assertFalse(calls.exists())
 
