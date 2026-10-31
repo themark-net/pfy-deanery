@@ -117,6 +117,80 @@ class WorkflowImagePinTests(unittest.TestCase):
     def test_real_workflows_pass(self) -> None:
         self.assert_pass(run_helper(str(ROOT / ".github" / "workflows")))
 
+    def _structural(self, steps: str) -> Path:
+        SCRATCH.mkdir(parents=True, exist_ok=True)
+        directory = Path(tempfile.mkdtemp(prefix="rg-step-", dir=SCRATCH))
+        path = directory / "eval-structural.yml"
+        path.write_text(
+            "name: eval-structural\n"
+            "on: push\n"
+            "jobs:\n"
+            "  structural-github:\n"
+            "    runs-on: ubuntu-24.04\n"
+            "    steps:\n"
+            + steps,
+            encoding="utf-8",
+        )
+        return path
+
+    @needs_yaml
+    def test_ripgrep_word_in_a_comment_does_not_pass(self) -> None:
+        path = self._structural(
+            "      # the old check only looked for the word ripgrep\n"
+            "      - run: echo ok\n"
+        )
+        try:
+            self.assert_fail(run_helper(str(path)), "does not install ripgrep")
+        finally:
+            shutil.rmtree(path.parent)
+
+    @needs_yaml
+    def test_echo_ripgrep_does_not_pass(self) -> None:
+        path = self._structural("      - name: Install ripgrep\n        run: echo ripgrep\n")
+        try:
+            self.assert_fail(run_helper(str(path)), "does not install ripgrep")
+        finally:
+            shutil.rmtree(path.parent)
+
+    @needs_yaml
+    def test_commented_out_apt_install_does_not_pass(self) -> None:
+        path = self._structural(
+            "      - name: Install ripgrep\n"
+            "        run: |\n"
+            "          # sudo apt-get install -y -qq ripgrep\n"
+            "          echo skipped\n"
+        )
+        try:
+            self.assert_fail(run_helper(str(path)), "does not install ripgrep")
+        finally:
+            shutil.rmtree(path.parent)
+
+    @needs_yaml
+    def test_install_without_running_rg_fails(self) -> None:
+        path = self._structural(
+            "      - run: |\n"
+            "          sudo apt-get install -y -qq ripgrep\n"
+        )
+        try:
+            self.assert_fail(run_helper(str(path)), "does not run rg")
+        finally:
+            shutil.rmtree(path.parent)
+
+    @needs_yaml
+    def test_apt_install_and_rg_version_passes(self) -> None:
+        path = self._structural(
+            "      - name: Install ripgrep\n"
+            "        run: |\n"
+            "          if ! command -v rg >/dev/null 2>&1; then\n"
+            "            sudo apt-get install -y -qq ripgrep\n"
+            "          fi\n"
+            "          rg --version | head -1\n"
+        )
+        try:
+            self.assert_pass(run_helper(str(path)))
+        finally:
+            shutil.rmtree(path.parent)
+
     @needs_yaml
     def test_empty_directory_fails_closed(self) -> None:
         SCRATCH.mkdir(parents=True, exist_ok=True)

@@ -7,8 +7,14 @@ label list is allowed. ubuntu-latest, any other GitHub-hosted image, an
 unresolved expression, malformed YAML, a missing runs-on, and a missing
 PyYAML all exit 1. A missing parser is a failure.
 
+eval-structural.yml must also install the ripgrep package from a run step
+and invoke rg. The word ripgrep in a comment, a step name, or an echo is
+not an install. Shell comments inside the run script are ignored.
+
 Recovery: pin the job to ubuntu-24.04, or install PyYAML for the interpreter
-that runs this script, then re-run. Do not skip the check.
+that runs this script, then re-run. For the structural workflow, put
+`apt-get install` (or `apt install`) of the ripgrep package and `rg --version`
+or `command -v rg` in a run step. Do not skip the check.
 
 Usage:
   python3 scripts/check_workflow_image_pin.py [FILE_OR_DIR ...]
@@ -175,6 +181,93 @@ def check_runs_on(rel: str, name: str, job: dict, raw: object) -> list[str]:
     return out
 
 
+def _strip_shell_comment(line: str) -> str:
+    """Drop an unquoted # comment. Quoted hashes stay."""
+    in_single = False
+    in_double = False
+    out: list[str] = []
+    i = 0
+    while i < len(line):
+        ch = line[i]
+        if ch == "'" and not in_double:
+            in_single = not in_single
+        elif ch == '"' and not in_single:
+            in_double = not in_double
+        elif ch == "#" and not in_single and not in_double:
+            break
+        elif ch == "\\" and in_double and i + 1 < len(line):
+            out.append(ch)
+            out.append(line[i + 1])
+            i += 2
+            continue
+        out.append(ch)
+        i += 1
+    return "".join(out)
+
+
+def _run_code(data: object) -> str:
+    if not isinstance(data, dict):
+        return ""
+    jobs = data.get("jobs")
+    if not isinstance(jobs, dict):
+        return ""
+    lines: list[str] = []
+    for job in jobs.values():
+        if not isinstance(job, dict):
+            continue
+        steps = job.get("steps")
+        if not isinstance(steps, list):
+            continue
+        for step in steps:
+            if not isinstance(step, dict):
+                continue
+            run = step.get("run")
+            if not isinstance(run, str):
+                continue
+            for line in run.splitlines():
+                lines.append(_strip_shell_comment(line))
+    return "\n".join(lines)
+
+
+def _installs_ripgrep(code: str) -> bool:
+    for line in code.splitlines():
+        tokens = line.split()
+        if "apt-get" not in tokens and "apt" not in tokens:
+            continue
+        if "install" not in tokens:
+            continue
+        if "ripgrep" in tokens:
+            return True
+    return False
+
+
+def _runs_rg(code: str) -> bool:
+    for line in code.splitlines():
+        tokens = line.split()
+        if "rg" in tokens and "--version" in tokens:
+            return True
+        for index, token in enumerate(tokens):
+            if token == "command" and tokens[index : index + 3] == ["command", "-v", "rg"]:
+                return True
+    return False
+
+
+def ripgrep_step_errors(path: Path, data: object) -> list[str]:
+    """eval-structural.yml must install ripgrep and then invoke rg.
+
+    Other workflow filenames are not asked to install ripgrep.
+    """
+    if path.name != "eval-structural.yml":
+        return []
+    rel = str(path)
+    code = _run_code(data)
+    if not _installs_ripgrep(code):
+        return [f"FAIL: {rel}: does not install ripgrep"]
+    if not _runs_rg(code):
+        return [f"FAIL: {rel}: installs ripgrep but does not run rg"]
+    return []
+
+
 def check_document(path: Path, data: object) -> list[str]:
     rel = str(path)
     if not isinstance(data, dict):
@@ -195,6 +288,7 @@ def check_document(path: Path, data: object) -> list[str]:
             out.append(f"FAIL: {rel}: job {job_name} has no runs-on")
             continue
         out.extend(check_runs_on(rel, job_name, job, job.get("runs-on")))
+    out.extend(ripgrep_step_errors(path, data))
     return out
 
 

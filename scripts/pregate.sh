@@ -387,11 +387,10 @@ check_lint() {
   # bwrap is unusable there, so bwrap-gated tests skip). Parsed as YAML so a
   # list or a matrix expression cannot hide ubuntu-latest. Missing PyYAML
   # fails closed: the helper exits 1 and does not treat that as a pass.
+  # The helper also requires eval-structural.yml to install ripgrep in a
+  # run step and invoke rg. A comment that only contains the word does not pass.
   if ! python3 scripts/check_workflow_image_pin.py .github/workflows; then
     fail=1
-  fi
-  if ! grep -q 'ripgrep' .github/workflows/eval-structural.yml; then
-    echo "FAIL: eval-structural.yml does not install ripgrep"; fail=1
   fi
   return "$fail"
 }

@@ -63,3 +63,5 @@ Progress:
 
 - FU16 separate-process immunity | c875e7e | TMPDIR=$PWD/tmp/tmpclean nice -n 19 python3 -m unittest tests.test_pfylib_tmp_cleanup | 3 OK in 61.781s | pass
 - state: DONE | tests: tests.test_pfylib_tmp_cleanup 3 OK in 61.781s | files: 2 | err: none
+- FU1 ripgrep install step | SHA1 | TMPDIR=$PWD/tmp nice -n 19 python3 -m unittest tests.test_workflow_image_pin | 20 OK in 13.612s | pass
+- state: DONE | tests: tests.test_workflow_image_pin 20 OK in 13.612s | files: 4 | err: none
