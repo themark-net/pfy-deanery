@@ -74,6 +74,7 @@ class ReviewLoopTests(unittest.TestCase):
             "PFY_STUB_PLAN": str(self.plan),
             "PFY_STUB_COUNT": str(self.count),
             "PFY_STUB_PROMPTS": str(self.prompts),
+            "PFY_LOCAL_BUILD_TEST_SEAM": "1",
         }
 
     def _run(self, task, steps, extra=None, timeout=90, env_extra=None):
@@ -349,6 +350,42 @@ class ReviewLoopTests(unittest.TestCase):
         self.assertGreaterEqual(len(rows), 2)
         self.assertIn("tests-failed", rows[1]["prompt"])
         self.assertIn("AssertionError", rows[1]["prompt"])
+
+    def test_stub_binds_stay_off_unless_the_test_seam_is_on(self):
+        notes = self.inner.tmp / "seam-notes"
+        notes.mkdir()
+        plan = notes / "plan.json"
+        plan.write_text(json.dumps([{"mode": "fix"}]), encoding="utf-8")
+        count = notes / "count"
+        prompts = notes / "prompts.jsonl"
+        stub_env = {
+            "PFY_STUB_PLAN": str(plan),
+            "PFY_STUB_COUNT": str(count),
+            "PFY_STUB_PROMPTS": str(prompts),
+        }
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        off, off_receipt = self.inner.run_build(
+            "fix",
+            extra=["--no-review"],
+            env_extra={**stub_env, "PFY_LOCAL_BUILD_TEST_SEAM": "0"},
+            task=task,
+        )
+        self.assertEqual(off.returncode, 0, off.stdout + off.stderr)
+        off_data = self._receipt(off, off_receipt)
+        self.assertEqual(off_data["status"], "PASS")
+        self.assertEqual(off_data.get("sandbox_extra_rw") or [], [])
+
+        on, on_receipt = self.inner.run_build(
+            "fix",
+            extra=["--no-review"],
+            env_extra={**stub_env, "PFY_LOCAL_BUILD_TEST_SEAM": "1"},
+            task=task,
+        )
+        self.assertEqual(on.returncode, 0, on.stdout + on.stderr)
+        on_data = self._receipt(on, on_receipt)
+        self.assertEqual(on_data["status"], "PASS")
+        binds = on_data.get("sandbox_extra_rw") or []
+        self.assertIn(str(notes.resolve()), binds)
 
     def test_missing_allow_list_warns_and_a_named_list_does_not(self):
         bare, bare_receipt = self.inner.run_build(

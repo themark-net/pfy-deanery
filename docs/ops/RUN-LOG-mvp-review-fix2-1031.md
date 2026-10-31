@@ -157,4 +157,15 @@ How it fails: scope is skipped, so a wide patch can be accepted and the receipt 
 How we recover: the warning names the gap. The operator adds `files:` or `--allow-path` and runs again. The branch from the warned run is still a normal PASS when the gate is green.
 
 item | commit | tests | result
-item-6-allow | (sha next) | nice python3 -m unittest tests.test_pfy_build_local tests.test_pfy_build_local_review | Ran 77 tests in 113.162s OK
+item-6-allow | cef308c | nice python3 -m unittest tests.test_pfy_build_local tests.test_pfy_build_local_review | Ran 77 tests in 113.162s OK
+
+### item-7-stub
+
+`_stub_extra_rw` returns no paths unless `PFY_LOCAL_BUILD_TEST_SEAM=1`. Production does not read `PFY_STUB_PLAN`, `PFY_STUB_COUNT`, or `PFY_STUB_PROMPTS`. The receipt lists `sandbox_extra_rw`. Review tests set the seam, so prompt and retry checks still see the stub files.
+
+How it fails: a process with those env vars set, and the seam unset, does not bind the stub directory. With the seam on, the directory is bound and the review tests can record prompts.
+
+How we recover: leave the seam unset. The receipt `sandbox_extra_rw` is empty. Set the seam only in the test harness that needs the binds.
+
+item | commit | tests | result
+item-7-stub | (sha next) | review module Ran 17 in 32.132s OK; local module Ran 61 in 81.253s OK | OK

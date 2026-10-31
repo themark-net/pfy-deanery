@@ -2555,12 +2555,18 @@ def _attempt_low(state: State, snap: float | None) -> float | None:
 
 
 def _stub_extra_rw() -> list[Path]:
-    """Parents of the test stub's plan files. A normal run sets none of these.
+    """Parents of the test stub's plan files.
 
     The sandbox root is read-only, so the stub cannot record the prompt or the
     attempt counter unless those files' directory is bound read-write. The
     agent cannot add binds of its own: this list is fixed before it starts.
+
+    Production does not read PFY_STUB_*. Those names are consulted only when
+    PFY_LOCAL_BUILD_TEST_SEAM=1, which the review tests set. A normal run
+    leaves the seam unset and returns no extra binds.
     """
+    if os.environ.get("PFY_LOCAL_BUILD_TEST_SEAM") != "1":
+        return []
     found: list[Path] = []
     seen: set[str] = set()
     for key in ("PFY_STUB_PLAN", "PFY_STUB_COUNT", "PFY_STUB_PROMPTS"):
@@ -2732,6 +2738,7 @@ def build_local(argv: list[str] | None = None) -> int:
     exit_code = EXIT_FAIL
     recovery = ""
     warnings: list[str] = []
+    sandbox_extra_rw: list[str] = []
     tests_before = None
     tests_after = None
     changed: list[str] = []
@@ -2794,6 +2801,7 @@ def build_local(argv: list[str] | None = None) -> int:
                     "require_wiring": list(args.require_wiring or []),
                 },
                 "warnings": list(warnings),
+                "sandbox_extra_rw": list(sandbox_extra_rw),
                 "attempt_receipts": list(attempt_receipts),
                 "branch": branch,
                 "commit": commit,
@@ -3085,13 +3093,15 @@ def build_local(argv: list[str] | None = None) -> int:
             prompt = _agent_prompt(args.task_text, args.test_cmd_s, feedback, previous_diff)
             cmd = [binary, "run", "--pure", "--model", "ollama/%s" % args.model_name, "--variant", "none", prompt]
             git_saved = isolate_worktree_git(worktree)
+            stub_binds = _stub_extra_rw()
+            sandbox_extra_rw = [str(path) for path in stub_binds]
             try:
                 prepared = prepare_sandbox(
                     cmd,
                     worktree,
                     hide=hide_paths(repo, worktree),
                     endpoint=openai_base,
-                    extra_rw=_stub_extra_rw(),
+                    extra_rw=stub_binds,
                     unsafe=bool(args.unsafe_no_sandbox),
                 )
             except SandboxUnavailable as exc:
