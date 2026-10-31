@@ -223,3 +223,49 @@ Checked 2026-10-31T21:26:33Z. MemAvailable about 59 GiB. Load about 3.84 on 32 c
 No further row in `docs/plans/MVP-PARALLEL-1031.md` fits these owned files. G1 through G3 and G6 through G9 are other lanes. G4 and G5 are already on the base. G10 is excluded. Round 2 `mvp-local-t5-1031` needs a local model and `eval/mvp-1031/`, which this lane must not touch. Lane empty.
 
 prior-state: DONE | exit: lane empty | product: b483166 | pregate not run: host busy
+
+## Wave 4 (Tester S-items)
+
+The earlier `prior-state: DONE` is superseded. Wave 4 start: 2026-10-31T22:39:04Z. Head at reopen: `620941c`. Base to merge: `origin/bot/mvp3-review-retry` at `582414b` (B1 staged paths, fail-closed review, M08/M14/M17). Merge, do not rebase. Resolve staging and fail-closed conflicts in favor of `582414b`. Then S1 through S5.
+
+Host at wave 4 start: MemAvailable about 55.3 GiB, load 3.41 3.21 3.35, nproc 32. Under the pressure line. `Runner.Worker` pid 3199955 is live, so pregate stays deferred.
+
+### LOOP EXIT CARD (wave 4)
+
+```text
+LOOP EXIT CARD
+Goal (success criteria):     Merge 582414b. S1: an unreachable reviewer (HTTP error or review-call timeout) sets receipt status reviewer-unavailable, exits nonzero, retries nothing, and commits nothing. S2: a wall-clock cap covers the whole build plus review loop and the receipt reason names it when hit. S3: a nonzero agent exit with no diff is crash, and an exit 0 with no diff stays no-change. S4: the receipt status and the stdout summary use one label table and the same token. S5: a leftover tmp/local-build-* worktree is removed or the run stops with stale-worktree, and it is never the tree the new attempt edits. Owned modules pass. No Ollama process started.
+1 Goal met:                  unittest of tests.test_pfy_build_local and tests.test_pfy_build_local_review (and a new tests.test_pfy_build_local_* module if one is added). Evaluator is the test runner. Each S item's test fails if the old behavior is still present.
+2 Turn cap:                  5 S items plus the merge and the handoff. Stop when those are done or another exit fires. Each item is one commit and one push.
+3 Budget cap:                Cloud Grok only. No local model. No Ollama. No spend beyond this session. No full unittest discover and no pregate unless the end-of-run host check allows pregate once.
+4 Wall clock:                Original launch cap still applies. Stop new items by 2026-11-01T04:22:04Z. Hard stop 2026-11-01T04:42:04Z, which is before Sunday 2026-11-01 18:00 PT (2026-11-02T02:00Z). Leave 20 minutes to write the handoff.
+5 No-progress:               The same failure twice with no new information, or 3 items in a row skipped. Record and stop.
+6 Human interrupt:           User stop. No questions. No force push, no merge to main, no PR, no tags, no edits outside this worktree.
+7 Error threshold:           3 consecutive same failure, or the same assertion twice. Stop and record. Do not weaken tests.
+8 External event:            If origin already has an S item, skip it and say so. This run does not merge to main. Integration remains: merge this branch after bot/mvp-review-fix-1031.
+Loop type:                   goal
+Human gate:                  Mark merges after Tester plus Reviewer. This run does not merge, open a PR, or tag.
+```
+
+### Plan (wave 4)
+
+Overview: Pick up the re-pinned MVP-3 tip, keep its staging and fail-closed review, then give the Tester S-items their own receipt behavior. Outage, overall timeout, crash versus no-change, one label source, and stale worktrees. The lead edits the shared runner in order in this worktree.
+
+Phases:
+- wave4-exits | this run log and the decisions file | card committed before the merge | none | lead
+- wave4-merge | this worktree | `git merge --no-edit origin/bot/mvp3-review-retry` brings 582414b. Staging and fail-closed hunks follow that tip. No rebase | wave4-exits | lead
+- S1-outage | `scripts/pfy_build_local.py`, review tests | receipt status reviewer-unavailable, nothing committed, not retried | wave4-merge | lead
+- S2-overall | runner and tests | wall-clock cap over build plus review. Receipt reason overall-timeout when hit. Nothing committed | S1-outage | lead
+- S3-crash | runner and tests | nonzero agent exit and no diff records crash. Exit 0 and no diff stays no-change | S2-overall | lead
+- S4-labels | runner and tests | receipt status and stdout summary are the same token from one label table. The module docstring lists that table | S3-crash | lead
+- S5-stale | runner and tests | leftover tmp/local-build-* is cleaned and named, or the run stops with stale-worktree. The new attempt does not edit that tree | S4-labels | lead
+- handoff | `docs/ops/HANDOFF-mvp-review-fix2-1031.md`, this log | handoff committed and pushed. No merge | last, on any exit | lead
+
+Risks:
+- The merge drops this lane's REVIEW-ERROR path or 582414b's empty-diff stop. Mitigation: keep 582414b fail-closed (no commit on http error, review timeout, empty diff). S1 then renames the unreachable case to reviewer-unavailable without opening a commit.
+- An overall cap smaller than the suite's stub runs fails healthy tests. Mitigation: default cap is 7200 seconds. The behavior test passes a tiny --overall-timeout.
+- A clean noop becomes crash. Mitigation: only a nonzero agent exit with an empty diff is crash. The existing noop test must stay no-change.
+- Label constants imported by the test hide a drift. Mitigation: the test hardcodes the operator words and compares the receipt to the stdout line.
+- Cleaning a live worktree. Mitigation: only paths under this repo's tmp/ named local-build-*, after the lock is held, and a path that remains on disk aborts the run.
+
+prior-state: IN PROGRESS | tests: none yet | files: 0 | err: none
