@@ -47,4 +47,8 @@ Risks:
 
 Confirmed: origin/main does not contain scripts/pfy_build_cloud.py or pfylib/build_preflight.py (git fetch at launch). No remote branch has scripts/pfy_build_cloud.py. The runner is new work.
 
-state: IN PROGRESS | tests: none yet | files: 0 | err: none
+exits | 9903e70 | none (docs only, before code) | PASS
+confirm-base | 9903e70 | origin/main has no scripts/pfy_build_cloud.py | PASS
+skeleton | 62d7e3a | nice -n 19 python3 -m unittest tests.test_pfy_build_cloud (3 tests OK) | PASS
+
+state: IN PROGRESS | tests: tests.test_pfy_build_cloud 3 OK | files: 2 | err: none
