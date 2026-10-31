@@ -9,8 +9,9 @@ and does not start a local model.
 Exit codes:
   0  PASS, or a clean --dry-run, or --reap
   1  FAIL (review reject, no-change spent, scope mismatch, unauthenticated,
-        interrupted, gate spent, worktree-failed)
-  2  usage
+        interrupted, gate spent, worktree-failed). A base ref that cannot
+        be checked out is worktree-failed, not usage.
+  2  usage (missing task or repo)
   3  TIMEOUT (grok)
   4  BLOCKED (rate-limit)
 
@@ -113,6 +114,12 @@ class UsageError(Exception):
     pass
 
 
+class BaseMissing(Exception):
+    def __init__(self, ref: str) -> None:
+        super().__init__(ref)
+        self.ref = ref
+
+
 class State:
     def __init__(self) -> None:
         self.interrupted = False
@@ -199,7 +206,7 @@ def resolve_base(repo: Path, requested: str | None) -> tuple[str, str]:
         ref = "origin/main" if probe.returncode == 0 else "HEAD"
     sha = _git(repo, ["rev-parse", "--verify", ref])
     if sha.returncode != 0 or not (sha.stdout or "").strip():
-        raise UsageError("base ref not found: %s" % ref)
+        raise BaseMissing(ref)
     return ref, sha.stdout.strip()
 
 
@@ -420,6 +427,132 @@ def rate_recovery(task: str) -> str:
 
 def auth_recovery(task: str) -> str:
     return "Mark: run grok once to log in, then rerun the same ./pfy build %s" % shlex.quote(task)
+
+
+TERMINAL_FAILURE_REASONS = (
+    "commit-failed",
+    "commit-recheck-failed",
+    "interrupted",
+    "no-change",
+    "no-receipt",
+    "protected-path-changed",
+    "rate-limit",
+    "review-rejected",
+    "runner-crash",
+    "scope-commit-mismatch",
+    "tests",
+    "tests-flaky",
+    "tests-tampered",
+    "timeout",
+    "unauthenticated",
+    "worktree-failed",
+)
+
+
+def worktree_recovery(task: str, ref: str, detail: str) -> str:
+    """Tell Mark how to get a worktree when the base cannot be checked out."""
+    quoted = shlex.quote(task) if (task or "").strip() else '""'
+    if detail == "missing-ref":
+        return (
+            "Mark: base ref %s is not in this repo, so no worktree was created. "
+            "Fetch it or pass --base with a ref that exists, then rerun ./pfy build %s. "
+            "The caller checkout was not changed."
+            % (ref, quoted)
+        )
+    if detail == "unwritable":
+        return (
+            "Mark: the worktree directory could not be created for base %s. "
+            "Make the repo tmp directory writable, then rerun ./pfy build %s. "
+            "The caller checkout was not changed."
+            % (ref, quoted)
+        )
+    return (
+        "Mark: git worktree add failed for base %s. "
+        "Fix the worktree error, then rerun ./pfy build %s. "
+        "The caller checkout was not changed."
+        % (ref, quoted)
+    )
+
+
+def _quoted_task(task: str) -> str:
+    return shlex.quote(task) if (task or "").strip() else '""'
+
+
+def failure_recovery(reason: str, task: str, detail: str = "") -> str:
+    """Non-empty recovery for every terminal failure. PASS stays empty."""
+    if reason == "rate-limit":
+        return rate_recovery(task)
+    if reason == "unauthenticated":
+        return auth_recovery(task)
+    if reason == "worktree-failed":
+        if (detail or "").strip():
+            return worktree_recovery(task, detail.strip(), "missing-ref")
+        return worktree_recovery(task, "the requested base", "add-failed")
+    if reason == "timeout":
+        quoted_timeout = _quoted_task(task)
+        if (detail or "").strip() == "gate":
+            return (
+                "Mark: the gate timed out. Rerun with a longer --timeout. "
+                "Then rerun ./pfy build %s."
+                % quoted_timeout
+            )
+        return (
+            "Mark: grok timed out. Rerun ./pfy build %s, or pass a larger --timeout."
+            % quoted_timeout
+        )
+    if reason == "no-receipt":
+        if (task or "").strip():
+            return (
+                "Mark: the build died before it wrote a receipt. "
+                "Run ./pfy build --reap, then rerun ./pfy build %s."
+                % _quoted_task(task)
+            )
+        return (
+            "Mark: the build died before it wrote a receipt. "
+            "Run ./pfy build --reap, then rerun the same ./pfy build task."
+        )
+    quoted = _quoted_task(task)
+    if reason == "protected-path-changed":
+        shown = (detail or "").strip() or "a protected file"
+        return (
+            "Mark: the attempt changed a protected path (%s). "
+            "Remove that change and rerun ./pfy build %s. "
+            "auth.json, .env, and grok-home stay out of the commit."
+            % (shown, quoted)
+        )
+    lines = {
+        "interrupted": "Mark: the build was interrupted. Rerun ./pfy build %s.",
+        "tests-tampered": (
+            "Mark: a base test changed and was not named by --writable-test. "
+            "Restore it or pass --writable-test for that file, then rerun ./pfy build %s."
+        ),
+        "no-change": (
+            "Mark: grok made no committable change. "
+            "Restate the task so it edits a file, then rerun ./pfy build %s."
+        ),
+        "tests": "Mark: the gate stayed red. Read the receipt gate tail, then rerun ./pfy build %s.",
+        "tests-flaky": "Mark: the gate passed once and failed once. Rerun ./pfy build %s.",
+        "review-rejected": (
+            "Mark: review rejected the diff. Change the task or the patch, then rerun ./pfy build %s."
+        ),
+        "commit-recheck-failed": (
+            "Mark: the fresh extract of the commit did not pass the gate. "
+            "The branch was not kept. Rerun ./pfy build %s."
+        ),
+        "commit-failed": "Mark: git commit failed. The branch was not kept. Rerun ./pfy build %s.",
+        "scope-commit-mismatch": (
+            "Mark: the commit set did not match the reviewed files. "
+            "The index was reset and no branch was kept. Rerun ./pfy build %s."
+        ),
+        "runner-crash": (
+            "Mark: the runner crashed before it could finish. "
+            "The caller checkout was left as it was. Rerun ./pfy build %s."
+        ),
+    }
+    line = lines.get(reason)
+    if line:
+        return line % quoted
+    return "Mark: the build failed (%s). Rerun ./pfy build %s." % (reason, quoted)
 
 
 def diff_aims_at_root(diff_text: str) -> bool:
@@ -676,6 +809,7 @@ class CloudBuild:
         self.commit: str | None = None
         self.branch_created = False
         self.recovery = ""
+        self.recovery_detail = ""
         self.attempts: list[dict] = []
         self.review = {"verdict": None, "reasons": []}
         self.gate_before = None
@@ -732,7 +866,9 @@ class CloudBuild:
             "tail": redact(text)[-TAIL_CAP:],
             "started": status != "missing",
         }
-        if status == "interrupted" or self.state.interrupted:
+        if status == "timeout":
+            record["aborted"] = "timeout"
+        elif status == "interrupted" or self.state.interrupted:
             record["aborted"] = "interrupted"
         return record
 
@@ -762,6 +898,8 @@ class CloudBuild:
                 return "commit-recheck-failed", "extract failed"
             again = self.gate(dest)
             tail = str(again.get("tail") or "")
+            if again.get("aborted") == "timeout":
+                return "timeout", tail
             if self.state.interrupted or again.get("aborted") == "interrupted":
                 return "interrupted", tail
             if again.get("exit") != 0 or not again.get("started"):
@@ -908,6 +1046,12 @@ class CloudBuild:
     def finish(self) -> int:
         if self.finished:
             return self.exit_code
+        if self.status != "PASS" and not (self.recovery or "").strip():
+            self.recovery = failure_recovery(
+                self.reason or "runner-crash",
+                getattr(self.args, "task_text", "") or "",
+                getattr(self, "recovery_detail", "") or "",
+            )
         self.finished = True
         if self.status != "PASS":
             self.drop_branch()
@@ -950,16 +1094,32 @@ class CloudBuild:
             print("FAIL: %s" % self.reason, file=sys.stderr)
         return self.exit_code
 
+    def _gate_timeout_fail(self, number: int, output: str) -> int:
+        self.recovery_detail = "gate"
+        self.record(number, "TIMEOUT", "timeout", output)
+        return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")
+
     def prepare_worktree(self) -> str | None:
         dest = self.repo / "tmp" / "cloud-build" / self.stamp
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        proc = _git(self.repo, ["worktree", "add", "--detach", str(dest), self.base_sha])
+        try:
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            proc = _git(self.repo, ["worktree", "add", "--detach", str(dest), self.base_sha])
+        except OSError:
+            self.recovery_detail = "unwritable"
+            if dest.exists():
+                shutil.rmtree(dest, ignore_errors=True)
+            return "worktree-failed"
         if proc.returncode != 0 or not dest.is_dir():
+            self.recovery_detail = "add-failed"
             if dest.exists():
                 shutil.rmtree(dest, ignore_errors=True)
             return "worktree-failed"
         self.worktree = dest
-        (dest / "tmp").mkdir(parents=True, exist_ok=True)
+        try:
+            (dest / "tmp").mkdir(parents=True, exist_ok=True)
+        except OSError:
+            self.recovery_detail = "unwritable"
+            return "worktree-failed"
         self.save_pid()
         return None
 
@@ -970,9 +1130,16 @@ class CloudBuild:
             return self.fail("FAIL", "unauthenticated", EXIT_FAIL, auth_recovery(self.args.task_text))
         problem = self.prepare_worktree()
         if problem:
-            return self.fail("FAIL", problem, EXIT_FAIL, "")
+            return self.fail(
+                "FAIL",
+                problem,
+                EXIT_FAIL,
+                worktree_recovery(self.args.task_text, self.base_ref, self.recovery_detail or "add-failed"),
+            )
         assert self.worktree is not None
         self.gate_before = self.gate()
+        if (self.gate_before or {}).get("aborted") == "timeout":
+            return self._gate_timeout_fail(0, str((self.gate_before or {}).get("tail") or ""))
         if self.state.interrupted or (self.gate_before or {}).get("aborted") == "interrupted":
             self.record(0, "FAIL", "interrupted", "")
             return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
@@ -1009,6 +1176,7 @@ class CloudBuild:
             if protected_hits:
                 feedback = "protected-path-changed: %s" % ", ".join(protected_hits)
                 self.record(number, "FAIL", "protected-path-changed", output)
+                self.recovery_detail = ", ".join(protected_hits)
                 previous_diff = ""
                 if number < self.max_attempts:
                     continue
@@ -1025,6 +1193,8 @@ class CloudBuild:
                 return self.fail("FAIL", "tests-tampered", EXIT_FAIL, "")
             after = self.gate()
             self.gate_after = after
+            if after.get("aborted") == "timeout":
+                return self._gate_timeout_fail(number, output + "\n" + str(after.get("tail") or ""))
             if self.state.interrupted or after.get("aborted") == "interrupted":
                 self.record(number, "FAIL", "interrupted", output)
                 return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
@@ -1044,6 +1214,8 @@ class CloudBuild:
                 return self.fail("FAIL", "tests", EXIT_FAIL, "")
             again = self.gate()
             self.gate_after = again
+            if again.get("aborted") == "timeout":
+                return self._gate_timeout_fail(number, output + "\n" + str(again.get("tail") or ""))
             if self.state.interrupted or again.get("aborted") == "interrupted":
                 self.record(number, "FAIL", "interrupted", output)
                 return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
@@ -1100,6 +1272,8 @@ class CloudBuild:
                     return self.fail("FAIL", "review-rejected", EXIT_FAIL, "")
                 self.review = {"verdict": "skipped", "reasons": []}
             err = self.commit_paths(changed)
+            if err == "timeout":
+                return self._gate_timeout_fail(number, output)
             if err == "commit-recheck-failed" and number < self.max_attempts:
                 feedback = "commit-recheck-failed\n%s" % (self.recheck_tail or "")
                 previous_diff = diff_text
@@ -1116,6 +1290,18 @@ class CloudBuild:
             self.recovery = ""
             return self.finish()
         return self.fail("FAIL", self.reason, EXIT_FAIL, self.recovery)
+
+
+def missing_base(args, repo: Path, ref: str) -> int:
+    """A base that does not resolve is a failed checkout, not a usage error."""
+    build = CloudBuild(args, repo, ref, "", None)
+    build.record(0, "FAIL", "worktree-failed", "base ref not found: %s" % ref)
+    return build.fail(
+        "FAIL",
+        "worktree-failed",
+        EXIT_FAIL,
+        worktree_recovery(args.task_text, ref, "missing-ref"),
+    )
 
 
 def _dry_run(args, repo: Path, base: str, receipt: Path) -> int:
@@ -1194,7 +1380,7 @@ def reap(args) -> int:
                                 "review": {"verdict": None, "reasons": []},
                                 "attempts": [],
                                 "gate": {"cmd": None, "before": None, "after": None},
-                                "recovery": "",
+                                "recovery": failure_recovery("no-receipt", ""),
                                 "pushed": False,
                                 "worktree_removed": False,
                                 "finished_at": _now(),
@@ -1227,11 +1413,14 @@ def main(argv: list[str] | None = None) -> int:
         return EXIT_USAGE
     try:
         repo = resolve_repo(args.repo)
-        base_ref, base_sha = resolve_base(repo, args.base)
     except UsageError as exc:
         _print_usage()
         print(str(exc), file=sys.stderr)
         return EXIT_USAGE
+    try:
+        base_ref, base_sha = resolve_base(repo, args.base)
+    except BaseMissing as exc:
+        return missing_base(args, repo, exc.ref)
     stamp = _stamp()
     receipt_dir = Path(args.receipt_dir).resolve() if args.receipt_dir else default_receipt_dir(repo, stamp)
     receipt = receipt_dir / "receipt.json"

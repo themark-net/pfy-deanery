@@ -76,3 +76,9 @@ Skip items that need special hardware, a human decision (an open OQ), a secret, 
 ## Finish (on any exit)
 
 Write or update this run's handoff in `docs/ops/`: items done with SHAs, items skipped and why, test evidence, how each change fails and recovers, cross-lane requests, the gate needed (Tester plus Reviewer for runtime changes; pregate plus Reviewer for docs, eval or test-only changes), and the next step. Finish the run log with a final `state:` line. Commit and push. Do not merge.
+
+## Wave 4 addendum (2026-10-31 15:40 PT)
+The earlier `state: LANE EMPTY` is superseded. First merge origin/bot/mvp-integrate-1031 (merge, never rebase). Then, each with a behavior test:
+- realfail2 FINDING worktree-failed (see eval/mvp-1031/realfail2/REPORT.md on origin/bot/mvp-realfail2-1031): a missing base exits 2 as a usage error. It should be a distinct reason (base-missing or worktree-failed) with a recovery line telling Mark what to do.
+- realfail2 observation: `protected-path-changed` has an empty `recovery`. Every failure reason must have a non-empty recovery line; add a test that walks every reason in classify_cloud_failure and the runner and asserts recovery is non-empty.
+- Then poll origin/bot/mvp-realfail3-1031 and origin/bot/mvp-sixtask-int-1031 every 20 minutes for findings files (eval/mvp-1031/*/findings/). Fix each FINDING that belongs to the cloud runner, with a test. Stop when no new findings for 60 minutes or at the wall cap.
