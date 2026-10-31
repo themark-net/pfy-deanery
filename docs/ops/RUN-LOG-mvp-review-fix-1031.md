@@ -109,3 +109,33 @@ Same run as no-change. Both modules passed. No Ollama process was started by thi
 
 item | commit | tests | result
 retest | same as no-change | nice python3 -m unittest tests.test_pfy_build_local tests.test_pfy_build_local_review | Ran 72 tests in 95.741s OK
+
+state: DONE | tests: both modules Ran 72 in 95.741s OK | files: runner + review tests | err: none
+
+### further-gaps
+
+Read `origin/bot/mvp-plan-1031:docs/plans/MVP-PARALLEL-1031.md` without checking it out. G4 and G5 are the only gaps assigned to this lane. Both are closed on this branch. G1, G2, G3, G6, G7, G8, and G9 belong to other lanes and touch forbidden files. G10 is excluded from round 1. Round 2 `mvp-sandbox-gate-1031` owns the same runner later, and only after `origin/bot/mvp-integrate-1031`. That ref does not exist. Skipped. Not three skips of the same item. Lane empty.
+
+Checked 2026-10-31T20:10:53Z. MemAvailable about 63 GiB. Load about 3.2 on 32 cores. Wall cap 2026-11-01T03:50:34Z has not fired. `pgrep -f 'Runner[.]Worker'` was empty. The heavy lock was held by pid 1441386 (`flock ... ./scripts/pregate.sh`), with two more pregates waiting. Official pregate not run: host busy.
+
+item | commit | tests | result
+further-gaps | none | plan read only | SKIPPED sandbox-gate and other lanes
+
+state: SKIPPED | tests: none | files: 0 | err: none
+
+## LOOP REPORT
+
+```text
+LOOP REPORT
+Type:            goal
+Goal:            Close G4 and G5 on ./pfy build --local. Do not make --local the default. Do not turn review off. Do not change exit codes.
+Exit fired:      2 lane empty. DoD is met. No further gap fits this lane.
+Iterations:      2 product items (scope-commit, no-change) plus exits, confirm, retest, handoff. Turn cap 8.
+Progress:        both owned modules green, 72 tests, 95.741s
+Evidence:        7bdede7 scope-commit; 88ebcae no-change; unittest of tests.test_pfy_build_local and tests.test_pfy_build_local_review
+Human gate:      pending. Tester plus Reviewer. This run does not merge.
+Next:            Gate this branch. Cloud lane copies the two rules. Sandbox-gate waits for integrate.
+Status:          DONE
+```
+
+state: DONE | tests: Ran 72 in 95.741s OK | files: handoff | err: none
