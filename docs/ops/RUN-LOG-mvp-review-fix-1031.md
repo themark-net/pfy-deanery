@@ -91,3 +91,21 @@ How we recover: no `local/` branch, origin HEAD unchanged, the extra name is not
 
 item | commit | tests | result
 scope-commit | 7bdede7 | nice python3 -m unittest tests.test_pfy_build_local tests.test_pfy_build_local_review | Ran 70 tests in 91.800s OK
+
+### no-change
+
+An empty change list now runs the post-attempt gate once. The reason stays `no-change` when the gate is green. The gate tail is in the next prompt. The review model is not called. Spent retries exit 1 with no branch. `--retries` default is still 2. Review stays on unless `--no-review`.
+
+How it fails: the agent writes nothing, so there is no diff to accept. A green gate does not become PASS.
+
+How we recover: the next prompt contains the gate tail. When retries are spent, exit 1, reason `no-change`, no `local/` branch.
+
+item | commit | tests | result
+no-change | (this commit) | nice python3 -m unittest tests.test_pfy_build_local tests.test_pfy_build_local_review | Ran 72 tests in 95.741s OK
+
+### retest
+
+Same run as no-change. Both modules passed. No Ollama process was started by this lane. The stub HTTP server is the only model stand-in.
+
+item | commit | tests | result
+retest | same as no-change | nice python3 -m unittest tests.test_pfy_build_local tests.test_pfy_build_local_review | Ran 72 tests in 95.741s OK

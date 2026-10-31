@@ -100,6 +100,70 @@ class ReviewLoopTests(unittest.TestCase):
         ).strip().splitlines()
         self.assertEqual(names, ["src/calc.py"])
 
+    def _commit_gate(self, body, name):
+        path = self.inner.repo / "tools" / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(body, encoding="utf-8")
+        self.inner.commit_base("add %s" % name)
+        return "python3 tools/%s" % name
+
+    def test_no_change_runs_the_gate_and_puts_the_tail_in_the_next_prompt(self):
+        marker = "PFY_NO_CHANGE_GATE_MARKER"
+        cmd = self._commit_gate(
+            "print(%r)\nprint('Ran 1 test in 0.001s')\nprint('FAILED (failures=1)')\nraise SystemExit(1)\n" % marker,
+            "no_change_gate.py",
+        )
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        proc, receipt = self._run(
+            task,
+            [{"mode": "noop"}, {"mode": "noop"}],
+            extra=["--retries", "1", "--test-cmd", cmd],
+        )
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["reason"], "no-change")
+        self.assertEqual(data["status"], "FAIL")
+        self.assertEqual(data["attempts"], 2)
+        self.assertIsNone(data["branch"])
+        self.assertIsNone(data["commit"])
+        self.assertEqual(harness._branches(self.inner.repo), [])
+        self.assertIn(marker, (data.get("tests_after") or {}).get("tail") or "")
+        rows = _prompts(self.prompts)
+        self.assertGreaterEqual(len(rows), 2)
+        self.assertIn(marker, rows[1]["prompt"])
+        first = json.loads((receipt / "attempt-1" / "receipt.json").read_text(encoding="utf-8"))
+        self.assertEqual(first["reason"], "no-change")
+        self.assertIn(marker, first["tests_after"]["tail"])
+        chat = [path for path, _payload in self.inner.httpd.posts if "chat" in path]
+        self.assertEqual(chat, [])
+        self.inner.assert_clean_origin()
+
+    def test_green_gate_and_empty_diff_is_no_change_when_retries_are_spent(self):
+        marker = "PFY_GREEN_EMPTY_DIFF"
+        cmd = self._commit_gate(
+            "print(%r)\nprint('Ran 1 test in 0.001s')\nprint('OK')\n" % marker,
+            "green_gate.py",
+        )
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        proc, receipt = self._run(
+            task,
+            [{"mode": "noop"}],
+            extra=["--retries", "0", "--test-cmd", cmd],
+        )
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "FAIL")
+        self.assertEqual(data["reason"], "no-change")
+        self.assertEqual(data["attempts"], 1)
+        self.assertIsNone(data["branch"])
+        self.assertIsNone(data["commit"])
+        self.assertEqual(harness._branches(self.inner.repo), [])
+        self.assertEqual(data["tests_after"]["exit"], 0)
+        self.assertIn(marker, data["tests_after"]["tail"])
+        chat = [path for path, _payload in self.inner.httpd.posts if "chat" in path]
+        self.assertEqual(chat, [])
+        self.inner.assert_clean_origin()
+
     def test_gitignored_extra_file_is_absent_from_the_commit(self):
         repo = self.inner.repo
         ignore = repo / ".gitignore"
