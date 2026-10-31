@@ -97,6 +97,15 @@ MUTANTS: list[dict[str, str]] = [
         "new": '    if rc == 0 or rc == 0.0:\n        return "other"\n',
     },
     {
+        "id": "P10",
+        "title": "429 must be a whole token",
+        "target": "pfylib/build_preflight.py",
+        "old": '    if any(phrase in text for phrase in _RATE_LIMIT):\n',
+        "new": '    if any(phrase in text for phrase in _RATE_LIMIT if phrase != "429") or any(\n'
+        '        part == "429" for part in text.split()\n'
+        '    ):\n',
+    },
+    {
         "id": "R1",
         "title": "status check skipped",
         "target": "eval/mvp-1031/check_receipt.py",
@@ -173,6 +182,64 @@ MUTANTS: list[dict[str, str]] = [
         "new": '    if not path.is_file():\n'
         '        print("rejected: receipt file is missing", file=sys.stderr)\n'
         '        return 0\n',
+    },
+    {
+        "id": "R13",
+        "title": "json array accepted",
+        "target": "eval/mvp-1031/check_receipt.py",
+        "old": '    if not isinstance(data, dict):\n        return "rejected: receipt is not a json object"\n',
+        "new": '    if False and not isinstance(data, dict):\n        return "rejected: receipt is not a json object"\n',
+    },
+    {
+        "id": "R14",
+        "title": "commit suffix ignored",
+        "target": "eval/mvp-1031/check_receipt.py",
+        "old": '    if not isinstance(commit, str) or COMMIT_RE.fullmatch(commit) is None:\n',
+        "new": '    if not isinstance(commit, str) or re.match(r"[0-9a-f]{40}", commit) is None:\n',
+    },
+    {
+        "id": "R15",
+        "title": "uppercase commit accepted",
+        "target": "eval/mvp-1031/check_receipt.py",
+        "old": 'COMMIT_RE = re.compile(r"[0-9a-f]{40}\\Z")\n',
+        "new": 'COMMIT_RE = re.compile(r"[0-9a-fA-F]{40}\\Z")\n',
+    },
+    {
+        "id": "R16",
+        "title": "review string accepted as verdict",
+        "target": "eval/mvp-1031/check_receipt.py",
+        "old": '    verdict = review.get("verdict") if isinstance(review, dict) else None\n',
+        "new": '    verdict = review.get("verdict") if isinstance(review, dict) else review\n',
+    },
+    {
+        "id": "R17",
+        "title": "usage failure exits 0",
+        "target": "eval/mvp-1031/check_receipt.py",
+        "old": '    if len(argv) != 2 or argv[1] == "":\n'
+        '        print("rejected: usage: check_receipt.py <receipt.json>", file=sys.stderr)\n'
+        '        return 1\n',
+        "new": '    if len(argv) != 2 or argv[1] == "":\n'
+        '        print("rejected: usage: check_receipt.py <receipt.json>", file=sys.stderr)\n'
+        '        return 0\n',
+    },
+    {
+        "id": "R18",
+        "title": "non-utf8 receipt accepted",
+        "target": "eval/mvp-1031/check_receipt.py",
+        "old": '    except UnicodeError:\n'
+        '        print("rejected: receipt is not utf-8 text", file=sys.stderr)\n'
+        '        return 1\n',
+        "new": '    except UnicodeError:\n'
+        '        print("rejected: receipt is not utf-8 text", file=sys.stderr)\n'
+        '        return 0\n',
+    },
+    {
+        "id": "R19",
+        "title": "schema case folded",
+        "target": "eval/mvp-1031/check_receipt.py",
+        "old": '    if data.get("schema") != SCHEMA:\n        return "rejected: schema is not pfy-cloud-build/1"\n',
+        "new": '    if str(data.get("schema") or "").lower() != SCHEMA:\n'
+        '        return "rejected: schema is not pfy-cloud-build/1"\n',
     },
 ]
 

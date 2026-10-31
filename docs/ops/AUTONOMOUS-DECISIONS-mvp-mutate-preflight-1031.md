@@ -11,3 +11,5 @@
 5. 2026-10-31T22:38:45Z | Choice: include one equivalent mutant (`rc == 0 or rc == 0.0`, which cannot change a real exit code because `0.0 == 0`). Record it as equivalent if it survives. Do not add a test that passes on both versions. Alternative: drop it to force a zero-survivor after count. Why: the drop-in asks for an equivalence record when a survivor is not a real gap.
 
 6. 2026-10-31T22:38:45Z | Choice: do not run `scripts/pregate.sh`. Alternative: run it once at the end if the GitHub runner is idle. Why: the lane header says the operator runs it. The later "at most once" line is a ceiling. Handoff will say pregate was not run.
+
+7. 2026-10-31T22:52:00Z | Choice: add a second mutant pass (P10, R13-R19) for branches the first 18 did not touch: 429 inside a token, a JSON array, a commit suffix, an uppercase commit, a review string, usage, non-utf8 bytes, and schema case. Alternative: stop at 18 once those survivors were killed. Why: the lane says to keep taking the next gap that fits, and these checks still accept a bad receipt or mis-classify 429 under the product suites.

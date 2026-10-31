@@ -63,6 +63,12 @@ class ClassifierGapTests(unittest.TestCase):
         self.assertEqual(classify_cloud_failure(1, "rate  limit", ""), "other")
         self.assertEqual(classify_cloud_failure(1, "", "not  logged in"), "other")
 
+    def test_429_inside_a_longer_token_is_rate_limit(self) -> None:
+        # Fail: a whole-token check would miss 429 glued to other characters and skip the quota recovery.
+        # Recover: the rule is a substring. The run is still rate-limit, and the operator waits instead of rebuilding.
+        self.assertEqual(classify_cloud_failure(1, "error 14290", ""), "rate-limit")
+        self.assertEqual(classify_cloud_failure(1, "x429y", ""), "rate-limit")
+
 
 class ReceiptGapTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -149,6 +155,73 @@ class ReceiptGapTests(unittest.TestCase):
             body = _pass_receipt()
             body["branch"] = branch
             self._reject(body, "rejected: branch does not start with cloud/")
+
+    def test_json_array_is_rejected(self) -> None:
+        # Fail: a JSON array would crash the checker or be treated as a PASS object.
+        # Recover: exit 1 with the object reason and no traceback. The demo keeps the real receipt.
+        proc = self._check("[]")
+        self.assertEqual(proc.returncode, 1, proc.stderr)
+        self.assertEqual(proc.stdout, "")
+        self.assertEqual(proc.stderr.strip(), "rejected: receipt is not a json object")
+        self.assertNotIn("Traceback", proc.stderr)
+
+    def test_commit_suffix_is_rejected(self) -> None:
+        # Fail: 40 hex chars plus junk would count as the git object name.
+        # Recover: the whole commit field must be 40 hex chars. Exit 1 names commit.
+        body = _pass_receipt()
+        body["commit"] = ("a" * 40) + "zz"
+        self._reject(body, "rejected: commit is not 40 hex chars")
+
+    def test_uppercase_commit_is_rejected(self) -> None:
+        # Fail: an uppercase sha would not match the object git recorded.
+        # Recover: the checker accepts only the lowercase form git writes. Exit 1 names commit.
+        body = _pass_receipt()
+        body["commit"] = "A" * 40
+        self._reject(body, "rejected: commit is not 40 hex chars")
+
+    def test_review_string_is_rejected(self) -> None:
+        # Fail: a bare "accept" string would count as review.verdict accept.
+        # Recover: verdict has to be inside a review object. Exit 1 names the field.
+        body = _pass_receipt()
+        body["review"] = "accept"
+        self._reject(body, "rejected: review.verdict is not accept")
+
+    def test_usage_without_a_path_is_rejected(self) -> None:
+        # Fail: no path, or an empty path, exiting 0 would pass the demo with no receipt.
+        # Recover: exit 1 and print the usage line. No receipt file is written.
+        for args in ([], [""]):
+            proc = subprocess.run(
+                [sys.executable, str(CHECKER), *args],
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(proc.returncode, 1, proc.stderr)
+            self.assertEqual(proc.stdout, "")
+            self.assertEqual(
+                proc.stderr.strip(),
+                "rejected: usage: check_receipt.py <receipt.json>",
+            )
+
+    def test_non_utf8_receipt_is_rejected(self) -> None:
+        # Fail: a binary receipt that exits 0 would be archived as PASS.
+        # Recover: exit 1 and name utf-8. The caller replaces the file with text.
+        path = self.work / "receipt.json"
+        path.write_bytes(b"\xff")
+        proc = subprocess.run(
+            [sys.executable, str(CHECKER), str(path)],
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(proc.returncode, 1, proc.stderr)
+        self.assertEqual(proc.stdout, "")
+        self.assertEqual(proc.stderr.strip(), "rejected: receipt is not utf-8 text")
+
+    def test_schema_case_is_rejected(self) -> None:
+        # Fail: a case-folded schema would accept a different receipt family.
+        # Recover: the schema string must match pfy-cloud-build/1 exactly. Exit 1 names schema.
+        body = _pass_receipt()
+        body["schema"] = "PFY-CLOUD-BUILD/1"
+        self._reject(body, "rejected: schema is not pfy-cloud-build/1")
 
     def test_missing_receipt_file_is_rejected(self) -> None:
         # Fail: a missing path that exits 0 would let the demo checker pass with no receipt.
