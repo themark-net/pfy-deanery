@@ -83,4 +83,5 @@ exits | d213794 | none (docs only) | exit card pushed before any build
 harness | 5a7ea04 | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail3_receipts (6 tests ok) | driver and receipt test pushed
 tmp-unwritable | 2836356 | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail3_receipts (6 ok) | FINDING runner-crash vs worktree-failed, exit 1, no branch
 network-down | 40049ad | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail3_receipts (6 ok) | MATCH no-change, network text kept in the attempt tail, no branch
-dirty-tree | this commit | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail3_receipts (6 ok) | MATCH PASS, dirty porcelain kept, commit is app.py only, 12s
+dirty-tree | 998d4af | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail3_receipts (6 ok) | MATCH PASS, dirty porcelain kept, commit is app.py only, 12s
+detached-head | this commit | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail3_receipts (6 ok) | MATCH PASS, HEAD stayed detached at the same SHA
