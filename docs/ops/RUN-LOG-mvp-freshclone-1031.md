@@ -73,6 +73,8 @@ Cross-lane, not edited:
 
 naive-walk | 96fc710 | no product tests; dry-run exit 0; fixture build PASS exit 0 | gaps recorded
 
-first-day-docs | (fix commit) | nice -n 19 python3 -m unittest tests.test_pfy_build_first_day (2 OK) plus cloud help, dispatch, and CloudBuildUnchangedTests.test_help_and_dry_run_stay_the_same (3 OK, 5 total earlier) | README Daily build section and make help line. Re-walk: make help prints `./pfy build <task>`; `./pfy build` exits 2; dry-run receipt lands in the current repo.
+first-day-docs | 80e5752 | nice -n 19 python3 -m unittest tests.test_pfy_build_first_day (2 OK) plus cloud help, dispatch, and CloudBuildUnchangedTests.test_help_and_dry_run_stay_the_same (3 OK) | README Daily build section and make help line. Re-walk: make help prints `./pfy build <task>`; `./pfy build` exits 2; dry-run receipt lands in the current repo.
 
-state: fix written | tests: tests.test_pfy_build_first_day 2 OK | files: README.md Makefile tests/test_pfy_build_first_day.py | err: none
+No further item fits this lane. Remaining gaps are files other lanes own. Not counted as three failed attempts.
+
+state: lane empty | tests: tests.test_pfy_build_first_day 2 OK at 80e5752 | files: handoff | err: none
