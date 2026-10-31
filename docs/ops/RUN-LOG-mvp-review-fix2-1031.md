@@ -188,4 +188,19 @@ How it fails: a shell whose `TMPDIR` or cwd points at the main checkout does not
 How we recover: run the script from its worktree, or pass `--repo` under that worktree. The refusal names the main checkout and the recovery.
 
 item | commit | tests | result
-item-9-scratch | (sha next) | nice python3 -m unittest tests.test_pfy_local_build_eval | Ran 19 tests in 47.288s OK
+item-9-scratch | 23ea0cd | nice python3 -m unittest tests.test_pfy_local_build_eval | Ran 19 tests in 47.288s OK
+
+### item-10-ubuntu
+
+Skip conditions that explain a larger ubuntu-24.04 count live outside the review module. `tests/test_pfy_build_local.py` skips five confinement tests when `bwrap_works()` is false, plus `grok-missing` and `opencode-missing`. Harness2 sandbox tests and several x-intake smokes skip when bwrap is missing or a tool is absent. The G0 job `.github/workflows/eval-structural.yml` (`structural-github`, ubuntu-24.04) runs `python3 -m unittest discover -s tests -t .` and does not install bwrap. nimo's 16 skips are the host set that remains when bwrap works.
+
+`tests/test_pfy_build_local_review.py` has no `skipTest`, `skipUnless`, or `skipIf`. It uses the stub opencode and the stub HTTP reviewer (`fixture:small`). It does not call a model.
+
+Simulation: `tests/test_pfy_build_local_review_ci.py` builds a PATH with every executable except `bwrap` (pregate `ubuntu-parity` / `nobwrap_env` style) and runs the review module. Result file `tmp/review-ci-parity/result.txt`: `ran=17 skipped=0`. The parity test itself: Ran 1 test in 31.601s OK.
+
+How it fails: a review test that starts skipping when bwrap is hidden fails the parity test. A review test that needs a real model fails it too, because the hidden PATH run does not start one.
+
+How we recover: keep the review tests on the stub HTTP reviewer and the stub opencode. Confinement tests in other modules stay skipped when bwrap is absent, so they do not pretend the sandbox was shown.
+
+item | commit | tests | result
+item-10-ubuntu | (sha next) | nice python3 -m unittest tests.test_pfy_build_local_review_ci | Ran 1 test in 31.601s OK; inner review module ran=17 skipped=0
