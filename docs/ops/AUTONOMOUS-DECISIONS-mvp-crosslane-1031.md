@@ -1,0 +1,7 @@
+# Autonomous decisions: mvp-crosslane-1031
+
+One line each. Choice, alternatives, why. Append only.
+
+1. 2026-10-31T23:26Z: Skills `write-loop-exits-first` and `repo-handoff-doc-required` are not files in this worktree or `~/.grok/skills`. Choice: follow the drop-in exit list, the agent-loops eight-exit card in the run log, and `docs/ops/HANDOFF-mvp-crosslane-1031.md`. Alternative: stop and ask. Why: the drop-in already states the exits and the handoff path, and it says not to ask.
+2. 2026-10-31T23:26Z: Cross-lane fixes share `scripts/pfy_build_cloud.py` and `scripts/pfy_build_local.py`, and the drop-in forbids other worktrees under `tmp/`. Choice: the lead implements items in order in this worktree, one function per live-owned file, and pushes this branch after each item. The only sub-agent is `project-map`, which writes `.project-map/` only. Alternative: one sub-agent per request in extra worktrees. Why: the orchestrator spawns only independent workstreams, extra worktrees are forbidden, and each item must commit and push on this branch before the next starts.
+3. 2026-10-31T23:26Z: Base named in the drop-in is `origin/bot/mvp-integrate-1031`. This branch's parent is integrate at `0c3f133`, and that ref has moved. Choice: after the exit commit, `git merge --no-edit origin/bot/mvp-integrate-1031`. No rebase, no force push. Alternative: stay on `0c3f133` and re-fix work pass 3 already landed. Why: a request is already fixed when the current integrate or `origin/bot/mvp-cloudfix-1031` contains the fix.
