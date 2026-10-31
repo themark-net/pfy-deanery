@@ -83,7 +83,7 @@ suite | 444af7b | TMPDIR=$PWD/tmp nice -n 19 flock ~/DEVELOP/pfy-mentat/tmp/heav
 demo | a73e9ae | ./pfy build on tmp fixture; python3 eval/mvp-1031/check_receipt.py eval/mvp-1031/demo-receipt.json | build exit 0, checker exit 0, PASS, review accept, commit ebef4238a7eff8f938747623f7920b3fde74e586
 notes | 0338b67 | nice -n 19 python3 -m unittest tests.test_docs_hygiene tests.test_pfy_build_docs | 7 OK in 0.025s; one TODO note, one pending section, one modules row
 
-state: DONE | exit: lane empty | tests: discover 1048 ran, failures=2, skipped=16; checker exit 0 | files: merges, classifier import, demo receipt, report, TODO note, pending section, modules row, handoff | err: help contract and TMPDIR local-bench recorded, not rewritten
+prior-state: DONE | exit: lane empty | tests: discover 1048 ran, failures=2, skipped=16; checker exit 0 | files: merges, classifier import, demo receipt, report, TODO note, pending section, modules row, handoff | err: help contract and TMPDIR local-bench recorded, not rewritten
 
 ## PASS 2
 
@@ -194,4 +194,4 @@ classifier-2 | 135eebb | nice -n 19 python3 -m unittest tests.test_pfy_build_clo
 suite-2 | 135eebb | TMPDIR=$PWD/tmp nice -n 19 flock ~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock python3 -m unittest discover -s tests -t . | Ran 1098 in 731.925s, FAILED failures=2 skipped=16. Same help contract and TMPDIR local-bench. Not rewritten
 demo-2 | 7997dd6 | ./pfy build on tmp/demo2-target; python3 eval/mvp-1031/check_receipt.py eval/mvp-1031/demo-receipt-pass2.json | build exit 0, checker exit 0, PASS, review accept, human yes, commit 535d000075744709b2752cec7511d087801f2aa5, wall 91s, attempts 1
 
-state: DONE | exit: goal met | tests: discover 1098 ran, failures=2, skipped=16; cloud+preflight 54 OK; checker exit 0 | files: pass 2 merges, cloudfix conflict kept their runner, demo-receipt-pass2.json, REPORT pass 2, handoff 7997dd6, this stamp is the tip | err: help contract and TMPDIR local-bench recorded, not rewritten. selfhost not merged. pregate not run by this lane
+prior-state: DONE | exit: goal met | tests: discover 1098 ran, failures=2, skipped=16; cloud+preflight 54 OK; checker exit 0 | files: pass 2 merges, cloudfix conflict kept their runner, demo-receipt-pass2.json, REPORT pass 2, handoff 7997dd6, this stamp is the tip | err: help contract and TMPDIR local-bench recorded, not rewritten. selfhost not merged. pregate not run by this lane
