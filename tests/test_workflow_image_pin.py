@@ -214,9 +214,88 @@ class WorkflowImagePinTests(unittest.TestCase):
             proc = run_helper(str(FIX / "pinned.yml"), env=env)
             blob = proc.stdout + proc.stderr
             self.assertNotEqual(proc.returncode, 0, blob)
-            self.assertIn("PyYAML is not importable", blob)
+            self.assertIn("PyYAML is not importable in %s" % sys.executable, blob)
+            self.assertIn(sys.executable, blob)
         finally:
             shutil.rmtree(shadow)
+
+    @needs_yaml
+    def test_path_python_without_yaml_fails_closed_for_both_call_sites(self) -> None:
+        """Pregate and the hosted step must use PATH python3, and name it when it lacks PyYAML.
+
+        A later interpreter that has PyYAML must not make this PATH pass.
+        """
+        import yaml
+
+        SCRATCH.mkdir(parents=True, exist_ok=True)
+        venv = Path(tempfile.mkdtemp(prefix="image-pin-venv-", dir=SCRATCH))
+        try:
+            made = subprocess.run(
+                [sys.executable, "-m", "venv", "--without-pip", str(venv)],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+            self.assertEqual(made.returncode, 0, made.stdout + made.stderr)
+            pin_py = venv / "bin" / "python3"
+            self.assertTrue(pin_py.is_file(), pin_py)
+            probe = subprocess.run(
+                [str(pin_py), "-c", "import yaml"],
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+            self.assertNotEqual(probe.returncode, 0, "venv python unexpectedly imports yaml")
+            env = os.environ.copy()
+            env["TMPDIR"] = str(SCRATCH)
+            env["PATH"] = str(venv / "bin") + os.pathsep + env.get("PATH", "")
+            env["PREGATE_MAX_ROOT_LEN"] = "200"
+            needle = "PyYAML is not importable in %s" % pin_py
+
+            data = yaml.safe_load(
+                (ROOT / ".github" / "workflows" / "eval-structural.yml").read_text(encoding="utf-8")
+            )
+            command = _image_pin_step_command(data["jobs"]["structural-github"]["steps"])
+            self.assertIsNotNone(command)
+            ci = subprocess.run(
+                ["bash", "-c", command],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+            ci_blob = ci.stdout + ci.stderr
+            self.assertNotEqual(ci.returncode, 0, ci_blob)
+            self.assertIn(needle, ci_blob, ci_blob)
+
+            pre = subprocess.run(
+                [
+                    "nice",
+                    "-n",
+                    "19",
+                    "scripts/pregate.sh",
+                    "--in-place",
+                    "--allow-dirty",
+                    "--only",
+                    "lint",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=240,
+            )
+            pre_blob = pre.stdout + pre.stderr
+            self.assertNotEqual(pre.returncode, 0, pre_blob)
+            match = re.search(r"Summary: (\S+)", pre.stdout)
+            self.assertIsNotNone(match, pre_blob)
+            log = Path(match.group(1)).parent / "logs" / "lint.log"
+            text = log.read_text(encoding="utf-8")
+            self.assertIn(needle, text, text)
+        finally:
+            shutil.rmtree(venv)
 
     @needs_yaml
     def test_pregate_lint_calls_helper(self) -> None:
