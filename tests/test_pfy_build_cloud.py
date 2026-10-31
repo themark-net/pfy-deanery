@@ -1638,6 +1638,53 @@ class CloudBuildFailureTests(unittest.TestCase):
         self.assertIn("API_TOKEN=[redacted]", raw)
         self.assertIn("password=[redacted]", raw)
 
+    def test_gate_drops_secret_env_and_grok_still_sees_it(self) -> None:
+        # Fail: the product gate prints GROK_API_KEY set, so a foreign test
+        # can read the operator environment.
+        # Recover: the gate reports those names unset and still has PATH.
+        # Grok still sees the key, so an env login is not stripped from it.
+        marker = "fixture-not-a-live-key"
+        saw = self.side / "grok-saw.txt"
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import os\n"
+            "from pathlib import Path\n"
+            "Path(%r).write_text(\n"
+            "    'GROK-SAW' if os.environ.get('GROK_API_KEY') == %r else 'GROK-MISSED',\n"
+            "    encoding='utf-8',\n"
+            ")\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n" % (str(saw), marker),
+        )
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\n"
+            "import os\n"
+            "for name in ('GROK_API_KEY', 'MY_PASSWORD', 'PATH'):\n"
+            "    print('%s %s' % (name, 'set' if os.environ.get(name) else 'unset'))\n"
+            "print('GATE-OK')\n"
+            "raise SystemExit(0)\n",
+        )
+        proc = self._run_task(
+            grok,
+            gate,
+            "add kept",
+            extra=["--no-review", "--retries", "0"],
+            env={"GROK_API_KEY": marker, "MY_PASSWORD": "fixture-password"},
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        raw = list((self.repo / "pipelines" / "dogfood" / "build-cloud").glob("*/receipt.json"))[0].read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("GROK_API_KEY unset", raw)
+        self.assertIn("MY_PASSWORD unset", raw)
+        self.assertIn("PATH set", raw)
+        self.assertNotIn(marker, raw)
+        self.assertNotIn("fixture-password", raw)
+        self.assertEqual(saw.read_text(encoding="utf-8"), "GROK-SAW")
+
     def test_protected_auth_json_is_not_committed(self) -> None:
         grok = _write_exe(
             self.side / "grok.py",

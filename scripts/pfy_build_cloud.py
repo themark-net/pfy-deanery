@@ -746,12 +746,27 @@ class CloudBuild:
         where = cwd or self.worktree
         if where is None:
             return {"cmd": self.args.test_cmd, "exit": None, "tail": "no worktree", "started": False}
+        # The product gate must not read the operator's secret env. Grok still
+        # uses child_env(), because an operator login may live there.
+        env = self.child_env()
+        for key in list(env):
+            upper = key.upper()
+            if (
+                any(
+                    word in upper
+                    for word in ("TOKEN", "SECRET", "PASSWORD", "PASSWD", "CREDENTIAL", "AUTHORIZATION")
+                )
+                or upper == "KEY"
+                or upper.endswith("_KEY")
+                or "_KEY_" in upper
+            ):
+                env.pop(key, None)
         status, code, out, err = run_command(
             argv,
             where,
             self.args.timeout,
             self.state,
-            self.child_env(),
+            env,
             on_start=self.save_pid,
         )
         text = (out or "") + ("\n" + err if err else "")
