@@ -1,6 +1,8 @@
 # Handoff mvp-integrate-1031
 
-Pass 2 goal met. No rebase, no force push, no PR, no merge to main, no tag. Not a Feature GO. Catalog HOLD 70-75 unchanged. No GitHub issue opened or closed. No local model. No `--local`. Pregate not run by this lane. The operator runs pregate on the final tip. The final tip SHA is filled in the stamp commit that follows the content commit. Until that stamp, read `git rev-parse origin/bot/mvp-integrate-1031`.
+Pass 2 goal met. No rebase, no force push, no PR, no merge to main, no tag. Not a Feature GO. Catalog HOLD 70-75 unchanged. No GitHub issue opened or closed. No local model. No `--local`. Pregate not run by this lane. The operator runs pregate on the final tip.
+
+Pass 2 content commit: `7997dd67e71ad3fcf50cd868f1667d462ca3aca3`. This stamp commit is the final tip. Pregate `origin/bot/mvp-integrate-1031` at this stamp (`git rev-parse origin/bot/mvp-integrate-1031` after the stamp push).
 
 ## Pass 2
 
@@ -32,7 +34,7 @@ Pass 2 goal met. No rebase, no force push, no PR, no merge to main, no tag. Not 
 | `origin/bot/mvp-selfhost-1031` | not merged | Seen at `62ae324`. Mark cherry-picks from it |
 | Classifier proof | tree `135eebb` | One import. No inline classifier. `tests.test_pfy_build_cloud` and `tests.test_build_preflight`: 54 OK in 10.080s |
 | Suite | tree `135eebb` | Ran 1098 in 731.925s. Failures 2, skipped 16 |
-| Demo 2 receipt and report | this content commit | PASS. Checker exit 0. Commit `535d000075744709b2752cec7511d087801f2aa5` |
+| Demo 2 receipt and report | `7997dd6` | PASS. Checker exit 0. Commit `535d000075744709b2752cec7511d087801f2aa5` |
 
 Merge freeze is `135eebb`. One catch-up merged tips that moved during the first wave. This lane did not wait for lanes that were still on a drop-in or an exit card.
 
