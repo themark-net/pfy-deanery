@@ -77,13 +77,13 @@ Exit card and phase plan written before the merge and before any product code. S
 
 Parallel sub-agents are not used for the listed items. They share the runner and the review tests. The lead implements them in order on this branch.
 
-state: DONE | tests: none (docs only) | files: 2 | err: none
+prior-state: DONE | tests: none (docs only) | files: 2 | err: none
 
 ### merge-tip
 
 `git merge --no-edit origin/bot/mvp3-review-retry` brought `d624535` (one-line handoff fix). Merge commit `fbb2835`. No rebase. Pushed.
 
-state: DONE | tests: none (merge) | files: 1 | err: none
+prior-state: DONE | tests: none (merge) | files: 1 | err: none
 
 ### confirm-base
 
@@ -97,7 +97,7 @@ Checked on `fbb2835` before the product edit:
 - Scope vs commit is already fail-closed on this base (`scope-commit-mismatch`, gitignored extra file test). Item 4 will be confirmed and skipped if that still holds.
 - Help text already says review is the default and the file and line caps. The MVP-3 handoff does not.
 
-state: DONE | tests: read-only | files: 0 | err: none
+prior-state: DONE | tests: read-only | files: 0 | err: none
 
 ### item-1-outage
 
@@ -222,4 +222,4 @@ Checked 2026-10-31T21:26:33Z. MemAvailable about 59 GiB. Load about 3.84 on 32 c
 
 No further row in `docs/plans/MVP-PARALLEL-1031.md` fits these owned files. G1 through G3 and G6 through G9 are other lanes. G4 and G5 are already on the base. G10 is excluded. Round 2 `mvp-local-t5-1031` needs a local model and `eval/mvp-1031/`, which this lane must not touch. Lane empty.
 
-state: DONE | exit: lane empty | product: b483166 | pregate not run: host busy
+prior-state: DONE | exit: lane empty | product: b483166 | pregate not run: host busy
