@@ -50,3 +50,5 @@ Risks:
 item | commit | tests | result
 sync cloudfix d35af20 | 0a76e22 | catalog anchors C1-C16 still apply | merged
 harness | d5540a4 | nice -n 19 python3 -m unittest tests.test_mut_cloud_harness | 4 tests OK
+baseline | before.json on 9429aaf | run_mutants.py --baseline-only | 14 killed, C4 and C10 survived
+survivors | 6d41f73 | nice -n 19 python3 -m unittest tests.test_mut_cloud_survivors | 2 tests OK on the runner; C4 and C10 proofs rc 1
