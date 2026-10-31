@@ -134,3 +134,5 @@ Risks:
 Format: `item | commit | tests | result`
 
 - wave4-card | 848411c | docs only | PASS
+- merge-integrate | da65338 | tests.test_pfy_build_cloud tests.test_pfy_build_p | PASS, 64 tests OK, skipped 1. Merge of origin/bot/mvp-integrate-1031, no rebase. Runner source matched this branch. The skipped line is the dogfood module's expected missing-grok message.
+- base-missing | 3ee4819 | tests.test_pfy_build_cloud tests.test_pfy_build_p | PASS, 65 tests OK, skipped 1. Before: origin/bot/mvp-realfail2-1031:eval/mvp-1031/realfail2/worktree-failed/ (usage.txt, no receipt, exit 2). After: tmp/base-missing-after/receipt.json (FAIL worktree-failed, exit 1, recovery names the missing ref and tells Mark to fetch or pass --base). Caller HEAD and the dirty file stayed. ./pfy build returned before grok started.
