@@ -108,4 +108,13 @@ How it fails: the review service returns HTTP 500, or the review call exceeds th
 How we recover: no branch, origin unchanged. The receipt tells the operator to run again when the reviewer answers, or to pass `--no-review`.
 
 item | commit | tests | result
-item-1-outage | (this commit) | nice python3 -m unittest tests.test_pfy_build_local tests.test_pfy_build_local_review | Ran 74 tests in 109.054s OK
+item-1-outage | e685f70 | nice python3 -m unittest tests.test_pfy_build_local tests.test_pfy_build_local_review | Ran 74 tests in 109.054s OK
+
+### item-2-m4
+
+M4 is one return in `_run_model_review`: the outage returns `"reject"` with reason `review-unparseable` instead of `"unavailable"`. That is the pre-fix classification. The caller then retries it as a normal reject.
+
+RED: M4 -> `test_reviewer_http_error_is_not_a_reject_and_is_not_retried`, `test_reviewer_timeout_is_not_a_reject_and_is_not_retried`. Both failed: `PASS-REJECTED != REVIEW-ERROR`. Ran 2 tests in 39.471s, FAILED (failures=2). The runner was restored before this commit. `git diff scripts/pfy_build_local.py` was empty.
+
+item | commit | tests | result
+item-2-m4 | (this commit) | mutant run above, then the two tests on the restored runner (item 1, 14.063s OK) | M4 fails, restored tree passes

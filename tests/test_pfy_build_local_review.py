@@ -371,6 +371,7 @@ class ReviewLoopTests(unittest.TestCase):
         self.assertNotEqual(again_receipt, receipt)
 
     def test_reviewer_http_error_is_not_a_reject_and_is_not_retried(self):
+        """Kills M4: an HTTP outage classified as review-unparseable and retried."""
         self.inner.httpd.review_http_status = 500
         self.inner.httpd.review_queue = [
             json.dumps({"verdict": "accept", "reasons": ["should not be asked"]}),
@@ -400,6 +401,7 @@ class ReviewLoopTests(unittest.TestCase):
         self.inner.assert_clean_origin()
 
     def test_reviewer_timeout_is_not_a_reject_and_is_not_retried(self):
+        """Kills M4: a review-call timeout classified as a reject and retried."""
         self.inner.httpd.review_block = threading.Event()
         self.inner.httpd.review_started = threading.Event()
         self.inner.httpd.review_queue = [
