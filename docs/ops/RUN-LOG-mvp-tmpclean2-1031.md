@@ -82,3 +82,5 @@ Progress:
 - skip 2 ubuntu rg path | none | not run | eval-structural.yml already installs ripgrep when command -v rg misses; no ubuntu runner in this lane | skip
 - skip 10 MemPalace staging | none | not run | staging writes a shared tree and warms an embedding model | skip
 - state: lane empty | listed follow-ups closed or skipped | ahead of origin/main, behind 0 | pregate not run: host busy | err: none
+- resume 2026-10-31T23:50:03Z | origin/main still c0d38af | fast-forward, behind 0 | Runner.Worker pid 3751002 alive | MemAvailable about 35.8 GiB | load 7.5 on 32 cores | map default is wait | no new fitting gap
+- state: lane empty | resume recheck 2026-10-31T23:50:03Z | pregate not run: host busy | err: none

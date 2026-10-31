@@ -2,7 +2,7 @@
 
 Status: stopped. Exit: lane empty. Branch `bot/mvp-tmpclean2-1031`. Worktree `~/DEVELOP/pfy-mentat/tmp/mvp-tmpclean2-1031`. Base `origin/main` `c0d38af` plus `fb759e9`. Fast-forward, behind 0. No merge, no PR, no tags.
 
-Pregate not run: host busy (`Runner.Worker` was alive at the exit).
+Pregate not run: host busy (`Runner.Worker` was alive at the exit, and still alive at the 2026-10-31T23:50:03Z recheck, pid 3751002).
 
 ## Done
 
@@ -55,6 +55,10 @@ No file was skipped because another lane owned it. `docs/ops/HANDOFF-pfy-followu
 Pregate plus Reviewer. The behavior changes are the image-pin loader, the catalog how strings, and tests. `pfylib/attach.py`, `examples/x-intake-local/smoke_149.py`, and `examples/harness2-local/stage.sh` were not edited.
 
 Pregate not run: host busy.
+
+## Recheck 2026-10-31T23:50:03Z
+
+origin/main is still `c0d38af`. This branch is a fast-forward, behind 0, tip `89f0564` before this note. MemAvailable was about 35.8 GiB. Load was 7.5 on 32 cores. The project map default is to wait and not start another lane's files. Active TODO rows still need a local model, docker, hardware, a catalog lane, or a named scorer. T-0127 stays in the active table.
 
 ## Next step
 
