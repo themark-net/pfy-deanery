@@ -1,0 +1,7 @@
+start_utc 2026-10-31T21:43:03Z
+cmd ./pfy build <task.txt> --repo /home/mark/DEVELOP/jobbar-master/tmp/gom-dogfood-1031-scratch/clones/05-land-thread-provenance --base 25783f15c143bfb8cd8454a82b71c5710193c9af --test-cmd <below> --receipt-dir /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/eval/gom-dogfood-1031/05-land-thread-provenance --retries 1 --timeout 900 --keep-worktree
+test_cmd env JOURNAL_DB_PATH=./tmp/land-journal.db USE_OLLAMA=false PYTHONDONTWRITEBYTECODE=1 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/tmp/gom-venv/bin/python -m pytest -q -p no:cacheprovider tests/test_land_thread_provenance.py
+base 25783f15c143bfb8cd8454a82b71c5710193c9af
+exit 0
+wall_s 85
+end_utc 2026-10-31T21:44:28Z
