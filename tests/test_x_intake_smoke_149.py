@@ -231,6 +231,67 @@ class Smoke149(unittest.TestCase):
         self.assertIn("not-a-version", rec["version_output"])
         self.assertNotIn("init_exit", rec["checks"])
 
+    def test_version_of_parses_banners_without_bwrap(self):
+        # The bwrap-gated cases never import this parser on ubuntu CI. A banner
+        # that is not a dotted triple must stay None so it cannot match the pin.
+        mod = self._load()
+        self.assertEqual(mod.version_of("MemPalace 3.12.0\n"), "3.12.0")
+        self.assertEqual(mod.version_of("MemPalace 3.12.0 (also 9.9.9)\n"), "3.12.0")
+        self.assertEqual(mod.version_of("mempalace 9.9.9\n"), "9.9.9")
+        self.assertIsNone(mod.version_of("not-a-version\n"))
+        self.assertIsNone(mod.version_of(""))
+        self.assertIsNone(mod.version_of("build 3120\n"))
+
+    def _version_stops_before_init(self, banner: str, parsed: str | None) -> None:
+        """Stub bwrap out. A bad parse exits 2 and never starts init."""
+        scratch = ROOT / "tmp"
+        scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as td:
+            td = Path(td)
+            real = td / "realhome"
+            real.mkdir()
+            mh = td / "mphome"
+            (mh / MODEL_REL).mkdir(parents=True)
+            stub = td / "mempalace"
+            stub.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+            stub.chmod(0o755)
+            mod = self._load()
+            calls: list[list[str]] = []
+
+            def fake_run(binary, args, tmp, timeout, extra_binds=None):
+                calls.append(list(args))
+                return subprocess.CompletedProcess(list(args), 0, stdout=banner, stderr="")
+
+            mod.bwrap_ok = lambda: True
+            mod.run = fake_run
+            saved = dict(os.environ)
+            try:
+                os.environ.clear()
+                os.environ.update({
+                    "PATH": saved.get("PATH", ""),
+                    "HOME": str(real),
+                    "TMPDIR": str(scratch),
+                    "MEMPALACE_HOME": str(mh),
+                    "MEMPALACE_BIN": str(stub),
+                    "PFY_SMOKE_RECEIPT_DIR": str(td / "r"),
+                })
+                code = mod.main()
+            finally:
+                os.environ.clear()
+                os.environ.update(saved)
+            rec = json.loads((td / "r" / "latest.json").read_text(encoding="utf-8"))
+            self.assertEqual(code, 2, rec)
+            self.assertEqual(rec.get("version"), parsed)
+            self.assertEqual(rec.get("reason"), f"version pin 3.12.0 != --version {parsed}")
+            self.assertEqual(calls, [["--version"]])
+            self.assertNotIn("init_exit", rec.get("checks", {}))
+
+    def test_unparsed_version_exits_2_before_init_without_bwrap(self):
+        self._version_stops_before_init("not-a-version\n", None)
+
+    def test_wrong_parsed_version_exits_2_before_init_without_bwrap(self):
+        self._version_stops_before_init("MemPalace 9.9.9\n", "9.9.9")
+
     @needs_bwrap
     def test_wrong_ranking_fails(self):
         code, rec = self.run_smoke(dict(BASE, swap=True))

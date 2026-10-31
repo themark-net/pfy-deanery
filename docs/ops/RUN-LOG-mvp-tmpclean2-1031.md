@@ -65,3 +65,5 @@ Progress:
 - state: DONE | tests: tests.test_pfylib_tmp_cleanup 3 OK in 61.781s | files: 2 | err: none
 - FU1 ripgrep install step | 8203c43 | TMPDIR=$PWD/tmp nice -n 19 python3 -m unittest tests.test_workflow_image_pin | 20 OK in 13.612s | pass
 - state: DONE | tests: tests.test_workflow_image_pin 20 OK in 13.612s | files: 4 | err: none
+- FU3 version_of without bwrap | SHA3 | TMPDIR=$PWD/tmp nice -n 19 python3 -m unittest tests.test_x_intake_smoke_149 | 29 OK in 2.792s | pass
+- state: DONE | tests: tests.test_x_intake_smoke_149 29 OK in 2.792s | files: 1 | err: none
