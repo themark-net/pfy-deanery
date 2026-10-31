@@ -78,3 +78,4 @@ merge mvp-preflight-1031 | b34143d | none | clean
 merge mvp-surface-1031 | c17d4ef | none | clean
 merge mvp-eval-1031 | 71fd74a | none | clean
 merge mvp-cloud-1031 | 29bbad4 | none | clean
+classifier import | d966e83 | nice -n 19 python3 -m unittest tests.test_pfy_build_cloud tests.test_build_preflight | 35 OK in 6.753s
