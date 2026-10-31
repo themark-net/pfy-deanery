@@ -76,7 +76,7 @@ class ReviewLoopTests(unittest.TestCase):
     def test_out_of_scope_patch_is_rejected_and_the_retry_passes(self):
         task = "fix add so one plus one is two\nfiles: src/calc.py\n"
         steps = [
-            {"mode": "fix", "write": {"src/notes.py": "outside\n"}},
+            {"mode": "fix", "write": {"src/notes.py": "outside PFY_SCOPE_DIFF_MARKER\n"}},
             {"mode": "fix"},
         ]
         proc, receipt = self._run(task, steps)
@@ -90,6 +90,8 @@ class ReviewLoopTests(unittest.TestCase):
         rows = _prompts(self.prompts)
         self.assertGreaterEqual(len(rows), 2)
         self.assertIn("src/notes.py", rows[1]["prompt"])
+        self.assertIn("PFY_SCOPE_DIFF_MARKER", rows[1]["prompt"])
+        self.assertIn("Previous diff:", rows[1]["prompt"])
         self.assertIsNotNone(data["commit"])
         names = harness._git(
             self.inner.repo,
@@ -306,6 +308,8 @@ class ReviewLoopTests(unittest.TestCase):
         self.assertGreaterEqual(len(rows), 2)
         self.assertIn("tests-failed", rows[1]["prompt"])
         self.assertIn("AssertionError", rows[1]["prompt"])
+        self.assertIn("Previous diff:", rows[1]["prompt"])
+        self.assertIn("return a + b + 5", rows[1]["prompt"])
 
     def test_no_review_is_one_attempt_and_a_green_gate_passes(self):
         proc, receipt = self.inner.run_build("fix", extra=["--no-review"])
@@ -404,3 +408,157 @@ class ReviewLoopTests(unittest.TestCase):
             self.assertNotIn(secret, blob)
         self.inner.assert_clean_origin()
 
+    def test_reviewer_http_error_does_not_commit(self):
+        self.inner.httpd.review_http_status = 500
+        self.inner.httpd.review_queue = [
+            json.dumps({"verdict": "accept", "reasons": ["should not be read"]}),
+        ]
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        proc, receipt = self._run(task, [{"mode": "fix"}], extra=["--retries", "2"])
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "FAIL")
+        self.assertEqual(data["reason"], "review-http-error")
+        self.assertEqual(data["attempts"], 1)
+        self.assertIsNone(data["commit"])
+        self.assertIsNone(data["branch"])
+        self.assertEqual(harness._branches(self.inner.repo), [])
+        first = json.loads((receipt / "attempt-1" / "receipt.json").read_text(encoding="utf-8"))
+        self.assertEqual(first["reason"], "review-http-error")
+        self.assertIn("review-http-error", first["model_review"]["reasons"])
+        self.assertNotEqual(first["model_review"]["verdict"], "accept")
+        self.inner.assert_clean_origin()
+
+    def test_review_timeout_does_not_commit(self):
+        self.inner.httpd.review_block = threading.Event()
+        self.inner.httpd.review_started = threading.Event()
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        proc, receipt = self._run(
+            task,
+            [{"mode": "fix"}],
+            extra=["--timeout", "40", "--retries", "2"],
+            timeout=150,
+        )
+        self.assertTrue(self.inner.httpd.review_started.is_set(), proc.stdout + proc.stderr)
+        self.assertEqual(proc.returncode, harness.BUILD.EXIT_TIMEOUT, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "TIMEOUT")
+        self.assertEqual(data["reason"], "timeout")
+        self.assertEqual(data["attempts"], 1)
+        self.assertIsNone(data["commit"])
+        self.assertIsNone(data["branch"])
+        self.assertEqual(harness._branches(self.inner.repo), [])
+        self.assertFalse((receipt / "attempt-2").exists())
+        first = json.loads((receipt / "attempt-1" / "receipt.json").read_text(encoding="utf-8"))
+        self.assertIsNotNone(first["checks"])
+        self.inner.assert_clean_origin()
+
+    def test_empty_diff_sent_toward_the_reviewer_does_not_commit(self):
+        cmd = self._commit_gate(
+            "print('PFY_EMPTY_DIFF_GATE')\nprint('Ran 1 test in 0.001s')\nprint('OK')\n",
+            "empty_diff_gate.py",
+        )
+        task = "fix add so one plus one is two\n"
+        steps = [{"mode": "noop", "symlink": {"src/hole": "missing-target"}}]
+        proc, receipt = self._run(
+            task,
+            steps,
+            extra=["--retries", "2", "--test-cmd", cmd],
+        )
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "FAIL")
+        self.assertEqual(data["reason"], "review-empty-diff")
+        self.assertEqual(data["attempts"], 1)
+        self.assertIsNone(data["commit"])
+        self.assertIsNone(data["branch"])
+        self.assertEqual(harness._branches(self.inner.repo), [])
+        chat = [
+            json.dumps(payload)
+            for path, payload in self.inner.httpd.posts
+            if "chat" in path and "pfy-review-v1" in json.dumps(payload)
+        ]
+        self.assertEqual(chat, [])
+        log = harness._git(self.inner.repo, "log", "--all", "--name-only", "--pretty=format:")
+        self.assertNotIn("src/hole", log)
+        self.inner.assert_clean_origin()
+
+    def test_scope_retries_spent_do_not_commit(self):
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        steps = [{"mode": "fix", "write": {"src/notes.py": "outside\n"}}]
+        proc, receipt = self._run(task, steps, extra=["--retries", "0"])
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "PASS-REJECTED")
+        self.assertEqual(data["reason"], "review-rejected")
+        self.assertEqual(data["attempts"], 1)
+        self.assertIsNone(data["commit"])
+        self.assertIsNone(data["branch"])
+        self.assertEqual(harness._branches(self.inner.repo), [])
+        first = json.loads((receipt / "attempt-1" / "receipt.json").read_text(encoding="utf-8"))
+        self.assertIn("src/notes.py", first["checks"]["scope"]["outside"])
+        self.inner.assert_clean_origin()
+
+    def test_wiring_retries_spent_do_not_commit(self):
+        task = (
+            "fix add so one plus one is two\n"
+            "files: src/calc.py, tests/test_calc.py\n"
+            "require: PFY_SMOKE_RECEIPT_DIR in tests/test_calc.py\n"
+        )
+        proc, receipt = self._run(task, [{"mode": "fix"}], extra=["--retries", "0"])
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "PASS-REJECTED")
+        self.assertEqual(data["reason"], "review-rejected")
+        self.assertEqual(data["attempts"], 1)
+        self.assertIsNone(data["commit"])
+        self.assertIsNone(data["branch"])
+        self.assertEqual(harness._branches(self.inner.repo), [])
+        first = json.loads((receipt / "attempt-1" / "receipt.json").read_text(encoding="utf-8"))
+        missing = first["checks"]["wiring"]["missing"]
+        self.assertTrue(any("tests/test_calc.py" in item for item in missing), missing)
+        self.inner.assert_clean_origin()
+
+    def test_previous_diff_reaches_the_retry_prompt(self):
+        marker = "PFY_PREV_DIFF_MARKER_14"
+        self.inner.httpd.review_queue = [
+            json.dumps({"verdict": "reject", "reasons": ["too broad"]}),
+            json.dumps({"verdict": "accept", "reasons": []}),
+        ]
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        steps = [
+            {"mode": "fix", "append": {"src/calc.py": "\n# %s\n" % marker}},
+            {"mode": "fix"},
+        ]
+        proc, receipt = self._run(task, steps, extra=["--retries", "1"])
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "PASS")
+        self.assertEqual(data["attempts"], 2)
+        rows = _prompts(self.prompts)
+        self.assertGreaterEqual(len(rows), 2)
+        self.assertIn("Previous diff:", rows[1]["prompt"])
+        self.assertIn(marker, rows[1]["prompt"])
+        self.assertNotIn(marker, rows[1]["prompt"].split("Previous diff:", 1)[0])
+        self.inner.assert_clean_origin()
+
+    def test_no_review_does_not_retry_a_red_gate(self):
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        proc, receipt = self._run(
+            task,
+            [{"mode": "worse"}, {"mode": "fix"}],
+            extra=["--no-review", "--retries", "2"],
+        )
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "FAIL")
+        self.assertEqual(data["reason"], "tests-failed")
+        self.assertEqual(data["attempts"], 1)
+        self.assertIsNone(data["commit"])
+        self.assertIsNone(data["branch"])
+        self.assertFalse(data["review"]["enabled"])
+        self.assertEqual(harness._branches(self.inner.repo), [])
+        self.assertFalse((receipt / "attempt-2").exists())
+        log = (receipt / "agent.log").read_text(encoding="utf-8")
+        self.assertEqual(log.count("PFY_STUB_REPORT "), 1)
+        self.inner.assert_clean_origin()

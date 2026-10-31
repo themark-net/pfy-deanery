@@ -2449,6 +2449,24 @@ def _parse_verdict(text: str) -> tuple[str, list[str], str]:
     return verdict, reasons, raw[:500]
 
 
+def _review_transport_error(raw: str) -> str | None:
+    """Poster failure shape: {"error": "..."} with no choices.
+
+    A model completion can also carry an error field next to choices. That
+    stays a verdict parse. Only the transport failure is fail-closed.
+    """
+    try:
+        data = json.loads(raw or "")
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(data, dict) or "choices" in data:
+        return None
+    err = data.get("error")
+    if not err:
+        return None
+    return str(err)
+
+
 def _content_from_model_body(raw: str) -> str:
     try:
         data = json.loads(raw)
@@ -2632,6 +2650,15 @@ def _run_model_review(
         raw = out_path.read_text(encoding="utf-8")
     except OSError:
         raw = (out or "") + (err or "")
+    transport = _review_transport_error(raw)
+    if transport is not None:
+        # An HTTP failure is not a verdict. Do not parse it as reject and retry
+        # into an accept. The caller stops with review-http-error.
+        return "http-error", {
+            "verdict": "reject",
+            "reasons": ["review-http-error"],
+            "raw_tail": redact(transport)[:500],
+        }
     content = _content_from_model_body(raw)
     verdict, reasons, raw_tail = _parse_verdict(content)
     return verdict, {"verdict": verdict, "reasons": reasons, "raw_tail": redact(raw_tail)[:500]}
@@ -3219,6 +3246,23 @@ def build_local(argv: list[str] | None = None) -> int:
                 )
                 continue
 
+            # A changed path with an empty diff would let the model accept a
+            # path it never saw. Stop before the call.
+            if not (diff_text or "").strip():
+                status, reason, exit_code = "FAIL", "review-empty-diff", EXIT_FAIL
+                _record_attempt(
+                    attempts_used,
+                    attempt_t0,
+                    mem_snap,
+                    "FAIL",
+                    "review-empty-diff",
+                    checks,
+                    None,
+                    diff_stats,
+                    diff_text,
+                )
+                return finish()
+
             gate_tail = str(tests_after.get("tail") or "") if isinstance(tests_after, dict) else ""
             review_status, model_review = _run_model_review(
                 args,
@@ -3233,6 +3277,20 @@ def build_local(argv: list[str] | None = None) -> int:
             if review_status == "timeout":
                 status, reason, exit_code = "TIMEOUT", "timeout", EXIT_TIMEOUT
                 _record_attempt(attempts_used, attempt_t0, mem_snap, "TIMEOUT", "timeout", checks, model_review, diff_stats, diff_text)
+                return finish()
+            if review_status == "http-error":
+                status, reason, exit_code = "FAIL", "review-http-error", EXIT_FAIL
+                _record_attempt(
+                    attempts_used,
+                    attempt_t0,
+                    mem_snap,
+                    "FAIL",
+                    "review-http-error",
+                    checks,
+                    model_review,
+                    diff_stats,
+                    diff_text,
+                )
                 return finish()
             if review_status == "interrupted" or state.interrupted:
                 status, reason, exit_code = "FAIL", "interrupted", EXIT_FAIL
