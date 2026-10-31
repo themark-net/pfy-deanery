@@ -1762,6 +1762,93 @@ class CloudBuildFailureTests(unittest.TestCase):
         self.assertNotIn("fixture-password", raw)
         self.assertEqual(saw.read_text(encoding="utf-8"), "GROK-SAW")
 
+    def test_missing_gate_binary_exits_2_before_grok(self) -> None:
+        # Fail: a missing gate is a product FAIL and grok still runs.
+        # Recover: exit 2, reason gate-missing, and no grok call.
+        marker = self.side / "grok-was-started"
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "Path(%r).write_text('started\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n" % str(marker),
+        )
+        proc = self._run_task(
+            grok,
+            None,
+            "add kept",
+            extra=["--test-cmd", "/no/such/pfy-gate-1031", "--no-review", "--retries", "0"],
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 2, text)
+        payload = self._receipt()
+        self.assertEqual(payload["reason"], "gate-missing")
+        self.assertEqual(payload["exit_code"], 2)
+        self.assertIsNone(payload["branch"])
+        self.assertFalse(marker.exists(), text)
+        self.assertIn("--test-cmd", payload["recovery"])
+
+    def test_default_gate_import_error_exits_2_before_grok(self) -> None:
+        # Fail: python3 -m unittest discover cannot import the repo, and the
+        # runner spends grok retries as if the product tests were red.
+        # Recover: exit 2, reason gate-unusable, and ask for --test-cmd.
+        tests = self.repo / "tests"
+        tests.mkdir()
+        (tests / "__init__.py").write_text("", encoding="utf-8")
+        (tests / "test_env.py").write_text(
+            "import definitely_missing_pfy_mod_1031\n",
+            encoding="utf-8",
+        )
+        added = _git(self.repo, "add", "tests/__init__.py", "tests/test_env.py")
+        self.assertEqual(added.returncode, 0, added.stderr)
+        committed = _git(self.repo, "commit", "-m", "red import")
+        self.assertEqual(committed.returncode, 0, committed.stderr)
+        marker = self.side / "grok-was-started"
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "Path(%r).write_text('started\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n" % str(marker),
+        )
+        proc = self._run_task(grok, None, "add kept", extra=["--no-review", "--retries", "0"])
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 2, text)
+        payload = self._receipt()
+        self.assertEqual(payload["reason"], "gate-unusable")
+        self.assertEqual(payload["exit_code"], 2)
+        self.assertFalse(marker.exists(), text)
+        self.assertIn("definitely_missing_pfy_mod_1031", payload["gate"]["before"]["tail"])
+        self.assertIn("--test-cmd", payload["recovery"])
+
+    def test_custom_gate_import_error_still_reaches_grok(self) -> None:
+        # Fail: any "No module named" line exits 2, so a red product import
+        # never reaches the model.
+        # Recover: a custom --test-cmd that fails this way still calls grok
+        # and records reason tests.
+        marker = self.side / "grok-was-started"
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "Path(%r).write_text('started\\n', encoding='utf-8')\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n" % str(marker),
+        )
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\n"
+            "print(\"No module named 'kept'\")\n"
+            "raise SystemExit(1)\n",
+        )
+        proc = self._run_task(grok, gate, "add kept", extra=["--no-review", "--retries", "0"])
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 1, text)
+        payload = self._receipt()
+        self.assertEqual(payload["reason"], "tests")
+        self.assertTrue(marker.exists(), text)
+        self.assertNotEqual(payload["reason"], "gate-unusable")
+
     def test_protected_auth_json_is_not_committed(self) -> None:
         grok = _write_exe(
             self.side / "grok.py",

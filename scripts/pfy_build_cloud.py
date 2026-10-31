@@ -706,6 +706,28 @@ def run_command(
     return "done", code, out or "", err or ""
 
 
+def before_gate_block(record: dict | None, test_cmd: str) -> str | None:
+    """Usage reason when the gate cannot run, else None.
+
+    A red assertion returns None so the task can fix it. A missing binary
+    always blocks. An import error blocks only the default unittest command.
+    A custom gate that imports the product module is the bug under test.
+    """
+    if not record or not record.get("started"):
+        return "gate-missing"
+    if (test_cmd or "").strip() != DEFAULT_TEST_CMD:
+        return None
+    tail = str(record.get("tail") or "")
+    blocked = (
+        "ModuleNotFoundError" in tail
+        or "No module named" in tail
+        or "Start directory is not importable" in tail
+    )
+    if record.get("exit") not in (0, None) and blocked:
+        return "gate-unusable"
+    return None
+
+
 class CloudBuild:
     def __init__(self, args, repo: Path, base_ref: str, base_sha: str, grok: str | None) -> None:
         self.args = args
@@ -1051,6 +1073,16 @@ class CloudBuild:
         if self.state.interrupted or (self.gate_before or {}).get("aborted") == "interrupted":
             self.record(0, "FAIL", "interrupted", "")
             return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
+        blocked = before_gate_block(self.gate_before, self.args.test_cmd)
+        if blocked:
+            tail = str((self.gate_before or {}).get("tail") or "")
+            self.record(0, "FAIL", blocked, tail)
+            recovery = (
+                "The gate did not start as a product failure. "
+                'Pass --test-cmd with an interpreter that can import this repo. '
+                'The default is "%s".' % DEFAULT_TEST_CMD
+            )
+            return self.fail("FAIL", blocked, EXIT_USAGE, recovery)
         base_tests = snapshot_tests(self.worktree)
         feedback = ""
         previous_diff = ""
