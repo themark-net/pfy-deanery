@@ -134,6 +134,26 @@ def _slug(text: str) -> str:
     return raw or "task"
 
 
+def commit_subject(task_text: str) -> str:
+    """Cloud commit subject: whole words, at most 72 characters.
+
+    Dogfood2 cut the task at 72 characters and stopped mid-word, so git log
+    showed a fragment. The unread words stay in the commit body.
+    """
+    flat = " ".join((task_text or "").split())
+    if not flat:
+        return "task"
+    if len(flat) <= 72:
+        return flat
+    cut = flat[:69]
+    if " " in cut:
+        cut = cut.rsplit(" ", 1)[0]
+    cut = cut.rstrip()
+    if not cut:
+        cut = flat[:69].rstrip()
+    return (cut or "task") + "..."
+
+
 def redact(text: str) -> str:
     if not text:
         return ""
@@ -828,7 +848,13 @@ class CloudBuild:
             _git(self.worktree, ["reset"])
             self.reason = "interrupted"
             return "interrupted"
-        message = redact(" ".join(self.args.task_text.split())[:72] or "task") + "\n"
+        flat = " ".join((self.args.task_text or "").split())
+        subject = redact(commit_subject(flat))
+        body = redact(flat)
+        if body and body != subject:
+            message = subject + "\n\n" + body + "\n"
+        else:
+            message = subject + "\n"
         committed = _git(
             self.worktree,
             [

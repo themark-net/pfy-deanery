@@ -1752,6 +1752,57 @@ class CloudBuildFailureTests(unittest.TestCase):
         self.assertEqual(count.read_text(encoding="utf-8"), "1")
         self.assertEqual(len(payload["attempts"]), 1)
 
+    def test_long_task_subject_stops_on_a_word_and_the_body_keeps_the_rest(self) -> None:
+        # Fail: the subject is task[:72], which ends inside "rather".
+        # Recover: stop on the previous word and put the full task in the body.
+        task = (
+            "Timeout reasons must name the sub-step command overtimeandfestival "
+            "rather than the entry"
+        )
+        flat = " ".join(task.split())
+        self.assertGreater(len(flat), 72)
+        self.assertNotEqual(flat[71], " ")
+        self.assertNotEqual(flat[72], " ")
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        proc = self._run_task(grok, self._gate(), task, extra=["--no-review", "--retries", "0"])
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        payload = self._receipt()
+        subject = _git(self.repo, "log", "-1", "--format=%s", payload["commit"]).stdout.strip()
+        body = _git(self.repo, "log", "-1", "--format=%b", payload["commit"]).stdout
+        self.assertLessEqual(len(subject), 72, subject)
+        self.assertTrue(subject.endswith("..."), subject)
+        prefix = subject[:-3]
+        self.assertTrue(flat.startswith(prefix + " "), subject)
+        self.assertNotIn("rathe", subject)
+        self.assertIn(flat, body)
+        self.assertIn("rather than the entry", body)
+
+    def test_short_task_subject_is_the_whole_task(self) -> None:
+        # Fail: a short task grows an ellipsis or drops a word.
+        # Recover: the subject is the task, and the body does not repeat it.
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        proc = self._run_task(grok, self._gate(), "add kept", extra=["--no-review", "--retries", "0"])
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        payload = self._receipt()
+        subject = _git(self.repo, "log", "-1", "--format=%s", payload["commit"]).stdout.strip()
+        body = _git(self.repo, "log", "-1", "--format=%b", payload["commit"]).stdout.strip()
+        self.assertEqual(subject, "add kept")
+        self.assertEqual(body, "")
+
 
 class CloudBuildGateReasonTests(unittest.TestCase):
     def setUp(self) -> None:
