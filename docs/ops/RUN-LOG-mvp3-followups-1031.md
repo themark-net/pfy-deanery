@@ -68,3 +68,18 @@ prior-state: lane empty | tests: review module 19 OK skipped 0 in 60.511s with b
 
 - 2026-10-31T23:09:23Z MemAvailable about 80 GiB, load 3.74, 32 cores. Under the pressure line.
 - 2026-10-31T23:28:00Z finish check: MemAvailable about 42 GiB, load 6.33, 32 cores. Under the pressure line. origin/main still c0d38af.
+- 2026-10-31T23:40:00Z resume: MemAvailable about 40 GiB, load 6.96, 32 cores. Under the pressure line. origin/main still c0d38af. Wall cap unchanged: stop new items at 2026-11-01T06:49:23Z.
+
+## Resume (ownership override)
+
+The operator override (2026-10-31 16:40 PT) gives this lane `scripts/pfy_build_local.py`, `tests/test_pfy_build_local.py`, `tests/test_pfy_build_local_review.py`, and `docs/ops/HANDOFF-mvp3-review-retry.md`. `bot/mvp-review-fix2-1031` is closed. Do not leave these as cross-lane requests. Still one lead: the items share the runner. Fetched: `origin/main` is `c0d38af`, an ancestor. No merge.
+
+Phases still open:
+- item 2 | runner + review tests + operator usage doc | stderr and top-level `warnings` say `scope check skipped: no allow list` only when review has no allow list; a `files:` line or `--allow-path` does not | resume | lead
+- item 3 | same runner, review tests, operator doc | `PFY_LOCAL_BUILD_TEST_SEAM=1` gates stub binds and the inject write; unset, both do nothing | item 2 | lead
+- item 4 receipt | runner + review tests + operator doc | `review.same_model` true and `review.reviewer` names the same local model; the review HTTP body uses `model` | item 2 | lead
+- item 5 | runner + review tests | only excluded paths changed is `no-reviewable-change`, exit 1, no branch, no commit | item 2 | lead
+- item 6 | `tests/test_pfy_build_local.py` | `test_ignored_helper_is_not_committed` expects only `commit-recheck-failed` | resume | lead
+- item 7 | runner + review tests | missing poster out file is `review-crashed`, one attempt, not retried; the crash env does nothing unless the seam is on | item 3 | lead
+- item 8 | `docs/ops/HANDOFF-mvp3-review-retry.md` | lines 38, 45, and 51 marked superseded by mvp3-fix-1031 `582414b` | resume | lead
+- handoff | this lane's handoff and a new `state:` line | SHAs, fail/recover, gate | all open items | lead
