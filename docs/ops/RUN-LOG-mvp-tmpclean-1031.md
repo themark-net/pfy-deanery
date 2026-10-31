@@ -48,4 +48,7 @@ Drop-in exits (same loop, checked before every item):
 
 ## Items
 
+- exits | adb4168 | none (log only) | pushed
+- reproduce-red | pending commit | nice -n 19 python3 -m unittest tests.test_pfylib_tmp_cleanup, TMPDIR=$PWD/tmp, sibling /tmp/pfy-hr-x created 2s after start | FAIL in 50.955s, AssertionError set difference was only '/tmp/pfy-hr-x'. Dir removed by this lane's cleanup. Tree stayed clean.
+
 ## Finish
