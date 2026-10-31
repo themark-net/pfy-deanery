@@ -125,6 +125,6 @@ How it fails: a 4-file or 251-line patch is committed, or a 3-file or 250-line p
 How we recover: the over-cap receipt is PASS-REJECTED with size.ok false, no commit, and a clean origin. Narrowing the same task to the cap commits and the gate stays green.
 
 item | commit | tests | result
-survivor-tests | pending-sha | nice python3 -m unittest tests.test_mut_review_harness tests.test_mut_review_size_cap | Ran 8 tests in 5.476s OK
+survivor-tests | ef554f2 | nice python3 -m unittest tests.test_mut_review_harness tests.test_mut_review_size_cap | Ran 8 tests in 5.476s OK
 
 state: DONE | tests: both modules OK on the unmutated runner | files: 3 | err: none
