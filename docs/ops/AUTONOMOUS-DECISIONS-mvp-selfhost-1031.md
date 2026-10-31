@@ -14,3 +14,4 @@
 - 2026-10-31: Human-accept the symlinked-root build. It records the root readlink and still walks entries. A missing path still returns None. Alternative was to reject because a broken symlink root is still treated as missing.
 - 2026-10-31: Human-accept the home_sig docstring. Only that string changed, and it matches the landed tree_sig behavior. Alternative was to reject the phrase lock in the test.
 - 2026-10-31: Next product item is smoke_119_121.tree_sig, the parked mtime blind spot (MVP-2 t2). Sixtask already has a PASS receipt for t2 and is retrying t4, which edits smoke_112_114.py. Do not touch that file. Do not hand-apply the sixtask patch. Build t2 here with a planted test.
+- 2026-10-31: Human-accept the 119 tree_sig port. It matches the landed 122 function and the real-HOME write tests stayed green. Alternative was to accept a content-only hash that still followed symlinks.
