@@ -833,6 +833,63 @@ class CloudBuildNoChangeTests(unittest.TestCase):
         shown = _git(self.repo, "show", branch + ":*")
         self.assertEqual(shown.stdout, "star-body\n")
 
+    def test_gitignored_helper_fails_recheck_then_a_clean_retry_lands(self) -> None:
+        ignore = self.repo / ".gitignore"
+        ignore.write_text(ignore.read_text(encoding="utf-8") + "helper.py\n", encoding="utf-8")
+        added = _git(self.repo, "add", ".gitignore")
+        self.assertEqual(added.returncode, 0, added.stderr)
+        committed = _git(self.repo, "commit", "-m", "ignore helper")
+        self.assertEqual(committed.returncode, 0, committed.stderr)
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "from pathlib import Path\n"
+            "sys.path.insert(0, str(Path('.').resolve()))\n"
+            "try:\n"
+            "    import kept\n"
+            "except Exception as exc:\n"
+            "    print('GATE-IMPORT-FAIL %s' % exc)\n"
+            "    raise SystemExit(1)\n"
+            "print('GATE-OK')\n"
+            "raise SystemExit(0)\n",
+        )
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "from pathlib import Path\n"
+            "blob = '\\n'.join(sys.argv)\n"
+            "if 'PFY-CLOUD-REVIEW' in blob:\n"
+            "    print('verdict: accept')\n"
+            "    raise SystemExit(0)\n"
+            "if 'commit-recheck-failed' in blob:\n"
+            "    Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "    raise SystemExit(0)\n"
+            "Path('helper.py').write_text('VALUE = 1\\n', encoding='utf-8')\n"
+            "Path('kept.py').write_text('import helper\\nvalue = helper.VALUE\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        proc = self._run_task(grok, gate, "add kept", "1")
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        match = re.search(r"PASS ok branch=(\S+) receipt=(\S+)", proc.stdout or "")
+        self.assertIsNotNone(match, proc.stdout)
+        branch = match.group(1)
+        payload = json.loads(Path(match.group(2)).read_text(encoding="utf-8"))
+        self.assertEqual(len(payload["attempts"]), 2)
+        self.assertEqual(payload["attempts"][0]["reason"], "commit-recheck-failed")
+        self.assertEqual(payload["attempts"][1]["status"], "PASS")
+        self.assertEqual(_git(self.repo, "rev-list", "--count", head + ".." + branch).stdout.strip(), "1")
+        names = _git(self.repo, "ls-tree", "-r", "--name-only", branch).stdout.splitlines()
+        self.assertIn("kept.py", names)
+        self.assertNotIn("helper.py", names)
+        shown = _git(self.repo, "show", branch + ":kept.py")
+        self.assertEqual(shown.stdout, "value = 1\n")
+        self.assertNotIn("import helper", shown.stdout)
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+
 
 def _dead(pid: int) -> bool:
     if pid <= 0:
@@ -1955,7 +2012,7 @@ class CloudBuildGateReasonTests(unittest.TestCase):
         self.assertEqual(payload["gate"]["before"]["exit"], 1)
         self.assertEqual(payload["gate"]["after"]["exit"], 0)
         self.assertIn("GATE-OK", payload["gate"]["after"]["tail"])
-        self.assertEqual(count.read_text(encoding="utf-8"), "3")
+        self.assertEqual(count.read_text(encoding="utf-8"), "4")
         names = _git(self.repo, "ls-tree", "-r", "--name-only", payload["commit"]).stdout.splitlines()
         self.assertIn("tests/test_added.py", names)
         self.assertIn("kept.py", names)

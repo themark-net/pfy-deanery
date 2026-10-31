@@ -667,6 +667,7 @@ class CloudBuild:
         self.worktree_removed = False
         self.finished = False
         self.max_attempts = 1 if args.no_review else args.retries + 1
+        self.recheck_tail = ""
 
     def child_env(self) -> dict[str, str]:
         env = os.environ.copy()
@@ -691,15 +692,16 @@ class CloudBuild:
         tmp.write_text(json.dumps(payload), encoding="utf-8")
         os.replace(tmp, self.pid_path)
 
-    def gate(self) -> dict:
+    def gate(self, cwd: Path | None = None) -> dict:
         argv = shlex.split(self.args.test_cmd or "")
         if not argv:
             return {"cmd": self.args.test_cmd, "exit": None, "tail": "empty test command", "started": False}
-        if self.worktree is None:
+        where = cwd or self.worktree
+        if where is None:
             return {"cmd": self.args.test_cmd, "exit": None, "tail": "no worktree", "started": False}
         status, code, out, err = run_command(
             argv,
-            self.worktree,
+            where,
             self.args.timeout,
             self.state,
             self.child_env(),
@@ -717,6 +719,40 @@ class CloudBuild:
         if status == "interrupted" or self.state.interrupted:
             record["aborted"] = "interrupted"
         return record
+
+    def recheck_sha(self, sha: str) -> tuple[str | None, str]:
+        """Run the gate on a fresh extract of sha. None means it passed."""
+        if not sha or self.worktree is None:
+            return "commit-recheck-failed", "archive failed"
+        dest = self.repo / "tmp" / ("recheck-" + sha[:12])
+        if dest.exists():
+            shutil.rmtree(dest, ignore_errors=True)
+        try:
+            archived = subprocess.run(
+                ["git", "-C", str(self.worktree), "archive", sha],
+                capture_output=True,
+                check=False,
+            )
+            if archived.returncode != 0 or not archived.stdout:
+                return "commit-recheck-failed", "archive failed"
+            dest.mkdir(parents=True, exist_ok=True)
+            extracted = subprocess.run(
+                ["tar", "-x", "-C", str(dest)],
+                input=archived.stdout,
+                capture_output=True,
+                check=False,
+            )
+            if extracted.returncode != 0:
+                return "commit-recheck-failed", "extract failed"
+            again = self.gate(dest)
+            tail = str(again.get("tail") or "")
+            if self.state.interrupted or again.get("aborted") == "interrupted":
+                return "interrupted", tail
+            if again.get("exit") != 0 or not again.get("started"):
+                return "commit-recheck-failed", tail
+            return None, tail
+        finally:
+            shutil.rmtree(dest, ignore_errors=True)
 
     def grok_call(self, prompt: str) -> tuple[str, int, str, str]:
         if not self.grok:
@@ -801,6 +837,12 @@ class CloudBuild:
         if len(sha) != 40:
             self.reason = "commit-failed"
             return "commit-failed"
+        reason, tail = self.recheck_sha(sha)
+        self.recheck_tail = tail
+        if reason:
+            _git(self.worktree, ["reset", "--hard", "HEAD~1"])
+            self.reason = reason
+            return reason
         created = _git(self.repo, ["branch", self.branch_name, sha])
         if created.returncode != 0:
             _git(self.worktree, ["reset", "--soft", "HEAD~1"])
@@ -1042,6 +1084,11 @@ class CloudBuild:
                     return self.fail("FAIL", "review-rejected", EXIT_FAIL, "")
                 self.review = {"verdict": "skipped", "reasons": []}
             err = self.commit_paths(changed)
+            if err == "commit-recheck-failed" and number < self.max_attempts:
+                feedback = "commit-recheck-failed\n%s" % (self.recheck_tail or "")
+                previous_diff = diff_text
+                self.record(number, "FAIL", err, output)
+                continue
             if err:
                 self.record(number, "FAIL", err, output)
                 code_out = EXIT_FAIL
