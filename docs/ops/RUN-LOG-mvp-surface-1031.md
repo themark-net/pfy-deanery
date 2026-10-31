@@ -44,4 +44,5 @@ Drop-in exits (same loop, checked before every item):
 
 ## Items
 
-Pending. No doc or test file is written in this commit.
+- exits | a2302df | none (log only) | pushed
+- operator card | this commit | link and contract strings checked locally; unittest is the next item | written
