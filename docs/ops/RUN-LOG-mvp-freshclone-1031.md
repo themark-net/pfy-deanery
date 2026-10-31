@@ -71,6 +71,8 @@ Cross-lane, not edited:
 - mvp-daily-card-1031 and mvp-surface-1031: correct the default repo sentence, delete the stale "not on this branch" and "still reaches the jev wrap" sentences, and mention the HEAD fallback for base.
 - mvp-cloudfix-1031 or mvp-dogfood-fix-1031: add the default gate, 1200 second timeout, receipt directory, and existing grok login to `HELP_TEXT` in `scripts/pfy_build_cloud.py`. Do not take that file on this branch.
 
-naive-walk | (this commit) | no product tests; dry-run exit 0; fixture build PASS exit 0 | gaps recorded
+naive-walk | 96fc710 | no product tests; dry-run exit 0; fixture build PASS exit 0 | gaps recorded
 
-state: walk recorded | tests: dry-run and one cloud build | files: clone plus this log | err: none
+first-day-docs | (fix commit) | nice -n 19 python3 -m unittest tests.test_pfy_build_first_day (2 OK) plus cloud help, dispatch, and CloudBuildUnchangedTests.test_help_and_dry_run_stay_the_same (3 OK, 5 total earlier) | README Daily build section and make help line. Re-walk: make help prints `./pfy build <task>`; `./pfy build` exits 2; dry-run receipt lands in the current repo.
+
+state: fix written | tests: tests.test_pfy_build_first_day 2 OK | files: README.md Makefile tests/test_pfy_build_first_day.py | err: none
