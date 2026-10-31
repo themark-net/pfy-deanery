@@ -53,5 +53,9 @@ skeleton | 62d7e3a | nice -n 19 python3 -m unittest tests.test_pfy_build_cloud (
 dispatch | 860df72 | nice -n 19 python3 -m unittest tests.test_pfy_build_cloud (4 tests OK) | PASS
 pass | 141b203 | nice -n 19 python3 -m unittest tests.test_pfy_build_cloud (5 tests OK) | PASS
 retries | 6a8220e | nice -n 19 python3 -m unittest tests.test_pfy_build_cloud.CloudBuildRetryTests (3 tests OK) | PASS
+no-change | ea5ce77 | nice -n 19 python3 -m unittest tests.test_pfy_build_cloud.CloudBuildNoChangeTests (3 tests OK) | PASS
+failures | 9285fec | nice -n 19 python3 -m unittest tests.test_pfy_build_cloud.CloudBuildFailureTests (13 tests OK) | PASS
+gitignore | db964a4 | nice -n 19 python3 -m unittest tests.test_pfy_build_cloud tests.test_pfy_build_p (40 tests OK, 1 skipped) | PASS
+gate-reasons | b9a4890 | nice -n 19 python3 -m unittest tests.test_pfy_build_cloud.CloudBuildGateReasonTests (3 tests OK) | PASS
 
-state: IN PROGRESS | tests: retry tests 3 OK | files: tests/test_pfy_build_cloud.py | err: none
+state: LANE EMPTY | tests: cloud module plus tests.test_pfy_build_p, 40 OK with 1 skipped before gate-reasons, then 3 gate-reason tests OK | files: scripts/pfy_build_cloud.py, tests/test_pfy_build_cloud.py, scripts/pfy, .gitignore | err: none | pregate not run: host busy
