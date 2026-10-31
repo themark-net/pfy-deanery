@@ -488,6 +488,18 @@ def failure_recovery(reason: str, task: str, detail: str = "") -> str:
         if (detail or "").strip():
             return worktree_recovery(task, detail.strip(), "missing-ref")
         return worktree_recovery(task, "the requested base", "add-failed")
+    if reason == "timeout":
+        quoted_timeout = _quoted_task(task)
+        if (detail or "").strip() == "gate":
+            return (
+                "Mark: the gate timed out. Rerun with a longer --timeout. "
+                "Then rerun ./pfy build %s."
+                % quoted_timeout
+            )
+        return (
+            "Mark: grok timed out. Rerun ./pfy build %s, or pass a larger --timeout."
+            % quoted_timeout
+        )
     if reason == "no-receipt":
         if (task or "").strip():
             return (
@@ -510,7 +522,6 @@ def failure_recovery(reason: str, task: str, detail: str = "") -> str:
         )
     lines = {
         "interrupted": "Mark: the build was interrupted. Rerun ./pfy build %s.",
-        "timeout": "Mark: grok timed out. Rerun ./pfy build %s, or pass a larger --timeout.",
         "tests-tampered": (
             "Mark: a base test changed and was not named by --writable-test. "
             "Restore it or pass --writable-test for that file, then rerun ./pfy build %s."
@@ -855,7 +866,9 @@ class CloudBuild:
             "tail": redact(text)[-TAIL_CAP:],
             "started": status != "missing",
         }
-        if status == "interrupted" or self.state.interrupted:
+        if status == "timeout":
+            record["aborted"] = "timeout"
+        elif status == "interrupted" or self.state.interrupted:
             record["aborted"] = "interrupted"
         return record
 
@@ -885,6 +898,8 @@ class CloudBuild:
                 return "commit-recheck-failed", "extract failed"
             again = self.gate(dest)
             tail = str(again.get("tail") or "")
+            if again.get("aborted") == "timeout":
+                return "timeout", tail
             if self.state.interrupted or again.get("aborted") == "interrupted":
                 return "interrupted", tail
             if again.get("exit") != 0 or not again.get("started"):
@@ -1079,6 +1094,11 @@ class CloudBuild:
             print("FAIL: %s" % self.reason, file=sys.stderr)
         return self.exit_code
 
+    def _gate_timeout_fail(self, number: int, output: str) -> int:
+        self.recovery_detail = "gate"
+        self.record(number, "TIMEOUT", "timeout", output)
+        return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")
+
     def prepare_worktree(self) -> str | None:
         dest = self.repo / "tmp" / "cloud-build" / self.stamp
         try:
@@ -1118,6 +1138,8 @@ class CloudBuild:
             )
         assert self.worktree is not None
         self.gate_before = self.gate()
+        if (self.gate_before or {}).get("aborted") == "timeout":
+            return self._gate_timeout_fail(0, str((self.gate_before or {}).get("tail") or ""))
         if self.state.interrupted or (self.gate_before or {}).get("aborted") == "interrupted":
             self.record(0, "FAIL", "interrupted", "")
             return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
@@ -1171,6 +1193,8 @@ class CloudBuild:
                 return self.fail("FAIL", "tests-tampered", EXIT_FAIL, "")
             after = self.gate()
             self.gate_after = after
+            if after.get("aborted") == "timeout":
+                return self._gate_timeout_fail(number, output + "\n" + str(after.get("tail") or ""))
             if self.state.interrupted or after.get("aborted") == "interrupted":
                 self.record(number, "FAIL", "interrupted", output)
                 return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
@@ -1190,6 +1214,8 @@ class CloudBuild:
                 return self.fail("FAIL", "tests", EXIT_FAIL, "")
             again = self.gate()
             self.gate_after = again
+            if again.get("aborted") == "timeout":
+                return self._gate_timeout_fail(number, output + "\n" + str(again.get("tail") or ""))
             if self.state.interrupted or again.get("aborted") == "interrupted":
                 self.record(number, "FAIL", "interrupted", output)
                 return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
@@ -1246,6 +1272,8 @@ class CloudBuild:
                     return self.fail("FAIL", "review-rejected", EXIT_FAIL, "")
                 self.review = {"verdict": "skipped", "reasons": []}
             err = self.commit_paths(changed)
+            if err == "timeout":
+                return self._gate_timeout_fail(number, output)
             if err == "commit-recheck-failed" and number < self.max_attempts:
                 feedback = "commit-recheck-failed\n%s" % (self.recheck_tail or "")
                 previous_diff = diff_text
