@@ -67,8 +67,10 @@ Skipped up front, with reasons, in the decisions file: the open TODO rows that n
 
 item | commit | tests | result
 01-tree-sig-copies | 31a863c | tests.test_tree_sig_copies 5 OK | PASS human-accept wall 398s attempts 1 review accept cloudfix d35af20
+02-pregate-orphans | 42e4452 | tests.test_pregate_orphans 5 OK | PASS human-accept wall 1490s attempts 1 review accept cloudfix d35af20
 
 ## States
 
 state: prep written | tests: none yet | files: 2 | err: none
 state: 01 PASS | tests: tests.test_tree_sig_copies 5 OK | files: 3 smoke copies | err: none
+state: 02 PASS | tests: tests.test_pregate_orphans 5 OK | files: pregate.sh + pregate_orphans.py | err: none
