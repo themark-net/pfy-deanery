@@ -389,7 +389,8 @@ check_lint() {
   # the absolute PATH python3 (the same lookup the hosted G0 step uses). Do
   # not resolve symlinks: a venv python3 is a symlink to a base interpreter
   # that may have PyYAML while the venv does not. Missing PyYAML fails closed
-  # and the helper names that path.
+  # and the helper names that path. The helper also requires
+  # eval-structural.yml to install ripgrep in a run step and invoke rg.
   pin_py="$(command -v python3 || true)"
   # PREGATE_IMAGE_PIN_ROOT is a test hook. Unset or empty, the helper checks
   # this repo's workflows. Set to a directory or file, it checks that path,
@@ -404,9 +405,6 @@ check_lint() {
     fail=1
   elif ! "$pin_py" scripts/check_workflow_image_pin.py "$pin_root"; then
     fail=1
-  fi
-  if ! grep -q 'ripgrep' .github/workflows/eval-structural.yml; then
-    echo "FAIL: eval-structural.yml does not install ripgrep"; fail=1
   fi
   return "$fail"
 }

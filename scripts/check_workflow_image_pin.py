@@ -4,8 +4,10 @@
 Walks jobs.*.runs-on as a string, a label list, or a simple matrix expression
 (${{ matrix.KEY }} or ${{ matrix['KEY'] }} / double quotes). A self-hosted
 label list is allowed. ubuntu-latest, any other GitHub-hosted image, an
-unresolved expression, malformed YAML, a missing runs-on, and a missing
-PyYAML all exit 1. A missing parser is a failure.
+unresolved expression, malformed YAML, a repeated mapping key, a missing
+runs-on, and a missing PyYAML all exit 1. A missing parser is a failure.
+PyYAML keeps the last copy of a repeated key; this check rejects it, so a
+later ubuntu-24.04 cannot hide an earlier ubuntu-latest.
 
 Also walks jobs.*.container (a string or an image: mapping) and
 jobs.*.services.*.image. Each image needs a tag that is not latest and not
@@ -13,11 +15,18 @@ empty. If any image in this run already uses @sha256:, every image needs
 an @sha256: digest of 64 hex digits. Malformed container or service forms
 fail closed.
 
+eval-structural.yml must also install the ripgrep package from a run step
+and invoke rg. The word ripgrep in a comment, a step name, or an echo is
+not an install. Shell comments inside the run script are ignored.
+
 Recovery: pin the job to ubuntu-24.04, give every container and service image
 a non-latest tag (and @sha256: when any image in the run already has one),
-or install PyYAML for the interpreter named in the failure (sys.executable).
-Pregate and the hosted G0 job both invoke that absolute PATH python3. A
-different python3 later on PATH is not used. Do not skip the check.
+delete the repeated YAML key, or install PyYAML for the interpreter named
+in the failure (sys.executable). Pregate and the hosted G0 job both invoke
+that absolute PATH python3. A different python3 later on PATH is not used.
+For the structural workflow, put `apt-get install` (or `apt install`) of the
+ripgrep package and `rg --version` or `command -v rg` in a run step. Do not
+skip the check.
 
 Usage:
   python3 scripts/check_workflow_image_pin.py [FILE_OR_DIR ...]
@@ -185,6 +194,93 @@ def check_runs_on(rel: str, name: str, job: dict, raw: object) -> list[str]:
     return out
 
 
+def _strip_shell_comment(line: str) -> str:
+    """Drop an unquoted # comment. Quoted hashes stay."""
+    in_single = False
+    in_double = False
+    out: list[str] = []
+    i = 0
+    while i < len(line):
+        ch = line[i]
+        if ch == "'" and not in_double:
+            in_single = not in_single
+        elif ch == '"' and not in_single:
+            in_double = not in_double
+        elif ch == "#" and not in_single and not in_double:
+            break
+        elif ch == "\\" and in_double and i + 1 < len(line):
+            out.append(ch)
+            out.append(line[i + 1])
+            i += 2
+            continue
+        out.append(ch)
+        i += 1
+    return "".join(out)
+
+
+def _run_code(data: object) -> str:
+    if not isinstance(data, dict):
+        return ""
+    jobs = data.get("jobs")
+    if not isinstance(jobs, dict):
+        return ""
+    lines: list[str] = []
+    for job in jobs.values():
+        if not isinstance(job, dict):
+            continue
+        steps = job.get("steps")
+        if not isinstance(steps, list):
+            continue
+        for step in steps:
+            if not isinstance(step, dict):
+                continue
+            run = step.get("run")
+            if not isinstance(run, str):
+                continue
+            for line in run.splitlines():
+                lines.append(_strip_shell_comment(line))
+    return "\n".join(lines)
+
+
+def _installs_ripgrep(code: str) -> bool:
+    for line in code.splitlines():
+        tokens = line.split()
+        if "apt-get" not in tokens and "apt" not in tokens:
+            continue
+        if "install" not in tokens:
+            continue
+        if "ripgrep" in tokens:
+            return True
+    return False
+
+
+def _runs_rg(code: str) -> bool:
+    for line in code.splitlines():
+        tokens = line.split()
+        if "rg" in tokens and "--version" in tokens:
+            return True
+        for index, token in enumerate(tokens):
+            if token == "command" and tokens[index : index + 3] == ["command", "-v", "rg"]:
+                return True
+    return False
+
+
+def ripgrep_step_errors(path: Path, data: object) -> list[str]:
+    """eval-structural.yml must install ripgrep and then invoke rg.
+
+    Other workflow filenames are not asked to install ripgrep.
+    """
+    if path.name != "eval-structural.yml":
+        return []
+    rel = str(path)
+    code = _run_code(data)
+    if not _installs_ripgrep(code):
+        return [f"FAIL: {rel}: does not install ripgrep"]
+    if not _runs_rg(code):
+        return [f"FAIL: {rel}: installs ripgrep but does not run rg"]
+    return []
+
+
 def check_document(path: Path, data: object) -> list[str]:
     rel = str(path)
     if not isinstance(data, dict):
@@ -205,6 +301,7 @@ def check_document(path: Path, data: object) -> list[str]:
             out.append(f"FAIL: {rel}: job {job_name} has no runs-on")
             continue
         out.extend(check_runs_on(rel, job_name, job, job.get("runs-on")))
+    out.extend(ripgrep_step_errors(path, data))
     return out
 
 
@@ -306,13 +403,45 @@ def collect_images(path: Path, data: object) -> tuple[list[str], list[tuple[str,
     return fails, refs
 
 
+def load_workflow(yaml_mod, text: str):
+    """Load workflow YAML and reject a repeated mapping key.
+
+    The default loader keeps the last value. A job could then hide
+    ubuntu-latest under a later ubuntu-24.04 and look pinned.
+    """
+
+    class UniqueKeyLoader(yaml_mod.SafeLoader):
+        pass
+
+    def construct_mapping(loader, node, deep=False):
+        seen: list[str] = []
+        for key_node, _value_node in node.value:
+            if not isinstance(key_node, yaml_mod.ScalarNode):
+                continue
+            if key_node.value in seen:
+                raise yaml_mod.constructor.ConstructorError(
+                    "while constructing a mapping",
+                    node.start_mark,
+                    f"found duplicate key {key_node.value!r}",
+                    key_node.start_mark,
+                )
+            seen.append(key_node.value)
+        return yaml_mod.constructor.SafeConstructor.construct_mapping(loader, node, deep)
+
+    UniqueKeyLoader.add_constructor(
+        yaml_mod.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+        construct_mapping,
+    )
+    return yaml_mod.load(text, Loader=UniqueKeyLoader)
+
+
 def check_file(yaml_mod, path: Path) -> tuple[list[str], list[tuple[str, str]]]:
     try:
         text = path.read_text(encoding="utf-8")
     except OSError as exc:
         return [f"FAIL: cannot read {path}: {exc}"], []
     try:
-        data = yaml_mod.safe_load(text)
+        data = load_workflow(yaml_mod, text)
     except yaml_mod.YAMLError as exc:
         err = " ".join(str(exc).split())
         return [f"FAIL: malformed YAML in {path}: {err}"], []

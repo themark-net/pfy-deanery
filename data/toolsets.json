@@ -85,8 +85,8 @@
         "commands": ["./pfy context"]
       },
       "implementation": {
-        "grok": {"status": "partial", "how": "env only via _apply_opencontext_env in attach_usable_202; oc MCP not wired into config.toml"},
-        "opencode": {"status": "partial", "how": "env only via _apply_opencontext_env in pfy_enterable_162_b; no opencode.json fragment"},
+        "grok": {"status": "partial", "how": "env only via _apply_opencontext_env in pfylib/attach.py; oc MCP not wired into config.toml"},
+        "opencode": {"status": "partial", "how": "env only via _apply_opencontext_env in pfylib/attach.py; no opencode.json fragment"},
         "claude-code": {"status": "partial", "how": "env only via attach_usable_221"},
         "codex": {"status": "partial", "how": "env only via attach_usable_220"},
         "hermes": {"status": "partial", "how": "env only via attach_usable_196"},

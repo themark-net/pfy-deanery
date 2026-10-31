@@ -449,6 +449,8 @@ class OpenCodeEnterableTests(_Tmp):
 
     def _record_spawn(self, bin_path, cwd, env, log, pid_alive):
         self.spawned.append({"bin": bin_path, "cwd": cwd, "env": dict(env), "log": str(log)})
+        self.reach_at_spawn = (self.state / "opencode-session-reach").exists()
+        self.base_at_spawn = (self.state / "opencode-attach-base").exists()
         return self._spawn_result
 
     def _deps(self, **over):
@@ -491,13 +493,109 @@ class OpenCodeEnterableTests(_Tmp):
 
     def test_terminal_cannot_start_fails_closed(self):
         self._spawn_result = (False, 0, "terminal cannot start")
+        # A file that was never created cannot prove the failure path cleared it.
+        (self.state / "opencode-session-reach").write_text("stale\n", encoding="utf-8")
+        (self.state / "opencode-attach-base").write_text("http://127.0.0.1:9/v1\n", encoding="utf-8")
         out = self._open()
         self.assertFalse(out["ok"])
         self.assertFalse(out["usable"])
         self.assertEqual(out["error"], "terminal cannot start")
         self.assertNotEqual(out["live"], "READY")
         self.assertFalse((self.state / "opencode-session-reach").exists())
+        self.assertFalse((self.state / "opencode-attach-base").exists())
         self.assertEqual(len(self.spawned), 1)
+
+    def test_reuse_prove_does_not_spawn_when_the_base_matches(self):
+        (self.state / "opencode-terminal.pid").write_text("4242\n", encoding="utf-8")
+        (self.state / "opencode-attach-base").write_text("http://127.0.0.1:9/v1\n", encoding="utf-8")
+        seen = []
+
+        def prove(base, inspect):
+            seen.append(base)
+            return (True, "stub-model", "")
+
+        self.prove.prove_developer_usable = prove
+        out = self._open()
+        self.assertTrue(out["ok"], out)
+        self.assertEqual(out["pid"], 4242)
+        self.assertTrue(out["usable"])
+        self.assertEqual(self.spawned, [])
+        self.assertEqual(seen, ["http://127.0.0.1:9/v1"])
+
+    def test_reuse_prove_failure_does_not_spawn(self):
+        (self.state / "opencode-terminal.pid").write_text("4242\n", encoding="utf-8")
+        (self.state / "opencode-attach-base").write_text("http://127.0.0.1:9/v1\n", encoding="utf-8")
+        (self.state / "opencode-session-reach").write_text("stale\n", encoding="utf-8")
+        self.prove.prove_developer_usable = lambda base, inspect: (False, "", "reuse smoke failed")
+        out = self._open()
+        self.assertFalse(out["ok"])
+        self.assertEqual(out["error"], "reuse smoke failed")
+        self.assertEqual(out["session_reach"], "FAIL")
+        self.assertEqual(self.spawned, [])
+        self.assertFalse((self.state / "opencode-session-reach").exists())
+        self.assertFalse((self.state / "opencode-attach-base").exists())
+
+    def test_no_engine_fails_closed_and_clears_the_session(self):
+        (self.state / "opencode-session-reach").write_text("stale\n", encoding="utf-8")
+        out = self._open(
+            live_openai_base=lambda: ("", {"engine": "none", "status": "missing"})
+        )
+        self.assertFalse(out["ok"])
+        self.assertIsNot(out.get("usable"), True)
+        self.assertEqual(out["error"], "no local engine")
+        self.assertIn("Launch env", out.get("next_step") or "")
+        self.assertEqual(out["session_reach"], "FAIL")
+        self.assertEqual(self.spawned, [])
+        self.assertFalse((self.state / "opencode-session-reach").exists())
+
+    def test_base_drift_clears_the_old_session_before_spawn(self):
+        (self.state / "opencode-terminal.pid").write_text("4242\n", encoding="utf-8")
+        (self.state / "opencode-attach-base").write_text(
+            "http://127.0.0.1:11434/v1\n", encoding="utf-8"
+        )
+        (self.state / "opencode-session-reach").write_text("stale\n", encoding="utf-8")
+        self._spawn_result = (True, 5151, "")
+        out = self._open()
+        self.assertTrue(out["ok"], out)
+        self.assertEqual(len(self.spawned), 1)
+        self.assertFalse(self.reach_at_spawn)
+        self.assertFalse(self.base_at_spawn)
+        child = self.spawned[0]["env"]
+        self.assertEqual(child["LOCAL_OPENAI_BASE_URL"], "http://127.0.0.1:9/v1")
+        self.assertNotIn("11434", child["LOCAL_OPENAI_BASE_URL"])
+
+    def test_attach_mode_reaches_the_child_env(self):
+        (self.state / "attach-mode").write_text("orchestration\n", encoding="utf-8")
+        self._spawn_result = (True, 4242, "")
+        out = self._open()
+        self.assertTrue(out["ok"], out)
+        self.assertEqual(self.spawned[0]["env"].get("PFY_ATTACH_MODE"), "orchestration")
+
+    def test_opencontext_env_reaches_the_child_when_oc_is_on_path(self):
+        keys = ("OPENCONTEXT_BIN", "OPENCONTEXT_CONTEXTS_ROOT", "OPENCONTEXT_DB_PATH")
+        saved = {key: os.environ.get(key) for key in keys}
+        bindir = self.tmp / "bin"
+        bindir.mkdir()
+        oc = bindir / "oc"
+        oc.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        oc.chmod(0o755)
+        try:
+            for key in keys:
+                os.environ.pop(key, None)
+            os.environ["PATH"] = str(bindir)
+            self._spawn_result = (True, 4242, "")
+            out = self._open()
+            self.assertTrue(out["ok"], out)
+            child = self.spawned[0]["env"]
+            self.assertEqual(child.get("OPENCONTEXT_BIN"), str(oc))
+            self.assertTrue(child.get("OPENCONTEXT_CONTEXTS_ROOT"))
+            self.assertTrue(child.get("OPENCONTEXT_DB_PATH"))
+        finally:
+            for key, value in saved.items():
+                if value is None:
+                    os.environ.pop(key, None)
+                else:
+                    os.environ[key] = value
 
     def test_prove_failure_does_not_paint_ready(self):
         self._spawn_result = (True, 4242, "")
