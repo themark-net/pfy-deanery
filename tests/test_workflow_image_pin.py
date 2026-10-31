@@ -52,6 +52,38 @@ def _image_pin_step_command(steps: object) -> str | None:
     return found
 
 
+def in_place_root_limit() -> int:
+    """Longer of the two paths pregate measures for --in-place.
+
+    Scratch is <git common parent>/tmp/pgs/<7 sha chars>-<6 clock chars>.
+    The clock digits do not change the length.
+    """
+    common = subprocess.check_output(
+        ["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
+        cwd=ROOT,
+        text=True,
+    ).strip()
+    main_root = str(Path(common).parent)
+    sha = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+    scratch = f"{main_root}/tmp/pgs/{sha[:7]}-000000"
+    return max(len(str(ROOT)), len(scratch))
+
+
+def run_pregate_lint(limit: int, timeout: int) -> subprocess.CompletedProcess[str]:
+    SCRATCH.mkdir(parents=True, exist_ok=True)
+    env = os.environ.copy()
+    env["TMPDIR"] = str(SCRATCH)
+    env["PREGATE_MAX_ROOT_LEN"] = str(limit)
+    return subprocess.run(
+        ["nice", "-n", "19", "scripts/pregate.sh", "--in-place", "--allow-dirty", "--only", "lint"],
+        cwd=ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+    )
+
+
 def run_helper(*args: str, env: dict | None = None) -> subprocess.CompletedProcess[str]:
     merged = os.environ.copy()
     merged["TMPDIR"] = str(SCRATCH)
@@ -436,6 +468,40 @@ class WorkflowImagePinTests(unittest.TestCase):
             self.assertNotIn("PASS workflow image pin:", text)
         finally:
             shutil.rmtree(fixture)
+
+    def test_root_path_over_the_limit_is_refused(self) -> None:
+        # B2 guard: a run root or scratch path longer than PREGATE_MAX_ROOT_LEN
+        # is a setup error, before any check. Changing `>` to `>=` is the
+        # at-limit test. Removing the check lets this call reach OVERALL=.
+        limit = in_place_root_limit() - 1
+        self.assertGreaterEqual(limit, 1)
+        proc = run_pregate_lint(limit, 60)
+        blob = proc.stdout + proc.stderr
+        self.assertEqual(proc.returncode, 2, blob)
+        self.assertNotIn("OVERALL=", proc.stdout)
+        match = re.search(
+            r"path too long \((\d+) > (\d+) chars\): (.+?)\. Use a checkout",
+            proc.stderr,
+        )
+        self.assertIsNotNone(match, proc.stderr)
+        got_len = int(match.group(1))
+        shown_limit = int(match.group(2))
+        path = match.group(3)
+        self.assertEqual(shown_limit, limit)
+        self.assertEqual(got_len, len(path))
+        self.assertGreater(got_len, shown_limit)
+        self.assertIn("PREGATE_MAX_ROOT_LEN", proc.stderr)
+
+    @needs_yaml
+    def test_root_path_at_the_limit_passes_the_guard(self) -> None:
+        # Equality is allowed. The guard uses `>`, so a path of exactly the
+        # limit must reach the lint and pass. A `>=` comparison exits 2 here.
+        limit = in_place_root_limit()
+        proc = run_pregate_lint(limit, 240)
+        blob = proc.stdout + proc.stderr
+        self.assertNotIn("path too long", blob)
+        self.assertEqual(proc.returncode, 0, blob)
+        self.assertIn("OVERALL=PASS", proc.stdout)
 
 
 if __name__ == "__main__":
