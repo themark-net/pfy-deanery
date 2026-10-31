@@ -86,3 +86,13 @@ run-t5 | 771cc1f | receipt eval/mvp-1031/local-rerun/t5-receipts-outside-repo/re
 ## t4 launch
 
 2026-10-31T23:05Z: t5 receipt is on disk. Reserve is 2026-11-01T05:37Z. Lock held by pregate 6664713. t4 waits until 2026-11-01T03:57Z.
+
+Lock acquired 2026-10-31T23:23:51Z. Finished 2026-10-31T23:54:51Z. Exit 3. Gate TIMEOUT timeout. Attempts: tests-failed, tests-failed, timeout. Commit none. Gitignored path: no. Model unloaded. ollama ps empty.
+
+run-t4 | this handoff commit | receipt eval/mvp-1031/local-rerun/t4-timeout-substep/receipt.json | TIMEOUT, no commit, no gitignored path
+
+## Close
+
+Further plan gaps do not fit this lane's owned files. Pregate skipped: GitHub Runner.Worker pid 3751002 was running.
+
+state: DONE | tests: eval/mvp-1031/test_rerun_local.py 12 OK; t5 PASS; t4 TIMEOUT exit 3 | files: rerun script, two receipts, NOTE.md, handoff | err: none
