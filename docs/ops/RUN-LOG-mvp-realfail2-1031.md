@@ -74,4 +74,4 @@ Format: `item | commit | tests | result`
 - review-retry-accept | 0a853fd | tests.test_mvp_1031_realfail2_receipts | PASS. Attempt 1 review-rejected, attempt 2 accept. kept.py committed, danger.sh not committed.
 - scope-commit-mismatch | f351af8 | tests.test_mvp_1031_realfail2_receipts | PASS. Exit 1, index reset, no branch.
 - protected-paths | 95b3405 | tests.test_mvp_1031_realfail2_receipts | PASS. Exit 1, protected-path-changed, neither file committed.
-- keep-worktree | (this commit) | tests.test_mvp_1031_realfail2_receipts | PASS. Exit 0, worktree_removed false, directory still present.
+- keep-worktree | 178ed26 | tests.test_mvp_1031_realfail2_receipts | PASS. Exit 0, worktree_removed false, directory still present.
