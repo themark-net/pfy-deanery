@@ -5,6 +5,7 @@ No grok, no model, no network. Scratch stays under this worktree tmp/.
 
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import subprocess
@@ -153,6 +154,123 @@ class InitFixtureTests(unittest.TestCase):
         self.assertEqual((outside / "keep.txt").read_text(encoding="utf-8"), "keep\n")
         self.assertFalse((outside / "add.py").exists())
         self.assertFalse((outside / ".git").exists())
+
+
+def _pass_receipt() -> dict:
+    return {
+        "schema": "pfy-cloud-build/1",
+        "status": "PASS",
+        "reason": "ok",
+        "exit_code": 0,
+        "branch": "cloud/add-sum-20261031",
+        "commit": "a" * 40,
+        "review": {"verdict": "accept"},
+        "attempts": [{"status": "PASS"}],
+        "pushed": False,
+        "gate": {"cmd": "python3 -m unittest test_add"},
+    }
+
+
+class CheckReceiptTests(unittest.TestCase):
+    def setUp(self):
+        self.work = Path(tempfile.mkdtemp(prefix="receipt-", dir=SCRATCH))
+        self.checker = ROOT / "eval" / "mvp-1031" / "check_receipt.py"
+
+    def tearDown(self):
+        shutil.rmtree(self.work)
+
+    def _write(self, body: dict) -> Path:
+        path = self.work / "receipt.json"
+        path.write_text(json.dumps(body), encoding="utf-8")
+        return path
+
+    def _check(self, path: Path) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            [sys.executable, str(self.checker), str(path)],
+            capture_output=True,
+            text=True,
+        )
+
+    def test_pass_receipt_exits_0(self):
+        # Fail: a checker that rejects a complete PASS would block the integration demo.
+        # Recover: exit 0 and write nothing when every required field matches.
+        proc = self._check(self._write(_pass_receipt()))
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(proc.stdout, "")
+        self.assertEqual(proc.stderr, "")
+
+    def test_rejects_listed_field_failures(self):
+        # Fail: a checker that accepts these shapes would call a bad cloud run a PASS.
+        # Recover: exit 1 and name the broken field on one stderr line.
+        cases = {
+            "commit": {**_pass_receipt(), "commit": None},
+            "branch": {**_pass_receipt(), "branch": "local/x"},
+            "verdict": {**_pass_receipt(), "review": {"verdict": "reject"}},
+            "pushed": {**_pass_receipt(), "pushed": True},
+            "attempts": {**_pass_receipt(), "attempts": []},
+            "schema": {**_pass_receipt(), "schema": "pfy-local-build/1"},
+        }
+        expect = {
+            "commit": "commit is not 40 hex chars",
+            "branch": "branch does not start with cloud/",
+            "verdict": "review.verdict is not accept",
+            "pushed": "pushed is not false",
+            "attempts": "attempts is empty",
+            "schema": "schema is not pfy-cloud-build/1",
+        }
+        for name, body in cases.items():
+            proc = self._check(self._write(body))
+            self.assertEqual(proc.returncode, 1, name + " " + proc.stderr)
+            self.assertEqual(proc.stderr.strip(), "rejected: " + expect[name])
+            self.assertEqual(proc.stderr.count("\n"), 1)
+            self.assertEqual(proc.stdout, "")
+
+    def test_rejects_secret_markers_in_pass_shaped_json(self):
+        # Fail: a PASS-shaped receipt that still carries a token would be archived as success.
+        # Recover: exit 1, name the marker class, and do not echo the sample.
+        samples = {
+            "AKIA": "AKIA" + ("a" * 16),
+            "BEGIN PRIVATE KEY": "-----BEGIN PRIVATE KEY-----\nnot-a-real-key\n",
+            "sk_": "sk_" + ("b" * 8),
+        }
+        expect = {
+            "AKIA": "rejected: receipt text contains AKIA",
+            "BEGIN PRIVATE KEY": "rejected: receipt text contains BEGIN PRIVATE KEY",
+            "sk_": "rejected: receipt text contains sk_ secret",
+        }
+        for name, sample in samples.items():
+            body = _pass_receipt()
+            body["note"] = sample
+            proc = self._check(self._write(body))
+            self.assertEqual(proc.returncode, 1, name)
+            self.assertEqual(proc.stderr.strip(), expect[name])
+            self.assertNotIn(sample, proc.stderr)
+            self.assertNotIn(sample, proc.stdout)
+
+    def test_checker_does_not_read_grok_auth(self):
+        # Fail: opening ~/.grok/auth.json would copy a credential path into a receipt check.
+        # Recover: the checker stays on the receipt file; strace shows no auth.json open.
+        path = self._write(_pass_receipt())
+        trace = self.work / "strace.txt"
+        proc = subprocess.run(
+            [
+                "strace",
+                "-f",
+                "-e",
+                "trace=file",
+                "-o",
+                str(trace),
+                sys.executable,
+                str(self.checker),
+                str(path),
+            ],
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        text = trace.read_text(encoding="utf-8", errors="replace")
+        self.assertNotIn("auth.json", text)
+        self.assertNotIn(".grok/", text)
 
 
 if __name__ == "__main__":
