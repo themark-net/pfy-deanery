@@ -2,14 +2,14 @@
 
 Every line of the Functional MVP Definition of Done and every failure-case row from `origin/bot/mvp-plan-1031:docs/plans/MVP-PARALLEL-1031.md`. For each row: the command that proves it, the test (file and test name, checked to exist), and the evidence receipt as `branch:path`.
 
-Rechecked `2026-10-31T21:21:27Z` after `git fetch`:
+Rechecked `2026-10-31T21:21:27Z`, then again `2026-10-31T21:29:55Z`, after `git fetch`:
 
 | Branch | Tip | What it adds for this list |
 |--------|-----|----------------------------|
 | `origin/bot/mvp-integrate-1031` | `19c2710` | PASS demo `eval/mvp-1031/demo-receipt.json` |
-| `origin/bot/mvp-realfail-1031` | `d09647a` | Real receipts under `eval/mvp-1031/realfail/` |
-| `origin/bot/mvp-cloudfix-1031` | `57c6dad` | Extra behavior tests. After-fix receipts are named only as `tmp/` paths in `docs/ops/RUN-LOG-mvp-cloudfix-1031.md`. They are not in git. |
-| `origin/bot/mvp-realfail2-1031` | `884a16a` | Drop-in on top of cloudfix. No receipt directory of its own yet. |
+| `origin/bot/mvp-realfail-1031` | `d09647a` | Real receipts under `eval/mvp-1031/realfail/`. Unchanged at the second recheck. |
+| `origin/bot/mvp-cloudfix-1031` | `d35af20` | Extra behavior tests and `docs/ops/HANDOFF-mvp-cloudfix-1031.md` on that branch. After-fix receipts are still gitignored `tmp/` paths, not in git. Moved from `57c6dad` at the second recheck. |
+| `origin/bot/mvp-realfail2-1031` | `884a16a` | Drop-in on top of cloudfix `57c6dad`. It does not contain `d35af20`. No receipt directory of its own. Unchanged at the second recheck. |
 
 This branch is `bot/mvp-docs-1031`, which contains the integrate tip. A test cited on cloudfix is also on realfail2 until that branch diverges. It is not on this branch unless the row says so.
 
@@ -26,7 +26,7 @@ A row is a GAP when the matching receipt is not on a fetched branch, or when no 
 7. `worktree-failed` receipt. Test exists on this branch. No branch receipt uses `reason` `worktree-failed`.
 8. Gate red, then a later PASS. Test exists on this branch. No branch receipt shows attempt 1 `tests` and a later attempt `PASS`. The demo receipt is one PASS attempt.
 
-`origin/bot/mvp-realfail2-1031` has not closed any of these. Next recheck is when that branch gains a commit past `884a16a`.
+Second recheck `2026-10-31T21:29:55Z`: none of the eight GAPs closed. Cloudfix `d35af20` adds tests (`test_pass_does_not_push_the_cloud_branch`, a default `gate.cmd` assert inside `test_dry_run_writes_receipt_and_starts_no_grok`, and bearer plus `API_TOKEN` asserts inside `test_receipt_redacts_tokens_keys_and_private_key_blocks`). Its handoff still points the fixed FINDING receipts at gitignored `tmp/`. Realfail and realfail2 did not move. Next recheck is when realfail2 passes `884a16a`, or when any of those `tmp/` receipts is committed on a branch.
 
 ## Daily command
 
@@ -42,7 +42,7 @@ A row is a GAP when the matching receipt is not on a fetched branch, or when no 
 |------|---------|------|---------|
 | `--repo DIR` | `./pfy build --help` (help text: git repo to build) | `tests/test_pfy_build_cloud.py` `CloudBuildPassTests.test_pass_matches_receipt_and_leaves_caller_clean` (passes `--repo`) | Demo used `--repo` on a temp fixture. Receipt `origin/bot/mvp-integrate-1031:eval/mvp-1031/demo-receipt.json` (also on this branch). |
 | `--base REF`, default `origin/main` when the ref exists | `./pfy build "quickstart dry run" --dry-run --receipt-dir "$PWD/tmp/quickstart-dry-run"` left `base` `origin/main` without passing `--base` | On cloudfix and realfail2: `tests/test_pfy_build_cloud.py` `test_default_base_is_origin_main_not_the_caller_head` and `test_explicit_base_selects_that_ref`. Not on this branch. | Dry-run receipt is gitignored `tmp/quickstart-dry-run/receipt.json` in this worktree, not a branch object. |
-| `--test-cmd CMD`, default `python3 -m unittest discover -s tests -t .` | `./pfy build --help` | `CloudBuildPassTests.test_pass_matches_receipt_and_leaves_caller_clean` passes `--test-cmd`. Demo gate is `python3 -m unittest test_add`. | `eval/mvp-1031/demo-receipt.json` field `gate.cmd`. |
+| `--test-cmd CMD`, default `python3 -m unittest discover -s tests -t .` | `./pfy build --help` | `CloudBuildPassTests.test_pass_matches_receipt_and_leaves_caller_clean` passes `--test-cmd`. On cloudfix `d35af20` only, `CloudBuildSkeletonTests.test_dry_run_writes_receipt_and_starts_no_grok` asserts `gate.cmd` is that default discover string. Not on this branch and not on realfail2 `884a16a`. Demo gate is `python3 -m unittest test_add`. | `eval/mvp-1031/demo-receipt.json` field `gate.cmd`. |
 | `--retries N`, default 2 extra, 3 total | `./pfy build --help` prints `default 2, so 3 total` | On cloudfix and realfail2: `test_gate_stays_red_for_the_default_three_attempts`. On this branch the spent-3 case is the realfail receipt, not a same-named test. | `origin/bot/mvp-realfail-1031:eval/mvp-1031/realfail/gate-red/receipt.json` has attempts 1, 2, 3, each `FAIL` / `tests`. |
 | `--no-review` | `./pfy build --help` | `tests/test_pfy_build_cloud.py` `CloudBuildFailureTests.test_no_review_skips_the_second_grok_call` | No branch receipt for a `--no-review` run. The test writes a temp receipt. |
 | `--receipt-dir DIR` | Dry-run command above wrote `tmp/quickstart-dry-run/receipt.json` | `CloudBuildSkeletonTests.test_dry_run_writes_receipt_and_starts_no_grok` | Same gitignored dry-run file. Demo copy is the integrate path above. |
@@ -59,7 +59,7 @@ A row is a GAP when the matching receipt is not on a fetched branch, or when no 
 | 3 | `receipt.json` schema `pfy-cloud-build/1` and the PASS fields (`status` `PASS`, `reason` `ok`, `review.verdict` `accept`, `review.reasons` list, attempts length at least 1, last `PASS`, `gate.cmd`, `gate.before`, `gate.after`, `recovery` empty, `pushed` false, `worktree_removed` true) | `python3 eval/mvp-1031/check_receipt.py eval/mvp-1031/demo-receipt.json` exit 0 (ran `2026-10-31T21:21:27Z`, no stdout) | `tests/test_mvp_1031_receipt.py` `CheckReceiptTests.test_pass_receipt_exits_0` and `test_rejects_listed_field_failures` | Same demo receipt. `base` is `main` (the demo passed `--base main`). `recovery` is `""`. `worktree_removed` is true. |
 | 4 | `git rev-parse <branch>` equals `commit`. Commit is not the caller's previous HEAD. Caller branch and `git status --porcelain` stay unchanged. No stash, reset, or commit in the caller. | The pass test checks rev-parse, caller HEAD, and a dirty file that stays dirty. Integrate handoff: fixture `main` stayed on the red seed `65ef19b`. The `cloud/` commit is `ebef4238a7eff8f938747623f7920b3fde74e586`. | Same pass test | Demo `commit` field matches that sha. |
 | 5 | Commit tree contains only paths the review saw. A gitignored file outside that set is absent. | `python3 -m unittest tests.test_pfy_build_cloud.CloudBuildNoChangeTests.test_gitignored_extra_file_is_absent_from_the_commit` | That test, on this branch | `origin/bot/mvp-realfail-1031:eval/mvp-1031/realfail/gitignored-extra/receipt.json` is `PASS` / `ok`, commit `696dc4e83bffa1c2300c4216bb66e32680779bd8`. Handoff `f8e5553`: commit contains `kept.py` and not `ignored-extra.txt`. |
-| 6 | Nothing pushed. No PR. `pushed` false. | Checker exit 0 rejects `pushed` true (`test_rejects_listed_field_failures`). | `CheckReceiptTests.test_rejects_listed_field_failures` and the pass test | Demo `pushed` false. |
+| 6 | Nothing pushed. No PR. `pushed` false. | Checker exit 0 rejects `pushed` true (`test_rejects_listed_field_failures`). | `CheckReceiptTests.test_rejects_listed_field_failures` and the pass test. On cloudfix `d35af20` only: `test_pass_does_not_push_the_cloud_branch` (a bare origin stays empty). Not on this branch and not on realfail2 `884a16a`. | Demo `pushed` false. |
 
 ## Dry-run, usage, -p, --local
 
@@ -93,7 +93,7 @@ DoD: receipt text is redacted (token, bearer, AKIA, private-key blocks). A recei
 
 | Command | Test | Receipt |
 |---------|------|---------|
-| `python3 -m unittest tests.test_pfy_build_cloud.CloudBuildFailureTests.test_receipt_redacts_tokens_keys_and_private_key_blocks` | That test, on this branch. Checker: `tests/test_mvp_1031_receipt.py` `CheckReceiptTests.test_rejects_secret_markers_in_pass_shaped_json` (rejects `AKIA`, `BEGIN PRIVATE KEY`, and `sk_` plus 8 characters). | GAP for a committed receipt that shows redaction succeeding. The realfail redaction receipt still has the planted `xai-` marker. Cloudfix adds `test_receipt_redacts_an_xai_marker_in_the_task_and_the_reply` on that branch and on realfail2. See GAP 4. |
+| `python3 -m unittest tests.test_pfy_build_cloud.CloudBuildFailureTests.test_receipt_redacts_tokens_keys_and_private_key_blocks` | That test, on this branch. Checker: `tests/test_mvp_1031_receipt.py` `CheckReceiptTests.test_rejects_secret_markers_in_pass_shaped_json` (rejects `AKIA`, `BEGIN PRIVATE KEY`, and `sk_` plus 8 characters). Cloudfix `d35af20` extends the same test name to reject `FAKEBEARERTOKEN` and `FAKETOKENVALUE`, and adds `test_receipt_redacts_an_xai_marker_in_the_task_and_the_reply`. The xai test is also on realfail2 `884a16a`. The bearer extension is not. | GAP for a committed receipt that shows redaction succeeding. The realfail redaction receipt still has the planted `xai-` marker. See GAP 4. |
 | `python3 -m unittest tests.test_mvp_1031_realfail_receipts.RealfailReceiptTests.test_committed_report_matches_receipts_and_has_no_secrets` | On `origin/bot/mvp-realfail-1031` only (`tests/test_mvp_1031_realfail_receipts.py`). Also `test_planted_bad_receipt_is_rejected`. Not on this branch. | The realfail tree. A redaction row marked matching is rejected while the marker is still in the case directory (realfail handoff). |
 
 ## How a missing row fails and how it recovers
