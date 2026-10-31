@@ -121,8 +121,9 @@ def home_note(entry: str, r: dict) -> str:
 
 
 def home_sig(p: Path) -> str | None:
-    """Real-HOME fingerprint of p, or None when p doesn't exist. Stricter than smoke_122_124.tree_sig (left as is for
-    the 122-124 smokes): one line per entry, p included, with path, file type, permission bits and mtime_ns, plus size
+    """Real-HOME fingerprint of p, or None when p doesn't exist. Stricter than smoke_122_124.tree_sig (which records
+    permission bits and symlink readlink, including when the path itself is a symlink, and still does not record
+    mtime): one line per entry, p included, with path, file type, permission bits and mtime_ns, plus size
     and content hash for a regular file, or size and inode when it can't be read (a rewrite still shows in size, mtime
     or inode), and the target string for a symlink. Symlinks below p are never followed; a symlinked p is recorded as
     a link and then its target is walked."""
