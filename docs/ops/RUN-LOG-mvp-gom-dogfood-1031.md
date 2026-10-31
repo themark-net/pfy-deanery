@@ -176,3 +176,12 @@ Wave 5 host at 2026-10-31T23:30Z: MemAvailable 41.9 GiB (43960480 kB), load 6.32
 | 12 | capture-list-references | `format_item_line` shows `references` when provenance has a non-empty list, and omits the label when it does not |
 
 Skipped again, with the same reasons as the decisions file: T-0022, T-0023, T-0027, scraper and Playwright slices, T-0030, T-0031, T-0032, T-0033, T-0050, T-0051, Streamlit walks, and `capture serve` (needs `GOMJOBBAR_LAND_TOKEN`). Create-once already passes. Do not invent a sticky.
+
+## Wave 5 items
+
+Format: `item | commit | tests | result`
+
+Host before merge: 2026-10-31T23:30Z MemAvailable 41.9 GiB (43960480 kB), load 6.32, 32 cores. Under the pressure line. Runner.Worker pid 3751002 was running.
+
+- wave5-exits | ccd639a5ea51921461855267f312dd4d67a2f46a | none (docs only, before the merge) | card written
+- merge | d6d62db6fa9e6b1d3a799a35b6fbefb32649cbe4 | `./pfy build --help` lists `--writable-test` | merged `origin/bot/mvp-integrate-1031` and pushed. No rebase.
