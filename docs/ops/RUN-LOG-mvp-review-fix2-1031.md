@@ -319,4 +319,15 @@ How it fails: the summary used to add a colon only on BLOCKED, so a log reader a
 How we recover: the operator reads one word in both places. A bad word aborts with LabelError instead of a fake FAIL. Fix the word to one of the eight documented labels and run again.
 
 item | commit | tests | result
-S4-labels | this commit | nice python3 -m unittest tests.test_pfy_build_local | Ran 65 tests in 85.031s OK
+S4-labels | 2bd11ce | nice python3 -m unittest tests.test_pfy_build_local | Ran 65 tests in 85.031s OK
+
+### S5-stale-worktrees
+
+After the lock, leftover `tmp/local-build-*` directories are listed on `stale_worktrees` and removed before `git worktree add`. A path that is still there stops the run with status FAIL, reason `stale-worktree`, exit 1, worktree null, and the agent does not start. Dry-run lists them and does not delete them.
+
+How it fails: a previous worktree is mode 000, so remove cannot delete it. The run must not add another tree beside it or reuse it.
+
+How we recover: nothing is committed. Delete that directory and run again. A removable leftover is deleted and named on the receipt, and the new worktree is a different directory.
+
+item | commit | tests | result
+S5-stale | this commit | nice python3 -m unittest tests.test_pfy_build_local | Ran 68 tests in 87.750s OK

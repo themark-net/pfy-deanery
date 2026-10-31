@@ -818,6 +818,67 @@ class LocalBuildTests(unittest.TestCase):
                 self.assertEqual(first["status"], status)
         self.assertEqual(seen, {"crash", "FAIL", "BLOCKED"})
 
+    def _plant_worktree(self, name):
+        path = self.repo / "tmp" / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.check_call(
+            ["git", "-C", str(self.repo), "worktree", "add", "--detach", str(path), "HEAD"],
+            stdout=subprocess.DEVNULL,
+        )
+        (path / "STALE.txt").write_text("from a previous run\n", encoding="utf-8")
+        return path
+
+    def test_stale_worktree_is_removed_and_not_reused(self):
+        stale = self._plant_worktree("local-build-previous")
+        proc, receipt = self.run_build("noop", extra=["--retries", "0"])
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self.assert_no_commit(proc, receipt)
+        self.assertEqual(data["reason"], "no-change")
+        self.assertIn("local-build-previous", data["stale_worktrees"])
+        self.assertFalse(stale.exists())
+        self.assertNotIn(str(stale), _git(self.repo, "worktree", "list"))
+        live = data["worktree"]
+        self.assertIsNotNone(live)
+        self.assertNotEqual(Path(live).name, "local-build-previous")
+        self.assertFalse((Path(live) / "STALE.txt").exists())
+
+    def test_unstaleable_worktree_stops_before_add(self):
+        stale = self.repo / "tmp" / "local-build-stuck"
+        stale.mkdir(parents=True)
+        (stale / "keep.txt").write_text("keep\n", encoding="utf-8")
+        os.chmod(stale, 0)
+        self.addCleanup(lambda: os.chmod(stale, 0o755) if stale.exists() else None)
+        proc, receipt = self.run_build("fix", extra=["--retries", "0"])
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self.assert_no_commit(proc, receipt)
+        self.assertEqual(data["status"], "FAIL")
+        self.assertEqual(data["reason"], "stale-worktree")
+        self.assertIn("local-build-stuck", data["stale_worktrees"])
+        self.assertIsNone(data["worktree"])
+        self.assertIn("could not be removed", data.get("recovery") or "")
+        self.assertIn("not reused", data.get("recovery") or "")
+        self.assertIn("Nothing was committed", data.get("recovery") or "")
+        self.assertIn("Recovery:", data.get("recovery") or "")
+        self.assertTrue(stale.exists())
+        self.assert_agent_did_not_start()
+        names = sorted(path.name for path in self.repo.glob("tmp/local-build-*"))
+        self.assertEqual(names, ["local-build-stuck"])
+
+    def test_dry_run_does_not_delete_a_stale_worktree(self):
+        stale = self._plant_worktree("local-build-previous")
+        proc, receipt = self.run_build("fix", extra=["--dry-run"])
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        data = self.receipt(proc, receipt)
+        self.assertEqual(data["status"], "PASS")
+        self.assertEqual(data["reason"], "dry-run")
+        self.assertIsNone(data["worktree"])
+        self.assertIn("local-build-previous", data["stale_worktrees"])
+        self.assertTrue(stale.is_dir())
+        self.assertEqual((stale / "STALE.txt").read_text(encoding="utf-8"), "from a previous run\n")
+        self.assertIn(str(stale), _git(self.repo, "worktree", "list"))
+        self.assert_agent_did_not_start()
+        self.assert_clean_origin()
+
     def test_protected_test_edit_does_not_commit(self):
         proc, receipt = self.run_build("protect", extra=["--protect", "tests/*"])
         self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)

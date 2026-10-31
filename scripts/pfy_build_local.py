@@ -11,7 +11,9 @@ Exit codes:
      or PASS-REJECTED (the gate was green and the review rejected the patch),
      or reviewer-unavailable (reviewer HTTP error or review-call timeout:
      not a reject, not retried, nothing committed),
-     or crash (the agent exited nonzero and wrote no diff: not a no-change, not retried)
+     or crash (the agent exited nonzero and wrote no diff: not a no-change, not retried).
+     A leftover tmp/local-build-* directory that cannot be removed is FAIL with
+     reason stale-worktree. It is not reused. A dry-run does not delete leftovers.
   2  usage, or opencode is missing
   3  TIMEOUT (the agent, or the whole build and review loop when the reason is overall-timeout)
   4  BLOCKED (memory, busy host, ps error, model size, cloud tag, lock, no-model,
@@ -112,6 +114,11 @@ _CRASH_RECOVERY = (
     "The agent exited %s and wrote no diff. This is a crash, not an empty edit. "
     "Nothing was committed and the attempt was not retried. "
     "Recovery: run the build again."
+)
+_STALE_RECOVERY = (
+    "A previous run left %s and it could not be removed. "
+    "It was not reused. Nothing was committed. "
+    "Recovery: delete that directory and run again."
 )
 _RETRYABLE = {
     "no-change",
@@ -2671,6 +2678,30 @@ def _drop_worktree(repo: Path, worktree: Path | None) -> None:
     _git(repo, ["worktree", "prune"])
 
 
+def _stale_worktree_dirs(repo: Path) -> list[Path]:
+    """Leftover local-build directories under this repo's tmp. Not the lock file."""
+    base = repo / "tmp"
+    if not base.is_dir():
+        return []
+    try:
+        entries = list(base.iterdir())
+    except OSError:
+        return []
+    found = [entry for entry in entries if entry.name.startswith("local-build-")]
+    return sorted(found, key=lambda entry: entry.name)
+
+
+def _drop_stale_worktree(repo: Path, path: Path) -> None:
+    if path.is_symlink():
+        try:
+            path.unlink()
+        except OSError:
+            return
+        _git(repo, ["worktree", "prune"])
+        return
+    _drop_worktree(repo, path)
+
+
 def _review_outage_kind(raw: str) -> str | None:
     """http-error or timeout when the poster recorded a transport failure.
 
@@ -2823,6 +2854,7 @@ def build_local(argv: list[str] | None = None) -> int:
     exit_code = EXIT_FAIL
     recovery = ""
     warnings: list[str] = []
+    stale_worktrees: list[str] = []
     sandbox_extra_rw: list[str] = []
     tests_before = None
     tests_after = None
@@ -2888,6 +2920,7 @@ def build_local(argv: list[str] | None = None) -> int:
                     "require_wiring": list(args.require_wiring or []),
                 },
                 "warnings": list(warnings),
+                "stale_worktrees": list(stale_worktrees),
                 "sandbox_extra_rw": list(sandbox_extra_rw),
                 "attempt_receipts": list(attempt_receipts),
                 "branch": branch,
@@ -2959,6 +2992,17 @@ def build_local(argv: list[str] | None = None) -> int:
         # so an empty directory from that run becomes ABORTED, not this one.
         reap_stale(repo)
         receipt_dir.mkdir(parents=True, exist_ok=True)
+        stale_paths = _stale_worktree_dirs(repo)
+        stale_worktrees = [path.name for path in stale_paths]
+        # Dry-run reports leftovers and leaves them. Every other run removes
+        # them before git worktree add, and stops if one is still there.
+        if not args.dry_run:
+            for path in stale_paths:
+                _drop_stale_worktree(repo, path)
+                if path.exists():
+                    recovery = _STALE_RECOVERY % path
+                    status, reason, exit_code = "FAIL", "stale-worktree", EXIT_FAIL
+                    return finish()
 
         if state.interrupted:
             status, reason, exit_code = "FAIL", "interrupted", EXIT_FAIL
