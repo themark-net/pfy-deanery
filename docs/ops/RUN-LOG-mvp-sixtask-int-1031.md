@@ -63,3 +63,4 @@ Risks:
 Format: `item | commit | tests | result`
 
 - loop-card | 627fd6d | docs only | PASS
+- report-checker | cc3b275 | nice python3 -m unittest tests.test_mvp_1031_sixtask_int_report (11 tests, 1 skipped, OK) | PASS
