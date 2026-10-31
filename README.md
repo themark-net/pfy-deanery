@@ -20,6 +20,9 @@ Operator environment: local inference, then product stage (honest skip if a piec
 ./pfy models    # inspect-only: live GET /v1/models (and Ollama /api/tags); usage if exposed
 ```
 
+Daily build: [docs/QUICKSTART-pfy-build.md](docs/QUICKSTART-pfy-build.md).
+DoD walkthrough: [docs/ops/MVP-DOD-WALKTHROUGH.md](docs/ops/MVP-DOD-WALKTHROUGH.md).
+
 Bare `./pfy` / `./pfy up` / `./pfy start` (no name) open the native window. `./pfy board` aliases it. Optional `./pfy board --open` is a browser hatch only (not the main path). Board is not a supervisor.
 
 If continue or agent-cage is the active harness: FAIL and copy `pfy harness use grok` (no grok/opencode fallback). Chips bind `./pfy status` **live** (`missing` not `unknown`).
