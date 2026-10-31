@@ -170,6 +170,270 @@ MUTANTS: list[dict[str, str]] = [
 ]
 
 
+# Wave-5 mutants. Kept off MUTANTS so the wave-3 harness test still sees C1-C16 only.
+# Each old string must match the current runner once. Applied one at a time to a copy.
+CLOUD2_MUTANTS: list[dict[str, str]] = [
+    {
+        "id": "C17",
+        "title": "writable-test allow list ignored",
+        "old": "        if _writable_test(rel, allowed):\n            continue\n",
+        "new": "        if False and _writable_test(rel, allowed):\n            continue\n",
+    },
+    {
+        "id": "C18",
+        "title": "every base test treated as writable",
+        "old": "def _writable_test(rel: str, patterns: list[str]) -> bool:\n"
+        "    rel = _norm_rel(rel)\n"
+        '    if not rel or rel.startswith("../") or rel == ".." or "/../" in "/%s/" % rel:\n'
+        "        return False\n"
+        "    name = Path(rel).name\n",
+        "new": "def _writable_test(rel: str, patterns: list[str]) -> bool:\n"
+        "    rel = _norm_rel(rel)\n"
+        '    if not rel or rel.startswith("../") or rel == ".." or "/../" in "/%s/" % rel:\n'
+        "        return False\n"
+        "    return True\n"
+        "    name = Path(rel).name\n",
+    },
+    {
+        "id": "C19",
+        "title": "writable-test match is exact, globs do not apply",
+        "old": "        if pat and (fnmatch_path(rel, pat) or fnmatch_path(name, pat)):\n"
+        "            return True\n",
+        "new": "        if pat and (rel == pat or name == pat):\n"
+        "            return True\n",
+    },
+    {
+        "id": "C20",
+        "title": "git add drops the literal pathspec",
+        "old": '        added = _git(self.worktree, ["add", "--", *[":(literal)%s" % path for path in paths]])\n',
+        "new": '        added = _git(self.worktree, ["add", "--", *paths])\n',
+    },
+    {
+        "id": "C21",
+        "title": "git add uses a glob pathspec",
+        "old": '        added = _git(self.worktree, ["add", "--", *[":(literal)%s" % path for path in paths]])\n',
+        "new": '        added = _git(self.worktree, ["add", "--", *[":(glob)%s" % path for path in paths]])\n',
+    },
+    {
+        "id": "C22",
+        "title": "archive recheck skipped",
+        "old": "        reason, tail = self.recheck_sha(sha)\n"
+        "        self.recheck_tail = tail\n"
+        "        if reason:\n",
+        "new": '        reason, tail = None, ""\n'
+        "        self.recheck_tail = tail\n"
+        "        if reason:\n",
+    },
+    {
+        "id": "C23",
+        "title": "archive recheck timeout counted as a pass",
+        "old": '            if again.get("aborted") == "timeout":\n'
+        '                return "timeout", tail\n',
+        "new": '            if again.get("aborted") == "timeout":\n'
+        "                return None, tail\n",
+    },
+    {
+        "id": "C24",
+        "title": "archive recheck failure does not retry",
+        "old": '            if err == "commit-recheck-failed" and number < self.max_attempts:\n',
+        "new": '            if err == "commit-recheck-failed" and False and number < self.max_attempts:\n',
+    },
+    {
+        "id": "C25",
+        "title": "protected path check skipped",
+        "old": "            protected_hits = [path for path in changed if _protected(path)]\n"
+        "            if protected_hits:\n",
+        "new": "            protected_hits = [path for path in changed if _protected(path)]\n"
+        "            if False and protected_hits:\n",
+    },
+    {
+        "id": "C26",
+        "title": "protected ** no longer matches zero directories",
+        "old": '    collapsed = pat\n    while "/**/" in collapsed:\n',
+        "new": '    collapsed = pat\n    while False and "/**/" in collapsed:\n',
+    },
+    {
+        "id": "C27",
+        "title": "protected globs do not match the file basename",
+        "old": "def _glob_match(rel: str, name: str, pat: str) -> bool:\n"
+        "    if fnmatch_path(rel, pat) or fnmatch_path(name, pat):\n"
+        "        return True\n",
+        "new": "def _glob_match(rel: str, name: str, pat: str) -> bool:\n"
+        "    if fnmatch_path(rel, pat):\n"
+        "        return True\n",
+    },
+    {
+        "id": "C28",
+        "title": "assignment redaction never fires",
+        "old": '        if explicit or name.isupper() or looks or value == "[redacted]":\n'
+        '            return name + sep + "[redacted]"\n'
+        "        return match.group(0)\n",
+        "new": '        if False and (explicit or name.isupper() or looks or value == "[redacted]"):\n'
+        '            return name + sep + "[redacted]"\n'
+        "        return match.group(0)\n",
+    },
+    {
+        "id": "C29",
+        "title": "assignment redaction hides fixture ids",
+        "old": '        if explicit or name.isupper() or looks or value == "[redacted]":\n'
+        '            return name + sep + "[redacted]"\n'
+        "        return match.group(0)\n",
+        "new": '        if True or explicit or name.isupper() or looks or value == "[redacted]":\n'
+        '            return name + sep + "[redacted]"\n'
+        "        return match.group(0)\n",
+    },
+    {
+        "id": "C30",
+        "title": "pem block redaction skipped",
+        "old": '    text = _PEM.sub("[redacted-private-key]", text)\n',
+        "new": "    text = text\n",
+    },
+    {
+        "id": "C31",
+        "title": "product gate keeps secret env vars",
+        "old": "            ):\n"
+        "                env.pop(key, None)\n"
+        "        status, code, out, err = run_command(\n",
+        "new": "            ):\n"
+        "                pass\n"
+        "        status, code, out, err = run_command(\n",
+    },
+    {
+        "id": "C32",
+        "title": "uppercase env name is not enough to redact",
+        "old": '        if explicit or name.isupper() or looks or value == "[redacted]":\n',
+        "new": '        if explicit or looks or value == "[redacted]":\n',
+    },
+    {
+        "id": "C33",
+        "title": "recovery line stays off the terminal",
+        "old": "            if self.recovery:\n"
+        "                # The receipt holds the same line. Print it so the terminal\n"
+        "                # says what to run next without opening the json.\n"
+        "                print(self.recovery, file=sys.stderr)\n",
+        "new": "            if False and self.recovery:\n"
+        "                # The receipt holds the same line. Print it so the terminal\n"
+        "                # says what to run next without opening the json.\n"
+        "                print(self.recovery, file=sys.stderr)\n",
+    },
+    {
+        "id": "C34",
+        "title": "gate timeout recovery says grok timed out",
+        "old": '        if (detail or "").strip() == "gate":\n'
+        "            return (\n"
+        '                "Mark: the gate timed out. Rerun with a longer --timeout. "\n'
+        '                "Then rerun ./pfy build %s."\n'
+        "                % quoted_timeout\n"
+        "            )\n",
+        "new": '        if False and (detail or "").strip() == "gate":\n'
+        "            return (\n"
+        '                "Mark: the gate timed out. Rerun with a longer --timeout. "\n'
+        '                "Then rerun ./pfy build %s."\n'
+        "                % quoted_timeout\n"
+        "            )\n",
+    },
+    {
+        "id": "C35",
+        "title": "missing base is a usage error",
+        "old": "    except BaseMissing as exc:\n"
+        "        return missing_base(args, repo, exc.ref)\n",
+        "new": "    except BaseMissing as exc:\n"
+        "        _print_usage()\n"
+        '        print("base ref not found: %s" % exc.ref, file=sys.stderr)\n'
+        "        return EXIT_USAGE\n",
+    },
+    {
+        "id": "C36",
+        "title": "HEAD mismatch silently builds origin/main",
+        "old": "    if main_sha != head_sha:\n"
+        "        raise UsageError(\n"
+        '            "HEAD %s is not origin/main %s. Pass --base origin/main or --base HEAD."\n'
+        "            % (head_sha[:12], main_sha[:12])\n"
+        "        )\n"
+        '    return "origin/main", main_sha\n',
+        "new": "    if main_sha != head_sha:\n"
+        '        return "origin/main", main_sha\n'
+        '    return "origin/main", main_sha\n',
+    },
+    {
+        "id": "C37",
+        "title": "absent origin/main is an error instead of HEAD",
+        "old": "    if probe.returncode != 0:\n"
+        '        return "HEAD", head_sha\n',
+        "new": "    if probe.returncode != 0:\n"
+        '        raise UsageError("origin/main is absent. Pass --base HEAD.")\n',
+    },
+    {
+        "id": "C38",
+        "title": "timeout does not kill the grok process group",
+        "old": "    except subprocess.TimeoutExpired:\n"
+        "        _kill_pgid(proc.pid)\n"
+        "        try:\n"
+        "            out, err = proc.communicate(timeout=5)\n",
+        "new": "    except subprocess.TimeoutExpired:\n"
+        "        try:\n"
+        "            out, err = proc.communicate(timeout=5)\n",
+    },
+    {
+        "id": "C39",
+        "title": "review timeout is a review reject",
+        "old": '                if review_status == "timeout":\n'
+        '                    self.record(number, "TIMEOUT", "timeout", output)\n'
+        '                    return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")\n',
+        "new": '                if review_status == "timeout":\n'
+        '                    self.record(number, "PASS-REJECTED", "review-rejected", output)\n'
+        "                    if number < self.max_attempts:\n"
+        "                        continue\n"
+        '                    return self.fail("FAIL", "review-rejected", EXIT_FAIL, "")\n',
+    },
+    {
+        "id": "C40",
+        "title": "before-gate timeout still starts grok",
+        "old": '        if (self.gate_before or {}).get("aborted") == "timeout":\n'
+        '            return self._gate_timeout_fail(0, str((self.gate_before or {}).get("tail") or ""))\n',
+        "new": '        if False and (self.gate_before or {}).get("aborted") == "timeout":\n'
+        '            return self._gate_timeout_fail(0, str((self.gate_before or {}).get("tail") or ""))\n',
+    },
+    {
+        "id": "C41",
+        "title": "timeout of zero is accepted",
+        "old": "    if args.timeout <= 0:\n"
+        '        raise UsageError("--timeout must be > 0")\n',
+        "new": "    if args.timeout < 0:\n"
+        '        raise UsageError("--timeout must be > 0")\n',
+    },
+    {
+        "id": "C42",
+        "title": "failure recovery line is empty",
+        "old": "def failure_recovery(reason: str, task: str, detail: str = \"\") -> str:\n"
+        '    """Non-empty recovery for every terminal failure. PASS stays empty."""\n'
+        '    if reason == "rate-limit":\n',
+        "new": "def failure_recovery(reason: str, task: str, detail: str = \"\") -> str:\n"
+        '    """Non-empty recovery for every terminal failure. PASS stays empty."""\n'
+        '    return ""\n'
+        '    if reason == "rate-limit":\n',
+    },
+    {
+        "id": "C43",
+        "title": "missing-base recovery omits the ref",
+        "old": '    if detail == "missing-ref":\n'
+        "        return (\n"
+        '            "Mark: base ref %s is not in this repo, so no worktree was created. "\n'
+        '            "Fetch it or pass --base with a ref that exists, then rerun ./pfy build %s. "\n'
+        '            "The caller checkout was not changed."\n'
+        "            % (ref, quoted)\n"
+        "        )\n",
+        "new": '    if detail == "missing-ref":\n'
+        "        return (\n"
+        '            "Mark: base ref is not in this repo, so no worktree was created. "\n'
+        '            "Fetch it or pass --base with a ref that exists, then rerun ./pfy build %s. "\n'
+        '            "The caller checkout was not changed."\n'
+        "            % quoted\n"
+        "        )\n",
+    },
+]
+
+
 class ApplyError(Exception):
     def __init__(self, count: int) -> None:
         self.count = count
@@ -221,10 +485,13 @@ def cloud_modules(root: Path, baseline_only: bool) -> list[str]:
     names = ["tests.%s" % path.stem for path in sorted(tests.glob("test_pfy_build_cloud*.py"))]
     if baseline_only:
         return names
-    for path in sorted(tests.glob("test_mut_cloud_*.py")):
-        if path.stem == "test_mut_cloud_harness":
-            continue
-        names.append("tests.%s" % path.stem)
+    for pattern in ("test_mut_cloud_*.py", "test_mut_cloud2_*.py"):
+        for path in sorted(tests.glob(pattern)):
+            if path.stem.endswith("_harness"):
+                continue
+            module = "tests.%s" % path.stem
+            if module not in names:
+                names.append(module)
     return names
 
 
@@ -442,13 +709,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--keep", action="store_true")
     parser.add_argument("--list", action="store_true")
     args = parser.parse_args(argv)
+    catalog = MUTANTS + CLOUD2_MUTANTS
     if args.list:
-        print(format_table([{"id": item["id"], "title": item["title"], "status": "listed", "seconds": "", "detail": ""} for item in MUTANTS]))
+        print(format_table([{"id": item["id"], "title": item["title"], "status": "listed", "seconds": "", "detail": ""} for item in catalog]))
         return 0
-    selected = MUTANTS
+    selected = catalog
     if args.mutant:
         wanted = set(args.mutant)
-        selected = [item for item in MUTANTS if item["id"] in wanted]
+        selected = [item for item in catalog if item["id"] in wanted]
         missing = wanted - {item["id"] for item in selected}
         if missing:
             print("unknown mutant %s" % ", ".join(sorted(missing)), file=sys.stderr)

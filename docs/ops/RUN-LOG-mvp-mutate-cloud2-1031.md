@@ -96,4 +96,10 @@ Copied `eval/mutation-1031/cloud/run_mutants.py`, `tests/test_mut_cloud_harness.
 
 state: DONE | tests: nice -n 19 python3 -m unittest tests.test_mut_cloud_harness tests.test_mut_cloud_survivors | files: 3 | err: none
 
-item | pending-sha | 6 tests OK in 3.933s | anchors C1-C16 apply on the merged runner
+item | 03bce4f | 6 tests OK in 3.933s | anchors C1-C16 apply on the merged runner
+
+### catalog
+
+Added CLOUD2_MUTANTS C17-C43 (27 mutants) on the new runner code: writable-test (C17-C19), literal pathspec (C20-C21), archive recheck (C22-C24), protected paths (C25-C27), redaction (C28-C32), recovery lines (C33-C34, C42-C43), base-missing (C35-C37), timeouts (C38-C41). MUTANTS stays C1-C16. Each new anchor matches once and the mutated source parses. Unmutated `tests.test_pfy_build_cloud` is green: 61 tests, 24.938s. That suite is the baseline. It is not red.
+
+state: DONE | tests: tests.test_mut_cloud2_harness tests.test_mut_cloud_harness tests.test_mut_cloud_survivors (8 OK, 4.161s); tests.test_pfy_build_cloud (61 OK, 24.938s) | files: harness, one new test, decisions | err: none
