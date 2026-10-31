@@ -75,3 +75,17 @@ Exit card and phase plan written before the fetch, the merges, and any product c
 Parallel coding sub-agents are not used. They would share this branch and the harness. The lead implements the phases in order. The project-map subagent may write `.project-map/` only.
 
 state: DONE | tests: none (docs only) | files: 2 | err: none
+
+item | 71b4705 | none (docs only) | pushed
+
+### fetch-merge
+
+Checked host before the merge: MemAvailable about 39 GiB, load about 7 on 32 cores. Under the pressure line. Clock 2026-10-31T23:41:21Z, inside the window.
+
+`git fetch origin`. Then `git merge --no-edit origin/bot/mvp-integrate-1031`. Clean ort merge, no conflicts. Tip `f877c7d` is an ancestor of HEAD. `origin/bot/mvp-dogfood-fix-1031` (`1fa9fd3`) was already inside that integrate tip, so `git merge --no-edit origin/bot/mvp-dogfood-fix-1031` reported already up to date. Both required merges are done. No rebase.
+
+Merge commit: `97632630b888038573f1a58ddde2381177241096`. `scripts/pfy_build_cloud.py` is 1562 lines on this HEAD.
+
+state: DONE | tests: merge only, suite not run yet | files: merge | err: none
+
+item | 9763263 | merge only | integrate f877c7d and dogfood-fix 1fa9fd3 are ancestors
