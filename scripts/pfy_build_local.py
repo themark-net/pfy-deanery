@@ -7,10 +7,12 @@ Nothing is pushed and no PR is opened.
 
 Exit codes:
   0  PASS, or a clean --dry-run, or --reap
-  1  FAIL (includes review-http-error and review-empty-diff, nothing committed),
-     or PASS-REJECTED (the gate was green and the review rejected the patch)
+  1  FAIL (includes review-empty-diff, nothing committed),
+     or PASS-REJECTED (the gate was green and the review rejected the patch),
+     or reviewer-unavailable (reviewer HTTP error or review-call timeout:
+     not a reject, not retried, nothing committed)
   2  usage, or opencode is missing
-  3  TIMEOUT (agent or the review call)
+  3  TIMEOUT (agent)
   4  BLOCKED (memory, busy host, ps error, model size, cloud tag, lock, no-model,
            no-sandbox, no-runtime-dir, runtime-dir-in-tmp, socket-path)
 
@@ -72,8 +74,9 @@ REVIEW_MARKER = "pfy-review-v1"
 DIFF_PROMPT_CAP = 8000
 # Shown on the final receipt when the review call itself fails. Not a reject.
 _REVIEW_OUTAGE_RECOVERY = (
-    "Reviewer was unavailable after an HTTP error or a timeout. "
-    "This attempt is not a reject and was not retried. "
+    "Status reviewer-unavailable. The reviewer was unreachable "
+    "(HTTP error or review-call timeout). This is not a reject and was not retried. "
+    "Nothing was committed. "
     "Recovery: run the build again when the reviewer answers, or pass --no-review."
 )
 _RETRYABLE = {
@@ -2660,9 +2663,9 @@ def _run_model_review(
 ) -> tuple[str, dict | None]:
     """Return (status, review).
 
-    status is accept, reject, timeout, http-error, interrupted, mem-edge,
-    blocked, or sandbox. timeout and http-error are not verdicts. The caller
-    does not commit and does not retry them.
+    status is accept, reject, unavailable, interrupted, mem-edge, blocked, or
+    sandbox. unavailable means the review call had an HTTP error or timed out.
+    That is not a verdict and the caller does not commit or retry.
     """
     port = _loopback_port(openai_base)
     if port is None:
@@ -2727,17 +2730,14 @@ def _run_model_review(
         raw = out_path.read_text(encoding="utf-8")
     except OSError:
         raw = (out or "") + (err or "")
-    # A hung review call is not a verdict. The caller stops with TIMEOUT.
-    if run_status == "timeout":
-        return "timeout", None
-    transport = _review_transport_error(raw)
-    if transport is not None:
-        # An HTTP failure is not a verdict. Do not parse it as reject and retry
-        # into an accept. The caller stops with review-http-error.
-        return "http-error", {
-            "verdict": "reject",
-            "reasons": ["review-http-error"],
-            "raw_tail": redact(transport)[:500],
+    # HTTP error and the bounded-call timeout are the same outage.
+    # A verdict reject is a later return and is retried. An outage is not.
+    if run_status == "timeout" or _review_transport_error(raw) or _review_outage_kind(raw):
+        detail = "review call timed out" if run_status == "timeout" else raw[:500]
+        return "unavailable", {
+            "verdict": "reviewer-unavailable",
+            "reasons": ["reviewer-unavailable"],
+            "raw_tail": redact(detail)[:500],
         }
     content = _content_from_model_body(raw)
     verdict, reasons, raw_tail = _parse_verdict(content)
@@ -3378,28 +3378,16 @@ def build_local(argv: list[str] | None = None) -> int:
                 state,
                 repo,
             )
-            if review_status == "timeout":
-                status, reason, exit_code = "TIMEOUT", "timeout", EXIT_TIMEOUT
+            if review_status == "unavailable":
+                # Not a generic FAIL and not an agent TIMEOUT. Not retried.
+                recovery = _REVIEW_OUTAGE_RECOVERY
+                status, reason, exit_code = "reviewer-unavailable", "reviewer-unavailable", EXIT_FAIL
                 _record_attempt(
                     attempts_used,
                     attempt_t0,
                     mem_snap,
-                    "TIMEOUT",
-                    "timeout",
-                    checks,
-                    model_review,
-                    diff_stats,
-                    diff_text,
-                )
-                return finish()
-            if review_status == "http-error":
-                status, reason, exit_code = "FAIL", "review-http-error", EXIT_FAIL
-                _record_attempt(
-                    attempts_used,
-                    attempt_t0,
-                    mem_snap,
-                    "FAIL",
-                    "review-http-error",
+                    "reviewer-unavailable",
+                    "reviewer-unavailable",
                     checks,
                     model_review,
                     diff_stats,

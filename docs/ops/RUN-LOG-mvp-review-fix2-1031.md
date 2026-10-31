@@ -275,4 +275,15 @@ prior-state: IN PROGRESS | tests: none yet | files: 0 | err: none
 `git merge --no-edit origin/bot/mvp3-review-retry` conflicted in `scripts/pfy_build_local.py` and `tests/test_pfy_build_local_review.py`. Staging stays `_stage_reviewed`. Fail-closed matches 582414b: HTTP error is `FAIL` / `review-http-error`, a review-call timeout is `TIMEOUT` / `timeout` (exit 3), an empty diff is `review-empty-diff`, and none of those commit. The no-change gate still goes through `_watch_gate` so `gate_unsandboxed` is recorded. Both previous-diff tests stay. S1 will replace the generic outage statuses.
 
 item | commit | tests | result
-wave4-merge | this commit | nice python3 -m unittest tests.test_pfy_build_local_review tests.test_pfy_build_local | Ran 85 tests in 148.861s OK
+wave4-merge | ae4ad38 | nice python3 -m unittest tests.test_pfy_build_local_review tests.test_pfy_build_local | Ran 85 tests in 148.861s OK
+
+### S1-outage
+
+An unreachable reviewer (HTTP error or a review-call timeout) sets receipt and attempt status `reviewer-unavailable`, exit 1. It is not `FAIL`, not `TIMEOUT`, and not `PASS-REJECTED`. Nothing is committed and the accept queued behind the outage is not used. The recovery line names the status and says to run again or pass `--no-review`.
+
+How it fails: the review service returns HTTP 500, or the review call exceeds its own timeout. There is no verdict.
+
+How we recover: no branch. Run again when the reviewer answers, or pass `--no-review`.
+
+item | commit | tests | result
+S1-outage | this commit | nice python3 -m unittest tests.test_pfy_build_local_review | Ran 23 tests in 67.088s OK
