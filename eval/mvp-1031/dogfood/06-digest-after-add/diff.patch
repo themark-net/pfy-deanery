@@ -1,0 +1,24 @@
+diff --git a/scripts/pfy_build_local.py b/scripts/pfy_build_local.py
+index a54b5a1..70e9e2c 100644
+--- a/scripts/pfy_build_local.py
++++ b/scripts/pfy_build_local.py
+@@ -2439,9 +2439,6 @@ def build_local(argv: list[str] | None = None) -> int:
+         if run_status == "timeout":
+             status, reason, exit_code = "TIMEOUT", "timeout", EXIT_TIMEOUT
+             return finish()
+-        if tree_digest(worktree) != gated_tree:
+-            status, reason, exit_code = "FAIL", "worktree-changed-after-gate", EXIT_FAIL
+-            return finish()
+ 
+         commit_env = _git_env(test_env)
+         title = " ".join(args.task_text.split())[:80] or "task"
+@@ -2467,6 +2464,9 @@ def build_local(argv: list[str] | None = None) -> int:
+         if committed.returncode != 0:
+             status, reason, exit_code = "FAIL", "commit-failed", EXIT_FAIL
+             return finish()
++        if tree_digest(worktree) != gated_tree:
++            status, reason, exit_code = "FAIL", "worktree-changed-after-gate", EXIT_FAIL
++            return finish()
+         committed = _git(worktree, ["commit", "-m", message], env=commit_env)
+         if committed.returncode != 0:
+             status, reason, exit_code = "FAIL", "commit-failed", EXIT_FAIL
