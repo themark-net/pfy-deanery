@@ -704,6 +704,41 @@ class ReviewLoopTests(unittest.TestCase):
         self.assertNotIn(marker, rows[1]["prompt"].split("Previous diff:", 1)[0])
         self.inner.assert_clean_origin()
 
+    def test_seam_off_does_not_bind_stub_notes_or_inject_a_file(self):
+        notes = self.inner.tmp / "seam-off"
+        notes.mkdir()
+        plan = notes / "plan.json"
+        plan.write_text(json.dumps([{"mode": "fix"}]), encoding="utf-8")
+        count = notes / "count"
+        prompts = notes / "prompts.jsonl"
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        proc, receipt = self.inner.run_build(
+            "plan",
+            extra=["--retries", "0"],
+            env_extra={
+                "PFY_STUB_PLAN": str(plan),
+                "PFY_STUB_COUNT": str(count),
+                "PFY_STUB_PROMPTS": str(prompts),
+                "PFY_LOCAL_BUILD_INJECT_EXTRA_STAGE": "1",
+            },
+            task=task,
+        )
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "PASS")
+        self.assertIsNotNone(data["commit"])
+        names = harness._git(
+            self.inner.repo, "diff-tree", "--no-commit-id", "--name-only", "-r", data["commit"]
+        ).strip().splitlines()
+        self.assertEqual(names, ["src/calc.py"])
+        log = harness._git(self.inner.repo, "log", "--all", "--name-only", "--pretty=format:")
+        self.assertNotIn("injected-extra.txt", log)
+        self.assertNotEqual(data["reason"], "scope-commit-mismatch")
+        if str(data.get("sandbox") or "").startswith("bwrap"):
+            self.assertFalse(prompts.is_file() and prompts.stat().st_size > 0, prompts)
+            self.assertFalse(count.is_file(), count)
+        self.inner.assert_clean_origin()
+
     def test_scope_check_skipped_is_on_stderr_and_the_receipt(self):
         phrase = "scope check skipped: no allow list"
         bare, bare_receipt = self.inner.run_build(

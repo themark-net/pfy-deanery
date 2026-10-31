@@ -132,6 +132,8 @@ The scope check runs only when the task has a `files:` line or the command passe
 
 The reviewer is the same local model as the agent. `--model` (default `qwen3.6:35b`) is the tag for the edit and for the review call. That is a self-review, not an independent reader. A mistake the model cannot see in its own patch is a mistake this step will not catch. The scope, size, and wiring checks do not call the model. The receipt `model` field is that tag. Read the attempt receipt for the verdict. Do not treat a model accept as a second person.
 
+`PFY_LOCAL_BUILD_TEST_SEAM` is a test-only switch. It is off unless the value is exactly `1`. Off, the runner does not read `PFY_STUB_PLAN`, `PFY_STUB_COUNT`, or `PFY_STUB_PROMPTS`, so those paths are not bound read-write into the sandbox, and `PFY_LOCAL_BUILD_INJECT_EXTRA_STAGE` does not write `injected-extra.txt`. On, the review tests can record the prompt outside the worktree, and the inject env can force a scope-commit mismatch. Leave the seam unset for a real run. A stray stub env or inject env then changes nothing.
+
 ## Receipt schema `pfy-local-build/1`
 
 File: `<receipt-dir>/receipt.json`, written atomically, including on BLOCKED (then `worktree` is null).
