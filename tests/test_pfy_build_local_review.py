@@ -704,6 +704,24 @@ class ReviewLoopTests(unittest.TestCase):
         self.assertNotIn(marker, rows[1]["prompt"].split("Previous diff:", 1)[0])
         self.inner.assert_clean_origin()
 
+    def test_receipt_says_the_reviewer_is_the_same_model(self):
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        proc, receipt = self._run(task, [{"mode": "fix"}])
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "PASS")
+        self.assertEqual(data["model"], "fixture:small")
+        self.assertIs(data["review"]["same_model"], True)
+        self.assertEqual(data["review"]["reviewer"], "same local model as the agent")
+        reviews = [
+            payload
+            for path, payload in self.inner.httpd.posts
+            if "chat" in path and "pfy-review-v1" in json.dumps(payload)
+        ]
+        self.assertTrue(reviews, "reviewer was not called")
+        self.assertEqual(reviews[0]["model"], data["model"])
+        self.inner.assert_clean_origin()
+
     def test_seam_off_does_not_bind_stub_notes_or_inject_a_file(self):
         notes = self.inner.tmp / "seam-off"
         notes.mkdir()
