@@ -10,10 +10,14 @@ code.
 from __future__ import annotations
 
 import importlib.util
+import json
 import os
 import shutil
+import signal
+import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -25,6 +29,72 @@ from pfylib import _legacy, attach, registry  # noqa: E402
 
 BASE = "http://127.0.0.1:1919/v1"
 NEXT_UP = "Launch env or ./pfy up"
+
+
+def _alive(pid: int) -> bool:
+    try:
+        os.kill(int(pid), 0)
+    except OSError:
+        return False
+    return True
+
+
+def _running(pid: int) -> bool:
+    """True when the pid is running or sleeping, not a zombie and not gone."""
+    try:
+        text = Path("/proc/%s/status" % int(pid)).read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return False
+    for line in text.splitlines():
+        if line.startswith("State:"):
+            parts = line.split()
+            return len(parts) >= 2 and parts[1] in ("R", "S", "D")
+    return False
+
+
+def _wait_dead(pid: int, timeout: float = 1.5) -> bool:
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if not _alive(pid):
+            return True
+        time.sleep(0.02)
+    return False
+
+
+def _sure_kill(pid: int) -> None:
+    if not _alive(pid):
+        return
+    try:
+        os.killpg(int(pid), signal.SIGKILL)
+    except OSError:
+        try:
+            os.kill(int(pid), signal.SIGKILL)
+        except OSError:
+            pass
+
+
+def _child_pids() -> set[int]:
+    found = set()
+    me = os.getpid()
+    proc = Path("/proc")
+    try:
+        names = list(proc.iterdir())
+    except OSError:
+        return found
+    for entry in names:
+        if not entry.name.isdigit():
+            continue
+        try:
+            text = (entry / "status").read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        for line in text.splitlines():
+            if line.startswith("PPid:"):
+                parts = line.split()
+                if len(parts) >= 2 and parts[1].isdigit() and int(parts[1]) == me:
+                    found.add(int(entry.name))
+                break
+    return found
 
 # harness id -> pre-refactor observations (verbatim).
 EXPECTED = {
@@ -283,6 +353,31 @@ class OpenSessionTests(_Tmp):
         self.assertFalse((self.state / "codex-session-reach").exists())
         self.assertFalse((self.state / "codex-terminal.pid").exists())
 
+    def test_failed_terminal_reaps_open_session_child(self):
+        """A4/A3 on the four-harness path: a child left by a failed terminal is reaped."""
+        proc = subprocess.Popen(["/bin/sleep", "60"], start_new_session=True)
+        self.addCleanup(proc.wait, 2)
+        self.addCleanup(_sure_kill, proc.pid)
+        term = _legacy.enterable_helpers(ROOT)
+        real_spawn = term.spawn_terminal_opencode
+        try:
+            def fake_spawn(bin_path, cwd, env, log, pid_alive):
+                return False, proc.pid, "terminal cannot start"
+
+            term.spawn_terminal_opencode = fake_spawn
+            out = attach.open_session(
+                "codex",
+                which_bin=lambda *a: "/bin/sleep",
+                live_openai_base=lambda: (BASE, {"engine": "freetoken", "status": "ready"}),
+                root_dir=ROOT,
+                **_deps(self.state),
+            )
+            self.assertFalse(out["ok"])
+            self.assertEqual(out["live"], "FAIL")
+            self.assertTrue(_wait_dead(proc.pid), "spawned child still alive")
+        finally:
+            term.spawn_terminal_opencode = real_spawn
+
     def test_selftest_passes_for_every_harness(self):
         import contextlib
         import io
@@ -449,6 +544,127 @@ class OpenCodeEnterableTests(_Tmp):
         child = self.spawned[0]["env"]
         self.assertEqual(child["LOCAL_OPENAI_BASE_URL"], BASE)
         self.assertNotIn("11434", child["LOCAL_OPENAI_BASE_URL"])
+
+    def _spawn_pid(self, pid: int, err: str = "terminal exited"):
+        def spawn(bin_path, cwd, env, log, pid_alive):
+            self.spawned.append({"bin": bin_path})
+            return False, pid, err
+
+        self.term.spawn_terminal_opencode = spawn
+
+    def test_failed_terminal_reaps_the_spawned_child(self):
+        """A3: skipping the reap leaves the spawned process running."""
+        proc = subprocess.Popen(["/bin/sleep", "60"], start_new_session=True)
+        self.addCleanup(proc.wait, 2)
+        self.addCleanup(_sure_kill, proc.pid)
+        self.assertTrue(_alive(proc.pid), "spawned child was not alive before the call")
+        self._spawn_pid(proc.pid)
+        out = self._open()
+        self.assertFalse(out["ok"])
+        self.assertEqual(out["live"], "FAIL")
+        self.assertTrue(_wait_dead(proc.pid), "spawned child still alive")
+
+    def test_failed_terminal_reaps_the_process_group(self):
+        """A4: killing only the leader leaves the grandchildren running."""
+        work = self.tmp / "grp"
+        work.mkdir()
+        script = work / "run.sh"
+        script.write_text(
+            "echo $$ > leader.pid\n"
+            "/bin/sleep 60 &\n"
+            "echo $! > c1.pid\n"
+            "/bin/sleep 60 &\n"
+            "echo $! > c2.pid\n"
+            "wait\n",
+            encoding="utf-8",
+        )
+        proc = subprocess.Popen(
+            ["/bin/bash", str(script)],
+            cwd=str(work),
+            start_new_session=True,
+        )
+        self.addCleanup(proc.wait, 2)
+        self.addCleanup(_sure_kill, proc.pid)
+        deadline = time.monotonic() + 5
+        while not (work / "c2.pid").is_file():
+            if proc.poll() is not None:
+                self.fail("leader exited before the children were recorded: %s" % proc.returncode)
+            if time.monotonic() > deadline:
+                self.fail("process group did not record its children")
+            time.sleep(0.02)
+        pids = [int((work / name).read_text(encoding="utf-8")) for name in ("leader.pid", "c1.pid", "c2.pid")]
+        for pid in pids:
+            self.addCleanup(_sure_kill, pid)
+            self.assertTrue(_running(pid), "pid %s was not running before the call" % pid)
+        self._spawn_pid(proc.pid)
+        out = self._open()
+        self.assertFalse(out["ok"])
+        self.assertEqual(out["live"], "FAIL")
+        for pid in pids:
+            self.assertTrue(_wait_dead(pid), "pid %s still alive" % pid)
+
+    def _exit_7(self) -> subprocess.Popen:
+        """Child exits 7. The caller must keep this Popen until the attach call returns.
+
+        Dropping it lets Popen.__del__ waitpid the zombie, and the status is gone
+        before attach can read it.
+        """
+        flag = self.tmp / "exited-7"
+        proc = subprocess.Popen(
+            [
+                sys.executable,
+                "-c",
+                "import pathlib,sys; pathlib.Path(sys.argv[1]).write_text('x'); raise SystemExit(7)",
+                str(flag),
+            ],
+            start_new_session=True,
+        )
+        self.addCleanup(proc.wait, 2)
+        self.addCleanup(_sure_kill, proc.pid)
+        deadline = time.monotonic() + 5
+        while not flag.is_file():
+            if time.monotonic() > deadline:
+                self.fail("child did not exit")
+            time.sleep(0.01)
+        self._spawn_pid(proc.pid)
+        return proc
+
+    def test_failed_terminal_exit_code_reaches_the_caller(self):
+        """A5: a constant exit code hides the child's real status from the caller."""
+        proc = self._exit_7()
+        out = self._open()
+        self.assertFalse(out["ok"])
+        self.assertEqual(out.get("exit_code"), 7)
+        proc.poll()
+
+    def test_failed_terminal_exit_code_reaches_the_receipt(self):
+        """A7: the receipt must record the same child status the caller sees."""
+        proc = self._exit_7()
+        out = self._open()
+        self.assertFalse(out["ok"])
+        proc.poll()
+        receipt_path = self.state / "opencode-attach-receipt.json"
+        self.assertTrue(receipt_path.is_file(), "receipt was not written")
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        self.assertEqual(receipt.get("exit_code"), 7)
+        self.assertEqual(receipt.get("live"), "FAIL")
+
+    def test_missing_opencode_prints_install_hint_and_does_not_spawn(self):
+        """A8 drops the printed hint. A10 drops the hint the caller receives, or spawns anyway."""
+        import contextlib
+        import io
+
+        before = _child_pids()
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            out = self._open(which_bin=lambda *names: "")
+        self.assertFalse(out["ok"])
+        self.assertEqual(out["live"], "FAIL")
+        self.assertEqual(out["error"], "opencode missing")
+        self.assertIn("install opencode", out.get("next_step") or "")
+        self.assertIn("install opencode", buf.getvalue())
+        self.assertEqual(self.spawned, [])
+        self.assertEqual(_child_pids(), before)
 
 
 if __name__ == "__main__":

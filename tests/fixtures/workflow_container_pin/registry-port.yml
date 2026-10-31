@@ -1,0 +1,8 @@
+name: registry-port
+on: push
+jobs:
+  job:
+    runs-on: ubuntu-24.04
+    container: localhost:5000/app:1.2.3
+    steps:
+      - run: "true"

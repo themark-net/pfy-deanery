@@ -20,6 +20,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 HELPER = ROOT / "scripts" / "check_workflow_image_pin.py"
 FIX = ROOT / "tests" / "fixtures" / "workflow_image_pin"
+FIX_CONTAINER = ROOT / "tests" / "fixtures" / "workflow_container_pin"
 SCRATCH = ROOT / "tmp"
 
 try:
@@ -49,6 +50,38 @@ def _image_pin_step_command(steps: object) -> str | None:
         if "check_workflow_image_pin.py" in run:
             found = run
     return found
+
+
+def in_place_root_limit() -> int:
+    """Longer of the two paths pregate measures for --in-place.
+
+    Scratch is <git common parent>/tmp/pgs/<7 sha chars>-<6 clock chars>.
+    The clock digits do not change the length.
+    """
+    common = subprocess.check_output(
+        ["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
+        cwd=ROOT,
+        text=True,
+    ).strip()
+    main_root = str(Path(common).parent)
+    sha = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+    scratch = f"{main_root}/tmp/pgs/{sha[:7]}-000000"
+    return max(len(str(ROOT)), len(scratch))
+
+
+def run_pregate_lint(limit: int, timeout: int) -> subprocess.CompletedProcess[str]:
+    SCRATCH.mkdir(parents=True, exist_ok=True)
+    env = os.environ.copy()
+    env["TMPDIR"] = str(SCRATCH)
+    env["PREGATE_MAX_ROOT_LEN"] = str(limit)
+    return subprocess.run(
+        ["nice", "-n", "19", "scripts/pregate.sh", "--in-place", "--allow-dirty", "--only", "lint"],
+        cwd=ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+    )
 
 
 def run_helper(*args: str, env: dict | None = None) -> subprocess.CompletedProcess[str]:
@@ -298,6 +331,64 @@ class WorkflowImagePinTests(unittest.TestCase):
             shutil.rmtree(venv)
 
     @needs_yaml
+    def test_container_and_service_tags_pass(self) -> None:
+        for name in (
+            "container-string.yml",
+            "container-mapping.yml",
+            "service-tag.yml",
+            "registry-port.yml",
+            "digest-all.yml",
+        ):
+            self.assert_pass(run_helper(str(FIX_CONTAINER / name)))
+
+    @needs_yaml
+    def test_container_and_service_tags_fail(self) -> None:
+        cases = (
+            ("container-latest.yml", "image tag is latest"),
+            ("container-latest-upper.yml", "image tag is latest"),
+            ("container-no-tag.yml", "image has no tag"),
+            ("container-empty-tag.yml", "image has no tag"),
+            ("container-mapping-latest.yml", "image tag is latest"),
+            ("service-latest.yml", "image tag is latest"),
+            ("service-no-tag.yml", "image has no tag"),
+            ("registry-port-no-tag.yml", "image has no tag"),
+            ("digest-short.yml", "image digest is not @sha256:"),
+            ("unresolved-image.yml", "unresolved image expression"),
+            ("digest-mixed.yml", "image is missing @sha256: digest"),
+        )
+        for name, needle in cases:
+            self.assert_fail(run_helper(str(FIX_CONTAINER / name)), needle)
+
+    @needs_yaml
+    def test_digest_requirement_spans_files_in_one_run(self) -> None:
+        # A tag-only file passes alone. The same file fails when another file
+        # in the same invocation already pins @sha256:.
+        self.assert_pass(run_helper(str(FIX_CONTAINER / "container-string.yml")))
+        self.assert_fail(
+            run_helper(
+                str(FIX_CONTAINER / "digest-all.yml"),
+                str(FIX_CONTAINER / "container-string.yml"),
+            ),
+            "image is missing @sha256: digest",
+        )
+
+    @needs_yaml
+    def test_malformed_container_and_service_forms_fail_closed(self) -> None:
+        proc = run_helper(str(FIX_CONTAINER / "malformed-forms.yml"))
+        blob = proc.stdout + proc.stderr
+        self.assertNotEqual(proc.returncode, 0, blob)
+        for needle in (
+            "container is not a string or a mapping",
+            "container has no image",
+            "services is not a mapping",
+            "services is empty",
+            "service has no image",
+            "image is not a string",
+            "service is not a mapping",
+        ):
+            self.assertIn(needle, blob, needle)
+
+    @needs_yaml
     def test_pregate_lint_calls_helper(self) -> None:
         # --only lint is filemode, launchers, payload lint, catalog_check, and
         # this helper. It does not discover tests. MVP-3 may be busy.
@@ -331,6 +422,86 @@ class WorkflowImagePinTests(unittest.TestCase):
         log = Path(match.group(1)).parent / "logs" / "lint.log"
         text = log.read_text(encoding="utf-8")
         self.assertIn("PASS workflow image pin:", text)
+
+    @needs_yaml
+    def test_failing_image_pin_lint_fails_pregate(self) -> None:
+        """A ubuntu-latest fixture must make --only lint print OVERALL=FAIL.
+
+        PREGATE_IMAGE_PIN_ROOT points at a scratch copy of the fixture. The
+        real workflow files are not edited. If the hook is ignored, the real
+        workflows pass and OVERALL=PASS makes this test red.
+        """
+        SCRATCH.mkdir(parents=True, exist_ok=True)
+        fixture = Path(tempfile.mkdtemp(prefix="image-pin-fail-lint-", dir=SCRATCH))
+        try:
+            shutil.copy(FIX / "latest.yml", fixture / "latest.yml")
+            env = os.environ.copy()
+            env["TMPDIR"] = str(SCRATCH)
+            env["PREGATE_MAX_ROOT_LEN"] = "200"
+            env["PREGATE_IMAGE_PIN_ROOT"] = str(fixture)
+            proc = subprocess.run(
+                [
+                    "nice",
+                    "-n",
+                    "19",
+                    "scripts/pregate.sh",
+                    "--in-place",
+                    "--allow-dirty",
+                    "--only",
+                    "lint",
+                ],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=240,
+            )
+            blob = proc.stdout + proc.stderr
+            self.assertNotEqual(proc.returncode, 0, blob)
+            self.assertIn("OVERALL=FAIL", proc.stdout)
+            self.assertNotIn("OVERALL=PASS", proc.stdout)
+            match = re.search(r"Summary: (\S+)", proc.stdout)
+            self.assertIsNotNone(match, blob)
+            log = Path(match.group(1)).parent / "logs" / "lint.log"
+            text = log.read_text(encoding="utf-8")
+            self.assertIn("unpinned GitHub-hosted runs-on (ubuntu-latest)", text)
+            self.assertNotIn("PASS workflow image pin:", text)
+        finally:
+            shutil.rmtree(fixture)
+
+    def test_root_path_over_the_limit_is_refused(self) -> None:
+        # B2 guard: a run root or scratch path longer than PREGATE_MAX_ROOT_LEN
+        # is a setup error, before any check. Changing `>` to `>=` is the
+        # at-limit test. Removing the check lets this call reach OVERALL=.
+        limit = in_place_root_limit() - 1
+        self.assertGreaterEqual(limit, 1)
+        proc = run_pregate_lint(limit, 60)
+        blob = proc.stdout + proc.stderr
+        self.assertEqual(proc.returncode, 2, blob)
+        self.assertNotIn("OVERALL=", proc.stdout)
+        match = re.search(
+            r"path too long \((\d+) > (\d+) chars\): (.+?)\. Use a checkout",
+            proc.stderr,
+        )
+        self.assertIsNotNone(match, proc.stderr)
+        got_len = int(match.group(1))
+        shown_limit = int(match.group(2))
+        path = match.group(3)
+        self.assertEqual(shown_limit, limit)
+        self.assertEqual(got_len, len(path))
+        self.assertGreater(got_len, shown_limit)
+        self.assertIn("PREGATE_MAX_ROOT_LEN", proc.stderr)
+
+    @needs_yaml
+    def test_root_path_at_the_limit_passes_the_guard(self) -> None:
+        # Equality is allowed. The guard uses `>`, so a path of exactly the
+        # limit must reach the lint and pass. A `>=` comparison exits 2 here.
+        limit = in_place_root_limit()
+        proc = run_pregate_lint(limit, 240)
+        blob = proc.stdout + proc.stderr
+        self.assertNotIn("path too long", blob)
+        self.assertEqual(proc.returncode, 0, blob)
+        self.assertIn("OVERALL=PASS", proc.stdout)
 
 
 if __name__ == "__main__":
