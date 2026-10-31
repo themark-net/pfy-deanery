@@ -78,6 +78,15 @@ def tree_sig(p: Path) -> str | None:
     if not p.exists():
         return None
     h = hashlib.sha256()
+    # when p itself is a symlink, its lstat permission bits and readlink string join the signature so a retarget
+    # shows even when both directories hold the same bytes. entries under p are still hashed below. mtime stays out.
+    if p.is_symlink():
+        try:
+            st = p.lstat()
+            mode = f"{stat.S_IMODE(st.st_mode):o}"
+            h.update(f"{p}:{mode}:link:{os.readlink(p)}\n".encode())
+        except OSError:
+            h.update(f"{p}:unreadable\n".encode())
     for f in sorted(p.rglob("*")):
         # permission bits plus a streamed content hash, not mtime: chmod and a same-size edit change the signature.
         # a symlink is never opened: lstat mode and the readlink string, so a retarget changes the signature even
