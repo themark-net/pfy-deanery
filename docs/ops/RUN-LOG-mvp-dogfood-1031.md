@@ -54,4 +54,6 @@ MemAvailable about 64 GiB. Load about 3.6 on 32 cores. Under the pressure line.
 ## Log
 
 item | commit | tests | result
-exits | (this commit) | none, docs only | written before dogfood builds
+exits | 210e0fe | none, docs only | written before dogfood builds
+merge-cloud | 0747fee | not this lane's tests | merged origin/bot/mvp-cloud-1031 before the checker
+checker | this commit | tests.test_mvp_1031_dogfood_reports 7 ok | green, planted mismatch exits 1
