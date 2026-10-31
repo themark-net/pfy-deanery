@@ -8,7 +8,7 @@ The six tasks did not run in one sitting.
 
 Run 1 first model call was 2026-10-30T17:50:52Z (2026-10-30 10:50:52 PDT). Its cap was 2026-10-30T20:50:52Z (13:50:52 PDT). t1, t2, and t3 finished and were committed. At 11:13 PDT the grok CLI hit its 600 s background-wait limit and stopped the trial runner during t4. That was a CLI limit, not a memory breach and not a lockup. The inner build left a PASS receipt that the runner never reviewed. It does not count. It is archived under `tmp/mvp3-runs/run1-archive/t4-receipts-orphan`.
 
-Run 2 first model call was 2026-10-31T03:07:13Z (2026-10-30 20:07:13 PDT). Its own cap was 2026-10-31T06:07:13Z (2026-10-30 23:07:13 PDT). t4, t5, and t6 ran one at a time as detached processes with a foreground poll, and all three finished inside that cap. t6 ended about 2026-10-31T04:09Z. The gap between the sessions is outside both caps.
+Run 2 first model call was 2026-10-31T03:07:13Z (2026-10-30 20:07:13 PDT). Its own cap was 2026-10-31T06:07:13Z (2026-10-30 23:07:13 PDT). t4, t5, and t6 ran one at a time as detached processes with a foreground poll, and all three finished inside that cap. t6 ended at 2026-10-31T04:07:03Z (receipt finished_at). The poll log's next sample was after the arm had already finished. The gap between the sessions is outside both caps.
 
 ## Result
 
