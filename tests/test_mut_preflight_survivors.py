@@ -118,6 +118,16 @@ class ReceiptGapTests(unittest.TestCase):
             body["exit_code"] = value
             self._reject(body, "rejected: exit_code is not 0")
 
+    def test_non_string_gate_is_rejected(self) -> None:
+        # Fail: a missing gate, or a gate that is a bare string, would count as a real command.
+        # Recover: gate.cmd must be a non-empty string on an object. Exit 1 names the field.
+        missing = _pass_receipt()
+        del missing["gate"]
+        self._reject(missing, "rejected: gate.cmd is empty")
+        bare = _pass_receipt()
+        bare["gate"] = "python3 -m unittest test_add"
+        self._reject(bare, "rejected: gate.cmd is empty")
+
     def test_empty_gate_cmd_is_rejected(self) -> None:
         # Fail: an empty gate command would record a PASS that ran no test.
         # Recover: exit 1 and name gate.cmd. The demo command has to be non-empty.

@@ -241,6 +241,13 @@ MUTANTS: list[dict[str, str]] = [
         "new": '    if str(data.get("schema") or "").lower() != SCHEMA:\n'
         '        return "rejected: schema is not pfy-cloud-build/1"\n',
     },
+    {
+        "id": "R20",
+        "title": "non-string gate accepted",
+        "target": "eval/mvp-1031/check_receipt.py",
+        "old": '    if not isinstance(cmd, str) or cmd == "":\n',
+        "new": '    if cmd == "":\n',
+    },
 ]
 
 
