@@ -90,6 +90,8 @@ class Smoke149(unittest.TestCase):
                 (mh / ".cache/chroma/onnx_models/all-MiniLM-L6-v2").mkdir(parents=True)
             env2 = {"PATH": os.environ.get("PATH", ""), "HOME": str(real), "MEMPALACE_HOME": str(mh),
                     "PFY_SMOKE_RECEIPT_DIR": str(td / "r")}
+            if os.environ.get("TMPDIR"):
+                env2["TMPDIR"] = os.environ["TMPDIR"]
             if knobs is not None:
                 k = dict(knobs)
                 if k.get("touch_real"):
@@ -342,6 +344,29 @@ class Smoke149(unittest.TestCase):
             code, rec = self.run_smoke(dict(BASE, probe=True), {"PATH": d})
         self.assertEqual(code, 2, rec)
         self.assertEqual(rec["reason"], "bwrap is not usable here; MemPalace must run with no network")
+
+    def test_bwrap_rejecting_bind_or_die_with_parent_is_unavailable(self):
+        # F1: the probe must pass --bind <tmp> <tmp> and --die-with-parent, the same flags run() uses.
+        # A fake that accepts every other flag and rejects one of those two must not count as usable,
+        # and must not reach init. Dropping either flag from the probe lets this fake exit 0 there,
+        # then the real argv still carries the flag and the reason is no longer the bwrap sentence.
+        for flag in ("--bind", "--die-with-parent"):
+            with tempfile.TemporaryDirectory() as d:
+                fake = Path(d) / "bwrap"
+                fake.write_text(
+                    "#!" + sys.executable + "\n"
+                    "import sys\n"
+                    f"sys.exit(1 if {flag!r} in sys.argv else 0)\n",
+                    encoding="utf-8")
+                fake.chmod(0o755)
+                code, rec = self.run_smoke(dict(BASE, probe=True), {"PATH": d})
+            self.assertEqual(code, 2, (flag, rec))
+            self.assertEqual(
+                rec["reason"],
+                "bwrap is not usable here; MemPalace must run with no network",
+                (flag, rec))
+            self.assertFalse(self.escaped, flag)
+            self.assertNotIn("init_exit", rec.get("checks", {}))
 
     def test_no_bwrap_exits_2_never_runs_unsandboxed(self):
         # B2: without bwrap the smoke must not fall back to running MemPalace with network and a writable root.

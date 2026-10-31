@@ -14,9 +14,10 @@ $MEMPALACE_HOME/.cache/chroma/onnx_models/all-MiniLM-L6-v2 (MEMPALACE_HOME defau
 ~/DEVELOP/pfy-mentat/tmp/mempalace/home); without it the smoke exits 2 rather than fetch ~80 MB.
 The smoke copies that HOME into a temp dir, writes a two-note fixture project, then runs `init --yes`, `mine` and two
 `search` queries against a temp palace with a clean env and a timeout ($PFY_XINTAKE_TIMEOUT, default 180 s). Every
-step runs under bwrap with no network and a read-only root. If bwrap is missing or unusable, or a required
-`/proc` or `/dev/shm` mount cannot be made, the smoke exits 2 and never runs MemPalace unsandboxed (same rule as
-Entry 148). Checks: each step exits 0, mine files 2 drawers, each query ranks
+step runs under bwrap with no network and a read-only root. If bwrap is missing or unusable (it cannot bind the
+temp dir, die with its parent, or mount `/proc` or a tmpfs `/dev/shm`), or a required `/proc` or `/dev/shm`
+mount cannot be made, the smoke exits 2 and never runs MemPalace unsandboxed (same rule as Entry 148). Checks:
+each step exits 0, mine files 2 drawers, each query ranks
 the right note first, and real-HOME paths ~/.mempalace, ~/.config/mempalace and ~/.cache/chroma are unchanged.
 """
 from __future__ import annotations
@@ -74,12 +75,23 @@ def find_bin() -> str | None:
 def bwrap_ok() -> bool:
     if not shutil.which("bwrap"):
         return False
-    # Probe with the same required mounts the real run uses, so a bwrap that
-    # cannot mount /proc or a tmpfs /dev/shm fails here as "bwrap is not usable".
-    p = subprocess.run(["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--tmpfs", SHM_PATH,
-                        "--proc", PROC_PATH, "--unshare-net", "true"],
-                       capture_output=True)
-    return p.returncode == 0
+    # Same flags as run(): bind a real temp dir and --die-with-parent, plus the
+    # /proc and tmpfs /dev/shm mounts. A bwrap that rejects any of them is not usable.
+    # Creating the temp dir can fail; that is also "not usable", not an unsandboxed run.
+    probe_dir = None
+    try:
+        probe_dir = tempfile.mkdtemp(prefix="pfy-smoke-149-probe-")
+        p = subprocess.run(
+            ["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--tmpfs", SHM_PATH,
+             "--proc", PROC_PATH, "--bind", probe_dir, probe_dir, "--unshare-net",
+             "--die-with-parent", "true"],
+            capture_output=True)
+        return p.returncode == 0
+    except OSError:
+        return False
+    finally:
+        if probe_dir is not None:
+            shutil.rmtree(probe_dir, ignore_errors=True)
 
 
 def dir_usable(path: str, *, writable: bool) -> bool:
