@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/in-sources-entries-149-mempalace-md-the-20261031T230726093790Z",
+  "commit": "3faeaa2e0a48a8e65aeeda9d57bea304511c02bd",
+  "base": "HEAD",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll count the stub tests in `tests/test_x_intake_smoke_149.py` and update only the Smoke-line integer in `sources/entries/149-mempalace.md` so the published count matches.The suite defines 28 methods that match `^    def test_`. The Smoke line still says 18. I'll change only that integer.The Smoke line in `sources/entries/149-mempalace.md` now says 28 stub tests, matching the 28 methods in `tests/test_x_intake_smoke_149.py` that match `^    def test_`. The rest of that sentence and the Date line are unchanged.\n\n`python3 -m unittest tests.test_entry_149_count` passed (1 test, OK).\n\nI'll check the published count against the test methods and confirm the diff only changes that integer.verdict: accept\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "python3 -m unittest tests.test_entry_149_count",
+    "before": {
+      "cmd": "python3 -m unittest tests.test_entry_149_count",
+      "exit": 1,
+      "tail": "\nF\n======================================================================\nFAIL: test_published_count_matches_methods (tests.test_entry_149_count.Entry149CountTests.test_published_count_matches_methods)\nFail: the Smoke line's stub-test count is not the method count.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-backlog-burn-1031/tmp/target-03/tmp/cloud-build/20261031T230726093790Z/tests/test_entry_149_count.py\", line 31, in test_published_count_matches_methods\n    self.assertEqual(published, len(methods))\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 18 != 28\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nFAILED (failures=1)\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "python3 -m unittest tests.test_entry_149_count",
+      "exit": 0,
+      "tail": "\n.\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nOK\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": true,
+  "task": "In sources/entries/149-mempalace.md, the Smoke line publishes a stub-test count that does not match tests/test_x_intake_smoke_149.py. Change only that integer so it equals the number of methods that match '^    def test_' in tests/test_x_intake_smoke_149.py. Leave the rest of the sentence. Do not edit the Date line. Do not edit tests. Do not edit examples/x-intake-local/smoke_149.py or smoke.py. Do not edit docs/automation/x-intake-2026-10-29-handoff.md. Do not edit any other file.\n\ntests.test_entry_149_count.test_published_count_matches_methods is red and must pass.\n\nNo em dashes or en dashes.",
+  "finished_at": "2026-10-31T23:07:54Z"
+}

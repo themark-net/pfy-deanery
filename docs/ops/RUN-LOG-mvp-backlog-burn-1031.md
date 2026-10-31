@@ -101,6 +101,7 @@ Format: `item | commit | tests | result`
 - loop-card | d3d6377 | docs only, no product tests | PASS pushed
 - enterable not-ok | c354d9c (cloud 9b7eafdade3b09d473cf7b0805bd042e99561f36) | nice python3 -m unittest tests.test_enterable_not_ok (2 OK) | PASS human-accept wall 53s attempts 1
 - catalog apply | 5f7ce36 (cloud a3f267a4e514f014981aa0803778518615c081bc) | nice python3 -m unittest tests.test_catalog_stage_eval (4 OK) | PASS human-accept wall 784s attempts 2
+- entry 149 count | 42fc4e1 (cloud 3faeaa2e0a48a8e65aeeda9d57bea304511c02bd) | nice python3 -m unittest tests.test_entry_149_count (1 OK) | PASS human-accept wall 28s attempts 1
 
 ## Checks
 
