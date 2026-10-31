@@ -94,3 +94,10 @@ Host before 05: 2026-10-31T21:41:15Z MemAvailable 57.0 GiB, load 4.20, 32 cores.
 Host before 06: 2026-10-31T21:46:18Z MemAvailable 58.6 GiB, load 4.18, 32 cores. Under the pressure line.
 
 - 06-capture-list-thread | cloud 7600d6cf88477251bd80b56dca59dd8ef82d49c5 landed 3d9aac7b434e02d93ecab45a97457f5b2069dcb3 (test 213344387c16f3cfbdaaccebd60bd8e36c40fe41) | gate before exit 1, after exit 0; land pytest 6 passed | PASS review accept human accept wall 141s
+
+Host before report: 2026-10-31T21:54:47Z MemAvailable 57.8 GiB, load 4.53, 32 cores. Under the pressure line. Runner.Worker pid 2631906 is running.
+
+- report | 0597d274755aef04a0347607504e84e930b2e0de | tests.test_gom_dogfood_1031_report 2 tests OK | rows match receipts; a planted exit and a planted attempt count fail the checker
+- gom handoff | 02e421de4cc1a7beca16846b2ac18acc1c28df5b on bot/gom-dogfood-1031 | six landed tests already green | dated section lists the cherry-picked commits
+
+state: goal met 2026-10-31T21:54:47Z. Six cloud builds PASS and human-accept. Gom tip 02e421de4cc1a7beca16846b2ac18acc1c28df5b. Report checker green. pregate not run: host busy. No merge.
