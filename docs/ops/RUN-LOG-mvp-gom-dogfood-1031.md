@@ -119,3 +119,60 @@ Host: MemAvailable 45.5 GiB, load 4.81, 32 cores. Under the pressure line (2x co
 - pregate | not run | not queued | host busy: Runner.Worker pid 3199955
 
 prior-state: goal met 2026-10-31T22:52:50Z. Lane empty. Pregate not run: host busy. No merge.
+
+## Wave 5 (2026-10-31T23:30Z)
+
+The drop-in addendum supersedes the earlier goal-met lines. Same worktree and branch rules. No rebase, no force-push, no PR, no merge to main. No `--local`.
+
+Overview: Merge `origin/bot/mvp-integrate-1031` so this branch uses the latest cloud runner, then run six more real `./pfy build` tasks on Gom Jabbar. The six are T-0034 slices that are not 01 through 06: view `to`, view `cc`, view stored Date header, land `from` and `reply_to`, land `to` and `cc`, list `references`. PASS plus human accept is cherry-picked onto `bot/gom-dogfood-1031`. Rejected diffs stay off that branch. Receipts and a Wave 5 section land in `eval/gom-dogfood-1031/REPORT.md`. Runner friction is a cross-lane request for mvp-cloudfix-1031.
+
+Phases:
+- wave5-exits | this log, `docs/ops/AUTONOMOUS-DECISIONS-mvp-gom-dogfood-1031.md` | this card is in the log before the merge and before any build | none | lead
+- merge | this branch, runner from integrate | `origin/bot/mvp-integrate-1031` is merged with a merge commit, never a rebase; `./pfy build --help` is the post-merge runner | wave5-exits | lead
+- select | task briefs under `eval/gom-dogfood-1031/07` through `12` | six briefs, each a different stored-header behavior, each with a red test that does not fetch jobs or touch a real journal | merge | lead
+- builds | `eval/gom-dogfood-1031/07` through `12` | each task has command, wall time, exit, attempts, review verdict, human verdict, redacted receipt, and diff | select | lead
+- land | gom `bot/gom-dogfood-1031` and its `docs/PENDING-HANDOFF.md` | only PASS and human-accept commits are cherry-picked with the Built-by trailer, tests run, branch pushed; no PR and no merge to gom main | builds | lead
+- report | `eval/gom-dogfood-1031/REPORT.md`, `tests/test_gom_dogfood_1031_report.py` | Wave 5 rows match receipts; a planted mismatch still fails | builds | lead
+- handoff | `docs/ops/HANDOFF-mvp-gom-dogfood-1031.md`, this log | SHAs, skips, fail/recover, cross-lane requests, gate, next step, final state line | report and land | lead
+
+Risks: cloud quota, so the six builds stay serial and never use `--local`. A throwaway clone keeps the runner off Mark's gom checkout. Human accept is a diff read (no auto-submit, `submitted` stays false, no raw_source leak, no scraper). Scratch and `TMPDIR` stay under this worktree `tmp/` except the gom scratch at `~/DEVELOP/jobbar-master/tmp/gom-dogfood-1031-scratch/`. The merge can conflict; lane-owned docs stay this lane's text, and runner code stays the integrate side.
+
+## WAVE 5 LOOP EXIT CARD
+
+```text
+LOOP EXIT CARD
+Goal (success criteria):     merge origin/bot/mvp-integrate-1031 (merge, never rebase); six more real ./pfy build runs, different from 01-06, recorded under eval/gom-dogfood-1031/; human accept cherry-picked to bot/gom-dogfood-1031 with Built-by trailer; rejected diffs stay off that branch; REPORT.md Wave 5 rows match receipts; tests.test_gom_dogfood_1031_report fails a planted mismatch
+1 Goal met:                  six new receipt directories plus the report checker green, whether each run was accepted or honestly rejected
+2 Turn cap:                  six new builds (07 through 12), then report, land notes, and handoff. Do not redo 01-06. Do not start 13
+3 Budget cap:                cloud Grok only; no --local; no second model; stop new builds if two runs return rate-limit
+4 Wall clock:                original launch cap still binds: 2026-11-01T05:15:13Z or 2026-11-02T02:00Z, whichever comes first; handoff starts 20 minutes earlier (2026-11-01T04:55:13Z)
+5 No-progress:               same failure twice with no new information, or 3 items skipped in a row
+6 Human interrupt:           user stop; do not ask; conservative decision goes in the decisions file
+7 Error threshold:           3 consecutive same failures, then stop
+8 External event:            no further gom backlog item that fits these rules after the six; skip open OQs, scrapers, Playwright, secrets, and operator-ask items
+Loop type:                   goal
+Human gate:                  lead reads each PASS diff before cherry-pick; no merge, no PR; push bot/mvp-gom-dogfood-1031 and gom bot/gom-dogfood-1031 only
+```
+
+Drop-in exits, checked before every Wave 5 item:
+
+1. Wall cap above. Leave 20 minutes for the handoff.
+2. Lane empty: the six new slices are the items that fit. Parked rows stay skipped.
+3. No progress: the same failure twice with no new information, or 3 items skipped in a row.
+4. Host pressure: MemAvailable under 16 GiB, or load over 2x cores (64) for 5 minutes. Pause 10 minutes, then stop if it persists.
+5. Red base: tests that fail on the base before this change. Record them and skip that area. Do not stop the lane.
+
+Wave 5 host at 2026-10-31T23:30Z: MemAvailable 41.9 GiB (43960480 kB), load 6.32, 32 cores. Under the pressure line. `Runner.Worker` pid 3751002 is running. Pregate stays deferred until the end, and only if that process is gone.
+
+## Wave 5 task list (T-0034, not the first six)
+
+| n | slug | behavior the red test requires |
+|---|------|--------------------------------|
+| 07 | catch-view-to | `catch --view` prints `to:` only when the stored string is non-empty, and does not print `raw_source` |
+| 08 | catch-view-cc | `catch --view` prints `cc:` only when the stored string is non-empty, and does not print `raw_source` |
+| 09 | catch-view-date | `catch --view` prints `date:` from stored `headers.date` only when that string is non-empty, and does not print `raw_source` |
+| 10 | land-mailbox-parties | landing a catch copies non-empty `from` and `reply_to` onto provenance and does not copy `raw_source` |
+| 11 | land-recipients | landing a catch copies non-empty `to` and `cc` onto provenance and does not copy `raw_source` |
+| 12 | capture-list-references | `format_item_line` shows `references` when provenance has a non-empty list, and omits the label when it does not |
+
+Skipped again, with the same reasons as the decisions file: T-0022, T-0023, T-0027, scraper and Playwright slices, T-0030, T-0031, T-0032, T-0033, T-0050, T-0051, Streamlit walks, and `capture serve` (needs `GOMJOBBAR_LAND_TOKEN`). Create-once already passes. Do not invent a sticky.
