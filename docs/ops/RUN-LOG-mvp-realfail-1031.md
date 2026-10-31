@@ -61,6 +61,6 @@ gitignored-extra | f8e5553 | tests.test_mvp_1031_realfail_receipts 3 ok | PASS, 
 redaction | b66d5a0 | tests.test_mvp_1031_realfail_receipts 3 ok | FINDING planted marker stayed in the receipt
 no-change | e0bdb62 | tests.test_mvp_1031_realfail_receipts 3 ok | real FAIL no-change, attempts 3, tail in later prompts
 recheck | none | cloud still d94d2b6 | FINDINGs not rerun, no new cloud commit
-handoff | (this commit) | tests.test_mvp_1031_realfail_receipts | lane empty, pregate not run: host busy
+handoff | f66269c | tests.test_mvp_1031_realfail_receipts 3 ok | lane empty, pregate not run: host busy
 
 state: LANE EMPTY | tests: tests.test_mvp_1031_realfail_receipts 3 ok | files: eval/mvp-1031/realfail, tests/test_mvp_1031_realfail_receipts.py, docs/ops/*-mvp-realfail-1031.md | err: none | pregate not run: host busy
