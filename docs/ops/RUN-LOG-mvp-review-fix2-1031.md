@@ -175,4 +175,17 @@ item-7-stub | 8dd5baf | review module Ran 17 in 32.132s OK; local module Ran 61 
 `eval/mvp3/REPORT.md` notes that the reviewer is the same model as the agent (`qwen3.6:35b` on the same endpoint). A shared blind spot is not an independent review. The human column is the independent read. Deterministic checks do not call the model. The trial numbers were not re-run.
 
 item | commit | tests | result
-item-8-report | (sha next) | none (docs only) | note added
+item-8-report | db3dfcb | none (docs only) | note added
+
+### item-9-scratch
+
+The eval runner pins `TMPDIR` to `<repo>/tmp` and creates fixture copies there. The default repo is the directory that contains `scripts/pfy_local_build_eval.py`, not the process cwd. `--repo` that resolves into the main checkout (the git common dir parent) outside this worktree is refused before any directory is created, with a recovery line. `eval/mvp3/run_trial.py` already sets scratch from its own file path; a usage run from a hostile cwd and `TMPDIR` still creates `tmp/mvp3-trial-tmp` under this worktree and leaves the foreign directory empty.
+
+`scripts/pregate.sh` still writes `tmp/pgs` via the git common dir so socket paths stay short. That file is not owned. Not edited. Cross-lane request.
+
+How it fails: a shell whose `TMPDIR` or cwd points at the main checkout does not move eval copies or the trial scratch there. A `--repo` of the main checkout exits 2 and writes nothing.
+
+How we recover: run the script from its worktree, or pass `--repo` under that worktree. The refusal names the main checkout and the recovery.
+
+item | commit | tests | result
+item-9-scratch | (sha next) | nice python3 -m unittest tests.test_pfy_local_build_eval | Ran 19 tests in 47.288s OK
