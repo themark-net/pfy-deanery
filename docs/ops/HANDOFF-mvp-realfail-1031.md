@@ -19,7 +19,8 @@ Base: `origin/bot/mvp-cloud-1031`
 - auth-failure `bb3d5be`: FINDING. Empty `HOME` under `tmp/targets/empty-home`. Exit 1, receipt `FAIL` / `no-change`, recovery empty. Grok text is `Not signed in`. 25 `ENOENT` opens of the empty-home `auth.json`. The real credential file was not opened. See `eval/mvp-1031/realfail/auth-failure/FINDING.md`.
 - rate-limit `b42c427`: simulated on `--grok-cmd`. Exit 4, `BLOCKED` / `rate-limit`, recovery `./pfy build --local rate-limit-sim`, no branch. A sentinel `pfy` on `PATH` was not started. A real rate limit was not triggered.
 - gitignored-extra `f8e5553`: real grok. Exit 0, `PASS` / `ok`. Gate after printed `GATE-OK`, so `ignored-extra.txt` existed in the worktree. Commit `696dc4e` on the throwaway contains `kept.py` and not `ignored-extra.txt`. Caller unchanged. `scope-commit-mismatch` was not produced. Git was not wrapped.
-- redaction: FINDING. Real grok, exit 0, `PASS` / `ok`. The planted marker `xai-FAKE0000` is still in the receipt `task` field and in `output_tail`. See `eval/mvp-1031/realfail/redaction/FINDING.md`.
+- redaction `b66d5a0`: FINDING. Real grok, exit 0, `PASS` / `ok`. The planted marker `xai-FAKE0000` is still in the receipt `task` field and in `output_tail`. See `eval/mvp-1031/realfail/redaction/FINDING.md`.
+- no-change: real grok, three attempts. Exit 1, `FAIL` / `no-change`, no branch, caller unchanged. Prompts 2 and 3 contain a Reasons block with `no-change` and `NO-CHANGE-GATE-TAIL`. Prompt 1 has no Reasons block. The log wrapper execs real grok. The fake seam was not used.
 
 ## Skipped
 
@@ -46,4 +47,4 @@ Docs, eval, and test only. Pregate plus Reviewer when the lane finishes. Pregate
 
 ## Next
 
-No-change with real grok, three attempts, task says do not edit any file. If grok edits, record that and use the fake-grok seam labeled simulated. Do not reuse the auth-failure receipt.
+Fetch `origin/bot/mvp-cloud-1031`. If it is still `d94d2b6`, record the FINDINGs as still open and close the lane. If it moved, rerun sigkill-reap, review-reject, auth-failure, and redaction.

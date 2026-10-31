@@ -17,7 +17,7 @@ Expected values come from the Functional MVP failure table. Process exit is the 
 | rate-limit | simulated | BLOCKED | rate-limit | 4 | BLOCKED | rate-limit | 4 | matches | 1 | ./pfy build --local rate-limit-sim | Fake grok prints rate limit and exits 1. Sentinel pfy was not started. |
 | gitignored-extra | real | PASS | ok | 0 | PASS | ok | 0 | matches | 1 | empty | ignored-extra.txt existed (GATE-OK) and is absent from commit 696dc4e. Real git. scope-commit-mismatch was not produced. |
 | redaction | real | PASS | ok | 0 | PASS | ok | 0 | FINDING | 1 | empty | Planted marker survived in the task field and in output_tail. See FINDING.md. |
-| no-change | real | FAIL | no-change | 1 | pending | pending | pending | pending | 3 | - | table row, real grok asked to leave the tree unchanged |
+| no-change | real | FAIL | no-change | 1 | FAIL | no-change | 1 | matches | 3 | empty | Three real attempts, all no-change. Prompts 2 and 3 include the gate tail under Reasons. No branch. |
 
 ## Findings
 
