@@ -49,4 +49,5 @@ Risks:
 
 Format: `item | commit | tests | result`
 
-(no items yet)
+- loop-card | 42d6952 | docs only | PASS
+- base-merge | d0adb75 | merge origin/bot/mvp-cloud-1031 (cloud lane empty at d94d2b6) | PASS, runner still has no --writable-test
