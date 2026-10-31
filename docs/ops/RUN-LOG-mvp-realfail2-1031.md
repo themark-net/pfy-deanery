@@ -64,3 +64,4 @@ Risks:
 Format: `item | commit | tests | result`
 
 - loop-card | a480afa | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail2_receipts | PASS, 4 tests OK. Pending report, no case run yet.
+- usage | (this commit) | tests.test_mvp_1031_realfail2_receipts | PASS if the row matches. Exit 2, no receipt, daily command and both pointers present.
