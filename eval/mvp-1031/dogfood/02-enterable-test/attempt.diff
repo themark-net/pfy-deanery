@@ -1,0 +1,68 @@
+# Snapshot of attempt 1. Not a cloud branch commit.
+
+diff --git a/scripts/pfy_enterable_162.py b/scripts/pfy_enterable_162.py
+index 2c2c3c3..7067493 100644
+--- a/scripts/pfy_enterable_162.py
++++ b/scripts/pfy_enterable_162.py
+@@ -35,6 +35,7 @@ def arm_launch_env_session(res, open_fn) -> dict:
+     if not out.get("ok"):
+         out["session_reach"] = "FAIL"
+         out["enterable"] = False
++        out["next_steps"] = next_steps
+         return out
+     if live == "SKIP":
+         # Env itself skipped — honest about enterable too
+
+diff --git a/tmp/run-02-test.py b/tests/test_enterable_not_ok.py
+new file mode 100644
+index 0000000..853e987
+--- /dev/null
++++ b/tests/test_enterable_not_ok.py
+@@ -0,0 +1,47 @@
++"""Not-ok launch must drop stale enterable and session steps. Cite #162."""
++from __future__ import annotations
++
++import importlib.util
++import unittest
++from pathlib import Path
++
++ROOT = Path(__file__).resolve().parents[1]
++
++
++def _load():
++    path = ROOT / "scripts" / "pfy_enterable_162.py"
++    spec = importlib.util.spec_from_file_location("pfy_enterable_162", path)
++    mod = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(mod)
++    return mod
++
++
++def _open_fn():
++    raise AssertionError("open_fn must not be called when launch is not ok")
++
++
++class EnterableNotOkTests(unittest.TestCase):
++    def test_not_ok_strips_enterable_and_session_keeps_env(self):
++        # Fail: a not-ok launch returns the original next_steps, so a stale
++        # enterable or session marker survives. Recover: store the stripped
++        # list before return, keep env, and do not open a session.
++        mod = _load()
++        res = {
++            "ok": False,
++            "next_steps": [
++                {"id": "enterable", "label": "stale enterable", "value": "stale"},
++                {"id": "session", "label": "stale session", "value": "stale"},
++                {"id": "env", "label": "env", "value": "env"},
++            ],
++        }
++        out = mod.arm_launch_env_session(res, _open_fn)
++        ids = [(step or {}).get("id") for step in (out.get("next_steps") or [])]
++        self.assertNotIn("enterable", ids)
++        self.assertNotIn("session", ids)
++        self.assertIn("env", ids)
++        self.assertIs(out.get("enterable"), False)
++        self.assertEqual(out.get("session_reach"), "FAIL")
++
++
++if __name__ == "__main__":
++    unittest.main()

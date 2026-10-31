@@ -1,0 +1,14 @@
+Started 2026-10-31T21:10:51Z. Finished 2026-10-31T21:12:16Z. Wall 85 seconds.
+
+./pfy build <task> \
+  --repo /home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood-1031/tmp/target-09 \
+  --base demo-base \
+  --test-cmd "python3 dogfood_gate.py" \
+  --receipt-dir /home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood-1031/eval/mvp-1031/dogfood/09-splice-close
+
+Task: in scripts/pfy_build_local.py only, join both pump threads and then close both sockets in the embedded splice and in _splice_sockets. Do not change the recv loop.
+
+Target: fresh clone, demo-base plus a local dogfood_gate.py commit (e266f4a), not pushed.
+No --local. Default retries and timeout. Review on.
+Exit 0. Cloud commit 24e73bec931ca56909e4bc529c398108f15bc076 matches git rev-parse of the cloud branch.
+Caller branch unchanged. Nothing pushed from the target.
