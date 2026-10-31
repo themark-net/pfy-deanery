@@ -113,3 +113,18 @@ item | commit | tests | result
 catalog-and-first-run | e9e532c | nice python3 eval/mutation-1031/review/run_mutants.py --run --timeout 420 | baseline OK, 11 killed, 3 survived, exit 0
 
 state: DONE | tests: mutation campaign exit 0 | files: 2 | err: none
+
+### survivor-tests
+
+`tests/test_mut_review_size_cap.py` rejects a green patch of 4 counted files or 251 diff lines (PASS-REJECTED, no commit, reviewer not asked) and accepts the same task narrowed to 3 files or 250 lines. R7, R8, and R9 share this file (decision 6). Tracked files are seeded first, because the reviewed pathspec does not stage new untracked names.
+
+`--modules` on the harness replaces the long review suite. `survivor_modules` omits `tests.test_mut_review_harness`, which would false-kill every mutant by re-checking anchors.
+
+How it fails: a 4-file or 251-line patch is committed, or a 3-file or 250-line patch is rejected.
+
+How we recover: the over-cap receipt is PASS-REJECTED with size.ok false, no commit, and a clean origin. Narrowing the same task to the cap commits and the gate stays green.
+
+item | commit | tests | result
+survivor-tests | pending-sha | nice python3 -m unittest tests.test_mut_review_harness tests.test_mut_review_size_cap | Ran 8 tests in 5.476s OK
+
+state: DONE | tests: both modules OK on the unmutated runner | files: 3 | err: none

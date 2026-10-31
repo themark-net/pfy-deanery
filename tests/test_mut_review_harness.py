@@ -164,6 +164,20 @@ class HarnessBehaviorTests(unittest.TestCase):
             MUT.write_mutant(RUNNER, [RUNNER], mutant, RUNNER.read_text(encoding="utf-8"))
         self.assertEqual(RUNNER.read_bytes(), self.runner_before)
 
+    def test_survivor_modules_omit_the_harness_and_an_override_replaces_the_suite(self):
+        tests = self.source / "tests"
+        (tests / "test_mut_review_harness.py").write_text("raise SystemExit('harness')\n", encoding="utf-8")
+        (tests / "test_mut_review_size_cap.py").write_text("# size cap\n", encoding="utf-8")
+        names = MUT.survivor_modules(self.source)
+        self.assertEqual(names, ["tests.test_mut_review_size_cap"])
+        real = MUT.survivor_modules(REPO)
+        self.assertIn("tests.test_mut_review_size_cap", real)
+        self.assertNotIn("tests.test_mut_review_harness", real)
+        override = MUT.modules_for(REPO, "tests.test_mut_review_size_cap")
+        self.assertEqual(override, ["tests.test_mut_review_size_cap"])
+        self.assertNotIn("tests.test_pfy_build_local_review", override)
+        self.assertEqual(MUT.modules_for(REPO, ""), MUT.review_modules(REPO))
+
     def test_catalog_anchors_match_a_copy_of_the_runner(self):
         self.assertEqual(len(MUT.CATALOG), 14)
         ids = [item.id for item in MUT.CATALOG]

@@ -223,6 +223,24 @@ def review_modules(repo):
     return names
 
 
+def survivor_modules(repo):
+    """New kill tests. The harness module is omitted: it checks anchors on every mutant."""
+    names = []
+    for path in sorted((repo / "tests").glob("test_mut_review_*.py")):
+        if path.stem == "test_mut_review_harness":
+            continue
+        names.append("tests." + path.stem)
+    return names
+
+
+def modules_for(repo, override):
+    """An override replaces the review suite. Appending it would re-run the long suite."""
+    picked = [item.strip() for item in (override or "").split(",") if item.strip()]
+    if picked:
+        return picked
+    return review_modules(repo)
+
+
 def assert_throwaway(dest, worktree):
     root = (worktree / "tmp").resolve()
     try:
@@ -566,6 +584,11 @@ def main(argv=None):
     parser.add_argument("--check-anchors", action="store_true", help="check catalog anchors and exit")
     parser.add_argument("--timeout", type=int, default=420, help="seconds per suite run")
     parser.add_argument("--ids", default="", help="comma-separated mutant ids (default all)")
+    parser.add_argument(
+        "--modules",
+        default="",
+        help="comma-separated modules replacing the local-runner review suite",
+    )
     parser.add_argument("--repo", default=str(REPO), help="source repo to clone")
     parser.add_argument("--report", default=str(REPO / "eval" / "mutation-1031" / "review" / "REPORT.md"))
     args = parser.parse_args(argv)
@@ -588,7 +611,7 @@ def main(argv=None):
         clone_dest=clone_dest,
         worktree=worktree,
         mutants=mutants,
-        modules=review_modules(repo),
+        modules=modules_for(repo, args.modules),
         exclude=list(EXCLUDE_MODEL_TESTS),
         timeout_s=args.timeout,
         tmpdir=tmpdir,
