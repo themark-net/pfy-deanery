@@ -27,7 +27,7 @@ The runner does not read `auth.json`. Grok uses the operator login that already 
 | Flag | Meaning |
 |------|---------|
 | `--repo DIR` | Git repo to build. Default is the repo that contains `./pfy`. The caller checkout is never the worktree. |
-| `--base REF` | Base ref. Default `origin/main`. |
+| `--base REF` | Base ref. When HEAD matches `origin/main`, that is the default. When they differ, the run exits 2 until you pass `--base origin/main` or `--base HEAD`. When `origin/main` is absent, the default is HEAD. |
 | `--test-cmd CMD` | Gate command. Default `python3 -m unittest discover -s tests -t .`. |
 | `--retries N` | Extra attempts after the first. Default 2, so 3 attempts total. |
 | `--no-review` | One attempt, no review call. Default is review on. |

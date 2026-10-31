@@ -25,7 +25,7 @@ The runner does not read `auth.json`.
 | Flag | Meaning |
 |------|---------|
 | `--repo DIR` | Repo to build. Default is the repo that contains `./pfy`. The caller checkout is never the worktree. |
-| `--base REF` | Base ref. Default `origin/main`. |
+| `--base REF` | Base ref. When HEAD matches `origin/main`, that is the default. When they differ, the run exits 2 until you pass `--base origin/main` or `--base HEAD`. When `origin/main` is absent, the default is HEAD. |
 | `--test-cmd CMD` | Gate. Default `python3 -m unittest discover -s tests -t .`. |
 | `--retries N` | Extra attempts. Default 2 (3 total). |
 | `--no-review` | One attempt, no review. Default is review on. |

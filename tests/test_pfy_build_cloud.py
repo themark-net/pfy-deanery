@@ -142,6 +142,32 @@ class CloudBuildSkeletonTests(unittest.TestCase):
         self.assertIn(str(receipt), proc.stdout)
         self.assertFalse((self.repo / "tmp" / "cloud-build").exists())
 
+    def test_dry_run_uses_origin_main_when_it_matches_head(self) -> None:
+        # Fail: a matching origin/main is ignored and the receipt says HEAD.
+        # Recover: the default base name is origin/main when the shas match.
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        ref = _git(self.repo, "update-ref", "refs/remotes/origin/main", head)
+        self.assertEqual(ref.returncode, 0, ref.stderr)
+        receipt_dir = SCRATCH / (self.id().replace(".", "_") + "-receipt")
+        proc = _run(
+            [
+                sys.executable,
+                str(CLOUD),
+                "add a note",
+                "--repo",
+                str(self.repo),
+                "--dry-run",
+                "--receipt-dir",
+                str(receipt_dir),
+            ],
+            self.repo,
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        payload = json.loads((receipt_dir / "receipt.json").read_text(encoding="utf-8"))
+        self.assertEqual(payload["base"], "origin/main")
+        self.assertEqual(payload["status"], "DRY-RUN")
+
 
 class CloudBuildDispatchTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -303,7 +329,56 @@ class CloudBuildPassTests(unittest.TestCase):
             "raise SystemExit(0)\n",
         )
 
-    def test_default_base_is_origin_main_not_the_caller_head(self) -> None:
+    def test_head_that_is_not_origin_main_exits_2_before_grok(self) -> None:
+        # Fail: the run builds origin/main and drops the caller HEAD with no
+        # warning, which is how the gom clone lost its bot-branch commits.
+        # Recover: exit 2 and name --base. Pass --base origin/main to build
+        # that older commit on purpose (see the next test).
+        first = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        (self.repo / "later.txt").write_text("later\n", encoding="utf-8")
+        _git(self.repo, "add", "later.txt")
+        later = _git(self.repo, "commit", "-m", "later")
+        self.assertEqual(later.returncode, 0, later.stderr)
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        ref = _git(self.repo, "update-ref", "refs/remotes/origin/main", first)
+        self.assertEqual(ref.returncode, 0, ref.stderr)
+        marker = self.side / "grok-was-started"
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "Path(%r).write_text('started\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n" % str(marker),
+        )
+        proc = _run(
+            [
+                sys.executable,
+                str(CLOUD),
+                "add kept",
+                "--repo",
+                str(self.repo),
+                "--retries",
+                "0",
+                "--grok-cmd",
+                str(grok),
+                "--timeout",
+                "30",
+            ],
+            self.repo,
+            timeout=60,
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 2, text)
+        self.assertIn("Pass --base", text)
+        self.assertIn(head[:12], text)
+        self.assertIn(first[:12], text)
+        self.assertFalse(marker.exists(), text)
+        self.assertEqual(_git(self.repo, "branch", "--list", "cloud/*").stdout.strip(), "")
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+
+    def test_explicit_origin_main_still_excludes_caller_only_commits(self) -> None:
+        # Fail: --base origin/main builds the caller HEAD and commits later.txt.
+        # Recover: the worktree parent is origin/main, and later.txt stays out.
         first = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
         (self.repo / "later.txt").write_text("later\n", encoding="utf-8")
         _git(self.repo, "add", "later.txt")
@@ -320,6 +395,8 @@ class CloudBuildPassTests(unittest.TestCase):
                 "add kept",
                 "--repo",
                 str(self.repo),
+                "--base",
+                "origin/main",
                 "--retries",
                 "0",
                 "--test-cmd",

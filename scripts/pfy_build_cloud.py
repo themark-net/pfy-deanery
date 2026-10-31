@@ -223,15 +223,35 @@ def resolve_repo(raw: str | None) -> Path:
 
 
 def resolve_base(repo: Path, requested: str | None) -> tuple[str, str]:
+    """Pick the commit the worktree is built from.
+
+    Fail: HEAD is a bot branch and origin/main is an older main, and the
+    run silently builds main. Recover: exit 2 and ask for --base.
+    When the two shas match, origin/main stays the default. When
+    origin/main is absent, HEAD stays the default.
+    """
     if requested and requested.strip():
         ref = requested.strip()
-    else:
-        probe = _git(repo, ["rev-parse", "--verify", "--quiet", "origin/main"])
-        ref = "origin/main" if probe.returncode == 0 else "HEAD"
-    sha = _git(repo, ["rev-parse", "--verify", ref])
-    if sha.returncode != 0 or not (sha.stdout or "").strip():
-        raise UsageError("base ref not found: %s" % ref)
-    return ref, sha.stdout.strip()
+        sha = _git(repo, ["rev-parse", "--verify", ref])
+        if sha.returncode != 0 or not (sha.stdout or "").strip():
+            raise UsageError("base ref not found: %s" % ref)
+        return ref, sha.stdout.strip()
+    probe = _git(repo, ["rev-parse", "--verify", "--quiet", "origin/main"])
+    head = _git(repo, ["rev-parse", "--verify", "HEAD"])
+    if head.returncode != 0 or not (head.stdout or "").strip():
+        raise UsageError("base ref not found: HEAD")
+    head_sha = head.stdout.strip()
+    if probe.returncode != 0:
+        return "HEAD", head_sha
+    main_sha = (probe.stdout or "").strip()
+    if not main_sha:
+        raise UsageError("base ref not found: origin/main")
+    if main_sha != head_sha:
+        raise UsageError(
+            "HEAD %s is not origin/main %s. Pass --base origin/main or --base HEAD."
+            % (head_sha[:12], main_sha[:12])
+        )
+    return "origin/main", main_sha
 
 
 def default_receipt_dir(repo: Path, stamp: str) -> Path:
@@ -383,7 +403,10 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument(
         "--base",
         default=None,
-        help="base ref (default: origin/main if it exists, else HEAD)",
+        help=(
+            "base ref. Required when HEAD is not origin/main. "
+            "Default is origin/main when it matches HEAD, else HEAD if origin/main is absent"
+        ),
     )
     parser.add_argument("--test-cmd", default=DEFAULT_TEST_CMD, help="gate command")
     parser.add_argument(
