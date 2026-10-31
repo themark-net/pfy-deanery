@@ -64,4 +64,4 @@ Format: `item | commit | tests | result`
 - variance-t3 | 0b700a3 | ./pfy build exit 0 wall 225.8s attempts 1 review accept gate_rerun 0 human accept | PASS, timeout return is before the real HOME check
 - variance-t4 | 638afc1 | ./pfy build exit 1 wall 999.4s attempts 3 status FAIL reason tests-tampered review none gate_rerun 0 human accept of the diff | FINDING repeats
 - variance-t5 | 8db3035 | ./pfy build exit 1 wall 839.0s attempts 3 status FAIL reason tests-tampered review none gate_rerun 0 human accept of the diff | FINDING repeats
-- variance-t6 | pending | ./pfy build exit 0 wall 110.5s attempts 1 review accept gate_rerun 0 human accept | PASS, three tree_sig copies match canonical
+- variance-t6 | c19212a | ./pfy build exit 0 wall 110.5s attempts 1 review accept gate_rerun 0 human accept | PASS, three tree_sig copies match canonical
