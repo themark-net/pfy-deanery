@@ -53,5 +53,6 @@ skeleton | 62d7e3a | nice -n 19 python3 -m unittest tests.test_pfy_build_cloud (
 dispatch | 860df72 | nice -n 19 python3 -m unittest tests.test_pfy_build_cloud (4 tests OK) | PASS
 pass | 141b203 | nice -n 19 python3 -m unittest tests.test_pfy_build_cloud (5 tests OK) | PASS
 retries | 6a8220e | nice -n 19 python3 -m unittest tests.test_pfy_build_cloud.CloudBuildRetryTests (3 tests OK) | PASS
+no-change | ea5ce77 | nice -n 19 python3 -m unittest tests.test_pfy_build_cloud.CloudBuildNoChangeTests (3 tests OK) | PASS
 
-state: IN PROGRESS | tests: retry tests 3 OK | files: tests/test_pfy_build_cloud.py | err: none
+state: IN PROGRESS | tests: no-change tests 3 OK | files: tests/test_pfy_build_cloud.py | err: none
