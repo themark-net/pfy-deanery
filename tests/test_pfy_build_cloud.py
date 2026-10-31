@@ -1066,6 +1066,7 @@ class CloudBuildFailureTests(unittest.TestCase):
         self.assertIsNone(payload["branch"])
         self.assertIsNone(payload["commit"])
         self.assertEqual(payload["recovery"], "./pfy build --local hit-the-limit")
+        self.assertIn("./pfy build --local hit-the-limit", proc.stderr or "")
         self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
         self.assertFalse(sentinel.exists())
 
@@ -1781,6 +1782,7 @@ class CloudBuildFailureTests(unittest.TestCase):
         )
         text = (proc.stdout or "") + (proc.stderr or "")
         self.assertEqual(proc.returncode, 2, text)
+        self.assertIn("Pass --test-cmd", text)
         payload = self._receipt()
         self.assertEqual(payload["reason"], "gate-missing")
         self.assertEqual(payload["exit_code"], 2)

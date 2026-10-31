@@ -1045,6 +1045,10 @@ class CloudBuild:
         print(_summary(self.status, self.reason, self.branch, self.receipt_path))
         if self.exit_code != EXIT_OK:
             print("FAIL: %s" % self.reason, file=sys.stderr)
+            if self.recovery:
+                # The receipt holds the same line. Print it so the terminal
+                # says what to run next without opening the json.
+                print(self.recovery, file=sys.stderr)
         return self.exit_code
 
     def prepare_worktree(self) -> str | None:

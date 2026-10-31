@@ -93,7 +93,7 @@ Exit 3. No branch. Receipt `status` `TIMEOUT`, `reason` `timeout`. Rerun with a 
 
 ## Failures and recovery
 
-The runner does not read `auth.json`. A rate limit does not auto-start `--local`.
+The runner does not read `auth.json`. A rate limit does not auto-start `--local`. When `recovery` is not empty, that same line is printed on stderr. Printing it does not start the command.
 
 | Case | Exit | Receipt | Recovery |
 |------|------|---------|----------|
