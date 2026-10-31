@@ -14,6 +14,7 @@ import subprocess
 import threading
 import time
 import unittest
+from pathlib import Path
 
 import tests.test_pfy_build_local as harness
 
@@ -369,3 +370,37 @@ class ReviewLoopTests(unittest.TestCase):
         data = self._receipt(again, again_receipt)
         self.assertEqual(data["status"], "PASS")
         self.assertNotEqual(again_receipt, receipt)
+
+    def test_ignored_out_of_scope_file_is_written_and_left_out_of_the_commit(self):
+        repo = self.inner.repo
+        ignore = repo / ".gitignore"
+        ignore.write_text(ignore.read_text(encoding="utf-8") + "secret-scratch/\n", encoding="utf-8")
+        self.inner.commit_base("ignore secret scratch")
+        secret = "PFY_IGNORED_UNREVIEWED_TOKEN"
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        steps = [{"mode": "fix", "write": {"secret-scratch/note.txt": secret + "\n"}}]
+        proc, receipt = self._run(task, steps, extra=["--keep-worktree"])
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "PASS")
+        self.assertIsNotNone(data["commit"])
+        ignored = Path(data["worktree"]) / "secret-scratch" / "note.txt"
+        self.assertTrue(ignored.is_file(), data["worktree"])
+        self.assertIn(secret, ignored.read_text(encoding="utf-8"))
+        self.assertNotIn("secret-scratch/note.txt", data["files_changed"])
+        names = harness._git(
+            repo, "diff-tree", "--no-commit-id", "--name-only", "-r", data["commit"]
+        ).strip().splitlines()
+        self.assertEqual(names, ["src/calc.py"])
+        tree = harness._git(repo, "ls-tree", "-r", "--name-only", data["commit"])
+        self.assertNotIn("secret-scratch/note.txt", tree.splitlines())
+        reviewed = [
+            json.dumps(payload)
+            for path, payload in self.inner.httpd.posts
+            if "chat" in path and "pfy-review-v1" in json.dumps(payload)
+        ]
+        self.assertTrue(reviewed, "reviewer was not called")
+        for blob in reviewed:
+            self.assertNotIn(secret, blob)
+        self.inner.assert_clean_origin()
+
