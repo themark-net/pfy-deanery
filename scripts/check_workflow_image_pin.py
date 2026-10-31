@@ -8,7 +8,9 @@ unresolved expression, malformed YAML, a missing runs-on, and a missing
 PyYAML all exit 1. A missing parser is a failure.
 
 Recovery: pin the job to ubuntu-24.04, or install PyYAML for the interpreter
-that runs this script, then re-run. Do not skip the check.
+named in the failure (sys.executable). Pregate and the hosted G0 job both
+invoke that absolute PATH python3. A different python3 later on PATH is not
+used. Do not skip the check.
 
 Usage:
   python3 scripts/check_workflow_image_pin.py [FILE_OR_DIR ...]
@@ -230,8 +232,10 @@ def main(argv: list[str]) -> int:
     try:
         import yaml
     except ImportError:
+        exe = sys.executable or sys.argv[0]
         print(
-            "FAIL: PyYAML is not importable; refusing to skip the workflow image pin check"
+            "FAIL: PyYAML is not importable in %s; refusing to skip the workflow image pin check"
+            % exe
         )
         return 1
     try:
