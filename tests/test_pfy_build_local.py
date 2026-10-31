@@ -1247,6 +1247,7 @@ class LocalBuildTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 4, proc.stdout + proc.stderr)
         data = self.receipt(proc, receipt)
         self.assertEqual(data["reason"], "no-sandbox")
+        self.assertFalse(data.get("gate_unsandboxed"))
         self.assert_agent_did_not_start()
         cmd2, receipt2 = self.command("noop", extra=["--unsafe-no-sandbox"])
         proc2 = subprocess.run(
@@ -1260,6 +1261,7 @@ class LocalBuildTests(unittest.TestCase):
         self.assertEqual(proc2.returncode, 1, proc2.stdout + proc2.stderr)
         data2 = self.receipt(proc2, receipt2)
         self.assertEqual(data2["sandbox"], "unsafe-no-sandbox")
+        self.assertTrue(data2["gate_unsandboxed"])
         self.assertEqual(data2["reason"], "no-change")
         self.assertIn("not sandboxed", proc2.stderr or "")
 
@@ -1269,6 +1271,40 @@ class LocalBuildTests(unittest.TestCase):
         proc, receipt = self.run_build("noop", extra=["--unsafe-no-sandbox"])
         data = self.receipt(proc, receipt)
         self.assertTrue(str(data["sandbox"]).startswith("bwrap"), data["sandbox"])
+        self.assertFalse(data["gate_unsandboxed"])
+
+    def test_stub_bwrap_keeps_the_gate_sandboxed_when_the_flag_is_set(self):
+        bindir = self.tmp / "bin"
+        bindir.mkdir()
+        log = self.tmp / "bwrap-invocations.txt"
+        stub = bindir / "bwrap"
+        stub.write_text(
+            "#!/bin/sh\n"
+            "log=\"$PFY_STUB_BWRAP_LOG\"\n"
+            "if [ -n \"$log\" ]; then printf '%s\\n' \"$*\" >> \"$log\"; fi\n"
+            "while [ $# -gt 0 ]; do\n"
+            "  if [ \"$1\" = \"--\" ]; then shift; exec \"$@\"; fi\n"
+            "  shift\n"
+            "done\n"
+            "exit 0\n",
+            encoding="utf-8",
+        )
+        stub.chmod(0o755)
+        path = str(bindir) + os.pathsep + os.environ.get("PATH", "")
+        proc, receipt = self.run_build(
+            "noop",
+            extra=["--no-review", "--unsafe-no-sandbox"],
+            env_extra={"PATH": path, "PFY_STUB_BWRAP_LOG": str(log)},
+            timeout=60,
+        )
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self.receipt(proc, receipt)
+        self.assertEqual(data["reason"], "no-change")
+        self.assertFalse(data["gate_unsandboxed"])
+        self.assertTrue(str(data["sandbox"]).startswith("bwrap"), data["sandbox"])
+        text = log.read_text(encoding="utf-8")
+        wrapped = [line for line in text.splitlines() if "--unshare-net" in line and "unittest" in line]
+        self.assertTrue(wrapped, text)
 
     def test_os_exit_in_src_is_not_a_pass(self):
         proc, receipt = self.run_build("exit-zero")

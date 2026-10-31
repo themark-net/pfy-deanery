@@ -203,4 +203,23 @@ How it fails: a review test that starts skipping when bwrap is hidden fails the 
 How we recover: keep the review tests on the stub HTTP reviewer and the stub opencode. Confinement tests in other modules stay skipped when bwrap is absent, so they do not pretend the sandbox was shown.
 
 item | commit | tests | result
-item-10-ubuntu | (sha next) | nice python3 -m unittest tests.test_pfy_build_local_review_ci | Ran 1 test in 31.601s OK; inner review module ran=17 skipped=0
+item-10-ubuntu | 187efde | nice python3 -m unittest tests.test_pfy_build_local_review_ci | Ran 1 test in 31.601s OK; inner review module ran=17 skipped=0
+
+### item-11-sandbox
+
+`--unsafe-no-sandbox` does not unsandbox the test gate when bwrap works. `prepare_sandbox` returns `unsafe-no-sandbox` only when `bwrap_works()` is false. The receipt field `gate_unsandboxed` is true only after a gate run took that path. A missing bwrap without the flag is still `BLOCKED` `no-sandbox` and `gate_unsandboxed` is false. Help text says a working bwrap still sandboxes the agent and the gate.
+
+The proof uses a stub `bwrap` that logs its argv and execs the command after `--`. With the flag set, the receipt stays `gate_unsandboxed` false, `sandbox` starts with `bwrap`, and a log line contains both `--unshare-net` and `unittest`. The failing stub (exit 1) still blocks unless the flag is set, and then `gate_unsandboxed` is true.
+
+How it fails: a flag that unsandboxes a working bwrap makes the stub log miss the wrapped unittest line, or sets `gate_unsandboxed` true. A missing bwrap without the flag still blocks. Recovery: install bwrap, or pass the flag and accept `gate_unsandboxed` true plus the stderr WARN. Re-run the build. The blocked receipt did not claim the gate ran unsandboxed.
+
+item | commit | tests | result
+item-11-sandbox | b483166 | nice python3 -m unittest tests.test_pfy_build_local tests.test_pfy_build_local_review | Ran 79 tests in 115.311s OK
+
+## Finish
+
+Checked 2026-10-31T21:26:33Z. MemAvailable about 59 GiB. Load about 3.84 on 32 cores. Wall cap 2026-11-01T04:22:04Z has not fired. `pgrep -f 'Runner[.]Worker'` found pid 2242260. The heavy lock was held by two `unittest discover` runs (pids 2291979 and 2294586). pregate not run: host busy.
+
+No further row in `docs/plans/MVP-PARALLEL-1031.md` fits these owned files. G1 through G3 and G6 through G9 are other lanes. G4 and G5 are already on the base. G10 is excluded. Round 2 `mvp-local-t5-1031` needs a local model and `eval/mvp-1031/`, which this lane must not touch. Lane empty.
+
+state: DONE | exit: lane empty | product: b483166 | pregate not run: host busy

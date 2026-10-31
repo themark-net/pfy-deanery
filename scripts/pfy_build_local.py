@@ -338,7 +338,10 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser.add_argument(
         "--unsafe-no-sandbox",
         action="store_true",
-        help="run the agent without bwrap when bwrap is unavailable (recorded on the receipt)",
+        help=(
+            "when bwrap is missing, run the agent and the test gate without it "
+            "and record gate_unsandboxed on the receipt. A working bwrap still sandboxes both"
+        ),
     )
     parser.add_argument("--review", action="store_true", help="review a green gate before PASS (default)")
     parser.add_argument(
@@ -781,6 +784,7 @@ def run_tests(
     prepared = None
     run_argv = argv
     run_env = dict(env)
+    mode = None
     if repo is not None:
         prepared = prepare_sandbox(
             argv,
@@ -789,19 +793,26 @@ def run_tests(
             endpoint=None,
             unsafe=unsafe,
         )
+        mode = prepared.mode
         run_argv = prepared.argv
         run_env.update(lockdown_env(cwd))
         run_env["GIT_TERMINAL_PROMPT"] = "0"
+
+    def _tagged(rec: dict) -> dict:
+        if mode is not None:
+            rec["sandbox"] = mode
+        return rec
+
     started = time.monotonic()
     try:
         try:
             status, code, out, err = run_bounded(run_argv, run_env, cwd, timeout, state)
         except FileNotFoundError:
-            return _test_record(cmd_s, False, None, "command not found", 0.0)
+            return _tagged(_test_record(cmd_s, False, None, "command not found", 0.0))
         except OSError as exc:
             if getattr(exc, "errno", None) == 2:
-                return _test_record(cmd_s, False, None, "command not found", 0.0)
-            return _test_record(cmd_s, False, None, str(exc), 0.0)
+                return _tagged(_test_record(cmd_s, False, None, "command not found", 0.0))
+            return _tagged(_test_record(cmd_s, False, None, str(exc), 0.0))
     finally:
         if prepared is not None:
             prepared.close()
@@ -810,12 +821,12 @@ def run_tests(
     if status == "timeout":
         rec = _test_record(cmd_s, True, code if code is not None else 124, text + "\ntest-timeout", elapsed)
         rec["exit"] = 124
-        return rec
+        return _tagged(rec)
     if status in ("interrupted", "mem-edge"):
         rec = _test_record(cmd_s, True, code, text, elapsed)
         rec["aborted"] = status
-        return rec
-    return _test_record(cmd_s, True, code if code is not None else 1, text, elapsed)
+        return _tagged(rec)
+    return _tagged(_test_record(cmd_s, True, code if code is not None else 1, text, elapsed))
 
 
 def _command_resolves(argv: list[str], cwd: Path, env: dict) -> bool:
@@ -2755,6 +2766,7 @@ def build_local(argv: list[str] | None = None) -> int:
     repo = None
     ollama_root = None
     sandbox_mode = None
+    gate_unsandboxed = False
     lock_path: Path | None = None
     pid_path: Path | None = None
     git_saved: bytes | None = None
@@ -2816,6 +2828,7 @@ def build_local(argv: list[str] | None = None) -> int:
                 "opencode_version": opencode_version,
                 "agent_log": None if agent_log is None else str(agent_log),
                 "sandbox": sandbox_mode,
+                "gate_unsandboxed": gate_unsandboxed,
                 "started_at": started_at,
                 "finished_at": finished_at,
             }
@@ -2986,6 +2999,12 @@ def build_local(argv: list[str] | None = None) -> int:
                 except OSError:
                     pass
 
+        def _watch_gate(rec: dict) -> dict:
+            nonlocal gate_unsandboxed
+            if rec.get("sandbox") == "unsafe-no-sandbox":
+                gate_unsandboxed = True
+            return rec
+
         while attempts_used < max_attempts:
             attempts_used += 1
             attempt_t0 = time.monotonic()
@@ -3058,7 +3077,7 @@ def build_local(argv: list[str] | None = None) -> int:
                 watcher.start()
                 watcher_started = True
 
-            tests_before = run_tests(
+            tests_before = _watch_gate(run_tests(
                 args.test_cmd_s,
                 worktree,
                 test_env,
@@ -3066,7 +3085,7 @@ def build_local(argv: list[str] | None = None) -> int:
                 state,
                 repo=repo,
                 unsafe=bool(args.unsafe_no_sandbox),
-            )
+            ))
             if tests_before.get("aborted") == "interrupted" or state.interrupted:
                 status, reason, exit_code = "FAIL", "interrupted", EXIT_FAIL
                 _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "interrupted", None, None, diff_stats, "")
@@ -3155,7 +3174,7 @@ def build_local(argv: list[str] | None = None) -> int:
             changed = files_changed(worktree, test_env)
             diff_text, diff_stats = _collect_diff(worktree, test_env, changed)
             if not changed:
-                tests_after = run_tests(
+                tests_after = _watch_gate(run_tests(
                     args.test_cmd_s,
                     worktree,
                     test_env,
@@ -3163,7 +3182,7 @@ def build_local(argv: list[str] | None = None) -> int:
                     state,
                     repo=repo,
                     unsafe=bool(args.unsafe_no_sandbox),
-                )
+                ))
                 if tests_after.get("aborted") == "interrupted" or state.interrupted:
                     status, reason, exit_code = "FAIL", "interrupted", EXIT_FAIL
                     _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "interrupted", None, None, diff_stats, diff_text)
@@ -3203,7 +3222,7 @@ def build_local(argv: list[str] | None = None) -> int:
                 )
                 return finish()
 
-            tests_after = run_tests(
+            tests_after = _watch_gate(run_tests(
                 args.test_cmd_s,
                 worktree,
                 test_env,
@@ -3211,7 +3230,7 @@ def build_local(argv: list[str] | None = None) -> int:
                 state,
                 repo=repo,
                 unsafe=bool(args.unsafe_no_sandbox),
-            )
+            ))
             if tests_after.get("aborted") == "interrupted" or state.interrupted:
                 status, reason, exit_code = "FAIL", "interrupted", EXIT_FAIL
                 _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "interrupted", None, None, diff_stats, diff_text)
@@ -3240,7 +3259,7 @@ def build_local(argv: list[str] | None = None) -> int:
                     attempts_used, attempt_t0, mem_snap, "FAIL", "tests-tampered", None, None, diff_stats, diff_text
                 )
                 return finish()
-            again = run_tests(
+            again = _watch_gate(run_tests(
                 args.test_cmd_s,
                 worktree,
                 test_env,
@@ -3248,7 +3267,7 @@ def build_local(argv: list[str] | None = None) -> int:
                 state,
                 repo=repo,
                 unsafe=bool(args.unsafe_no_sandbox),
-            )
+            ))
             if again.get("aborted") == "interrupted" or state.interrupted:
                 status, reason, exit_code = "FAIL", "interrupted", EXIT_FAIL
                 _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "interrupted", None, None, diff_stats, diff_text)
