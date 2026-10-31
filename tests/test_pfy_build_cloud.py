@@ -807,6 +807,32 @@ class CloudBuildNoChangeTests(unittest.TestCase):
         self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
         self.assertNotIn("extra-not-reviewed.txt", _git(self.repo, "status", "--porcelain").stdout)
 
+    def test_star_filename_commits_that_file_and_not_the_pyc(self) -> None:
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\nprint('GATE-OK')\nraise SystemExit(0)\n",
+        )
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "Path('*').write_text('star-body\\n', encoding='utf-8')\n"
+            "Path('__pycache__').mkdir(exist_ok=True)\n"
+            "Path('__pycache__/x.pyc').write_bytes(b'pyc')\n"
+            "raise SystemExit(0)\n",
+        )
+        proc = self._run_task(grok, gate, "add a star file", "0", extra=["--no-review"])
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        match = re.search(r"PASS ok branch=(\S+) receipt=(\S+)", proc.stdout or "")
+        self.assertIsNotNone(match, proc.stdout)
+        branch = match.group(1)
+        names = _git(self.repo, "ls-tree", "-r", "--name-only", branch).stdout.splitlines()
+        self.assertIn("*", names)
+        self.assertNotIn("__pycache__/x.pyc", names)
+        shown = _git(self.repo, "show", branch + ":*")
+        self.assertEqual(shown.stdout, "star-body\n")
+
 
 def _dead(pid: int) -> bool:
     if pid <= 0:

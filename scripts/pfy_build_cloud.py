@@ -742,7 +742,7 @@ class CloudBuild:
             return "commit-failed"
         hooks = self.worktree / "tmp" / "empty-hooks"
         hooks.mkdir(parents=True, exist_ok=True)
-        added = _git(self.worktree, ["add", "--", *paths])
+        added = _git(self.worktree, ["add", "--", *[":(literal)%s" % path for path in paths]])
         if added.returncode != 0:
             _git(self.worktree, ["reset"])
             self.reason = "commit-failed"
