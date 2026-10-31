@@ -1,6 +1,6 @@
 # pfy build quickstart
 
-One card for the daily command. Cloud Grok, review on, nothing pushed. The longer operator card is [pfy-build-daily.md](ops/pfy-build-daily.md). Line-by-line proof lives in `docs/ops/MVP-DOD-WALKTHROUGH.md`.
+One card for the daily command. Cloud Grok, review on, nothing pushed. The longer operator card is [pfy-build-daily.md](ops/pfy-build-daily.md). Line-by-line proof: [MVP-DOD-WALKTHROUGH.md](ops/MVP-DOD-WALKTHROUGH.md).
 
 Commands below were run from this worktree at `2026-10-31T21:21:27Z`. A fence tagged `bash runnable exit=N` is re-run by `tests/test_quickstart_commands.py`. A `text` fence is the output from that run.
 

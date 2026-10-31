@@ -49,6 +49,6 @@ Risks:
 
 Items:
 
-(none yet)
+quickstart | b913a06 | nice -n 19 python3 -m unittest tests.test_docs_hygiene | PASS, 2 tests OK. Host at start: MemAvailable 62115652 kB, load 4.66, 32 cores.
 
-state: exits written | tests: none yet | files: 2 | err: none
+state: quickstart DONE | tests: tests.test_docs_hygiene OK | files: docs/QUICKSTART-pfy-build.md | err: none
