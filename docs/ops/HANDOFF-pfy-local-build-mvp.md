@@ -126,6 +126,8 @@ The default cap is `--max-files 3` and `--max-lines 250`. A test file named by `
 
 A larger diff is `PASS-REJECTED` (exit 1) even when the tests are green and the change is a legitimate fix. The attempt receipt names the file count and the line count. Raise `--max-files` and `--max-lines` when the task is really that big. Three changed files, or 251 changed lines, is enough to reject.
 
+The reviewer is the same local model as the agent. `--model` (default `qwen3.6:35b`) is the tag for the edit and for the review call. That is a self-review, not an independent reader. A mistake the model cannot see in its own patch is a mistake this step will not catch. The scope, size, and wiring checks do not call the model. The receipt `model` field is that tag. Read the attempt receipt for the verdict. Do not treat a model accept as a second person.
+
 ## Receipt schema `pfy-local-build/1`
 
 File: `<receipt-dir>/receipt.json`, written atomically, including on BLOCKED (then `worktree` is null).
