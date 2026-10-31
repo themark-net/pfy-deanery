@@ -79,7 +79,9 @@ Sources: `origin/bot/mvp-dogfood-1031` handoff and `eval/mvp-1031/dogfood/REPORT
 ## Items
 
 item | commit | tests | result
+F-subject | 13a63ea | tests.test_pfy_build_cloud.CloudBuildFailureTests.test_long_task_subject_stops_on_a_word_and_the_body_keeps_the_rest and test_short_task_subject_is_the_whole_task, 2 OK | PASS
 
 ## States
 
 state: exits written | tests: none yet | files: 2 | err: none
+state: F-subject PASS | tests: 2 OK in 0.265s | files: pfy_build_cloud.py commit_subject plus one call in commit_paths | err: none
