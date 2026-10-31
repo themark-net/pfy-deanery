@@ -70,14 +70,14 @@ Host at 2026-10-31T22:49:02Z: MemAvailable about 55.9 GiB, load 4.71, nproc 32. 
 
 Both suite jobs in `.github/workflows/eval-structural.yml` already run `python3 -m unittest discover -s tests -t .`. The filemode job `G0 launcher 100755` does not, and it is not a suite job. No workflow edit. Image pin helper: `PASS workflow image pin: 5 file(s)`.
 
-`tests/test_ci_discover_cover.py` parses the workflow YAML. An explicit `unittest` list that names only `tests.test_kept` reports `tests/test_new.py` as outside the ubuntu job. The same file is covered after that job uses discover. A pattern `test_old*.py` leaves `tests/test_new_gap.py` out of both jobs. Discover from `tests/fixtures` misses a top-level module. The real workflows cover every `tests/test_*.py` (74 or more), including the two review modules. Removing the ubuntu PyYAML install makes `ubuntu_yaml_gap` fail; putting the install back before discover clears it.
+`tests/test_ci_discover_cover.py` parses the workflow YAML. An explicit `unittest` list that names only `tests.test_kept` reports `tests/test_new.py` as outside the ubuntu job. The same file is covered after that job uses discover. A pattern `test_old*.py` leaves `tests/test_new_gap.py` out of both jobs. Discover from `tests/fixtures` misses a top-level module. The real workflows cover every `tests/test_*.py` (75 files), including the two review modules. Removing the ubuntu PyYAML install makes `ubuntu_yaml_gap` fail; putting the install back before discover clears it.
 
 `TMPDIR=$PWD/tmp nice -n 19 python3 -m unittest tests.test_ci_discover_cover -v`: Ran 6 tests in 0.014s, OK.
 
 Reviewer check, bwrap hidden: `tests.test_pfy_build_local_review_ci` OK in 31.944s. The review module ran 17 tests, skipped 0 (`tmp/review-ci-parity/result.txt`).
 
 item | commit | tests | result
-cover-test | this commit | tests.test_ci_discover_cover 6 OK; tests.test_pfy_build_local_review_ci ran=17 skipped=0 | pass
+cover-test | 68936a5 | tests.test_ci_discover_cover 6 OK; tests.test_pfy_build_local_review_ci ran=17 skipped=0 | pass
 
 state: DONE | tests: tests.test_ci_discover_cover 6 OK | files: 1 | err: none
 
@@ -99,6 +99,20 @@ Today's `tests/test_*.py` from `git diff --name-only origin/main...HEAD -- tests
 No owned file needed a workflow, env, or fake change. Not counted as a skipped item. The audit is the record.
 
 item | commit | tests | result
-skip-audit | this commit (docs in the run log only) | import of the 24 diff modules OK; no suite | pass, no code gap
+skip-audit | 68936a5 | import of the 24 diff modules OK; no suite | pass, no code gap
 
 state: DONE | tests: import 24 modules OK | files: 0 product | err: none
+
+### further-gaps
+
+Host at 2026-10-31T22:51:36Z: MemAvailable about 55.0 GiB, load 4.03, nproc 32. Under the pressure line. Wall cap still 2026-11-01T06:41:36Z.
+
+No further CI gap fits this lane. The suite jobs already discover every `tests/test_*.py`. The remaining ubuntu skip that is a real check gap is `tests/test_pfy_build_local.py` when grok is missing, and that file is not owned here. bwrap confinement skips stay. `eval/mvp2/gates/` stays out of `tests/`. `docs/TODO.md` and `scripts/pregate.sh` stay untouched.
+
+state: SKIPPED | tests: none | files: 0 | err: none (lane empty, not a failed item)
+
+### handoff
+
+Pregate not run: host busy (Runner.Worker was running). The drop-in also says the operator runs pregate.
+
+state: lane empty | tests: tests.test_ci_discover_cover 6 OK; review module ran 17 skipped 0 | files: 1 test module plus this lane's docs | err: none
