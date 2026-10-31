@@ -4,15 +4,18 @@
 Walks jobs.*.runs-on as a string, a label list, or a simple matrix expression
 (${{ matrix.KEY }} or ${{ matrix['KEY'] }} / double quotes). A self-hosted
 label list is allowed. ubuntu-latest, any other GitHub-hosted image, an
-unresolved expression, malformed YAML, a missing runs-on, and a missing
-PyYAML all exit 1. A missing parser is a failure.
+unresolved expression, malformed YAML, a repeated mapping key, a missing
+runs-on, and a missing PyYAML all exit 1. A missing parser is a failure.
+PyYAML keeps the last copy of a repeated key; this check rejects it, so a
+later ubuntu-24.04 cannot hide an earlier ubuntu-latest.
 
 eval-structural.yml must also install the ripgrep package from a run step
 and invoke rg. The word ripgrep in a comment, a step name, or an echo is
 not an install. Shell comments inside the run script are ignored.
 
-Recovery: pin the job to ubuntu-24.04, or install PyYAML for the interpreter
-that runs this script, then re-run. For the structural workflow, put
+Recovery: pin the job to ubuntu-24.04, delete the repeated YAML key, or
+install PyYAML for the interpreter that runs this script, then re-run. For
+the structural workflow, put
 `apt-get install` (or `apt install`) of the ripgrep package and `rg --version`
 or `command -v rg` in a run step. Do not skip the check.
 
@@ -292,13 +295,45 @@ def check_document(path: Path, data: object) -> list[str]:
     return out
 
 
+def load_workflow(yaml_mod, text: str):
+    """Load workflow YAML and reject a repeated mapping key.
+
+    The default loader keeps the last value. A job could then hide
+    ubuntu-latest under a later ubuntu-24.04 and look pinned.
+    """
+
+    class UniqueKeyLoader(yaml_mod.SafeLoader):
+        pass
+
+    def construct_mapping(loader, node, deep=False):
+        seen: list[str] = []
+        for key_node, _value_node in node.value:
+            if not isinstance(key_node, yaml_mod.ScalarNode):
+                continue
+            if key_node.value in seen:
+                raise yaml_mod.constructor.ConstructorError(
+                    "while constructing a mapping",
+                    node.start_mark,
+                    f"found duplicate key {key_node.value!r}",
+                    key_node.start_mark,
+                )
+            seen.append(key_node.value)
+        return yaml_mod.constructor.SafeConstructor.construct_mapping(loader, node, deep)
+
+    UniqueKeyLoader.add_constructor(
+        yaml_mod.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+        construct_mapping,
+    )
+    return yaml_mod.load(text, Loader=UniqueKeyLoader)
+
+
 def check_file(yaml_mod, path: Path) -> list[str]:
     try:
         text = path.read_text(encoding="utf-8")
     except OSError as exc:
         return [f"FAIL: cannot read {path}: {exc}"]
     try:
-        data = yaml_mod.safe_load(text)
+        data = load_workflow(yaml_mod, text)
     except yaml_mod.YAMLError as exc:
         err = " ".join(str(exc).split())
         return [f"FAIL: malformed YAML in {path}: {err}"]

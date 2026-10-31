@@ -161,6 +161,29 @@ class WorkflowImagePinTests(unittest.TestCase):
         self.assertIn("malformed YAML", blob)
 
     @needs_yaml
+    def test_duplicate_key_fails_even_when_the_last_value_is_pinned(self) -> None:
+        # safe_load keeps the last runs-on, so this file would look pinned.
+        # Recovery: delete the repeated key.
+        SCRATCH.mkdir(parents=True, exist_ok=True)
+        directory = Path(tempfile.mkdtemp(prefix="dup-key-", dir=SCRATCH))
+        path = directory / "dup.yml"
+        path.write_text(
+            "name: dup\n"
+            "on: push\n"
+            "jobs:\n"
+            "  build:\n"
+            "    runs-on: ubuntu-latest\n"
+            "    runs-on: ubuntu-24.04\n"
+            "    steps:\n"
+            "      - run: \"true\"\n",
+            encoding="utf-8",
+        )
+        try:
+            self.assert_fail(run_helper(str(path)), "duplicate key 'runs-on'")
+        finally:
+            shutil.rmtree(directory)
+
+    @needs_yaml
     def test_pinned_matrix_expression_passes(self) -> None:
         # A resolver that rejects every ${{ }} would fail this file.
         self.assert_pass(run_helper(str(FIX / "pinned-matrix.yml")))
