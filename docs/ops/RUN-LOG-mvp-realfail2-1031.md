@@ -70,4 +70,4 @@ Format: `item | commit | tests | result`
 - sigkill-reap | 43d20c3 | tests.test_mvp_1031_realfail2_receipts | PASS. Reap killed the live grok and left the planted sleeper. Receipt ABORTED / no-receipt.
 - review-reject | 3092ebc | tests.test_mvp_1031_realfail2_receipts | PASS. Exit 1, review-rejected, no branch. Real reviewer rejected the planted root delete.
 - auth-failure | 8302665 | tests.test_mvp_1031_realfail2_receipts | PASS. Exit 1, unauthenticated, recovery names grok login. No credential file was read.
-- redaction | (this commit) | tests.test_mvp_1031_realfail2_receipts | PASS. Marker absent from task and output_tail. Receipt PASS.
+- redaction | 3d38e3d | tests.test_mvp_1031_realfail2_receipts | PASS. Marker absent from task and output_tail. Receipt PASS.
