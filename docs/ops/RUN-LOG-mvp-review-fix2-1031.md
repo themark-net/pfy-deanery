@@ -77,13 +77,13 @@ Exit card and phase plan written before the merge and before any product code. S
 
 Parallel sub-agents are not used for the listed items. They share the runner and the review tests. The lead implements them in order on this branch.
 
-state: DONE | tests: none (docs only) | files: 2 | err: none
+prior-state: DONE | tests: none (docs only) | files: 2 | err: none
 
 ### merge-tip
 
 `git merge --no-edit origin/bot/mvp3-review-retry` brought `d624535` (one-line handoff fix). Merge commit `fbb2835`. No rebase. Pushed.
 
-state: DONE | tests: none (merge) | files: 1 | err: none
+prior-state: DONE | tests: none (merge) | files: 1 | err: none
 
 ### confirm-base
 
@@ -97,7 +97,7 @@ Checked on `fbb2835` before the product edit:
 - Scope vs commit is already fail-closed on this base (`scope-commit-mismatch`, gitignored extra file test). Item 4 will be confirmed and skipped if that still holds.
 - Help text already says review is the default and the file and line caps. The MVP-3 handoff does not.
 
-state: DONE | tests: read-only | files: 0 | err: none
+prior-state: DONE | tests: read-only | files: 0 | err: none
 
 ### item-1-outage
 
@@ -203,4 +203,139 @@ How it fails: a review test that starts skipping when bwrap is hidden fails the 
 How we recover: keep the review tests on the stub HTTP reviewer and the stub opencode. Confinement tests in other modules stay skipped when bwrap is absent, so they do not pretend the sandbox was shown.
 
 item | commit | tests | result
-item-10-ubuntu | (sha next) | nice python3 -m unittest tests.test_pfy_build_local_review_ci | Ran 1 test in 31.601s OK; inner review module ran=17 skipped=0
+item-10-ubuntu | 187efde | nice python3 -m unittest tests.test_pfy_build_local_review_ci | Ran 1 test in 31.601s OK; inner review module ran=17 skipped=0
+
+### item-11-sandbox
+
+`--unsafe-no-sandbox` does not unsandbox the test gate when bwrap works. `prepare_sandbox` returns `unsafe-no-sandbox` only when `bwrap_works()` is false. The receipt field `gate_unsandboxed` is true only after a gate run took that path. A missing bwrap without the flag is still `BLOCKED` `no-sandbox` and `gate_unsandboxed` is false. Help text says a working bwrap still sandboxes the agent and the gate.
+
+The proof uses a stub `bwrap` that logs its argv and execs the command after `--`. With the flag set, the receipt stays `gate_unsandboxed` false, `sandbox` starts with `bwrap`, and a log line contains both `--unshare-net` and `unittest`. The failing stub (exit 1) still blocks unless the flag is set, and then `gate_unsandboxed` is true.
+
+How it fails: a flag that unsandboxes a working bwrap makes the stub log miss the wrapped unittest line, or sets `gate_unsandboxed` true. A missing bwrap without the flag still blocks. Recovery: install bwrap, or pass the flag and accept `gate_unsandboxed` true plus the stderr WARN. Re-run the build. The blocked receipt did not claim the gate ran unsandboxed.
+
+item | commit | tests | result
+item-11-sandbox | b483166 | nice python3 -m unittest tests.test_pfy_build_local tests.test_pfy_build_local_review | Ran 79 tests in 115.311s OK
+
+## Finish
+
+Checked 2026-10-31T21:26:33Z. MemAvailable about 59 GiB. Load about 3.84 on 32 cores. Wall cap 2026-11-01T04:22:04Z has not fired. `pgrep -f 'Runner[.]Worker'` found pid 2242260. The heavy lock was held by two `unittest discover` runs (pids 2291979 and 2294586). pregate not run: host busy.
+
+No further row in `docs/plans/MVP-PARALLEL-1031.md` fits these owned files. G1 through G3 and G6 through G9 are other lanes. G4 and G5 are already on the base. G10 is excluded. Round 2 `mvp-local-t5-1031` needs a local model and `eval/mvp-1031/`, which this lane must not touch. Lane empty.
+
+prior-state: DONE | exit: lane empty | product: b483166 | pregate not run: host busy
+
+## Wave 4 (Tester S-items)
+
+The earlier `prior-state: DONE` is superseded. Wave 4 start: 2026-10-31T22:39:04Z. Head at reopen: `620941c`. Base to merge: `origin/bot/mvp3-review-retry` at `582414b` (B1 staged paths, fail-closed review, M08/M14/M17). Merge, do not rebase. Resolve staging and fail-closed conflicts in favor of `582414b`. Then S1 through S5.
+
+Host at wave 4 start: MemAvailable about 55.3 GiB, load 3.41 3.21 3.35, nproc 32. Under the pressure line. `Runner.Worker` pid 3199955 is live, so pregate stays deferred.
+
+### LOOP EXIT CARD (wave 4)
+
+```text
+LOOP EXIT CARD
+Goal (success criteria):     Merge 582414b. S1: an unreachable reviewer (HTTP error or review-call timeout) sets receipt status reviewer-unavailable, exits nonzero, retries nothing, and commits nothing. S2: a wall-clock cap covers the whole build plus review loop and the receipt reason names it when hit. S3: a nonzero agent exit with no diff is crash, and an exit 0 with no diff stays no-change. S4: the receipt status and the stdout summary use one label table and the same token. S5: a leftover tmp/local-build-* worktree is removed or the run stops with stale-worktree, and it is never the tree the new attempt edits. Owned modules pass. No Ollama process started.
+1 Goal met:                  unittest of tests.test_pfy_build_local and tests.test_pfy_build_local_review (and a new tests.test_pfy_build_local_* module if one is added). Evaluator is the test runner. Each S item's test fails if the old behavior is still present.
+2 Turn cap:                  5 S items plus the merge and the handoff. Stop when those are done or another exit fires. Each item is one commit and one push.
+3 Budget cap:                Cloud Grok only. No local model. No Ollama. No spend beyond this session. No full unittest discover and no pregate unless the end-of-run host check allows pregate once.
+4 Wall clock:                Original launch cap still applies. Stop new items by 2026-11-01T04:22:04Z. Hard stop 2026-11-01T04:42:04Z, which is before Sunday 2026-11-01 18:00 PT (2026-11-02T02:00Z). Leave 20 minutes to write the handoff.
+5 No-progress:               The same failure twice with no new information, or 3 items in a row skipped. Record and stop.
+6 Human interrupt:           User stop. No questions. No force push, no merge to main, no PR, no tags, no edits outside this worktree.
+7 Error threshold:           3 consecutive same failure, or the same assertion twice. Stop and record. Do not weaken tests.
+8 External event:            If origin already has an S item, skip it and say so. This run does not merge to main. Integration remains: merge this branch after bot/mvp-review-fix-1031.
+Loop type:                   goal
+Human gate:                  Mark merges after Tester plus Reviewer. This run does not merge, open a PR, or tag.
+```
+
+### Plan (wave 4)
+
+Overview: Pick up the re-pinned MVP-3 tip, keep its staging and fail-closed review, then give the Tester S-items their own receipt behavior. Outage, overall timeout, crash versus no-change, one label source, and stale worktrees. The lead edits the shared runner in order in this worktree.
+
+Phases:
+- wave4-exits | this run log and the decisions file | card committed before the merge | none | lead
+- wave4-merge | this worktree | `git merge --no-edit origin/bot/mvp3-review-retry` brings 582414b. Staging and fail-closed hunks follow that tip. No rebase | wave4-exits | lead
+- S1-outage | `scripts/pfy_build_local.py`, review tests | receipt status reviewer-unavailable, nothing committed, not retried | wave4-merge | lead
+- S2-overall | runner and tests | wall-clock cap over build plus review. Receipt reason overall-timeout when hit. Nothing committed | S1-outage | lead
+- S3-crash | runner and tests | nonzero agent exit and no diff records crash. Exit 0 and no diff stays no-change | S2-overall | lead
+- S4-labels | runner and tests | receipt status and stdout summary are the same token from one label table. The module docstring lists that table | S3-crash | lead
+- S5-stale | runner and tests | leftover tmp/local-build-* is cleaned and named, or the run stops with stale-worktree. The new attempt does not edit that tree | S4-labels | lead
+- handoff | `docs/ops/HANDOFF-mvp-review-fix2-1031.md`, this log | handoff committed and pushed. No merge | last, on any exit | lead
+
+Risks:
+- The merge drops this lane's REVIEW-ERROR path or 582414b's empty-diff stop. Mitigation: keep 582414b fail-closed (no commit on http error, review timeout, empty diff). S1 then renames the unreachable case to reviewer-unavailable without opening a commit.
+- An overall cap smaller than the suite's stub runs fails healthy tests. Mitigation: default cap is 7200 seconds. The behavior test passes a tiny --overall-timeout.
+- A clean noop becomes crash. Mitigation: only a nonzero agent exit with an empty diff is crash. The existing noop test must stay no-change.
+- Label constants imported by the test hide a drift. Mitigation: the test hardcodes the operator words and compares the receipt to the stdout line.
+- Cleaning a live worktree. Mitigation: only paths under this repo's tmp/ named local-build-*, after the lock is held, and a path that remains on disk aborts the run.
+
+prior-state: IN PROGRESS | tests: none yet | files: 0 | err: none
+
+### wave4-merge
+
+`git merge --no-edit origin/bot/mvp3-review-retry` conflicted in `scripts/pfy_build_local.py` and `tests/test_pfy_build_local_review.py`. Staging stays `_stage_reviewed`. Fail-closed matches 582414b: HTTP error is `FAIL` / `review-http-error`, a review-call timeout is `TIMEOUT` / `timeout` (exit 3), an empty diff is `review-empty-diff`, and none of those commit. The no-change gate still goes through `_watch_gate` so `gate_unsandboxed` is recorded. Both previous-diff tests stay. S1 will replace the generic outage statuses.
+
+item | commit | tests | result
+wave4-merge | ae4ad38 | nice python3 -m unittest tests.test_pfy_build_local_review tests.test_pfy_build_local | Ran 85 tests in 148.861s OK
+
+### S1-outage
+
+An unreachable reviewer (HTTP error or a review-call timeout) sets receipt and attempt status `reviewer-unavailable`, exit 1. It is not `FAIL`, not `TIMEOUT`, and not `PASS-REJECTED`. Nothing is committed and the accept queued behind the outage is not used. The recovery line names the status and says to run again or pass `--no-review`.
+
+How it fails: the review service returns HTTP 500, or the review call exceeds its own timeout. There is no verdict.
+
+How we recover: no branch. Run again when the reviewer answers, or pass `--no-review`.
+
+item | commit | tests | result
+S1-outage | 5cdc5c2 | nice python3 -m unittest tests.test_pfy_build_local_review | Ran 23 tests in 67.088s OK
+
+### S2-overall
+
+`--overall-timeout` (default 7200, env `PFY_LOCAL_BUILD_OVERALL_TIMEOUT`) caps the whole build and review loop. Hitting it sets status `TIMEOUT`, reason `overall-timeout`, exit 3. A per-call review timeout stays `reviewer-unavailable`. An agent timeout stays reason `timeout`. Nothing is committed. The recovery line names `--overall-timeout`.
+
+How it fails: the review call is still blocked when the wall cap expires, while the agent timeout has not.
+
+How we recover: no branch. Run again with a larger `--overall-timeout`.
+
+item | commit | tests | result
+S2-overall | 55ca386 | review module Ran 24 in 122.108s OK; local module Ran 62 in 112.159s OK; hang test still reason timeout
+
+### S3-crash
+
+A nonzero agent exit with an empty diff is status and reason `crash`, exit 1. It is not `no-change` and not `FAIL`. Nothing is committed and `--retries 2` does not start attempt 2. The recovery line names the exit code and says this is not an empty edit. A nonzero exit that did write a diff still reaches the gate and can PASS.
+
+How it fails: the agent raises SystemExit 2 and leaves the worktree unchanged.
+
+How we recover: no branch. Run the build again. An exit 0 empty diff stays `no-change` and can still retry.
+
+item | commit | tests | result
+S3-crash | c114c7f | nice python3 -m unittest tests.test_pfy_build_local | Ran 64 tests in 84.626s OK
+
+### S4-labels
+
+Receipt status and the stdout summary token are the same word from `LABELS` (`_lab`). `BLOCKED` no longer prints as `BLOCKED:`. An unknown status raises `LabelError` and is not stored as FAIL. ABORTED receipts use the same helper.
+
+How it fails: the summary used to add a colon only on BLOCKED, so a log reader and the receipt disagreed. An unknown word would have been easy to hide as FAIL.
+
+How we recover: the operator reads one word in both places. A bad word aborts with LabelError instead of a fake FAIL. Fix the word to one of the eight documented labels and run again.
+
+item | commit | tests | result
+S4-labels | 2bd11ce | nice python3 -m unittest tests.test_pfy_build_local | Ran 65 tests in 85.031s OK
+
+### S5-stale-worktrees
+
+After the lock, leftover `tmp/local-build-*` directories are listed on `stale_worktrees` and removed before `git worktree add`. A path that is still there stops the run with status FAIL, reason `stale-worktree`, exit 1, worktree null, and the agent does not start. Dry-run lists them and does not delete them.
+
+How it fails: a previous worktree is mode 000, so remove cannot delete it. The run must not add another tree beside it or reuse it.
+
+How we recover: nothing is committed. Delete that directory and run again. A removable leftover is deleted and named on the receipt, and the new worktree is a different directory.
+
+item | commit | tests | result
+S5-stale | 08ca29b | nice python3 -m unittest tests.test_pfy_build_local | Ran 68 tests in 87.750s OK
+
+## Wave 4 finish
+
+Checked 2026-10-31T23:18:15Z. MemAvailable about 79 GiB. Load about 3.71 on 32 cores. Wall cap 2026-11-01T04:22:04Z has not fired. `Runner.Worker` pid 3510235 is live. pregate not run: host busy.
+
+S1 through S5 are pushed. No further row in the parallel plan fits these owned files. G1 through G3 and G6 through G9 are other lanes. G4 and G5 are already on the base. G10 is excluded. Round 2 `mvp-sandbox-gate-1031` is already item 11 (`b483166`). `mvp-local-t5-1031` needs a local model and `eval/mvp-1031/`, which this lane must not touch. Lane empty.
+
+state: DONE | exit: lane empty | product: 08ca29b | pregate not run: host busy

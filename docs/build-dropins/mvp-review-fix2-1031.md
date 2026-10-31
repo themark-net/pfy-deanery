@@ -76,3 +76,12 @@ Skip items that need special hardware, a human decision (an open OQ), a secret, 
 ## Finish (on any exit)
 
 Write or update this run's handoff in `docs/ops/`: items done with SHAs, items skipped and why, test evidence, how each change fails and recovers, cross-lane requests, the gate needed (Tester plus Reviewer for runtime changes; pregate plus Reviewer for docs, eval or test-only changes), and the next step. Finish the run log with a final `state:` line. Commit and push. Do not merge.
+
+## Wave 4 addendum (2026-10-31 15:40 PT): Tester S-items from mvp3
+The earlier `state: DONE` is superseded. Base context: bot/mvp3-review-retry is now at 582414b (B1 staged-paths, fail-closed review, M08/M14/M17 tests). First `git merge origin/bot/mvp3-review-retry` (merge, never rebase) and resolve in favor of 582414b's staging and fail-closed behavior. Then, each with a behavior test:
+- S1 outage status: when the reviewer is unreachable, the receipt says a distinct status (reviewer-unavailable), not a generic fail, and nothing commits.
+- S2 overall timeout: a wall-clock cap over the whole build plus review loop, with a clear receipt reason when hit.
+- S3 crash-as-no-change: an attempt that crashes (nonzero exit, no diff) is recorded as crash, not no-change.
+- S4 labels: receipt and log labels match the docs (one source for the label strings).
+- S5 stale worktrees: a previous run's leftover worktree under tmp/ is detected and cleaned or reported at start, never reused silently.
+New state line when done. Same rules as above.
