@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/t-0034-catch-view-must-print-a-stored-cc-20261031T233843233561Z",
+  "commit": "b2b1981c78666b0d7d55828545cc13feea3a11a4",
+  "base": "b1c47c68495eb81b944b969ff040413eb8da3a90",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll implement `catch --view` so a stored Cc address prints as `cc: <value>`, and leave the journal, IMAP, and tests untouched. First I'll read the test and the current view path.The view already prints `to:` the same way. I'll match that pattern for `cc:` and check Decision 0006 so `--view` stays read-only.`catch --view` already prints a stored `to` and leaves the journal unread. I'll add the same line for a non-empty `cc`.`catch --view` now prints a stored Cc address. `tests/test_catch_view_cc.py` passed unchanged.\n\nWhen a catch has a non-empty string `cc`, the view prints one line, `cc: ` plus that value. A missing or empty `cc` prints no `cc:` line. The view still only reads the journal, does not call IMAP, does not write the journal, and does not submit or set `submitted`. `raw_source` is still not printed.\n\nI'll check the diff against T-0034 and the unchanged catch-view test before giving a verdict.verdict: accept\n\nThe `--view` path prints a stored non-empty string `cc` as `cc:` plus one space and that value, and it prints nothing when `cc` is missing or empty. The diff only adds that read-only print in `gomjobbar/cli.py`: no IMAP, no journal write, no `raw_source`, no submit, and no edits under `tests/`.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "env JOURNAL_DB_PATH=./tmp/catch-view-cc-journal.db USE_OLLAMA=false PYTHONDONTWRITEBYTECODE=1 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/tmp/gom-venv/bin/python -m pytest -q -p no:cacheprovider tests/test_catch_view_cc.py",
+    "before": {
+      "cmd": "env JOURNAL_DB_PATH=./tmp/catch-view-cc-journal.db USE_OLLAMA=false PYTHONDONTWRITEBYTECODE=1 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/tmp/gom-venv/bin/python -m pytest -q -p no:cacheprovider tests/test_catch_view_cc.py",
+      "exit": 1,
+      "tail": "F                                                                        [100%]\n=================================== FAILURES ===================================\n___________________ test_view_prints_cc_and_hides_raw_source ___________________\n\ntmp_path = PosixPath('/home/mark/DEVELOP/jobbar-master/tmp/gom-dogfood-1031-scratch/clones/08-catch-view-cc/tmp/cloud-build/20261031T233843233561Z/tmp/pytest-of-mark/pytest-0/test_view_prints_cc_and_hides_0')\n\n    def test_view_prints_cc_and_hides_raw_source(tmp_path: Path) -> None:\n        db_path = tmp_path / \"journal.db\"\n        marker = \"raw-only-in-source\"\n        _seed(\n            db_path,\n            [\n                {\n                    \"ts\": \"2026-10-01T00:00:00Z\",\n                    \"subject\": \"shipped the queue\",\n                    \"body\": \"cut p99\",\n                    \"message_id\": \"mid-root@example\",\n                    \"raw_source\": marker,\n                },\n                {\n                    \"ts\": \"2026-10-02T00:00:00Z\",\n                    \"subject\": \"empty cc\",\n                    \"body\": \"still local\",\n                    \"message_id\": \"mid-empty@example\",\n                    \"cc\": \"\",\n                    \"raw_source\": marker + \"-empty\",\n                },\n                {\n                    \"ts\": \"2026-10-03T00:00:00Z\",\n                    \"subject\": \"Re: shipped the queue\",\n                    \"body\": \"added the graph\",\n                    \"message_id\": \"mid-child@example\",\n                    \"cc\": \"bee@example\",\n                    \"raw_source\": marker + \"-child\",\n                },\n            ],\n        )\n        proc = _view(db_path)\n        assert proc.returncode == 0, proc.stderr\n        lines = [line.strip() for line in proc.stdout.splitlines()]\n        cc_lines = [line for line in lines if line.startswith(\"cc:\")]\n>       assert cc_lines == [\"cc: bee@example\"]\nE       AssertionError: assert [] == ['cc: bee@example']\nE         \nE         Right contains one more item: 'cc: bee@example'\nE         \nE         Full diff: (-: missing in left side, +: extra in left side)\nE         + []\nE         - [\nE         -     'cc: bee@example',\nE         - ]\n\ntests/test_catch_view_cc.py:81: AssertionError\n----------------------------- Captured stderr call -----------------------------\n2026-10-31 16:38:43 [debug    ] journal upserted               user_key=[redacted]\n=========================== short test summary info ============================\nFAILED tests/test_catch_view_cc.py::test_view_prints_cc_and_hides_raw_source - AssertionError: assert [] == ['cc: bee@example']\n  \n  Right contains one more item: 'cc: bee@example'\n  \n  Full diff: (-: missing in left side, +: extra in left side)\n  + []\n  - [\n  -     'cc: bee@example',\n  - ]\n1 failed in 0.53s\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "env JOURNAL_DB_PATH=./tmp/catch-view-cc-journal.db USE_OLLAMA=false PYTHONDONTWRITEBYTECODE=1 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/tmp/gom-venv/bin/python -m pytest -q -p no:cacheprovider tests/test_catch_view_cc.py",
+      "exit": 0,
+      "tail": ".                                                                        [100%]\n1 passed in 0.49s\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": false,
+  "task": "T-0034: catch --view must print a stored Cc address. When the catch field cc is a non-empty string, print one line that is exactly cc: followed by a single space and that value. When cc is missing or empty, print no line that starts with cc:. Do not print raw_source. Do not call IMAP. Do not write the journal during --view. Do not submit anything and do not set submitted to true (Decision 0006). Do not edit files under tests/. tests/test_catch_view_cc.py must pass unchanged.",
+  "finished_at": "2026-10-31T23:40:25Z"
+}

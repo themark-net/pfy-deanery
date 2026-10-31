@@ -189,3 +189,7 @@ Host before merge: 2026-10-31T23:30Z MemAvailable 41.9 GiB (43960480 kB), load 6
 Host before 07: 2026-10-31T23:35:33Z MemAvailable 40.5 GiB (42442760 kB), load 6.41, 32 cores. Under the pressure line.
 
 - 07-catch-view-to | cloud 57e15700113ea1949526cb97a16f1f9a74db141a landed fe88852978ec008dcab339f6296e23037eb90a28 (test 915e80cfad5631b527494c65383a48f102a36739) | gate before exit 1, after 1 passed in 0.54s; land pytest 7 passed | PASS review accept human accept wall 112s
+
+Host before 08: 2026-10-31T23:38:41Z MemAvailable 40.0 GiB (41899628 kB), load 7.13, 32 cores. Under the pressure line.
+
+- 08-catch-view-cc | cloud b2b1981c78666b0d7d55828545cc13feea3a11a4 landed 1bb43270d46a6b18b466e8d1036a41da3ef63009 (test af19c0c684ebf7698b5f92d1d70cfe67a058a0dd) | gate before exit 1, after 1 passed in 0.49s; land pytest 8 passed | PASS review accept human accept wall 102s

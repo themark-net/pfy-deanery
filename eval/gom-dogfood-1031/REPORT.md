@@ -62,4 +62,5 @@ Six more cloud runs after `origin/bot/mvp-integrate-1031` was merged (`d6d62db`)
 | n | slug | exit | status | attempts | review | human | wall_s | commit |
 |---|------|------|--------|----------|--------|--------|--------|--------|
 | 07 | catch-view-to | 0 | PASS | 1 | accept | accept | 112 | 57e15700113ea1949526cb97a16f1f9a74db141a |
+| 08 | catch-view-cc | 0 | PASS | 1 | accept | accept | 102 | b2b1981c78666b0d7d55828545cc13feea3a11a4 |
 
