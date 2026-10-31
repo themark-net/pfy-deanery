@@ -478,6 +478,10 @@ class Smoke149(unittest.TestCase):
             code, rec = self.run_smoke(dict(BASE, probe=True), {"PATH": d})
         self.assertEqual(code, 2, rec)
         self.assertEqual(rec["reason"], "bwrap is not usable here; MemPalace must run with no network")
+        # The probe failure must not start MemPalace. A later run would fill checks or write the probe file.
+        self.assertFalse(self.escaped, "MemPalace ran unsandboxed")
+        self.assertNotIn("init_exit", rec["checks"])
+        self.assertEqual(rec["checks"], {})
 
     def test_no_bwrap_exits_2_never_runs_unsandboxed(self):
         # B2: without bwrap the smoke must not fall back to running MemPalace with network and a writable root.
