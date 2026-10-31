@@ -1,0 +1,9 @@
+# Autonomous decisions mvp-realfail3-1031
+
+- 2026-10-31T22:38:29Z | Skills `repo-handoff-doc-required` and `write-loop-exits-first` are not files under this worktree or `~/.grok/skills`. Follow the drop-in exit list, the exit card in `docs/ops/RUN-LOG-mvp-realfail3-1031.md`, and `docs/ops/HANDOFF-mvp-realfail3-1031.md`. Alternative was to stop and ask. The drop-in already names the exits and the handoff path, and it says not to ask.
+- 2026-10-31T22:38:29Z | The lead runs the nine cases in this worktree, in order, instead of spawning one agent per case. Alternative was parallel sub-agents. The cases share `eval/mvp-1031/realfail3/` and one cloud budget, and the drop-in forbids any other worktree under `tmp/`.
+- 2026-10-31T22:38:29Z | Every probe passes `--retries 0`, `--no-review`, and `--base HEAD`. Alternative was the product default (review on, 3 attempts, `origin/main` when that ref exists). Throwaway clones have no `origin/main`. One implement call keeps a reviewer verdict from hiding the git, gate, or timeout behavior the case exists to observe. The DoD allows both flags.
+- 2026-10-31T22:38:29Z | Expected status, reason, and exit are the failure-table rows written in the run log before the runs. Over-cap expects PASS because the cloud table has no size row. Network-down expects no-change because the table has no network row. Gate-hang expects the Timeout row. Tmp-unwritable expects worktree-failed. Alternative was to invent reasons the table does not name.
+- 2026-10-31T22:38:29Z | Do not edit `docs/TODO.md` or `docs/PENDING-HANDOFF.md`. Other lanes share those files. This lane's handoff is `docs/ops/HANDOFF-mvp-realfail3-1031.md`.
+- 2026-10-31T22:38:29Z | Scratch and `TMPDIR` stay under this worktree's `tmp/` (gitignored). Do not use `/tmp`. The network case is the only PATH shim. It does not change the host network.
+- 2026-10-31T22:38:29Z | `.project-map/` is gitignored. The map agent may write it. This lane does not commit it.
