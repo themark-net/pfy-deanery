@@ -18,6 +18,6 @@ Expected values come from the Functional MVP failure table and from the mvp-real
 | dogfood-p | real | PASS | ok | 0 | pending | pending | pending | pending | - | - | `./pfy build -p --help` and one real `-p` run on a clone. |
 | keep-worktree | real | PASS | ok | 0 | pending | pending | pending | pending | - | - | `--keep-worktree` keeps the worktree and the receipt records that. |
 | worktree-default | real | PASS | ok | 0 | pending | pending | pending | pending | - | - | Default run removes the worktree. |
-| protected-paths | real | FAIL | protected-path-changed | 1 | pending | pending | pending | pending | - | - | `auth.json` and `.env` stay out of the commit. Reason recorded. |
+| protected-paths | real | FAIL | protected-path-changed | 1 | FAIL | protected-path-changed | 1 | matches | 1 | empty | auth.json and .env are absent from every commit. Reason protected-path-changed. No branch. Caller unchanged. Recovery is empty. |
 | concurrent | real | PASS | intact | 0 | pending | pending | pending | pending | - | - | Two builds on one clone. Distinct branches or a clean refusal. Repo stays valid. |
 | review-cap | real | PASS | ok | 0 | pending | pending | pending | pending | - | - | A task that needs 4 files. Record the cap and whether recovery text is usable. |
