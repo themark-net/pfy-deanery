@@ -102,6 +102,8 @@ Pfy files are docs, eval, and one test. Gate: pregate plus Reviewer. Tester is n
 
 pregate not run: host busy. At 2026-10-31T21:54:47Z, `Runner.Worker` pid 2631906 was running. MemAvailable 57.8 GiB, load 4.53, 32 cores, under the pressure line.
 
+Resume at 2026-10-31T22:07Z found `Runner.Worker` idle and the heavy lock already held, so one full pregate was queued on `3df284d`. At 2026-10-31T22:43:21Z `Runner.Worker` pid 3199955 was running again, and other lanes were waiting on the same lock (pregates for `0c3f133`, `fb759e9`, `4271dcb`, and `582414b`). The queued pregate was stopped before it acquired the lock. No `3df284d` pregate worktree was created. MemAvailable 55.3 GiB, load 3.80, 32 cores, under the pressure line. The six landed gom tests were re-run: 6 passed in 0.90s. The real journal stayed mtime `1790360353`, size `1744896`.
+
 Gom `bot/gom-dogfood-1031` changes `gomjobbar/cli.py`, `gomjobbar/capture.py`, docs, and tests. That branch needs Tester plus Reviewer. Not a Feature GO. Do not merge it to gom `main`.
 
 ## Next
