@@ -54,3 +54,14 @@ These are the mismatches. Each one is a request for lane mvp-cloudfix-1031. This
 ## Checker
 
 `tests/test_gom_dogfood_1031_report.py` reads this table and compares each row to `receipt.json` (`exit_code`, `status`, `len(attempts)`, `review.verdict`, `commit`) and `meta.json` (`human_verdict`, `wall_s`). A planted exit or attempt count that disagrees with the receipt fails the check. A missing row fails the check.
+
+## Wave 5
+
+Six more cloud runs after `origin/bot/mvp-integrate-1031` was merged (`d6d62db`). No `--local`. The red test was still committed on the throwaway base before `./pfy build`, because an edit to that seeded file is still `tests_tampered`. Rows below use the same columns. `commit` is still the cloud commit.
+
+| n | slug | exit | status | attempts | review | human | wall_s | commit |
+|---|------|------|--------|----------|--------|--------|--------|--------|
+| 07 | catch-view-to | 0 | PASS | 1 | accept | accept | 112 | 57e15700113ea1949526cb97a16f1f9a74db141a |
+| 08 | catch-view-cc | 0 | PASS | 1 | accept | accept | 102 | b2b1981c78666b0d7d55828545cc13feea3a11a4 |
+| 09 | catch-view-date | 0 | PASS | 1 | accept | accept | 107 | 2987c4f30a35371ea739f25ada733cefc7153d34 |
+

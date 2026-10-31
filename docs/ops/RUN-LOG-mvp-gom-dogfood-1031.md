@@ -185,3 +185,15 @@ Host before merge: 2026-10-31T23:30Z MemAvailable 41.9 GiB (43960480 kB), load 6
 
 - wave5-exits | ccd639a5ea51921461855267f312dd4d67a2f46a | none (docs only, before the merge) | card written
 - merge | d6d62db6fa9e6b1d3a799a35b6fbefb32649cbe4 | `./pfy build --help` lists `--writable-test` | merged `origin/bot/mvp-integrate-1031` and pushed. No rebase.
+
+Host before 07: 2026-10-31T23:35:33Z MemAvailable 40.5 GiB (42442760 kB), load 6.41, 32 cores. Under the pressure line.
+
+- 07-catch-view-to | cloud 57e15700113ea1949526cb97a16f1f9a74db141a landed fe88852978ec008dcab339f6296e23037eb90a28 (test 915e80cfad5631b527494c65383a48f102a36739) | gate before exit 1, after 1 passed in 0.54s; land pytest 7 passed | PASS review accept human accept wall 112s
+
+Host before 08: 2026-10-31T23:38:41Z MemAvailable 40.0 GiB (41899628 kB), load 7.13, 32 cores. Under the pressure line.
+
+- 08-catch-view-cc | cloud b2b1981c78666b0d7d55828545cc13feea3a11a4 landed 1bb43270d46a6b18b466e8d1036a41da3ef63009 (test af19c0c684ebf7698b5f92d1d70cfe67a058a0dd) | gate before exit 1, after 1 passed in 0.49s; land pytest 8 passed | PASS review accept human accept wall 102s
+
+Host before 09: 2026-10-31T23:40:56Z MemAvailable 39.1 GiB (41035180 kB), load 6.97, 32 cores. Under the pressure line.
+
+- 09-catch-view-date | cloud 2987c4f30a35371ea739f25ada733cefc7153d34 landed c9885f829baad8ecce74705f76756de31e3ce6df (test 4f6db0d370f3aa2aae5c920de953ff7892b9508a) | gate before exit 1, after 1 passed in 0.43s; land pytest 9 passed | PASS review accept human accept wall 107s
