@@ -67,5 +67,5 @@ Progress:
 - state: DONE | tests: tests.test_workflow_image_pin 20 OK in 13.612s | files: 4 | err: none
 - FU3 version_of without bwrap | 5b32274 | TMPDIR=$PWD/tmp nice -n 19 python3 -m unittest tests.test_x_intake_smoke_149 | 29 OK in 2.792s | pass
 - state: DONE | tests: tests.test_x_intake_smoke_149 29 OK in 2.792s | files: 1 | err: none
-- FU4 PATH python3 yaml skip | SHA4 | TMPDIR=$PWD/tmp nice -n 19 python3 -m unittest tests.test_workflow_image_pin | 21 OK in 6.800s | pass
+- FU4 PATH python3 yaml skip | 2abd8c9 | TMPDIR=$PWD/tmp nice -n 19 python3 -m unittest tests.test_workflow_image_pin | 21 OK in 6.800s | pass
 - state: DONE | tests: tests.test_workflow_image_pin 21 OK in 6.800s | files: 1 | err: none
