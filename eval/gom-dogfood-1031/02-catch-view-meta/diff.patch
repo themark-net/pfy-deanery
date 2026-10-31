@@ -1,0 +1,19 @@
+diff --git a/gomjobbar/cli.py b/gomjobbar/cli.py
+index 32bd3ed..4da39eb 100644
+--- a/gomjobbar/cli.py
++++ b/gomjobbar/cli.py
+@@ -659,6 +659,14 @@ def main_cli(argv: list[str] | None = None) -> int:
+                 references = c.get("references")
+                 if isinstance(references, list) and references:
+                     print("       references: " + " ".join(str(ref) for ref in references))
++                # T-0034: flag and size already stored on the catch. Missing is no / 0.
++                # Do not infer an attachment from the body. Read-only; no IMAP, no journal write.
++                attached = c.get("has_attachments") is True
++                print(f"       has_attachments: {'yes' if attached else 'no'}")
++                stored_size = c.get("size")
++                if isinstance(stored_size, bool) or not isinstance(stored_size, int):
++                    stored_size = 0
++                print(f"       size: {stored_size}")
+             print("\nTip: Full original email is in each catch's 'raw_source' field (stored locally in the journal DB).")
+             return 0
+ 
