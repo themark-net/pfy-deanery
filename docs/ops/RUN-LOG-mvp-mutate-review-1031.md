@@ -136,6 +136,18 @@ state: DONE | tests: both modules OK on the unmutated runner | files: 3 | err: n
 R7, R8, and R9 on a clone of `1c332e8`, module `tests.test_mut_review_size_cap` only: all killed (2.669s, 2.673s, 2.296s). Survivors left: none. The worktree runner hash stayed `15e4f4ae1bafa98c2e109002c1ba72e538c89c1ab665827741abf101d80b110a`.
 
 item | commit | tests | result
-rerun | pending-sha | nice python3 eval/mutation-1031/review/run_mutants.py --run --ids R7,R8,R9 --modules tests.test_mut_review_size_cap --timeout 180 | R7 R8 R9 killed, survivors none, exit 0
+rerun | f62d427 | nice python3 eval/mutation-1031/review/run_mutants.py --run --ids R7,R8,R9 --modules tests.test_mut_review_size_cap --timeout 180 | R7 R8 R9 killed, survivors none, exit 0
 
 state: DONE | tests: size-cap module kills R7 R8 R9 | files: 2 | err: none
+
+### further-gaps
+
+No review-mutation gap left in owned files. The drop-in list R1-R14 is killed, including Reviewer M4 (R4) and M7 (R5). Round 2 lanes own other files. `mvp-local-t5-1031` needs a local model. G10 and a new ADR are out. `origin/main` has no `eval/mutation-1031/review/REPORT.md`.
+
+state: skipped | reason: lane empty | err: none
+
+### handoff
+
+Exit: lane empty. Wall cap still 2026-11-01T05:16:00Z. Pregate not run: the heavy lock was held, and `scripts/pregate.sh` writes a worktree under the main checkout `tmp/pg`. `Runner.Worker` was idle at the check. This lane did not wait on the lock and did not write that tree.
+
+state: lane-empty | kills after 14 | survivors left none | pregate not run
