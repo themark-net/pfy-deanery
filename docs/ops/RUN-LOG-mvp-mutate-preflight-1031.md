@@ -50,4 +50,5 @@ Items:
 item | commit | tests | result
 exits | b70c834 | none (docs only) | exit card and decisions written before the harness
 harness | 800e238 | nice -n 19 python3 -m unittest tests.test_mut_preflight_harness | 5 tests OK in 3.010s; anchors apply; source bytes unchanged
+baseline | scored at c798af8 | nice -n 19 python3 eval/mutation-1031/preflight/run_mutants.py --baseline-only --label before | 18 mutants; killed 6; survived 12; base suite 20 tests OK; sources unchanged
 ```
