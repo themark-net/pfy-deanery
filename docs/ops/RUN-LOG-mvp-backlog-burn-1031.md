@@ -98,6 +98,9 @@ Skips logged before the first build:
 
 Format: `item | commit | tests | result`
 
+- loop-card | d3d6377 | docs only, no product tests | PASS pushed
+- enterable not-ok | c354d9c (cloud 9b7eafdade3b09d473cf7b0805bd042e99561f36) | nice python3 -m unittest tests.test_enterable_not_ok (2 OK) | PASS human-accept wall 53s attempts 1
+
 ## Checks
 
 Host before each item: MemAvailable and load. Skip the item area on a red base test. Do not stop the lane for a red base.

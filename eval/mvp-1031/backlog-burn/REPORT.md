@@ -8,3 +8,4 @@ Rows are appended as each item finishes. A missing row means that item has not f
 
 | Item | Receipt | Attempts | Wall s | Verdict | Landed SHA |
 |------|---------|----------|--------|---------|------------|
+| enterable not-ok: store stripped next_steps | PASS ok, review accept, gate 1 then 0 | 1 | 53 | accept | c354d9c |
