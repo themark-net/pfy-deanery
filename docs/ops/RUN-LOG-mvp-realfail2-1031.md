@@ -76,3 +76,4 @@ Format: `item | commit | tests | result`
 - protected-paths | 95b3405 | tests.test_mvp_1031_realfail2_receipts | PASS. Exit 1, protected-path-changed, neither file committed.
 - keep-worktree | 178ed26 | tests.test_mvp_1031_realfail2_receipts | PASS. Exit 0, worktree_removed false, directory still present.
 - worktree-default | 68d982a | tests.test_mvp_1031_realfail2_receipts | PASS. Exit 0, worktree_removed true, directory gone.
+- dogfood-p | (this commit) | tests.test_mvp_1031_realfail2_receipts | PASS. Help exit 0. Real -p wrote hello.txt. grok-home removed.

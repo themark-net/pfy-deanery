@@ -15,7 +15,7 @@ Expected values come from the Functional MVP failure table and from the mvp-real
 | worktree-failed | real | FAIL | worktree-failed | 1 | none | usage | 2 | FINDING | - | - | Missing `--base` exits 2 with `base ref not found` before worktree add. No receipt. Caller HEAD and status unchanged. Cross-lane for mvp-cloudfix-1031: a missing base should be exit 1, reason `worktree-failed`. |
 | dry-run | shim | DRY-RUN | dry-run | 0 | DRY-RUN | dry-run | 0 | matches | 0 | empty | PATH shim recorded 0 grok calls. No branch. Caller unchanged. |
 | usage | real | none | usage | 2 | none | usage | 2 | matches | - | - | No task. Exit 2. Text has `./pfy build "<task>"`, the `-p` dogfood line, and the `--local` line. No receipt. |
-| dogfood-p | real | PASS | ok | 0 | pending | pending | pending | pending | - | - | `./pfy build -p --help` and one real `-p` run on a clone. |
+| dogfood-p | real | PASS | ok | 0 | PASS | ok | 0 | matches | 0 | empty | `./pfy build -p --help` exited 0 and names the prompt flag. The real run wrote hello.txt. grok-home was removed before commit. No pfy paths were restored. |
 | keep-worktree | real | PASS | ok | 0 | PASS | ok | 0 | matches | 1 | empty | `--keep-worktree` left the directory on disk. Receipt `worktree_removed` is false. |
 | worktree-default | real | PASS | ok | 0 | PASS | ok | 0 | matches | 1 | empty | Default run removed the directory. Receipt `worktree_removed` is true. |
 | protected-paths | real | FAIL | protected-path-changed | 1 | FAIL | protected-path-changed | 1 | matches | 1 | empty | auth.json and .env are absent from every commit. Reason protected-path-changed. No branch. Caller unchanged. Recovery is empty. |
