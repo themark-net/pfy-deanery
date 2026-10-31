@@ -101,7 +101,7 @@ How it fails: the agent writes nothing, so there is no diff to accept. A green g
 How we recover: the next prompt contains the gate tail. When retries are spent, exit 1, reason `no-change`, no `local/` branch.
 
 item | commit | tests | result
-no-change | (this commit) | nice python3 -m unittest tests.test_pfy_build_local tests.test_pfy_build_local_review | Ran 72 tests in 95.741s OK
+no-change | 88ebcae | nice python3 -m unittest tests.test_pfy_build_local tests.test_pfy_build_local_review | Ran 72 tests in 95.741s OK
 
 ### retest
 
