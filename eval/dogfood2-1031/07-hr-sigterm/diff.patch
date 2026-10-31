@@ -1,0 +1,6 @@
+# No product commit.
+# The runner removed the cloud worktree on TIMEOUT.
+# Attempt tails in receipt.json do not contain a unified diff.
+# Attempt 2 review, kept verbatim from the receipt:
+# On SIGTERM, volume cleanup is `docker -- volume rm -f pfy-hr-smoke`.
+# The task requires `docker volume rm -f pfy-hr-smoke` on that path.

@@ -36,7 +36,7 @@ class Dogfood2ReportTests(unittest.TestCase):
     def test_real_tree_matches_receipts_and_trailers(self) -> None:
         proc = _run(DOGFOOD)
         self.assertEqual(proc.returncode, 0, proc.stderr)
-        self.assertIn("OK runs=6", proc.stdout)
+        self.assertIn("OK runs=7", proc.stdout)
 
     def test_planted_status_mismatch_fails(self) -> None:
         SCRATCH.mkdir(parents=True, exist_ok=True)
@@ -58,11 +58,11 @@ class Dogfood2ReportTests(unittest.TestCase):
                 if not line.startswith("| 0") or line.startswith("| 06-")
             ]
             text = "\n".join(kept) + "\n"
-            text = text.replace("- runs: 6\n", "- runs: 1\n")
-            text = text.replace("- gate_pass_rate: 6/6\n", "- gate_pass_rate: 1/1\n")
-            text = text.replace("- review_accept_rate: 6/6\n", "- review_accept_rate: 1/1\n")
-            text = text.replace("- human_accept_rate: 6/6\n", "- human_accept_rate: 1/1\n")
-            text = text.replace("- median_wall_s: 352\n", "- median_wall_s: 301\n")
+            text = text.replace("- runs: 7\n", "- runs: 1\n")
+            text = text.replace("- gate_pass_rate: 6/7\n", "- gate_pass_rate: 1/1\n")
+            text = text.replace("- review_accept_rate: 6/7\n", "- review_accept_rate: 1/1\n")
+            text = text.replace("- human_accept_rate: 6/7\n", "- human_accept_rate: 1/1\n")
+            text = text.replace("- median_wall_s: 398\n", "- median_wall_s: 301\n")
             (root / "REPORT.md").write_text(text, encoding="utf-8")
             proc = _run(root)
             blob = proc.stdout + proc.stderr
@@ -87,11 +87,11 @@ class Dogfood2ReportTests(unittest.TestCase):
             ]
             text = "\n".join(kept) + "\n"
             text = text.replace("| 072c7cd |", "| 31a863c |")
-            text = text.replace("- runs: 6\n", "- runs: 1\n")
-            text = text.replace("- gate_pass_rate: 6/6\n", "- gate_pass_rate: 1/1\n")
-            text = text.replace("- review_accept_rate: 6/6\n", "- review_accept_rate: 1/1\n")
-            text = text.replace("- human_accept_rate: 6/6\n", "- human_accept_rate: 1/1\n")
-            text = text.replace("- median_wall_s: 352\n", "- median_wall_s: 301\n")
+            text = text.replace("- runs: 7\n", "- runs: 1\n")
+            text = text.replace("- gate_pass_rate: 6/7\n", "- gate_pass_rate: 1/1\n")
+            text = text.replace("- review_accept_rate: 6/7\n", "- review_accept_rate: 1/1\n")
+            text = text.replace("- human_accept_rate: 6/7\n", "- human_accept_rate: 1/1\n")
+            text = text.replace("- median_wall_s: 398\n", "- median_wall_s: 301\n")
             (root / "REPORT.md").write_text(text, encoding="utf-8")
             proc = _run(root)
             blob = proc.stdout + proc.stderr
