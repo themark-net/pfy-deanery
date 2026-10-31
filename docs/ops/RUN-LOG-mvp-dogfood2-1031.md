@@ -72,6 +72,7 @@ item | commit | tests | result
 04-remaining-home-sigs | 3e4c7ba | tests.test_remaining_home_sigs 2 OK; 148, 149, and 117 suites 46 OK | PASS human-accept wall 661s attempts 1 review accept cloudfix d35af20
 05-timeout-substep | 26e71fa | tests.test_mvp2_t4_timeout_step plus 3 existing timeout tests, 5 OK | PASS human-accept wall 306s attempts 1 review accept cloudfix d35af20
 06-daemon-stop-timeout | 072c7cd | tests.test_mvp2_t3_daemon_stop plus the existing daemon-stop test, 2 OK | PASS human-accept wall 301s attempts 1 review accept cloudfix d35af20
+report-checker | this commit | tests.test_dogfood2_1031_report 3 OK | rows match 6 receipts; planted status and trailer mismatches exit 1
 
 ## States
 
@@ -82,3 +83,4 @@ state: 03 PASS | tests: tests.test_mvp2_t5_receipts and two gitignore tests 3 OK
 state: 04 PASS | tests: tests.test_remaining_home_sigs 2 OK, related 46 OK | files: smoke_117 tree_sig, smoke_148 and smoke_149 home_sig | err: none
 state: 05 PASS | tests: timeout sub-step gate plus 3 existing tests, 5 OK | files: smoke_112_114.py and two assertion strings | err: none
 state: 06 PASS | tests: tests.test_mvp2_t3_daemon_stop plus existing daemon-stop test, 2 OK | files: smoke_112_114.py | err: none
+state: report-checker | tests: tests.test_dogfood2_1031_report 3 OK | files: REPORT.md, check_reports.py, test_dogfood2_1031_report.py | err: none
