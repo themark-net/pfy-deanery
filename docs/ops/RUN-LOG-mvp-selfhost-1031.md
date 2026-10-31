@@ -65,6 +65,7 @@ Format: `item | commit | tests | result`
 - tree sig mode | 89d34af | nice python3 -m unittest tests.test_tree_sig_mode tests.test_x_intake_smoke_122_124.XIntakeSmoke122124Tests.test_tree_sig_streams_file_contents tests.test_selfhost_1031_log (4 OK) | PASS human-accept
 - tree sig symlink | none | runner gate green (before 1, after 0), human reject | REJECT not cherry-picked. Content hash skipped for symlink targets.
 - tree sig link retry | ff86c4d | nice python3 -m unittest tests.test_tree_sig_symlink tests.test_tree_sig_mode tests.test_x_intake_smoke_122_124.XIntakeSmoke122124Tests.test_tree_sig_streams_file_contents tests.test_selfhost_1031_log (5 OK) | PASS human-accept
+- tree sig root link | f8fcac9 | nice python3 -m unittest tests.test_tree_sig_root_link tests.test_tree_sig_symlink tests.test_tree_sig_mode tests.test_x_intake_smoke_122_124.XIntakeSmoke122124Tests.test_tree_sig_streams_file_contents tests.test_selfhost_1031_log (6 OK) | PASS human-accept
 
 Skips logged before the first build (not three in a row of attempted items; these are out of scope up front):
 
