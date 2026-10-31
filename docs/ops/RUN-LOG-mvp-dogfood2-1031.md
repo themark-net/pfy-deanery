@@ -66,7 +66,9 @@ Skipped up front, with reasons, in the decisions file: the open TODO rows that n
 ## Items
 
 item | commit | tests | result
+01-tree-sig-copies | 31a863c | tests.test_tree_sig_copies 5 OK | PASS human-accept wall 398s attempts 1 review accept cloudfix d35af20
 
 ## States
 
 state: prep written | tests: none yet | files: 2 | err: none
+state: 01 PASS | tests: tests.test_tree_sig_copies 5 OK | files: 3 smoke copies | err: none
