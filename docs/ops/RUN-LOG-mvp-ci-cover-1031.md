@@ -63,3 +63,42 @@ Exit card and phase plan written before the coverage test. Skills `write-loop-ex
 Parallel implementation sub-agents are not used. The workflow and the new test are one file set. The lead implements them in order on this branch.
 
 state: DONE | tests: none (docs only) | files: 2 | err: none
+
+### cover-test
+
+Host at 2026-10-31T22:49:02Z: MemAvailable about 55.9 GiB, load 4.71, nproc 32. Under the pressure line. Wall cap still 2026-11-01T06:41:36Z.
+
+Both suite jobs in `.github/workflows/eval-structural.yml` already run `python3 -m unittest discover -s tests -t .`. The filemode job `G0 launcher 100755` does not, and it is not a suite job. No workflow edit. Image pin helper: `PASS workflow image pin: 5 file(s)`.
+
+`tests/test_ci_discover_cover.py` parses the workflow YAML. An explicit `unittest` list that names only `tests.test_kept` reports `tests/test_new.py` as outside the ubuntu job. The same file is covered after that job uses discover. A pattern `test_old*.py` leaves `tests/test_new_gap.py` out of both jobs. Discover from `tests/fixtures` misses a top-level module. The real workflows cover every `tests/test_*.py` (74 or more), including the two review modules. Removing the ubuntu PyYAML install makes `ubuntu_yaml_gap` fail; putting the install back before discover clears it.
+
+`TMPDIR=$PWD/tmp nice -n 19 python3 -m unittest tests.test_ci_discover_cover -v`: Ran 6 tests in 0.014s, OK.
+
+Reviewer check, bwrap hidden: `tests.test_pfy_build_local_review_ci` OK in 31.944s. The review module ran 17 tests, skipped 0 (`tmp/review-ci-parity/result.txt`).
+
+item | commit | tests | result
+cover-test | this commit | tests.test_ci_discover_cover 6 OK; tests.test_pfy_build_local_review_ci ran=17 skipped=0 | pass
+
+state: DONE | tests: tests.test_ci_discover_cover 6 OK | files: 1 | err: none
+
+### skip-audit
+
+Today's `tests/test_*.py` from `git diff --name-only origin/main...HEAD -- tests/` all import. Both G0 jobs collect them by discover. Skips that fire when a tool is missing:
+
+- `tests.test_hermes_bakeoff`: one test skips unless `HERMES_BAKEOFF_LIVE=1`. Live opt-in. Not a CI install.
+- `tests.test_mvp_1031_sixtask_report`: one test skips only when `eval/mvp-1031/sixtask/REPORT.md` is absent. The file is in the tree, so CI runs it.
+- `tests.test_workflow_image_pin`: parse cases skip when PyYAML cannot be imported. The ubuntu job installs it before discover. The new test locks that order. Nimo is not given a pip install; this host imports PyYAML 6.0.3, and followups-fix2 left the lint step on the hosted job only.
+- `tests.test_pfy_build_local`: bwrap confinement tests skip when bwrap is missing. That is the ubuntu-24.04 contract in `docs/ops/PREGATE.md`. Not faked.
+- `tests.test_pfy_build_local.CloudBuildUnchangedTests.test_help_and_dry_run_stay_the_same`: skips the whole test when `grok` is not on PATH. The ubuntu image has no grok, so this help check does not run there. The file is not owned here. Cross-lane request.
+- `tests.test_pfy_build_local`: `test_real_opencode_accepts_the_flags_we_pass` skips when `opencode` is missing. It checks the real binary's flags. Not a fake and not a G0 install.
+- `tests.test_x_intake_smoke_149`: sandbox cases skip when bwrap is unusable. The no-bwrap exit 2 case still runs. Same contract as entry 148.
+- `tests.test_pfy_build_local_review` and `tests.test_pfy_build_local_review_ci`: no skip. Confirmed with bwrap hidden, 17 tests, skipped 0.
+
+`tests/support_tmpclean_leaker.py` is not named `test_*.py`. Discover does not collect it, on purpose. `eval/mvp2/gates/test_mvp2_*.py` stay outside `tests/` because they are red on base by design.
+
+No owned file needed a workflow, env, or fake change. Not counted as a skipped item. The audit is the record.
+
+item | commit | tests | result
+skip-audit | this commit (docs in the run log only) | import of the 24 diff modules OK; no suite | pass, no code gap
+
+state: DONE | tests: import 24 modules OK | files: 0 product | err: none
