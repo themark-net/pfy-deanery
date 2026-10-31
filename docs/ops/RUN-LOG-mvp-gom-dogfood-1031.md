@@ -100,7 +100,7 @@ Host before report: 2026-10-31T21:54:47Z MemAvailable 57.8 GiB, load 4.53, 32 co
 - report | 0597d274755aef04a0347607504e84e930b2e0de | tests.test_gom_dogfood_1031_report 2 tests OK | rows match receipts; a planted exit and a planted attempt count fail the checker
 - gom handoff | 02e421de4cc1a7beca16846b2ac18acc1c28df5b on bot/gom-dogfood-1031 | six landed tests already green | dated section lists the cherry-picked commits
 
-state: goal met 2026-10-31T21:54:47Z. Six cloud builds PASS and human-accept. Gom tip 02e421de4cc1a7beca16846b2ac18acc1c28df5b. Report checker green. pregate not run: host busy. No merge.
+prior-state: goal met 2026-10-31T21:54:47Z. Six cloud builds PASS and human-accept. Gom tip 02e421de4cc1a7beca16846b2ac18acc1c28df5b. Report checker green. pregate not run: host busy. No merge.
 
 ## Resume 2026-10-31T22:07Z
 
@@ -109,7 +109,7 @@ Host: MemAvailable 59.2 GiB, load 3.18, 32 cores. Under the pressure line. `Runn
 - resume check | none | tests.test_gom_dogfood_1031_report 2 tests OK; six gom tests 6 passed in 0.90s | receipts match the report; journal mtime 1790360353 size 1744896 unchanged; no builds 07 or 08
 - pregate | not run | stopped before lock acquire at 2026-10-31T22:43:21Z | host busy: Runner.Worker pid 3199955, other pregates queued on the heavy lock
 
-state: goal met 2026-10-31T22:44:05Z. Six cloud builds remain PASS. Pregate not run: host busy. No merge.
+prior-state: goal met 2026-10-31T22:44:05Z. Six cloud builds remain PASS. Pregate not run: host busy. No merge.
 
 ## Resume 2026-10-31T22:52Z
 
@@ -118,4 +118,4 @@ Host: MemAvailable 45.5 GiB, load 4.81, 32 cores. Under the pressure line (2x co
 - resume check | none | tests.test_gom_dogfood_1031_report 2 tests OK; six gom tests 6 passed in 1.06s | HEAD matches origin on both bot branches; journal mtime 1790360353 size 1744896 unchanged; receipt scan has no AKIA, private-key, sk-, or ghp_ markers
 - pregate | not run | not queued | host busy: Runner.Worker pid 3199955
 
-state: goal met 2026-10-31T22:52:50Z. Lane empty. Pregate not run: host busy. No merge.
+prior-state: goal met 2026-10-31T22:52:50Z. Lane empty. Pregate not run: host busy. No merge.
