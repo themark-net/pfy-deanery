@@ -73,3 +73,4 @@ Lead runs these phases in order. They share the run log and eval/mvp-1031, so th
 
 exits-and-base | 358de84 | none | base origin/bot/mvp-integrate-1031 at 0c3f133 present
 confirm-review-fix | 358de84 | git grep scope-commit-mismatch on the base | staged-set check present, no product patch
+rerun-script | b8b1003 | TMPDIR=tmp/scratch nice -n 19 python3 eval/mvp-1031/test_rerun_local.py | 11 tests OK, no model
