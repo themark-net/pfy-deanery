@@ -62,4 +62,4 @@ Format: `item | commit | tests | result`
 - variance-t1 | 486350a | ./pfy build exit 0 wall 130.2s attempts 1 review accept gate_rerun 0 human accept | PASS, comment wording differs from pass 1
 - variance-t2 | 62a19f5 | ./pfy build exit 0 wall 51.1s attempts 1 review accept gate_rerun 0 human accept | PASS, tree_sig matches canonical
 - variance-t3 | 0b700a3 | ./pfy build exit 0 wall 225.8s attempts 1 review accept gate_rerun 0 human accept | PASS, timeout return is before the real HOME check
-- variance-t4 | pending | ./pfy build exit 1 wall 999.4s attempts 3 status FAIL reason tests-tampered review none gate_rerun 0 human accept of the diff | FINDING repeats
+- variance-t4 | 638afc1 | ./pfy build exit 1 wall 999.4s attempts 3 status FAIL reason tests-tampered review none gate_rerun 0 human accept of the diff | FINDING repeats
