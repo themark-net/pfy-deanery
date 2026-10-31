@@ -332,6 +332,17 @@ class Smoke149(unittest.TestCase):
             self.assertIn("--proc", chunk)
             self.assertIn("/proc", chunk)
 
+    def test_bwrap_without_proc_mount_fails_closed_with_bwrap_reason(self):
+        # B1: a bwrap that runs but cannot mount /proc must fail in the probe, not later as a version mismatch.
+        with tempfile.TemporaryDirectory() as d:
+            fake = Path(d) / "bwrap"
+            fake.write_text(f"#!{sys.executable}\nimport sys\nsys.exit(1 if '--proc' in sys.argv else 0)\n",
+                            encoding="utf-8")
+            fake.chmod(0o755)
+            code, rec = self.run_smoke(dict(BASE, probe=True), {"PATH": d})
+        self.assertEqual(code, 2, rec)
+        self.assertEqual(rec["reason"], "bwrap is not usable here; MemPalace must run with no network")
+
     def test_no_bwrap_exits_2_never_runs_unsandboxed(self):
         # B2: without bwrap the smoke must not fall back to running MemPalace with network and a writable root.
         with tempfile.TemporaryDirectory() as empty:
