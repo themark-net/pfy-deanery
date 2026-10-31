@@ -77,6 +77,17 @@ Format: `item | commit | tests | result`
 - mempalace receipt dir | b06e41a | nice python3 -m unittest tests.test_smoke_149_receipt_absolute tests.test_x_intake_smoke_149.Smoke149.test_missing_binary_exit_2 tests.test_selfhost_1031_log (4 OK) | PASS human-accept
 - home sig 148 | f2f43f9 | nice python3 -m unittest tests.test_home_sig_148 tests.test_x_intake_smoke_148.Smoke148.test_missing_binary_exit_2 tests.test_x_intake_smoke_148.Smoke148.test_real_home_write_fails tests.test_selfhost_1031_log (5 OK) | PASS human-accept
 
+Skips after the builds (lane empty; these do not fit):
+
+- MVP-2 t1 retry: item 08 already showed test_h and the pull-wins rule disagree
+- MVP-2 t4 timeout labels: dogfood2 was driving that cloud build on smoke_112_114.py
+- MVP-2 t5 repo receipts: the 117 and 119 tests read pipelines/smoke, so the fix edits tests, which the runner rejects
+- smoke_149.home_sig content hash: watched paths include .cache/chroma
+- smoke_109 state_snapshot content hash: watched paths include smolvm and runx caches
+- harness2 large-tree fingerprint: decision D1 already skips file bodies over 32 MiB
+
+state: LANE EMPTY | tried 15, runner PASS 14, human accept 13, median wall 119s | commits 00dbdd9 89d34af ff86c4d f8fcac9 4b01771 c6f0cbd 90c9037 b9b8898 828063b 15fbf71 a663854 b06e41a f2f43f9 | err: none | pregate not run: host busy
+
 Skips logged before the first build (not three in a row of attempted items; these are out of scope up front):
 
 - T-0091 voice: shelved, needs Mark
