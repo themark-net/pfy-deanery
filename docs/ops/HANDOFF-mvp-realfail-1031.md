@@ -11,7 +11,8 @@ Base: `origin/bot/mvp-cloud-1031`
 - exits `07c45ca`: exit card, pending report, receipt checker.
 - merge `c0cf507`: `origin/bot/mvp-cloud-1031` at `d94d2b6`.
 - interrupted `00d0ec4`: real SIGINT and SIGTERM. Exit 1, status FAIL, reason interrupted, no branch, caller unchanged, grok session gone.
-- sigkill-reap: receipt `ABORTED` / `no-receipt`, reap exit 0, planted local sleep survived. FINDING: live grok was still running after reap. See `eval/mvp-1031/realfail/sigkill-reap/FINDING.md`.
+- sigkill-reap `d11ce1a`: receipt `ABORTED` / `no-receipt`, reap exit 0, planted local sleep survived. FINDING: live grok was still running after reap. See `eval/mvp-1031/realfail/sigkill-reap/FINDING.md`.
+- timeout: real grok, `--timeout 5`, exit 3, status `TIMEOUT`, reason `timeout`, no branch.
 
 ## Skipped
 
@@ -35,4 +36,4 @@ Docs, eval, and test only. Pregate plus Reviewer when the lane finishes. Pregate
 
 ## Next
 
-Real run with a very short `--timeout`. Expect exit 3 and `TIMEOUT`.
+Dirty caller: uncommitted file and staged file must stay dirty and out of the commit.

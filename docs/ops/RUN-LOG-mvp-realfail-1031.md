@@ -50,4 +50,5 @@ item | commit | tests | result
 exits | 07c45ca | tests.test_mvp_1031_realfail_receipts 3 ok | pass, pushed
 merge-cloud | c0cf507 | git merge origin/bot/mvp-cloud-1031 | merged and pushed before interrupted
 interrupted | 00d0ec4 | tests.test_mvp_1031_realfail_receipts 3 ok | SIGINT and SIGTERM match DoD
-sigkill-reap | (this commit) | tests.test_mvp_1031_realfail_receipts | FINDING stray grok after reap
+sigkill-reap | d11ce1a | tests.test_mvp_1031_realfail_receipts 3 ok | FINDING stray grok after reap
+timeout | (this commit) | tests.test_mvp_1031_realfail_receipts | exit 3 TIMEOUT matches DoD
