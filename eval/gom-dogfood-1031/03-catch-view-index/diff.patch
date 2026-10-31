@@ -1,0 +1,18 @@
+diff --git a/gomjobbar/cli.py b/gomjobbar/cli.py
+index 4da39eb..dd02a20 100644
+--- a/gomjobbar/cli.py
++++ b/gomjobbar/cli.py
+@@ -643,8 +643,11 @@ def main_cli(argv: list[str] | None = None) -> int:
+             if not catches:
+                 print("  (no catches yet)")
+                 return 0
+-            # Show the most recent ones (newest last)
+-            for i, c in enumerate(catches[-20:]):  # last 20 for troubleshooting
++            # Show the most recent ones (newest last). Label with the
++            # index in raw_catches, not the offset inside this window.
++            shown = catches[-20:]
++            start = len(catches) - len(shown)
++            for i, c in enumerate(shown, start=start):
+                 ts = c.get("ts", "")[:16]
+                 subj = (c.get("subject") or "(no subject)")[:60]
+                 body_preview = ((c.get("body") or "")[:120]).replace("\n", " ")
