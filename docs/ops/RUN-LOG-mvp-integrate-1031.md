@@ -272,3 +272,23 @@ Conflict rule: round-1 owner wins when the plan matrix names one. For `docs/TODO
 
 Format: `item | commit | tests | result`
 
+exits-3 | cf5a11c | none | pass 3 exit card pushed before any pass 3 merge
+merge mvp-review-fix2-1031 | d480516 | tests.test_pfy_build_local tests.test_pfy_build_local_review | tip 8c40087, clean, 92 OK in 246.757s. Carries mvp3-review-retry at 582414b, not tip 6664713
+merge mvp-cloudfix-1031 | 7c48022 | tests.test_pfy_build_cloud tests.test_build_preflight tests.test_pfy_build_p | tip d78ed00, clean, 76 OK in 26.289s skipped 1, one import
+merge mvp-dogfood-fix-1031 | be63148 | tests.test_pfy_build_cloud tests.test_build_preflight tests.test_pfy_build_docs | tip 1fa9fd3, resolve_base conflict, 74 OK in 17.115s
+merge mvp-mutate-preflight-1031 | 44bd7ae | tests.test_mut_preflight_harness tests.test_mut_preflight_survivors tests.test_build_preflight tests.test_mvp_1031_receipt | tip 322cde0, clean, 45 OK in 4.931s
+merge mvp-ci-cover-1031 | 67e6658 | tests.test_ci_discover_cover | tip 7391cd6, clean, 6 OK in 0.051s
+merge mvp-realfail3-1031 | b6db528 | tests.test_mvp_1031_realfail3_receipts | tip a4c80a1, clean, 6 OK in 0.014s
+merge mvp-followups-fix2-1031 | 4837247 | tests.test_workflow_image_pin tests.test_attach tests.test_registry tests.test_x_intake_smoke_149 | tip aea15bf, clean, 93 OK in 63.797s
+merge mvp-selfhost-1031 | f5e7d4c | selfhost test modules plus tests.test_x_intake_smoke_149 | tip 5fb063e, clean, 45 OK in 8.904s
+merge mvp-gom-dogfood-1031 | 1e282df | tests.test_gom_dogfood_1031_report | tip 962e234, clean, 2 OK in 0.003s
+merge mvp-sixtask-1031 | a92b08c | tests.test_mvp_1031_sixtask_report | tip 177940e, clean, 10 OK in 0.006s
+merge mvp-sixtask-int-1031 | f877c7d | tests.test_mvp_1031_sixtask_int_report | tip d642ec1, clean, 12 OK in 0.052s. Report VERDICT GO
+merge mvp-tmpclean2-1031 | d078de6 | tests.test_workflow_image_pin tests.test_pfylib_tmp_cleanup tests.test_attach tests.test_registry tests.test_x_intake_smoke_149 | tip 89f0564, five conflicts, 116 OK in 116.455s
+merge mvp-backlog-burn-1031 | f39d64a | backlog modules | tip 84db544, clean merge, entry 149 published 28 against 36 methods
+fix entry 149 count | 1bd1cb3 | tests.test_enterable_not_ok tests.test_catalog_stage_eval tests.test_catalog_stage_pin_score tests.test_catalog_stage_notes_doc tests.test_entry_149_count tests.test_hermes_landed_status | 10 OK in 0.101s, published count 36
+merge mvp-cloudfix-1031 catch-up | 2021775 | none | tip 0dfc9d1, docs only, clean
+merge mvp-gom-dogfood-1031 catch-up | ff3f3ba | tests.test_gom_dogfood_1031_report | tip 731aae2, clean, 2 OK in 0.004s. Freeze
+skip mvp3-followups-1031 | none | none | not merged, seen at 0575f6c
+skip mvp3-review-retry extra | none | none | not merged past the copy already in review-fix2. Tip 6664713 seen
+
