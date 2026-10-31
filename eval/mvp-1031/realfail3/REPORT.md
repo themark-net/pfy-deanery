@@ -6,3 +6,4 @@ Rows: partial
 
 | Case | Mode | Exp status | Exp reason | Exp exit | Obs status | Obs reason | Obs exit | Verdict | Attempts | Recovery | Notes |
 |------|------|------------|------------|----------|------------|------------|----------|---------|----------|----------|-------|
+| tmp-unwritable | real | FAIL | worktree-failed | 1 | FAIL | runner-crash | 1 | FINDING | 1 | empty | repo tmp is mode 555 review None |

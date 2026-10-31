@@ -80,3 +80,5 @@ Flags on every probe: `--retries 0`, `--no-review`, `--base HEAD`, `--repo` on a
 Format: `item | commit | tests | result`
 
 exits | d213794 | none (docs only) | exit card pushed before any build
+harness | 5a7ea04 | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail3_receipts (6 tests ok) | driver and receipt test pushed
+tmp-unwritable | this commit | nice -n 19 python3 -m unittest tests.test_mvp_1031_realfail3_receipts (6 ok) | FINDING runner-crash vs worktree-failed, exit 1, no branch
