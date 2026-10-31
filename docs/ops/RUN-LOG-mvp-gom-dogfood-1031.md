@@ -49,3 +49,24 @@ Named skills `write-loop-exits-first` and `repo-handoff-doc-required` are not fi
 ## Items
 
 Format: `item | commit | tests | result`
+
+- exits | 86639b759ad3a9724df6da71a5e997c9d852e5ba | none (docs only, before code) | written
+
+Host before worktree: 2026-10-31T21:16:30Z MemAvailable 59.6 GiB, load 4.98, 32 cores. Under the pressure line.
+
+- worktree | none on this branch (gom worktree only) | Mark's `current` stayed `2d26630915783ada9f6631fed125b6c1b566da6c` on `main` with the same three dirty paths and the same journal mtime `1790360353` size `1744896`. New worktree `bot/gom-dogfood-1031` at `d097e7ee65e56d626c612b360ea663780988d262` (`origin/main`). | pass
+
+## Task list (T-0034 only)
+
+Other open TODO rows are skipped. Reasons are in the decisions file. Each task gets a red test on the throwaway base, then `./pfy build` with `--retries 1 --timeout 900`. No `--local`.
+
+| n | slug | behavior the red test requires |
+|---|------|--------------------------------|
+| 01 | catch-view-thread | `catch --view` prints `in_reply_to:` and `references:` only when stored values are non-empty |
+| 02 | catch-view-meta | `catch --view` prints stored `has_attachments` and `size` |
+| 03 | catch-view-index | a window of the last 20 catches uses journal indexes, not 0..19 |
+| 04 | catch-view-parties | `catch --view` prints stored `from` and `reply_to` when non-empty, and does not print `raw_source` |
+| 05 | land-thread-provenance | landing a catch copies `in_reply_to` and `references` onto capture provenance and does not copy `raw_source` |
+| 06 | capture-list-thread | `format_item_line` shows `message_id` and `in_reply_to` when provenance has them |
+
+## Items continued
