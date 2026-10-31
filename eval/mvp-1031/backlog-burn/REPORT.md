@@ -11,3 +11,4 @@ Rows are appended as each item finishes. A missing row means that item has not f
 | enterable not-ok: store stripped next_steps | PASS ok, review accept, gate 1 then 0 | 1 | 53 | accept | c354d9c |
 | catalog apply: keep live receipts and the stage stamp | PASS ok, review accept, gate 1 then 0 | 2 | 784 | accept | 5f7ce36 |
 | entry 149: publish the live stub-test count | PASS ok, review accept, gate 1 then 0 | 1 | 28 | accept | 42fc4e1 |
+| Hermes bake-off: pending bullet says landed | PASS ok, review accept, gate 1 then 0 | 1 | 37 | accept | 6e0ae87 |
