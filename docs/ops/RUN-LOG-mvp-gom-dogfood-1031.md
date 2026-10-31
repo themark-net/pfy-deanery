@@ -185,3 +185,7 @@ Host before merge: 2026-10-31T23:30Z MemAvailable 41.9 GiB (43960480 kB), load 6
 
 - wave5-exits | ccd639a5ea51921461855267f312dd4d67a2f46a | none (docs only, before the merge) | card written
 - merge | d6d62db6fa9e6b1d3a799a35b6fbefb32649cbe4 | `./pfy build --help` lists `--writable-test` | merged `origin/bot/mvp-integrate-1031` and pushed. No rebase.
+
+Host before 07: 2026-10-31T23:35:33Z MemAvailable 40.5 GiB (42442760 kB), load 6.41, 32 cores. Under the pressure line.
+
+- 07-catch-view-to | cloud 57e15700113ea1949526cb97a16f1f9a74db141a landed fe88852978ec008dcab339f6296e23037eb90a28 (test 915e80cfad5631b527494c65383a48f102a36739) | gate before exit 1, after 1 passed in 0.54s; land pytest 7 passed | PASS review accept human accept wall 112s

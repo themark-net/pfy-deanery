@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/t-0034-catch-view-must-print-a-stored-to-20261031T233535060615Z",
+  "commit": "57e15700113ea1949526cb97a16f1f9a74db141a",
+  "base": "541ff95df2ad40433cfb2187f084b934cfa31df1",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll implement `catch --view` so it prints a stored To address, and I'll start from the unchanged test and the current view path.The view path already prints stored From and Reply-To and leaves the journal unread. I'll print `to:` the same way, only when that field is a non-empty string.`catch --view` now prints a stored To address. `tests/test_catch_view_to.py` passed.\n\nWhen a catch has a non-empty string in `to`, the view prints one line, `to:` plus a single space and that value. A missing or empty `to` prints no line that starts with `to:`. The view still only reads the journal, does not call IMAP, does not write the journal, and does not print `raw_source`.\n\nI'll check the view path and the unchanged catch-view test against the task before giving a verdict.verdict: accept\n\nThe `--view` path prints `to:` plus one space and the stored value only when `to` is a non-empty string, and it prints nothing for a missing or empty `to`. The diff does not print `raw_source`, call IMAP, write the journal, submit, or set `submitted`. It does not edit `tests/`, and `tests/test_catch_view_to.py` passed.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "env JOURNAL_DB_PATH=./tmp/catch-view-to-journal.db USE_OLLAMA=false PYTHONDONTWRITEBYTECODE=1 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/tmp/gom-venv/bin/python -m pytest -q -p no:cacheprovider tests/test_catch_view_to.py",
+    "before": {
+      "cmd": "env JOURNAL_DB_PATH=./tmp/catch-view-to-journal.db USE_OLLAMA=false PYTHONDONTWRITEBYTECODE=1 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/tmp/gom-venv/bin/python -m pytest -q -p no:cacheprovider tests/test_catch_view_to.py",
+      "exit": 1,
+      "tail": "F                                                                        [100%]\n=================================== FAILURES ===================================\n___________________ test_view_prints_to_and_hides_raw_source ___________________\n\ntmp_path = PosixPath('/home/mark/DEVELOP/jobbar-master/tmp/gom-dogfood-1031-scratch/clones/07-catch-view-to/tmp/cloud-build/20261031T233535060615Z/tmp/pytest-of-mark/pytest-0/test_view_prints_to_and_hides_0')\n\n    def test_view_prints_to_and_hides_raw_source(tmp_path: Path) -> None:\n        db_path = tmp_path / \"journal.db\"\n        marker = \"raw-only-in-source\"\n        _seed(\n            db_path,\n            [\n                {\n                    \"ts\": \"2026-10-01T00:00:00Z\",\n                    \"subject\": \"shipped the queue\",\n                    \"body\": \"cut p99\",\n                    \"message_id\": \"mid-root@example\",\n                    \"raw_source\": marker,\n                },\n                {\n                    \"ts\": \"2026-10-02T00:00:00Z\",\n                    \"subject\": \"empty to\",\n                    \"body\": \"still local\",\n                    \"message_id\": \"mid-empty@example\",\n                    \"to\": \"\",\n                    \"raw_source\": marker + \"-empty\",\n                },\n                {\n                    \"ts\": \"2026-10-03T00:00:00Z\",\n                    \"subject\": \"Re: shipped the queue\",\n                    \"body\": \"added the graph\",\n                    \"message_id\": \"mid-child@example\",\n                    \"to\": \"ada@example\",\n                    \"raw_source\": marker + \"-child\",\n                },\n            ],\n        )\n        proc = _view(db_path)\n        assert proc.returncode == 0, proc.stderr\n        lines = [line.strip() for line in proc.stdout.splitlines()]\n        to_lines = [line for line in lines if line.startswith(\"to:\")]\n>       assert to_lines == [\"to: ada@example\"]\nE       AssertionError: assert [] == ['to: ada@example']\nE         \nE         Right contains one more item: 'to: ada@example'\nE         \nE         Full diff: (-: missing in left side, +: extra in left side)\nE         + []\nE         - [\nE         -     'to: ada@example',\nE         - ]\n\ntests/test_catch_view_to.py:81: AssertionError\n----------------------------- Captured stderr call -----------------------------\n2026-10-31 16:35:35 [debug    ] journal upserted               user_key=[redacted]\n=========================== short test summary info ============================\nFAILED tests/test_catch_view_to.py::test_view_prints_to_and_hides_raw_source - AssertionError: assert [] == ['to: ada@example']\n  \n  Right contains one more item: 'to: ada@example'\n  \n  Full diff: (-: missing in left side, +: extra in left side)\n  + []\n  - [\n  -     'to: ada@example',\n  - ]\n1 failed in 0.53s\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "env JOURNAL_DB_PATH=./tmp/catch-view-to-journal.db USE_OLLAMA=false PYTHONDONTWRITEBYTECODE=1 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/tmp/gom-venv/bin/python -m pytest -q -p no:cacheprovider tests/test_catch_view_to.py",
+      "exit": 0,
+      "tail": ".                                                                        [100%]\n1 passed in 0.54s\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": false,
+  "task": "T-0034: catch --view must print a stored To address. When the catch field to is a non-empty string, print one line that is exactly to: followed by a single space and that value. When to is missing or empty, print no line that starts with to:. Do not print raw_source. Do not call IMAP. Do not write the journal during --view. Do not submit anything and do not set submitted to true (Decision 0006). Do not edit files under tests/. tests/test_catch_view_to.py must pass unchanged.",
+  "finished_at": "2026-10-31T23:37:26Z"
+}
