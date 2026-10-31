@@ -168,4 +168,11 @@ How it fails: a process with those env vars set, and the seam unset, does not bi
 How we recover: leave the seam unset. The receipt `sandbox_extra_rw` is empty. Set the seam only in the test harness that needs the binds.
 
 item | commit | tests | result
-item-7-stub | (sha next) | review module Ran 17 in 32.132s OK; local module Ran 61 in 81.253s OK | OK
+item-7-stub | 8dd5baf | review module Ran 17 in 32.132s OK; local module Ran 61 in 81.253s OK | OK
+
+### item-8-report
+
+`eval/mvp3/REPORT.md` notes that the reviewer is the same model as the agent (`qwen3.6:35b` on the same endpoint). A shared blind spot is not an independent review. The human column is the independent read. Deterministic checks do not call the model. The trial numbers were not re-run.
+
+item | commit | tests | result
+item-8-report | (sha next) | none (docs only) | note added
