@@ -185,6 +185,21 @@ def _sha_evidence(item: str) -> bool:
     return all(ch in "0123456789abcdef" for ch in tail)
 
 
+def _notes_doc_on_disk(item: str) -> bool:
+    """notes_doc:REL naming a file under ROOT. REL must be relative."""
+    if not item.startswith("notes_doc:"):
+        return False
+    rel = item.split(":", 1)[1]
+    if not rel or Path(rel).is_absolute():
+        return False
+    path = ROOT / rel
+    try:
+        path.resolve().relative_to(ROOT)
+    except ValueError:
+        return False
+    return path.is_file()
+
+
 def _methods_label() -> Path:
     """Relative when the methods file sits in this repo; absolute when a caller points it outside."""
     if METHODS_PATH.is_relative_to(ROOT):
@@ -201,7 +216,7 @@ def evidence_for(name: str, card: dict, makefile: str, toolset_names: set[str]) 
     if path and (ROOT / path).exists():
         found.append("path:%s" % path)
     doc = card.get("notes_doc")
-    if doc and (ROOT / doc).is_file():
+    if isinstance(doc, str) and _notes_doc_on_disk("notes_doc:%s" % doc):
         found.append("notes_doc:%s" % doc)
     if card.get("pin"):
         found.append("pin")
@@ -211,7 +226,7 @@ def evidence_for(name: str, card: dict, makefile: str, toolset_names: set[str]) 
     if isinstance(prior, list):
         for item in prior:
             if isinstance(item, str) and item not in found and (
-                _receipt_on_disk(item) or _sha_evidence(item)
+                _receipt_on_disk(item) or _sha_evidence(item) or _notes_doc_on_disk(item)
             ):
                 found.append(item)
     return found
