@@ -2339,10 +2339,99 @@ class CloudBuildGateReasonTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 1, text)
         payload = self._receipt()
         self.assertEqual(payload["reason"], "worktree-failed")
+        self.assertIn("Mark:", payload["recovery"])
+        self.assertIn("worktree", payload["recovery"].lower())
+        self.assertNotIn("--local", payload["recovery"])
         self.assertIsNone(payload["branch"])
         self.assertIsNone(payload["commit"])
         self.assertFalse(calls.exists())
         self.assertEqual(_git(self.repo, "status", "--porcelain").stdout, before)
         self.assertIn("caller-dirty.txt", before)
         self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+
+    def test_missing_base_is_worktree_failed_and_leaves_the_caller(self) -> None:
+        calls = self.side / "calls.txt"
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import os\n"
+            "from pathlib import Path\n"
+            "Path(os.environ['PFY_CALL_COUNT']).write_text('called\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        (self.repo / "caller-dirty.txt").write_text("stay\n", encoding="utf-8")
+        before = _git(self.repo, "status", "--porcelain").stdout
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        ref = "does-not-exist-realfail2-1031"
+        proc = _run(
+            [
+                sys.executable,
+                str(CLOUD),
+                "add kept",
+                "--repo",
+                str(self.repo),
+                "--base",
+                ref,
+                "--retries",
+                "0",
+                "--timeout",
+                "30",
+                "--test-cmd",
+                "true",
+                "--grok-cmd",
+                str(grok),
+            ],
+            self.repo,
+            env={"PFY_CALL_COUNT": str(calls)},
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 1, text)
+        self.assertNotIn("usage:", text)
+        payload = self._receipt()
+        self.assertEqual(payload["status"], "FAIL")
+        self.assertEqual(payload["reason"], "worktree-failed")
+        self.assertEqual(payload["exit_code"], 1)
+        self.assertEqual(payload["base"], ref)
+        self.assertIsNone(payload["branch"])
+        self.assertIsNone(payload["commit"])
+        self.assertIs(payload["pushed"], False)
+        recovery = payload["recovery"]
+        self.assertTrue(recovery.strip(), recovery)
+        self.assertIn("Mark:", recovery)
+        self.assertIn(ref, recovery)
+        self.assertIn("--base", recovery)
+        self.assertIn("fetch", recovery.lower())
+        self.assertNotIn("--local", recovery)
+        self.assertFalse(calls.exists())
+        self.assertEqual(_git(self.repo, "status", "--porcelain").stdout, before)
+        self.assertIn("caller-dirty.txt", before)
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+        self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
+        self.assertFalse((self.repo / "tmp" / "cloud-build").exists())
+        dry_dir = self.side / "dry-receipt"
+        dry = _run(
+            [
+                sys.executable,
+                str(CLOUD),
+                "add kept",
+                "--repo",
+                str(self.repo),
+                "--base",
+                ref,
+                "--dry-run",
+                "--receipt-dir",
+                str(dry_dir),
+                "--grok-cmd",
+                str(grok),
+            ],
+            self.repo,
+            env={"PFY_CALL_COUNT": str(calls)},
+        )
+        dry_text = (dry.stdout or "") + (dry.stderr or "")
+        self.assertEqual(dry.returncode, 1, dry_text)
+        dry_payload = json.loads((dry_dir / "receipt.json").read_text(encoding="utf-8"))
+        self.assertEqual(dry_payload["status"], "FAIL")
+        self.assertEqual(dry_payload["reason"], "worktree-failed")
+        self.assertIn(ref, dry_payload["recovery"])
+        self.assertFalse(calls.exists())
 

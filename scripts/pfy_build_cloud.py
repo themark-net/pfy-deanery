@@ -9,8 +9,9 @@ and does not start a local model.
 Exit codes:
   0  PASS, or a clean --dry-run, or --reap
   1  FAIL (review reject, no-change spent, scope mismatch, unauthenticated,
-        interrupted, gate spent, worktree-failed)
-  2  usage
+        interrupted, gate spent, worktree-failed). A base ref that cannot
+        be checked out is worktree-failed, not usage.
+  2  usage (missing task or repo)
   3  TIMEOUT (grok)
   4  BLOCKED (rate-limit)
 
@@ -113,6 +114,12 @@ class UsageError(Exception):
     pass
 
 
+class BaseMissing(Exception):
+    def __init__(self, ref: str) -> None:
+        super().__init__(ref)
+        self.ref = ref
+
+
 class State:
     def __init__(self) -> None:
         self.interrupted = False
@@ -199,7 +206,7 @@ def resolve_base(repo: Path, requested: str | None) -> tuple[str, str]:
         ref = "origin/main" if probe.returncode == 0 else "HEAD"
     sha = _git(repo, ["rev-parse", "--verify", ref])
     if sha.returncode != 0 or not (sha.stdout or "").strip():
-        raise UsageError("base ref not found: %s" % ref)
+        raise BaseMissing(ref)
     return ref, sha.stdout.strip()
 
 
@@ -420,6 +427,24 @@ def rate_recovery(task: str) -> str:
 
 def auth_recovery(task: str) -> str:
     return "Mark: run grok once to log in, then rerun the same ./pfy build %s" % shlex.quote(task)
+
+
+def worktree_recovery(task: str, ref: str, detail: str) -> str:
+    """Tell Mark how to get a worktree when the base cannot be checked out."""
+    quoted = shlex.quote(task) if (task or "").strip() else '""'
+    if detail == "missing-ref":
+        return (
+            "Mark: base ref %s is not in this repo, so no worktree was created. "
+            "Fetch it or pass --base with a ref that exists, then rerun ./pfy build %s. "
+            "The caller checkout was not changed."
+            % (ref, quoted)
+        )
+    return (
+        "Mark: git worktree add failed for base %s. "
+        "Fix the worktree error, then rerun ./pfy build %s. "
+        "The caller checkout was not changed."
+        % (ref, quoted)
+    )
 
 
 def diff_aims_at_root(diff_text: str) -> bool:
@@ -970,7 +995,12 @@ class CloudBuild:
             return self.fail("FAIL", "unauthenticated", EXIT_FAIL, auth_recovery(self.args.task_text))
         problem = self.prepare_worktree()
         if problem:
-            return self.fail("FAIL", problem, EXIT_FAIL, "")
+            return self.fail(
+                "FAIL",
+                problem,
+                EXIT_FAIL,
+                worktree_recovery(self.args.task_text, self.base_ref, "add-failed"),
+            )
         assert self.worktree is not None
         self.gate_before = self.gate()
         if self.state.interrupted or (self.gate_before or {}).get("aborted") == "interrupted":
@@ -1118,6 +1148,18 @@ class CloudBuild:
         return self.fail("FAIL", self.reason, EXIT_FAIL, self.recovery)
 
 
+def missing_base(args, repo: Path, ref: str) -> int:
+    """A base that does not resolve is a failed checkout, not a usage error."""
+    build = CloudBuild(args, repo, ref, "", None)
+    build.record(0, "FAIL", "worktree-failed", "base ref not found: %s" % ref)
+    return build.fail(
+        "FAIL",
+        "worktree-failed",
+        EXIT_FAIL,
+        worktree_recovery(args.task_text, ref, "missing-ref"),
+    )
+
+
 def _dry_run(args, repo: Path, base: str, receipt: Path) -> int:
     payload = {
         "schema": SCHEMA,
@@ -1227,11 +1269,14 @@ def main(argv: list[str] | None = None) -> int:
         return EXIT_USAGE
     try:
         repo = resolve_repo(args.repo)
-        base_ref, base_sha = resolve_base(repo, args.base)
     except UsageError as exc:
         _print_usage()
         print(str(exc), file=sys.stderr)
         return EXIT_USAGE
+    try:
+        base_ref, base_sha = resolve_base(repo, args.base)
+    except BaseMissing as exc:
+        return missing_base(args, repo, exc.ref)
     stamp = _stamp()
     receipt_dir = Path(args.receipt_dir).resolve() if args.receipt_dir else default_receipt_dir(repo, stamp)
     receipt = receipt_dir / "receipt.json"
