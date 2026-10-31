@@ -51,6 +51,10 @@ See `docs/ops/AUTONOMOUS-DECISIONS-mvp-preflight-1031.md`.
 
 ## Items
 
+- exits | 8b1fb4b | none (docs before code) | pushed
+- classify | 0fbf426 | nice -n 19 python3 -m unittest tests.test_build_preflight | 8 tests OK in 0.001s
+- follow-on | none | not run | skipped as one lane-empty scan, not three separate items. No plan gap fits the owned files. G1-G5 and G7-G9 are other lanes. G6 receipt and exit codes are mvp-cloud-1031. G10 is excluded by plan D18. Round 2 dedupe, sandbox-gate, daily-card, and local-t5 need origin/bot/mvp-integrate-1031, which does not exist, and they own files this lane must not edit. local-t5 also needs a local model.
+
 ## State
 
-state: RUNNING | tests: none yet | files: run log and decisions | err: none
+state: DONE | exit: lane empty | tests: tests.test_build_preflight 8 OK; pregate on 0fbf426 OVERALL=PASS wall=1065s pass=6 fail=0 skip=1 (ubuntu-parity discover 956 tests OK skipped=100) | files: 5 owned paths | err: none
