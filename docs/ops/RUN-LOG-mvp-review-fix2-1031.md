@@ -117,4 +117,15 @@ M4 is one return in `_run_model_review`: the outage returns `"reject"` with reas
 RED: M4 -> `test_reviewer_http_error_is_not_a_reject_and_is_not_retried`, `test_reviewer_timeout_is_not_a_reject_and_is_not_retried`. Both failed: `PASS-REJECTED != REVIEW-ERROR`. Ran 2 tests in 39.471s, FAILED (failures=2). The runner was restored before this commit. `git diff scripts/pfy_build_local.py` was empty.
 
 item | commit | tests | result
-item-2-m4 | (this commit) | mutant run above, then the two tests on the restored runner (item 1, 14.063s OK) | M4 fails, restored tree passes
+item-2-m4 | d5f4812 | mutant run above, then the two tests on the restored runner (item 1, 14.063s OK) | M4 fails, restored tree passes
+
+### item-3-m7
+
+M7 is `_agent_prompt` setting `shown = ""` so the retry prompt keeps the reasons and drops the previous diff. Existing tests still pass under that mutant because they assert strings that also appear in the reasons.
+
+RED: M7 -> `test_previous_diff_reaches_the_retry_prompt`. Failed: `return a + b + 1` was not in the retry prompt. The prompt still contained `Reasons:\ntoo broad` and an empty `Previous diff:` section. Ran 1 test in 1.495s, FAILED. The runner was restored before this commit.
+
+On the restored runner the same test passed in 1.512s. The removed line is absent from the first prompt and sits after `Previous diff:` on the retry.
+
+item | commit | tests | result
+item-3-m7 | (sha in the next log line) | nice python3 -m unittest tests.test_pfy_build_local_review | Ran 14 tests in 29.210s OK

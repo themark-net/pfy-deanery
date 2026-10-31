@@ -274,6 +274,30 @@ class ReviewLoopTests(unittest.TestCase):
         self.assertFalse((receipt / "attempt-4" / "receipt.json").exists())
         self.assertEqual(len(self.inner.httpd.review_queue), 1)
 
+    def test_previous_diff_reaches_the_retry_prompt(self):
+        """Kills M7: the retry prompt drops the previous diff and keeps only the reasons."""
+        self.inner.httpd.review_queue = [
+            json.dumps({"verdict": "reject", "reasons": ["too broad"]}),
+            json.dumps({"verdict": "accept", "reasons": []}),
+        ]
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        proc, receipt = self._run(task, [{"mode": "fix"}, {"mode": "fix"}], extra=["--retries", "1"])
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "PASS")
+        self.assertEqual(data["attempts"], 2)
+        rows = _prompts(self.prompts)
+        self.assertGreaterEqual(len(rows), 2)
+        first_prompt = rows[0]["prompt"]
+        retry = rows[1]["prompt"]
+        self.assertNotIn("return a + b + 1", first_prompt)
+        self.assertIn("too broad", retry)
+        self.assertIn("Previous diff:", retry)
+        removed = "return a + b + 1"
+        self.assertIn(removed, retry)
+        self.assertLess(retry.index("Previous diff:"), retry.index(removed))
+        self.assertLess(retry.index("Reasons:"), retry.index("Previous diff:"))
+
     def test_unparseable_review_is_a_reject_and_the_reason_is_fed_back(self):
         self.inner.httpd.review_queue = [
             "not json at all",
