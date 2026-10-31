@@ -18,7 +18,7 @@ Branch: `bot/mvp-realfail3-1031`. Base: `origin/bot/mvp-integrate-1031` at `0c3f
 | non-ascii | `ba55764` | MATCH. PASS. Receipt kept the non-ASCII task. Commit includes `my app.py` |
 | over-cap | `0511b60` | MATCH. PASS with 4 files and 280 lines |
 | two-builds | `91ce285` | MATCH. Both PASS, two `cloud/` branches, fsck 0, overlap true |
-| gate-hang | this handoff commit | FINDING. `FAIL` / `tests` / exit 1. After-gate exit 124 |
+| gate-hang and handoff | `5ab61c2` | FINDING. `FAIL` / `tests` / exit 1. After-gate exit 124 |
 
 Every probe used `--retries 0`, `--no-review`, and `--base HEAD` on a throwaway clone. No `--local`.
 
