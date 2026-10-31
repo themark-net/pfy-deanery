@@ -52,3 +52,22 @@ sync cloudfix d35af20 | 0a76e22 | catalog anchors C1-C16 still apply | merged
 harness | d5540a4 | nice -n 19 python3 -m unittest tests.test_mut_cloud_harness | 4 tests OK
 baseline | before.json on 9429aaf | run_mutants.py --baseline-only | 14 killed, C4 and C10 survived
 survivors | 6d41f73 | nice -n 19 python3 -m unittest tests.test_mut_cloud_survivors | 2 tests OK on the runner; C4 and C10 proofs rc 1
+after | results/after.json | run_mutants.py --label after | 16 killed, 0 survived
+report | this commit | REPORT.md plus both result json files | table written
+
+## LOOP REPORT
+
+```text
+LOOP REPORT
+Type:            goal
+Goal:            C1..C16 killed or filed, REPORT.md written
+Exit fired:      lane empty. 16 killed, 0 survived. No owned gap left.
+Iterations:      harness, baseline, survivor tests, after round, handoff
+Progress:        before 14 killed / 2 survived; after 16 killed / 0 survived
+Evidence:        results/before.json, results/after.json, tests.test_mut_cloud_harness 4 OK, tests.test_mut_cloud_survivors 2 OK
+Human gate:      no merge. Pregate not run (heavy lock busy). Reviewer waits on pregate PASS.
+Next:            re-run the harness after the next cloudfix commit
+Status:          DONE
+```
+
+state: LANE EMPTY | tests: run_mutants.py --label after, 16 killed, 0 survived; test_mut_cloud_harness 4 OK; test_mut_cloud_survivors 2 OK | files: eval/mutation-1031/cloud, tests/test_mut_cloud_harness.py, tests/test_mut_cloud_survivors.py | err: none
