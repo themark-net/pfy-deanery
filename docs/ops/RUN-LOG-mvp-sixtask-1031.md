@@ -59,3 +59,19 @@ Format: `item | commit | tests | result`
 - t5 | 306f703 | ./pfy build exit 1 wall 707.7s attempts 3 status FAIL reason tests-tampered review none gate_rerun 0 human accept of the diff | FINDING same tests-tampered gap
 - t6 | f5ca6ac | ./pfy build exit 0 wall 93.4s attempts 1 review accept gate_rerun 0 human accept | PASS
 - report | e662d04 | nice python3 -m unittest tests.test_mvp_1031_sixtask_report (8 tests OK, live REPORT checked) | NO-GO, 4/6 runner PASS, 6/6 canonical gate, 4/6 review, 6/6 human, 2778.0s
+- variance-t1 | 486350a | ./pfy build exit 0 wall 130.2s attempts 1 review accept gate_rerun 0 human accept | PASS, comment wording differs from pass 1
+- variance-t2 | 62a19f5 | ./pfy build exit 0 wall 51.1s attempts 1 review accept gate_rerun 0 human accept | PASS, tree_sig matches canonical
+- variance-t3 | 0b700a3 | ./pfy build exit 0 wall 225.8s attempts 1 review accept gate_rerun 0 human accept | PASS, timeout return is before the real HOME check
+- variance-t4 | 638afc1 | ./pfy build exit 1 wall 999.4s attempts 3 status FAIL reason tests-tampered review none gate_rerun 0 human accept of the diff | FINDING repeats
+- variance-t5 | 8db3035 | ./pfy build exit 1 wall 839.0s attempts 3 status FAIL reason tests-tampered review none gate_rerun 0 human accept of the diff | FINDING repeats
+- variance-t6 | c19212a | ./pfy build exit 0 wall 110.5s attempts 1 review accept gate_rerun 0 human accept | PASS, three tree_sig copies match canonical
+- variance-report | 96dd2a5 | nice python3 -m unittest tests.test_mvp_1031_sixtask_report (9 tests OK, live and variance reports checked) | PASS, same 4/6 class, wall 2356.0s
+- retries0-t1 | 5d2c362 | ./pfy build --retries 0 exit 0 wall 174.7s attempts 1 review accept gate_rerun 0 human accept | PASS
+- retries0-t2 | 07f65e8 | ./pfy build --retries 0 exit 0 wall 58.7s attempts 1 review accept gate_rerun 0 human accept | PASS, tree_sig matches canonical
+- retries0-t3 | 8932ae3 | ./pfy build --retries 0 exit 0 wall 253.5s attempts 1 review accept gate_rerun 0 human accept | PASS, timeout return is after the real HOME check
+- retries0-t4 | 056a462 | ./pfy build --retries 0 exit 1 wall 229.7s attempts 1 status FAIL reason tests-tampered review none gate_rerun 0 human accept of the diff | FINDING one attempt, same reject
+- retries0-t5 | 3e2d843 | ./pfy build --retries 0 exit 1 wall 108.9s attempts 1 status FAIL reason tests-tampered review none gate_rerun 0 human accept of the diff | FINDING one attempt, same reject
+- retries0-t6 | 7613bdc | ./pfy build --retries 0 exit 0 wall 118.8s attempts 1 review accept gate_rerun 0 human accept | PASS, three tree_sig copies match canonical
+- retries0-report | 627d8d7 | nice python3 -m unittest tests.test_mvp_1031_sixtask_report (10 tests OK, live variance and retries0 reports checked) | PASS, same 4/6 class, wall 944.3s, loop buys no commit
+- handoff | 67e259d | docs only, pregate not run: host busy | lane empty, NO-GO
+state: lane empty | NO-GO cloud-default ./pfy build | 4/6 review accept on three passes | tests-tampered finding for mvp-cloud-1031 | pregate not run: host busy

@@ -1,0 +1,70 @@
+diff --git a/examples/x-intake-local/smoke_112_114.py b/examples/x-intake-local/smoke_112_114.py
+index cf22508..a1bbd4a 100644
+--- a/examples/x-intake-local/smoke_112_114.py
++++ b/examples/x-intake-local/smoke_112_114.py
+@@ -163,6 +163,8 @@ def smoke_overtime(r: dict) -> int:
+     before = tree_sig(real)
+     r["containment"] = "real-home-check (daemon is detached; no bwrap)"
+     timed_out: subprocess.TimeoutExpired | None = None
++    # Other overtime commands that still escape keep the entry label. `new` names itself.
++    timeout_step = "overtime"
+     try:
+         with tempfile.TemporaryDirectory(prefix="pfy-overtime-") as td:
+             home = Path(td) / "home"
+@@ -174,7 +176,11 @@ def smoke_overtime(r: dict) -> int:
+             ot = [node, str(pkg / "dist/bin.js")]
+             steps = r.setdefault("steps", [])
+             try:
+-                p = sh(ot + ["new", "smoke-agent"], home=home_s, path=path)
++                try:
++                    p = sh(ot + ["new", "smoke-agent"], home=home_s, path=path)
++                except subprocess.TimeoutExpired:
++                    timeout_step = "new"
++                    raise
+                 steps.append({"new": p.returncode})
+                 a = home / "overtime/agents/smoke-agent"
+                 if p.returncode != 0 or not (a / "AGENT.md").is_file() or not (a / ".overtime/settings.json").is_file():
+@@ -234,7 +240,7 @@ def smoke_overtime(r: dict) -> int:
+         r["reason"] = "real HOME ~/overtime was created or changed"
+         return 1
+     if timed_out is not None:
+-        r["reason"] = timeout_reason("overtime", float(timed_out.timeout))
++        r["reason"] = timeout_reason(timeout_step, float(timed_out.timeout))
+         return 1
+     r["reason"] = "agent created, listed, budget/protect set and shown, no session run, daemon stopped, real HOME untouched"
+     return 0
+@@ -270,7 +276,11 @@ def smoke_festival(r: dict) -> int:
+                  "GIT_COMMITTER_NAME": "smoke", "GIT_COMMITTER_EMAIL": "smoke@localhost"}
+         r["containment"] = containment(home_s, [td], "real-home-check")
+         W = lambda c, cwd=None: sh(c, home=home_s, path=path, cwd=cwd, extra=extra, bwrap_writable=[td])
+-        p = W([fest, "--version"])
++        try:
++            p = W([fest, "--version"])
++        except subprocess.TimeoutExpired as e:
++            r["reason"] = timeout_reason("version", float(e.timeout))
++            return 1
+         r["version"] = p.stdout.strip()
+         p = W([camp, "create", "smokecamp", "-d", "smoke", "-m", "smoke mission"])
+         root = home / "campaigns/smokecamp"
+diff --git a/tests/test_x_intake_smoke_112_114.py b/tests/test_x_intake_smoke_112_114.py
+index c1e0a3f..8bd7f43 100644
+--- a/tests/test_x_intake_smoke_112_114.py
++++ b/tests/test_x_intake_smoke_112_114.py
+@@ -350,7 +350,7 @@ class XIntakeSmoke112114Tests(unittest.TestCase):
+             self.assertNotIn("Traceback", proc.stderr, blob)
+             self.assertEqual(proc.returncode, 1, blob)
+             self.assertFalse((home / "overtime").exists(), blob)
+-            self.assertEqual(_receipt("overtime").get("reason"), "overtime timeout after 0.4s", blob)
++            self.assertEqual(_receipt("overtime").get("reason"), "new timeout after 0.4s", blob)
+ 
+     def test_festival_timeout_reason_is_shared_text(self) -> None:
+         # Fail: a timed-out fest --version records "timeout after <s>s: <cmd>" from main().
+@@ -376,7 +376,7 @@ class XIntakeSmoke112114Tests(unittest.TestCase):
+             blob = proc.stdout + proc.stderr
+             self.assertNotIn("Traceback", proc.stderr, blob)
+             self.assertEqual(proc.returncode, 1, blob)
+-            self.assertEqual(_receipt("festival").get("reason"), "festival timeout after 0.4s", blob)
++            self.assertEqual(_receipt("festival").get("reason"), "version timeout after 0.4s", blob)
+ 
+     def test_overtime_daemon_stop_timeout_uses_shared_text(self) -> None:
+         # Fail: a daemon-stop timeout is recorded as the bare word "timeout".

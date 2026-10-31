@@ -64,3 +64,13 @@ Cloud lane should add a behavior test: with the flag, an allowed test edit can r
 ## How this fails and recovers
 
 Fail: a task that must change a named test file spends three grok attempts and exits 1 with no commit, even when the canonical gate is green. Recover: rerun with `--writable-test` set to that file once the flag exists. Until then, Mark does not get a commit for t4 or t5 from `./pfy build`.
+
+## Retries 0 reproduction
+
+A later pass used `--retries 0` (one attempt, review still on, no `--no-review`). Same reject, sooner.
+
+t4: exit 1, wall 229.7 s, attempts 1, reason `tests-tampered`, commit null, review verdict null. Canonical gate rerun 0. Receipt: `eval/mvp-1031/sixtask/retries0/t4-timeout-substep/receipt.json`. The diff still names the `new` and `version` sub-steps and changes only the two allowed assertion strings.
+
+t5: exit 1, wall 108.9 s, attempts 1, reason `tests-tampered`, commit null, review verdict null. Canonical gate rerun 0. Receipt: `eval/mvp-1031/sixtask/retries0/t5-receipts-outside-repo/receipt.json`. The diff is only the two allowed test modules, both setting `PFY_SMOKE_RECEIPT_DIR`.
+
+Attempts 2 and 3 on the earlier passes did not turn either reject into a commit. The retry budget is not a workaround.
