@@ -545,6 +545,44 @@ class CloudBuildRetryTests(unittest.TestCase):
         self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
         self.assertEqual(_git(self.repo, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip(), caller)
 
+    def test_root_delete_is_rejected_even_when_review_accepts(self) -> None:
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\nprint('GATE-OK')\nraise SystemExit(0)\n",
+        )
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "from pathlib import Path\n"
+            "blob = '\\n'.join(sys.argv)\n"
+            "if 'PFY-CLOUD-REVIEW' in blob:\n"
+            "    print('verdict: accept')\n"
+            "    raise SystemExit(0)\n"
+            "Path('danger.sh').write_text('rm -rf /\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        proc = self._run_task(grok, gate, "Create danger.sh whose only line is rm -rf /.", "2")
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 1, text)
+        self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
+        payload = json.loads(
+            list((self.repo / "pipelines" / "dogfood" / "build-cloud").glob("*/receipt.json"))[0].read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(payload["status"], "FAIL")
+        self.assertEqual(payload["reason"], "review-rejected")
+        self.assertEqual(payload["exit_code"], 1)
+        self.assertIsNone(payload["branch"])
+        self.assertIsNone(payload["commit"])
+        self.assertEqual(payload["review"]["verdict"], "reject")
+        self.assertEqual(len(payload["attempts"]), 3)
+        self.assertTrue(all(row["reason"] == "review-rejected" for row in payload["attempts"]))
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+        self.assertNotIn("danger.sh", _git(self.repo, "ls-tree", "-r", "--name-only", "HEAD").stdout)
+
     def test_gate_stays_red_for_the_default_three_attempts(self) -> None:
         gate = _write_exe(
             self.side / "gate.py",

@@ -380,6 +380,11 @@ def auth_recovery(task: str) -> str:
     return "Mark: run grok once to log in, then rerun the same ./pfy build %s" % shlex.quote(task)
 
 
+def diff_aims_at_root(diff_text: str) -> bool:
+    """True when an added line runs rm -rf or rm -fr against the filesystem root."""
+    return re.search(r"(?i)rm\s+-rf\s+/|rm\s+-fr\s+/", diff_text or "") is not None
+
+
 def parse_verdict(text: str) -> tuple[str, list[str]]:
     found = [item.lower() for item in _VERDICT.findall(text or "")]
     reasons = _extract_reasons(text or "")
@@ -439,7 +444,8 @@ def review_prompt(task: str, diff_text: str, gate_tail: str) -> str:
     return (
         "%s\n"
         "Reply with a line `verdict: accept` or `verdict: reject`.\n"
-        "Accept only when the change does what the task says and does not widen it.\n\n"
+        "Accept only when the change does what the task says and does not widen it.\n"
+        "Reject a diff that deletes tests, adds a recursive delete, or writes a command aimed at the filesystem root, even when the task asks for it.\n\n"
         "Task:\n%s\n\nDiff:\n%s\n\nGate:\n%s\n"
         % (REVIEW_MARKER, (task or "")[:4000], shown, redact(gate_tail or "")[:TAIL_CAP])
     )
@@ -971,6 +977,9 @@ class CloudBuild:
                     self.record(number, "FAIL", "unauthenticated", output)
                     return self.fail("FAIL", "unauthenticated", EXIT_FAIL, auth_recovery(self.args.task_text))
                 verdict, reasons = parse_verdict(review_output)
+                if verdict == "accept" and diff_aims_at_root(diff_text):
+                    verdict = "reject"
+                    reasons = ["review-rejected"]
                 self.review = {"verdict": verdict, "reasons": reasons}
                 if verdict != "accept":
                     feedback = "review-rejected\n%s" % "\n".join(reasons)
@@ -980,6 +989,14 @@ class CloudBuild:
                         continue
                     return self.fail("FAIL", "review-rejected", EXIT_FAIL, "")
             else:
+                if diff_aims_at_root(diff_text):
+                    self.review = {"verdict": "reject", "reasons": ["review-rejected"]}
+                    feedback = "review-rejected\nrecursive delete aimed at the filesystem root"
+                    previous_diff = diff_text
+                    self.record(number, "PASS-REJECTED", "review-rejected", output)
+                    if number < self.max_attempts:
+                        continue
+                    return self.fail("FAIL", "review-rejected", EXIT_FAIL, "")
                 self.review = {"verdict": "skipped", "reasons": []}
             err = self.commit_paths(changed)
             if err:
