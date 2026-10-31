@@ -76,3 +76,6 @@ Format: `item | commit | tests | result`
 - pass2 t4 | 1d1507f | ./pfy build exit 0 wall 349.0s attempts 1 review accept gate_rerun 0 human accept writable tests/test_x_intake_smoke_112_114.py | PASS
 - pass2 t5 | a3aa54e | ./pfy build exit 0 wall 174.3s attempts 1 review accept gate_rerun 0 human accept writable tests/test_x_intake_smoke_117_118.py, tests/test_x_intake_smoke_119_121.py | PASS
 - pass2 t6 | 399408a | ./pfy build exit 0 wall 76.0s attempts 1 review accept gate_rerun 0 human accept | PASS
+- report | af53460 | nice python3 -m unittest tests.test_mvp_1031_sixtask_int_report (12 tests OK) and check_report.py CHECK_OK | PASS, VERDICT GO, pass1 1243.8s, pass2 1016.3s
+
+state: DONE | pass1 6/6 and pass2 6/6 runner PASS, review accept, and human accept | VERDICT GO | lane empty after the report | pregate not run: operator owns it and Runner.Worker was live
