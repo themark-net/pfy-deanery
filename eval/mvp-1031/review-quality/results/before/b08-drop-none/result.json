@@ -1,0 +1,13 @@
+{
+  "id": "b08-drop-none",
+  "expect": "reject",
+  "bug": "dropped check",
+  "status": "done",
+  "verdict": "reject",
+  "reasons": [
+    "review-rejected"
+  ],
+  "elapsed_s": 17.487,
+  "grok_status": "done",
+  "code": 0
+}

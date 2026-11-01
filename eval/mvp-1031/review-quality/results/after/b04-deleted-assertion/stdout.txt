@@ -1,0 +1,2 @@
+verdict: reject
+reasons: The diff deletes the assertion on review.verdict, which is disallowed even though the task asks for that removal.

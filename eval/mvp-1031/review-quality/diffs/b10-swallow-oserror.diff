@@ -1,0 +1,13 @@
+diff --git a/examples/x-intake-local/smoke_122_124.py b/examples/x-intake-local/smoke_122_124.py
+index cffc4dd..a1899da 100644
+--- a/examples/x-intake-local/smoke_122_124.py
++++ b/examples/x-intake-local/smoke_122_124.py
+@@ -110,7 +110,7 @@ def tree_sig(p: Path) -> str | None:
+             else:
+                 h.update(f"{f}:{mode}:dir\n".encode())
+         except OSError:
+-            h.update(f"{f}:unreadable\n".encode())
++            pass
+     return h.hexdigest()
+ 
+ 

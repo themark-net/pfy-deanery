@@ -1,0 +1,13 @@
+{
+  "id": "b03-retries-zero",
+  "expect": "reject",
+  "bug": "wrong default",
+  "status": "done",
+  "verdict": "reject",
+  "reasons": [
+    "review-rejected"
+  ],
+  "elapsed_s": 6.253,
+  "grok_status": "done",
+  "code": 0
+}

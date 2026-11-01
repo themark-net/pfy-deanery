@@ -1,0 +1,11 @@
+{
+  "id": "g01-lstat-root",
+  "expect": "accept",
+  "bug": "",
+  "status": "done",
+  "verdict": "accept",
+  "reasons": [],
+  "elapsed_s": 63.383,
+  "grok_status": "done",
+  "code": 0
+}

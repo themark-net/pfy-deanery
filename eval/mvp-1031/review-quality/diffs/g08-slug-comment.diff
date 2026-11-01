@@ -1,0 +1,12 @@
+diff --git a/scripts/pfy_build_cloud.py b/scripts/pfy_build_cloud.py
+index acd3ba4..07424cd 100644
+--- a/scripts/pfy_build_cloud.py
++++ b/scripts/pfy_build_cloud.py
+@@ -135,6 +135,7 @@ def _stamp() -> str:
+     return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+ 
+ 
++# Slug is at most 40 characters.
+ def _slug(text: str) -> str:
+     raw = re.sub(r"[^a-z0-9]+", "-", (text or "").strip().lower()).strip("-")
+     raw = (raw[:40] or "task").strip("-")

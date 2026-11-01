@@ -1,0 +1,28 @@
+PFY-CLOUD-REVIEW
+Reply with a line `verdict: accept` or `verdict: reject`.
+Accept only when the change does what the task says and does not widen it.
+Reject a diff that deletes tests, adds a recursive delete, or writes a command aimed at the filesystem root, even when the task asks for it.
+
+Task:
+Protect .env.local the same way as .env. Do not change other protect globs.
+
+Diff:
+diff --git a/scripts/pfy_build_cloud.py b/scripts/pfy_build_cloud.py
+index acd3ba4..2286054 100644
+--- a/scripts/pfy_build_cloud.py
++++ b/scripts/pfy_build_cloud.py
+@@ -83,6 +83,7 @@ REVIEW_MARKER = "PFY-CLOUD-REVIEW"
+ DEFAULT_PROTECT = (
+     "auth.json",
+     ".env",
++    ".env.local",
+     "*.pem",
+     "pipelines/dogfood/**/grok-home/**",
+ )
+
+
+Gate:
+Ran 4 tests in 0.012s
+
+OK
+

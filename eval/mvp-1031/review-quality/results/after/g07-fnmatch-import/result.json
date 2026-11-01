@@ -1,0 +1,13 @@
+{
+  "id": "g07-fnmatch-import",
+  "expect": "accept",
+  "bug": "",
+  "status": "done",
+  "verdict": "accept",
+  "reasons": [
+    "The diff only moves the fnmatch import from inside fnmatch_path to the module top and leaves the call unchanged."
+  ],
+  "elapsed_s": 8.92,
+  "grok_status": "done",
+  "code": 0
+}
