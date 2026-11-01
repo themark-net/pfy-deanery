@@ -78,3 +78,6 @@ Format: `item | commit | tests | result`
 - verdict | aea5f84 | no CLI change, no test required | GO. eval/mvp-1031/VERDICT.md cites DoD lines 1-6
 - help-check | none | `./pfy build` exit 2, `./pfy build --help` exit 0 | help already names the daily command, `-p`, `--local`, and `--writable-test`. No edit. cloudfix owns `scripts/pfy`.
 - daily-card | 90b1436 | `nice -n 19 python3 -m unittest tests.test_pfy_build_docs` 5 tests OK | card and module name `--writable-test` and link the verdict. Stale "before that lands" sentence removed.
+- quickstart | 080d590 | `nice -n 19 python3 -m unittest tests.test_quickstart_commands` 3 tests OK | dry-run fence passes `--base HEAD`. Help excerpt includes `--writable-test`. Walkthrough not copied.
+- todo-row | skipped | none | integrate pid 3758828 still owns `docs/TODO.md`. Proposed row is in `docs/plans/MVP-1031-STATUS.md`.
+- product-surface | skipped | none | T-0090 keeps three levers. Daily build stays on the operator card. No ADR from this lane.
