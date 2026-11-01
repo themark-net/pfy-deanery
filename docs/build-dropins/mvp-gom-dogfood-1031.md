@@ -72,3 +72,6 @@ Write or update this run's handoff in `docs/ops/`: items done with SHAs, items s
 ## Exception to the common rules for this lane
 
 You may create and work in the gom worktree `~/DEVELOP/jobbar-master/tmp/gom-dogfood-1031` described above and push its `bot/gom-dogfood-1031` branch. Everything else in the common rules still applies, including never touching `~/DEVELOP/jobbar-master/current`.
+
+## Wave 5 addendum (2026-10-31 16:30 PT)
+The earlier goal-met state is superseded. Same worktree and branch rules as above for the gom repo (only `~/DEVELOP/jobbar-master/tmp/gom-dogfood-1031` on bot/gom-dogfood-1031; never Mark's checkout or gomjobbar_journal.db). First merge origin/bot/mvp-integrate-1031 into this pfy branch so you use the latest runner (merge, never rebase). Then do 6 MORE real gom backlog items with real cloud `./pfy build` (different from the six already done), human-review each diff, keep only accepted ones on bot/gom-dogfood-1031, record receipts and a Wave 5 section in the report. Note runner friction as findings for mvp-cloudfix-1031.

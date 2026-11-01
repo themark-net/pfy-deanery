@@ -1,0 +1,18 @@
+diff --git a/gomjobbar/cli.py b/gomjobbar/cli.py
+index 7458ae7..32bd3ed 100644
+--- a/gomjobbar/cli.py
++++ b/gomjobbar/cli.py
+@@ -652,6 +652,13 @@ def main_cli(argv: list[str] | None = None) -> int:
+                 print(f"  [{i}] {ts} | {subj}")
+                 print(f"       body: {body_preview}...")
+                 print(f"       has_url: {has_url}, message_id: {c.get('message_id', '')[:40]}")
++                # T-0034: surface headers already stored on the catch. Read-only.
++                in_reply_to = c.get("in_reply_to")
++                if isinstance(in_reply_to, str) and in_reply_to:
++                    print(f"       in_reply_to: {in_reply_to}")
++                references = c.get("references")
++                if isinstance(references, list) and references:
++                    print("       references: " + " ".join(str(ref) for ref in references))
+             print("\nTip: Full original email is in each catch's 'raw_source' field (stored locally in the journal DB).")
+             return 0
+ 

@@ -1,0 +1,8 @@
+name: unresolved-image
+on: push
+jobs:
+  job:
+    runs-on: ubuntu-24.04
+    container: "ubuntu:${{ matrix.tag }}"
+    steps:
+      - run: "true"

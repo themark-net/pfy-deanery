@@ -1,0 +1,13 @@
+name: digest-mixed
+on: push
+jobs:
+  pinned:
+    runs-on: ubuntu-24.04
+    container: ubuntu:24.04@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    steps:
+      - run: "true"
+  tagged-only:
+    runs-on: ubuntu-24.04
+    container: ubuntu:24.04
+    steps:
+      - run: "true"

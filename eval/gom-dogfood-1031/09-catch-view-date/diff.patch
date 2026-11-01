@@ -1,0 +1,18 @@
+diff --git a/gomjobbar/cli.py b/gomjobbar/cli.py
+index b87d096..2a5cef9 100644
+--- a/gomjobbar/cli.py
++++ b/gomjobbar/cli.py
+@@ -687,6 +687,13 @@ def main_cli(argv: list[str] | None = None) -> int:
+                 if isinstance(stored_size, bool) or not isinstance(stored_size, int):
+                     stored_size = 0
+                 print(f"       size: {stored_size}")
++                # T-0034: Date header already stored at headers.date. Empty or
++                # missing stays hidden. Do not read raw_source. Read-only.
++                headers = c.get("headers")
++                if isinstance(headers, dict):
++                    date_header = headers.get("date")
++                    if isinstance(date_header, str) and date_header:
++                        print(f"       date: {date_header}")
+             print("\nTip: Full original email is in each catch's 'raw_source' field (stored locally in the journal DB).")
+             return 0
+ 

@@ -1,0 +1,8 @@
+name: registry-port-no-tag
+on: push
+jobs:
+  job:
+    runs-on: ubuntu-24.04
+    container: localhost:5000/app
+    steps:
+      - run: "true"

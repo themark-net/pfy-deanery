@@ -305,6 +305,17 @@ elif scenario == "plan":
         dest.parent.mkdir(parents=True, exist_ok=True)
         prev = dest.read_text(encoding="utf-8") if dest.is_file() else ""
         dest.write_text(prev + extra, encoding="utf-8")
+    for rel, target in (step.get("symlink") or {}).items():
+        dest = root / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        if dest.is_symlink() or dest.exists():
+            dest.unlink()
+        os.symlink(str(target), dest)
+if scenario == "crash":
+    raise SystemExit(2)
+if scenario == "crash-after-fix" and calc.exists():
+    calc.write_text(calc.read_text(encoding="utf-8").replace("return a + b + 1", "return a + b"), encoding="utf-8")
+    raise SystemExit(2)
 raise SystemExit(0)
 """
 
@@ -390,6 +401,10 @@ class Handler(BaseHTTPRequestHandler):
                     content = queue.pop(0)
                 else:
                     content = json.dumps({"verdict": "accept", "reasons": []})
+                http_status = getattr(self.server, "review_http_status", None)
+                if http_status not in (None, 200):
+                    self._send(int(http_status), {"error": "review-unavailable"})
+                    return
             self._send(200, {"id": "c", "choices": [{"message": {"role": "assistant", "content": content}}]})
             return
         self._send(200, {"ok": True})
@@ -720,6 +735,149 @@ class LocalBuildTests(unittest.TestCase):
         data = self.assert_no_commit(proc, receipt)
         self.assertEqual(data["status"], "FAIL")
         self.assertEqual(data["reason"], "no-change")
+
+    def test_nonzero_exit_with_no_diff_is_a_crash_and_is_not_retried(self):
+        proc, receipt = self.run_build("crash", extra=["--retries", "2"])
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self.assert_no_commit(proc, receipt)
+        self.assertEqual(data["status"], "crash")
+        self.assertEqual(data["reason"], "crash")
+        self.assertNotEqual(data["reason"], "no-change")
+        self.assertNotEqual(data["status"], "FAIL")
+        self.assertEqual(data["attempts"], 1)
+        self.assertIn("exited 2", data.get("recovery") or "")
+        self.assertIn("not an empty edit", data.get("recovery") or "")
+        self.assertIn("not retried", data.get("recovery") or "")
+        self.assertIn("Recovery:", data.get("recovery") or "")
+        self.assertFalse((receipt / "attempt-2").exists())
+        first = json.loads((receipt / "attempt-1" / "receipt.json").read_text(encoding="utf-8"))
+        self.assertEqual(first["status"], "crash")
+        self.assertEqual(first["reason"], "crash")
+
+    def test_nonzero_exit_with_a_diff_still_reaches_the_gate(self):
+        proc, receipt = self.run_build("crash-after-fix")
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        data = self.receipt(proc, receipt)
+        self.assertEqual(data["status"], "PASS")
+        self.assertNotEqual(data["status"], "crash")
+        self.assertIsNotNone(data["commit"])
+        shown = _git(self.repo, "show", "%s:src/calc.py" % data["branch"])
+        self.assertIn("return a + b\n", shown)
+        self.assert_clean_origin()
+
+    def test_receipt_status_matches_the_stdout_label_and_the_docs(self):
+        source = (ROOT / "scripts" / "pfy_build_local.py").read_text(encoding="utf-8")
+        doc = source.split('"""', 2)[1]
+        documented = (
+            "PASS",
+            "FAIL",
+            "PASS-REJECTED",
+            "reviewer-unavailable",
+            "crash",
+            "TIMEOUT",
+            "BLOCKED",
+            "ABORTED",
+        )
+        self.assertEqual(sorted(BUILD.LABELS), sorted(documented))
+        self.assertEqual(len(BUILD.LABELS), len(set(BUILD.LABELS)))
+        for label in documented:
+            self.assertIn(label, doc)
+        with self.assertRaises(BUILD.LabelError) as caught:
+            BUILD._lab("NOT-A-STATUS")
+        self.assertIn("NOT-A-STATUS", str(caught.exception))
+        self.assertNotEqual(str(caught.exception), "FAIL")
+
+        runs = []
+        proc, receipt = self.run_build("crash", extra=["--retries", "0"])
+        runs.append((proc, receipt))
+        proc, receipt = self.run_build("noop", extra=["--retries", "0"])
+        runs.append((proc, receipt))
+        self.write_mem(10, 0, 64)
+        proc, receipt = self.run_build("fix")
+        runs.append((proc, receipt))
+        seen = set()
+        for proc, receipt in runs:
+            data = self.receipt(proc, receipt)
+            status = data["status"]
+            reason = data["reason"]
+            seen.add(status)
+            self.assertIn(status, documented)
+            self.assertIn(status, BUILD.LABELS)
+            prefix = "%s %s " % (status, reason)
+            lines = [
+                line
+                for line in (proc.stdout or "").splitlines()
+                if line.startswith(prefix) and "receipt=" in line
+            ]
+            self.assertEqual(len(lines), 1, proc.stdout)
+            self.assertEqual(lines[0].split(" ", 1)[0], status)
+            self.assertFalse(lines[0].startswith(status + ":"))
+            attempt = receipt / "attempt-1" / "receipt.json"
+            if attempt.is_file():
+                first = json.loads(attempt.read_text(encoding="utf-8"))
+                self.assertEqual(first["status"], status)
+        self.assertEqual(seen, {"crash", "FAIL", "BLOCKED"})
+
+    def _plant_worktree(self, name):
+        path = self.repo / "tmp" / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.check_call(
+            ["git", "-C", str(self.repo), "worktree", "add", "--detach", str(path), "HEAD"],
+            stdout=subprocess.DEVNULL,
+        )
+        (path / "STALE.txt").write_text("from a previous run\n", encoding="utf-8")
+        return path
+
+    def test_stale_worktree_is_removed_and_not_reused(self):
+        stale = self._plant_worktree("local-build-previous")
+        proc, receipt = self.run_build("noop", extra=["--retries", "0"])
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self.assert_no_commit(proc, receipt)
+        self.assertEqual(data["reason"], "no-change")
+        self.assertIn("local-build-previous", data["stale_worktrees"])
+        self.assertFalse(stale.exists())
+        self.assertNotIn(str(stale), _git(self.repo, "worktree", "list"))
+        live = data["worktree"]
+        self.assertIsNotNone(live)
+        self.assertNotEqual(Path(live).name, "local-build-previous")
+        self.assertFalse((Path(live) / "STALE.txt").exists())
+
+    def test_unstaleable_worktree_stops_before_add(self):
+        stale = self.repo / "tmp" / "local-build-stuck"
+        stale.mkdir(parents=True)
+        (stale / "keep.txt").write_text("keep\n", encoding="utf-8")
+        os.chmod(stale, 0)
+        self.addCleanup(lambda: os.chmod(stale, 0o755) if stale.exists() else None)
+        proc, receipt = self.run_build("fix", extra=["--retries", "0"])
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self.assert_no_commit(proc, receipt)
+        self.assertEqual(data["status"], "FAIL")
+        self.assertEqual(data["reason"], "stale-worktree")
+        self.assertIn("local-build-stuck", data["stale_worktrees"])
+        self.assertIsNone(data["worktree"])
+        self.assertIn("could not be removed", data.get("recovery") or "")
+        self.assertIn("not reused", data.get("recovery") or "")
+        self.assertIn("Nothing was committed", data.get("recovery") or "")
+        self.assertIn("Recovery:", data.get("recovery") or "")
+        self.assertTrue(stale.exists())
+        self.assert_agent_did_not_start()
+        names = sorted(path.name for path in self.repo.glob("tmp/local-build-*"))
+        self.assertEqual(names, ["local-build-stuck"])
+
+    def test_dry_run_does_not_delete_a_stale_worktree(self):
+        stale = self._plant_worktree("local-build-previous")
+        proc, receipt = self.run_build("fix", extra=["--dry-run"])
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        data = self.receipt(proc, receipt)
+        self.assertEqual(data["status"], "PASS")
+        self.assertEqual(data["reason"], "dry-run")
+        self.assertIsNone(data["worktree"])
+        self.assertIn("local-build-previous", data["stale_worktrees"])
+        self.assertTrue(stale.is_dir())
+        self.assertEqual((stale / "STALE.txt").read_text(encoding="utf-8"), "from a previous run\n")
+        self.assertIn(str(stale), _git(self.repo, "worktree", "list"))
+        self.assert_agent_did_not_start()
+        self.assert_clean_origin()
 
     def test_protected_test_edit_does_not_commit(self):
         proc, receipt = self.run_build("protect", extra=["--protect", "tests/*"])
@@ -1247,6 +1405,7 @@ class LocalBuildTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 4, proc.stdout + proc.stderr)
         data = self.receipt(proc, receipt)
         self.assertEqual(data["reason"], "no-sandbox")
+        self.assertFalse(data.get("gate_unsandboxed"))
         self.assert_agent_did_not_start()
         cmd2, receipt2 = self.command("noop", extra=["--unsafe-no-sandbox"])
         proc2 = subprocess.run(
@@ -1260,6 +1419,7 @@ class LocalBuildTests(unittest.TestCase):
         self.assertEqual(proc2.returncode, 1, proc2.stdout + proc2.stderr)
         data2 = self.receipt(proc2, receipt2)
         self.assertEqual(data2["sandbox"], "unsafe-no-sandbox")
+        self.assertTrue(data2["gate_unsandboxed"])
         self.assertEqual(data2["reason"], "no-change")
         self.assertIn("not sandboxed", proc2.stderr or "")
 
@@ -1269,6 +1429,40 @@ class LocalBuildTests(unittest.TestCase):
         proc, receipt = self.run_build("noop", extra=["--unsafe-no-sandbox"])
         data = self.receipt(proc, receipt)
         self.assertTrue(str(data["sandbox"]).startswith("bwrap"), data["sandbox"])
+        self.assertFalse(data["gate_unsandboxed"])
+
+    def test_stub_bwrap_keeps_the_gate_sandboxed_when_the_flag_is_set(self):
+        bindir = self.tmp / "bin"
+        bindir.mkdir()
+        log = self.tmp / "bwrap-invocations.txt"
+        stub = bindir / "bwrap"
+        stub.write_text(
+            "#!/bin/sh\n"
+            "log=\"$PFY_STUB_BWRAP_LOG\"\n"
+            "if [ -n \"$log\" ]; then printf '%s\\n' \"$*\" >> \"$log\"; fi\n"
+            "while [ $# -gt 0 ]; do\n"
+            "  if [ \"$1\" = \"--\" ]; then shift; exec \"$@\"; fi\n"
+            "  shift\n"
+            "done\n"
+            "exit 0\n",
+            encoding="utf-8",
+        )
+        stub.chmod(0o755)
+        path = str(bindir) + os.pathsep + os.environ.get("PATH", "")
+        proc, receipt = self.run_build(
+            "noop",
+            extra=["--no-review", "--unsafe-no-sandbox"],
+            env_extra={"PATH": path, "PFY_STUB_BWRAP_LOG": str(log)},
+            timeout=60,
+        )
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self.receipt(proc, receipt)
+        self.assertEqual(data["reason"], "no-change")
+        self.assertFalse(data["gate_unsandboxed"])
+        self.assertTrue(str(data["sandbox"]).startswith("bwrap"), data["sandbox"])
+        text = log.read_text(encoding="utf-8")
+        wrapped = [line for line in text.splitlines() if "--unshare-net" in line and "unittest" in line]
+        self.assertTrue(wrapped, text)
 
     def test_os_exit_in_src_is_not_a_pass(self):
         proc, receipt = self.run_build("exit-zero")

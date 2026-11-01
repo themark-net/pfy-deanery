@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/replace-the-mtime-hash-in-smoke-112-114-20261031T222720654504Z",
+  "commit": "d1aaa0abd4f806edca773fbc1f0fba9aa49c82db",
+  "base": "HEAD",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll match `tree_sig` in `smoke_112_114.py` to the 122 signature. First I'll read that function and the existing 112 version, then change only `tree_sig` and any import it needs.The 112 signature still hashes mtime. I'll copy the 122 `tree_sig` and add the `stat` import it needs.`tree_sig` in `examples/x-intake-local/smoke_112_114.py` now matches the 122 signature. The only other edit is `import stat`.\n\nIt streams file bytes in 1 MiB chunks, includes `S_IMODE` permission bits, and leaves mtime out. A symlink is recorded with its `lstat` mode and `readlink` string and is not opened. If the path itself is a symlink, that link is included and the entries under it are still hashed. An unreadable regular file is recorded. A missing path returns `None`.\n\n`python3 -m unittest tests.test_tree_sig_112` passed. A same-size edit that restores mtime changes the signature. An mtime-only touch does not. A chmod and a same-bytes retarget change it. Editing an outside target does not.\n\nI'll compare `tree_sig` in the diff to the reference in `smoke_122_124.py` and the gate, then accept or reject.The diff only touches `tree_sig` and its `stat` import. I'll run the existing gate to confirm the behavior.verdict: accept\n\n`tree_sig` in `examples/x-intake-local/smoke_112_114.py` matches `tree_sig` in `smoke_122_124.py`. The diff adds `import stat` and replaces only that function: streamed file bytes, `S_IMODE`, symlink `lstat` plus `readlink` without opening the link, the path itself recorded when it is a symlink, unreadable regular files recorded, `None` when the path is missing, and no mtime. No other function, the daemon stop path, timeout reasons, tests, or `smoke_122_124.py` changed. `tests.test_tree_sig_112` passed.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "python3 -m unittest tests.test_tree_sig_112",
+    "before": {
+      "cmd": "python3 -m unittest tests.test_tree_sig_112",
+      "exit": 1,
+      "tail": "\nF\n======================================================================\nFAIL: test_content_mode_and_symlink_not_mtime (tests.test_tree_sig_112.TreeSig112Tests.test_content_mode_and_symlink_not_mtime)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-selfhost-1031/tmp/selfhost-clones/target-11/tmp/cloud-build/20261031T222720654504Z/tests/test_tree_sig_112.py\", line 48, in test_content_mode_and_symlink_not_mtime\n    self.assertEqual(tree_sig(root), before, \"mtime-only touch changed the signature\")\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: '6607d0991c45a384b5d66da09b9b240f397e37d8da5141b59b81e83966bbf2c9' != '0f6b14678340d12df68e000794e485b5642ad8f810ebfc86dac7bcfa37095adf'\n- 6607d0991c45a384b5d66da09b9b240f397e37d8da5141b59b81e83966bbf2c9\n+ 0f6b14678340d12df68e000794e485b5642ad8f810ebfc86dac7bcfa37095adf\n : mtime-only touch changed the signature\n\n----------------------------------------------------------------------\nRan 1 test in 0.024s\n\nFAILED (failures=1)\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "python3 -m unittest tests.test_tree_sig_112",
+      "exit": 0,
+      "tail": "\n.\n----------------------------------------------------------------------\nRan 1 test in 0.021s\n\nOK\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": true,
+  "task": "Replace the mtime hash in smoke_112_114.tree_sig with the 122 signature.\n\nEdit only tree_sig in examples/x-intake-local/smoke_112_114.py, plus any import that function needs. Do not edit other functions. Do not edit the daemon stop path. Do not edit timeout reasons. Do not edit tests. Do not commit. Do not edit smoke_122_124.py.\n\nMake tree_sig behave like tree_sig in smoke_122_124.py. Read that function and match it. Stream the file bytes. Include permission bits (S_IMODE). Record each symlink with lstat mode and the readlink string, and do not open it. When the path itself is a symlink, include its readlink too, and still hash the entries under it. Record an unreadable regular file. Return None when the path is missing. Do not hash mtime.\n\nA same-size byte change that restores mtime must change the signature. An mtime-only touch must not. A chmod must change it. A retarget to a same-bytes file must change it. Editing an outside target must not.\n\nNo em dashes or en dashes.\n\nGate already in the tree. Do not edit it:\ntests.test_tree_sig_112",
+  "finished_at": "2026-10-31T22:29:19Z"
+}

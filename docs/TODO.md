@@ -140,7 +140,6 @@ Active work is also tracked as issues: https://github.com/themark-net/pfy-mentat
 |----|----------|--------|------|----------------|---------|-------|
 | T-0016 | P2 | todo | colibri/large model lab under 250GB pool | — | OQ-0008 | [#24](https://github.com/themark-net/pfy-mentat/issues/24) |
 | T-0005 | P2 | doing | Apply integration-stages broadly | — | OQ-0003 | [#21](https://github.com/themark-net/pfy-mentat/issues/21) · 50 handoff cards. Facts recomputed by `scripts/catalog_stage_eval.py`. Stage letter still does not auto-promote |
-| T-0124 | P2 | done | Fold OpenCode enterable (`pfy_enterable_162*`) behind `pfylib/attach.py`; retire `_legacy` as remaining scripts move | - | T-0121 | OpenCode open path is `attach.open_opencode_session`; `pfy_enterable_162_b.py` is a shim. `_legacy` still loads the other scripts |
 | T-0127 | P2 | done | Live atg-compile once the host is quiet (one model: `qwen3.6:35b`, then opt-in coder-next) | — | T-0004 | 2026-10-06: `qwen3.6:35b` exit 0, 2/10 sink-correct, wall 478s. Stage I2. coder-next blocked: 48.19 GiB blob + 25 GiB > 65.3 GiB MemAvailable. Not a Feature GO. Catalog HOLD 70–75. Do not touch eval-harness. |
 
 ---
@@ -160,6 +159,7 @@ Active work is also tracked as issues: https://github.com/themark-net/pfy-mentat
 | T-0110 | P1 | done | Pluggable local runtime (FreeToken, llama-swap, llama-server, Ollama, Shimmy last) | ADR-0014 · [#76](https://github.com/themark-net/pfy-mentat/issues/76) stays closed — do not reopen |
 | T-0090 | P0 | done | Minimal product levers: default `make help` is onboard / stage / ship | `make help-platform` holds cage, smoke, eval · [#1](https://github.com/themark-net/pfy-mentat/issues/1) · [product-operator-surface.md](ops/product-operator-surface.md) |
 | T-0121 | P1 | done | Attach clones → `pfylib/attach.py` + remaining `plan()` bodies wrap legacy scripts (no rewrite) | `data/harnesses.json[].attach`; shims `pfy_attach_usable_{196,202,220,221}`; planners in `pfylib/toolsets.py`; leftover OpenCode 162 = T-0124 |
+| T-0124 | P2 | done | Fold OpenCode enterable (`pfy_enterable_162*`) behind `pfylib/attach.py`; retire `_legacy` as remaining scripts move | OpenCode open path is `attach.open_opencode_session`; `pfy_enterable_162_b.py` is a shim. `_legacy` still loads the other scripts. Depends on T-0121 |
 | T-0125 | P1 | done | Loop UI: catalog modules + live local/cloud hedge | `pfylib/loop_paint.py`; HTML+tk LOCAL COMPUTE \| CLOUD ORCHESTRATION + MODULES; Launch session applies enabled modules |
 | T-0120 | P1 | done | Toolset × harness matrix + jev reference `plan()`/`apply()` | `data/toolsets.json` · `pfylib/`; stacked PRs on this branch |
 | T-0075 | P2 | done | ADR + OQ structural scorers | #5; tasks 006/007 |

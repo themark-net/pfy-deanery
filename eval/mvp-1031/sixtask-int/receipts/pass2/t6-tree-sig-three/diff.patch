@@ -1,0 +1,78 @@
+diff --git a/examples/x-intake-local/smoke_112_114.py b/examples/x-intake-local/smoke_112_114.py
+index cf22508..24b3b99 100644
+--- a/examples/x-intake-local/smoke_112_114.py
++++ b/examples/x-intake-local/smoke_112_114.py
+@@ -113,11 +113,18 @@ def tree_sig(p: Path) -> str | None:
+         return None
+     h = hashlib.sha256()
+     for f in sorted(p.rglob("*")):
++        # content hash, not mtime: a same-size in-place edit that restores mtime still changes the signature
+         try:
+-            st = f.stat()
+-            h.update(f"{f}:{st.st_size}:{st.st_mtime_ns}".encode())
++            if f.is_file():
++                fh = hashlib.sha256()
++                with f.open("rb") as fp:  # streamed in 1 MiB chunks, so a huge file doesn't load into RAM
++                    for chunk in iter(lambda: fp.read(1 << 20), b""):
++                        fh.update(chunk)
++                h.update(f"{f}:{f.stat().st_size}:{fh.hexdigest()}\n".encode())
++            else:
++                h.update(f"{f}:dir\n".encode())
+         except OSError:
+-            pass
++            h.update(f"{f}:unreadable\n".encode())
+     return h.hexdigest()
+ 
+ 
+diff --git a/examples/x-intake-local/smoke_115_116.py b/examples/x-intake-local/smoke_115_116.py
+index 539d418..491820d 100644
+--- a/examples/x-intake-local/smoke_115_116.py
++++ b/examples/x-intake-local/smoke_115_116.py
+@@ -115,11 +115,18 @@ def tree_sig(p: Path) -> str | None:
+         return None
+     h = hashlib.sha256()
+     for f in sorted(p.rglob("*")):
++        # content hash, not mtime: a same-size in-place edit that restores mtime still changes the signature
+         try:
+-            st = f.stat()
+-            h.update(f"{f}:{st.st_size}:{st.st_mtime_ns}".encode())
++            if f.is_file():
++                fh = hashlib.sha256()
++                with f.open("rb") as fp:  # streamed in 1 MiB chunks, so a huge file doesn't load into RAM
++                    for chunk in iter(lambda: fp.read(1 << 20), b""):
++                        fh.update(chunk)
++                h.update(f"{f}:{f.stat().st_size}:{fh.hexdigest()}\n".encode())
++            else:
++                h.update(f"{f}:dir\n".encode())
+         except OSError:
+-            pass
++            h.update(f"{f}:unreadable\n".encode())
+     return h.hexdigest()
+ 
+ 
+diff --git a/examples/x-intake-local/smoke_117_118.py b/examples/x-intake-local/smoke_117_118.py
+index 6c78382..c27319d 100644
+--- a/examples/x-intake-local/smoke_117_118.py
++++ b/examples/x-intake-local/smoke_117_118.py
+@@ -72,11 +72,18 @@ def tree_sig(p: Path) -> str | None:
+         return None
+     h = hashlib.sha256()
+     for f in sorted(p.rglob("*")):
++        # content hash, not mtime: a same-size in-place edit that restores mtime still changes the signature
+         try:
+-            st = f.stat()
+-            h.update(f"{f}:{st.st_size}:{st.st_mtime_ns}".encode())
++            if f.is_file():
++                fh = hashlib.sha256()
++                with f.open("rb") as fp:  # streamed in 1 MiB chunks, so a huge file doesn't load into RAM
++                    for chunk in iter(lambda: fp.read(1 << 20), b""):
++                        fh.update(chunk)
++                h.update(f"{f}:{f.stat().st_size}:{fh.hexdigest()}\n".encode())
++            else:
++                h.update(f"{f}:dir\n".encode())
+         except OSError:
+-            pass
++            h.update(f"{f}:unreadable\n".encode())
+     return h.hexdigest()
+ 
+ 

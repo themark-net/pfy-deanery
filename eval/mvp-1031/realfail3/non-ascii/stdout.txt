@@ -1,0 +1,1 @@
+PASS ok branch=cloud/in-the-file-my-app-py-set-the-only-line-20261031T225836028576Z receipt=/home/mark/DEVELOP/pfy-mentat/tmp/mvp-realfail3-1031/eval/mvp-1031/realfail3/non-ascii/receipt.json

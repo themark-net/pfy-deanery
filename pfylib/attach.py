@@ -24,7 +24,9 @@ from __future__ import annotations
 
 import json
 import os
+import signal
 import sys
+import time
 import urllib.request
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -140,6 +142,129 @@ def live_session_reach(hid: str, STATE, pid_alive=None) -> str:
         clear_session_reach(hid, STATE)
         return ""
     return reach
+
+
+def _our_child(pid: int) -> bool:
+    """True when pid is a live or zombie child of this process. Not our own pid."""
+    if pid <= 0 or pid == os.getpid():
+        return False
+    try:
+        text = Path("/proc/%s/status" % pid).read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return False
+    for line in text.splitlines():
+        if line.startswith("PPid:"):
+            parts = line.split()
+            if len(parts) >= 2 and parts[1].isdigit():
+                return int(parts[1]) == os.getpid()
+            return False
+    return False
+
+
+def _status_code(status: int) -> int | None:
+    if os.WIFEXITED(status):
+        return int(os.WEXITSTATUS(status))
+    if os.WIFSIGNALED(status):
+        return 128 + int(os.WTERMSIG(status))
+    return None
+
+
+def _poll_exit(pid: int) -> int | None:
+    try:
+        wpid, status = os.waitpid(pid, os.WNOHANG)
+    except ChildProcessError:
+        return None
+    if wpid == 0:
+        return None
+    return _status_code(status)
+
+
+def _reap_our_child(pid: int) -> None:
+    """SIGTERM the process group of a child this process spawned.
+
+    A pid that is not our child is left alone, so a fake pid cannot kill
+    an unrelated process. Our own process group is never the target.
+    """
+    if not _our_child(pid):
+        return
+    try:
+        pgid = os.getpgid(pid)
+    except OSError:
+        pgid = 0
+    if pgid <= 0 or pgid == os.getpgrp():
+        try:
+            os.kill(pid, signal.SIGTERM)
+        except OSError:
+            pass
+        return
+    try:
+        os.killpg(pgid, signal.SIGTERM)
+    except OSError:
+        try:
+            os.kill(pid, signal.SIGTERM)
+        except OSError:
+            pass
+
+
+def _await_exit(pid: int, timeout: float) -> int | None:
+    deadline = time.monotonic() + timeout
+    while True:
+        code = _poll_exit(pid)
+        if code is not None:
+            return code
+        if time.monotonic() >= deadline:
+            return None
+        time.sleep(0.02)
+
+
+def _write_spawn_receipt(state, sid: str, code: int | None) -> None:
+    try:
+        path = Path(state)
+        path.mkdir(parents=True, exist_ok=True)
+        text = json.dumps({"exit_code": code, "live": "FAIL"}, sort_keys=True) + "\n"
+        (path / ("%s-attach-receipt.json" % sid)).write_text(text, encoding="utf-8")
+    except OSError:
+        pass
+
+
+def _close_failed_spawn(state, sid: str, pid) -> int | None:
+    """Reap a spawn that did not stay up. Return the child exit code.
+
+    The code is written to ``<sid>-attach-receipt.json``. A write error does
+    not drop the code from the return value. Recovery: the session file is
+    cleared by the caller; install or fix the terminal, then call again.
+    """
+    try:
+        pid = int(pid or 0)
+    except (TypeError, ValueError):
+        pid = 0
+    if pid <= 0 or not _our_child(pid):
+        if pid > 0:
+            _write_spawn_receipt(state, sid, None)
+        return None
+    code = _await_exit(pid, 0.3)
+    if code is None:
+        _reap_our_child(pid)
+        code = _await_exit(pid, 2.0)
+    _write_spawn_receipt(state, sid, code)
+    return code
+
+
+def _with_exit(out: dict, state, sid: str, pid) -> dict:
+    if not pid:
+        return out
+    stamped = dict(out)
+    stamped["exit_code"] = _close_failed_spawn(state, sid, pid)
+    return stamped
+
+
+def _opencode_install_hint() -> str:
+    """Operator hint when the opencode binary is missing. From harnesses.json setup."""
+    row = registry.harness("opencode")
+    setup = str((row or {}).get("setup") or "").strip()
+    if "install opencode" in setup.lower():
+        return setup
+    return "install opencode or opencode-cli"
 
 
 def fail_not_usable(hid: str, STATE, sid, reason, next_step, engine, status, base="", model=""):
@@ -532,19 +657,22 @@ def open_session(
             "smoke_ok": True,
         }
     clear_session_reach(hid, STATE)
-    return {
-        "ok": False,
-        "id": sid,
-        "live": "FAIL",
-        "copy": "FAIL open session -- " + (err or "terminal cannot start"),
-        "error": err or "terminal cannot start",
-        "session_reach": "FAIL",
-        "pid": "",
-        "log": str(log),
-        "base_url": base,
-        "usable": False,
-        "next_step": next_step,
-    }
+    return _with_exit(
+        {
+            "ok": False,
+            "id": sid,
+            "live": "FAIL",
+            "copy": "FAIL open session -- " + (err or "terminal cannot start"),
+            "error": err or "terminal cannot start",
+            "session_reach": "FAIL",
+            "pid": "",
+            "log": str(log),
+            "base_url": base,
+            "usable": False,
+            "next_step": next_step,
+        },
+        STATE, sid, pid,
+    )
 
 
 def _opencode_mode_env(env, STATE=None):
@@ -605,6 +733,8 @@ def open_opencode_session(
     bin_path = which_bin("opencode", "opencode-cli")
     if not bin_path:
         clear_session_reach(STATE)
+        hint = _opencode_install_hint()
+        print(hint)
         return {
             "ok": False,
             "id": hid,
@@ -612,6 +742,7 @@ def open_opencode_session(
             "copy": stub,
             "error": "opencode missing",
             "session_reach": "FAIL",
+            "next_step": hint,
         }
     base, det = live_openai_base()
     base, det, engine, status = _probe_freetoken(base, det)
@@ -769,19 +900,22 @@ def open_opencode_session(
             attach_base_path.unlink()
     except OSError:
         pass
-    return {
-        "ok": False,
-        "id": hid,
-        "live": "FAIL",
-        "copy": "FAIL open session -- " + (err or "terminal cannot start"),
-        "error": err or "terminal cannot start",
-        "session_reach": "FAIL",
-        "pid": "",
-        "log": str(log),
-        "base_url": base,
-        "model": model,
-        "usable": False,
-    }
+    return _with_exit(
+        {
+            "ok": False,
+            "id": hid,
+            "live": "FAIL",
+            "copy": "FAIL open session -- " + (err or "terminal cannot start"),
+            "error": err or "terminal cannot start",
+            "session_reach": "FAIL",
+            "pid": "",
+            "log": str(log),
+            "base_url": base,
+            "model": model,
+            "usable": False,
+        },
+        STATE, hid, pid,
+    )
 
 
 # -------------------------------------------------------------------- CLI ---

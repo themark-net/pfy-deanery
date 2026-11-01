@@ -1,0 +1,18 @@
+{
+  "n": "01",
+  "slug": "catch-view-thread",
+  "todo": "T-0034",
+  "wall_s": 122,
+  "exit": 0,
+  "status": "PASS",
+  "attempts": 1,
+  "review_verdict": "accept",
+  "human_verdict": "accept",
+  "human_notes": "Seven lines in gomjobbar/cli.py print stored in_reply_to and references only when the values are non-empty. No IMAP, no journal write, tests untouched, submitted untouched.",
+  "cloud_commit": "ddb8e75693394b05e2a18880d68a6e309b1bb573",
+  "landed_test": "38cacafe4a1b416b165d9ac0acec5bd024bab896",
+  "landed_fix": "69d99ceb5c6016bd4b5330596dd9b1094fa45f92",
+  "gate_before_exit": 1,
+  "gate_after_exit": 0,
+  "land_pytest": "1 passed"
+}

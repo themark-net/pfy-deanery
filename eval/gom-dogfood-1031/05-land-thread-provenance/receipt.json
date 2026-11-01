@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/t-0034-landing-a-catch-must-copy-thread-20261031T214303987094Z",
+  "commit": "0c06365b9afbe7012f02cdd351d589e1c6502db6",
+  "base": "25783f15c143bfb8cd8454a82b71c5710193c9af",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll land thread headers onto capture provenance only when they are present and non-empty, without touching tests or submitting anything. First I'll read the task constraints and the current land path.Landing already copies `message_id`. I'll add the same path for a non-empty `in_reply_to` string and a non-empty `references` list, and leave `raw_source` on the catch.Landing a catch now copies thread headers onto the capture item provenance. `tests/test_land_thread_provenance.py` passed unchanged.\n\nIn `gomjobbar/capture.py`, `land` still copies `message_id`. It also copies `in_reply_to` when that value is a non-empty string, and `references` when that value is a non-empty list. An empty string, an empty list, or a missing field is left off the item. `raw_source` stays on the catch and is not written onto the item or its provenance. Nothing is submitted, and `submitted` is not set.\n\nI'll check the land change against T-0034 and the unchanged provenance test before giving a verdict.verdict: accept\n\n`land` copies a non-empty string `in_reply_to` and a non-empty `references` list onto provenance, keeps the existing `message_id` copy, and leaves `tests/` untouched. The gate passed.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "env JOURNAL_DB_PATH=./tmp/land-journal.db USE_OLLAMA=false PYTHONDONTWRITEBYTECODE=1 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/tmp/gom-venv/bin/python -m pytest -q -p no:cacheprovider tests/test_land_thread_provenance.py",
+    "before": {
+      "cmd": "env JOURNAL_DB_PATH=./tmp/land-journal.db USE_OLLAMA=false PYTHONDONTWRITEBYTECODE=1 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/tmp/gom-venv/bin/python -m pytest -q -p no:cacheprovider tests/test_land_thread_provenance.py",
+      "exit": 1,
+      "tail": "F                                                                        [100%]\n=================================== FAILURES ===================================\n_________________ test_land_copies_thread_and_omits_raw_source _________________\n\ntmp_path = PosixPath('/home/mark/DEVELOP/jobbar-master/tmp/gom-dogfood-1031-scratch/clones/05-land-thread-provenance/tmp/cloud-build/20261031T214303987094Z/tmp/pytest-of-mark/pytest-0/test_land_copies_thread_and_om0')\n\n    def test_land_copies_thread_and_omits_raw_source(tmp_path: Path) -> None:\n        db_path = tmp_path / \"journal.db\"\n        token=[redacted]\n        jb = GomJobbar(db=ExperienceJournalDB(str(db_path)))\n        landed = jb.capture_land(\n            \"land-user\",\n            catch={\n                \"ts\": \"2026-10-02T00:00:00Z\",\n                \"subject\": \"Re: shipped the queue\",\n                \"body\": \"added the graph\",\n                \"message_id\": \"mid-child@example\",\n                \"in_reply_to\": \"mid-root@example\",\n                \"references\": [\"mid-root@example\", \"mid-child@example\"],\n                \"raw_source\": token,\n            },\n            provenance={\"source\": \"email_fixture\"},\n        )\n        assert landed[\"ok\"] is True\n        item = landed[\"item\"]\n        prov = item[\"provenance\"]\n        assert prov.get(\"message_id\") == \"mid-child@example\"\n>       assert prov.get(\"in_reply_to\") == \"mid-root@example\"\nE       AssertionError: assert None == 'mid-root@example'\nE        +  where None = <built-in method get of dict object at 0x7ab9f5cd5540>('in_reply_to')\nE        +    where <built-in method get of dict object at 0x7ab9f5cd5540> = {'source': 'email_fixture', 'landed_at': '2026-10-31T21:43:04.218030+00:00', 'message_id': 'mid-child@example', 'dedupe_key': 'mid:mid-child@example', ...}.get\n\ntests/test_land_thread_provenance.py:39: AssertionError\n----------------------------- Captured stderr call -----------------------------\n2026-10-31 14:43:04 [debug    ] journal upserted               user_key=[redacted]\n=========================== short test summary info ============================\nFAILED tests/test_land_thread_provenance.py::test_land_copies_thread_and_omits_raw_source - AssertionError: assert None == 'mid-root@example'\n +  where None = <built-in method get of dict object at 0x7ab9f5cd5540>('in_reply_to')\n +    where <built-in method get of dict object at 0x7ab9f5cd5540> = {'source': 'email_fixture', 'landed_at': '2026-10-31T21:43:04.218030+00:00', 'message_id': 'mid-child@example', 'dedupe_key': 'mid:mid-child@example', ...}.get\n1 failed in 0.03s\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "env JOURNAL_DB_PATH=./tmp/land-journal.db USE_OLLAMA=false PYTHONDONTWRITEBYTECODE=1 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/tmp/gom-venv/bin/python -m pytest -q -p no:cacheprovider tests/test_land_thread_provenance.py",
+      "exit": 0,
+      "tail": ".                                                                        [100%]\n1 passed in 0.02s\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": false,
+  "task": "T-0034: landing a catch must copy thread headers onto the capture item provenance. When capture_land receives a catch dict, copy in_reply_to onto provenance when it is a non-empty string, and copy references onto provenance when it is a non-empty list. Keep the existing message_id copy. Do not copy raw_source onto the item or its provenance. Do not add in_reply_to when it is empty or missing. Do not add references when the list is empty or missing. Do not call IMAP. Do not submit anything and do not set submitted to true (Decision 0006). Do not edit files under tests/. tests/test_land_thread_provenance.py must pass unchanged.",
+  "finished_at": "2026-10-31T21:44:28Z"
+}

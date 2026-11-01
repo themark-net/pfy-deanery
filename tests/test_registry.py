@@ -49,6 +49,40 @@ class RegistryLoadTests(unittest.TestCase):
         self.assertIsNone(registry.toolset("nope", ROOT))
         self.assertIsNone(registry.harness("nope", ROOT))
 
+    def test_opencontext_how_names_a_file_that_defines_the_helper(self):
+        """A how string that names _apply_opencontext_env must resolve to its def.
+
+        The old opencode cell said pfy_enterable_162_b. That file is a shim and
+        does not define the helper, so an operator following it cannot find the
+        handoff. Recovery: name pfylib/attach.py, which defines the function.
+        """
+        row = registry.toolset("opencontext", ROOT)
+        self.assertIsNotNone(row)
+        marker = "_apply_opencontext_env in "
+        checked = []
+        for hid, cell in row["implementation"].items():
+            how = cell.get("how") or ""
+            if marker not in how:
+                continue
+            token = how.split(marker, 1)[1].split(";", 1)[0].strip()
+            candidates = [ROOT / token]
+            if "/" not in token:
+                candidates.append(ROOT / "scripts" / f"{token}.py")
+                if not token.startswith("pfy_"):
+                    candidates.append(ROOT / "scripts" / f"pfy_{token}.py")
+            defining = [
+                path for path in candidates
+                if path.is_file() and "def _apply_opencontext_env" in path.read_text(encoding="utf-8")
+            ]
+            self.assertEqual(
+                defining,
+                [ROOT / "pfylib" / "attach.py"],
+                "%s how %r does not resolve to the live helper" % (hid, how),
+            )
+            checked.append(hid)
+        self.assertIn("opencode", checked)
+        self.assertIn("grok", checked)
+
     def test_repo_data_validates(self):
         self.assertEqual(registry.validate(root_dir=ROOT), [])
 

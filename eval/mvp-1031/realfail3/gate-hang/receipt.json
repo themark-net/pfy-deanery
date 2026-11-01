@@ -1,0 +1,41 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "FAIL",
+  "reason": "tests",
+  "exit_code": 1,
+  "branch": null,
+  "commit": null,
+  "base": "HEAD",
+  "review": {
+    "verdict": null,
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "FAIL",
+      "reason": "tests",
+      "output_tail": "I'll change `value = 0` to `value = 1` in `app.py` only, then check the hang-once test before running it.`app.py` now sets `value = 1`. No other file was edited, and nothing was committed.\n\nThe listed test was not run. `gate-hang/counter` already contains `seen`, so `hang_once.py` would print `hang` and sleep for about 11 days.\n"
+    }
+  ],
+  "gate": {
+    "cmd": "/usr/bin/python3 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-realfail3-1031/eval/mvp-1031/realfail3/gates/hang_once.py /home/mark/DEVELOP/pfy-mentat/tmp/mvp-realfail3-1031/eval/mvp-1031/realfail3/gate-hang/counter",
+    "before": {
+      "cmd": "/usr/bin/python3 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-realfail3-1031/eval/mvp-1031/realfail3/gates/hang_once.py /home/mark/DEVELOP/pfy-mentat/tmp/mvp-realfail3-1031/eval/mvp-1031/realfail3/gate-hang/counter",
+      "exit": 0,
+      "tail": "pass-before\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "/usr/bin/python3 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-realfail3-1031/eval/mvp-1031/realfail3/gates/hang_once.py /home/mark/DEVELOP/pfy-mentat/tmp/mvp-realfail3-1031/eval/mvp-1031/realfail3/gate-hang/counter",
+      "exit": 124,
+      "tail": "\ngate timeout",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": true,
+  "task": "In app.py change the line value = 0 to value = 1. Do not edit or create any other file. Do not commit.",
+  "finished_at": "2026-10-31T23:04:14Z"
+}

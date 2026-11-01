@@ -63,3 +63,34 @@ Risks:
 
 item-1-ci-image-pin | a5805d9 | nice -n 19 python3 -m unittest tests.test_workflow_image_pin: 16 OK in 6.850s | hosted job structural-github stays on ubuntu-24.04; parsed step runs the helper (recording PATH python3); real workflows still pass; pregate --only lint still OVERALL=PASS
 item-2-pyyaml-interpreter | 6d3f8de | nice -n 19 python3 -m unittest tests.test_workflow_image_pin: 17 OK in 12.846s | both call sites exec absolute PATH python3; a venv python3 without PyYAML fails pregate lint and the parsed hosted step, and the message names that interpreter path
+item-3-container-images | e4f03f4 | nice -n 19 python3 -m unittest tests.test_workflow_image_pin: 21 OK in 13.428s | container string and image: forms, service images, registry ports, latest, missing tags, short digests, cross-file digest rule, and malformed forms; real workflows still pass
+item-4-attach-mutants | 34ccff0 | nice -n 19 python3 -m unittest tests.test_attach tests.test_registry: 39 OK in 1.143s | orphan child reaped, process group reaped, exit code 7 on the caller and the receipt, missing opencode prints the setup hint and does not spawn. Mutants re-run then restored: A3 RED both reap tests, A4 RED group test and GREEN single-child test, A5 RED caller and GREEN receipt, A7 RED receipt and GREEN caller, A8 RED printed hint, A10 RED next_step hint
+
+prior-state: lane empty at 2026-10-31T21:37:19Z. Items 1-4 done and pushed through 7164136. No further follow-up in HANDOFF-pfy-followups-1030 fits the owned files. Pregate not run: host busy (Runner.Worker pid 2242260). Handoff written. No merge.
+
+## Round 2 (parent addendum)
+
+The prior state line is superseded. Wall clock and the other exits from the card above still apply. Checked 2026-10-31T21:47:11Z, before this round's first item: under the 2026-11-01T04:47:55Z item stop. MemAvailable about 58 GiB. Load about 4.8 on 32 cores. Not pressured. `Runner.Worker` is alive. Pregate will not be run (addendum, and the runner is busy).
+
+Overview: Make the Entry 149 bwrap probe pass the same `--bind <tmp> <tmp>` and `--die-with-parent` the real run uses, add the `--tmpfs-only` fake-bwrap twin of the existing `--proc` fake, prove a failing image-pin lint makes `scripts/pregate.sh` print OVERALL=FAIL and exit nonzero, and prove the root-length guard refuses a path over the limit and accepts one at the limit.
+
+Phases:
+- F1-bwrap-probe-flags | `examples/x-intake-local/smoke_149.py`, `tests/test_x_intake_smoke_149.py` | A fake bwrap that rejects `--bind` or `--die-with-parent` makes the smoke exit 2 with the bwrap reason and does not run MemPalace. | none | lead
+- F2-tmpfs-only | `tests/test_x_intake_smoke_149.py` | A fake bwrap that exits 1 only when argv contains `--tmpfs` makes the smoke exit 2 with the bwrap reason. | F1 | lead
+- P2-lint-fails-pregate | `scripts/pregate.sh` (lint call only), `tests/test_workflow_image_pin.py` | `PREGATE_IMAGE_PIN_ROOT` points at a fixture workflow with `ubuntu-latest`. `pregate --only lint` exits nonzero and prints OVERALL=FAIL. The lint log names that image. Unset, the helper still checks `.github/workflows`. | none | lead
+- G1-root-length | `tests/test_workflow_image_pin.py` | `PREGATE_MAX_ROOT_LEN` one below the longer of the in-place run root and the scratch path exits 2 with `path too long` and no OVERALL. A limit equal to that length passes the guard and `--only lint` reaches OVERALL=PASS. | P2 | lead
+- handoff | this log, `docs/ops/HANDOFF-mvp-followups-fix2-1031.md`, the decisions file | SHAs, fail/recover, gate, next step, new state line | all prior | lead
+
+Risks:
+- `smoke_149.py` was outside the round-1 owned list. Mitigation: the parent assigned F1 and F2. Those files are not on the must-not-touch list. The 1030 lane that last edited them is this branch's base. Do not edit catalog entries or `docs/ops/HANDOFF-x-intake-149-b2.md`.
+- F1 does not share files with P2, but this worktree is the only checkout and each item is pushed before the next. Mitigation: the lead runs them in addendum order. No second worktree.
+- G1's at-limit case runs `--only lint`, not the full pregate. Mitigation: same bounded call the existing lint test uses. The full pregate gate stays unrun.
+
+## Round 2 items
+
+F1-bwrap-probe-flags | b5754cb | TMPDIR=$PWD/tmp nice -n 19 python3 -m unittest tests.test_x_intake_smoke_149: 27 OK in 2.889s | fake bwrap rejecting --bind or --die-with-parent exits 2 with the bwrap reason and does not init. Mutants that drop either flag from the probe go RED with a version-pin reason. Real probe with those flags returned 0 on this host.
+F2-tmpfs-only | f6a74ea | TMPDIR=$PWD/tmp nice -n 19 python3 -m unittest tests.test_x_intake_smoke_149: 28 OK in 2.940s | fake bwrap that exits 1 only for --tmpfs exits 2 with the bwrap reason. Mutant that drops --tmpfs from the probe goes RED with a version-pin reason. Host at 2026-10-31T21:53:24Z: MemAvailable about 57 GiB, load about 4.6 on 32 cores.
+P2-lint-fails-pregate | cd4c116 | TMPDIR=$PWD/tmp nice -n 19 python3 -m unittest tests.test_workflow_image_pin: 22 OK in 19.700s | ubuntu-latest fixture via PREGATE_IMAGE_PIN_ROOT makes --only lint exit nonzero and print OVERALL=FAIL. Mutant that ignores the hook goes RED with OVERALL=PASS. Happy-path lint still OVERALL=PASS. Host at 2026-10-31T21:54:46Z: MemAvailable about 58 GiB, load about 4.4 on 32 cores.
+G1-root-length | a2a9317 | TMPDIR=$PWD/tmp nice -n 19 python3 -m unittest tests.test_workflow_image_pin: 24 OK in 25.749s | path one over the measured limit exits 2 with path too long and no OVERALL. The limit equal to that length prints OVERALL=PASS. Mutant that uses -ge goes RED with path too long (57 > 57 chars). Host at 2026-10-31T21:57:05Z: MemAvailable about 59 GiB, load about 4.5 on 32 cores.
+
+state: DONE at 2026-10-31T21:59:00Z. Exit: lane empty. Round 2 F1 F2 P2 G1 done. Pregate not run: addendum forbids it, and Runner.Worker was alive at the round start. Handoff written. No merge.

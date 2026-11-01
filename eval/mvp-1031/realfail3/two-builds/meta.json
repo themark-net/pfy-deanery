@@ -1,0 +1,21 @@
+{
+  "process_exit": 0,
+  "status": "PASS",
+  "reason": "intact",
+  "recovery": "",
+  "attempts": "0",
+  "verdict": "matches",
+  "exp_status": "PASS",
+  "exp_reason": "intact",
+  "exp_exit": 0,
+  "invariant_problems": [],
+  "head": "f0c7d4bdc6d1f5d2303b6706f1357849e9d9fc44",
+  "detached": false,
+  "porcelain": "",
+  "cloud_branches": [
+    "cloud/create-left-py-whose-only-line-is-side-1-20261031T225952004143Z",
+    "cloud/create-right-py-whose-only-line-is-side-20261031T225954017419Z"
+  ],
+  "runner_sha": "0511b601dc05de4a3df56bbfa5fbe47ae592a023",
+  "elapsed_note": "see the driver clock in stdout of this process"
+}

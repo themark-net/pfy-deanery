@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/record-symlinks-readlink-in-smoke-122-12-20261031T211956059183Z",
+  "commit": "59db21233417ece88e5e996a6d94942c63eb99a6",
+  "base": "HEAD",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll update `tree_sig` so symlinks record `lstat` mode and the `readlink` target, while regular files still get a streamed content hash. First I'll read the current function and the gates that already define the behavior.`tree_sig` follows symlinks through `is_file()`, so a retarget to identical bytes never changes the hash. I'll record each symlink as `lstat` mode plus the `readlink` string, and keep streaming the bytes of real files.`tree_sig` in `examples/x-intake-local/smoke_122_124.py` now records each symlink as its `lstat` permission bits and `readlink` string, and it does not open the link.\n\nRegular files are unchanged: a streamed content hash plus `S_IMODE`. A missing path still returns `None`. An unreadable regular file is still recorded. `home_sig` was not changed.\n\nThe three gates passed:\n\n`python3 -m unittest tests.test_tree_sig_symlink tests.test_tree_sig_mode tests.test_x_intake_smoke_122_124.XIntakeSmoke122124Tests.test_tree_sig_streams_file_contents`\n\nI'll review the `tree_sig` change against the task and the existing gates, then give a verdict.The diff is only `tree_sig`. I'll check that symlink handling matches the gates and that nothing else moved.verdict: accept\n\n`tree_sig` records each symlink with `lstat` mode and `os.readlink`, and it does not open the link. In-tree files still get a streamed content hash plus `S_IMODE`, so a retarget, a content edit, and a chmod all change the signature. An outside target and an mtime-only touch do not. The edit is only in `examples/x-intake-local/smoke_122_124.py`. The three gates passed.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "python3 -m unittest tests.test_tree_sig_symlink tests.test_tree_sig_mode tests.test_x_intake_smoke_122_124.XIntakeSmoke122124Tests.test_tree_sig_streams_file_contents",
+    "before": {
+      "cmd": "python3 -m unittest tests.test_tree_sig_symlink tests.test_tree_sig_mode tests.test_x_intake_smoke_122_124.XIntakeSmoke122124Tests.test_tree_sig_streams_file_contents",
+      "exit": 1,
+      "tail": "\nF..\n======================================================================\nFAIL: test_retarget_changes_signature_and_outside_target_is_not_followed (tests.test_tree_sig_symlink.TreeSigSymlinkTests.test_retarget_changes_signature_and_outside_target_is_not_followed)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-selfhost-1031/tmp/selfhost-clones/target-4/tmp/cloud-build/20261031T211956059183Z/tests/test_tree_sig_symlink.py\", line 53, in test_retarget_changes_signature_and_outside_target_is_not_followed\n    self.assertNotEqual(\n    ~~~~~~~~~~~~~~~~~~~^\n        tree_sig(root),\n        ^^^^^^^^^^^^^^^\n        before,\n        ^^^^^^^\n        \"retarget to identical bytes left the signature unchanged\",\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\nAssertionError: 'd12de8a505472e3949d8cc356608747be70aa8e4f88040817789336798933e0d' == 'd12de8a505472e3949d8cc356608747be70aa8e4f88040817789336798933e0d' : retarget to identical bytes left the signature unchanged\n\n----------------------------------------------------------------------\nRan 3 tests in 0.033s\n\nFAILED (failures=1)\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "python3 -m unittest tests.test_tree_sig_symlink tests.test_tree_sig_mode tests.test_x_intake_smoke_122_124.XIntakeSmoke122124Tests.test_tree_sig_streams_file_contents",
+      "exit": 0,
+      "tail": "\n...\n----------------------------------------------------------------------\nRan 3 tests in 0.032s\n\nOK\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": true,
+  "task": "Record symlinks readlink in smoke_122_124.tree_sig and still hash bytes.\n\nEdit only examples/x-intake-local/smoke_122_124.py. Do not edit tests. Do not commit.\n\nFor each symlink, record lstat permission bits and the readlink string. Do not open the symlink. Do not hash the bytes of a file that lives outside the tree.\n\nA retarget from a.txt to b.txt, when both files contain the same bytes, must change the signature.\n\nA content edit of a.txt must still change the signature when a symlink points at a.txt. a.txt is its own tree entry. Do not replace its content hash with a target marker, and do not skip files just because a symlink names them.\n\nA chmod of a.txt must still change the signature.\n\nEditing the bytes of a file outside the tree, through a symlink that points at it, must not change the signature.\n\nAn mtime-only touch of the symlink must not change the signature. Do not hash mtime.\n\nOther regular files keep a streamed content hash plus permission bits (S_IMODE). A same-size content change of a regular file must still change the signature. Do not call Path.read_bytes.\n\nA missing path still returns None. Unreadable regular files are still recorded.\n\nDo not change home_sig. Do not edit smoke_128_130.py.\n\nNo em dashes or en dashes.\n\nGates already in the tree. Do not edit them:\ntests.test_tree_sig_symlink\ntests.test_tree_sig_mode\ntests.test_x_intake_smoke_122_124.XIntakeSmoke122124Tests.test_tree_sig_streams_file_contents",
+  "finished_at": "2026-10-31T21:25:26Z"
+}

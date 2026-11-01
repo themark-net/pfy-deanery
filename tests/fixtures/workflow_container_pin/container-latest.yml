@@ -1,0 +1,8 @@
+name: container-latest
+on: push
+jobs:
+  job:
+    runs-on: ubuntu-24.04
+    container: ubuntu:latest
+    steps:
+      - run: "true"

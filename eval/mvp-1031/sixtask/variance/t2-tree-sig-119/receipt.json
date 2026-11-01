@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/t2-content-hash-for-the-119-tree-signatu-20261031T212413651115Z",
+  "commit": "a0aa067ab7c9e49524a2350548c2b2b5011abd5c",
+  "base": "demo-base",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll replace `tree_sig` in the 119 smoke file with the content hash from the 122 file, then run the acceptance test. First I'm reading both functions and the gate test.`tree_sig` in the 119 smoke still mixes size and mtime. I'll swap in the 122 content hash, including the unreadable marker.`tree_sig` in `examples/x-intake-local/smoke_119_121.py` now uses the same content hash as `examples/x-intake-local/smoke_122_124.py`.\n\nA missing path still returns `None`. Each file is hashed from its bytes in 1 MiB chunks, with the path and size included. Directories are marked `dir`, and an unreadable entry is marked `unreadable`. The modification time is no longer part of the signature, so an mtime-only touch keeps the same signature and a same-size byte change changes it.\n\n`python3 -m unittest tests.test_mvp2_t2_tree_sig_119` passed (1 test). No commit was made.\n\nI'll compare the `tree_sig` change with the 122 reference and the acceptance test before giving a verdict.verdict: accept\n\n`tree_sig` in `examples/x-intake-local/smoke_119_121.py` now matches the content hash in `smoke_122_124.py`, including the `unreadable` marker, the same function name, and `None` for a missing path. Only that file changed, the test was left alone, and nothing was committed. `python3 -m unittest tests.test_mvp2_t2_tree_sig_119` passed.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "python3 -m unittest tests.test_mvp2_t2_tree_sig_119",
+    "before": {
+      "cmd": "python3 -m unittest tests.test_mvp2_t2_tree_sig_119",
+      "exit": 1,
+      "tail": "\nF\n======================================================================\nFAIL: test_content_not_mtime (tests.test_mvp2_t2_tree_sig_119.TreeSig119Tests.test_content_not_mtime)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-sixtask-1031/tmp/sixtask-clones/variance/t2-tree-sig-119/tmp/cloud-build/20261031T212413651115Z/tests/test_mvp2_t2_tree_sig_119.py\", line 43, in test_content_not_mtime\n    self.assertEqual(tree_sig(root), before, \"mtime-only touch changed the signature\")\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: '248a73e450f1b03846b1f0f3916e0cac085fb42afc4763d764a3b30bde3a7765' != '7663679e54d38aaca533d4a791c92277167e078488c2a6df381c59753377afee'\n- 248a73e450f1b03846b1f0f3916e0cac085fb42afc4763d764a3b30bde3a7765\n+ 7663679e54d38aaca533d4a791c92277167e078488c2a6df381c59753377afee\n : mtime-only touch changed the signature\n\n----------------------------------------------------------------------\nRan 1 test in 0.017s\n\nFAILED (failures=1)\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "python3 -m unittest tests.test_mvp2_t2_tree_sig_119",
+      "exit": 0,
+      "tail": "\n.\n----------------------------------------------------------------------\nRan 1 test in 0.022s\n\nOK\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": false,
+  "task": "# t2 content hash for the 119 tree signature\n\nLevel: trivial\nBase SHA: 997d89264495861a178713ccf7d4447ea828afc4\nFiles likely touched: examples/x-intake-local/smoke_119_121.py\nGate: python3 -m unittest tests.test_mvp2_t2_tree_sig_119\n\nThe acceptance test is already in the tree. Do not edit it. Do not edit any other test file. Do not commit.\n\n`tree_sig` in `examples/x-intake-local/smoke_119_121.py` still hashes size and mtime. Replace that function with the content hash already used by `tree_sig` in `examples/x-intake-local/smoke_122_124.py`, including the unreadable marker. Same function name and None for a missing path. Do not change the other smoke files. An unchanged tree, including an mtime-only touch, must keep the same signature. A same-size byte change that restores mtime must change it.\n\nGate command: `python3 -m unittest tests.test_mvp2_t2_tree_sig_119`\n",
+  "finished_at": "2026-10-31T21:25:04Z"
+}

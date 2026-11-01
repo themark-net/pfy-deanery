@@ -91,6 +91,8 @@ class Smoke149(unittest.TestCase):
                 (mh / ".cache/chroma/onnx_models/all-MiniLM-L6-v2").mkdir(parents=True)
             env2 = {"PATH": os.environ.get("PATH", ""), "HOME": str(real), "MEMPALACE_HOME": str(mh),
                     "PFY_SMOKE_RECEIPT_DIR": str(td / "r")}
+            if os.environ.get("TMPDIR"):
+                env2["TMPDIR"] = os.environ["TMPDIR"]
             if knobs is not None:
                 k = dict(knobs)
                 if k.get("touch_real"):
@@ -294,6 +296,67 @@ class Smoke149(unittest.TestCase):
         self.assertIn("not-a-version", rec["version_output"])
         self.assertNotIn("init_exit", rec["checks"])
 
+    def test_version_of_parses_banners_without_bwrap(self):
+        # The bwrap-gated cases never import this parser on ubuntu CI. A banner
+        # that is not a dotted triple must stay None so it cannot match the pin.
+        mod = self._load()
+        self.assertEqual(mod.version_of("MemPalace 3.12.0\n"), "3.12.0")
+        self.assertEqual(mod.version_of("MemPalace 3.12.0 (also 9.9.9)\n"), "3.12.0")
+        self.assertEqual(mod.version_of("mempalace 9.9.9\n"), "9.9.9")
+        self.assertIsNone(mod.version_of("not-a-version\n"))
+        self.assertIsNone(mod.version_of(""))
+        self.assertIsNone(mod.version_of("build 3120\n"))
+
+    def _version_stops_before_init(self, banner: str, parsed: str | None) -> None:
+        """Stub bwrap out. A bad parse exits 2 and never starts init."""
+        scratch = ROOT / "tmp"
+        scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as td:
+            td = Path(td)
+            real = td / "realhome"
+            real.mkdir()
+            mh = td / "mphome"
+            (mh / MODEL_REL).mkdir(parents=True)
+            stub = td / "mempalace"
+            stub.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+            stub.chmod(0o755)
+            mod = self._load()
+            calls: list[list[str]] = []
+
+            def fake_run(binary, args, tmp, timeout, extra_binds=None):
+                calls.append(list(args))
+                return subprocess.CompletedProcess(list(args), 0, stdout=banner, stderr="")
+
+            mod.bwrap_ok = lambda: True
+            mod.run = fake_run
+            saved = dict(os.environ)
+            try:
+                os.environ.clear()
+                os.environ.update({
+                    "PATH": saved.get("PATH", ""),
+                    "HOME": str(real),
+                    "TMPDIR": str(scratch),
+                    "MEMPALACE_HOME": str(mh),
+                    "MEMPALACE_BIN": str(stub),
+                    "PFY_SMOKE_RECEIPT_DIR": str(td / "r"),
+                })
+                code = mod.main()
+            finally:
+                os.environ.clear()
+                os.environ.update(saved)
+            rec = json.loads((td / "r" / "latest.json").read_text(encoding="utf-8"))
+            self.assertEqual(code, 2, rec)
+            self.assertEqual(rec.get("version"), parsed)
+            self.assertEqual(rec.get("reason"), f"version pin 3.12.0 != --version {parsed}")
+            self.assertEqual(calls, [["--version"]])
+            self.assertNotIn("init_exit", rec.get("checks", {}))
+
+    def test_unparsed_version_exits_2_before_init_without_bwrap(self):
+        self._version_stops_before_init("not-a-version\n", None)
+
+    def test_wrong_parsed_version_exits_2_before_init_without_bwrap(self):
+        self._version_stops_before_init("MemPalace 9.9.9\n", "9.9.9")
+
     @needs_bwrap
     def test_wrong_ranking_fails(self):
         code, rec = self.run_smoke(dict(BASE, swap=True))
@@ -353,6 +416,81 @@ class Smoke149(unittest.TestCase):
         self.assertNotIn("init_exit", rec["checks"])
         self.assertNotIn("sandbox", rec)
 
+    def test_run_rechecks_a_bad_mount_and_does_not_spawn(self):
+        # main() already stops on the mount reason. run() must stop again.
+        # Removing that raise lets the child start. Recovery: raise the mount reason
+        # before subprocess.run.
+        scratch = ROOT / "tmp"
+        scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as td:
+            td = Path(td)
+            mod = self._load()
+            mod.PROC_PATH = str(td / "no-such-proc")
+            spawned: list = []
+            orig = mod.subprocess.run
+
+            def fake_run(*args, **kwargs):
+                spawned.append(args[0] if args else kwargs.get("args"))
+                return subprocess.CompletedProcess([], 0, stdout="", stderr="")
+
+            mod.subprocess.run = fake_run
+            try:
+                with self.assertRaises(OSError) as ctx:
+                    mod.run(str(td / "mempalace"), ["--version"], td, 5)
+            finally:
+                mod.subprocess.run = orig
+        self.assertIn("required bind", str(ctx.exception))
+        self.assertIn("not usable", str(ctx.exception))
+        self.assertEqual(spawned, [])
+
+    def test_run_rechecks_missing_bwrap_and_does_not_spawn(self):
+        # The child PATH is stripped. run() must look up bwrap on the caller PATH
+        # again and refuse when that lookup misses. Recovery: raise before spawn.
+        scratch = ROOT / "tmp"
+        scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as td:
+            td = Path(td)
+            mod = self._load()
+            spawned: list = []
+            orig_run = mod.subprocess.run
+            orig_which = mod.shutil.which
+
+            def fake_run(*args, **kwargs):
+                spawned.append(args[0] if args else kwargs.get("args"))
+                return subprocess.CompletedProcess([], 0, stdout="", stderr="")
+
+            def fake_which(cmd, *args, **kwargs):
+                if cmd == "bwrap":
+                    return None
+                return orig_which(cmd, *args, **kwargs)
+
+            mod.subprocess.run = fake_run
+            mod.shutil.which = fake_which
+            try:
+                with self.assertRaises(OSError) as ctx:
+                    mod.run(str(td / "mempalace"), ["--version"], td, 5)
+            finally:
+                mod.subprocess.run = orig_run
+                mod.shutil.which = orig_which
+        self.assertIn("bwrap is not usable", str(ctx.exception))
+        self.assertEqual(spawned, [])
+
+    def test_dir_usable_rejects_a_regular_file(self):
+        # A readable file is not a mount point. Dropping the isdir check makes
+        # os.access succeed and the smoke would treat the file as /proc.
+        # Recovery: return False unless the path is a directory.
+        scratch = ROOT / "tmp"
+        scratch.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=scratch) as td:
+            td = Path(td)
+            regular = td / "not-a-dir"
+            regular.write_text("x", encoding="utf-8")
+            regular.chmod(0o644)
+            mod = self._load()
+            self.assertFalse(mod.dir_usable(str(regular), writable=False))
+            self.assertFalse(mod.dir_usable(str(regular), writable=True))
+            self.assertTrue(mod.dir_usable(str(td), writable=True))
+
     def test_required_shm_bind_unusable_exits_2(self):
         with tempfile.TemporaryDirectory() as d:
             shm = Path(d) / "shm"
@@ -405,6 +543,46 @@ class Smoke149(unittest.TestCase):
             code, rec = self.run_smoke(dict(BASE, probe=True), {"PATH": d})
         self.assertEqual(code, 2, rec)
         self.assertEqual(rec["reason"], "bwrap is not usable here; MemPalace must run with no network")
+        # The probe failure must not start MemPalace. A later run would fill checks or write the probe file.
+        self.assertFalse(self.escaped, "MemPalace ran unsandboxed")
+        self.assertNotIn("init_exit", rec["checks"])
+        self.assertEqual(rec["checks"], {})
+
+    def test_bwrap_without_tmpfs_mount_fails_closed_with_bwrap_reason(self):
+        # F2: twin of the --proc fake. A bwrap that runs but cannot mount a tmpfs
+        # must fail in the probe, not later as a version mismatch. Dropping
+        # --tmpfs from the probe lets this fake exit 0 there.
+        with tempfile.TemporaryDirectory() as d:
+            fake = Path(d) / "bwrap"
+            fake.write_text(f"#!{sys.executable}\nimport sys\nsys.exit(1 if '--tmpfs' in sys.argv else 0)\n",
+                            encoding="utf-8")
+            fake.chmod(0o755)
+            code, rec = self.run_smoke(dict(BASE, probe=True), {"PATH": d})
+        self.assertEqual(code, 2, rec)
+        self.assertEqual(rec["reason"], "bwrap is not usable here; MemPalace must run with no network")
+
+    def test_bwrap_rejecting_bind_or_die_with_parent_is_unavailable(self):
+        # F1: the probe must pass --bind <tmp> <tmp> and --die-with-parent, the same flags run() uses.
+        # A fake that accepts every other flag and rejects one of those two must not count as usable,
+        # and must not reach init. Dropping either flag from the probe lets this fake exit 0 there,
+        # then the real argv still carries the flag and the reason is no longer the bwrap sentence.
+        for flag in ("--bind", "--die-with-parent"):
+            with tempfile.TemporaryDirectory() as d:
+                fake = Path(d) / "bwrap"
+                fake.write_text(
+                    "#!" + sys.executable + "\n"
+                    "import sys\n"
+                    f"sys.exit(1 if {flag!r} in sys.argv else 0)\n",
+                    encoding="utf-8")
+                fake.chmod(0o755)
+                code, rec = self.run_smoke(dict(BASE, probe=True), {"PATH": d})
+            self.assertEqual(code, 2, (flag, rec))
+            self.assertEqual(
+                rec["reason"],
+                "bwrap is not usable here; MemPalace must run with no network",
+                (flag, rec))
+            self.assertFalse(self.escaped, flag)
+            self.assertNotIn("init_exit", rec.get("checks", {}))
 
     def test_no_bwrap_exits_2_never_runs_unsandboxed(self):
         # B2: without bwrap the smoke must not fall back to running MemPalace with network and a writable root.
