@@ -26,6 +26,7 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -119,7 +120,19 @@ def save_ledger(ledger: dict, state: Path | None = None) -> Path:
         "spent": int(ledger.get("spent") or 0),
         "entries": list(ledger.get("entries") or []),
     }
-    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    text = json.dumps(payload, indent=2) + "\n"
+    # Temp file + replace so a symlink at path is swapped, not followed.
+    fd, tmpname = tempfile.mkstemp(prefix=".hedge-ledger-", suffix=".tmp", dir=str(path.parent))
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            fh.write(text)
+        os.replace(tmpname, path)
+    except Exception:
+        try:
+            os.unlink(tmpname)
+        except OSError:
+            pass
+        raise
     return path
 
 
