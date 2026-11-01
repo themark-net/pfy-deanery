@@ -1,0 +1,140 @@
+{
+  "label": "before",
+  "baseline_only": true,
+  "modules": [
+    "tests.test_pfy_build_cloud"
+  ],
+  "head": "9429aafcd0cacc5bd668f8743038a91daf051403",
+  "cloudfix": "d35af200c63834f06fcfcce472f117e1084af5d4",
+  "runner_sha256": "d4f28f2ed82ad8db824def2be1753ce82301a57d175c6070fca085a2c5f95432",
+  "rows": [
+    {
+      "id": "C1",
+      "title": "gate result inverted",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 9.51,
+      "detail": "FAIL: test_direct_grok_home_fails_then_a_clean_retry_lands (tests.test_pfy_build_cloud.CloudBuildFailureTests.test_direct_grok_home_fails_then_a_clean_retry_lands)"
+    },
+    {
+      "id": "C2",
+      "title": "retry count off by one",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 25.598,
+      "detail": "FAIL: test_direct_grok_home_fails_then_a_clean_retry_lands (tests.test_pfy_build_cloud.CloudBuildFailureTests.test_direct_grok_home_fails_then_a_clean_retry_lands)"
+    },
+    {
+      "id": "C3",
+      "title": "review accept and reject swapped",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 9.891,
+      "detail": "FAIL: test_direct_grok_home_fails_then_a_clean_retry_lands (tests.test_pfy_build_cloud.CloudBuildFailureTests.test_direct_grok_home_fails_then_a_clean_retry_lands)"
+    },
+    {
+      "id": "C4",
+      "title": "missing verdict treated as accept",
+      "status": "survived",
+      "returncode": 0,
+      "seconds": 10.76,
+      "detail": "Ran 48 tests in 10.714s"
+    },
+    {
+      "id": "C5",
+      "title": "scope set check skipped",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 10.501,
+      "detail": "FAIL: test_staged_name_outside_the_reviewed_set_resets_and_does_not_commit (tests.test_pfy_build_cloud.CloudBuildNoChangeTests.test_staged_name_outside_the_reviewed_set_resets_and_does_not_commit)"
+    },
+    {
+      "id": "C6",
+      "title": "git add of a path outside the reviewed set",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 10.67,
+      "detail": "FAIL: test_gitignored_extra_file_is_absent_from_the_commit (tests.test_pfy_build_cloud.CloudBuildNoChangeTests.test_gitignored_extra_file_is_absent_from_the_commit)"
+    },
+    {
+      "id": "C7",
+      "title": "rate-limit class ignored",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 10.993,
+      "detail": "FAIL: test_embedded_429_follows_the_preflight_classifier (tests.test_pfy_build_cloud.CloudBuildFailureTests.test_embedded_429_follows_the_preflight_classifier)"
+    },
+    {
+      "id": "C8",
+      "title": "auth regex removed",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 10.427,
+      "detail": "FAIL: test_not_signed_in_is_unauthenticated_on_zero_and_nonzero_exit (tests.test_pfy_build_cloud.CloudBuildFailureTests.test_not_signed_in_is_unauthenticated_on_zero_and_nonzero_exit) (code=0)"
+    },
+    {
+      "id": "C9",
+      "title": "interrupted handler does not kill the process group",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 56.658,
+      "detail": "FAIL: test_sigint_interrupts_with_no_branch (tests.test_pfy_build_cloud.CloudBuildFailureTests.test_sigint_interrupts_with_no_branch)"
+    },
+    {
+      "id": "C10",
+      "title": "reap signals the local pid file",
+      "status": "survived",
+      "returncode": 0,
+      "seconds": 16.464,
+      "detail": "Ran 48 tests in 16.415s"
+    },
+    {
+      "id": "C11",
+      "title": "redaction step skipped",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 10.505,
+      "detail": "FAIL: test_receipt_redacts_an_xai_marker_in_the_task_and_the_reply (tests.test_pfy_build_cloud.CloudBuildFailureTests.test_receipt_redacts_an_xai_marker_in_the_task_and_the_reply)"
+    },
+    {
+      "id": "C12",
+      "title": "receipt pushed hard-coded true",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 10.307,
+      "detail": "FAIL: test_pass_does_not_push_the_cloud_branch (tests.test_pfy_build_cloud.CloudBuildPassTests.test_pass_does_not_push_the_cloud_branch)"
+    },
+    {
+      "id": "C13",
+      "title": "worktree not removed on PASS",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 10.453,
+      "detail": "FAIL: test_pass_matches_receipt_and_leaves_caller_clean (tests.test_pfy_build_cloud.CloudBuildPassTests.test_pass_matches_receipt_and_leaves_caller_clean)"
+    },
+    {
+      "id": "C14",
+      "title": "branch prefix changed",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 10.438,
+      "detail": "FAIL: test_zero_exit_with_rate_limit_text_is_not_blocked (tests.test_pfy_build_cloud.CloudBuildFailureTests.test_zero_exit_with_rate_limit_text_is_not_blocked)"
+    },
+    {
+      "id": "C15",
+      "title": "dry-run starts grok",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 70.786,
+      "detail": "ERROR: test_p_help_reaches_dogfood_and_positional_reaches_cloud (tests.test_pfy_build_cloud.CloudBuildDispatchTests.test_p_help_reaches_dogfood_and_positional_reaches_cloud)"
+    },
+    {
+      "id": "C16",
+      "title": "exit codes 4, 3, 1, 2 shuffled",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 10.293,
+      "detail": "FAIL: test_embedded_429_follows_the_preflight_classifier (tests.test_pfy_build_cloud.CloudBuildFailureTests.test_embedded_429_follows_the_preflight_classifier)"
+    }
+  ]
+}
