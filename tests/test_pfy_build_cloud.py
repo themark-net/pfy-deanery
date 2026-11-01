@@ -717,6 +717,74 @@ class CloudBuildRetryTests(unittest.TestCase):
         self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
         self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
 
+    def test_receipt_records_whether_the_review_diff_was_truncated(self) -> None:
+        """The receipt says if the review prompt's diff was cut at the cap.
+
+        Dogfood2 F2: a short patch is review.truncated false and the prompt
+        has no cut marker. A patch past the cap is true and the marker is in
+        the prompt the reviewer actually received.
+        """
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\nprint('GATE-OK')\nraise SystemExit(0)\n",
+        )
+
+        def run_case(width: int, task: str) -> tuple[dict, str]:
+            log = self.side / ("prompts-%d.txt" % width)
+            grok = _write_exe(
+                self.side / ("grok-%d.py" % width),
+                "#!/usr/bin/env python3\n"
+                "import os, sys\n"
+                "from pathlib import Path\n"
+                "blob = '\\n'.join(sys.argv)\n"
+                "Path(os.environ['PFY_PROMPT_LOG']).open('a', encoding='utf-8').write(blob + '\\n---PROMPT---\\n')\n"
+                "if 'PFY-CLOUD-REVIEW' in blob:\n"
+                "    print('verdict: accept')\n"
+                "    raise SystemExit(0)\n"
+                "Path('wide.py').write_text('x' * %d, encoding='utf-8')\n"
+                "raise SystemExit(0)\n" % width,
+            )
+            proc = _run(
+                [
+                    sys.executable,
+                    str(CLOUD),
+                    task,
+                    "--repo",
+                    str(self.repo),
+                    "--retries",
+                    "0",
+                    "--timeout",
+                    "30",
+                    "--test-cmd",
+                    "%s %s" % (sys.executable, gate),
+                    "--grok-cmd",
+                    str(grok),
+                ],
+                self.repo,
+                env={"PFY_PROMPT_LOG": str(log)},
+                timeout=60,
+            )
+            text = (proc.stdout or "") + (proc.stderr or "")
+            self.assertEqual(proc.returncode, 0, text)
+            match = re.search(r"PASS ok branch=\S+ receipt=(\S+)", proc.stdout or "")
+            self.assertIsNotNone(match, text)
+            payload = json.loads(Path(match.group(1)).read_text(encoding="utf-8"))
+            prompts = log.read_text(encoding="utf-8").split("---PROMPT---")
+            review = [item for item in prompts if "PFY-CLOUD-REVIEW" in item]
+            self.assertEqual(len(review), 1, prompts)
+            return payload, review[0]
+
+        short_payload, short_review = run_case(40, "add a short marker")
+        self.assertIs(short_payload["review"]["truncated"], False)
+        self.assertNotIn("...[diff truncated]", short_review)
+        self.assertEqual(short_payload["review"]["verdict"], "accept")
+
+        long_payload, long_review = run_case(20000, "add a long marker file")
+        self.assertIs(long_payload["review"]["truncated"], True)
+        self.assertIn("...[diff truncated]", long_review)
+        self.assertEqual(long_payload["review"]["verdict"], "accept")
+        self.assertLess(len(long_review), 20000)
+
     def test_final_review_reject_leaves_no_branch(self) -> None:
         gate = _write_exe(
             self.side / "gate.py",

@@ -1166,6 +1166,7 @@ class CloudBuild:
             "review": {
                 "verdict": self.review.get("verdict"),
                 "reasons": list(self.review.get("reasons") or []),
+                "truncated": bool(self.review.get("truncated", False)),
             },
             "attempts": self.attempts,
             "gate": {
@@ -1247,6 +1248,7 @@ class CloudBuild:
         call_cap = float(self.args.timeout)
         deadline = time.monotonic() + call_cap * max(1, self.max_attempts)
         last_reject: list[str] | None = None
+        review_truncated = False
 
         def time_left() -> float:
             return deadline - time.monotonic()
@@ -1263,6 +1265,7 @@ class CloudBuild:
             self.review = {
                 "verdict": "reject",
                 "reasons": list(last_reject or ["review-rejected"]),
+                "truncated": review_truncated,
             }
             if timed_out and number is not None:
                 self.record(number, "TIMEOUT", "timeout", output)
@@ -1383,6 +1386,7 @@ class CloudBuild:
                     self.record(number, "TIMEOUT", "timeout", output)
                     return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")
                 arm(False)
+                review_truncated = len(redact(diff_text or "")) > DIFF_CAP
                 review_status, review_code, review_out, review_err = self.grok_call(
                     review_prompt(self.args.task_text, diff_text, str(again.get("tail") or ""))
                 )
@@ -1410,7 +1414,11 @@ class CloudBuild:
                 if verdict == "accept" and diff_aims_at_root(diff_text):
                     verdict = "reject"
                     reasons = ["review-rejected"]
-                self.review = {"verdict": verdict, "reasons": reasons}
+                self.review = {
+                    "verdict": verdict,
+                    "reasons": reasons,
+                    "truncated": review_truncated,
+                }
                 if verdict != "accept":
                     feedback = "review-rejected\n%s" % "\n".join(reasons)
                     previous_diff = diff_text
