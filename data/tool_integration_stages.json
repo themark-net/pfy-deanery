@@ -1,6 +1,6 @@
 {
   "version": "1.3",
-  "last_updated": "2026-10-20",
+  "last_updated": "2026-11-01",
   "policy": "docs/ops/integration-stages.md",
   "default_stage": "I1",
   "tools": {
@@ -1725,9 +1725,30 @@
       ],
       "potential": "medium",
       "next_gate": "Stay I1. I3 only after a proposal gate pass (gain at least 2 on the 16 held-out cases) and a human merge. This trial's gain was 0."
+    },
+    "DeepSeek-V4.1-Flash-1017 GGUF": {
+      "integration_stage": "I0",
+      "intent": "awareness_fit_gate_failed",
+      "github": "https://huggingface.co/unsloth/DeepSeek-V4.1-Flash-1017-GGUF",
+      "notes_doc": "eval/mvp-1031/dsv4/REPORT.md",
+      "non_goals": [
+        "download_on_nimo",
+        "local_default",
+        "feature_go",
+        "weights_in_git",
+        "touch_mark_ollama"
+      ],
+      "uses": "Awareness only. The Dynamic V3.1 GGUF does not fit nimo RAM+VRAM under the file-size plus 8 GiB rule.",
+      "features": [
+        "public MIT GGUF on Hugging Face",
+        "split shards plus a bundled engram file",
+        "fit receipt with byte math"
+      ],
+      "potential": "low",
+      "next_gate": "Stay I0. Reconsider only on a host whose RAM+VRAM exceeds the chosen quant file size plus 8 GiB, with at least 50 GB free disk after download, then one MVP-3 pass."
     }
   },
   "probe_path": "tools/_probe/",
-  "coverage": "56 tools registered",
+  "coverage": "57 tools registered",
   "handoff": "data/catalog_stage_handoff.json"
 }
