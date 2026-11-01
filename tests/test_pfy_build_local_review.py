@@ -1019,3 +1019,29 @@ class ReviewLoopTests(unittest.TestCase):
         self.assertIn("return a + b", reviewed[0])
         self.assertIn("-    return a + b + 1", reviewed[0])
         self.inner.assert_clean_origin()
+
+    def test_in_scope_rename_is_committed(self):
+        (self.inner.repo / "src" / "old.py").write_text("X = 1\n", encoding="utf-8")
+        self.inner.commit_base("add old")
+        task = "fix add so one plus one is two\nfiles: src/calc.py, src/old.py, src/new.py\n"
+        proc, receipt = self._run(
+            task,
+            [{"mode": "fix", "mv": [["src/old.py", "src/new.py"]]}],
+        )
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "PASS")
+        self.assertNotEqual(data["reason"], "scope-commit-mismatch")
+        text = harness._git(
+            self.inner.repo,
+            "diff",
+            "--name-status",
+            "--no-renames",
+            data["base_sha"],
+            data["commit"],
+        )
+        self.assertEqual(
+            sorted(line for line in text.splitlines() if line.strip()),
+            ["A\tsrc/new.py", "D\tsrc/old.py", "M\tsrc/calc.py"],
+        )
+        self.inner.assert_clean_origin()

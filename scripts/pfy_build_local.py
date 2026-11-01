@@ -2201,12 +2201,15 @@ def _stage_reviewed(worktree: Path, env: dict, reviewed: list[str]) -> str | Non
             "-A",
             "-f",
             "--",
-            *(":(literal)%s" % rel for rel in wanted),
+            # Excludes first. On git 2.53 an exclude after a positive
+            # pathspec drops an untracked path, so a rename's new name
+            # never reaches the index.
             ":!tmp",
             ":!**/__pycache__",
             ":!**/*.pyc",
             ":!.pytest_cache",
             ":!**/.pytest_cache",
+            *(":(literal)%s" % rel for rel in wanted),
         ]
         added = _git(worktree, argv, env=env)
         if added.returncode != 0:
@@ -2217,7 +2220,7 @@ def _stage_reviewed(worktree: Path, env: dict, reviewed: list[str]) -> str | Non
         extra = worktree / "injected-extra.txt"
         extra.write_text("injected\n", encoding="utf-8")
         _git(worktree, ["add", "-f", "--", "injected-extra.txt"], env=env)
-    listed = _git(worktree, ["diff", "--cached", "--name-only", "-z"], env=env)
+    listed = _git(worktree, ["diff", "--cached", "--name-only", "--no-renames", "-z"], env=env)
     if listed.returncode != 0:
         _reset_index(worktree, env)
         return "commit-failed"

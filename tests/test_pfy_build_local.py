@@ -305,6 +305,11 @@ elif scenario == "plan":
         dest.parent.mkdir(parents=True, exist_ok=True)
         prev = dest.read_text(encoding="utf-8") if dest.is_file() else ""
         dest.write_text(prev + extra, encoding="utf-8")
+    for pair in step.get("mv") or []:
+        src, dst = pair
+        dest = root / dst
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        os.rename(root / src, dest)
     for rel, target in (step.get("symlink") or {}).items():
         dest = root / rel
         dest.parent.mkdir(parents=True, exist_ok=True)
