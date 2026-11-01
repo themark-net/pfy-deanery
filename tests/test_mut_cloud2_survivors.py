@@ -4,7 +4,7 @@ Each test passes on the current runner and fails when its mutant is applied
 to a copy. The runner file in this worktree is not edited.
 
 C19  writable-test glob is ignored
-C21  git add uses a glob pathspec, so a bracket name is missed
+C21  git add :(glob) of a star name also stages a sibling pyc
 C23  an archive-recheck timeout is treated as a pass
 C27  protected basename match is off, so nested/auth.json is committed
 C30  a private-key body survives when the PEM block pass is skipped
@@ -156,24 +156,28 @@ class Cloud2SurvivorTests(unittest.TestCase):
         kept = _git(self.repo, "show", payload["commit"] + ":tests/test_keep.py")
         self.assertEqual(kept.stdout, "def test_keep():\n    assert True\n")
 
-    def test_bracket_filename_is_committed_literally(self) -> None:
-        # Fail: git add :(glob)foo[1].py looks for foo1.py, so the bracket file
-        # never lands (scope mismatch or an empty commit).
-        # Recover: :(literal) stages foo[1].py and that body is the commit.
+    def test_literal_star_does_not_stage_a_sibling_pyc(self) -> None:
+        # Fail: git add :(glob)* stages every root file, including extra.pyc,
+        # and the scope check rejects the commit.
+        # Recover: :(literal)* stages only the star file. The pyc stays out.
         grok = _write_exe(
             self.side / "grok.py",
             "#!/usr/bin/env python3\n"
             "from pathlib import Path\n"
-            "Path('foo[1].py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "Path('*').write_text('star-body\\n', encoding='utf-8')\n"
+            "Path('extra.pyc').write_bytes(b'pyc')\n"
             "raise SystemExit(0)\n",
         )
-        proc = self._cloud("add the bracket file", [], grok, self._gate_ok())
+        proc = self._cloud("add a star file", [], grok, self._gate_ok())
         text = (proc.stdout or "") + (proc.stderr or "")
         self.assertEqual(proc.returncode, 0, text)
         payload = self._receipt()
         self.assertEqual(payload["status"], "PASS", payload)
-        shown = _git(self.repo, "show", payload["commit"] + ":foo[1].py")
-        self.assertEqual(shown.stdout, "value = 1\n")
+        names = _git(self.repo, "ls-tree", "-r", "--name-only", payload["commit"]).stdout.splitlines()
+        self.assertIn("*", names)
+        self.assertNotIn("extra.pyc", names)
+        shown = _git(self.repo, "show", payload["commit"] + ":*")
+        self.assertEqual(shown.stdout, "star-body\n")
 
     def test_recheck_timeout_does_not_commit(self) -> None:
         # Fail: the fourth gate (the archive recheck) hangs and the runner
