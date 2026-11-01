@@ -95,8 +95,9 @@ def node_ok(version: str) -> bool:
 def bwrap_ok() -> bool:
     if not shutil.which("bwrap"):
         return False
-    p = subprocess.run(["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--proc", "/proc", "--unshare-net", "true"],
-                       capture_output=True)
+    # Probe with the same mounts the run uses (/dev/shm tmpfs, /proc), so a host that can't make them falls back.
+    p = subprocess.run(["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--tmpfs", "/dev/shm", "--proc", "/proc",
+                        "--unshare-net", "true"], capture_output=True)
     return p.returncode == 0
 
 
