@@ -1173,6 +1173,81 @@ class ReviewLoopTests(unittest.TestCase):
         self.assertEqual(len(list(receipt.glob("attempt-*"))), 3)
         self.inner.assert_clean_origin()
 
+    def _hide_bwrap(self):
+        """Point PATH at a bwrap that fails so --unsafe-no-sandbox is real.
+
+        A working bwrap bind-mounts the worktree. A hardlink from that mount
+        to a file outside it returns EXDEV, so the sandbox already blocks the
+        attack. This helper builds the case the sandbox does not cover.
+        """
+        bindir = self.inner.tmp / "bin"
+        bindir.mkdir(exist_ok=True)
+        stub = bindir / "bwrap"
+        stub.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
+        stub.chmod(0o755)
+        return {"PATH": "%s%s%s" % (bindir, os.pathsep, os.environ.get("PATH", ""))}
+
+    def test_in_scope_hardlink_to_outside_is_not_committed(self):
+        marker, path = self._sentinel_file()
+        task = "fix add so one plus one is two\nfiles: src/calc.py, src/helper.py\n"
+        proc, receipt = self._run(
+            task,
+            [{"mode": "fix", "hardlink": {"src/helper.py": str(path)}}],
+            extra=["--retries", "0", "--unsafe-no-sandbox"],
+            env_extra=self._hide_bwrap(),
+        )
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "FAIL")
+        self.assertEqual(data["reason"], "hardlink-outside")
+        self.assertIn("src/helper.py", data["files_changed"])
+        self.assertIsNone(data["commit"])
+        self.assertIsNone(data["branch"])
+        self.assertEqual(harness._branches(self.inner.repo), [])
+        self.assertEqual(self._leak_hits(receipt, marker), [])
+        self.inner.assert_clean_origin()
+
+    def test_out_of_scope_hardlink_does_not_leak(self):
+        marker, path = self._sentinel_file()
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        proc, receipt = self._run(
+            task,
+            [{"mode": "fix", "hardlink": {"src/helper.py": str(path)}}],
+            extra=["--retries", "0", "--unsafe-no-sandbox"],
+            env_extra=self._hide_bwrap(),
+        )
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["reason"], "hardlink-outside")
+        self.assertIsNone(data["commit"])
+        self.assertIn("src/helper.py", data["files_changed"])
+        self.assertEqual(self._leak_hits(receipt, marker), [])
+        self.inner.assert_clean_origin()
+
+    def test_hardlink_inside_the_worktree_is_committed(self):
+        # Two names, one inode, both inside the worktree. The bytes are the
+        # agent's text. Review sees them and the commit keeps both paths.
+        task = "fix add so one plus one is two\nfiles: src/calc.py, src/keep.py, src/also.py\n"
+        proc, receipt = self._run(
+            task,
+            [{"mode": "fix", "write": {"src/keep.py": "INSIDE = 1\n"}, "hardlink": {"src/also.py": "src/keep.py"}}],
+        )
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "PASS")
+        self.assertNotEqual(data["reason"], "hardlink-outside")
+        for rel in ("src/keep.py", "src/also.py"):
+            shown = harness._git(self.inner.repo, "show", "%s:%s" % (data["commit"], rel))
+            self.assertEqual(shown, "INSIDE = 1\n")
+        reviewed = [
+            json.dumps(payload)
+            for path, payload in self.inner.httpd.posts
+            if "chat" in path and "pfy-review-v1" in json.dumps(payload)
+        ]
+        self.assertEqual(len(reviewed), 1)
+        self.assertIn("INSIDE = 1", reviewed[0])
+        self.inner.assert_clean_origin()
+
     def test_error_field_beside_accept_does_not_commit(self):
         accept = json.dumps({"verdict": "accept", "reasons": ["looks fine"]})
         self.inner.httpd.review_raw = {

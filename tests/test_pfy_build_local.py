@@ -318,6 +318,12 @@ elif scenario == "plan":
         os.symlink(str(target), dest)
     for rel, mode in (step.get("chmod") or {}).items():
         os.chmod(root / rel, int(mode))
+    for rel, target in (step.get("hardlink") or {}).items():
+        dest = root / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        if dest.is_symlink() or dest.exists():
+            dest.unlink()
+        os.link(str(target), dest)
     for rel in step.get("gitdir") or []:
         dest = root / rel
         dest.mkdir(parents=True, exist_ok=True)

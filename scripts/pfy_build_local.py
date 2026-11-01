@@ -2521,6 +2521,19 @@ def _collect_diff(worktree: Path, env: dict, paths: list[str]) -> tuple[str, dic
         lines = content.splitlines()
         added += len(lines)
         text += _synthetic_new_diff(norm, lines)
+    escaped = _hardlink_escapes(worktree, list(paths))
+    if escaped:
+        # The blob would be the host file's bytes. The reviewer and the
+        # receipt get a marker, never those bytes.
+        text = _without_hunks(text, set(escaped))
+        for rel in escaped:
+            text += (
+                "diff --git a/%s b/%s\n"
+                "--- /dev/null\n"
+                "+++ b/%s\n"
+                "@@ -1 +1 @@\n"
+                "+hardlink-outside\n" % (rel, rel, rel)
+            )
     stats = {
         "files": len(paths),
         "added": added,
@@ -2548,6 +2561,79 @@ def _added_text_for(diff_text: str, rel: str) -> str:
             if line.startswith("+") and not line.startswith("+++"):
                 blobs.append(line[1:])
     return "\n".join(blobs)
+
+
+def _inode_names(worktree: Path) -> dict[tuple[int, int], int]:
+    """How many directory entries inside the worktree share each regular inode."""
+    counts: dict[tuple[int, int], int] = {}
+    if not worktree.is_dir():
+        return counts
+    for dirpath, dirnames, filenames in os.walk(worktree, followlinks=False):
+        dirnames[:] = [name for name in dirnames if name != ".git"]
+        for name in filenames:
+            full = Path(dirpath) / name
+            try:
+                st = os.lstat(full)
+            except OSError:
+                continue
+            if not stat.S_ISREG(st.st_mode):
+                continue
+            key = (int(st.st_dev), int(st.st_ino))
+            counts[key] = counts.get(key, 0) + 1
+    return counts
+
+
+def _hardlink_outside(worktree: Path, rel: str, counts: dict[tuple[int, int], int] | None = None) -> bool:
+    """True when this regular file has a directory entry outside the worktree.
+
+    A hardlink does not change what git will store: the blob is the target's
+    bytes. nlink greater than the names inside the worktree means one of those
+    names is on the host. Two names that both live in the worktree are not an
+    escape.
+    """
+    full = worktree / rel
+    try:
+        st = os.lstat(full)
+    except OSError:
+        return False
+    if not stat.S_ISREG(st.st_mode) or int(st.st_nlink) <= 1:
+        return False
+    if counts is None:
+        counts = _inode_names(worktree)
+    inside = counts.get((int(st.st_dev), int(st.st_ino)), 0)
+    return inside < int(st.st_nlink)
+
+
+def _hardlink_escapes(worktree: Path, paths: list[str]) -> list[str]:
+    suspects: list[str] = []
+    for rel in paths:
+        norm = _norm_rel(rel)
+        if not norm:
+            continue
+        try:
+            st = os.lstat(worktree / norm)
+        except OSError:
+            continue
+        if stat.S_ISREG(st.st_mode) and int(st.st_nlink) > 1:
+            suspects.append(norm)
+    if not suspects:
+        return []
+    counts = _inode_names(worktree)
+    return [rel for rel in suspects if _hardlink_outside(worktree, rel, counts)]
+
+
+def _without_hunks(diff_text: str, drop: set[str]) -> str:
+    if not drop or not diff_text:
+        return diff_text
+    kept: list[str] = []
+    for part in re.split(r"(?m)(?=^diff --git )", diff_text):
+        if part.startswith("diff --git "):
+            head = part.splitlines()[0]
+            path = head.rsplit(" b/", 1)[-1].strip() if " b/" in head else ""
+            if _norm_rel(path) in drop:
+                continue
+        kept.append(part)
+    return "".join(kept)
 
 
 def _symlink_outside(worktree: Path, rel: str) -> bool:
@@ -3658,6 +3744,23 @@ def build_local(argv: list[str] | None = None) -> int:
                     mem_snap,
                     "FAIL",
                     "gate-modified-reviewed-file",
+                    None,
+                    None,
+                    diff_stats,
+                    diff_text,
+                )
+                return finish()
+            escaped_links = _hardlink_escapes(worktree, changed)
+            if escaped_links:
+                # Same policy as a gate rewrite: do not retry. The link is not
+                # the agent's text, and a later attempt must not commit it.
+                status, reason, exit_code = "FAIL", "hardlink-outside", EXIT_FAIL
+                _record_attempt(
+                    attempts_used,
+                    attempt_t0,
+                    mem_snap,
+                    "FAIL",
+                    "hardlink-outside",
                     None,
                     None,
                     diff_stats,
