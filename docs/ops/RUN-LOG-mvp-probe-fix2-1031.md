@@ -46,7 +46,11 @@ Risks:
 
 - exits | 8ce94e3 | none | exit card pushed
 - reprobe | scratch tmp/probe/results.jsonl | 29 CLI probes at d2521b5 | 4 judge flags, 2 real findings (mode bit, hardlink). Holds: e5c, g1, g2, s7 rename, s7 rename+edit, s7 across dir, s7 old name unlisted, s7 swap, s8 NFC, s8 NFD, s8 emoji, s8 unicode dir, s8 NFC-allow vs NFD file, symlink-to-dir, relative symlink, replace src, M10 variants, M17 retries 5, gate delete, gate extra file, mode 0600. s7 low-similarity and NFC+NFD pair were judge/host false flags (decisions 6 and 7).
+- bx1-mode | 29da017 | nice python3 -m unittest tests.test_pfy_build_local_review (38 OK in 84.393s on the tree that also has the hardlink tests) | pass
+- bx2-hardlink | 915edf0 | same module, 38 OK in 84.393s; the three hardlink tests plus the mode and symlink neighbors were also OK in 4.904s | pass
 
 ## Progress
 
-state: probes done | tests: scratch probes | files: 0 product yet | err: none
+Host at the hardlink commit: MemAvailable about 69 GiB, load about 3.4 on 32 cores. origin/bot/mvp3-review-retry still d2521b5.
+Pregate not run: the lane drop-in says do not run scripts/pregate.sh.
+state: lane empty | two findings fixed (29da017 mode bit, 915edf0 hardlink); named probes have no remaining wrong pass | tests: review module 38 OK | err: none
