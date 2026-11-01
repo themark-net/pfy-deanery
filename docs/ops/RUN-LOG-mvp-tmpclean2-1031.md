@@ -86,3 +86,5 @@ Progress:
 - state: lane empty | resume recheck 2026-10-31T23:50:03Z | pregate not run: host busy | err: none
 - resume 2026-11-01T00:03:02Z | origin/main still c0d38af | fast-forward, behind 0 | Runner.Worker idle | MemAvailable about 72.4 GiB | load about 3.1 on 32 cores | pregate of 0afea54 already holds heavy-1030.lock | this lane does not run pregate.sh | no new fitting gap
 - state: lane empty | resume recheck 2026-11-01T00:03:02Z | pregate not run: operator owns it, and a pregate is already on the heavy lock | err: none
+- resume 2026-11-01T00:11:04Z | origin/main still c0d38af | fast-forward, behind 0, tip 2cdd792 | Runner.Worker idle | MemAvailable about 71.5 GiB | load 3.09 on 32 cores | pregate of 0afea54 still holds heavy-1030.lock (flock pid 3755278) | this lane does not run pregate.sh | no new fitting gap
+- state: lane empty | resume recheck 2026-11-01T00:11:04Z | pregate not run: operator owns it, and a pregate is already on the heavy lock | err: none
