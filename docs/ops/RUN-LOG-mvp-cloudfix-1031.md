@@ -142,3 +142,7 @@ Format: `item | commit | tests | result`
 - findings-poll-2 | none | read-only fetch at 23:17Z | realfail3 still a4c80a1. sixtask-int moved to ab3bac4. pass1 t6, pass2 t1, and pass2 t2 are PASS ok. No new FINDING file.
 - gate-hang | 8bcb06e | tests.test_pfy_build_cloud tests.test_pfy_build_p | PASS, 68 tests OK, skipped 1. The hung-gate test was red first (exit 1, reason tests). Before: origin/bot/mvp-realfail3-1031:eval/mvp-1031/realfail3/gate-hang/receipt.json (FAIL tests, exit 1, after-gate exit 124, recovery empty). After: tmp/gate-hang-after/receipt.json (TIMEOUT timeout, exit 3, recovery tells Mark the gate timed out and to rerun with a longer --timeout). Before-gate exit 0, after-gate aborted timeout, one attempt, caller HEAD unchanged, no cloud branch. One real grok call, --timeout 180, --retries 0, --no-review.
 - findings-poll-3 | none | read-only fetch at 23:40Z | realfail3 still a4c80a1. sixtask-int d642ec1 handed off GO. Twelve receipts are PASS. Cross-lane requests: none. No new FINDING file. Quiet clock runs until 00:10Z.
+- findings-poll-4 | none | read-only fetch at 00:00Z | realfail3 still a4c80a1. sixtask-int still d642ec1. No new FINDING file.
+- findings-poll-5 | none | read-only fetch at 00:20Z | realfail3 still a4c80a1. sixtask-int still d642ec1. No new FINDING file. More than 60 minutes since the last new FINDING content (23:10Z).
+
+state: NO NEW FINDINGS. Polls at 23:17Z, 23:40Z, 00:00Z, and 00:20Z. Stop 2026-11-01T00:20Z. Wall cap not reached. Host was not under pressure. No merge.
