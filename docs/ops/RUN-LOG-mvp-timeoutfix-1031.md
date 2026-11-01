@@ -62,3 +62,4 @@ selfhost2-kolibri-recheck | ff6b855 | tests.test_pfy_build_cloud tests.test_pfy_
 skip-gom-tamper-usage | none | not run | SKIP the rest of wave 5 #1. Hash on base tests already stays. A usage note for a task that should add a test needs an OQ, not a heuristic.
 skip-gate-allowlist | none | not run | SKIP. Gate denylist already hides secret-like names. A PATH/TMPDIR allowlist would break venv gates. OQ in the handoff.
 cross-lane-timeout-docs | none | not run | NOT EDITED. mvp-surface owns pfy-build.md and pfy-build-daily.md. --timeout wording drifts from the run budget. Request in the handoff.
+poll-0049Z | none | read-only | dogfood2 ac42593 handed off after run 09. Findings still F1-F3 only (F1 already on the integrate tip, F2 and F3 fixed here). gom still 88a841b. selfhost2 88f5d99 item 03 PASS, no new runner friction. Quiet clock stays 00:29Z. Next poll 01:09Z. Stop at 01:29Z if still quiet.
