@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/examples-typed-decisions-local-smoke-py-20261101T002507448088Z",
+  "commit": "a586ad16cee9f8bfb4c5e76ad06798f879f5d4db",
+  "base": "HEAD",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll change only `write()` so `PFY_SMOKE_RECEIPT_DIR` is checked before any directory is created, and a relative value fails without touching the cwd. First I'll read the function and the test that locks this.The test locks three paths: refuse a relative override before any directory is created, write under an absolute override, and keep the default when the variable is unset or empty. I'll look for the existing receipt-dir pattern so the change stays inside `write()`.The Kolibri smoke already refuses a relative receipt directory before it creates anything. I'll apply that same check in typed-decisions `write()`, and still write `<entry>/latest.json` for an absolute or default path.`write()` in `examples/typed-decisions-local/smoke.py` now reads `PFY_SMOKE_RECEIPT_DIR` before it creates a directory.\n\n- A non-empty relative value prints `PFY_SMOKE_RECEIPT_DIR must be absolute`, returns 1, and writes nothing.\n- An absolute value writes `<entry>/latest.json` under that directory and returns the given code. Code 2 still stores `FAIL_CANNOT_RUN_HERE` and `exit_code` 2.\n- An unset or empty value still writes `pipelines/smoke/<entry>/latest.json` and returns the given code.\n\nThe verdict map is unchanged. `.gitignore` is unchanged, so `pipelines/smoke/laya/` stays ignored and `pipelines/smoke/kolibri1/latest.json` stays tracked.\n\n`python3 -m unittest tests.test_typed_decisions_receipt_absolute` passed.\n\nI'll check the diff against `write()` and the locked receipt test before giving a verdict.verdict: accept\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "python3 -m unittest tests.test_typed_decisions_receipt_absolute",
+    "before": {
+      "cmd": "python3 -m unittest tests.test_typed_decisions_receipt_absolute",
+      "exit": 1,
+      "tail": "\nF\n======================================================================\nFAIL: test_relative_is_refused_and_absolute_still_writes (tests.test_typed_decisions_receipt_absolute.TypedDecisionsReceiptAbsoluteTests.test_relative_is_refused_and_absolute_still_writes)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-selfhost2-1031/tmp/selfhost2-clones/target-3/tmp/cloud-build/20261101T002507448088Z/tests/test_typed_decisions_receipt_absolute.py\", line 52, in test_relative_is_refused_and_absolute_still_writes\n    self.assertEqual(code, 1, buf.getvalue())\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 0 != 1 : {\"verdict\": \"PASS\", \"reason\": \"relative\"}\nreceipt: /home/mark/DEVELOP/pfy-mentat/tmp/mvp-selfhost2-1031/tmp/selfhost2-clones/target-3/tmp/cloud-build/20261101T002507448088Z/pipelines/smoke/laya/latest.json\n\n\n----------------------------------------------------------------------\nRan 1 test in 0.003s\n\nFAILED (failures=1)\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "python3 -m unittest tests.test_typed_decisions_receipt_absolute",
+      "exit": 0,
+      "tail": "\n.\n----------------------------------------------------------------------\nRan 1 test in 0.003s\n\nOK\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": true,
+  "task": "examples/typed-decisions-local/smoke.py write(entry, receipt, code) always writes pipelines/smoke/<entry>/latest.json. It ignores PFY_SMOKE_RECEIPT_DIR. A relative value must not resolve against the cwd.\n\nChange only write() in that file. Do not edit tests. Do not change the verdict map. Do not edit .gitignore. pipelines/smoke/laya/ stays ignored. pipelines/smoke/kolibri1/latest.json stays tracked.\n\nRequired behavior, locked by tests/test_typed_decisions_receipt_absolute.py:\n\n- A non-empty relative PFY_SMOKE_RECEIPT_DIR returns 1, writes nothing (no directory under the cwd, and pipelines/smoke/laya is not created), and prints one line containing \"absolute\".\n- An absolute PFY_SMOKE_RECEIPT_DIR writes <entry>/latest.json under that directory and returns the given code. Code 2 still stores verdict FAIL_CANNOT_RUN_HERE and exit_code 2.\n- Unset or empty still writes pipelines/smoke/<entry>/latest.json and returns the given code.\n- Check the variable before creating a directory.",
+  "finished_at": "2026-11-01T00:27:54Z"
+}

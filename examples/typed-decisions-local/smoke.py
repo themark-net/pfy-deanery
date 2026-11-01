@@ -62,9 +62,17 @@ print(json.dumps(r["output"]))
 
 
 def write(entry: str, receipt: dict, code: int) -> int:
+    override = os.environ.get("PFY_SMOKE_RECEIPT_DIR")
+    if override:
+        dest = Path(override)
+        if not dest.is_absolute():
+            print("PFY_SMOKE_RECEIPT_DIR must be absolute")
+            return 1
+        out = dest / entry / "latest.json"
+    else:
+        out = ROOT / "pipelines/smoke" / entry / "latest.json"
     receipt["exit_code"] = code
     receipt["verdict"] = {0: "PASS", 1: "FAIL", 2: "FAIL_CANNOT_RUN_HERE"}[code]
-    out = ROOT / "pipelines/smoke" / entry / "latest.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(receipt, indent=2, ensure_ascii=False) + "\n")
     print(json.dumps({k: receipt.get(k) for k in ("verdict", "reason")}, ensure_ascii=False))

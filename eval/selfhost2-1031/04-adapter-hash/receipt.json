@@ -1,0 +1,57 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/pfylib-adapters-base-py-tree-hash-and-de-20261101T002831938962Z",
+  "commit": "f11f7de07b3cae15c4ce3a6d6f15f46da80458d0",
+  "base": "HEAD",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS-REJECTED",
+      "reason": "review-rejected",
+      "output_tail": "I'll change only `tree_hash` and `desired_skill_hash` so symlinks hash their link text and regular files keep the current digest. First I'm reading those functions and the test that defines the expected behavior.The test expects symlink rows to be the link text, with regular-file digests unchanged. I'll check how the walk works so a link is never opened or followed.`rglob` already stays out of symlink directories. I'll hash a link as its `readlink` text and leave regular-file rows on the same digest.The task allows edits only inside those two functions, so I’m inlining the symlink check and removing the helper.`tree_hash` and `desired_skill_hash` now hash a symlink as its link text, and a tree of regular files still produces the same digest.\n\n- A symlink row is the relative POSIX path, a NUL, the `readlink` text, and a NUL. The target is never opened, and a missing target does not raise.\n- The walk does not descend into a symlinked directory, so an edit outside the tree leaves the hash unchanged and a retarget changes it.\n- `desired_skill_hash` still skips `.pfy-owned` and appends the existing marker bytes under that name.\n\n`python3 -m unittest tests.test_adapter_tree_hash_symlink` passed.\n\nI'll review the diff against the hash contract and the reject rules, starting with the two functions and how rows are hashed.verdict: reject\n\n`tree_hash` and `desired_skill_hash` call `Path.rglob(\"*\", recurse_symlinks=False)`. That keyword exists only on Python 3.13 and later. pfylib declares Python >= 3.12, and on 3.12.12 the same call raises `TypeError` before any row is hashed, so a tree of regular files does not keep today's digest. On 3.12, `rglob` already does not walk a symlinked directory, and on 3.13+ the default is already `recurse_symlinks=False`, so the keyword is not required for the symlink rule. The `is_symlink` / `os.readlink` branch itself matches the requested row bytes.\n",
+      "review": {
+        "verdict": "reject",
+        "reasons": [
+          "review-rejected"
+        ]
+      }
+    },
+    {
+      "n": 2,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "The last change was rejected, so I will read the hash functions, the test, and how symlinks are handled before editing only those two functions.The previous patch is already in `base.py`. Next I will read the symlink hash test and how Python walks those paths, so the next edit matches what the review rejected.The rejected patch still calls `is_file()`, which follows links, and it passes `recurse_symlinks`, which Python 3.12 does not support. The sort line also redacts into invalid syntax in review. I will hash link text with `lstat` and stop following directory links.The task allows edits only in those two functions. A new helper sits outside that, so I am inlining the link check.`tree_hash` and `desired_skill_hash` now hash a symlink as its link text and do not open or follow the target.\n\n- A regular file still contributes its relative POSIX path and its bytes, in sorted path order. That digest is unchanged.\n- A symlink contributes `os.readlink` text. A missing target does not raise. An edit to the outside file does not change the hash. A retarget does.\n- Directory links are not walked. `lstat` decides the type, so a mode-000 target is never opened.\n- `desired_skill_hash` still skips a file named `.pfy-owned` and appends the existing marker bytes under that name.\n\n`python3 -m unittest tests.test_adapter_tree_hash_symlink` passed. No commit and no push.\n\nI'll review the diff against the task and the current `tree_hash` / `desired_skill_hash` code before giving a verdict.verdict: accept\n\nThe edit stays inside `tree_hash` and `desired_skill_hash` (plus the `stat` import those checks need). Regular files still hash as the relative POSIX path, a NUL, the file bytes, and a NUL, in path order. Symlinks contribute `readlink` text via `lstat` and are not opened or followed, including when the target is missing or mode 000. `.pfy-owned` is still skipped and the existing marker bytes are appended. The diff does not drop tests, add a recursive delete, or target the filesystem root.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "python3 -m unittest tests.test_adapter_tree_hash_symlink",
+    "before": {
+      "cmd": "python3 -m unittest tests.test_adapter_tree_hash_symlink",
+      "exit": 1,
+      "tail": "\nE\n======================================================================\nERROR: test_regular_digest_stays_and_symlink_does_not_follow (tests.test_adapter_tree_hash_symlink.AdapterTreeHashSymlinkTests.test_regular_digest_stays_and_symlink_does_not_follow)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-selfhost2-1031/tmp/selfhost2-clones/target-4/tmp/cloud-build/20261101T002831938962Z/tests/test_adapter_tree_hash_symlink.py\", line 65, in test_regular_digest_stays_and_symlink_does_not_follow\n    first = tree_hash(link_tree)\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-selfhost2-1031/tmp/selfhost2-clones/target-4/tmp/cloud-build/20261101T002831938962Z/pfylib/adapters/base.py\", line 64, in tree_hash\n    rows.append((p.relative_to(root).as_posix(), p.read_bytes()))\n                                                 ~~~~~~~~~~~~^^\n  File \"/usr/lib/python3.14/pathlib/__init__.py\", line 778, in read_bytes\n    with self.open(mode='rb', buffering=0) as f:\n         ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.14/pathlib/__init__.py\", line 772, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nPermissionError: [Errno 13] Permission denied: '/home/mark/DEVELOP/pfy-mentat/tmp/mvp-selfhost2-1031/tmp/selfhost2-clones/target-4/tmp/cloud-build/20261101T002831938962Z/tmp/selfhost2-tests/adapter-hash-57xolsyo/linked/a.txt'\n\n----------------------------------------------------------------------\nRan 1 test in 0.002s\n\nFAILED (errors=1)\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "python3 -m unittest tests.test_adapter_tree_hash_symlink",
+      "exit": 0,
+      "tail": "\n.\n----------------------------------------------------------------------\nRan 1 test in 0.001s\n\nOK\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": true,
+  "task": "pfylib/adapters/base.py tree_hash and desired_skill_hash use path.is_file(), which follows symlinks, then read the target bytes. A symlink to a mode-000 file raises. An edit outside the tree changes the hash. An install then looks dirty for the wrong reason, or reads bytes it should not.\n\nChange only tree_hash and desired_skill_hash in that file. Do not edit tests. Do not add a mode field. A tree of regular files must keep today's digest: each row is the relative posix path, a NUL, the file bytes, a NUL, fed to sha256 in sorted path order. desired_skill_hash still skips a file named .pfy-owned and appends the existing MARKER bytes under that name.\n\nA symlink contributes its readlink text as the row bytes. Do not open the target. Do not follow a symlink into another directory. A missing target still contributes the readlink text and does not raise. An edit to the outside target does not change the hash. A retarget does.",
+  "finished_at": "2026-11-01T00:49:03Z"
+}
