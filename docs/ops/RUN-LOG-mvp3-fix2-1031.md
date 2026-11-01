@@ -22,4 +22,5 @@ state: running
 | Item | Commit | Tests | Result |
 |------|--------|-------|--------|
 | BX1 | 4c7c5f6 | red then green: test_gate_rewrite_of_reviewed_file_does_not_commit. Review module 25 OK in 70.327s | gate rewrite no longer commits. Reason gate-modified-reviewed-file, one attempt, no retry |
-| BX2 | this commit | red: in-scope symlink was scope-commit-mismatch after the reviewer saw the target; out-of-scope leaked into 3 patch.diff files and the agent prompt. Green: both symlink tests plus empty-diff. Review module 27 OK in 72.882s | symlink to outside is out of scope. Target bytes are not in the diff, the prompt, or receipts |
+| BX2 | 90b51f3 | red: in-scope symlink was scope-commit-mismatch after the reviewer saw the target; out-of-scope leaked into 3 patch.diff files and the agent prompt. Green: both symlink tests plus empty-diff. Review module 27 OK in 72.882s | symlink to outside is out of scope. Target bytes are not in the diff, the prompt, or receipts |
+| B2 | this commit | M10 M17 M18 tests green on the tree. Each failed when its mutant was applied, then the tree was restored | error beside accept is a reject and is not committed. --no-review receipt retries is 0. The reviewer prompt carries the changed line |

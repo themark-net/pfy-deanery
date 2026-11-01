@@ -400,6 +400,10 @@ class Handler(BaseHTTPRequestHandler):
                 if http_status != 200:
                     self._send(int(http_status), {"error": "review-down"})
                     return
+                raw_body = getattr(self.server, "review_raw", None)
+                if raw_body is not None:
+                    self._send(200, raw_body)
+                    return
                 queue = getattr(self.server, "review_queue", None)
                 if queue:
                     content = queue.pop(0)

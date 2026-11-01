@@ -879,6 +879,7 @@ class ReviewLoopTests(unittest.TestCase):
         self.assertIsNone(data["commit"])
         self.assertIsNone(data["branch"])
         self.assertFalse(data["review"]["enabled"])
+        self.assertEqual(data["review"]["retries"], 0)
         self.assertEqual(harness._branches(self.inner.repo), [])
         self.assertFalse((receipt / "attempt-2").exists())
         log = (receipt / "agent.log").read_text(encoding="utf-8")
@@ -980,4 +981,41 @@ class ReviewLoopTests(unittest.TestCase):
         self.assertIsNone(data["branch"])
         self.assertEqual(self._leak_hits(receipt, marker), [])
         self.assertEqual(len(list(receipt.glob("attempt-*"))), 3)
+        self.inner.assert_clean_origin()
+
+    def test_error_field_beside_accept_does_not_commit(self):
+        accept = json.dumps({"verdict": "accept", "reasons": ["looks fine"]})
+        self.inner.httpd.review_raw = {
+            "error": "partial failure",
+            "choices": [{"message": {"role": "assistant", "content": accept}}],
+        }
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        proc, receipt = self._run(task, [{"mode": "fix"}], extra=["--retries", "2"])
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "PASS-REJECTED")
+        self.assertEqual(data["reason"], "review-rejected")
+        self.assertIsNone(data["commit"])
+        self.assertIsNone(data["branch"])
+        self.assertEqual(harness._branches(self.inner.repo), [])
+        first = json.loads((receipt / "attempt-1" / "receipt.json").read_text(encoding="utf-8"))
+        self.assertEqual(first["model_review"]["verdict"], "reject")
+        self.assertNotEqual(first["model_review"]["verdict"], "accept")
+        self.inner.assert_clean_origin()
+
+    def test_reviewer_prompt_contains_the_changed_line(self):
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        proc, receipt = self._run(task, [{"mode": "fix"}])
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "PASS")
+        self.assertIsNotNone(data["commit"])
+        reviewed = [
+            json.dumps(payload)
+            for path, payload in self.inner.httpd.posts
+            if "chat" in path and "pfy-review-v1" in json.dumps(payload)
+        ]
+        self.assertEqual(len(reviewed), 1)
+        self.assertIn("return a + b", reviewed[0])
+        self.assertIn("-    return a + b + 1", reviewed[0])
         self.inner.assert_clean_origin()
