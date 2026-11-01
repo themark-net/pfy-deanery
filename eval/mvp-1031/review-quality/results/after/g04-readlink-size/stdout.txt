@@ -1,0 +1,2 @@
+I'll check the `home_sig` change against the task and the reject rules before giving a verdict.verdict: accept
+reasons: home_sig records symlinks with readlink, keeps regular-file size and mtime from lstat, and adds no content hash or other scope.

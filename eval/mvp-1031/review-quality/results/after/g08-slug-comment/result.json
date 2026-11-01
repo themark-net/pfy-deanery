@@ -1,0 +1,13 @@
+{
+  "id": "g08-slug-comment",
+  "expect": "accept",
+  "bug": "",
+  "status": "done",
+  "verdict": "accept",
+  "reasons": [
+    "The diff adds only the requested one-line comment above `_slug` and leaves the function unchanged."
+  ],
+  "elapsed_s": 12.269,
+  "grok_status": "done",
+  "code": 0
+}

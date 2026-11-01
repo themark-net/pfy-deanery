@@ -10,3 +10,5 @@ nice -n 19 python3 eval/mvp-1031/review-quality/run_review.py --round after
 ```
 
 Scratch for the grok cwd is `tmp/review-quality-cwd/` inside this worktree. Saved model text is redacted before it is written. `tests/test_review_quality_replay.py` replays fixture outputs, and recorded stdout when a round has been saved, through `parse_verdict` and the root-delete override.
+
+Before and after counts are in `REPORT.md`. Baseline false accepts: 3. After the `review_prompt` sentence: 0 false accepts and 0 false rejects.

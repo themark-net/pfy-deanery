@@ -1,0 +1,2 @@
+The truncation change looks like it can push the subject past 72 characters. I'll confirm that against the function before giving a verdict.verdict: reject
+reasons: Truncation slices 72 characters and then appends "...", so the subject can be 75 characters and exceeds the 72-character limit.

@@ -1,0 +1,13 @@
+{
+  "id": "b06-watch-ssh",
+  "expect": "reject",
+  "bug": "scope creep",
+  "status": "done",
+  "verdict": "reject",
+  "reasons": [
+    "The comment correctly says 1048576 bytes, but the diff also adds `.ssh` to the squadra watch tuple, which changes watched paths."
+  ],
+  "elapsed_s": 8.524,
+  "grok_status": "done",
+  "code": 0
+}

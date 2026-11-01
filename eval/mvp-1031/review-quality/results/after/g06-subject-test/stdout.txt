@@ -1,0 +1,2 @@
+verdict: accept
+reasons: The diff only adds tests/test_commit_subject_len.py, which checks that an 80-character word becomes a 72-character subject ending in three dots and that a 72-character subject is unchanged, without changing the runner or tripping any reject rule.
