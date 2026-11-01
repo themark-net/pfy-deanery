@@ -884,3 +884,37 @@ class ReviewLoopTests(unittest.TestCase):
         log = (receipt / "agent.log").read_text(encoding="utf-8")
         self.assertEqual(log.count("PFY_STUB_REPORT "), 1)
         self.inner.assert_clean_origin()
+
+    def test_gate_rewrite_of_reviewed_file_does_not_commit(self):
+        # The gate imports src.calc and the module appends a line the reviewer
+        # never saw. That line must not land in a commit.
+        body = (
+            "from pathlib import Path as _P\n"
+            "_p = _P(__file__)\n"
+            "_t = 'EV' + 'IL_' + 'GATE'\n"
+            "if _t not in _p.read_text():\n"
+            "    _p.write_text(_p.read_text() + _t + ' = 1\\n')\n"
+            "def add(a, b):\n"
+            "    return a + b\n"
+        )
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        proc, receipt = self._run(
+            task,
+            [{"mode": "fix", "write": {"src/calc.py": body}}],
+            extra=["--retries", "2"],
+        )
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "FAIL")
+        self.assertEqual(data["reason"], "gate-modified-reviewed-file")
+        self.assertEqual(data["attempts"], 1)
+        self.assertIsNone(data["commit"])
+        self.assertIsNone(data["branch"])
+        self.assertEqual(harness._branches(self.inner.repo), [])
+        self.assertFalse((receipt / "attempt-2").exists())
+        blob = json.dumps(self.inner.httpd.posts)
+        self.assertNotIn("EVIL_GATE = 1", blob)
+        for path in receipt.rglob("*"):
+            if path.is_file() and not path.is_symlink():
+                self.assertNotIn("EVIL_GATE = 1", path.read_text(encoding="utf-8", errors="replace"))
+        self.inner.assert_clean_origin()
