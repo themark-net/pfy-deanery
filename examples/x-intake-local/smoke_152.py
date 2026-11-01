@@ -22,6 +22,7 @@ import json
 import os
 import select
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -95,9 +96,31 @@ def child_env(tmp: Path) -> dict:
             "NO_COLOR": "1", "TERM": "dumb"}
 
 
+def kill_group(p: subprocess.Popen) -> None:
+    """SIGKILL the child's whole process group (start_new_session=True), so a sandboxed grandchild can't outlive us."""
+    try:
+        os.killpg(p.pid, signal.SIGKILL)
+    except (ProcessLookupError, PermissionError):
+        pass
+
+
+def run_group(cmd: list[str], env: dict, cwd: str, timeout: float) -> subprocess.CompletedProcess:
+    """subprocess.run, but the process group is killed on timeout and after exit (no orphans under bwrap)."""
+    p = subprocess.Popen(cmd, env=env, cwd=cwd, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE, text=True, start_new_session=True)
+    try:
+        out, err = p.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        kill_group(p)
+        p.communicate()
+        raise
+    finally:
+        kill_group(p)
+    return subprocess.CompletedProcess(cmd, p.returncode, out, err)
+
+
 def run(binary: str, args: list[str], tmp: Path, sandbox: bool, timeout: float) -> subprocess.CompletedProcess:
-    return subprocess.run(wrap([binary, *args], tmp, sandbox), env=child_env(tmp), capture_output=True, text=True,
-                          timeout=timeout, start_new_session=True, stdin=subprocess.DEVNULL, cwd=str(tmp))
+    return run_group(wrap([binary, *args], tmp, sandbox), child_env(tmp), str(tmp), timeout)
 
 
 class Mcp:
@@ -139,13 +162,16 @@ class Mcp:
             self.buf += chunk
 
     def close(self) -> int | None:
+        # The group kill runs on every path: killing only bwrap left the sandboxed server alive on nimo.
         try:
             self.p.stdin.close()
             return self.p.wait(timeout=max(1.0, min(10.0, self.deadline - time.monotonic())))
         except (OSError, subprocess.TimeoutExpired):
-            self.p.kill()
+            kill_group(self.p)
             self.p.wait()
             return None
+        finally:
+            kill_group(self.p)
 
 
 def tool_text(reply: dict) -> tuple[bool, str]:

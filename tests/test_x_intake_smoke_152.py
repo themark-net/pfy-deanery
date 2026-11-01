@@ -1,5 +1,5 @@
 """Entry 152 smoke (Kanzo): a missing binary, a version mismatch and a bad timeout exit 2; a failing init, a missing
-core MCP tool, a task the MCP server reports but never stores, a server that never replies (timeout), an export
+core MCP tool, a task the MCP server reports but never stores, a server that never replies (timeout, and it must not outlive the smoke), an export
 without the task, a write outside --home, or a write into the real HOME FAILs; a correct stub PASSes, including one
 that emits unrelated lines before its replies. The stub is a tiny Python `kanzo` (shebang = this interpreter) that
 keeps the board in a JSON file under --home; receipts go to a temp dir."""
@@ -88,6 +88,25 @@ sys.exit(0)
 '''
 
 
+def survivors_of(path: str) -> list[int]:
+    """Live pids whose argv mentions the stub path; any found are killed so a failing test can't leak them."""
+    found = []
+    for d in Path("/proc").iterdir():
+        if not d.name.isdigit():
+            continue
+        try:
+            argv = (d / "cmdline").read_bytes().split(b"\0")
+        except OSError:
+            continue
+        if path.encode() in argv:
+            found.append(int(d.name))
+            try:
+                os.kill(int(d.name), 9)
+            except OSError:
+                pass
+    return found
+
+
 class Smoke152(unittest.TestCase):
     def run_smoke(self, knobs=None, env=None):
         with tempfile.TemporaryDirectory() as td:
@@ -108,6 +127,8 @@ class Smoke152(unittest.TestCase):
             env2.update(env or {})
             p = subprocess.run([sys.executable, str(SCRIPT)], env=env2, capture_output=True, text=True, timeout=120)
             rec = json.loads((td / "r" / "latest.json").read_text())
+            survivors = survivors_of(str(td / "kanzo"))
+            self.assertEqual(survivors, [], "stub kanzo outlived the smoke (orphan)")
             return p.returncode, rec
 
     def test_pass(self):
