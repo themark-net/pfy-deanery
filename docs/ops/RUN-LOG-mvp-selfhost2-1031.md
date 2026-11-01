@@ -60,3 +60,4 @@ Survey skips, recorded before item 01, not a no-progress streak: T-0091 voice sh
 07 adapter-symlink-ops | e6339ca | tests.test_adapter_symlink_file_ops tests.test_adapter_tree_hash_symlink 2 OK on Python 3.14 and 3.12 | PASS receipt, attempts 1, wall 174s, review accept, human accept. Cloud SHA e762c1a.
 08 surface-symlink | 67e3333 | tests.test_harness2_surface_symlink tests.test_harness2_local_surface 6 OK on Python 3.14 and 3.12 | PASS receipt, attempts 1, wall 360s, review accept, human accept. Cloud SHA dff338c.
 09 install-symlink | d217349 | tests.test_adapter_install_symlink tests.test_adapter_tree_hash_symlink tests.test_adapter_symlink_file_ops 3 OK on Python 3.14 and 3.12 | PASS receipt, attempts 1, wall 108s, review accept, human accept. Cloud SHA 89b35a5.
+10 hedge-ledger | 3eeab42 | tests.test_hedge_ledger_symlink tests.test_hedge 17 OK on Python 3.14 and 3.12 | PASS receipt, attempts 1, wall 132s, review accept, human accept. Cloud SHA e8cc4f3.
