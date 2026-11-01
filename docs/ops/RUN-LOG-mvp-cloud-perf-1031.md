@@ -72,4 +72,5 @@ item | commit | tests | result
 exits | 11cf824 | none (docs before code) | pushed
 survey | (recorded in the phase-timing commit) | read-only receipt scan plus git bench | no phase keys; git under 0.2s; discover skipped, lock busy
 phase-timing | bce574b | nice -n 19 python3 -m unittest tests.test_pfy_build_phase_clock (4 OK, 5.719s) and tests.test_pfy_build_cloud (61 OK, 22.261s) | pushed
+cut-a | 11bcb7d | nice -n 19 python3 -m unittest tests.test_pfy_build_phase_clock (7 OK, 9.272s) and tests.test_pfy_build_cloud (61 OK, 14.549s) | pushed
 ```
