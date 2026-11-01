@@ -70,3 +70,23 @@ Exit card and phase plan written before the diff review and before any product c
 Parallel product sub-agents are not used for fixes. Fixes share this branch and must commit and push one at a time. Read-only review sub-agents may split the diff after fetch-scope. The lead writes the findings table.
 
 prior-state: DONE | tests: none (docs only) | files: 2 | err: none
+
+exits | 5b0e04f | none (docs only) | pushed
+
+### fetch-scope
+
+Checked 2026-11-01T00:36Z. `origin/bot/mvp-integrate-1031` is `1dee0b9`. This branch was `0e32915` (drop-in) and is now `5b0e04f` (exit card) on top of that tip. `origin/main` is `c0d38af`, which is the merge base. Three-dot range is 522 commits, 619 files, 40387 insertions, 555 deletions. `docs/ops/REVIEW-pass3-1031.md` is absent on the base and on `origin/main`.
+
+Runtime delta: `scripts/pfy_build_cloud.py` (+1562), `scripts/pfy_build_local.py` (+1564, review code is cross-lane, do not edit), `scripts/check_workflow_image_pin.py` (+274), `pfylib/attach.py` (+186), plus smaller edits in `pfylib/build_preflight.py`, `scripts/pfy`, `scripts/pregate.sh`, `scripts/pfy_local_build_eval.py`, `scripts/catalog_stage_eval.py`. 389 of the 619 paths are under `eval/`.
+
+Host still under the pressure line at fetch time (same boot, load was 2.82 on 32 cores, MemAvailable about 70.9 GiB). Wall cap has not fired.
+
+Live lanes at review time, from their drop-ins, not by signaling them: mvp3 and mvp-probe-fix2 own `scripts/pfy_build_local.py`. mvp-timeoutfix and mvp-cloud-perf own `scripts/pfy_build_cloud.py`. Findings in those files are cross-lane.
+
+fetch-scope | 5b0e04f | none (read only) | 619 files, review file absent on base and main
+
+### review
+
+Findings are in `docs/ops/REVIEW-pass3-1031.md`. Seven rows. Two S rows are in `scripts/check_workflow_image_pin.py` and will be fixed here. The B rows and the cloud S/N rows stay cross-lane.
+
+Host before the review commit: MemAvailable about 68 GiB, load about 3.8 on 32 cores. Wall cap 2026-11-01T08:15:37Z has not fired.
