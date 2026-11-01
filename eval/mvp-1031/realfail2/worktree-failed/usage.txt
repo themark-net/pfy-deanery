@@ -1,0 +1,10 @@
+
+Daily cloud build.
+
+  ./pfy build "<task>"
+
+-p is the jev dogfood wrap (./pfy build -p "<prompt>").
+--local is the opt-in fallback (./pfy build --local "<task>").
+
+usage: ./pfy build "<task>"
+base ref not found: does-not-exist-realfail2-1031

@@ -1,0 +1,13 @@
+{
+  "caller_unchanged": true,
+  "cloud_branch_count": 1,
+  "marker_in_receipt": false,
+  "marker_in_tail": false,
+  "marker_in_task": false,
+  "process_exit": 0,
+  "reason": "ok",
+  "runner_sha": "84f1ff9a06606a6d73e96e1342efab26b15722b8",
+  "scrubbed": [],
+  "status": "PASS",
+  "worktree_still_present": false
+}

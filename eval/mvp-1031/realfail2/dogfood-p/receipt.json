@@ -1,0 +1,16 @@
+{
+  "schema": "pfy-realfail2-observe/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "attempts": [],
+  "recovery": "",
+  "events": [
+    "start",
+    "toolset_apply",
+    "decision_smoke",
+    "decision_route_shadow",
+    "grok_p",
+    "done"
+  ]
+}
