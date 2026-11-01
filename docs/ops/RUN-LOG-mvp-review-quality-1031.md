@@ -56,6 +56,6 @@ exits | ebeaa55 | docs only | pass
 planted-set | 575c5cc | nice -n 19 python3 -m unittest tests.test_review_quality_replay (5 ok) | pass
 baseline | 6f64c19 | real grok, 20 cases, false accept 3, false reject 0, errors 0 after the b01 retry | pass
 prompt | 67e7a4a | nice -n 19 python3 -m unittest tests.test_review_quality_replay tests.test_pfy_build_cloud (68 ok) | pass
-remeasure | this commit | real grok, 20 cases, false accept 0, false reject 0, errors 0 | pass
+remeasure | a883cc3 | real grok, 20 cases, false accept 0, false reject 0, errors 0 | pass
 
 state: DONE | false accept 3 to 0, false reject 0 to 0 | tests.test_review_quality_replay 7 ok after both rounds | lane empty, no further review item in owned files

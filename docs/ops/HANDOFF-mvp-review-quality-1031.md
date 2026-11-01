@@ -10,7 +10,7 @@ Branch `bot/mvp-review-quality-1031`. Base `origin/bot/mvp-integrate-1031` at `f
 | Planted set | `575c5cc` | 10 bad and 10 good diffs, harness, replay test |
 | Baseline | `6f64c19` | Real grok. False accept 3, false reject 0 |
 | Prompt | `67e7a4a` | `review_prompt` names hash drops, assertion deletes, and token prints |
-| Remeasure and report | this commit | False accept 0, false reject 0. `eval/mvp-1031/review-quality/REPORT.md` |
+| Remeasure and report | `a883cc3` | False accept 0, false reject 0. `eval/mvp-1031/review-quality/REPORT.md` |
 
 ## Skipped
 
