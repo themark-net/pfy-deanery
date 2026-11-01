@@ -31,6 +31,25 @@ If continue or agent-cage is the active harness: FAIL and copy `pfy harness use 
 
 Tauri is primary when `gui/operator/src-tauri/target/{release,debug}/pfy-operator` exists. Else already-on-box webkit (`scripts/pfy-gui.py`). Else stdlib tk with the same IA (Loop local/cloud + modules → Launch session, engine status, env-stage, Attach tab for grok / opencode sidecar). pywebview is PFY_GUI_DEV=1 only. The window always opens; not install-tips-as-UI.
 
+## Daily build
+
+Headless cloud build. Review stays on. Nothing is pushed.
+
+```bash
+./pfy build "<task>"
+```
+
+`./pfy build` with no task exits 2 and prints that command. `./pfy build --help` is the flag list. A dry-run (`./pfy build "<task>" --dry-run`) checks the defaults without calling grok:
+
+- Repo: the git toplevel of the current directory. Pass `--repo DIR` to build a different repo. This is not "whatever directory contains the `pfy` script" unless that directory is the current one.
+- Base: `origin/main` when that ref exists, otherwise `HEAD`. Pass `--base REF` to pick another ref. A clone of one non-main branch often has no `origin/main`, so the base is `HEAD`.
+- Gate: `python3 -m unittest discover -s tests -t .`. In this repository that is the full suite. For a small task, pass `--repo` and `--test-cmd`. Worked example: [eval/mvp-1031/README.md](eval/mvp-1031/README.md).
+- One grok call waits up to 1200 seconds (`--timeout`). `--retries` defaults to 2, so 3 attempts. `--no-review` skips the review call.
+- `grok` must already be on `PATH` and logged in (`grok login`). This command does not read `auth.json` and does not load `.env`. It does not start a local model. `--local` is opt-in. `-p` is the jev dogfood wrap, not the daily command.
+- A PASS leaves branch `cloud/<slug>-<stamp>` and `pipelines/dogfood/build-cloud/<stamp>/receipt.json` in the target repo. The caller branch stays as it was. Nothing is pushed.
+
+Operator card: [docs/ops/pfy-build-daily.md](docs/ops/pfy-build-daily.md). Module map: [docs/modules/pfy-build.md](docs/modules/pfy-build.md). Where those two disagree with `./pfy build --help` on the default repo, trust the help text.
+
 ## What it is
 
 - A living, gate-checked catalog of local LLM dev tools, frameworks, patterns, and methods.
@@ -197,6 +216,8 @@ make env-init                 # creates .env from example (gitignored)
 # edit .env: DEPLOY_PROFILE=local-only|balanced|max-performance + secrets
 make env-check                # validates required vars for profile
 ```
+
+Daily headless build is the [Daily build](#daily-build) section above. `make env-init` does not log grok in. `grok login` does. `./pfy build` does not load `.env`.
 
 | Profile | Intent |
 |---------|--------|

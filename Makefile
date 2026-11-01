@@ -32,6 +32,7 @@ help:
 	@echo ""
 	@echo "Product:"
 	@echo "  ./pfy setup                 attach this stack to a project"
+	@echo "  ./pfy build <task>          daily cloud build, review on, no push"
 	@echo "  ./pfy stage                 local env check"
 	@echo "  ./pfy ship                  verify; push if PRODUCT_REMOTE is set"
 	@echo "  make project-onboard DIR=path"
