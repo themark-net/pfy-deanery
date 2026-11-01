@@ -59,3 +59,6 @@ merge-cloudfix-2 | c9bef6c | docs only on their side | PASS merge of origin/bot/
 dogfood2-F3 | 270f75f | tests.test_pfy_build_cloud tests.test_pfy_build_p 81 OK skipped 1 in 24.849s | PASS review-rejected attempt keeps a unified diff after the worktree is removed
 poll-0026Z | none | read-only | dogfood2 bea476d adds run 09 PASS, no new finding id. gom still 88a841b. selfhost2 16c59c2 records kolibri archive recheck walking into the caller repo. That finding resets the quiet clock.
 selfhost2-kolibri-recheck | ff6b855 | tests.test_pfy_build_cloud tests.test_pfy_build_p exit 0; new test red first (exit 1 commit-recheck-failed) then green; helper recheck test still green | PASS recheck git toplevel is the extract. Quiet clock restarts 2026-11-01T00:29Z. Next poll 00:49Z.
+skip-gom-tamper-usage | none | not run | SKIP the rest of wave 5 #1. Hash on base tests already stays. A usage note for a task that should add a test needs an OQ, not a heuristic.
+skip-gate-allowlist | none | not run | SKIP. Gate denylist already hides secret-like names. A PATH/TMPDIR allowlist would break venv gates. OQ in the handoff.
+cross-lane-timeout-docs | none | not run | NOT EDITED. mvp-surface owns pfy-build.md and pfy-build-daily.md. --timeout wording drifts from the run budget. Request in the handoff.
