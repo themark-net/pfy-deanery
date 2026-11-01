@@ -931,23 +931,50 @@ def _protected(path: str, patterns: list[str]) -> bool:
     return False
 
 
+def _nul_fields(blob: str) -> list[str]:
+    parts = (blob or "").split("\0")
+    if parts and parts[-1] == "":
+        parts.pop()
+    return parts
+
+
+def _skip_listed(name: str) -> bool:
+    if not name or name == "tmp" or name.startswith("tmp/"):
+        return True
+    if name.startswith("__pycache__/") or name.endswith(".pyc") or "/__pycache__/" in name:
+        return True
+    return False
+
+
 def files_changed(worktree: Path, env: dict) -> list[str]:
-    proc = _git(worktree, ["status", "--porcelain", "-uall"], env=env)
+    """Changed paths from porcelain -z. Names are not C-quoted.
+
+    A rename record is the new path, then the old path. Both are kept so the
+    deletion is reviewed. A copy record keeps only the new path.
+    """
+    proc = _git(worktree, ["status", "--porcelain", "-z", "-uall"], env=env)
+    parts = _nul_fields(proc.stdout or "")
     found = []
-    for line in (proc.stdout or "").splitlines():
-        if len(line) < 4:
+    i = 0
+    while i < len(parts):
+        rec = parts[i]
+        i += 1
+        if len(rec) < 4:
             continue
-        path = line[3:].strip()
-        if " -> " in path:
-            path = path.split(" -> ", 1)[1].strip()
-        if path.startswith('"') and path.endswith('"'):
-            path = path[1:-1]
-        path = path.replace("\\", "/")
-        if path == "tmp" or path.startswith("tmp/"):
-            continue
-        if path.startswith("__pycache__/") or path.endswith(".pyc") or "/__pycache__/" in path:
-            continue
-        found.append(path)
+        xy = rec[:2]
+        path = rec[3:]
+        extra = None
+        if "R" in xy or "C" in xy:
+            if i < len(parts):
+                extra = parts[i]
+                i += 1
+        names = [path]
+        if extra is not None and "R" in xy:
+            names.append(extra)
+        for name in names:
+            if _skip_listed(name):
+                continue
+            found.append(name)
     return found
 
 
@@ -2422,14 +2449,18 @@ def _synthetic_new_diff(rel: str, lines: list[str]) -> str:
 
 
 def _collect_diff(worktree: Path, env: dict, paths: list[str]) -> tuple[str, dict]:
-    proc = _git(worktree, ["diff", "HEAD", "--"], env=env)
+    proc = _git(worktree, ["-c", "core.quotepath=false", "diff", "HEAD", "--"], env=env)
     text = proc.stdout or ""
-    num = _git(worktree, ["diff", "HEAD", "--numstat"], env=env)
+    num = _git(worktree, ["-c", "core.quotepath=false", "diff", "HEAD", "--numstat", "-z"], env=env)
     added = 0
     removed = 0
     seen: set[str] = set()
-    for line in (num.stdout or "").splitlines():
-        parts = line.split("\t")
+    fields = _nul_fields(num.stdout or "")
+    index = 0
+    while index < len(fields):
+        rec = fields[index]
+        index += 1
+        parts = rec.split("\t")
         if len(parts) < 3:
             continue
         if parts[0] != "-":
@@ -2442,7 +2473,14 @@ def _collect_diff(worktree: Path, env: dict, paths: list[str]) -> tuple[str, dic
                 removed += int(parts[1])
             except ValueError:
                 pass
-        seen.add(parts[2].replace("\\", "/"))
+        # A rename or copy is added, removed, empty path, then old NUL new.
+        path = "\t".join(parts[2:])
+        if path == "" and index + 1 < len(fields):
+            seen.add(fields[index])
+            seen.add(fields[index + 1])
+            index += 2
+        elif path:
+            seen.add(path)
     for rel in paths:
         norm = _norm_rel(rel)
         if not norm or norm in seen:

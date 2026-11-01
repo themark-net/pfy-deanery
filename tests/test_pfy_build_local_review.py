@@ -1045,3 +1045,40 @@ class ReviewLoopTests(unittest.TestCase):
             ["A\tsrc/new.py", "D\tsrc/old.py", "M\tsrc/calc.py"],
         )
         self.inner.assert_clean_origin()
+
+    def test_unicode_path_in_scope_is_committed(self):
+        name = "src/café.py"
+        task = "fix add so one plus one is two\nfiles: src/calc.py, src/café.py\n"
+        proc, receipt = self._run(
+            task,
+            [{"mode": "fix", "write": {name: "N = 1\n"}}],
+        )
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "PASS")
+        self.assertIn(name, data["files_changed"])
+        self.assertFalse(any("caf/" in path for path in data["files_changed"]))
+        shown = subprocess.check_output(
+            [
+                "git",
+                "-C",
+                str(self.inner.repo),
+                "-c",
+                "core.quotepath=false",
+                "ls-tree",
+                "-r",
+                "--name-only",
+                data["commit"],
+            ],
+            text=True,
+        )
+        self.assertIn(name, shown.splitlines())
+        reviewed = [
+            payload["messages"][0]["content"]
+            for path, payload in self.inner.httpd.posts
+            if "chat" in path and isinstance(payload, dict) and "pfy-review-v1" in json.dumps(payload)
+        ]
+        self.assertTrue(reviewed)
+        self.assertIn("café", reviewed[0])
+        self.assertNotIn("\\303", reviewed[0])
+        self.inner.assert_clean_origin()
