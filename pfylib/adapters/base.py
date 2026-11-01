@@ -263,7 +263,12 @@ def remove_created_file(path: Path, sha: str, item_id: str, kind: str) -> str:
     """Drop a file pfy created, or only its entry when other content remains.
 
     The ledger hash must still match. A mismatch is a user edit: leave the file.
+    A symlink, including a broken link or a link to an unreadable file, is left
+    in place and reported as warn. is_symlink is checked before exists or is_file
+    because those follow the link.
     """
+    if path.is_symlink():
+        return "warn"
     if not path.exists():
         return "absent"
     if not path.is_file() or file_sha(path) != sha:
@@ -282,7 +287,13 @@ def remove_created_file(path: Path, sha: str, item_id: str, kind: str) -> str:
 
 
 def restore_file(path: Path, backup: str, sha: str) -> str:
-    """Copy the backup back when the live hash still matches, then delete that backup."""
+    """Copy the backup back when the live hash still matches, then delete that backup.
+
+    A symlink live path or backup is left untouched and reported as warn.
+    is_symlink is checked before is_file because is_file follows the link.
+    """
+    if path.is_symlink():
+        return "warn"
     if not path.is_file():
         return "absent"
     if file_sha(path) != sha:
@@ -290,6 +301,8 @@ def restore_file(path: Path, backup: str, sha: str) -> str:
     if not backup:
         return "warn"
     bpath = Path(backup)
+    if bpath.is_symlink():
+        return "warn"
     if not bpath.is_file():
         return "warn"
     data = bpath.read_bytes()
