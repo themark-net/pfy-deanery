@@ -55,3 +55,5 @@ row07-timeout | dd807fc | tests.test_pfy_build_cloud tests.test_pfy_build_p 79 O
 already-on-integrate | 3076762 | not reimplemented | dogfood2 F1 (commit subject), gom wave 5 #2 gate-unusable on the default unittest command, #3 resolve_base, #4 redact short fixture values, #5 gate env denylist, #6 commit subject. Confirmed on the merged tree.
 poll-0018Z | none | read-only | dogfood2 b90ae61 (run 08 PASS, findings still F1-F3), gom 88a841b, selfhost2 1b7722d, cloudfix 8047018. No new cloud-runner finding. Quiet clock starts 2026-11-01T00:18Z. Next poll due 00:38Z. F2 and F3 remain.
 dogfood2-F2 | a450f5b | tests.test_pfy_build_cloud tests.test_pfy_build_p 80 OK skipped 1 in 24.776s | PASS review.truncated matches the review prompt cut marker (false under the cap, true past it)
+merge-cloudfix-2 | c9bef6c | docs only on their side | PASS merge of origin/bot/mvp-cloudfix-1031 at 10b4f5b (handoff, no runner change) before the F2 push
+dogfood2-F3 | 270f75f | tests.test_pfy_build_cloud tests.test_pfy_build_p 81 OK skipped 1 in 24.849s | PASS review-rejected attempt keeps a unified diff after the worktree is removed
