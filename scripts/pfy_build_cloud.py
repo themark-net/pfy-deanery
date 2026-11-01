@@ -989,6 +989,33 @@ class CloudBuild:
             )
             if extracted.returncode != 0:
                 return "commit-recheck-failed", "extract failed"
+            # The extract has no .git. Without one, git walks up to the caller
+            # repo and a gate that runs git sees the parent tree. A nested
+            # repo whose index is the archive keeps that walk inside the extract.
+            hooks = dest.parent / ("recheck-hooks-" + sha[:12])
+            hooks.mkdir(parents=True, exist_ok=True)
+            git_base = [
+                "git",
+                "-C",
+                str(dest),
+                "-c",
+                "user.name=%s" % AUTHOR_NAME,
+                "-c",
+                "user.email=%s" % AUTHOR_EMAIL,
+                "-c",
+                "commit.gpgsign=false",
+                "-c",
+                "core.hooksPath=%s" % hooks,
+            ]
+            init = subprocess.run([*git_base, "init", "-q"], capture_output=True, check=False)
+            added = subprocess.run([*git_base, "add", "-A"], capture_output=True, check=False)
+            committed = subprocess.run(
+                [*git_base, "commit", "-q", "--allow-empty", "-m", "recheck"],
+                capture_output=True,
+                check=False,
+            )
+            if init.returncode != 0 or added.returncode != 0 or committed.returncode != 0:
+                return "commit-recheck-failed", "extract failed"
             again = self.gate(dest)
             tail = str(again.get("tail") or "")
             if again.get("aborted") == "timeout":
@@ -1000,6 +1027,7 @@ class CloudBuild:
             return None, tail
         finally:
             shutil.rmtree(dest, ignore_errors=True)
+            shutil.rmtree(dest.parent / ("recheck-hooks-" + sha[:12]), ignore_errors=True)
 
     def grok_call(self, prompt: str) -> tuple[str, int, str, str]:
         if not self.grok:

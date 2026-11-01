@@ -1228,6 +1228,59 @@ class CloudBuildNoChangeTests(unittest.TestCase):
         self.assertNotIn("import helper", shown.stdout)
         self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
 
+    def test_recheck_git_does_not_walk_up_to_the_caller_repo(self) -> None:
+        """The archive recheck is its own checkout, not the parent repo.
+
+        Selfhost2 kolibri: the extract has no .git, so git ls-files walked up
+        to the caller repo and the gate failed after review had accepted.
+        Recovery is a recheck whose toplevel is the extract and whose index
+        is the committed tree. A walk-up fails the gate and keeps no branch.
+        """
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\n"
+            "import os, subprocess\n"
+            "top = subprocess.run(['git', 'rev-parse', '--show-toplevel'], capture_output=True, text=True)\n"
+            "if top.returncode != 0:\n"
+            "    print('NO-GIT')\n"
+            "    print(top.stderr)\n"
+            "    raise SystemExit(1)\n"
+            "root = os.path.realpath(top.stdout.strip())\n"
+            "here = os.path.realpath(os.getcwd())\n"
+            "if root != here:\n"
+            "    print('PARENT-GIT')\n"
+            "    print(root)\n"
+            "    raise SystemExit(1)\n"
+            "if not os.path.isfile('kept.py'):\n"
+            "    print('NO-KEPT')\n"
+            "    raise SystemExit(1)\n"
+            "print('GATE-OK')\n"
+            "raise SystemExit(0)\n",
+        )
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        proc = self._run_task(grok, gate, "add kept value", "0", extra=["--no-review"])
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        self.assertNotIn("PARENT-GIT", text)
+        self.assertNotIn("NO-GIT", text)
+        match = re.search(r"PASS ok branch=(\S+) receipt=(\S+)", proc.stdout or "")
+        self.assertIsNotNone(match, text)
+        branch = match.group(1)
+        payload = json.loads(Path(match.group(2)).read_text(encoding="utf-8"))
+        self.assertEqual(payload["status"], "PASS")
+        self.assertEqual(payload["reason"], "ok")
+        names = _git(self.repo, "ls-tree", "-r", "--name-only", branch).stdout.splitlines()
+        self.assertIn("kept.py", names)
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+        self.assertFalse(any(self.repo.joinpath("tmp").glob("recheck-*")))
+
 
 def _dead(pid: int) -> bool:
     if pid <= 0:
