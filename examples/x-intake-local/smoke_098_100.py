@@ -8,7 +8,7 @@ the check failed, 2 = can't run here (prereq missing; reason recorded). Writes p
 Never installs or downloads anything; every scratch file goes to a fresh tempfile directory that is removed.
 
 PFY_XINTAKE_TIMEOUT (float seconds, must be > 0) overrides the sponsio, opensteps, and repoharness tool
-timeouts. Empty or invalid keeps the defaults: 120s sponsio and repoharness, 60s opensteps hooks. Git keeps the
+timeouts. Empty keeps the defaults: 120s sponsio and repoharness, 60s opensteps hooks. Any other set value (abc, 0, -1, nan, inf) exits 2 before the entry runs. Git keeps the
 parent env. Sponsio, opensteps hooks, and repoharness drop paid-provider keys and token-like names and get a fresh temp HOME.
 
   sponsio      $SPONSIO_PY or ~/DEVELOP/pfy-mentat/tmp/sponsio/.venv/bin/python with `sponsio` importable.
@@ -30,6 +30,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 import shutil
 import subprocess
@@ -66,6 +67,23 @@ def xintake_timeout(default: float) -> float:
     if not value > 0:
         return default
     return value
+
+
+def timeout_problem() -> str | None:
+    """PFY_XINTAKE_TIMEOUT must be a finite number of seconds > 0 when set; xintake_timeout() would quietly use the default instead."""
+    raw = os.environ.get("PFY_XINTAKE_TIMEOUT", "")
+    if raw is None:
+        return None
+    raw = raw.strip()
+    if not raw:
+        return None
+    try:
+        v = float(raw)
+    except ValueError:
+        v = math.nan
+    if math.isfinite(v) and v > 0:
+        return None
+    return f"PFY_XINTAKE_TIMEOUT={raw[:40]!r} is not a number of seconds > 0"
 
 
 def sha256_file(path: str) -> str:
@@ -280,6 +298,10 @@ def main() -> int:
     ap.add_argument("--entry", required=True, choices=["sponsio", "opensteps", "repoharness"])
     a = ap.parse_args()
     receipt = {"entry": a.entry, "started": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "host": os.uname().nodename}
+    bad = timeout_problem()
+    if bad:
+        receipt["reason"] = bad
+        return write(a.entry, receipt, 2)
     code = {"sponsio": smoke_sponsio, "opensteps": smoke_opensteps, "repoharness": smoke_repoharness}[a.entry](receipt)
     return write(a.entry, receipt, code)
 

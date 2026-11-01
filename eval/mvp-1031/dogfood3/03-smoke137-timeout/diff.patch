@@ -1,0 +1,34 @@
+diff --git a/examples/x-intake-local/smoke_137_139.py b/examples/x-intake-local/smoke_137_139.py
+index ee26f02..066e357 100644
+--- a/examples/x-intake-local/smoke_137_139.py
++++ b/examples/x-intake-local/smoke_137_139.py
+@@ -10,7 +10,8 @@ env limited to PATH/HOME/TERM/LANG/NO_COLOR plus the variables named below; noth
+ provider key is ever seen; a timeout SIGKILLs the process group, grandchildren included) under bwrap with no network
+ when bwrap works. No smoke calls a model, starts a server, runs an installer (`install.sh`, `neatroots connect`,
+ `hermes plugins install`, `opencode-skill-creator install`) or touches Hermes or OpenCode config. PFY_XINTAKE_TIMEOUT
+-(float seconds, > 0) overrides the 600s per-command timeout.
++(float seconds, > 0) overrides the 600s per-command timeout. Any other value (abc, 0, -1,
++nan, inf) exits 2 before the entry runs.
+ Real HOME: each entry fingerprints the real-HOME paths the tool could write (neatroots: ~/.neatroots, its default app,
+ data and checks dir; teammates: ~/.hermes/plugin-data/hermes-teammates, its default ledger dir; skillcreator:
+ ~/.config/opencode/skills/opencode-skill-creator, ~/.config/opencode/opencode-skill-creator-update-check.json and
+@@ -66,7 +67,7 @@ import time
+ from pathlib import Path
+ 
+ from smoke import TMP, find_bin, pinned, run_isolated, timeout_reason, write
+-from smoke_128_130 import as_json, finish, home_sig, pkg_version, tmo
++from smoke_128_130 import as_json, finish, home_sig, pkg_version, timeout_problem, tmo
+ 
+ NR_PIN = "0.2.9"
+ HT_PIN = "1.1.0"
+@@ -513,6 +514,10 @@ def main() -> int:
+     receipt = {"entry": a.entry, "script": "examples/x-intake-local/smoke_137_139.py",
+                "started": time.strftime("%Y-%m-%dT%H:%M:%S%z")}
+     fn = {"neatroots": smoke_neatroots, "teammates": smoke_teammates, "skillcreator": smoke_skillcreator}[a.entry]
++    bad = timeout_problem()
++    if bad:
++        receipt["reason"] = bad
++        return write(a.entry, receipt, 2)
+     try:
+         code = fn(receipt)
+     except Exception as e:  # TimeoutError or any crash still writes a FAIL receipt (watched() saved the checks)

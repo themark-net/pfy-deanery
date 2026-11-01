@@ -7,7 +7,7 @@ Same contract and receipts as smoke.py next to it (whose helpers it reuses): exi
 the check failed, 2 = can't run here (prereq missing; reason recorded). Writes pipelines/smoke/<entry>/latest.json.
 Never installs or downloads anything; every scratch file goes to a fresh tempfile directory that is removed.
 Tool subprocesses get a fresh temp HOME. PFY_XINTAKE_TIMEOUT (float seconds, > 0) overrides the tool timeouts
-(defaults: 120s bugpatrol explore, 60s graphjin startup); empty or invalid keeps the defaults.
+(defaults: 120s bugpatrol explore, 60s graphjin startup); Empty keeps the defaults. Any other set value (abc, 0, -1, nan, inf) exits 2 before the entry runs.
 
   bugpatrol  $BUGPATROL_BIN or ~/DEVELOP/pfy-mentat/tmp/bugpatrol/node_modules/.bin/bugpatrol (npm --prefix install),
              plus Node 22+ from $BUGPATROL_NODE, ~/DEVELOP/pfy-mentat/tmp/bugpatrol/node/bin/node, or PATH; and git.
@@ -32,6 +32,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 import re
 import shutil
@@ -60,6 +61,21 @@ def xintake_timeout(default: float) -> float:
     except ValueError:
         return default
     return value if value > 0 else default
+
+
+def timeout_problem() -> str | None:
+    """PFY_XINTAKE_TIMEOUT must be a finite number of seconds > 0 when set; xintake_timeout() would quietly use the default instead."""
+    raw = os.environ.get("PFY_XINTAKE_TIMEOUT", "")
+    if not raw or not raw.strip():
+        return None
+    raw = raw.strip()
+    try:
+        v = float(raw)
+    except ValueError:
+        v = math.nan
+    if math.isfinite(v) and v > 0:
+        return None
+    return f"PFY_XINTAKE_TIMEOUT={raw[:40]!r} is not a number of seconds > 0"
 
 
 def sha256_file(path: str) -> str:
@@ -448,6 +464,10 @@ def main() -> int:
     ap.add_argument("--entry", required=True, choices=["bugpatrol", "graphjin", "antislop"])
     a = ap.parse_args()
     receipt = {"entry": a.entry, "started": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "host": os.uname().nodename}
+    bad = timeout_problem()
+    if bad:
+        receipt["reason"] = bad
+        return write(a.entry, receipt, 2)
     code = {"bugpatrol": smoke_bugpatrol, "graphjin": smoke_graphjin, "antislop": smoke_antislop}[a.entry](receipt)
     return write(a.entry, receipt, code)
 
