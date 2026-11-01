@@ -70,3 +70,84 @@ Exit card and phase plan written before the merge and before any product code. S
 Parallel coding sub-agents are not used. They would share this branch. The lead implements the phases in order.
 
 state: DONE | tests: none (docs only) | files: 2 | err: none
+
+### merge-base
+
+`git fetch origin && git merge --no-edit origin/bot/mvp-review-fix2-1031` at planning time brought `23ea0cd` (eval scratch stays in the script repo). Merge commit `cdcd017`. Pushed.
+
+The tip moved during the exit card. A second merge brought `187efde` (review module runs with bwrap hidden). Merge commit `1ee80a3`. Pushed. The runner file did not change. `tests/test_pfy_build_local_review_ci.py` is now in the required glob.
+
+Host still under the pressure line at the harness item (the long suite has not started). Wall cap remains 2026-11-01T05:16:00Z.
+
+state: DONE | tests: none (merge) | files: merge | err: none
+
+### harness
+
+`eval/mutation-1031/review/run_mutants.py` applies one catalog mutant at a time on a clone under this worktree `tmp/`. Default invocation only checks anchors. `--run` clones and executes the suite, niced, with `TMPDIR` under `tmp/`. A missing anchor is `not-applied`. A timeout is not a kill. A red baseline is skipped per module and is not scored as kills. The worktree runner is a protected file.
+
+How it fails: a mutant is written into the worktree runner, a hung suite is called killed, or a red baseline is scored as a kill.
+
+How we recover: the harness refuses a protected path and a clone outside `tmp/`. The campaign restores the clone file in `finally`. A timeout kills only the suite process group this run started. A red baseline records the module and skips scoring.
+
+item | commit | tests | result
+harness | 80b5aec | nice python3 -m unittest tests.test_mut_review_harness | Ran 5 tests in 2.414s OK
+
+state: DONE | tests: tests.test_mut_review_harness OK | files: 4 | err: none
+
+### merge-before-campaign
+
+`origin/bot/mvp-review-fix2-1031` moved to `b483166` (gate_unsandboxed only when bwrap is missing) plus its handoff. Merge commit `3396ee7`. Anchors still match. Harness tests re-run: 5 tests OK in 2.439s. Pushed.
+
+Host before the campaign: MemAvailable about 57.6 GiB, load 4.09, nproc 32. Under the pressure line.
+
+state: DONE | tests: tests.test_mut_review_harness OK | files: merge | err: none
+
+### catalog-and-first-run
+
+One clone under `tmp/mutation-1031/review-clone`. Baseline 80 tests in 146.235s OK. No module was red. No test was excluded (none call a model). 14 mutants, about 147s each. Wall about 38 minutes. The worktree runner matched HEAD after the run. The clone file was restored.
+
+Killed: R1, R2, R3, R4 (M4), R5 (M7), R6, R10, R11, R12, R13, R14.
+Survived: R7 file cap off by one, R8 line cap off by one, R9 size cap removed.
+
+item | commit | tests | result
+catalog-and-first-run | e9e532c | nice python3 eval/mutation-1031/review/run_mutants.py --run --timeout 420 | baseline OK, 11 killed, 3 survived, exit 0
+
+state: DONE | tests: mutation campaign exit 0 | files: 2 | err: none
+
+### survivor-tests
+
+`tests/test_mut_review_size_cap.py` rejects a green patch of 4 counted files or 251 diff lines (PASS-REJECTED, no commit, reviewer not asked) and accepts the same task narrowed to 3 files or 250 lines. R7, R8, and R9 share this file (decision 6). Tracked files are seeded first, because the reviewed pathspec does not stage new untracked names.
+
+`--modules` on the harness replaces the long review suite. `survivor_modules` omits `tests.test_mut_review_harness`, which would false-kill every mutant by re-checking anchors.
+
+How it fails: a 4-file or 251-line patch is committed, or a 3-file or 250-line patch is rejected.
+
+How we recover: the over-cap receipt is PASS-REJECTED with size.ok false, no commit, and a clean origin. Narrowing the same task to the cap commits and the gate stays green.
+
+item | commit | tests | result
+survivor-tests | ef554f2 | nice python3 -m unittest tests.test_mut_review_harness tests.test_mut_review_size_cap | Ran 8 tests in 5.476s OK
+
+state: DONE | tests: both modules OK on the unmutated runner | files: 3 | err: none
+
+### rerun
+
+`git fetch origin` at 2026-10-31T22:19Z: `origin/bot/mvp-review-fix2-1031` had not moved past the merge in `3396ee7`. R1-R6 and R10-R14 were not re-run. Their kill stands.
+
+R7, R8, and R9 on a clone of `1c332e8`, module `tests.test_mut_review_size_cap` only: all killed (2.669s, 2.673s, 2.296s). Survivors left: none. The worktree runner hash stayed `15e4f4ae1bafa98c2e109002c1ba72e538c89c1ab665827741abf101d80b110a`.
+
+item | commit | tests | result
+rerun | f62d427 | nice python3 eval/mutation-1031/review/run_mutants.py --run --ids R7,R8,R9 --modules tests.test_mut_review_size_cap --timeout 180 | R7 R8 R9 killed, survivors none, exit 0
+
+state: DONE | tests: size-cap module kills R7 R8 R9 | files: 2 | err: none
+
+### further-gaps
+
+No review-mutation gap left in owned files. The drop-in list R1-R14 is killed, including Reviewer M4 (R4) and M7 (R5). Round 2 lanes own other files. `mvp-local-t5-1031` needs a local model. G10 and a new ADR are out. `origin/main` has no `eval/mutation-1031/review/REPORT.md`.
+
+state: skipped | reason: lane empty | err: none
+
+### handoff
+
+Exit: lane empty. Wall cap still 2026-11-01T05:16:00Z. Pregate not run: the heavy lock was held, and `scripts/pregate.sh` writes a worktree under the main checkout `tmp/pg`. `Runner.Worker` was idle at the check. This lane did not wait on the lock and did not write that tree.
+
+state: lane-empty | kills after 14 | survivors left none | pregate not run
