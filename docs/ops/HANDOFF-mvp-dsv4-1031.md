@@ -14,10 +14,10 @@ Report: `eval/mvp-1031/dsv4/REPORT.md`. Receipt: `eval/mvp-1031/dsv4/fit-receipt
 
 | Item | Result | SHA |
 |------|--------|-----|
-| Exit card before model work | `docs/ops/RUN-LOG-mvp-dsv4-1031.md` | filled after commit |
-| Find repo and measure host | Found. No quant fits. | filled after commit |
-| Catalog I0 row | TOOLS.md, stage card, handoff JSON, entry 153 | filled after commit |
-| Report and receipt | fit math, baselines copied, tasks not run | filled after commit |
+| Exit card before model work | `docs/ops/RUN-LOG-mvp-dsv4-1031.md` | `c0c7948` |
+| Find repo and measure host | Found. No quant fits. | `c0c7948` |
+| Catalog I0 row | TOOLS.md, stage card, handoff JSON, entry 153 | `c0c7948` |
+| Report and receipt | fit math, baselines copied, tasks not run | `c0c7948` |
 
 Skipped on purpose: download, serve, smoke, the six-task `./pfy build --local` pass. Reason: fit gate.
 

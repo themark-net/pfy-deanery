@@ -75,10 +75,14 @@ mvp3-pass | skipped | fit gate | err: none
 compare-catalog | catalog_check PASS tools_md=53 stage_cards=53; unittest tests.test_catalog_stage_eval tests.test_catalog_entry_numbers Ran 4 OK | NO-GO | err: none
 ```
 
-Item lines (sha filled in the commit that records the hash):
+Item lines:
 
 ```text
-exits | pending | none | exit card written before the HF fetch
-find-and-fit | pending | no download | NO quant fits, stop
-catalog-and-report | pending | catalog lint | I0 row, NO-GO, claim unverified
+exits | c0c7948 | none | exit card written before the HF fetch
+find-and-fit | c0c7948 | no download | NO quant fits, stop
+catalog-and-report | c0c7948 | catalog_check PASS; unittest Ran 4 OK | I0 row, NO-GO, claim unverified
+```
+
+```text
+state: lane empty | fit gate: UD-IQ1_S 232979608420 bytes plus 8 GiB exceeds RAM+VRAM 132524449792 by 109045093220 bytes | tests: catalog_check PASS, unittest Ran 4 OK | err: none
 ```
