@@ -56,3 +56,4 @@ Survey skips, recorded before item 01, not a no-progress streak: T-0091 voice sh
 03 typed-receipt | 36bc071 | tests.test_typed_decisions_receipt_absolute 1 OK | PASS receipt, attempts 1, wall 167s, review accept, human accept. Cloud SHA a586ad1.
 04 adapter-hash | ae5e5e5 | tests.test_adapter_tree_hash_symlink 1 OK on Python 3.14 and 3.12 | PASS receipt, attempts 2, wall 1232s, review reject then accept, human accept. Cloud SHA f11f7de. Attempt 1 used rglob recurse_symlinks, which is Python 3.13 only. Review reject was right.
 05 smoke140-hash | 9138656 | tests.test_smoke_140_tree_hash_symlink 1 OK on Python 3.14 and 3.12 | PASS receipt, attempts 1, wall 251s, review accept, human accept. Cloud SHA b9de401.
+06 smoke137-hash | 1faa9fd | tests.test_smoke_137_tree_hash_symlink 1 OK on Python 3.14 and 3.12 | PASS receipt, attempts 1, wall 131s, review accept, human accept. Cloud SHA fdef8d6.
