@@ -2212,7 +2212,8 @@ def _stage_reviewed(worktree: Path, env: dict, reviewed: list[str]) -> str | Non
 
     A mismatch resets the index and returns scope-commit-mismatch. The caller
     does not commit and does not create a branch. commit-failed means git
-    itself failed. The index is reset in both cases.
+    itself failed. The index is reset in both cases. An empty reviewed name
+    set (only excluded paths) returns no-reviewable-change and does not commit.
     """
     wanted = _reviewed_names(reviewed)
     if not wanted:
@@ -3259,10 +3260,12 @@ def build_local(argv: list[str] | None = None) -> int:
         watcher_started = False
         allow_patterns, allow_declared = _task_allow(args.task_text, list(args.allow_path or []))
         if not allow_declared:
-            warnings.append(
-                "no allow list: scope was not checked. "
+            note = (
+                "scope check skipped: no allow list. "
                 "Name paths with files: in the task or with --allow-path."
             )
+            warnings.append(note)
+            print(note, file=sys.stderr)
         wiring_rules = _wiring_rules(args.task_text, list(args.require_wiring or []))
 
         def _record_attempt(number, t0, mem_snap, attempt_status, attempt_reason, checks, model_review, diff_stats, diff_text):
@@ -3783,6 +3786,23 @@ def build_local(argv: list[str] | None = None) -> int:
                 print("BLOCKED: %s" % why, file=sys.stderr)
                 status, reason, exit_code = "BLOCKED", why, EXIT_BLOCKED
                 _record_attempt(attempts_used, attempt_t0, mem_snap, "BLOCKED", why, checks, model_review, diff_stats, diff_text)
+                return finish()
+            if review_status == "crashed":
+                why = "review-crashed"
+                if isinstance(model_review, dict) and model_review.get("reasons"):
+                    why = str(model_review["reasons"][0])
+                status, reason, exit_code = "FAIL", why, EXIT_FAIL
+                _record_attempt(
+                    attempts_used,
+                    attempt_t0,
+                    mem_snap,
+                    "FAIL",
+                    why,
+                    checks,
+                    model_review,
+                    diff_stats,
+                    diff_text,
+                )
                 return finish()
             if review_status != "accept":
                 feedback = "\n".join((model_review or {}).get("reasons") or ["review-unparseable"])

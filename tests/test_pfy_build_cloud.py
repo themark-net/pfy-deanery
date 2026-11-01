@@ -717,6 +717,60 @@ class CloudBuildRetryTests(unittest.TestCase):
         self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
         self.assertNotIn("danger.sh", _git(self.repo, "ls-tree", "-r", "--name-only", "HEAD").stdout)
 
+    def test_target_marker_is_rejected_even_when_review_accepts(self) -> None:
+        """A symlink :target marker must not land when review says accept.
+
+        Fail: the diff records is_symlink and stores :target instead of the
+        linked file's bytes, review prints accept, and the runner still
+        creates a cloud branch. A real-HOME snapshot then misses content edits.
+        Recover: reason review-rejected, exit 1, no branch, caller HEAD unchanged.
+        """
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\nprint('GATE-OK')\nraise SystemExit(0)\n",
+        )
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "from pathlib import Path\n"
+            "blob = '\\n'.join(sys.argv)\n"
+            "if 'PFY-CLOUD-REVIEW' in blob:\n"
+            "    print('verdict: accept')\n"
+            "    raise SystemExit(0)\n"
+            "Path('tree_sig.py').write_text(\n"
+            "    'def record(f):\\n'\n"
+            "    '    if f.is_symlink():\\n'\n"
+            "    '        return str(f) + \":target\"\\n'\n"
+            "    '    return \"bytes\"\\n',\n"
+            "    encoding='utf-8',\n"
+            ")\n"
+            "raise SystemExit(0)\n",
+        )
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        proc = self._run_task(
+            grok,
+            gate,
+            "Record a symlink with readlink. Keep hashing the linked file bytes.",
+            "0",
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 1, text)
+        self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
+        payload = json.loads(
+            list((self.repo / "pipelines" / "dogfood" / "build-cloud").glob("*/receipt.json"))[0].read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(payload["status"], "FAIL")
+        self.assertEqual(payload["reason"], "review-rejected")
+        self.assertEqual(payload["review"]["verdict"], "reject")
+        self.assertIsNone(payload["branch"])
+        self.assertIsNone(payload["commit"])
+        self.assertEqual(len(payload["attempts"]), 1)
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+        self.assertNotIn("tree_sig.py", _git(self.repo, "ls-tree", "-r", "--name-only", "HEAD").stdout)
+
     def test_gate_stays_red_for_the_default_three_attempts(self) -> None:
         gate = _write_exe(
             self.side / "gate.py",
@@ -1022,6 +1076,53 @@ class CloudBuildNoChangeTests(unittest.TestCase):
         shown = _git(self.repo, "show", branch + ":kept.py")
         self.assertEqual(shown.stdout, "value = 1\n")
         self.assertNotIn("import helper", shown.stdout)
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+
+    def test_recheck_tmpdir_stays_inside_the_extract(self) -> None:
+        """The archive recheck must see temp files under the extract, not the worktree.
+
+        Fail: the worktree gate passes because TMPDIR is the worktree tmp, then
+        the recheck runs in repo/tmp/recheck-<sha> and TemporaryDirectory is
+        still the worktree tmp, so relative_to raises and the commit is reset.
+        Recover: TMPDIR for that gate is the extract tmp. The same command
+        passes, and kept.py lands.
+        """
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\n"
+            "import os\n"
+            "import tempfile\n"
+            "from pathlib import Path\n"
+            "root = Path('.').resolve()\n"
+            "if not Path('kept.py').is_file():\n"
+            "    print('GATE-NO-KEPT')\n"
+            "    raise SystemExit(1)\n"
+            "made = Path(tempfile.mkdtemp())\n"
+            "try:\n"
+            "    made.relative_to(root)\n"
+            "except ValueError:\n"
+            "    print('TMPDIR-OUTSIDE')\n"
+            "    print(os.environ.get('TMPDIR', ''))\n"
+            "    raise SystemExit(1)\n"
+            "print('TMPDIR-INSIDE')\n"
+            "raise SystemExit(0)\n",
+        )
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        proc = self._run_task(grok, gate, "add kept", "0", extra=["--no-review"])
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        self.assertNotIn("TMPDIR-OUTSIDE", text)
+        match = re.search(r"PASS ok branch=(\S+) receipt=(\S+)", proc.stdout or "")
+        self.assertIsNotNone(match, proc.stdout)
+        names = _git(self.repo, "ls-tree", "-r", "--name-only", match.group(1)).stdout.splitlines()
+        self.assertIn("kept.py", names)
         self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
 
 

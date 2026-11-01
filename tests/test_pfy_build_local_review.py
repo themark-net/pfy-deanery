@@ -11,6 +11,7 @@ import json
 import os
 import signal
 import subprocess
+import sys
 import threading
 import time
 import unittest
@@ -218,6 +219,57 @@ class ReviewLoopTests(unittest.TestCase):
         self.assertNotEqual(shown.returncode, 0, shown.stderr)
         self.inner.assert_clean_origin()
 
+    def test_excluded_only_change_does_not_commit(self):
+        """A diff that is only an excluded path must not reach git commit.
+
+        Fail: .pytest_cache is the only change, the gate is green, and git
+        commit of an empty index is recorded as commit-failed.
+        Recover: reason no-reviewable-change, exit 1, no branch, caller HEAD
+        unchanged.
+        """
+        cmd = self._commit_gate(
+            "print('1 passed in 0.01s')\nraise SystemExit(0)\n",
+            "always_ok.py",
+        )
+        proc, receipt = self._run(
+            "touch only the pytest cache\n",
+            [{"mode": "noop", "write": {".pytest_cache/README": "cache\n"}}],
+            extra=["--no-review", "--test-cmd", cmd],
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 1, text)
+        data = self.inner.assert_no_commit(proc, receipt)
+        self.assertEqual(data["reason"], "no-reviewable-change")
+        self.assertEqual(data["status"], "FAIL")
+
+    def test_inject_stage_does_nothing_when_the_test_seam_is_off(self):
+        """PFY_LOCAL_BUILD_INJECT_EXTRA_STAGE must not write a file unless the seam is on.
+
+        Fail: the inject env alone stages injected-extra.txt and the green
+        fix becomes scope-commit-mismatch.
+        Recover: with the seam off, the fix commits and that name is absent.
+        With the seam on, the existing mismatch test still injects.
+        """
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        proc, receipt = self._run(
+            task,
+            [{"mode": "fix"}],
+            extra=["--no-review"],
+            env_extra={
+                "PFY_LOCAL_BUILD_TEST_SEAM": "0",
+                "PFY_LOCAL_BUILD_INJECT_EXTRA_STAGE": "1",
+            },
+        )
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "PASS")
+        self.assertNotIn("injected-extra.txt", data.get("files_changed") or [])
+        names = harness._git(
+            self.inner.repo, "diff-tree", "--no-commit-id", "--name-only", "-r", data["commit"]
+        ).strip().splitlines()
+        self.assertEqual(names, ["src/calc.py"])
+        self.inner.assert_clean_origin()
+
     def test_staged_names_that_differ_reset_and_do_not_branch(self):
         task = "fix add so one plus one is two\nfiles: src/calc.py\n"
         proc, receipt = self._run(
@@ -322,6 +374,41 @@ class ReviewLoopTests(unittest.TestCase):
         self.assertLess(retry.index("Previous diff:"), retry.index(removed))
         self.assertLess(retry.index("Reasons:"), retry.index("Previous diff:"))
 
+    def test_missing_review_out_file_is_one_crash_and_does_not_retry(self):
+        """A poster that never writes pfy-review-out.json must not be retried.
+
+        Fail: python exits before that file exists, empty stdout is parsed as
+        review-unparseable, and the loop tries again.
+        Recover: reason review-crashed, exit 1, one attempt, no commit.
+        """
+        fake_dir = self.inner.tmp / "no-review-python"
+        fake_dir.mkdir()
+        fake = fake_dir / "python3"
+        fake.write_text(
+            "#!/bin/sh\n"
+            "for arg in \"$@\"; do\n"
+            "  case \"$arg\" in\n"
+            "    *pfy-review-post.py*) exit 1 ;;\n"
+            "  esac\n"
+            "done\n"
+            "exec %s \"$@\"\n" % sys.executable,
+            encoding="utf-8",
+        )
+        fake.chmod(0o755)
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        proc, receipt = self._run(
+            task,
+            [{"mode": "fix"}],
+            extra=["--retries", "2"],
+            env_extra={"PATH": str(fake_dir) + os.pathsep + os.environ.get("PATH", "")},
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 1, text)
+        data = self.inner.assert_no_commit(proc, receipt)
+        self.assertEqual(data["reason"], "review-crashed")
+        self.assertEqual(data["attempts"], 1)
+        self.assertFalse((receipt / "attempt-2").exists())
+
     def test_unparseable_review_is_a_reject_and_the_reason_is_fed_back(self):
         self.inner.httpd.review_queue = [
             "not json at all",
@@ -401,7 +488,9 @@ class ReviewLoopTests(unittest.TestCase):
         self.assertEqual(bare.returncode, 0, bare.stdout + bare.stderr)
         bare_data = self._receipt(bare, bare_receipt)
         self.assertEqual(bare_data["status"], "PASS")
-        self.assertIn("no allow list", " ".join(bare_data.get("warnings") or []))
+        phrase = "scope check skipped: no allow list"
+        self.assertIn(phrase, " ".join(bare_data.get("warnings") or []))
+        self.assertIn(phrase, bare.stderr or "")
 
         named, named_receipt = self._run(
             "fix add so one plus one is two\nfiles: src/calc.py\n",
@@ -411,7 +500,8 @@ class ReviewLoopTests(unittest.TestCase):
         self.assertEqual(named.returncode, 0, named.stdout + named.stderr)
         named_data = self._receipt(named, named_receipt)
         self.assertEqual(named_data["status"], "PASS")
-        self.assertNotIn("no allow list", " ".join(named_data.get("warnings") or []))
+        self.assertNotIn(phrase, " ".join(named_data.get("warnings") or []))
+        self.assertNotIn(phrase, named.stderr or "")
 
         flagged, flagged_receipt = self.inner.run_build(
             "fix",
@@ -421,7 +511,8 @@ class ReviewLoopTests(unittest.TestCase):
         self.assertEqual(flagged.returncode, 0, flagged.stdout + flagged.stderr)
         flagged_data = self._receipt(flagged, flagged_receipt)
         self.assertEqual(flagged_data["status"], "PASS")
-        self.assertNotIn("no allow list", " ".join(flagged_data.get("warnings") or []))
+        self.assertNotIn(phrase, " ".join(flagged_data.get("warnings") or []))
+        self.assertNotIn(phrase, flagged.stderr or "")
 
     def test_no_review_is_one_attempt_and_a_green_gate_passes(self):
         proc, receipt = self.inner.run_build("fix", extra=["--no-review"])
@@ -430,6 +521,8 @@ class ReviewLoopTests(unittest.TestCase):
         self.assertEqual(data["status"], "PASS")
         self.assertEqual(data["attempts"], 1)
         self.assertFalse(data["review"]["enabled"])
+        self.assertIs(data["review"]["same_model"], True)
+        self.assertEqual(data["model"], "fixture:small")
         self.assertFalse((receipt / "attempt-2").exists())
         chat = [path for path, _payload in self.inner.httpd.posts if "chat" in path]
         self.assertEqual(chat, [])

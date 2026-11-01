@@ -640,6 +640,25 @@ def diff_aims_at_root(diff_text: str) -> bool:
     return re.search(r"(?i)rm\s+-rf\s+/|rm\s+-fr\s+/", diff_text or "") is not None
 
 
+def diff_drops_linked_content(diff_text: str) -> bool:
+    """True when added lines store a symlink as :target instead of file bytes.
+
+    Fail: review accepts a tree signature that records readlink or is_symlink
+    and writes :target for the regular file that link names. A later content
+    edit of that file is invisible to a real-HOME snapshot.
+    Recover: the attempt is review-rejected and no branch is created.
+    A diff that hashes file bytes and does not add :target is not this case.
+    """
+    added: list[str] = []
+    for line in (diff_text or "").splitlines():
+        if line.startswith("+") and not line.startswith("+++"):
+            added.append(line[1:])
+    blob = "\n".join(added)
+    if ":target" not in blob:
+        return False
+    return re.search(r"is_symlink|readlink", blob) is not None
+
+
 def parse_verdict(text: str) -> tuple[str, list[str]]:
     found = [item.lower() for item in _VERDICT.findall(text or "")]
     reasons = _extract_reasons(text or "")
@@ -1002,6 +1021,15 @@ class CloudBuild:
                 or "_KEY_" in upper
             ):
                 env.pop(key, None)
+        # Recheck runs with cwd set to the extract. A TMPDIR left on the
+        # build worktree makes TemporaryDirectory paths fail relative_to
+        # on that extract and pass on the worktree.
+        gate_tmp = where / "tmp"
+        try:
+            gate_tmp.mkdir(parents=True, exist_ok=True)
+            env["TMPDIR"] = str(gate_tmp)
+        except OSError:
+            pass
         status, code, out, err = run_command(
             argv,
             where,
@@ -1634,7 +1662,9 @@ class CloudBuild:
                     self.record(number, "FAIL", "unauthenticated", output)
                     return self.fail("FAIL", "unauthenticated", EXIT_FAIL, auth_recovery(self.args.task_text))
                 verdict, reasons = parse_verdict(review_output)
-                if verdict == "accept" and diff_aims_at_root(diff_text):
+                if verdict == "accept" and (
+                    diff_aims_at_root(diff_text) or diff_drops_linked_content(diff_text)
+                ):
                     verdict = "reject"
                     reasons = ["review-rejected"]
                 self.review = {"verdict": verdict, "reasons": reasons}
@@ -1664,9 +1694,16 @@ class CloudBuild:
                 with self.phase_clock.phase("commit"):
                     err = self._publish_branch(sha)
             else:
-                if diff_aims_at_root(diff_text):
+                linked = diff_drops_linked_content(diff_text)
+                if diff_aims_at_root(diff_text) or linked:
                     self.review = {"verdict": "reject", "reasons": ["review-rejected"]}
-                    feedback = "review-rejected\nrecursive delete aimed at the filesystem root"
+                    if linked:
+                        feedback = (
+                            "review-rejected\n"
+                            "a symlink record stored :target and dropped the linked file bytes"
+                        )
+                    else:
+                        feedback = "review-rejected\nrecursive delete aimed at the filesystem root"
                     previous_diff = diff_text
                     self.record(number, "PASS-REJECTED", "review-rejected", output)
                     if number < self.max_attempts:
