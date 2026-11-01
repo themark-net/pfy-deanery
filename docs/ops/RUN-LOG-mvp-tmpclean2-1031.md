@@ -82,3 +82,11 @@ Progress:
 - skip 2 ubuntu rg path | none | not run | eval-structural.yml already installs ripgrep when command -v rg misses; no ubuntu runner in this lane | skip
 - skip 10 MemPalace staging | none | not run | staging writes a shared tree and warms an embedding model | skip
 - state: lane empty | listed follow-ups closed or skipped | ahead of origin/main, behind 0 | pregate not run: host busy | err: none
+- resume 2026-10-31T23:50:03Z | origin/main still c0d38af | fast-forward, behind 0 | Runner.Worker pid 3751002 alive | MemAvailable about 35.8 GiB | load 7.5 on 32 cores | map default is wait | no new fitting gap
+- state: lane empty | resume recheck 2026-10-31T23:50:03Z | pregate not run: host busy | err: none
+- resume 2026-11-01T00:03:02Z | origin/main still c0d38af | fast-forward, behind 0 | Runner.Worker idle | MemAvailable about 72.4 GiB | load about 3.1 on 32 cores | pregate of 0afea54 already holds heavy-1030.lock | this lane does not run pregate.sh | no new fitting gap
+- state: lane empty | resume recheck 2026-11-01T00:03:02Z | pregate not run: operator owns it, and a pregate is already on the heavy lock | err: none
+- resume 2026-11-01T00:11:04Z | origin/main still c0d38af | fast-forward, behind 0, tip 2cdd792 | Runner.Worker idle | MemAvailable about 71.5 GiB | load 3.09 on 32 cores | pregate of 0afea54 still holds heavy-1030.lock (flock pid 3755278) | this lane does not run pregate.sh | no new fitting gap
+- state: lane empty | resume recheck 2026-11-01T00:11:04Z | pregate not run: operator owns it, and a pregate is already on the heavy lock | err: none
+- resume 2026-11-01T00:22:02Z | origin/main still c0d38af | fast-forward, behind 0, tip 6535318 | Runner.Worker idle | MemAvailable about 71.1 GiB | load 2.94 on 32 cores | heavy lock now held by pregate of 1f3b1a3 (flock pid 65479) and unittest discover pids 58618 and 3931940 | map default is wait | this lane does not run pregate.sh | no new fitting gap
+- state: lane empty | resume recheck 2026-11-01T00:22:02Z | pregate not run: operator owns it, and a pregate of 1f3b1a3 holds the heavy lock | err: none

@@ -2,7 +2,7 @@
 
 Status: stopped. Exit: lane empty. Branch `bot/mvp-tmpclean2-1031`. Worktree `~/DEVELOP/pfy-mentat/tmp/mvp-tmpclean2-1031`. Base `origin/main` `c0d38af` plus `fb759e9`. Fast-forward, behind 0. No merge, no PR, no tags.
 
-Pregate not run: host busy (`Runner.Worker` was alive at the exit).
+Pregate not run by this lane. The drop-in says the operator runs `scripts/pregate.sh`. At 2026-10-31T23:50:03Z `Runner.Worker` was alive (pid 3751002). At 2026-11-01T00:03:02Z the runner was idle, and a pregate of `0afea54` (`bot/backlog-catalog-1030`) already held `~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock`. At 2026-11-01T00:11:04Z that same pregate still held the lock (flock pid 3755278). At 2026-11-01T00:22:02Z the lock has moved: `./scripts/pregate.sh 1f3b1a3` (flock pid 65479) plus unittest discover pids 58618 and 3931940.
 
 ## Done
 
@@ -56,6 +56,36 @@ Pregate plus Reviewer. The behavior changes are the image-pin loader, the catalo
 
 Pregate not run: host busy.
 
+## Recheck 2026-10-31T23:50:03Z
+
+origin/main is still `c0d38af`. This branch is a fast-forward, behind 0, tip `89f0564` before this note. MemAvailable was about 35.8 GiB. Load was 7.5 on 32 cores. The project map default is to wait and not start another lane's files. Active TODO rows still need a local model, docker, hardware, a catalog lane, or a named scorer. T-0127 stays in the active table.
+
+## Recheck 2026-11-01T00:03:02Z
+
+origin/main is still `c0d38af`. This branch is a fast-forward, behind 0, tip `53f6d7d` before this note. MemAvailable was about 72.4 GiB. Load was about 3.1 on 32 cores. `Runner.Worker` is not running. Tests were not re-run: the tree is the same as `53f6d7d`, and the heavy lock is already held.
+
+This lane does not run `scripts/pregate.sh`. The drop-in assigns that to the operator. A pregate of `0afea54` (`bot/backlog-catalog-1030`) already holds the heavy lock, and pregate writes its run folder under the main repo `tmp/`. Starting another one from this worktree would contend with that run.
+
+No new gap fits this lane. Active TODO rows still need a local model, docker, hardware, a catalog lane, or a named scorer, or they are shelved. T-0127 stays in the active table. Many other `bot/mvp-*` branches also commit `docs/TODO.md`.
+
+## Recheck 2026-11-01T00:11:04Z
+
+origin/main is still `c0d38af`. This branch matches `origin/bot/mvp-tmpclean2-1031` at `2cdd792`, ahead 31, behind 0. MemAvailable was about 71.5 GiB. Load was 3.09 on 32 cores. `Runner.Worker` is not running. Tests were not re-run: the tree is the same as `2cdd792`.
+
+The pregate of `0afea54` is still inside `flock ~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock` (pid 3755278, elapsed about 48 minutes). A `unittest discover` also waits on that lock. This lane does not run `scripts/pregate.sh`.
+
+No new gap fits this lane. The active rows are unchanged: voice is shelved, local-model and hardware rows stay out, catalog and cage rows belong to other lanes, and T-0127 stays in the active table.
+
+## Recheck 2026-11-01T00:22:02Z
+
+origin/main is still `c0d38af`. This branch matches `origin/bot/mvp-tmpclean2-1031` at `6535318`, ahead 32, behind 0. MemAvailable was about 71.1 GiB. Load was 2.94 on 32 cores. `Runner.Worker` is not running. Tests were not re-run: the tree is the same as `6535318`.
+
+The heavy lock is no longer the `0afea54` pregate. It is now `flock ~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock nice -n 19 ./scripts/pregate.sh 1f3b1a3` (pid 65479, elapsed about 8 minutes at the check). Two `unittest discover` processes share that lock (pids 58618 and 3931940). `1f3b1a3` is `docs: unlink the mvp3 drop-in until it reaches main`. This lane does not run `scripts/pregate.sh`.
+
+`origin/bot/mvp-integrate-1031` already merged this lane through `d078de6`. It does not have the later recheck commits (`53f6d7d`, `2cdd792`, `6535318`). Those commits are docs only.
+
+No new gap fits this lane. The map default is to wait. Active TODO rows are unchanged. Many other `bot/` branches also commit `docs/TODO.md`, so T-0127 stays in the active table.
+
 ## Next step
 
-When `pgrep -f 'Runner[.]Worker'` is empty, run pregate once under `flock ~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock`, then Reviewer. Do not merge from this lane.
+Operator runs pregate, then Reviewer, on this branch, after the pregate of `1f3b1a3` releases the heavy lock. Do not merge from this lane.
