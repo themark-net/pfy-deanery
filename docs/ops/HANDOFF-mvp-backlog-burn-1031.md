@@ -2,7 +2,7 @@
 
 Branch `bot/mvp-backlog-burn-1031`. Worktree `~/DEVELOP/pfy-mentat/tmp/mvp-backlog-burn-1031`. Base `origin/bot/mvp-integrate-1031` at `0c3f133`, plus drop-in `56ea234`. Stopped 2026-10-31T23:22:46Z. Exit: lane empty. Six real cloud `./pfy build` runs landed. No `--local`. No merge, no PR, no tag.
 
-Report: [../eval/mvp-1031/backlog-burn/REPORT.md](../eval/mvp-1031/backlog-burn/REPORT.md). Run log: [RUN-LOG-mvp-backlog-burn-1031.md](RUN-LOG-mvp-backlog-burn-1031.md). Decisions: [AUTONOMOUS-DECISIONS-mvp-backlog-burn-1031.md](AUTONOMOUS-DECISIONS-mvp-backlog-burn-1031.md).
+Report: [../../eval/mvp-1031/backlog-burn/REPORT.md](../../eval/mvp-1031/backlog-burn/REPORT.md). Run log: [RUN-LOG-mvp-backlog-burn-1031.md](RUN-LOG-mvp-backlog-burn-1031.md). Decisions: [AUTONOMOUS-DECISIONS-mvp-backlog-burn-1031.md](AUTONOMOUS-DECISIONS-mvp-backlog-burn-1031.md).
 
 ## Items done
 
