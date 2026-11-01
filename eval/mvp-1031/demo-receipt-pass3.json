@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/stop-tests-test-x-intake-smoke-117-118-p-20261031T235306753011Z",
+  "commit": "1ed98a4d2d3c39b8099603e60dc87ed41e7340f4",
+  "base": "demo-base",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll keep the smoke receipts out of the repo by matching the 112–114 temp-dir setup, then add a test that those two smokes no longer rewrite `pipelines/smoke`. First I'm reading the existing tests and the receipt pattern they should follow.The 112–114 tests already send receipts to a temp dir through `PFY_SMOKE_RECEIPT_DIR`. I'll use that same `setUp` in the 117 and 119 tests, and add a byte-level check that those two smokes leave the repo receipts alone.The smoke suites passed. Unittest writes its `OK` line to stderr, so the receipt check was looking at an empty stdout. I'll match that line on the combined child output.The 117–118 and 119–121 smoke tests now write receipts into a temp directory, and `python3 -m unittest tests.test_x_intake_smoke_117_119_receipts` passes.\n\nEach test class follows the 112–114 `setUp`: one temp directory, `PFY_SMOKE_RECEIPT_DIR` on the environment passed to the smoke, and `_receipt` reads that directory. The git `check-ignore` tests are unchanged. `pipelines/smoke/kander/latest.json` and `pipelines/smoke/agentdescent/latest.json` are still absent after the run.\n\nThe new test runs `test_wrong_kander_version_exits_2` and `test_agentdescent_wrong_version_exits_2`. It fails if either child is not `OK`, if either says skipped, or if those two receipt files change bytes. The full 117–118 and 119–121 suites also passed.\n\nI'll review the diff against the task and the 112–114 receipt setup, then give a verdict.The receipt redirect is already in the tree. I'll compare it with the 112–114 setup and the new guard test.The two smoke classes follow the 112–114 receipt setup: one temp directory per class, `PFY_SMOKE_RECEIPT_DIR` on the env passed to the smoke, and `_receipt` reads that directory. Git check-ignore tests and the existing assertions stay. The new guard runs the two named cases and fails unless both are OK and the kander and agentdescent receipt bytes are unchanged. The diff only touches those three test files.\n\nverdict: accept\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "python3 -m unittest tests.test_x_intake_smoke_117_119_receipts",
+    "before": {
+      "cmd": "python3 -m unittest tests.test_x_intake_smoke_117_119_receipts",
+      "exit": 1,
+      "tail": "\nE\n======================================================================\nERROR: test_x_intake_smoke_117_119_receipts (unittest.loader._FailedTest.test_x_intake_smoke_117_119_receipts)\n----------------------------------------------------------------------\nImportError: Failed to import test module: test_x_intake_smoke_117_119_receipts\nTraceback (most recent call last):\n  File \"/usr/lib/python3.14/unittest/loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\nModuleNotFoundError: No module named 'tests.test_x_intake_smoke_117_119_receipts'\n\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nFAILED (errors=1)\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "python3 -m unittest tests.test_x_intake_smoke_117_119_receipts",
+      "exit": 0,
+      "tail": "\n.\n----------------------------------------------------------------------\nRan 1 test in 0.201s\n\nOK\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": true,
+  "task": "Stop tests/test_x_intake_smoke_117_118.py and tests/test_x_intake_smoke_119_121.py from writing pipelines/smoke receipts inside the repo. Match the setUp in tests/test_x_intake_smoke_112_114.py: each test class creates one temp directory, sets PFY_SMOKE_RECEIPT_DIR on the env passed to the smoke, and _receipt reads that directory. Do not read ROOT/pipelines/smoke for the receipt body. Keep the git check-ignore tests. Do not skip tests or weaken assertions. Do not edit the smoke scripts. Add tests/test_x_intake_smoke_117_119_receipts.py. That test runs tests.test_x_intake_smoke_117_118.XIntakeSmoke117118Tests.test_wrong_kander_version_exits_2 and tests.test_x_intake_smoke_119_121.XIntakeSmoke119121Tests.test_agentdescent_wrong_version_exits_2. It fails if either child is not OK, if either says skipped, or if pipelines/smoke/kander/latest.json or pipelines/smoke/agentdescent/latest.json changes bytes. Today both named tests rewrite those repo files. Edit only those three test files.",
+  "finished_at": "2026-11-01T00:00:07Z"
+}
