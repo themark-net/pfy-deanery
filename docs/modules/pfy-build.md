@@ -1,6 +1,6 @@
 # Module: pfy build (`scripts/pfy_build_cloud.py`)
 
-**Purpose:** Daily headless build. `./pfy build "<task>"` runs cloud Grok, review on, nothing pushed. Operator card: [pfy-build-daily.md](../ops/pfy-build-daily.md).
+**Purpose:** Daily headless build. `./pfy build "<task>"` runs cloud Grok, review on, nothing pushed. Operator card: [pfy-build-daily.md](../ops/pfy-build-daily.md). Measured verdict: [VERDICT.md](../../eval/mvp-1031/VERDICT.md) (GO for that daily command, 2026-10-31).
 
 **Not this module:** `./pfy build -p` (jev dogfood wrap) and `./pfy build --local` (opt-in local runner).
 
@@ -14,7 +14,7 @@ Daily command:
 
 Default is cloud Grok. Review is on. Nothing is pushed. A PASS leaves a branch starting `cloud/`, one commit, and `pipelines/dogfood/build-cloud/<stamp>/receipt.json`.
 
-`./pfy build --local "<task>"` is the opt-in fallback for when a cloud receipt says `rate-limit`. The flag `--local` is opt-in and not the default. MVP-2 and MVP-3 measured local as NO-GO for the default (cloud 6/6 in 583.6 s; local loop 5/6 gate, 4/6 human accept, 3859.9 s). Cloud numbers are in [eval/mvp2/REPORT.md](../../eval/mvp2/REPORT.md) and [HANDOFF-mvp2-trial.md](../ops/HANDOFF-mvp2-trial.md). The MVP-3 local loop wall time is 3859.9 s on `bot/mvp3-review-retry` (that report is not on this branch). A rate limit does not auto-start `--local`.
+`./pfy build --local "<task>"` is the opt-in fallback for when a cloud receipt says `rate-limit`. The flag `--local` is opt-in and not the default. MVP-2 and MVP-3 measured local as NO-GO for the default (cloud 6/6 in 583.6 s; local loop 5/6 gate, 4/6 human accept, 3859.9 s). Cloud numbers are in [eval/mvp2/REPORT.md](../../eval/mvp2/REPORT.md) and [HANDOFF-mvp2-trial.md](../ops/HANDOFF-mvp2-trial.md). The MVP-3 local loop wall time is 3859.9 s ([eval/mvp3/REPORT.md](../../eval/mvp3/REPORT.md)). A rate limit does not auto-start `--local`.
 
 `./pfy build -p "<prompt>"` stays the jev dogfood wrap (`scripts/pfy_build_p.py`, receipt.jsonl under `pipelines/dogfood/build/`). `-p` remains the jev dogfood wrap.
 
@@ -29,6 +29,7 @@ The runner does not read `auth.json`.
 | `--test-cmd CMD` | Gate. Default `python3 -m unittest discover -s tests -t .`. |
 | `--retries N` | Extra attempts. Default 2 (3 total). |
 | `--no-review` | One attempt, no review. Default is review on. |
+| `--writable-test PATH` | Existing test file the task may edit. Repeat the flag for each path. Other base tests stay hashed. Omit it when the task does not change tests. |
 | `--receipt-dir DIR` | Receipt directory. Default `pipelines/dogfood/build-cloud/<stamp>/`. |
 | `--dry-run` | Exit 0. No grok, no branch. Receipt `status` `DRY-RUN`, `commit` null. |
 | `--reap` | Exit 0. Receipt `status` `ABORTED` when the killed run wrote nothing. |
@@ -87,8 +88,8 @@ The runner does not read `auth.json`. A rate limit does not auto-start `--local`
 - Invariants: review on unless `--no-review`; `pushed` false; no read of `auth.json`; a `rate-limit` receipt does not start `--local`; commit set is the reviewed path list (`scope-commit-mismatch` on a mismatch); caller checkout is never the worktree; pid file `tmp/cloud-build.pids.json` only.
 - Schema: `pfy-cloud-build/1` at `pipelines/dogfood/build-cloud/<stamp>/receipt.json`.
 - ADR: [ADR-0002](../adr/0002-grok-cli-primary-interface.md) and [ADR-0011](../adr/0011-hybrid-operator-surfaces-grok-opencode-ollama.md) keep Grok as the daily path. [ADR-0014](../adr/0014-pluggable-local-inference-spine.md) is the inference spine, not the build default. Ops split: [local-cloud-split.md](../ops/local-cloud-split.md).
-- Do not: edit `docs/modules/README.md` from this lane (integration adds the row); link `scripts/pfy_build_cloud.py` (the file is not on this branch); auto-start a local model; push from the runner; open a PR from the runner.
+- Do not: edit `docs/modules/README.md` from a docs lane (integration adds the row); link `scripts/pfy_build_cloud.py` (keep it inline code); auto-start a local model; push from the runner; open a PR from the runner.
 
 ## Architecture link
 
-Operator-stack daily build, cloud side of [local-cloud-split.md](../ops/local-cloud-split.md). The measured reason local is not the default is MVP-2 cloud 6/6 in 583.6 s and MVP-3 local loop 5/6 gate, 4/6 human accept, 3859.9 s.
+Operator-stack daily build, cloud side of [local-cloud-split.md](../ops/local-cloud-split.md). The measured reason local is not the default is MVP-2 cloud 6/6 in 583.6 s and MVP-3 local loop 5/6 gate, 4/6 human accept, 3859.9 s. Cloud-default `./pfy build` on the 2026-10-31 integration tip is GO ([VERDICT.md](../../eval/mvp-1031/VERDICT.md)).

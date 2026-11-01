@@ -10,15 +10,17 @@ Daily command:
 
 A PASS leaves a branch whose name starts with `cloud/`, one commit, and a receipt. The caller's branch and `git status` stay as they were. The runner does not push and does not open a PR.
 
+Measured verdict, read 2026-11-01T00:08:54Z: GO for this daily command. Line-by-line evidence is [VERDICT.md](../../eval/mvp-1031/VERDICT.md). The six-task bar on the integration tip is 6/6 twice ([sixtask-int](../../eval/mvp-1031/sixtask-int/REPORT.md)). The older six-task run was NO-GO because test edits were `tests-tampered` before `--writable-test` ([sixtask](../../eval/mvp-1031/sixtask/REPORT.md)). Selfhost runner PASS is 14/15 and human accept is 13/15 ([selfhost](../../eval/selfhost-1031/REPORT.md)).
+
 ## What is not the daily command
 
-`./pfy build --local "<task>"` is the opt-in fallback for when a cloud receipt says `rate-limit`. The flag `--local` is opt-in and not the default. MVP-2 and MVP-3 measured local as NO-GO for the default (cloud 6/6 in 583.6 s; local loop 5/6 gate, 4/6 human accept, 3859.9 s). Cloud numbers are in [eval/mvp2/REPORT.md](../../eval/mvp2/REPORT.md) and [HANDOFF-mvp2-trial.md](HANDOFF-mvp2-trial.md). The MVP-3 local loop wall time is 3859.9 s on `bot/mvp3-review-retry` (that report is not on this branch). A rate limit does not auto-start `--local`. Mark runs the fallback later, under `flock ~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock`, only when he chooses it.
+`./pfy build --local "<task>"` is the opt-in fallback for when a cloud receipt says `rate-limit`. The flag `--local` is opt-in and not the default. MVP-2 and MVP-3 measured local as NO-GO for the default (cloud 6/6 in 583.6 s; local loop 5/6 gate, 4/6 human accept, 3859.9 s). Cloud numbers are in [eval/mvp2/REPORT.md](../../eval/mvp2/REPORT.md) and [HANDOFF-mvp2-trial.md](HANDOFF-mvp2-trial.md). The MVP-3 local loop wall time is 3859.9 s ([eval/mvp3/REPORT.md](../../eval/mvp3/REPORT.md)). A rate limit does not auto-start `--local`. Mark runs the fallback later, under `flock ~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock`, only when he chooses it.
 
 `./pfy build -p "<prompt>"` stays the jev dogfood wrap (`scripts/pfy_build_p.py`, receipt.jsonl under `pipelines/dogfood/build/`). `-p` remains the jev dogfood wrap. Its exit codes and receipt path do not change. `./pfy build --prompt` and `./pfy build --prompt-file` stay on that same wrap. Any argv that contains `--local` stays on `scripts/pfy_build_local.py`.
 
 ## Dispatch
 
-The runner is `scripts/pfy_build_cloud.py`. This card does not change `scripts/pfy`. The cloud lane owns that help text. After that dispatch lands, a task that is not `-p`, `--prompt`, `--prompt-file`, or `--local` runs `scripts/pfy_build_cloud.py`. On this branch, before that lands, a bare `./pfy build` still reaches the jev wrap.
+The runner is `scripts/pfy_build_cloud.py`. `scripts/pfy` `cmd_build` sends a task that is not `-p`, `--prompt`, `--prompt-file`, or `--local` to that runner. `./pfy build --help` names the daily command, the `-p` dogfood wrap, `--local` as the opt-in fallback, and `--writable-test`. This card does not change `scripts/pfy`.
 
 The runner does not read `auth.json`. Grok uses the operator login that already exists outside the worktree. Auth failure is whatever grok prints, or a missing grok binary. Tests use a fake grok and do not stat the auth file.
 
@@ -31,6 +33,7 @@ The runner does not read `auth.json`. Grok uses the operator login that already 
 | `--test-cmd CMD` | Gate command. Default `python3 -m unittest discover -s tests -t .`. |
 | `--retries N` | Extra attempts after the first. Default 2, so 3 attempts total. |
 | `--no-review` | One attempt, no review call. Default is review on. |
+| `--writable-test PATH` | Existing test file the task may edit. Repeat the flag for each path. Other base tests stay hashed. Omit it when the task does not change tests. |
 | `--receipt-dir DIR` | Where to write the receipt. Default is under `pipelines/dogfood/build-cloud/<stamp>/`. |
 | `--dry-run` | Plan only. Exit 0. No grok, no branch. |
 | `--reap` | Clean a cloud run that died before it could write a receipt. Exit 0. |
@@ -121,7 +124,7 @@ Default protect globs include `auth.json`, `.env`, `*.pem`, and `pipelines/dogfo
 
 | Piece | Path |
 |-------|------|
-| Cloud runner | `scripts/pfy_build_cloud.py` (not on this branch; cloud lane) |
+| Cloud runner | `scripts/pfy_build_cloud.py` |
 | Dispatch and help | `scripts/pfy` (cloud lane owns the build help text) |
 | Jev dogfood wrap | [scripts/pfy_build_p.py](../../scripts/pfy_build_p.py) |
 | Local opt-in runner | [scripts/pfy_build_local.py](../../scripts/pfy_build_local.py) |
