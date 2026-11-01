@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/tests-test-x-intake-smoke-117-118-py-and-20261031T220931155348Z",
+  "commit": "65966143068b3bdbeed66a111c8f5d0b7c27dcf3",
+  "base": "HEAD",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll match the later smoke tests: each case gets its own receipt directory via `PFY_SMOKE_RECEIPT_DIR`, so the suite stops writing `pipelines/smoke/*/latest.json` into the repo. First I'll read the existing pattern and the two suites that still omit it.The 112–114 suite already isolates receipts with one temp directory per test. I'll use that same `PFY_SMOKE_RECEIPT_DIR` setup in the 117–118 and 119–121 suites.Receipts now go to a per-test temp directory. Next I’ll run the gate and both suites, including the gitignore cases.The 117–118 and 119–121 smoke tests now write receipts to a temp directory, the same way the 112–114 suite does.\n\nEach test gets its own directory in `setUp`. That path is set as `PFY_SMOKE_RECEIPT_DIR` on the environment passed to the smoke, and the receipt is read from `<temp>/<entry>/latest.json`. The gitignore checks still look at `pipelines/smoke/<entry>/latest.json` in the repo.\n\n`python3 -m unittest tests.test_mvp2_t5_receipts tests.test_x_intake_smoke_117_118 tests.test_x_intake_smoke_119_121` passed: 21 tests, no skips. The wrong-version cases still exit 2 and do not create or change `pipelines/smoke/kander/latest.json` or `pipelines/smoke/agentdescent/latest.json`.\n\nI'll review the diff against the task and the 112–114 pattern, then give a verdict.The two smoke modules now set a receipt directory. I'll compare that to the 112–114 pattern and check the gate still holds.verdict: accept\n\nThe diff only changes `tests/test_x_intake_smoke_117_118.py` and `tests/test_x_intake_smoke_119_121.py` (32 lines). Each test gets its own temp directory, `_env` sets `PFY_SMOKE_RECEIPT_DIR` to that directory, and `_receipt` reads `latest.json` from there. That matches `tests/test_x_intake_smoke_112_114.py`. Every smoke call goes through `_env`. Assertions, gitignore checks, and the smoke scripts are unchanged. The gate reports one test, OK. No tests were deleted, no recursive delete was added, and nothing writes at the filesystem root.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "python3 -m unittest tests.test_mvp2_t5_receipts",
+    "before": {
+      "cmd": "python3 -m unittest tests.test_mvp2_t5_receipts",
+      "exit": 1,
+      "tail": "\nF\n======================================================================\nFAIL: test_named_cases_pass_without_repo_receipts (tests.test_mvp2_t5_receipts.ReceiptsStayOutsideRepoTests.test_named_cases_pass_without_repo_receipts)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood2-1031/tmp/target-03/tmp/cloud-build/20261031T220931155348Z/tests/test_mvp2_t5_receipts.py\", line 45, in test_named_cases_pass_without_repo_receipts\n    self.assertEqual(_bytes(path), before[str(path)], \"repo receipt changed: \" + str(path))\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: b'{\\n  \"entry\": \"kander\",\\n  \"script\": \"e[1219 chars]n}\\n' != None : repo receipt changed: /home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood2-1031/tmp/target-03/tmp/cloud-build/20261031T220931155348Z/pipelines/smoke/kander/latest.json\n\n----------------------------------------------------------------------\nRan 1 test in 0.114s\n\nFAILED (failures=1)\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "python3 -m unittest tests.test_mvp2_t5_receipts",
+      "exit": 0,
+      "tail": "\n.\n----------------------------------------------------------------------\nRan 1 test in 0.231s\n\nOK\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": true,
+  "task": "tests/test_x_intake_smoke_117_118.py and tests/test_x_intake_smoke_119_121.py call the smoke without PFY_SMOKE_RECEIPT_DIR, so write() in examples/x-intake-local/smoke.py drops pipelines/smoke/<entry>/latest.json inside the repo. Later suites already avoid that. Match tests/test_x_intake_smoke_112_114.py: one temp directory per test, put it in PFY_SMOKE_RECEIPT_DIR on the env passed to the smoke, and read the receipt from that directory.\n\ntest_wrong_kander_version_exits_2 and test_agentdescent_wrong_version_exits_2 must still pass and must not create or modify pipelines/smoke/kander/latest.json or pipelines/smoke/agentdescent/latest.json. The gitignore tests in both modules must still pass. Do not skip tests. Do not weaken assertions.\n\nDo not edit tests/test_mvp2_t5_receipts.py. Do not change the smoke scripts. Do not edit any other file. Do not add a receipt json. Stay at or under 250 changed lines.\n\nThe gate is python3 -m unittest tests.test_mvp2_t5_receipts. It is red before your edit. Do not weaken it.",
+  "finished_at": "2026-10-31T22:13:14Z"
+}

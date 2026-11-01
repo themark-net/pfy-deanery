@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/docs-automation-x-intake-2026-10-16-hand-20261031T234859882436Z",
+  "commit": "04ee215d38df7d64b862474f1ecee1f0213bf3c5",
+  "base": "HEAD",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "SIGTERM during the harnessrouter smoke still leaves the container behind. I will read the handoff, the smoke script, and the gate tests, then change only `examples/x-intake-local/smoke_122_124.py`.The handoff and the gate agree: SIGTERM during `docker run` must still run `rm -f pfy-hr-smoke` and `volume rm -f pfy-hr-smoke`, then exit 1 with SIGTERM in the receipt. I will read the smoke function and both tests before changing anything.SIGTERM currently kills the process inside `docker run`, so the `finally` that removes the container never runs. I will confirm that, then catch the signal so cleanup still logs the real `rm` and `volume rm` lines.The default SIGTERM action kills the smoke inside `docker run`, so `finally` never reaches `rm` or `volume rm`. I will turn that signal into an exception, let the existing cleanup run, and exit 1 with SIGTERM in the receipt.A SIGTERM during `docker run` in `smoke_harnessrouter` now still removes the container and the volume, then exits 1 with a receipt.\n\nThe default SIGTERM action was killing the process inside `docker run`, so the cleanup `finally` never ran. The smoke now handles `SIGTERM` by raising `_Sigterm`. That handler is installed only around the run. The existing cleanup still runs, and the docker arguments are unchanged: `rm -f pfy-hr-smoke` and `volume rm -f pfy-hr-smoke`. The process exits 1, `write()` records the receipt, and the reason is `SIGTERM during docker run`.\n\nA normal run, a cleanup timeout, and a non-zero `rm` follow the same paths as before.\n\n`python3 -m unittest tests.test_hr_sigterm_exact tests.test_x_intake_smoke_122_124.XIntakeSmoke122124Tests.test_harnessrouter_clean_cleanup_passes` passed, along with the other harnessrouter cleanup tests (10 tests, OK). Only `examples/x-intake-local/smoke_122_124.py` was edited. Nothing was committed.\n\nThe earlier signal probe finished and does not change the result. A SIGTERM during `docker run` still removes `pfy-hr-smoke` with `rm -f pfy-hr-smoke` and `volume rm -f pfy-hr-smoke`, exits 1, and records a receipt whose reason contains SIGTERM. The required tests passed.\n\nThe review has to check that a SIGTERM during `docker run` still removes the container and volume, then exits 1 with a receipt that names SIGTERM. I'll read the smoke function and its cleanup path before judging the diff.verdict: accept\n\nA SIGTERM during `docker run` raises `_Sigterm`, the existing `finally` still runs `rm -f pfy-hr-smoke` and `volume rm -f pfy-hr-smoke`, and `smoke_harnessrouter` returns 1 so `write()` records a receipt whose reason contains SIGTERM. The normal run, the cleanup timeout, and a non-zero rm still fall through to `finish()`. The diff only edits `examples/x-intake-local/smoke_122_124.py` and is not committed.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "python3 -m unittest tests.test_hr_sigterm_exact tests.test_x_intake_smoke_122_124.XIntakeSmoke122124Tests.test_harnessrouter_clean_cleanup_passes",
+    "before": {
+      "cmd": "python3 -m unittest tests.test_hr_sigterm_exact tests.test_x_intake_smoke_122_124.XIntakeSmoke122124Tests.test_harnessrouter_clean_cleanup_passes",
+      "exit": 1,
+      "tail": "\nF.\n======================================================================\nFAIL: test_sigterm_logs_the_real_rm_and_volume_rm (tests.test_hr_sigterm_exact.HarnessRouterSigtermExactTests.test_sigterm_logs_the_real_rm_and_volume_rm)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood2-1031/tmp/target-08/tmp/cloud-build/20261031T234859882436Z/tests/test_hr_sigterm_exact.py\", line 101, in test_sigterm_logs_the_real_rm_and_volume_rm\n    self.assertEqual(proc.returncode, 1, stdout + stderr)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: -15 != 1 : \n\n----------------------------------------------------------------------\nRan 2 tests in 1.793s\n\nFAILED (failures=1)\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "python3 -m unittest tests.test_hr_sigterm_exact tests.test_x_intake_smoke_122_124.XIntakeSmoke122124Tests.test_harnessrouter_clean_cleanup_passes",
+      "exit": 0,
+      "tail": "\n..\n----------------------------------------------------------------------\nRan 2 tests in 1.686s\n\nOK\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": true,
+  "task": "docs/automation/x-intake-2026-10-16-handoff.md says SIGTERM to the harnessrouter smoke still leaves the container behind.\n\nIn examples/x-intake-local/smoke_122_124.py, a SIGTERM that arrives during docker run in smoke_harnessrouter must still remove the container and the volume. The docker stub logs the arguments of each invocation. Those removal lines must be exactly `rm -f pfy-hr-smoke` and `volume rm -f pfy-hr-smoke`. Do not insert `--` before volume. The process must exit 1. write() must still record the receipt, and the reason must contain SIGTERM. A normal run, a cleanup timeout, and a non-zero rm stay as they are.\n\nDo not edit tests. Do not edit any file except examples/x-intake-local/smoke_122_124.py. Do not commit.\n\nGate already in the tree. Do not edit it.\n\nNo em dashes or en dashes.",
+  "finished_at": "2026-11-01T00:03:50Z"
+}

@@ -204,7 +204,21 @@ if [[ "$IN_PLACE" -eq 0 ]]; then
   CLEANUP_WORKTREE="$RUN_ROOT"
 fi
 
+reap_recorded_orphans() {
+  [[ -z "${PS_BEFORE_FAILED:-}" && -n "${ORPHAN_SEEN:-}" && -s "$ORPHAN_SEEN" ]] || return 0
+  local pids pid
+  pids="$(python3 "$SCRIPT_DIR/pregate_orphans.py" signal "$ORPHAN_SEEN" "$$" "$LOG_DIR/ps-before.txt" "$RUN_ROOT" "$SCRATCH" 2>/dev/null || true)"
+  if [[ -n "${pids//[[:space:]]/}" ]]; then
+    # shellcheck disable=SC2086
+    kill -TERM $pids 2>/dev/null || true; sleep 1; kill -KILL $pids 2>/dev/null || true
+  fi
+  while read -r pid _; do
+    [[ "$pid" =~ ^[0-9]+$ ]] && own_child "$pid" && kill_tree "$pid" || true
+  done <"$ORPHAN_SEEN"
+}
 cleanup() {
+  rm -f "$LOG_DIR/.orphan-sample"; if [[ -n "${SAMPLER_PID:-}" ]]; then kill "$SAMPLER_PID" 2>/dev/null || true; wait "$SAMPLER_PID" 2>/dev/null || true; fi
+  reap_recorded_orphans
   if [[ -n "$CLEANUP_WORKTREE" && "$KEEP_WORKTREE" -eq 0 ]]; then
     git -C "$MAIN_ROOT" worktree remove --force "$CLEANUP_WORKTREE" >/dev/null 2>&1 || rm -rf "$CLEANUP_WORKTREE"
   fi
@@ -330,6 +344,10 @@ cd "$RUN_ROOT"
 
 # Snapshot our user's processes before any check (orphan before/after diff).
 ps -u "$(id -un)" -o pid= >"$LOG_DIR/ps-before.txt" 2>/dev/null || PS_BEFORE_FAILED=1
+# Remember pids while they are still under the run, so a later chdir is still a leak.
+ORPHAN_SEEN="$LOG_DIR/orphan-seen.txt"; : >"$ORPHAN_SEEN"; touch "$LOG_DIR/.orphan-sample"
+python3 "$SCRIPT_DIR/pregate_orphans.py" watch "$ORPHAN_SEEN" "$LOG_DIR/.orphan-sample" "$RUN_ROOT" "$SCRATCH" &
+SAMPLER_PID=$!
 
 export PFY_STATE_DIR="$SCRATCH/state"
 mkdir -p "$PFY_STATE_DIR"
@@ -479,21 +497,9 @@ check_suite() {
 
 check_orphans() {
   if [[ -n "${PS_BEFORE_FAILED:-}" ]]; then echo "FAIL: ps snapshot before checks failed"; return 1; fi
-  local after own leak=0 pid cwd cmd
-  after="$(ps -u "$(id -un)" -o pid=)" || { echo "FAIL: ps failed; cannot prove no orphans"; return 1; }
-  [[ -n "$after" ]] || { echo "FAIL: ps returned nothing"; return 1; }
-  own=" $$ $BASHPID $(descendants $$ | tr '\n' ' ') "
-  for pid in $after; do
-    grep -qx "[[:space:]]*$pid" "$LOG_DIR/ps-before.txt" && continue
-    [[ "$own" == *" $pid "* ]] && continue
-    [[ -d "/proc/$pid" ]] || continue
-    cwd="$(readlink "/proc/$pid/cwd" 2>/dev/null || true)"
-    cmd="$( { tr '\0' ' ' <"/proc/$pid/cmdline"; } 2>/dev/null || true)"
-    if [[ "$cwd/" == "$RUN_ROOT/"* || "$cwd/" == "$SCRATCH/"* || "$cmd" == *"$RUN_ROOT/"* || "$cmd" == *"$SCRATCH/"* ]]; then
-      echo "LEAK pid=$pid cwd=$cwd cmd=$cmd"
-      leak=1
-    fi
-  done
+  local leak=0
+  python3 "$SCRIPT_DIR/pregate_orphans.py" leaks \
+    "$ORPHAN_SEEN" "$LOG_DIR/ps-before.txt" "$$" "$RUN_ROOT" "$SCRATCH" || leak=1
   if find "$RUN_ROOT/tmp" "$SCRATCH" \( -name 'orphan*.pid' -o -name 'orphan*.heartbeat' \) 2>/dev/null | grep .; then
     echo "LEAK: orphan pid/heartbeat files above"
     leak=1

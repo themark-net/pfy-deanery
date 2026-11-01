@@ -1,0 +1,16 @@
+Started 2026-10-31T22:31:04Z. Finished 2026-10-31T22:36:10Z. Wall 306 seconds.
+Runner: origin/bot/mvp-cloudfix-1031 at d35af200c63834f06fcfcce472f117e1084af5d4 (already merged, fetch was up to date).
+
+./pfy build <task> \
+  --repo /home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood2-1031/tmp/target-05 \
+  --base HEAD \
+  --test-cmd "python3 -m unittest tests.test_mvp2_t4_timeout_step tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_overtime_timeout_reason_is_shared_text tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_festival_timeout_reason_is_shared_text tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_overtime_daemon_stop_timeout_uses_shared_text" \
+  --writable-test tests/test_x_intake_smoke_112_114.py \
+  --receipt-dir /home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood2-1031/eval/dogfood2-1031/05-timeout-substep
+
+Task file: overtime new and festival version timeouts must name the sub-step. Only two assertion strings in the existing suite may change. The daemon-stop assertion stays.
+
+Target: fresh local clone of this worktree, plus a local red-gate commit (c5ebd70) that is not pushed.
+No --local. Default retries and timeout. Review on.
+Exit 0. Cloud commit b35ddd53025edc0b594ef776f1729c99ecb19cdb matches the receipt.
+Caller branch was not switched. Nothing pushed from the target.

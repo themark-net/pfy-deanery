@@ -69,11 +69,13 @@ def tmo() -> float:
 
 
 def tree_sig(p: Path) -> str | None:
+    """Content, lstat mode, and symlink text. mtime is ignored and links are not followed."""
+    import stat
     if not p.exists():
         return None
     h = hashlib.sha256()
-    # when p itself is a symlink, its lstat permission bits and readlink string join the signature so a retarget
-    # shows even when both directories hold the same bytes. entries under p are still hashed below. mtime stays out.
+    # Root symlink: lstat mode and readlink, so a retarget shows when the
+    # directory holds the same bytes. Children are hashed below. mtime stays out.
     if p.is_symlink():
         try:
             st = p.lstat()
@@ -81,30 +83,27 @@ def tree_sig(p: Path) -> str | None:
             h.update(f"{p}:{mode}:link:{os.readlink(p)}\n".encode())
         except OSError:
             h.update(f"{p}:unreadable\n".encode())
-    for f in sorted(p.rglob("*")):
-        # permission bits plus a streamed content hash, not mtime: chmod and a same-size edit change the signature.
-        # a symlink is never opened: lstat mode and the readlink string, so a retarget changes the signature even
-        # when both targets hold the same bytes, and a file outside the tree is not hashed. an in-tree target stays
-        # its own entry and keeps its content hash.
+    for f in sorted(p.rglob("*", recurse_symlinks=False)):
         try:
             st = f.lstat()
-            mode = f"{stat.S_IMODE(st.st_mode):o}"
-            if stat.S_ISLNK(st.st_mode):
-                h.update(f"{f}:{mode}:link:{os.readlink(f)}\n".encode())
-            elif stat.S_ISREG(st.st_mode):
-                try:
-                    fh = hashlib.sha256()
-                    with f.open("rb") as fp:  # streamed in 1 MiB chunks, so a huge file doesn't load into RAM
-                        for chunk in iter(lambda: fp.read(1 << 20), b""):
-                            fh.update(chunk)
-                except OSError:
-                    h.update(f"{f}:{mode}:unreadable\n".encode())
-                else:
-                    h.update(f"{f}:{mode}:{st.st_size}:{fh.hexdigest()}\n".encode())
-            else:
-                h.update(f"{f}:{mode}:dir\n".encode())
         except OSError:
             h.update(f"{f}:unreadable\n".encode())
+            continue
+        mode = stat.S_IMODE(st.st_mode)
+        try:
+            if stat.S_ISLNK(st.st_mode):
+                h.update(f"{f}:{mode:o}:link:{os.readlink(f)}\n".encode())
+            elif stat.S_ISREG(st.st_mode):
+                fh = hashlib.sha256()
+                with f.open("rb") as fp:  # 1 MiB chunks; a large file stays out of RAM
+                    for chunk in iter(lambda: fp.read(1 << 20), b""):
+                        fh.update(chunk)
+                h.update(f"{f}:{mode:o}:{st.st_size}:{fh.hexdigest()}\n".encode())
+            else:
+                kind = "dir" if stat.S_ISDIR(st.st_mode) else "other"
+                h.update(f"{f}:{mode:o}:{kind}\n".encode())
+        except OSError:
+            h.update(f"{f}:{mode:o}:unreadable\n".encode())
     return h.hexdigest()
 
 

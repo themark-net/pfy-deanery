@@ -1,0 +1,15 @@
+Started 2026-10-31T22:17:44Z. Finished 2026-10-31T22:28:45Z. Wall 661 seconds.
+Runner: origin/bot/mvp-cloudfix-1031 at d35af200c63834f06fcfcce472f117e1084af5d4 (already merged, fetch was up to date).
+
+./pfy build <task> \
+  --repo /home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood2-1031/tmp/target-04 \
+  --base HEAD \
+  --test-cmd "python3 -m unittest tests.test_remaining_home_sigs" \
+  --receipt-dir /home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood2-1031/eval/dogfood2-1031/04-remaining-home-sigs
+
+Task file: smoke_117_118.tree_sig, smoke_148.home_sig, and smoke_149.home_sig still hash size and mtime. Match the content, mode, and symlink contract. Do not edit the copies already fixed, and do not edit smoke_128_130.py.
+
+Target: fresh local clone of this worktree, plus a local red-gate commit (168b37e) that is not pushed.
+No --local. Default retries and timeout. Review on.
+Exit 0. Cloud commit 5e24f83e0d3ae588651064c6c4c7810e95b11178 matches the receipt.
+Caller branch was not switched. Nothing pushed from the target.

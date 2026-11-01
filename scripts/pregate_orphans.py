@@ -1,0 +1,209 @@
+#!/usr/bin/env python3
+"""Record pids seen under a pregate run. escaped() flags ones that chdir away.
+signal_pids() keeps a reparented pid (ppid 1) and drops own children for kill_tree.
+"""
+from __future__ import annotations
+
+import fcntl
+import os
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+def tracked(cwd, argv, roots) -> bool:
+    cwd, argv = cwd or "", argv or ""
+    tokens = argv.split()
+    for root in roots:
+        root = str(root or "")
+        if len(root) > 1:
+            root = root.rstrip("/")
+        if not root:
+            continue
+        under = cwd == root or cwd.startswith(root + "/")
+        if under or (root + "/") in argv or root in tokens:
+            return True
+    return False
+
+def note(seen, pid, cwd, argv, roots) -> None:
+    if tracked(cwd, argv, roots):
+        seen.add(pid)
+
+def escaped(seen, alive, roots) -> list:
+    out = []
+    for pid in seen:
+        if pid not in alive:
+            continue
+        cwd, argv = alive[pid]
+        if not tracked(cwd, argv, roots):
+            out.append(pid)
+    return sorted(out)
+
+def signal_pids(pids, ppid_of, self_pid) -> list:
+    return [pid for pid in pids if ppid_of.get(pid) != self_pid]
+
+def _proc(pid: int):
+    """cwd, argv, ppid, starttime. Unreadable fields are empty or None."""
+    cwd = argv = ""
+    ppid = start = None
+    try:
+        cwd = os.readlink(f"/proc/{pid}/cwd")
+    except OSError:
+        pass
+    try:
+        raw = Path(f"/proc/{pid}/cmdline").read_bytes()
+        argv = raw.replace(b"\0", b" ").decode("utf-8", "replace").strip()
+    except OSError:
+        pass
+    try:
+        stat = Path(f"/proc/{pid}/stat").read_text()
+        end = stat.rfind(")")
+        fields = stat[end + 2 :].split() if end >= 0 else []
+        if len(fields) >= 20:
+            ppid, start = int(fields[1]), fields[19]
+    except (OSError, ValueError):
+        pass
+    return cwd, argv, ppid, start
+
+def _pids() -> list[int]:
+    out = subprocess.check_output(["ps", "-u", str(os.getuid()), "-o", "pid="], text=True)
+    return [int(tok) for tok in out.split() if tok.isdigit()]
+
+def _load(path: Path) -> dict[int, str]:
+    seen: dict[int, str] = {}
+    if path.exists():
+        for line in path.read_text().splitlines():
+            parts = line.split()
+            if parts and parts[0].isdigit():
+                seen[int(parts[0])] = parts[1] if len(parts) > 1 else ""
+    return seen
+
+def _save(path: Path, seen: dict[int, str]) -> None:
+    tmp = Path(str(path) + ".tmp")
+    tmp.write_text("".join(f"{pid} {seen[pid]}\n" for pid in sorted(seen)))
+    os.replace(tmp, path)
+
+def _with_seen(path: str, fn):
+    dest = Path(path)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    lock = open(Path(str(dest) + ".lock"), "a+")  # noqa: SIM115 — flock needs the handle
+    try:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        seen = _load(dest)
+        if fn(seen):
+            _save(dest, seen)
+        return seen
+    finally:
+        fcntl.flock(lock, fcntl.LOCK_UN)
+        lock.close()
+
+def remember(path: str, roots, exclude: set[int]) -> None:
+    def add(seen: dict[int, str]) -> bool:
+        changed = False
+        for pid in _pids():
+            if pid in exclude or pid in seen:
+                continue
+            cwd, argv, _ppid, start = _proc(pid)
+            hold: set[int] = set()
+            note(hold, pid, cwd, argv, roots)
+            if hold and start:
+                seen[pid] = start
+                changed = True
+        return changed
+    _with_seen(path, add)
+
+def live_seen(path: str) -> set[int]:
+    raw = _with_seen(path, lambda _seen: False)
+    return {pid for pid, start in raw.items() if start and _proc(pid)[3] == start}
+
+def _descendants(root: int, ppid_of: dict[int, int]) -> set[int]:
+    kids: dict[int, list[int]] = {}
+    for pid, ppid in ppid_of.items():
+        kids.setdefault(ppid, []).append(pid)
+    out: set[int] = set()
+    stack = [root]
+    while stack:
+        for child in kids.get(stack.pop(), []):
+            if child not in out:
+                out.add(child)
+                stack.append(child)
+    return out
+
+def _before(path: str) -> set[int]:
+    text = Path(path).read_text() if path and Path(path).exists() else ""
+    return {int(tok) for tok in text.split() if tok.isdigit()}
+
+def _alive(pids):
+    alive, ppid_of = {}, {}
+    for pid in pids:
+        cwd, argv, ppid, _start = _proc(pid)
+        alive[pid] = (cwd, argv)
+        if ppid is not None:
+            ppid_of[pid] = ppid
+    return alive, ppid_of
+
+def cmd_watch(path: str, flag: str, roots) -> int:
+    me, parent = os.getpid(), os.getppid()
+    while os.path.exists(flag) and os.getppid() == parent:
+        try:
+            remember(path, roots, {me})
+        except (OSError, subprocess.CalledProcessError):
+            pass
+        time.sleep(0.25)
+    return 0
+
+def cmd_leaks(seen_path: str, before_path: str, self_pid: int, roots) -> int:
+    try:
+        remember(seen_path, roots, set())
+        pids = _pids()
+    except (OSError, subprocess.CalledProcessError):
+        print("FAIL: ps failed; cannot prove no orphans")
+        return 1
+    if not pids:
+        print("FAIL: ps returned nothing")
+        return 1
+    before = _before(before_path)
+    alive, ppid_of = _alive(pids)
+    skip = _descendants(self_pid, ppid_of)
+    skip.add(self_pid)
+    escaped_ids = set(escaped(live_seen(seen_path), alive, roots))
+    leaked = False
+    for pid in pids:
+        cwd, argv = alive[pid]
+        # Descendants still inside the run are this pregate. A recorded pid that
+        # has chdir'd away counts even when it is still a child.
+        new_under = pid not in before and pid not in skip and tracked(cwd, argv, roots)
+        if not new_under and pid not in escaped_ids:
+            continue
+        print(f"LEAK pid={pid} cwd={cwd} cmd={argv}")
+        leaked = True
+    return 1 if leaked else 0
+
+def cmd_signal(seen_path: str, self_pid: int, before_path: str, roots) -> int:
+    seen = sorted(pid for pid in live_seen(seen_path) if pid not in _before(before_path) and pid > 1)
+    alive, ppid_of = _alive(seen)
+    candidates = []
+    for pid in seen:
+        ppid = ppid_of.get(pid)
+        if ppid is None:
+            continue
+        cwd, argv = alive.get(pid, ("", ""))
+        if ppid == 1 or not tracked(cwd, argv, roots):
+            candidates.append(pid)
+    for pid in signal_pids(candidates, ppid_of, self_pid):
+        print(pid)
+    return 0
+
+def main(argv: list[str]) -> int:
+    cmd, args = (argv[1] if len(argv) > 1 else ""), argv[2:]
+    if cmd == "watch" and len(args) >= 3:
+        return cmd_watch(args[0], args[1], args[2:])
+    if cmd == "leaks" and len(args) >= 4:
+        return cmd_leaks(args[0], args[1], int(args[2]), args[3:])
+    if cmd == "signal" and len(args) >= 4:
+        return cmd_signal(args[0], int(args[1]), args[2], args[3:])
+    print("usage: pregate_orphans.py watch|leaks|signal ...", file=sys.stderr)
+    return 2
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))
