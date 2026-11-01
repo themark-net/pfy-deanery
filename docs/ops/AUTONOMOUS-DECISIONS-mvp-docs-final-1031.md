@@ -1,0 +1,13 @@
+# Autonomous decisions: mvp-docs-final-1031
+
+One line per choice. Conservative. No questions.
+
+- 2026-11-01T00:03:00Z | Skills `repo-handoff-doc-required` and `write-loop-exits-first` are not files under this repo or `~/.grok/skills`. Bind the drop-in exit list, the agent-loops eight-exit card, and `docs/ops/HANDOFF-mvp-docs-final-1031.md`. | Search further and block. | Both names are absent. The drop-in already states the exits and the handoff path.
+- 2026-11-01T00:03:00Z | The lead writes the verdict and the daily docs. No implementation subagents. One workstream shares those files. A project-map subagent may write only `.project-map/`. | Spawn parallel writers. | Parallel writers would edit the same docs.
+- 2026-11-01T00:03:00Z | Do not edit `docs/TODO.md` while the integrate process is live. That drop-in owns the MVP note. Put the proposed row in the handoff as a cross-lane request. Retry the edit only after that process has exited. | Edit TODO now. | A concurrent TODO edit fights the running integrate lane.
+- 2026-11-01T00:03:00Z | Do not edit `scripts/pfy` or any runner. mvp-cloudfix-1031 is live on the build help and `cmd_build`. If the help text is wrong, record a cross-lane request. No CLI behavior test unless this lane changes CLI text. | Patch the help text here. | The drop-in says no runner code changes, and cloudfix owns that file.
+- 2026-11-01T00:03:00Z | Do not edit `eval/mvp-1031/REPORT.md`, demo receipts, `eval/mvp-1031/perf/**`, or `eval/mvp-1031/review-quality/**`. Those belong to live lanes. This lane writes `eval/mvp-1031/VERDICT.md` only. | Fold the verdict into REPORT.md. | Integrate pass 3 is still writing that report.
+- 2026-11-01T00:03:00Z | Read evidence from `origin/bot/mvp-*-1031` tips. Do not merge the moving integrate branch into this lane. | Rebase onto integrate tip. | Integrate is in pass 3 and still committing.
+- 2026-11-01T00:03:00Z | Plan status lands as `docs/plans/MVP-1031-STATUS.md` on this branch. This lane must not push `bot/mvp-plan-1031`. The historical plan file stays on that branch. | Rewrite `docs/plans/MVP-PARALLEL-1031.md` on the plan branch. | Push is limited to `bot/mvp-docs-final-1031`.
+- 2026-11-01T00:03:00Z | Turn cap is 8 substantive items, plus the drop-in exits. Wall clock still binds first if it arrives sooner. | Ignore the agent-loops turn cap. | Exit 2 must be filled. 8 matches the skill default.
+- 2026-11-01T00:03:00Z | Verdict snapshot time is the read of the remote tips, not the stale base `66a5500`. Every evidence link names a SHA. | Cite the worktree copies. | The worktree base is behind the tips that hold the later reports.
