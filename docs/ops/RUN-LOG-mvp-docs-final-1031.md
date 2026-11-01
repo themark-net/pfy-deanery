@@ -81,3 +81,8 @@ Format: `item | commit | tests | result`
 - quickstart | 080d590 | `nice -n 19 python3 -m unittest tests.test_quickstart_commands` 3 tests OK | dry-run fence passes `--base HEAD`. Help excerpt includes `--writable-test`. Walkthrough not copied.
 - todo-row | skipped | none | integrate pid 3758828 still owns `docs/TODO.md`. Proposed row is in `docs/plans/MVP-1031-STATUS.md`.
 - product-surface | skipped | none | T-0090 keeps three levers. Daily build stays on the operator card. No ADR from this lane.
+- plan-status | 75bcea8 | none | `docs/plans/MVP-1031-STATUS.md`. Verdict cites review-quality before round 3/10 false accept, 0/10 false reject. Headline stays GO.
+
+Host at finish: MemAvailable about 71 GiB. Load under 5 on 32 cores. Wall clock used about 20 minutes of the 8 hour cap.
+
+state: lane empty | tests: tests.test_pfy_build_docs 5 OK, tests.test_quickstart_commands 3 OK | files: VERDICT.md, daily card, module, quickstart, MVP-1031-STATUS.md | err: none
