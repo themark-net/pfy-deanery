@@ -1,0 +1,56 @@
+{
+  "schema": "pfy-local-build/1",
+  "id": "20261031T232351831429Z-t4-timeout-reasons-name-the-sub-step-lev",
+  "task": "# t4 timeout reasons name the sub-step\n\nLevel: medium\nBase SHA: 997d89264495861a178713ccf7d4447ea828afc4\nFiles likely touched: examples/x-intake-local/smoke_112_114.py, tests/test_x_intake_smoke_112_114.py\nGate: python3 -m unittest tests.test_mvp2_t4_timeout_step tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_overtime_timeout_reason_is_shared_text tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_festival_timeout_reason_is_shared_text tests.test_x_intake_smoke_112_11",
+  "repo": "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-local-t5-1031/tmp/local-rerun-clones/t4-timeout-substep",
+  "base_sha": "3aba0fa6db5b9e99b32e1a335050efbe2505afc9",
+  "model": "qwen3.6:35b",
+  "endpoint": "127.0.0.1:11434",
+  "status": "TIMEOUT",
+  "reason": "timeout",
+  "exit_code": 3,
+  "wall_seconds": 1838.277,
+  "agent_seconds": 1809.744,
+  "tests_before": {
+    "cmd": "python3 -m unittest tests.test_mvp2_t4_timeout_step tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_overtime_timeout_reason_is_shared_text tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_festival_timeout_reason_is_shared_text tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_overtime_daemon_stop_timeout_uses_shared_text",
+    "exit": 1,
+    "passed": 3,
+    "failed": 2,
+    "errors": 0,
+    "seconds": 6.661,
+    "tail": "\nFF...\n======================================================================\nFAIL: test_festival_version_timeout_names_version (tests.test_mvp2_t4_timeout_step.TimeoutSubstepTests.test_festival_version_timeout_names_version)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-local-t5-1031/tmp/local-rerun-clones/t4-timeout-substep/tmp/local-build-20261031T232351831429Z-t4-timeout-reasons-name-the-sub-step-lev/tests/test_mvp2_t4_timeout_step.py\", line 91, in test_festival_version_timeout_names_version\n    self.assertEqual(reason, \"version timeout after 0.4s\", blob)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'festival timeout after 0.4s' != 'version timeout after 0.4s'\n- festival timeout after 0.4s\n? ^  - ^^^\n+ version timeout after 0.4s\n? ^ +  ^^\n : {\"verdict\": \"FAIL\", \"reason\": \"festival timeout after 0.4s\"}\nreceipt: /home/mark/DEVELOP/pfy-mentat/tmp/mvp-local-t5-1031/tmp/local-rerun-clones/t4-timeout-substep/tmp/local-build-20261031T232351831429Z-t4-timeout-reasons-name-the-sub-step-lev/tmp/mvp2-t4-fest-id4wcg6a/receipts/festival/latest.json\n\n\n======================================================================\nFAIL: test_overtime_new_timeout_names_new (tests.test_mvp2_t4_timeout_step.TimeoutSubstepTests.test_overtime_new_timeout_names_new)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-local-t5-1031/tmp/local-rerun-clones/t4-timeout-substep/tmp/local-build-20261031T232351831429Z-t4-timeout-reasons-name-the-sub-step-lev/tests/test_mvp2_t4_timeout_step.py\", line 60, in test_overtime_new_timeout_names_new\n    self.assertEqual(reason, \"new timeout after 0.4s\", blob)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'overtime timeout after 0.4s' != 'new timeout after 0.4s'\n- overtime timeout after 0.4s\n? ^^ ^^^^^\n+ new timeout after 0.4s\n? ^ ^\n : {\"verdict\": \"FAIL\", \"reason\": \"overtime timeout after 0.4s\"}\nreceipt: /home/mark/DEVELOP/pfy-mentat/tmp/mvp-local-t5-1031/tmp/local-rerun-clones/t4-timeout-substep/tmp/local-build-20261031T232351831429Z-t4-timeout-reasons-name-the-sub-step-lev/tmp/mvp2-t4-ot-_h7a0f0q/receipts/overtime/latest.json\n\n\n----------------------------------------------------------------------\nRan 5 tests in 6.583s\n\nFAILED (failures=2)"
+  },
+  "tests_after": null,
+  "files_changed": [],
+  "attempts": 3,
+  "review": {
+    "enabled": true,
+    "retries": 2,
+    "max_files": 3,
+    "max_lines": 250,
+    "allow_path": [],
+    "require_wiring": []
+  },
+  "warnings": [],
+  "sandbox_extra_rw": [],
+  "attempt_receipts": [
+    "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-local-t5-1031/tmp/local-rerun-receipts/t4-timeout-substep/attempt-1/receipt.json",
+    "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-local-t5-1031/tmp/local-rerun-receipts/t4-timeout-substep/attempt-2/receipt.json",
+    "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-local-t5-1031/tmp/local-rerun-receipts/t4-timeout-substep/attempt-3/receipt.json"
+  ],
+  "branch": null,
+  "commit": null,
+  "worktree": "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-local-t5-1031/tmp/local-rerun-clones/t4-timeout-substep/tmp/local-build-20261031T232351831429Z-t4-timeout-reasons-name-the-sub-step-lev",
+  "model_was_loaded": false,
+  "unloaded": true,
+  "mem": {
+    "mem_available_gb": 78.24,
+    "swap_free_gb": 0.0,
+    "min_available_gb": 34.827
+  },
+  "opencode_version": "1.18.32",
+  "agent_log": "/home/mark/DEVELOP/pfy-mentat/tmp/mvp-local-t5-1031/tmp/local-rerun-receipts/t4-timeout-substep/agent.log",
+  "sandbox": "bwrap-unshare-net",
+  "started_at": "2026-10-31T23:23:51Z",
+  "finished_at": "2026-10-31T23:54:30Z"
+}
