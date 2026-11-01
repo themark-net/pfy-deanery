@@ -88,3 +88,5 @@ Progress:
 - state: lane empty | resume recheck 2026-11-01T00:03:02Z | pregate not run: operator owns it, and a pregate is already on the heavy lock | err: none
 - resume 2026-11-01T00:11:04Z | origin/main still c0d38af | fast-forward, behind 0, tip 2cdd792 | Runner.Worker idle | MemAvailable about 71.5 GiB | load 3.09 on 32 cores | pregate of 0afea54 still holds heavy-1030.lock (flock pid 3755278) | this lane does not run pregate.sh | no new fitting gap
 - state: lane empty | resume recheck 2026-11-01T00:11:04Z | pregate not run: operator owns it, and a pregate is already on the heavy lock | err: none
+- resume 2026-11-01T00:22:02Z | origin/main still c0d38af | fast-forward, behind 0, tip 6535318 | Runner.Worker idle | MemAvailable about 71.1 GiB | load 2.94 on 32 cores | heavy lock now held by pregate of 1f3b1a3 (flock pid 65479) and unittest discover pids 58618 and 3931940 | map default is wait | this lane does not run pregate.sh | no new fitting gap
+- state: lane empty | resume recheck 2026-11-01T00:22:02Z | pregate not run: operator owns it, and a pregate of 1f3b1a3 holds the heavy lock | err: none
