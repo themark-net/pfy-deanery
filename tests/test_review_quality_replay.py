@@ -18,7 +18,7 @@ QUALITY = ROOT / "eval" / "mvp-1031" / "review-quality"
 if str(QUALITY) not in sys.path:
     sys.path.insert(0, str(QUALITY))
 
-from plant import decide, load_cases, load_round, prepare_workdir, review_argv, score  # noqa: E402
+from plant import decide, load_cases, load_cloud, load_round, prepare_workdir, review_argv, score  # noqa: E402
 
 # Word-boundary forms so a name like task_text is not a secret.
 SECRET_RE = re.compile(
@@ -55,6 +55,19 @@ class ReviewQualityReplayTests(unittest.TestCase):
             except RuntimeError as exc:
                 self.fail("%s did not apply: %s" % (case["id"], exc))
             self.assertIn("diff --git ", prepared, case["id"])
+
+    def test_review_prompt_names_baseline_misses_and_redacts_a_key(self) -> None:
+        cloud = load_cloud()
+        text = cloud.review_prompt("keep the hash", "diff", "OK")
+        self.assertIn("PFY-CLOUD-REVIEW", text)
+        self.assertIn("replaces a content hash", text)
+        self.assertIn("deletes a test or an assertion", text)
+        self.assertIn("prints a token", text)
+        self.assertIn("filesystem root", text)
+        # AWS docs example key. Fail: the prompt shows it. Recover: redact runs first.
+        leaked = cloud.review_prompt("t", "token=AKIAIOSFODNN7EXAMPLE\n", "OK")
+        self.assertNotIn("AKIAIOSFODNN7EXAMPLE", leaked)
+        self.assertIn("[redacted]", leaked)
 
     def test_review_argv_matches_the_runner_and_skips_local(self) -> None:
         argv = review_argv("grok", "PROMPT", Path("/work/scratch"))
