@@ -197,3 +197,25 @@ Host before 08: 2026-10-31T23:38:41Z MemAvailable 40.0 GiB (41899628 kB), load 7
 Host before 09: 2026-10-31T23:40:56Z MemAvailable 39.1 GiB (41035180 kB), load 6.97, 32 cores. Under the pressure line.
 
 - 09-catch-view-date | cloud 2987c4f30a35371ea739f25ada733cefc7153d34 landed c9885f829baad8ecce74705f76756de31e3ce6df (test 4f6db0d370f3aa2aae5c920de953ff7892b9508a) | gate before exit 1, after 1 passed in 0.43s; land pytest 9 passed | PASS review accept human accept wall 107s
+
+Host before 10: 2026-10-31T23:43:23Z MemAvailable 39.1 GiB (40990948 kB), load 6.55, 32 cores. Under the pressure line.
+
+- 10-land-mailbox-parties | cloud 973cedd1e4cc831d114e78e0734e04207f4fcb31 landed 3ecf83f674e668ad064b4ed9c1a54cf154b8d4a8 (test ef2692c00c39a24cc41a99f2f14e6892418a2cba) | gate before exit 1, after 1 passed in 0.06s; land pytest 10 passed | PASS review accept human accept wall 121s
+
+Host before 11: 2026-10-31T23:45:58Z MemAvailable 38.0 GiB (39877916 kB), load 6.78, 32 cores. Under the pressure line.
+
+- 11-land-recipients | cloud 5d1ecaa4a7a31ddf64307f2d832a0a7203812daa landed 04d7ff206e21b7dd15cb8d1bc3f3c2e38e6c747b (test 7ebd92e46fa1cdd8f17dca663259649f9ea123f4) | gate before exit 1, after 1 passed in 0.05s; land pytest 11 passed | PASS review accept human accept wall 81s
+
+Host before 12: 2026-10-31T23:47:49Z MemAvailable 36.3 GiB (38090276 kB), load 6.78, 32 cores. Under the pressure line.
+
+- 12-capture-list-references | cloud 855b079f6298a35214f1611334bb3dd6822c9a39 landed c6c42371195ee045ccc84965f1d2ce95085d02ab (test 8c8ae3ecfe040da3bbe4f8d6171544304255e8a3) | gate before exit 1, after 1 passed in 0.46s; land pytest 12 passed | PASS review accept human accept wall 135s
+
+Host before report: 2026-10-31T23:51:18Z MemAvailable 35.7 GiB (37422044 kB), load 7.71, 32 cores. Under the pressure line. Runner.Worker pid 3751002 is running.
+
+- report wave 5 | rows 07-12 in eval/gom-dogfood-1031/REPORT.md | tests.test_gom_dogfood_1031_report | six new rows match receipts; planted mismatch still fails
+- gom handoff wave 5 | 63d97e302c5cd768a7e92213b2b9374857286cc4 on bot/gom-dogfood-1031 after c6c42371195ee045ccc84965f1d2ce95085d02ab | 12 dogfood tests passed in 3.79s | dated section lists the six cherry-picks
+- pregate | not run | not queued | host busy: Runner.Worker pid 3751002
+
+state: DONE | tests: tests.test_gom_dogfood_1031_report 2 tests OK; gom dogfood pytest 12 passed | files: eval/gom-dogfood-1031 07-12 plus report, run log, handoff | err: none
+
+Wave 5 goal met 2026-10-31T23:51:18Z. Six more cloud builds PASS and human-accept. No build 13. Pregate not run: host busy. No merge.

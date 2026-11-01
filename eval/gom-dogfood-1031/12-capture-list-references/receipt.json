@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/t-0034-capture-list-must-show-references-20261031T234750108494Z",
+  "commit": "855b079f6298a35214f1611334bb3dd6822c9a39",
+  "base": "aa1bb13d0b7aa6b5becac2c74ff3d9ce10cb753a",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll implement capture-list reference display in `format_item_line` and leave the tests unchanged. First I'll read the test and the current formatter.`format_item_line` already prints `message_id` and `in_reply_to`. I'll append `references:` only when that provenance list is non-empty.`format_item_line` now appends `references:` with the stored ids when `provenance.references` is a non-empty list.\n\nA landed item with `[\"mid-root@example\", \"mid-other@example\"]` prints `references: mid-root@example mid-other@example` after `message_id` and `in_reply_to`. A missing or empty list leaves that label off. The existing id, kind, status, title, compute tier, source label, `message_id`, and `in_reply_to` behavior is unchanged. `raw_source` is still not printed, and nothing is submitted.\n\n`tests/test_capture_list_references.py` and `tests/test_capture_list_thread.py` both passed. The module note in `docs/modules/capture.md` matches the new line.\n\nI'll check the change against the task and the unchanged capture-list test before giving a verdict.verdict: accept\n\n`format_item_line` appends `references:` and space-separated ids only when `provenance.references` is a non-empty list, and leaves the existing line fields, `raw_source`, IMAP, and submit behavior unchanged. The docs note matches that rule, `tests/` is untouched, and the gate test passed.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "env JOURNAL_DB_PATH=./tmp/capture-list-references-journal.db USE_OLLAMA=false PYTHONDONTWRITEBYTECODE=1 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/tmp/gom-venv/bin/python -m pytest -q -p no:cacheprovider tests/test_capture_list_references.py",
+    "before": {
+      "cmd": "env JOURNAL_DB_PATH=./tmp/capture-list-references-journal.db USE_OLLAMA=false PYTHONDONTWRITEBYTECODE=1 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/tmp/gom-venv/bin/python -m pytest -q -p no:cacheprovider tests/test_capture_list_references.py",
+      "exit": 1,
+      "tail": "F                                                                        [100%]\n=================================== FAILURES ===================================\n______________________ test_capture_list_shows_references ______________________\n\ntmp_path = PosixPath('/home/mark/DEVELOP/jobbar-master/tmp/gom-dogfood-1031-scratch/clones/12-capture-list-references/tmp/cloud-build/20261031T234750108494Z/tmp/pytest-of-mark/pytest-0/test_capture_list_shows_refere0')\n\n    def test_capture_list_shows_references(tmp_path: Path) -> None:\n        db_path = tmp_path / \"journal.db\"\n        marker = \"raw-only-in-source\"\n        child = _land(\n            db_path,\n            {\n                \"ts\": \"2026-10-02T00:00:00Z\",\n                \"subject\": \"Re: shipped the queue\",\n                \"body\": \"added the graph\",\n                \"message_id\": \"mid-child@example\",\n                \"in_reply_to\": \"mid-root@example\",\n                \"references\": [\"mid-root@example\", \"mid-other@example\"],\n                \"raw_source\": marker,\n            },\n        )\n        assert child[\"ok\"] is True\n        line = format_item_line(child[\"item\"])\n        assert \"Re: shipped the queue\" in line\n        assert \"message_id: mid-child@example\" in line\n        assert \"in_reply_to: mid-root@example\" in line\n>       assert \"references: mid-root@example mid-other@example\" in line\nE       AssertionError: assert 'references: mid-root@example mid-other@example' in 'cap_b51ba347a0  email  landed           Re: shipped the queue  email  message_id: mid-child@example  in_reply_to: mid-root@example'\n\ntests/test_capture_list_references.py:72: AssertionError\n----------------------------- Captured stderr call -----------------------------\n2026-10-31 16:47:50 [debug    ] journal upserted               user_key=[redacted]\n=========================== short test summary info ============================\nFAILED tests/test_capture_list_references.py::test_capture_list_shows_references - AssertionError: assert 'references: mid-root@example mid-other@example' in 'cap_b51ba347a0  email  landed           Re: shipped the queue  email  message_id: mid-child@example  in_reply_to: mid-root@example'\n1 failed in 0.08s\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "env JOURNAL_DB_PATH=./tmp/capture-list-references-journal.db USE_OLLAMA=false PYTHONDONTWRITEBYTECODE=1 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/tmp/gom-venv/bin/python -m pytest -q -p no:cacheprovider tests/test_capture_list_references.py",
+      "exit": 0,
+      "tail": ".                                                                        [100%]\n1 passed in 0.46s\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": false,
+  "task": "T-0034: capture list must show references already stored on the capture item. format_item_line, which gomjobbar capture list prints, must append references: followed by the ids separated by single spaces when provenance.references is a non-empty list. Omit that label when the list is missing or empty. Keep the existing id, kind, status, title, compute tier, source label, message_id, and in_reply_to behavior. Do not print raw_source. Do not call IMAP. Do not submit anything and do not set submitted to true (Decision 0006). Do not edit files under tests/. tests/test_capture_list_references.py must pass unchanged.",
+  "finished_at": "2026-10-31T23:50:05Z"
+}

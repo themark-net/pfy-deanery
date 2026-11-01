@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/t-0034-capture-land-must-copy-mailbox-pa-20261031T234324261021Z",
+  "commit": "973cedd1e4cc831d114e78e0734e04207f4fcb31",
+  "base": "82a1dca8d5488984f9aa2b5652386a8edb809ef1",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll implement mailbox-party copy on land capture, starting from the test and the capture path so the change stays inside this directory.The land capture now copies mailbox parties that are already on the catch onto the item provenance.\n\nIn `gomjobbar/capture.py`, `land` copies `from` and `reply_to` when each is a non-empty string. A missing or empty value stays off provenance. `message_id`, `in_reply_to`, and `references` are still copied the same way. `raw_source` is not copied, and land still does not call IMAP or set `submitted`.\n\n`tests/test_land_mailbox_parties.py` passed unchanged: 1 passed.\n\nI'll check the land change against T-0034 and the unchanged mailbox-parties test before giving a verdict.The diff only adds the two provenance copies. I'll run the mailbox-parties test to confirm the gate.verdict: accept\n\n`land` copies a non-empty string `from` and `reply_to` from the catch onto provenance, and leaves either key off when the field is missing or empty. `message_id` is still copied, `raw_source` is not, and the diff does not call IMAP, submit, set `submitted`, or edit `tests/`. The supplied gate shows `tests/test_land_mailbox_parties.py` passed.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "env JOURNAL_DB_PATH=./tmp/land-mailbox-parties-journal.db USE_OLLAMA=false PYTHONDONTWRITEBYTECODE=1 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/tmp/gom-venv/bin/python -m pytest -q -p no:cacheprovider tests/test_land_mailbox_parties.py",
+    "before": {
+      "cmd": "env JOURNAL_DB_PATH=./tmp/land-mailbox-parties-journal.db USE_OLLAMA=false PYTHONDONTWRITEBYTECODE=1 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/tmp/gom-venv/bin/python -m pytest -q -p no:cacheprovider tests/test_land_mailbox_parties.py",
+      "exit": 1,
+      "tail": "F                                                                        [100%]\n=================================== FAILURES ===================================\n______________________ test_land_copies_from_and_reply_to ______________________\n\ntmp_path = PosixPath('/home/mark/DEVELOP/jobbar-master/tmp/gom-dogfood-1031-scratch/clones/10-land-mailbox-parties/tmp/cloud-build/20261031T234324261021Z/tmp/pytest-of-mark/pytest-0/test_land_copies_from_and_repl0')\n\n    def test_land_copies_from_and_reply_to(tmp_path: Path) -> None:\n        db_path = tmp_path / \"journal.db\"\n        marker = \"raw-only-in-source\"\n        jb = GomJobbar(db=ExperienceJournalDB(str(db_path)))\n        landed = jb.capture_land(\n            \"land-from-user\",\n            catch={\n                \"ts\": \"2026-10-02T00:00:00Z\",\n                \"subject\": \"Re: shipped the queue\",\n                \"body\": \"added the graph\",\n                \"message_id\": \"mid-child@example\",\n                \"from\": \"ada@example\",\n                \"reply_to\": \"ada-reply@example\",\n                \"raw_source\": marker,\n            },\n            provenance={\"source\": \"email_fixture\"},\n        )\n        assert landed[\"ok\"] is True\n        prov = landed[\"item\"][\"provenance\"]\n        assert prov.get(\"message_id\") == \"mid-child@example\"\n>       assert prov.get(\"from\") == \"ada@example\"\nE       AssertionError: assert None == 'ada@example'\nE        +  where None = <built-in method get of dict object at 0x7ab7aa0c8ac0>('from')\nE        +    where <built-in method get of dict object at 0x7ab7aa0c8ac0> = {'source': 'email_fixture', 'landed_at': '2026-10-31T23:43:24.978393+00:00', 'message_id': 'mid-child@example', 'dedupe_key': 'mid:mid-child@example', ...}.get\n\ntests/test_land_mailbox_parties.py:39: AssertionError\n----------------------------- Captured stderr call -----------------------------\n2026-10-31 16:43:24 [debug    ] journal upserted               user_key=[redacted]\n=========================== short test summary info ============================\nFAILED tests/test_land_mailbox_parties.py::test_land_copies_from_and_reply_to - AssertionError: assert None == 'ada@example'\n +  where None = <built-in method get of dict object at 0x7ab7aa0c8ac0>('from')\n +    where <built-in method get of dict object at 0x7ab7aa0c8ac0> = {'source': 'email_fixture', 'landed_at': '2026-10-31T23:43:24.978393+00:00', 'message_id': 'mid-child@example', 'dedupe_key': 'mid:mid-child@example', ...}.get\n1 failed in 0.09s\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "env JOURNAL_DB_PATH=./tmp/land-mailbox-parties-journal.db USE_OLLAMA=false PYTHONDONTWRITEBYTECODE=1 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/tmp/gom-venv/bin/python -m pytest -q -p no:cacheprovider tests/test_land_mailbox_parties.py",
+      "exit": 0,
+      "tail": ".                                                                        [100%]\n1 passed in 0.06s\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": false,
+  "task": "T-0034: capture land must copy mailbox parties already stored on the catch. When from is a non-empty string, copy it onto the capture item provenance. When reply_to is a non-empty string, copy it onto provenance. When either field is missing or empty, leave that key off provenance. Keep copying message_id when it is present. Do not copy raw_source onto the item. Do not call IMAP. Do not submit anything and do not set submitted to true (Decision 0006). Do not edit files under tests/. tests/test_land_mailbox_parties.py must pass unchanged.",
+  "finished_at": "2026-10-31T23:45:25Z"
+}
