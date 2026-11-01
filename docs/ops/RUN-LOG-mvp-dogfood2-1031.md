@@ -74,6 +74,7 @@ item | commit | tests | result
 06-daemon-stop-timeout | 072c7cd | tests.test_mvp2_t3_daemon_stop plus the existing daemon-stop test, 2 OK | PASS human-accept wall 301s attempts 1 review accept cloudfix d35af20
 report-checker | 67ee5f8 | tests.test_dogfood2_1031_report 3 OK | rows match 6 receipts; planted status and trailer mismatches exit 1
 07-hr-sigterm | none | gate red (exit -15), then cloud attempts tests / review-rejected / timeout | FAIL human-reject wall 2942s attempts 3 review reject on attempt 2, final none cloudfix 90d3c6e
+08-hr-sigterm-exact | e8a216a | tests.test_hr_sigterm_exact plus 4 harnessrouter cleanup tests, 5 OK | PASS human-accept wall 891s attempts 1 review accept cloudfix 0dfc9d1
 
 ## States
 
@@ -86,3 +87,4 @@ state: 05 PASS | tests: timeout sub-step gate plus 3 existing tests, 5 OK | file
 state: 06 PASS | tests: tests.test_mvp2_t3_daemon_stop plus existing daemon-stop test, 2 OK | files: smoke_112_114.py | err: none
 state: report-checker | tests: tests.test_dogfood2_1031_report 3 OK | files: REPORT.md, check_reports.py, test_dogfood2_1031_report.py | err: none
 state: 07 FAIL | tests: gate red exit -15, cloud exit 3 TIMEOUT | files: no product commit | err: timeout after review-rejected
+state: 08 PASS | tests: exact SIGTERM gate plus 4 harnessrouter cleanup tests, 5 OK | files: smoke_122_124.py | err: none
