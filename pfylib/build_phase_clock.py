@@ -93,6 +93,10 @@ def install_build_phases(build, clock: PhaseClock, grok_phase) -> None:
         original = getattr(build, method_name)
 
         def wrapped(*args, **kwargs):
+            # Overlapped gates bill one wall span on the caller. Counting
+            # each thread as well would hide the saving and break the sum.
+            if phase == "gate" and getattr(build, "_suppress_gate", False):
+                return original(*args, **kwargs)
             with clock.phase(phase):
                 return original(*args, **kwargs)
 

@@ -71,4 +71,5 @@ Git bench on a throwaway shared clone of this repo (1672 files): worktree add 0.
 item | commit | tests | result
 exits | 11cf824 | none (docs before code) | pushed
 survey | (recorded in the phase-timing commit) | read-only receipt scan plus git bench | no phase keys; git under 0.2s; discover skipped, lock busy
+phase-timing | bce574b | nice -n 19 python3 -m unittest tests.test_pfy_build_phase_clock (4 OK, 5.719s) and tests.test_pfy_build_cloud (61 OK, 22.261s) | pushed
 ```

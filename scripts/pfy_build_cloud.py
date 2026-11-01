@@ -33,6 +33,7 @@ import shutil
 import signal
 import subprocess
 import sys
+import threading
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -126,6 +127,23 @@ class State:
         self.interrupted = False
         self.pgid: int | None = None
         self.agent_pgid: int | None = None
+        # Every live child, so a signal during overlapped gates kills all of them.
+        self.child_pgids: set[int] = set()
+        self.children_lock = threading.Lock()
+
+
+def _track_child(state: State, pgid: int, present: bool) -> None:
+    if not pgid or pgid <= 0:
+        return
+    with state.children_lock:
+        if present:
+            state.child_pgids.add(pgid)
+            state.pgid = pgid
+            state.agent_pgid = pgid
+        else:
+            state.child_pgids.discard(pgid)
+            if state.pgid == pgid:
+                state.pgid = next(iter(state.child_pgids), None)
 
 
 def _now() -> str:
@@ -395,8 +413,13 @@ def _kill_pgid(pgid: int | None) -> None:
 def _install_signals(state: State) -> None:
     def _handle(signum, _frame):
         state.interrupted = True
-        if state.pgid:
-            _signal_pgid(state.pgid, signal.SIGTERM)
+        with state.children_lock:
+            kids = list(state.child_pgids)
+            current = state.pgid
+        if current and current not in kids:
+            kids.append(current)
+        for pg in kids:
+            _signal_pgid(pg, signal.SIGTERM)
 
     signal.signal(signal.SIGTERM, _handle)
     signal.signal(signal.SIGINT, _handle)
@@ -827,26 +850,26 @@ def run_command(
         )
     except FileNotFoundError:
         return "missing", 127, "", "not found"
-    state.pgid = proc.pid
-    state.agent_pgid = proc.pid
+    _track_child(state, proc.pid, True)
     if on_start is not None:
         on_start()
     try:
-        out, err = proc.communicate(timeout=timeout)
-    except subprocess.TimeoutExpired:
-        _kill_pgid(proc.pid)
         try:
-            out, err = proc.communicate(timeout=5)
+            out, err = proc.communicate(timeout=timeout)
         except subprocess.TimeoutExpired:
-            out, err = "", ""
-        state.pgid = None
-        return "timeout", 124, out or "", err or ""
-    code = proc.returncode if proc.returncode is not None else 1
-    state.pgid = None
-    if state.interrupted:
-        _kill_pgid(proc.pid)
-        return "interrupted", code, out or "", err or ""
-    return "done", code, out or "", err or ""
+            _kill_pgid(proc.pid)
+            try:
+                out, err = proc.communicate(timeout=5)
+            except subprocess.TimeoutExpired:
+                out, err = "", ""
+            return "timeout", 124, out or "", err or ""
+        code = proc.returncode if proc.returncode is not None else 1
+        if state.interrupted:
+            _kill_pgid(proc.pid)
+            return "interrupted", code, out or "", err or ""
+        return "done", code, out or "", err or ""
+    finally:
+        _track_child(state, proc.pid, False)
 
 
 def before_gate_block(record: dict | None, test_cmd: str) -> str | None:
@@ -914,6 +937,8 @@ class CloudBuild:
         self.max_attempts = 1 if args.no_review else args.retries + 1
         self.recheck_tail = ""
         self.phase_clock = phase_clock or PhaseClock()
+        self._pid_lock = threading.Lock()
+        self._suppress_gate = False
         install_build_phases(self, self.phase_clock, grok_phase_name)
 
     def child_env(self) -> dict[str, str]:
@@ -928,16 +953,21 @@ class CloudBuild:
 
     def save_pid(self) -> None:
         runner_pgid = os.getpgrp() if os.getpid() == os.getpgrp() else 0
+        with self.state.children_lock:
+            kids = sorted(self.state.child_pgids)
+            agent = self.state.agent_pgid or 0
         payload = {
             "pid": os.getpid(),
             "pgid": runner_pgid,
-            "agent_pgid": self.state.agent_pgid or 0,
+            "agent_pgid": agent,
+            "child_pgids": kids,
             "receipt_dir": str(self.receipt_dir),
         }
         self.pid_path.parent.mkdir(parents=True, exist_ok=True)
-        tmp = self.pid_path.with_suffix(".json.tmp")
-        tmp.write_text(json.dumps(payload), encoding="utf-8")
-        os.replace(tmp, self.pid_path)
+        with self._pid_lock:
+            tmp = self.pid_path.with_suffix(".json.tmp")
+            tmp.write_text(json.dumps(payload), encoding="utf-8")
+            os.replace(tmp, self.pid_path)
 
     def gate(self, cwd: Path | None = None) -> dict:
         argv = shlex.split(self.args.test_cmd or "")
@@ -949,6 +979,16 @@ class CloudBuild:
         # The product gate must not read the operator's secret env. Grok still
         # uses child_env(), because an operator login may live there.
         env = self.child_env()
+        # A second tree (flake copy or commit extract) gets its own temp dir.
+        # Sharing the worktree temp dir would let overlapped gates collide.
+        if (
+            where is not None
+            and self.worktree is not None
+            and Path(where).resolve() != Path(self.worktree).resolve()
+        ):
+            local_tmp = Path(where) / "tmp"
+            local_tmp.mkdir(parents=True, exist_ok=True)
+            env["TMPDIR"] = str(local_tmp)
         for key in list(env):
             upper = key.upper()
             if (
@@ -1247,6 +1287,95 @@ class CloudBuild:
         self.save_pid()
         return None
 
+    def _isolate_gitdir(self, dest: Path) -> None:
+        """Point a copied worktree at its own index.
+
+        The copied `.git` file still names the live worktree gitdir. Two
+        gates sharing that index lock would serialize or fail. A private
+        copy of the small gitdir keeps `git status` in both trees.
+        """
+        pointer = dest / ".git"
+        if not pointer.is_file():
+            return
+        raw = pointer.read_text(encoding="utf-8").strip()
+        if not raw.startswith("gitdir:"):
+            return
+        gitdir = Path(raw.split(":", 1)[1].strip()).expanduser()
+        if not gitdir.is_dir():
+            return
+        private = dest / ".git.private"
+        if private.exists():
+            shutil.rmtree(private, ignore_errors=True)
+        shutil.copytree(gitdir, private, symlinks=True)
+        common_file = private / "commondir"
+        if common_file.is_file():
+            relative = common_file.read_text(encoding="utf-8").strip()
+            absolute = (gitdir / relative).resolve()
+            common_file.write_text(str(absolute) + "\n", encoding="utf-8")
+        back = private / "gitdir"
+        if back.exists():
+            back.write_text(str(pointer.resolve()) + "\n", encoding="utf-8")
+        pointer.write_text("gitdir: %s\n" % private.resolve(), encoding="utf-8")
+
+    def _snapshot_worktree(self) -> Path | None:
+        """Copy the dirty worktree so the flake gate can run beside it.
+
+        None means the caller runs the two gates one after another.
+        """
+        if self.worktree is None:
+            return None
+        dest = self.worktree.parent / (self.worktree.name + "-flake")
+        if dest.exists():
+            shutil.rmtree(dest, ignore_errors=True)
+        try:
+            shutil.copytree(
+                self.worktree,
+                dest,
+                symlinks=True,
+                ignore=shutil.ignore_patterns("tmp"),
+            )
+            self._isolate_gitdir(dest)
+        except OSError:
+            shutil.rmtree(dest, ignore_errors=True)
+            return None
+        return dest
+
+    def _gates_together(self, primary: Path, secondary: Path) -> tuple[dict, dict]:
+        results: dict[str, dict] = {}
+        errors: list[BaseException] = []
+
+        def run(key: str, cwd: Path) -> None:
+            try:
+                results[key] = self.gate(cwd)
+            except BaseException as exc:
+                errors.append(exc)
+
+        self._suppress_gate = True
+        try:
+            with self.phase_clock.phase("gate"):
+                threads = [
+                    threading.Thread(target=run, args=("after", primary)),
+                    threading.Thread(target=run, args=("again", secondary)),
+                ]
+                for thread in threads:
+                    thread.start()
+                for thread in threads:
+                    thread.join()
+        finally:
+            self._suppress_gate = False
+        if errors:
+            raise errors[0]
+        return results["after"], results["again"]
+
+    def _parallel_post_gates(self) -> tuple[dict, dict] | None:
+        flake = self._snapshot_worktree()
+        if flake is None:
+            return None
+        try:
+            return self._gates_together(self.worktree, flake)
+        finally:
+            shutil.rmtree(flake, ignore_errors=True)
+
     def execute(self) -> int:
         with self.phase_clock.phase("preflight"):
             _install_signals(self.state)
@@ -1328,7 +1457,23 @@ class CloudBuild:
                 if number < self.max_attempts:
                     continue
                 return self.fail("FAIL", "tests-tampered", EXIT_FAIL, "")
-            after = self.gate()
+            # Overlap the post-change gate and the flake gate on the daily
+            # default command. Both still run. A custom --test-cmd stays
+            # serial: those gates share invocation order. PFY_BUILD_SERIAL_GATES=1,
+            # a tree with no edits, or a failed copy keeps that same order,
+            # and a red first gate does not start the second.
+            custom_gate = (self.args.test_cmd or "").strip() != DEFAULT_TEST_CMD
+            serial = (
+                os.environ.get("PFY_BUILD_SERIAL_GATES") == "1"
+                or not changed
+                or custom_gate
+            )
+            pair = None if serial else self._parallel_post_gates()
+            if pair is None:
+                after = self.gate()
+                again = None
+            else:
+                after, again = pair
             self.gate_after = after
             if after.get("aborted") == "timeout":
                 return self._gate_timeout_fail(number, output + "\n" + str(after.get("tail") or ""))
@@ -1349,7 +1494,8 @@ class CloudBuild:
                 if number < self.max_attempts:
                     continue
                 return self.fail("FAIL", "tests", EXIT_FAIL, "")
-            again = self.gate()
+            if again is None:
+                again = self.gate()
             self.gate_after = again
             if again.get("aborted") == "timeout":
                 return self._gate_timeout_fail(number, output + "\n" + str(again.get("tail") or ""))
@@ -1498,6 +1644,11 @@ def reap(args) -> int:
                 except (TypeError, ValueError):
                     pg = 0
                 _kill_pgid(pg)
+            for item in data.get("child_pgids") or []:
+                try:
+                    _kill_pgid(int(item))
+                except (TypeError, ValueError):
+                    continue
             notes.append("reaped %s" % pid)
             receipt_dir = str(data.get("receipt_dir") or "").strip()
             if receipt_dir:

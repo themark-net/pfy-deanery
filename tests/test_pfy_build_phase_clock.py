@@ -11,8 +11,10 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import signal
 import subprocess
 import sys
+import time
 import unittest
 from pathlib import Path
 
@@ -25,6 +27,7 @@ CLOUD = ROOT / "scripts" / "pfy_build_cloud.py"
 PHASES = ("preflight", "worktree", "agent", "gate", "review", "commit")
 # Four serial checks (before, after, flake, recheck) each sleep this long.
 # Three checks stay under the assertion. Dropping one check fails the test.
+# These sleeps are the custom --test-cmd path, which stays serial.
 GATE_SLEEP = 0.35
 GATE_FLOOR = 1.15
 
@@ -88,6 +91,52 @@ def _gate_script(counter: Path, sleep: float, code: int) -> str:
     )
 
 
+_INTERVAL_SUITE = """\
+import fcntl
+import os
+import subprocess
+import time
+import unittest
+from pathlib import Path
+
+
+class DailyGate(unittest.TestCase):
+    def test_daily_gate(self):
+        start = time.monotonic()
+        kind = "extract"
+        if Path(".git").exists():
+            subprocess.check_call(["git", "status", "--porcelain"])
+            kind = "git"
+        time.sleep(0.4)
+        end = time.monotonic()
+        log = Path(os.environ["PFY_GATE_LOG"])
+        with open(log, "a", encoding="utf-8") as handle:
+            fcntl.flock(handle, fcntl.LOCK_EX)
+            handle.write("%s %s %s %s\\n" % (start, end, os.getpid(), kind))
+"""
+
+_SIGNAL_SUITE = """\
+import fcntl
+import os
+import time
+import unittest
+from pathlib import Path
+
+
+class DailyGate(unittest.TestCase):
+    def test_daily_gate(self):
+        log = Path(os.environ["PFY_GATE_LOG"])
+        with open(log, "a", encoding="utf-8") as handle:
+            fcntl.flock(handle, fcntl.LOCK_EX)
+            handle.write(str(os.getpid()) + "\\n")
+            handle.flush()
+        n = len(log.read_text(encoding="utf-8").split())
+        if n <= 1:
+            return
+        time.sleep(8)
+"""
+
+
 def _grok_script(review_sleep: float, agent_sleep: float) -> str:
     return (
         "#!/usr/bin/env python3\n"
@@ -145,36 +194,41 @@ class CloudPhaseReceiptTests(unittest.TestCase):
         shutil.rmtree(self.repo, ignore_errors=True)
         shutil.rmtree(self.side, ignore_errors=True)
 
-    def _build(self, gate_code: int, extra: list[str]) -> subprocess.CompletedProcess:
-        gate = _write_exe(
-            self.side / "gate.py",
-            _gate_script(self.counter, GATE_SLEEP, gate_code),
-        )
+    def _build(
+        self,
+        gate_code: int,
+        extra: list[str],
+        env: dict | None = None,
+        gate_body: str | None = None,
+        proc_timeout: float = 60,
+        use_default: bool = False,
+    ) -> subprocess.CompletedProcess:
         grok = _write_exe(self.side / "grok.py", _grok_script(0.25, 0.30))
-        return _run(
-            [
-                sys.executable,
-                str(CLOUD),
-                "add kept value",
-                "--repo",
-                str(self.repo),
-                "--base",
-                "HEAD",
-                "--retries",
-                "0",
-                "--timeout",
-                "30",
-                "--test-cmd",
-                "%s %s" % (sys.executable, gate),
-                "--grok-cmd",
-                str(grok),
-                "--receipt-dir",
-                str(self.receipt_dir),
-                *extra,
-            ],
-            self.repo,
-            timeout=60,
-        )
+        argv = [
+            sys.executable,
+            str(CLOUD),
+            "add kept value",
+            "--repo",
+            str(self.repo),
+            "--base",
+            "HEAD",
+            "--retries",
+            "0",
+            "--timeout",
+            "30",
+            "--grok-cmd",
+            str(grok),
+            "--receipt-dir",
+            str(self.receipt_dir),
+        ]
+        if not use_default:
+            gate = _write_exe(
+                self.side / "gate.py",
+                gate_body or _gate_script(self.counter, GATE_SLEEP, gate_code),
+            )
+            argv.extend(["--test-cmd", "%s %s" % (sys.executable, gate)])
+        argv.extend(extra)
+        return _run(argv, self.repo, env=env, timeout=proc_timeout)
 
     def _payload(self) -> dict:
         return json.loads((self.receipt_dir / "receipt.json").read_text(encoding="utf-8"))
@@ -216,6 +270,7 @@ class CloudPhaseReceiptTests(unittest.TestCase):
         self.assertEqual(payload["status"], "FAIL")
         self.assertEqual(payload["reason"], "tests")
         self.assertIsNone(payload["branch"])
+        # before and after. A red custom gate does not start the flake gate.
         self.assertGreaterEqual(payload["phases"]["gate"], 0.6, payload["phases"])
         self.assertEqual(self._count(), 2, payload)
         self.assertLess(payload["phases"]["review"], 0.05, payload["phases"])
@@ -232,3 +287,164 @@ class CloudPhaseReceiptTests(unittest.TestCase):
         self.assertEqual(payload["phases"]["review"], 0.0, payload["phases"])
         self.assertGreaterEqual(payload["phases"]["gate"], GATE_FLOOR, payload["phases"])
         self.assertEqual(self._count(), 4, payload)
+
+    def _commit_suite(self, body: str) -> None:
+        tests = self.repo / "tests"
+        tests.mkdir(exist_ok=True)
+        (tests / "__init__.py").write_text("", encoding="utf-8")
+        (tests / "test_slow.py").write_text(body, encoding="utf-8")
+        added = _git(self.repo, "add", "tests")
+        self.assertEqual(added.returncode, 0, added.stderr)
+        committed = _git(self.repo, "commit", "-m", "slow gate")
+        self.assertEqual(committed.returncode, 0, committed.stderr)
+
+    def _rows(self, log: Path) -> list[tuple[float, float, str]]:
+        rows = []
+        for line in log.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            start, end, _pid, kind = line.split()
+            rows.append((float(start), float(end), kind))
+        return rows
+
+    def _pair_count(self, rows: list[tuple[float, float, str]]) -> int:
+        found = 0
+        for index, left in enumerate(rows):
+            for right in rows[index + 1 :]:
+                if left[0] < right[1] and right[0] < left[1]:
+                    found += 1
+        return found
+
+    def test_post_change_gates_overlap_and_all_four_still_run(self) -> None:
+        # Fail: the flake gate waits for the first post-change gate, so a
+        # long default suite is paid twice on the wall clock.
+        # Recover: those two gates overlap, git status runs in each worktree,
+        # and the clean extract still runs as its own gate with no .git.
+        log = self.side / "gate-log"
+        self._commit_suite(_INTERVAL_SUITE)
+        proc = self._build(
+            0,
+            ["--no-review"],
+            env={"PFY_GATE_LOG": str(log)},
+            use_default=True,
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        rows = self._rows(log)
+        self.assertEqual(len(rows), 4, log.read_text(encoding="utf-8") if log.exists() else text)
+        git_rows = sorted((row for row in rows if row[2] == "git"), key=lambda row: row[0])
+        extract_rows = [row for row in rows if row[2] == "extract"]
+        self.assertEqual(len(git_rows), 3, rows)
+        self.assertEqual(len(extract_rows), 1, rows)
+        early = git_rows[0]
+        later = git_rows[1:]
+        for row in later:
+            self.assertFalse(early[0] < row[1] and row[0] < early[1], rows)
+        self.assertEqual(self._pair_count(later), 1, rows)
+        self.assertEqual(self._pair_count(rows), 1, rows)
+
+    def test_serial_switch_keeps_four_gates_without_overlap(self) -> None:
+        # Fail: the escape hatch drops a gate, or still overlaps them.
+        # Recover: PFY_BUILD_SERIAL_GATES=1 runs the same four gates in order,
+        # including git status on the worktrees and the clean extract.
+        log = self.side / "gate-log"
+        self._commit_suite(_INTERVAL_SUITE)
+        proc = self._build(
+            0,
+            ["--no-review"],
+            env={"PFY_BUILD_SERIAL_GATES": "1", "PFY_GATE_LOG": str(log)},
+            use_default=True,
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        rows = self._rows(log)
+        self.assertEqual(len(rows), 4, text + (log.read_text(encoding="utf-8") if log.exists() else ""))
+        self.assertEqual(len([row for row in rows if row[2] == "git"]), 3, rows)
+        self.assertEqual(len([row for row in rows if row[2] == "extract"]), 1, rows)
+        self.assertEqual(self._pair_count(rows), 0, rows)
+
+    def test_signal_during_overlapped_gates_kills_both(self) -> None:
+        # Fail: the runner remembers one child, so the second gate keeps
+        # sleeping after SIGTERM.
+        # Recover: both gate pids are dead and the receipt says interrupted.
+        log = self.side / "gate-log"
+        self._commit_suite(_SIGNAL_SUITE)
+        grok = _write_exe(self.side / "grok.py", _grok_script(0.05, 0.05))
+        proc = subprocess.Popen(
+            [
+                sys.executable,
+                str(CLOUD),
+                "add kept value",
+                "--repo",
+                str(self.repo),
+                "--base",
+                "HEAD",
+                "--retries",
+                "0",
+                "--no-review",
+                "--timeout",
+                "30",
+                "--grok-cmd",
+                str(grok),
+                "--receipt-dir",
+                str(self.receipt_dir),
+            ],
+            cwd=self.repo,
+            env={
+                **os.environ,
+                "TMPDIR": str(SCRATCH),
+                "PYTHONDONTWRITEBYTECODE": "1",
+                "PFY_GATE_LOG": str(log),
+            },
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+
+        def _stop() -> None:
+            if proc.poll() is None:
+                try:
+                    os.kill(proc.pid, signal.SIGKILL)
+                except OSError:
+                    pass
+            try:
+                proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                pass
+
+        self.addCleanup(_stop)
+        deadline = time.monotonic() + 8
+        pids: list[int] = []
+        while time.monotonic() < deadline:
+            if log.exists():
+                pids = [
+                    int(line)
+                    for line in log.read_text(encoding="utf-8").split()
+                    if line.strip().isdigit()
+                ]
+                if len(pids) >= 3:
+                    break
+            time.sleep(0.05)
+        self.assertGreaterEqual(len(pids), 3, "gates did not overlap: %s" % pids)
+        os.kill(proc.pid, signal.SIGTERM)
+        try:
+            out, err = proc.communicate(timeout=15)
+        except subprocess.TimeoutExpired:
+            _stop()
+            self.fail("runner did not exit after SIGTERM")
+        text = (out or "") + (err or "")
+        self.assertEqual(proc.returncode, 1, text)
+        payload = self._payload()
+        self.assertEqual(payload["reason"], "interrupted", text)
+        for pid in pids[1:3]:
+            gone = time.monotonic() + 2
+            alive = True
+            while time.monotonic() < gone:
+                try:
+                    os.kill(pid, 0)
+                except ProcessLookupError:
+                    alive = False
+                    break
+                time.sleep(0.05)
+            self.assertFalse(alive, "gate pid %s still alive" % pid)
+
