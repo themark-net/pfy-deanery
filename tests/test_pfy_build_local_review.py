@@ -1420,3 +1420,46 @@ class ReviewLoopTests(unittest.TestCase):
             ["git", "-C", str(self.inner.repo), "show", "HEAD:src/blob.bin"]
         )
         self.assertEqual(stored, b"\x00\x01BASE\x00")
+
+    def test_reviewer_prompt_shows_a_tracked_non_ascii_path_unescaped(self):
+        # A new file is pasted by the runner, so its path never goes through
+        # git diff. A tracked edit does. core.quotepath would quote that path
+        # as octal and the reviewer would not see src/café.py.
+        name = "src/café.py"
+        (self.inner.repo / name).write_text("N = 1\n", encoding="utf-8")
+        self.inner.commit_base("add café")
+        task = "fix add so one plus one is two\nfiles: src/calc.py, src/café.py\n"
+        proc, receipt = self._run(task, [{"mode": "fix", "write": {name: "N = 2\n"}}])
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "PASS")
+        self.assertIn(name, data["files_changed"])
+        reviewed = [
+            payload["messages"][0]["content"]
+            for path, payload in self.inner.httpd.posts
+            if "chat" in path and isinstance(payload, dict) and "pfy-review-v1" in json.dumps(payload)
+        ]
+        self.assertEqual(len(reviewed), 1)
+        prompt = reviewed[0]
+        self.assertIn("diff --git a/src/café.py b/src/café.py", prompt)
+        self.assertNotIn("\\303", prompt)
+        self.assertNotIn('"a/src/caf', prompt)
+        shown = subprocess.check_output(
+            [
+                "git",
+                "-C",
+                str(self.inner.repo),
+                "-c",
+                "core.quotepath=false",
+                "grep",
+                "-l",
+                "-e",
+                "N = 2",
+                data["commit"],
+                "--",
+                name,
+            ],
+            text=True,
+        )
+        self.assertIn(name, shown)
+        self.inner.assert_clean_origin()
