@@ -128,3 +128,30 @@ Default protect globs include `auth.json`, `.env`, `*.pem`, and `pipelines/dogfo
 | Module map | [pfy-build.md](../modules/pfy-build.md) |
 
 Cloud stays the daily path ([ADR-0002](../adr/0002-grok-cli-primary-interface.md), [ADR-0011](../adr/0011-hybrid-operator-surfaces-grok-opencode-ollama.md)). [ADR-0014](../adr/0014-pluggable-local-inference-spine.md) is the inference spine, not the build default. Surface split: [local-cloud-split.md](local-cloud-split.md).
+
+## Demo 2026-10-31
+
+Copied from [eval/mvp-1031/REPORT.md](../../eval/mvp-1031/REPORT.md). One real cloud `./pfy build` from the integrate worktree. No `--local`. The task target was a temp fixture repo, not this checkout. The fixture test was red before the build (`add(2, 3)` returned 0).
+
+Command:
+
+```text
+bash eval/mvp-1031/init_fixture.sh "$PWD/tmp/mvp-fixture-repo"
+./pfy build "Make add return the sum of its two arguments so the fixture test passes." \
+  --repo "$PWD/tmp/mvp-fixture-repo" \
+  --base main \
+  --test-cmd "python3 -m unittest test_add" \
+  --receipt-dir "$PWD/tmp/mvp-fixture-receipt"
+```
+
+| Field | Value |
+|-------|--------|
+| Exit code | 0 |
+| Branch | `cloud/make-add-return-the-sum-of-its-two-argum-20261031T210933627529Z` |
+| Commit | `ebef4238a7eff8f938747623f7920b3fde74e586` |
+| Review verdict | accept |
+| Receipt path | `eval/mvp-1031/demo-receipt.json` |
+
+Demo: PASS.
+
+The receipt checker in the report is `python3 eval/mvp-1031/check_receipt.py eval/mvp-1031/demo-receipt.json` with exit 0. `pushed` is false. The integrate branch stayed `bot/mvp-integrate-1031`.
