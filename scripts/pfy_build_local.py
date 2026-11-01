@@ -2970,28 +2970,31 @@ def _run_model_review(
         return "mem-edge", None
     if run_status == "timeout" and cut_by_overall:
         return "overall-timeout", None
+    # A bounded-call timeout often leaves no out file. That is an outage,
+    # not a poster crash. Check it before the missing-file path.
+    if run_status == "timeout":
+        return "unavailable", {
+            "verdict": "reviewer-unavailable",
+            "reasons": ["reviewer-unavailable"],
+            "raw_tail": "review call timed out",
+        }
     raw = ""
     try:
         raw = out_path.read_text(encoding="utf-8")
     except OSError:
-        # The poster never opened the out file (python missing, or it died
-        # first). Stdout is not a verdict. Do not retry this as a reject.
+        # The poster exited and never opened the out file. Stdout is not a verdict.
         tail = redact(((out or "") + "\n" + (err or "")).strip())[:500]
         return "crashed", {
             "verdict": "reject",
             "reasons": ["review-crashed"],
             "raw_tail": tail,
         }
-    # HTTP error and the bounded-call timeout are the same outage.
-    # A verdict reject is a later return and is retried. An outage is not.
-    # review-http-error from the mvp3 side is the same stop, under the name
-    # the integrate caller already handles: unavailable, not a retry.
-    if run_status == "timeout" or _review_transport_error(raw) or _review_outage_kind(raw):
-        detail = "review call timed out" if run_status == "timeout" else raw[:500]
+    # An HTTP error is the same outage. A verdict reject is a later return and is retried.
+    if _review_transport_error(raw) or _review_outage_kind(raw):
         return "unavailable", {
             "verdict": "reviewer-unavailable",
             "reasons": ["reviewer-unavailable"],
-            "raw_tail": redact(detail)[:500],
+            "raw_tail": redact(raw[:500])[:500],
         }
     content = _content_from_model_body(raw)
     verdict, reasons, raw_tail = _parse_verdict(content)
@@ -3093,11 +3096,10 @@ def build_local(argv: list[str] | None = None) -> int:
                     "allow_path": list(args.allow_path or []),
                     "require_wiring": list(args.require_wiring or []),
                 },
-                "warnings": list(warnings),
+                "warnings": list(dict.fromkeys([*warnings, *([scope_warning] if scope_warning else [])])),
                 "stale_worktrees": list(stale_worktrees),
                 "sandbox_extra_rw": list(sandbox_extra_rw),
                 "attempt_receipts": list(attempt_receipts),
-                "warnings": [scope_warning] if scope_warning else [],
                 "branch": branch,
                 "commit": commit,
                 "worktree": None if worktree is None else str(worktree),
