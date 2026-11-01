@@ -95,4 +95,18 @@ review | 9d23087 | none (docs) | 7 findings filed
 
 finding-5-echo-install | 99016b9 | nice python3 -m unittest tests.test_workflow_image_pin (6 ripgrep cases) | was red (helper PASS), now OK
 
-finding-6-echo-rg | this commit | nice python3 -m unittest tests.test_workflow_image_pin | was red (helper PASS), module OK after the fix
+finding-6-echo-rg | 430d49a | nice python3 -m unittest tests.test_workflow_image_pin | was red (helper PASS), module OK after the fix (33 OK, 19.925s)
+
+### further-gaps
+
+Checked 2026-11-01T00:54Z. MemAvailable about 68 GiB, load about 5.7 on 32 cores. Wall cap 2026-11-01T08:15:37Z has not fired. Host pressure has not fired.
+
+No other one-function defect in a file this lane may edit. A scan of added test lines found no `assertTrue(True)` and no `assertEqual(x, x)`. `assertIsNotNone` hits can fail and were not filed. `command echo` and `busybox echo` still pass the echo skip. Not filed. Decision 7. Decision 8 stops the lane.
+
+further-gaps | none | none | lane empty
+
+### handoff
+
+Handoff is `docs/ops/HANDOFF-mvp-pass3-review-1031.md`. Pregate not run: the drop-in forbids `scripts/pregate.sh`. `pgrep -f 'Runner[.]Worker'` was empty at finish, which would have allowed one pregate under the shared-host rule. The lane ban stands.
+
+state: lane empty | findings 5 and 6 fixed and pushed; findings 1, 2, 3, 4, and 7 are cross-lane; pregate not run
