@@ -163,6 +163,6 @@ Clock 2026-11-01T00:37:04Z. MemAvailable about 71 GiB, load about 3 on 32 cores.
 
 pregate not run: host busy
 
-item | handoff | docs only | lane empty
+item | dc0c3b1 | docs only | lane empty
 
 state: lane empty | 27 killed, 0 survived | report f8487a6 | pregate not run: host busy
