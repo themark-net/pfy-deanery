@@ -18,7 +18,7 @@ import subprocess
 import time
 from pathlib import Path
 
-from plant import decide, load_cases, load_cloud, prepare_workdir, review_argv, score
+from plant import decide, load_cases, load_cloud, load_round, prepare_workdir, review_argv, score
 
 HERE = Path(__file__).resolve().parent
 ROOT = Path(__file__).resolve().parents[3]
@@ -168,11 +168,12 @@ def main() -> int:
         shutil.rmtree(work, ignore_errors=True)
         if stopped:
             break
-    summary = score(rows)
+    saved = load_round(out_root)
+    summary = score(saved)
     summary["round"] = args.round
     summary["mem_available_kib"] = mem
     summary["stopped"] = stopped
-    summary["cases"] = len(rows)
+    summary["cases"] = len(saved)
     _write(out_root / "summary.json", json.dumps(summary, indent=2) + "\n")
     print(json.dumps(summary))
     if stopped:

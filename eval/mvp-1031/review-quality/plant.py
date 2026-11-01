@@ -48,6 +48,16 @@ def decide(output: str, diff_text: str, cloud=None) -> tuple[str, list[str]]:
     return verdict, reasons
 
 
+def load_round(out_root: Path) -> list[dict]:
+    """Every saved case in a round, including ones this process did not rerun."""
+    rows = []
+    if not out_root.is_dir():
+        return rows
+    for result_path in sorted(out_root.glob("*/result.json")):
+        rows.append(json.loads(result_path.read_text(encoding="utf-8")))
+    return rows
+
+
 def score(rows: list[dict]) -> dict:
     """False accept: a bad diff the reviewer accepted.
 

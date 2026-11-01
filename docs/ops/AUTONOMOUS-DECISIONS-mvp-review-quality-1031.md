@@ -8,3 +8,4 @@
 - 2026-10-31T23:45Z: At most two measured reviewer passes. A third pass only if the remeasure false-accept count did not drop and the failure text is new.
 - 2026-10-31T23:45Z: Do not edit `docs/TODO.md`, `docs/OPEN_QUESTIONS.md`, or `scripts/pfy`. They are shared. Follow-ups go in the handoff.
 - 2026-10-31T23:45Z: The cloud review batch does not take `heavy-1030.lock`. It is not a local model, not `unittest discover`, and not `make eval-*`. It runs under `nice -n 19` only, so other lanes can take the lock.
+- 2026-11-01T00:05Z: The first b01 call hit the 180s cap while the model was still writing and produced no verdict. Retry that one case at 420s. The other 19 calls finished inside 180s and stay. A second timeout on b01 is an error, not a false accept.

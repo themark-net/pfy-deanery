@@ -1,0 +1,3 @@
+The diff removes the missing-path `None` return. I'll check the function so the verdict matches the code, not just the patch text.verdict: reject
+
+The diff deletes the `p.exists()` guard that stored `None` and continues. A missing path now hits `p.stat().st_mtime`, so a missing home directory becomes an error or a timestamp instead of `None`.

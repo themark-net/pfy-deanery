@@ -18,7 +18,7 @@ QUALITY = ROOT / "eval" / "mvp-1031" / "review-quality"
 if str(QUALITY) not in sys.path:
     sys.path.insert(0, str(QUALITY))
 
-from plant import decide, load_cases, prepare_workdir, review_argv, score  # noqa: E402
+from plant import decide, load_cases, load_round, prepare_workdir, review_argv, score  # noqa: E402
 
 # Word-boundary forms so a name like task_text is not a secret.
 SECRET_RE = re.compile(
@@ -86,6 +86,24 @@ class ReviewQualityReplayTests(unittest.TestCase):
         self.assertEqual(summary["false_rejects"], ["g01"])
         self.assertEqual(summary["errors"], ["b03"])
         self.assertEqual(summary["false_accept_count"], 1)
+
+    def test_load_round_keeps_a_case_this_process_did_not_rerun(self) -> None:
+        scratch = ROOT / "tmp" / "review-quality-round"
+        if scratch.exists():
+            import shutil
+            shutil.rmtree(scratch)
+        kept = scratch / "b02-subject-off-by-one"
+        kept.mkdir(parents=True)
+        (kept / "result.json").write_text(
+            json.dumps({"id": "b02-subject-off-by-one", "expect": "reject", "status": "done", "verdict": "reject"})
+            + "\n",
+            encoding="utf-8",
+        )
+        rows = load_round(scratch)
+        self.assertEqual([row["id"] for row in rows], ["b02-subject-off-by-one"])
+        summary = score(rows)
+        self.assertEqual(summary["false_accept_count"], 0)
+        self.assertEqual(summary["errors"], [])
 
     def test_recorded_reviewer_stdout_reparses_to_the_stored_verdict(self) -> None:
         results = QUALITY / "results"

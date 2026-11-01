@@ -1,0 +1,11 @@
+{
+  "id": "b04-deleted-assertion",
+  "expect": "reject",
+  "bug": "deleted test assertion",
+  "status": "done",
+  "verdict": "accept",
+  "reasons": [],
+  "elapsed_s": 20.204,
+  "grok_status": "done",
+  "code": 0
+}
