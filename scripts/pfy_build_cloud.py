@@ -1038,6 +1038,10 @@ class CloudBuild:
                 "verdict": self.review.get("verdict"),
                 "reasons": list(self.review.get("reasons") or []),
             }
+        # The worktree is removed when the run fails. Keep the rejected patch
+        # on the receipt so a later timeout does not leave prose tails only.
+        if reason == "review-rejected" and self.worktree is not None:
+            row["diff"] = redact(capture_diff(self.worktree, files_changed(self.worktree)))
         self.attempts.append(row)
 
     def commit_paths(self, paths: list[str]) -> str | None:

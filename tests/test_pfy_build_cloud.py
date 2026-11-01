@@ -785,6 +785,69 @@ class CloudBuildRetryTests(unittest.TestCase):
         self.assertEqual(long_payload["review"]["verdict"], "accept")
         self.assertLess(len(long_review), 20000)
 
+    def test_review_rejected_diff_stays_after_the_worktree_is_removed(self) -> None:
+        """A review reject keeps its unified diff after the worktree is dropped.
+
+        Dogfood2 F3: row 07's reject was followed by a timeout, finish()
+        removed the worktree, and the receipt had prose tails only. The
+        rejected patch has to be on the attempt even though the tree is gone.
+        """
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\nprint('GATE-OK')\nraise SystemExit(0)\n",
+        )
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "from pathlib import Path\n"
+            "blob = '\\n'.join(sys.argv)\n"
+            "if 'PFY-CLOUD-REVIEW' in blob:\n"
+            "    print('verdict: reject')\n"
+            "    print('reasons: volume command is wrong')\n"
+            "    raise SystemExit(0)\n"
+            "Path('kept.py').write_text('docker volume rm -f pfy-hr-smoke\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        proc = _run(
+            [
+                sys.executable,
+                str(CLOUD),
+                "fix the volume command",
+                "--repo",
+                str(self.repo),
+                "--retries",
+                "0",
+                "--timeout",
+                "30",
+                "--test-cmd",
+                "%s %s" % (sys.executable, gate),
+                "--grok-cmd",
+                str(grok),
+            ],
+            self.repo,
+            timeout=60,
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 1, text)
+        payload = json.loads(
+            list((self.repo / "pipelines" / "dogfood" / "build-cloud").glob("*/receipt.json"))[0].read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(payload["reason"], "review-rejected")
+        self.assertTrue(payload["worktree_removed"])
+        self.assertFalse((self.repo / "tmp" / "cloud-build").exists())
+        attempt = payload["attempts"][0]
+        self.assertEqual(attempt["reason"], "review-rejected")
+        diff = attempt["diff"]
+        self.assertIn("diff --git", diff)
+        self.assertIn("kept.py", diff)
+        self.assertIn("docker volume rm -f pfy-hr-smoke", diff)
+        self.assertNotIn("docker volume rm", attempt["output_tail"])
+        self.assertIn("review rejected", payload["recovery"].lower())
+        self.assertIsNone(payload["branch"])
+
     def test_final_review_reject_leaves_no_branch(self) -> None:
         gate = _write_exe(
             self.side / "gate.py",
