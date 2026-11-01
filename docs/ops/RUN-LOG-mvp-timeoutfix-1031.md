@@ -49,4 +49,8 @@ Risks:
 
 Format: `item | commit | tests | result`
 
-(none yet)
+merge-integrate | 3076762 | tests.test_pfy_build_cloud tests.test_pfy_build_p 77 OK skipped 1 (baseline after the merge, before the row 07 patch) | PASS clean merge of origin/bot/mvp-integrate-1031 at dd1db3b
+merge-cloudfix | e84a9ce | same baseline | PASS clean merge of origin/bot/mvp-cloudfix-1031 at 8047018 (run log line only)
+row07-timeout | dd807fc | tests.test_pfy_build_cloud tests.test_pfy_build_p 79 OK skipped 1 in 24.679s | PASS a review-reject retry that times out is FAIL review-rejected exit 1 and keeps the reject reasons; a review call on a fresh attempt shares the run budget and still exits 3
+already-on-integrate | 3076762 | not reimplemented | dogfood2 F1 (commit subject), gom wave 5 #2 gate-unusable on the default unittest command, #3 resolve_base, #4 redact short fixture values, #5 gate env denylist, #6 commit subject. Confirmed on the merged tree.
+poll-0018Z | none | read-only | dogfood2 b90ae61 (run 08 PASS, findings still F1-F3), gom 88a841b, selfhost2 1b7722d, cloudfix 8047018. No new cloud-runner finding. Quiet clock starts 2026-11-01T00:18Z. Next poll due 00:38Z. F2 and F3 remain.
