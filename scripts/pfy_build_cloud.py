@@ -33,6 +33,7 @@ import shutil
 import signal
 import subprocess
 import sys
+import threading
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -41,6 +42,7 @@ _ROOT = Path(__file__).resolve().parents[1]
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
+from pfylib.build_phase_clock import PhaseClock, install_build_phases  # noqa: E402
 from pfylib.build_preflight import classify_cloud_failure  # noqa: E402
 
 _NOT_SIGNED_IN = re.compile(r"not signed in", re.IGNORECASE)
@@ -125,6 +127,23 @@ class State:
         self.interrupted = False
         self.pgid: int | None = None
         self.agent_pgid: int | None = None
+        # Every live child, so a signal during overlapped gates kills all of them.
+        self.child_pgids: set[int] = set()
+        self.children_lock = threading.Lock()
+
+
+def _track_child(state: State, pgid: int, present: bool) -> None:
+    if not pgid or pgid <= 0:
+        return
+    with state.children_lock:
+        if present:
+            state.child_pgids.add(pgid)
+            state.pgid = pgid
+            state.agent_pgid = pgid
+        else:
+            state.child_pgids.discard(pgid)
+            if state.pgid == pgid:
+                state.pgid = next(iter(state.child_pgids), None)
 
 
 def _now() -> str:
@@ -394,8 +413,13 @@ def _kill_pgid(pgid: int | None) -> None:
 def _install_signals(state: State) -> None:
     def _handle(signum, _frame):
         state.interrupted = True
-        if state.pgid:
-            _signal_pgid(state.pgid, signal.SIGTERM)
+        with state.children_lock:
+            kids = list(state.child_pgids)
+            current = state.pgid
+        if current and current not in kids:
+            kids.append(current)
+        for pg in kids:
+            _signal_pgid(pg, signal.SIGTERM)
 
     signal.signal(signal.SIGTERM, _handle)
     signal.signal(signal.SIGINT, _handle)
@@ -682,6 +706,13 @@ def review_prompt(task: str, diff_text: str, gate_tail: str) -> str:
     )
 
 
+def grok_phase_name(prompt: str) -> str:
+    """Review prompts carry REVIEW_MARKER. Every other grok call is the agent."""
+    if REVIEW_MARKER in (prompt or ""):
+        return "review"
+    return "agent"
+
+
 def files_changed(worktree: Path) -> list[str]:
     proc = _git(worktree, ["status", "--porcelain", "-z", "-uall"])
     found: list[str] = []
@@ -819,26 +850,26 @@ def run_command(
         )
     except FileNotFoundError:
         return "missing", 127, "", "not found"
-    state.pgid = proc.pid
-    state.agent_pgid = proc.pid
+    _track_child(state, proc.pid, True)
     if on_start is not None:
         on_start()
     try:
-        out, err = proc.communicate(timeout=timeout)
-    except subprocess.TimeoutExpired:
-        _kill_pgid(proc.pid)
         try:
-            out, err = proc.communicate(timeout=5)
+            out, err = proc.communicate(timeout=timeout)
         except subprocess.TimeoutExpired:
-            out, err = "", ""
-        state.pgid = None
-        return "timeout", 124, out or "", err or ""
-    code = proc.returncode if proc.returncode is not None else 1
-    state.pgid = None
-    if state.interrupted:
-        _kill_pgid(proc.pid)
-        return "interrupted", code, out or "", err or ""
-    return "done", code, out or "", err or ""
+            _kill_pgid(proc.pid)
+            try:
+                out, err = proc.communicate(timeout=5)
+            except subprocess.TimeoutExpired:
+                out, err = "", ""
+            return "timeout", 124, out or "", err or ""
+        code = proc.returncode if proc.returncode is not None else 1
+        if state.interrupted:
+            _kill_pgid(proc.pid)
+            return "interrupted", code, out or "", err or ""
+        return "done", code, out or "", err or ""
+    finally:
+        _track_child(state, proc.pid, False)
 
 
 def before_gate_block(record: dict | None, test_cmd: str) -> str | None:
@@ -864,7 +895,16 @@ def before_gate_block(record: dict | None, test_cmd: str) -> str | None:
 
 
 class CloudBuild:
-    def __init__(self, args, repo: Path, base_ref: str, base_sha: str, grok: str | None) -> None:
+    def __init__(
+        self,
+        args,
+        repo: Path,
+        base_ref: str,
+        base_sha: str,
+        grok: str | None,
+        *,
+        phase_clock: PhaseClock | None = None,
+    ) -> None:
         self.args = args
         self.repo = repo
         self.base_ref = base_ref
@@ -896,6 +936,11 @@ class CloudBuild:
         self.finished = False
         self.max_attempts = 1 if args.no_review else args.retries + 1
         self.recheck_tail = ""
+        self.phase_clock = phase_clock or PhaseClock()
+        self._pid_lock = threading.Lock()
+        self._suppress_gate = False
+        self._suppress_phases = frozenset()
+        install_build_phases(self, self.phase_clock, grok_phase_name)
 
     def child_env(self) -> dict[str, str]:
         env = os.environ.copy()
@@ -909,16 +954,21 @@ class CloudBuild:
 
     def save_pid(self) -> None:
         runner_pgid = os.getpgrp() if os.getpid() == os.getpgrp() else 0
+        with self.state.children_lock:
+            kids = sorted(self.state.child_pgids)
+            agent = self.state.agent_pgid or 0
         payload = {
             "pid": os.getpid(),
             "pgid": runner_pgid,
-            "agent_pgid": self.state.agent_pgid or 0,
+            "agent_pgid": agent,
+            "child_pgids": kids,
             "receipt_dir": str(self.receipt_dir),
         }
         self.pid_path.parent.mkdir(parents=True, exist_ok=True)
-        tmp = self.pid_path.with_suffix(".json.tmp")
-        tmp.write_text(json.dumps(payload), encoding="utf-8")
-        os.replace(tmp, self.pid_path)
+        with self._pid_lock:
+            tmp = self.pid_path.with_suffix(".json.tmp")
+            tmp.write_text(json.dumps(payload), encoding="utf-8")
+            os.replace(tmp, self.pid_path)
 
     def gate(self, cwd: Path | None = None) -> dict:
         argv = shlex.split(self.args.test_cmd or "")
@@ -930,6 +980,16 @@ class CloudBuild:
         # The product gate must not read the operator's secret env. Grok still
         # uses child_env(), because an operator login may live there.
         env = self.child_env()
+        # A second tree (flake copy or commit extract) gets its own temp dir.
+        # Sharing the worktree temp dir would let overlapped gates collide.
+        if (
+            where is not None
+            and self.worktree is not None
+            and Path(where).resolve() != Path(self.worktree).resolve()
+        ):
+            local_tmp = Path(where) / "tmp"
+            local_tmp.mkdir(parents=True, exist_ok=True)
+            env["TMPDIR"] = str(local_tmp)
         for key in list(env):
             upper = key.upper()
             if (
@@ -1040,25 +1100,44 @@ class CloudBuild:
             }
         self.attempts.append(row)
 
-    def commit_paths(self, paths: list[str]) -> str | None:
+    def _undo_commit(self, keep_edits: bool) -> None:
+        """Drop the commit just made.
+
+        keep_edits leaves the worktree files in place so a review retry
+        still sees them. A failed recheck drops the files, matching the
+        old hard reset.
+        """
+        if self.worktree is None:
+            return
+        if keep_edits:
+            _git(self.worktree, ["reset", "--soft", "HEAD~1"])
+            _git(self.worktree, ["reset"])
+            return
+        _git(self.worktree, ["reset", "--hard", "HEAD~1"])
+
+    def _commit_index(self, paths: list[str]) -> tuple[str | None, str | None]:
+        """Commit paths. Returns (sha, None) or (None, error).
+
+        Does not recheck and does not create the branch.
+        """
         if self.worktree is None:
             self.reason = "commit-failed"
-            return "commit-failed"
+            return None, "commit-failed"
         hooks = self.worktree / "tmp" / "empty-hooks"
         hooks.mkdir(parents=True, exist_ok=True)
         added = _git(self.worktree, ["add", "--", *[":(literal)%s" % path for path in paths]])
         if added.returncode != 0:
             _git(self.worktree, ["reset"])
             self.reason = "commit-failed"
-            return "commit-failed"
+            return None, "commit-failed"
         if set(cached_names(self.worktree)) != set(paths):
             _git(self.worktree, ["reset"])
             self.reason = "scope-commit-mismatch"
-            return "scope-commit-mismatch"
+            return None, "scope-commit-mismatch"
         if self.state.interrupted:
             _git(self.worktree, ["reset"])
             self.reason = "interrupted"
-            return "interrupted"
+            return None, "interrupted"
         flat = " ".join((self.args.task_text or "").split())
         subject = redact(commit_subject(flat))
         body = redact(flat)
@@ -1085,17 +1164,17 @@ class CloudBuild:
         if committed.returncode != 0:
             _git(self.worktree, ["reset"])
             self.reason = "commit-failed"
-            return "commit-failed"
+            return None, "commit-failed"
         sha = (_git(self.worktree, ["rev-parse", "HEAD"]).stdout or "").strip()
         if len(sha) != 40:
             self.reason = "commit-failed"
+            return None, "commit-failed"
+        return sha, None
+
+    def _publish_branch(self, sha: str) -> str | None:
+        if self.worktree is None or not sha:
+            self.reason = "commit-failed"
             return "commit-failed"
-        reason, tail = self.recheck_sha(sha)
-        self.recheck_tail = tail
-        if reason:
-            _git(self.worktree, ["reset", "--hard", "HEAD~1"])
-            self.reason = reason
-            return reason
         created = _git(self.repo, ["branch", self.branch_name, sha])
         if created.returncode != 0:
             _git(self.worktree, ["reset", "--soft", "HEAD~1"])
@@ -1106,6 +1185,62 @@ class CloudBuild:
         self.branch = self.branch_name
         self.commit = sha
         return None
+
+    def _overlap_review_recheck(self, sha: str, prompt: str):
+        """Run the review call and the clean-extract gate together.
+
+        Returns (grok_call result, recheck_sha result). The phase wrapper
+        is suppressed for both. The caller adds each duration afterwards
+        so the receipt still shows review and gate.
+        """
+        box: dict = {}
+        errors: list[BaseException] = []
+
+        def run_review() -> None:
+            try:
+                started = time.monotonic()
+                box["review"] = self.grok_call(prompt)
+                box["review_s"] = time.monotonic() - started
+            except BaseException as exc:
+                errors.append(exc)
+
+        def run_recheck() -> None:
+            try:
+                started = time.monotonic()
+                box["recheck"] = self.recheck_sha(sha)
+                box["recheck_s"] = time.monotonic() - started
+            except BaseException as exc:
+                errors.append(exc)
+
+        self._suppress_phases = frozenset({"review", "gate"})
+        try:
+            threads = [
+                threading.Thread(target=run_review),
+                threading.Thread(target=run_recheck),
+            ]
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join()
+        finally:
+            self._suppress_phases = frozenset()
+        if errors:
+            raise errors[0]
+        self.phase_clock.add("review", float(box.get("review_s") or 0.0))
+        self.phase_clock.add("gate", float(box.get("recheck_s") or 0.0))
+        return box["review"], box["recheck"]
+
+    def commit_paths(self, paths: list[str]) -> str | None:
+        sha, err = self._commit_index(paths)
+        if err:
+            return err
+        reason, tail = self.recheck_sha(sha or "")
+        self.recheck_tail = tail
+        if reason:
+            self._undo_commit(keep_edits=False)
+            self.reason = reason
+            return reason
+        return self._publish_branch(sha or "")
 
     def drop_branch(self) -> None:
         if self.branch_created and self.branch:
@@ -1177,6 +1312,8 @@ class CloudBuild:
             "pushed": False,
             "worktree_removed": self.worktree_removed,
             "task": self.args.task_text,
+            "phases": self.phase_clock.report(),
+            "wall_seconds": self.phase_clock.wall_seconds(),
             "finished_at": _now(),
         }
         try:
@@ -1226,9 +1363,100 @@ class CloudBuild:
         self.save_pid()
         return None
 
+    def _isolate_gitdir(self, dest: Path) -> None:
+        """Point a copied worktree at its own index.
+
+        The copied `.git` file still names the live worktree gitdir. Two
+        gates sharing that index lock would serialize or fail. A private
+        copy of the small gitdir keeps `git status` in both trees.
+        """
+        pointer = dest / ".git"
+        if not pointer.is_file():
+            return
+        raw = pointer.read_text(encoding="utf-8").strip()
+        if not raw.startswith("gitdir:"):
+            return
+        gitdir = Path(raw.split(":", 1)[1].strip()).expanduser()
+        if not gitdir.is_dir():
+            return
+        private = dest / ".git.private"
+        if private.exists():
+            shutil.rmtree(private, ignore_errors=True)
+        shutil.copytree(gitdir, private, symlinks=True)
+        common_file = private / "commondir"
+        if common_file.is_file():
+            relative = common_file.read_text(encoding="utf-8").strip()
+            absolute = (gitdir / relative).resolve()
+            common_file.write_text(str(absolute) + "\n", encoding="utf-8")
+        back = private / "gitdir"
+        if back.exists():
+            back.write_text(str(pointer.resolve()) + "\n", encoding="utf-8")
+        pointer.write_text("gitdir: %s\n" % private.resolve(), encoding="utf-8")
+
+    def _snapshot_worktree(self) -> Path | None:
+        """Copy the dirty worktree so the flake gate can run beside it.
+
+        None means the caller runs the two gates one after another.
+        """
+        if self.worktree is None:
+            return None
+        dest = self.worktree.parent / (self.worktree.name + "-flake")
+        if dest.exists():
+            shutil.rmtree(dest, ignore_errors=True)
+        try:
+            shutil.copytree(
+                self.worktree,
+                dest,
+                symlinks=True,
+                ignore=shutil.ignore_patterns("tmp"),
+            )
+            self._isolate_gitdir(dest)
+        except OSError:
+            shutil.rmtree(dest, ignore_errors=True)
+            return None
+        return dest
+
+    def _gates_together(self, primary: Path, secondary: Path) -> tuple[dict, dict]:
+        results: dict[str, dict] = {}
+        errors: list[BaseException] = []
+
+        def run(key: str, cwd: Path) -> None:
+            try:
+                results[key] = self.gate(cwd)
+            except BaseException as exc:
+                errors.append(exc)
+
+        self._suppress_gate = True
+        try:
+            with self.phase_clock.phase("gate"):
+                threads = [
+                    threading.Thread(target=run, args=("after", primary)),
+                    threading.Thread(target=run, args=("again", secondary)),
+                ]
+                for thread in threads:
+                    thread.start()
+                for thread in threads:
+                    thread.join()
+        finally:
+            self._suppress_gate = False
+        if errors:
+            raise errors[0]
+        return results["after"], results["again"]
+
+    def _parallel_post_gates(self) -> tuple[dict, dict] | None:
+        flake = self._snapshot_worktree()
+        if flake is None:
+            return None
+        try:
+            return self._gates_together(self.worktree, flake)
+        finally:
+            shutil.rmtree(flake, ignore_errors=True)
+
     def execute(self) -> int:
-        _install_signals(self.state)
-        if not self.grok:
+        with self.phase_clock.phase("preflight"):
+            _install_signals(self.state)
+            missing_grok = not self.grok
+        if missing_grok:
             self.record(0, "FAIL", "unauthenticated", "")
             return self.fail("FAIL", "unauthenticated", EXIT_FAIL, auth_recovery(self.args.task_text))
         problem = self.prepare_worktree()
@@ -1256,7 +1484,8 @@ class CloudBuild:
                 'The default is "%s".' % DEFAULT_TEST_CMD
             )
             return self.fail("FAIL", blocked, EXIT_USAGE, recovery)
-        base_tests = snapshot_tests(self.worktree)
+        with self.phase_clock.phase("preflight"):
+            base_tests = snapshot_tests(self.worktree)
         feedback = ""
         previous_diff = ""
         for number in range(1, self.max_attempts + 1):
@@ -1304,7 +1533,23 @@ class CloudBuild:
                 if number < self.max_attempts:
                     continue
                 return self.fail("FAIL", "tests-tampered", EXIT_FAIL, "")
-            after = self.gate()
+            # Overlap the post-change gate and the flake gate on the daily
+            # default command. Both still run. A custom --test-cmd stays
+            # serial: those gates share invocation order. PFY_BUILD_SERIAL_GATES=1,
+            # a tree with no edits, or a failed copy keeps that same order,
+            # and a red first gate does not start the second.
+            custom_gate = (self.args.test_cmd or "").strip() != DEFAULT_TEST_CMD
+            serial = (
+                os.environ.get("PFY_BUILD_SERIAL_GATES") == "1"
+                or not changed
+                or custom_gate
+            )
+            pair = None if serial else self._parallel_post_gates()
+            if pair is None:
+                after = self.gate()
+                again = None
+            else:
+                after, again = pair
             self.gate_after = after
             if after.get("aborted") == "timeout":
                 return self._gate_timeout_fail(number, output + "\n" + str(after.get("tail") or ""))
@@ -1325,7 +1570,8 @@ class CloudBuild:
                 if number < self.max_attempts:
                     continue
                 return self.fail("FAIL", "tests", EXIT_FAIL, "")
-            again = self.gate()
+            if again is None:
+                again = self.gate()
             self.gate_after = again
             if again.get("aborted") == "timeout":
                 return self._gate_timeout_fail(number, output + "\n" + str(again.get("tail") or ""))
@@ -1341,25 +1587,50 @@ class CloudBuild:
                 return self.fail("FAIL", "tests-flaky", EXIT_FAIL, "")
             diff_text = capture_diff(self.worktree, changed)
             if not self.args.no_review:
-                review_status, review_code, review_out, review_err = self.grok_call(
-                    review_prompt(self.args.task_text, diff_text, str(again.get("tail") or ""))
+                # Commit first so the extract is of that commit, then overlap
+                # the review call with the extract gate. A reject undoes the
+                # commit and keeps the edits. A failed extract undoes the
+                # commit and drops the edits. When both fail, review wins.
+                with self.phase_clock.phase("commit"):
+                    sha, indexed = self._commit_index(changed)
+                if indexed or not sha:
+                    reason = indexed or "commit-failed"
+                    self.record(number, "FAIL", reason, output)
+                    if reason == "timeout":
+                        return self._gate_timeout_fail(number, output)
+                    return self.fail("FAIL", reason, EXIT_FAIL, "")
+                if self.state.interrupted:
+                    self._undo_commit(keep_edits=True)
+                    self.record(number, "FAIL", "interrupted", output)
+                    return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
+                review_row, recheck_row = self._overlap_review_recheck(
+                    sha,
+                    review_prompt(self.args.task_text, diff_text, str(again.get("tail") or "")),
                 )
+                review_status, review_code, review_out, review_err = review_row
+                recheck_reason, recheck_tail = recheck_row
+                self.recheck_tail = recheck_tail
                 review_output = (review_out or "") + ("\n" + review_err if review_err else "")
                 output = output + "\n" + review_output
                 if review_status == "interrupted" or self.state.interrupted:
+                    self._undo_commit(keep_edits=True)
                     self.record(number, "FAIL", "interrupted", output)
                     return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
                 if review_status == "timeout":
+                    self._undo_commit(keep_edits=True)
                     self.record(number, "TIMEOUT", "timeout", output)
                     return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")
                 if review_status == "missing":
+                    self._undo_commit(keep_edits=True)
                     self.record(number, "FAIL", "unauthenticated", output)
                     return self.fail("FAIL", "unauthenticated", EXIT_FAIL, auth_recovery(self.args.task_text))
                 review_kind = classify_runner_failure(review_code, review_out, review_err)
                 if review_kind == "rate-limit":
+                    self._undo_commit(keep_edits=True)
                     self.record(number, "BLOCKED", "rate-limit", output)
                     return self.fail("BLOCKED", "rate-limit", EXIT_BLOCKED, rate_recovery(self.args.task_text))
                 if review_kind == "unauthenticated":
+                    self._undo_commit(keep_edits=True)
                     self.record(number, "FAIL", "unauthenticated", output)
                     return self.fail("FAIL", "unauthenticated", EXIT_FAIL, auth_recovery(self.args.task_text))
                 verdict, reasons = parse_verdict(review_output)
@@ -1368,12 +1639,30 @@ class CloudBuild:
                     reasons = ["review-rejected"]
                 self.review = {"verdict": verdict, "reasons": reasons}
                 if verdict != "accept":
+                    self._undo_commit(keep_edits=True)
                     feedback = "review-rejected\n%s" % "\n".join(reasons)
                     previous_diff = diff_text
                     self.record(number, "PASS-REJECTED", "review-rejected", output)
                     if number < self.max_attempts:
                         continue
                     return self.fail("FAIL", "review-rejected", EXIT_FAIL, "")
+                if recheck_reason == "timeout":
+                    self._undo_commit(keep_edits=False)
+                    return self._gate_timeout_fail(number, output + "\n" + (recheck_tail or ""))
+                if recheck_reason == "interrupted" or self.state.interrupted:
+                    self._undo_commit(keep_edits=False)
+                    self.record(number, "FAIL", "interrupted", output)
+                    return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
+                if recheck_reason:
+                    self._undo_commit(keep_edits=False)
+                    feedback = "commit-recheck-failed\n%s" % (self.recheck_tail or "")
+                    previous_diff = diff_text
+                    self.record(number, "FAIL", recheck_reason, output)
+                    if number < self.max_attempts:
+                        continue
+                    return self.fail("FAIL", recheck_reason, EXIT_FAIL, "")
+                with self.phase_clock.phase("commit"):
+                    err = self._publish_branch(sha)
             else:
                 if diff_aims_at_root(diff_text):
                     self.review = {"verdict": "reject", "reasons": ["review-rejected"]}
@@ -1384,7 +1673,7 @@ class CloudBuild:
                         continue
                     return self.fail("FAIL", "review-rejected", EXIT_FAIL, "")
                 self.review = {"verdict": "skipped", "reasons": []}
-            err = self.commit_paths(changed)
+                err = self.commit_paths(changed)
             if err == "timeout":
                 return self._gate_timeout_fail(number, output)
             if err == "commit-recheck-failed" and number < self.max_attempts:
@@ -1474,6 +1763,11 @@ def reap(args) -> int:
                 except (TypeError, ValueError):
                     pg = 0
                 _kill_pgid(pg)
+            for item in data.get("child_pgids") or []:
+                try:
+                    _kill_pgid(int(item))
+                except (TypeError, ValueError):
+                    continue
             notes.append("reaped %s" % pid)
             receipt_dir = str(data.get("receipt_dir") or "").strip()
             if receipt_dir:
@@ -1524,14 +1818,17 @@ def main(argv: list[str] | None = None) -> int:
     if not args.task_text:
         _print_usage()
         return EXIT_USAGE
+    clock = PhaseClock()
     try:
-        repo = resolve_repo(args.repo)
+        with clock.phase("preflight"):
+            repo = resolve_repo(args.repo)
     except UsageError as exc:
         _print_usage()
         print(str(exc), file=sys.stderr)
         return EXIT_USAGE
     try:
-        base_ref, base_sha = resolve_base(repo, args.base)
+        with clock.phase("preflight"):
+            base_ref, base_sha = resolve_base(repo, args.base)
     except BaseMissing as exc:
         return missing_base(args, repo, exc.ref)
     stamp = _stamp()
@@ -1539,7 +1836,9 @@ def main(argv: list[str] | None = None) -> int:
     receipt = receipt_dir / "receipt.json"
     if args.dry_run:
         return _dry_run(args, repo, base_ref, receipt)
-    build = CloudBuild(args, repo, base_ref, base_sha, resolve_grok(args))
+    with clock.phase("preflight"):
+        grok = resolve_grok(args)
+    build = CloudBuild(args, repo, base_ref, base_sha, grok, phase_clock=clock)
     try:
         return build.execute()
     except Exception as exc:
