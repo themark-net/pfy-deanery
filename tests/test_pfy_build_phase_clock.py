@@ -105,8 +105,17 @@ class DailyGate(unittest.TestCase):
         start = time.monotonic()
         kind = "extract"
         if Path(".git").exists():
-            subprocess.check_call(["git", "status", "--porcelain"])
-            kind = "git"
+            here = os.path.realpath(os.getcwd())
+            top = subprocess.check_output(
+                ["git", "rev-parse", "--show-toplevel"], text=True
+            ).strip()
+            # The recheck extract has its own repo so git cannot walk up
+            # to the caller. That directory is still the extract gate.
+            if os.path.realpath(top) == here and os.path.basename(here).startswith("recheck-"):
+                kind = "extract"
+            else:
+                subprocess.check_call(["git", "status", "--porcelain"])
+                kind = "git"
         time.sleep(0.4)
         end = time.monotonic()
         log = Path(os.environ["PFY_GATE_LOG"])
@@ -329,7 +338,8 @@ class CloudPhaseReceiptTests(unittest.TestCase):
         # Fail: the flake gate waits for the first post-change gate, so a
         # long default suite is paid twice on the wall clock.
         # Recover: those two gates overlap, git status runs in each worktree,
-        # and the clean extract still runs as its own gate with no .git.
+        # and the clean extract still runs as its own gate. The extract
+        # has a nested git repo so a walk-up cannot see the caller.
         log = self.side / "gate-log"
         self._commit_suite(_INTERVAL_SUITE)
         proc = self._build(
@@ -595,7 +605,8 @@ class CloudPhaseReceiptTests(unittest.TestCase):
             "#!/usr/bin/env python3\n"
             "import fcntl, os, time\n"
             "from pathlib import Path\n"
-            "if Path('.git').exists():\n"
+            "here = os.path.realpath(os.getcwd())\n"
+            "if not os.path.basename(here).startswith('recheck-'):\n"
             "    raise SystemExit(0)\n"
             "log = Path(os.environ['PFY_GATE_LOG'])\n"
             "with open(log, 'a', encoding='utf-8') as handle:\n"

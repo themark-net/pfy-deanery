@@ -101,7 +101,8 @@ class FirstDayBuildDocsTests(unittest.TestCase):
         help_text = " ".join(((help_proc.stdout or "") + (help_proc.stderr or "")).split())
         self.assertEqual(help_proc.returncode, 0, help_text)
         self.assertIn("default: cwd", help_text)
-        self.assertIn("origin/main if it exists, else HEAD", help_text)
+        self.assertIn("Required when HEAD is not origin/main", help_text)
+        self.assertIn("else HEAD if origin/main is absent", help_text)
 
         make_help = _run(["make", "help"], ROOT)
         self.assertEqual(make_help.returncode, 0, make_help.stderr)
