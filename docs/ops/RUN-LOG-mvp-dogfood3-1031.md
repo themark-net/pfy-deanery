@@ -78,3 +78,4 @@ item | commit | tests | result
 02-smoke131-timeout | 55ad1b1 | tests.test_smoke_131_bad_timeout tests.test_x_intake_smoke_131_133 40 OK | PASS human-accept wall 63s attempts 1 review accept
 03-smoke137-timeout | none | gate red then green inside the clone only | REJECT human-reject wall 113s attempts 1 review accept class cross-lane. smoke_137_139.py owned by selfhost2 1faa9fd. Red test dropped.
 04-smoke137-tree-hash | skipped | n/a | skip: selfhost2 1faa9fd already hashes that tree_hash. Not a third skip in a row; 05 is next.
+04-smoke098-timeout | 4ef4c66 | tests.test_smoke_098_bad_timeout tests.test_x_intake_smoke_098_100 13 OK | PASS human-accept wall 103s attempts 1 review accept

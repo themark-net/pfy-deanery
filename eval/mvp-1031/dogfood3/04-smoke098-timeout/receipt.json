@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/edit-only-examples-x-intake-local-smoke-20261101T010420264956Z",
+  "commit": "5694106559ad8593b57b4a6ffecec544208e22c6",
+  "base": "HEAD",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll edit only `examples/x-intake-local/smoke_098_100.py` so a bad `PFY_XINTAKE_TIMEOUT` exits 2 before the entry runs. First I'll read that module and the smoke test.The smoke still treats a bad timeout as the default and runs the entry. I'll reject a set non-finite or non-positive `PFY_XINTAKE_TIMEOUT` in `main()` before that call.The check sits in `main()` before the entry call. Next I’ll run the smoke test.A set `PFY_XINTAKE_TIMEOUT` that is not a finite number of seconds greater than 0 now exits 2 before the entry runs. Unset or empty still calls the entry.\n\n`examples/x-intake-local/smoke_098_100.py` now imports `math` and defines `timeout_problem()` beside `xintake_timeout()`. `main()` writes that reason and returns 2 when the value is bad (`abc`, `0`, `-1`, `nan`, `inf`). `xintake_timeout()` and the entry functions are unchanged.\n\n`python3 -m unittest tests.test_smoke_098_bad_timeout` passed: 2 tests, OK.\n\nI'll check the diff against the task and the reject rules before giving a verdict.verdict: accept\n\nThe diff edits only `examples/x-intake-local/smoke_098_100.py`. It adds `import math` and `timeout_problem()` beside `xintake_timeout()`, checks that result in `main()` after the receipt is built and before the entry call, and replaces the docstring sentence as specified. `xintake_timeout` and the entry functions are unchanged. No tests were deleted, no recursive delete was added, and nothing targets the filesystem root.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "python3 -m unittest tests.test_smoke_098_bad_timeout",
+    "before": {
+      "cmd": "python3 -m unittest tests.test_smoke_098_bad_timeout",
+      "exit": 1,
+      "tail": "===========================================\nFAIL: test_bad_timeout_exits_2_before_sponsio_lookup (tests.test_smoke_098_bad_timeout.BadTimeoutTests.test_bad_timeout_exits_2_before_sponsio_lookup) (timeout='0')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood3-1031/tmp/target-04/tmp/cloud-build/20261101T010420264956Z/tests/test_smoke_098_bad_timeout.py\", line 74, in test_bad_timeout_exits_2_before_sponsio_lookup\n    self.assertIn(\"PFY_XINTAKE_TIMEOUT\", receipt[\"reason\"])\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'PFY_XINTAKE_TIMEOUT' not found in 'no Python with sponsio. Operator: python3 -m venv ~/DEVELOP/pfy-mentat/tmp/sponsio/.venv && ~/DEVELOP/pfy-mentat/tmp/sponsio/.venv/bin/pip install --pre sponsio (Apache-2.0, alpha). No `sponsio init` in a real repo, no `sponsio push` (hosted console)'\n\n======================================================================\nFAIL: test_bad_timeout_exits_2_before_sponsio_lookup (tests.test_smoke_098_bad_timeout.BadTimeoutTests.test_bad_timeout_exits_2_before_sponsio_lookup) (timeout='-1')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood3-1031/tmp/target-04/tmp/cloud-build/20261101T010420264956Z/tests/test_smoke_098_bad_timeout.py\", line 74, in test_bad_timeout_exits_2_before_sponsio_lookup\n    self.assertIn(\"PFY_XINTAKE_TIMEOUT\", receipt[\"reason\"])\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'PFY_XINTAKE_TIMEOUT' not found in 'no Python with sponsio. Operator: python3 -m venv ~/DEVELOP/pfy-mentat/tmp/sponsio/.venv && ~/DEVELOP/pfy-mentat/tmp/sponsio/.venv/bin/pip install --pre sponsio (Apache-2.0, alpha). No `sponsio init` in a real repo, no `sponsio push` (hosted console)'\n\n======================================================================\nFAIL: test_bad_timeout_exits_2_before_sponsio_lookup (tests.test_smoke_098_bad_timeout.BadTimeoutTests.test_bad_timeout_exits_2_before_sponsio_lookup) (timeout='nan')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood3-1031/tmp/target-04/tmp/cloud-build/20261101T010420264956Z/tests/test_smoke_098_bad_timeout.py\", line 74, in test_bad_timeout_exits_2_before_sponsio_lookup\n    self.assertIn(\"PFY_XINTAKE_TIMEOUT\", receipt[\"reason\"])\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'PFY_XINTAKE_TIMEOUT' not found in 'no Python with sponsio. Operator: python3 -m venv ~/DEVELOP/pfy-mentat/tmp/sponsio/.venv && ~/DEVELOP/pfy-mentat/tmp/sponsio/.venv/bin/pip install --pre sponsio (Apache-2.0, alpha). No `sponsio init` in a real repo, no `sponsio push` (hosted console)'\n\n======================================================================\nFAIL: test_bad_timeout_exits_2_before_sponsio_lookup (tests.test_smoke_098_bad_timeout.BadTimeoutTests.test_bad_timeout_exits_2_before_sponsio_lookup) (timeout='inf')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood3-1031/tmp/target-04/tmp/cloud-build/20261101T010420264956Z/tests/test_smoke_098_bad_timeout.py\", line 74, in test_bad_timeout_exits_2_before_sponsio_lookup\n    self.assertIn(\"PFY_XINTAKE_TIMEOUT\", receipt[\"reason\"])\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'PFY_XINTAKE_TIMEOUT' not found in 'no Python with sponsio. Operator: python3 -m venv ~/DEVELOP/pfy-mentat/tmp/sponsio/.venv && ~/DEVELOP/pfy-mentat/tmp/sponsio/.venv/bin/pip install --pre sponsio (Apache-2.0, alpha). No `sponsio init` in a real repo, no `sponsio push` (hosted console)'\n\n----------------------------------------------------------------------\nRan 2 tests in 0.327s\n\nFAILED (failures=5)\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "python3 -m unittest tests.test_smoke_098_bad_timeout",
+      "exit": 0,
+      "tail": "\n..\n----------------------------------------------------------------------\nRan 2 tests in 0.324s\n\nOK\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": true,
+  "task": "Edit only examples/x-intake-local/smoke_098_100.py. Do not edit any file under tests/. Do not add a file. Do not commit. Do not push. Do not change xintake_timeout.\n\nPFY_XINTAKE_TIMEOUT is documented as a float number of seconds > 0. xintake_timeout() turns a bad value into the default and main() still calls the entry. A set value that is not a finite number > 0 must exit 2 before the entry runs.\n\nAdd import math.\n\nAdd this function next to xintake_timeout():\n\ndef timeout_problem() -> str | None:\n    \"\"\"PFY_XINTAKE_TIMEOUT must be a finite number of seconds > 0 when set; xintake_timeout() would quietly use the default instead.\"\"\"\n    raw = os.environ.get(\"PFY_XINTAKE_TIMEOUT\", \"\")\n    if raw is None:\n        return None\n    raw = raw.strip()\n    if not raw:\n        return None\n    try:\n        v = float(raw)\n    except ValueError:\n        v = math.nan\n    if math.isfinite(v) and v > 0:\n        return None\n    return f\"PFY_XINTAKE_TIMEOUT={raw[:40]!r} is not a number of seconds > 0\"\n\nos.environ.get already returns \"\" when missing if the second argument is \"\", so a missing variable and an empty variable both return None. Keep that.\n\nIn main(), after the receipt dict is built and before the line that calls the entry function:\n\n    bad = timeout_problem()\n    if bad:\n        receipt[\"reason\"] = bad\n        return write(a.entry, receipt, 2)\n\nUnset or empty still calls the entry, so a missing sponsio still reports no Python with sponsio. A bad value (abc, 0, -1, nan, inf) exits 2 with a reason that names PFY_XINTAKE_TIMEOUT and does not call the entry.\n\nIn the module docstring, replace the sentence \"Empty or invalid keeps the defaults: 120s sponsio and repoharness, 60s opensteps hooks.\" with \"Empty keeps the defaults: 120s sponsio and repoharness, 60s opensteps hooks. Any other set value (abc, 0, -1, nan, inf) exits 2 before the entry runs.\"\n\nDo not change the entry functions.",
+  "finished_at": "2026-11-01T01:06:03Z"
+}
