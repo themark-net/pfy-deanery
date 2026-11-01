@@ -1,10 +1,81 @@
 # Handoff mvp-integrate-1031
 
-Pass 2 goal met. No rebase, no force push, no PR, no merge to main, no tag. Not a Feature GO. Catalog HOLD 70-75 unchanged. No GitHub issue opened or closed. No local model. No `--local`. Pregate not run by this lane. The operator runs pregate on the final tip.
+Pass 3 goal met. No rebase, no force push, no PR, no merge to main, no tag. Not a Feature GO. Catalog HOLD 70-75 unchanged. No GitHub issue opened or closed. No local model. No `--local`. Pregate not run by this lane. The operator runs pregate on the final tip.
 
-Pass 2 content commit: `7997dd67e71ad3fcf50cd868f1667d462ca3aca3`. This stamp commit is the final tip. Pregate `origin/bot/mvp-integrate-1031` at this stamp (`git rev-parse origin/bot/mvp-integrate-1031` after the stamp push).
+Pass 3 tree before this stamp: `918fa8e`. Demo receipt commit: `dd1db3b`. This stamp commit is the pass 3 tip. Pregate `origin/bot/mvp-integrate-1031` at this stamp (`git rev-parse origin/bot/mvp-integrate-1031` after the stamp push).
 
-## Pass 2
+## Pass 3
+
+| Item | Commit | Result |
+|------|--------|--------|
+| Exit card | `cf5a11c` | Pushed before the merges |
+| `origin/bot/mvp-review-fix2-1031` | `d480516` | Tip `8c40087`. Clean. Local module 92 OK in 246.757s. Carries mvp3-review-retry at `582414b` |
+| `origin/bot/mvp-cloudfix-1031` | `7c48022`, then `2021775` | Tips `d78ed00`, then `0dfc9d1` (docs only). 76 OK in 26.289s, skipped 1. One classifier import |
+| `origin/bot/mvp-dogfood-fix-1031` | `be63148` | Tip `1fa9fd3`. `resolve_base` conflict. 74 OK in 17.115s |
+| `origin/bot/mvp-mutate-preflight-1031` | `44bd7ae` | Tip `322cde0`. Clean. 45 OK in 4.931s |
+| `origin/bot/mvp-ci-cover-1031` | `67e6658` | Tip `7391cd6`. Clean. 6 OK in 0.051s |
+| `origin/bot/mvp-realfail3-1031` | `b6db528` | Tip `a4c80a1`. Clean. 6 OK in 0.014s |
+| `origin/bot/mvp-followups-fix2-1031` | `4837247` | Tip `aea15bf`. Clean. 93 OK in 63.797s |
+| `origin/bot/mvp-selfhost-1031` | `f5e7d4c` | Tip `5fb063e`. Included. 45 OK in 8.904s |
+| `origin/bot/mvp-gom-dogfood-1031` | `1e282df`, then `ff3f3ba` | Tips `962e234`, then `731aae2`. 2 OK |
+| `origin/bot/mvp-sixtask-1031` | `a92b08c` | Tip `177940e`. Clean. 10 OK in 0.006s |
+| `origin/bot/mvp-sixtask-int-1031` | `f877c7d` | Tip `d642ec1`. Clean. 12 OK in 0.052s. Report VERDICT GO |
+| `origin/bot/mvp-tmpclean2-1031` | `d078de6` | Tip `89f0564`. Five conflicts. 116 OK in 116.455s |
+| `origin/bot/mvp-backlog-burn-1031` | `f39d64a` | Tip `84db544`. Clean merge. Entry 149 count was 28 against 36 methods |
+| Entry 149 published count | `1bd1cb3` | Smoke line set to 36. Six backlog modules, 10 OK in 0.101s |
+| Freeze log | `66a5500` | Item log pushed before the suite |
+| Demo 3 receipt and report | `dd1db3b` | PASS. Checker exit 0. Cloud commit `1ed98a4d2d3c39b8099603e60dc87ed41e7340f4` |
+| Backlog-burn report link | `918fa8e` | `tests.test_docs_hygiene` 2 OK in 0.029s |
+
+Skipped: `bot/mvp3-followups-1031` seen at `0575f6c`. Extra `bot/mvp3-review-retry` tip `6664713` not merged. The copy already in review-fix2 is `582414b`.
+
+## Demo 3
+
+PASS. Checker `python3 eval/mvp-1031/check_receipt.py eval/mvp-1031/demo-receipt-pass3.json` exit 0. Receipt [../../eval/mvp-1031/demo-receipt-pass3.json](../../eval/mvp-1031/demo-receipt-pass3.json). Report [../../eval/mvp-1031/REPORT.md](../../eval/mvp-1031/REPORT.md).
+
+Throwaway clone `tmp/demo3-target` at freeze `66a5500`, branch `demo-base`. One cloud `./pfy build`, no `--local`. Wall 421 seconds (2026-10-31T23:53:06Z to 2026-11-01T00:00:07Z). Exit 0. Attempts 1. Branch `cloud/stop-tests-test-x-intake-smoke-117-118-p-20261031T235306753011Z`. Commit `1ed98a4d2d3c39b8099603e60dc87ed41e7340f4`. Review accept. Human verdict yes. The integrate checkout stayed `bot/mvp-integrate-1031`. The cloud commit is not on this branch.
+
+Task: the two smoke test modules for entries 117 and 119 wrote `pipelines/smoke` receipts inside the repo. The cloud commit points `_receipt` at a temp `PFY_SMOKE_RECEIPT_DIR` and adds `tests/test_x_intake_smoke_117_119_receipts.py`. On a detached worktree of that commit the new test passed in 0.209s. `git diff-tree --name-only` is those three test files.
+
+Cloud-default daily use, from `eval/mvp-1031/sixtask-int/REPORT.md`: VERDICT GO. Two passes, 6/6 runner PASS, 6/6 review accept, 6/6 human accept, 6/6 gate PASS. Pass 1 wall 1243.8s. Pass 2 wall 1016.3s.
+
+## Suite (pass 3)
+
+Command: `TMPDIR=$PWD/tmp nice -n 19 flock ~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock python3 -m unittest discover -s tests -t .`
+
+The flock waited while another lane held the lock (a local t4 rerun, then `scripts/pregate.sh 0afea54`). This lane did not signal those processes. The discover then ran on the tree that already contained `dd1db3b`.
+
+Ran 1243 tests in 890.586s. Failures 1, skipped 16. Exit 1.
+
+The one failure was `tests.test_docs_hygiene.DocsHygieneTests.test_docs_relative_links_resolve`. `docs/ops/HANDOFF-mvp-backlog-burn-1031.md` linked `../eval/mvp-1031/backlog-burn/REPORT.md`, which resolves under `docs/eval/`. The file is `eval/mvp-1031/backlog-burn/REPORT.md`. Commit `918fa8e` changes that link to `../../eval/...`. Targeted re-run: 2 OK in 0.029s. No second discover.
+
+The pass 2 help-contract failure and the TMPDIR local-bench failure did not return.
+
+## How pass 3 fails and recovers
+
+- `resolve_base`: a missing requested ref is `BaseMissing` (exit 1, recovery line). Omitting `--base` when HEAD is not `origin/main` is `UsageError` (exit 2, both short shas). One `classify_cloud_failure` import. No inline classifier.
+- Image pin: container and digest checks stay, plus the duplicate-key loader and the ripgrep step check. Pregate still uses `command -v python3` and `PREGATE_IMAGE_PIN_ROOT`.
+- Tmp cleanup: the separate-process hold stays. Scratch for that test is under the repo `tmp/`.
+- Entry 149: the published stub count is the live `test_` method count. It was 28 after later lanes added methods. It is 36.
+- Docs link: a `docs/ops/` link with one `../` too few fails hygiene. The recovery is the extra `../` to the repo `eval/` tree.
+- Demo 3: a red before gate (the new test module is absent) and a green after gate. If the cloud call had been rate-limited or unauthenticated, the receipt would still be committed and the report would say it did not PASS. It PASSed. This lane did not start `--local`.
+
+## Cross-lane requests
+
+- Land cloud commit `1ed98a4d2d3c39b8099603e60dc87ed41e7340f4` from a lane that may edit `tests/test_x_intake_smoke_117_118.py` and `tests/test_x_intake_smoke_119_121.py`. It is not on this branch. This lane does not own those files.
+- `bot/mvp3-followups-1031` at `0575f6c` and `bot/mvp3-review-retry` at `6664713` stay out. mvp3 is gated separately.
+
+## Gate
+
+Tester plus Reviewer. The merges brought runtime files (`scripts/pfy_build_cloud.py`, smoke scripts, pfylib). The pass 3 edits after the merges are the entry 149 count, the backlog-burn link, the demo receipt, and this handoff.
+
+Pregate not run by this lane. The operator runs it on this stamp. At the suite start another pregate already held the heavy lock.
+
+## Next
+
+Operator pregates this stamp. No further gap in `origin/bot/mvp-plan-1031:docs/plans/MVP-PARALLEL-1031.md` fits this lane's owned files. Round 2 rows belong to mvp-dedupe (already done as the single import), mvp-sandbox-gate, mvp-local-t5, and mvp-daily-card. Exit: lane empty.
+
+## Pass 2 (prior)
 
 | Item | Commit | Result |
 |------|--------|--------|

@@ -291,4 +291,9 @@ merge mvp-cloudfix-1031 catch-up | 2021775 | none | tip 0dfc9d1, docs only, clea
 merge mvp-gom-dogfood-1031 catch-up | ff3f3ba | tests.test_gom_dogfood_1031_report | tip 731aae2, clean, 2 OK in 0.004s. Freeze
 skip mvp3-followups-1031 | none | none | not merged, seen at 0575f6c
 skip mvp3-review-retry extra | none | none | not merged past the copy already in review-fix2. Tip 6664713 seen
+demo-3 | dd1db3b | check_receipt.py exit 0; tests.test_x_intake_smoke_117_119_receipts on 1ed98a4 OK in 0.209s | PASS. Wall 421s. Review accept. Human yes. Cloud commit 1ed98a4d2d3c39b8099603e60dc87ed41e7340f4. sixtask-int VERDICT GO
+suite-3 | 918fa8e records the follow-up | TMPDIR=$PWD/tmp nice -n 19 flock ~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock python3 -m unittest discover -s tests -t . | Ran 1243 in 890.586s, FAILED failures=1 skipped=16. One docs link. Fixed in 918fa8e. tests.test_docs_hygiene 2 OK in 0.029s. No second discover
+handoff-3 | this stamp | none | pass 3 tip is this commit. Exit lane empty
+
+state: DONE pass 3. Tip is this stamp. Suite 1243 tests, 1 failure fixed by 918fa8e, skipped 16. Demo 3 PASS checker exit 0. sixtask-int VERDICT GO. Pregate not run by this lane. No merge.
 
