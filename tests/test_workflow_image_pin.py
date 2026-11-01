@@ -297,6 +297,23 @@ class WorkflowImagePinTests(unittest.TestCase):
             shutil.rmtree(path.parent)
 
     @needs_yaml
+    def test_echo_of_apt_install_does_not_count_as_install(self) -> None:
+        """Fail: echo apt-get install ripgrep plus a real rg --version passes.
+
+        Recovery: the helper still says the workflow does not install ripgrep.
+        A real apt-get install line is unchanged.
+        """
+        path = self._structural(
+            "      - run: |\n"
+            "          echo apt-get install -y ripgrep\n"
+            "          rg --version\n"
+        )
+        try:
+            self.assert_fail(run_helper(str(path)), "does not install ripgrep")
+        finally:
+            shutil.rmtree(path.parent)
+
+    @needs_yaml
     def test_commented_out_apt_install_does_not_pass(self) -> None:
         path = self._structural(
             "      - name: Install ripgrep\n"

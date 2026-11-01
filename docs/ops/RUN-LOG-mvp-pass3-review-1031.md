@@ -90,3 +90,7 @@ fetch-scope | 5b0e04f | none (read only) | 619 files, review file absent on base
 Findings are in `docs/ops/REVIEW-pass3-1031.md`. Seven rows. Two S rows are in `scripts/check_workflow_image_pin.py` and will be fixed here. The B rows and the cloud S/N rows stay cross-lane.
 
 Host before the review commit: MemAvailable about 68 GiB, load about 3.8 on 32 cores. Wall cap 2026-11-01T08:15:37Z has not fired.
+
+review | 9d23087 | none (docs) | 7 findings filed
+
+finding-5-echo-install | this commit | nice python3 -m unittest tests.test_workflow_image_pin (6 ripgrep cases) | was red (helper PASS), now OK

@@ -242,9 +242,23 @@ def _run_code(data: object) -> str:
     return "\n".join(lines)
 
 
+def _command_is_echo(tokens: list[str]) -> bool:
+    """True when the line only prints the words. sudo echo counts too."""
+    if not tokens:
+        return False
+    head = tokens[0]
+    if head in ("echo", "printf"):
+        return True
+    return head == "sudo" and len(tokens) > 1 and tokens[1] in ("echo", "printf")
+
+
 def _installs_ripgrep(code: str) -> bool:
     for line in code.splitlines():
         tokens = line.split()
+        # Fail: `echo apt-get install ripgrep` counted as an install.
+        # Recover: ignore an echo or printf line. A real apt-get line still counts.
+        if _command_is_echo(tokens):
+            continue
         if "apt-get" not in tokens and "apt" not in tokens:
             continue
         if "install" not in tokens:
