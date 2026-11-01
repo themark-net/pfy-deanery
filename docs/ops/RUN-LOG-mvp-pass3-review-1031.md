@@ -93,4 +93,6 @@ Host before the review commit: MemAvailable about 68 GiB, load about 3.8 on 32 c
 
 review | 9d23087 | none (docs) | 7 findings filed
 
-finding-5-echo-install | this commit | nice python3 -m unittest tests.test_workflow_image_pin (6 ripgrep cases) | was red (helper PASS), now OK
+finding-5-echo-install | 99016b9 | nice python3 -m unittest tests.test_workflow_image_pin (6 ripgrep cases) | was red (helper PASS), now OK
+
+finding-6-echo-rg | this commit | nice python3 -m unittest tests.test_workflow_image_pin | was red (helper PASS), module OK after the fix

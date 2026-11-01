@@ -327,6 +327,24 @@ class WorkflowImagePinTests(unittest.TestCase):
             shutil.rmtree(path.parent)
 
     @needs_yaml
+    def test_echo_of_rg_version_does_not_count_as_running_rg(self) -> None:
+        """Fail: a real apt install plus echo rg --version passes the check.
+
+        Recovery: the helper says ripgrep was installed but rg was not run.
+        A real rg --version line still passes.
+        """
+        for spoken in ("echo rg --version", "sudo echo rg --version", "printf rg --version"):
+            path = self._structural(
+                "      - run: |\n"
+                "          sudo apt-get install -y -qq ripgrep\n"
+                "          %s\n" % spoken
+            )
+            try:
+                self.assert_fail(run_helper(str(path)), "does not run rg")
+            finally:
+                shutil.rmtree(path.parent)
+
+    @needs_yaml
     def test_install_without_running_rg_fails(self) -> None:
         path = self._structural(
             "      - run: |\n"

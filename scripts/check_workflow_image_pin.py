@@ -271,6 +271,10 @@ def _installs_ripgrep(code: str) -> bool:
 def _runs_rg(code: str) -> bool:
     for line in code.splitlines():
         tokens = line.split()
+        # Fail: `echo rg --version` counted as running rg.
+        # Recover: ignore an echo or printf line. A real rg or command -v rg still counts.
+        if _command_is_echo(tokens):
+            continue
         if "rg" in tokens and "--version" in tokens:
             return True
         for index, token in enumerate(tokens):
