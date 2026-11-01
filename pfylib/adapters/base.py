@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 import shutil
+import stat
 import tempfile
 import tomllib
 from pathlib import Path
@@ -59,20 +60,40 @@ def _hash_rows(rows: list[tuple[str, bytes]]) -> str:
 
 def tree_hash(root: Path) -> str:
     rows: list[tuple[str, bytes]] = []
-    for p in root.rglob("*"):
-        if p.is_file():
-            rows.append((p.relative_to(root).as_posix(), p.read_bytes()))
-    rows.sort(key=lambda x: x[0])
+    for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
+        base = Path(dirpath)
+        for name in list(dirnames) + list(filenames):
+            path = base / name
+            info = path.lstat()
+            if stat.S_ISLNK(info.st_mode):
+                data = os.readlink(path).encode("utf-8")
+            elif stat.S_ISREG(info.st_mode):
+                data = path.read_bytes()
+            else:
+                continue
+            rows.append((path.relative_to(root).as_posix(), data))
+    rows.sort()
     return _hash_rows(rows)
 
 
 def desired_skill_hash(src: Path) -> str:
     rows: list[tuple[str, bytes]] = []
-    for p in src.rglob("*"):
-        if p.is_file() and p.name != MARKER_NAME:
-            rows.append((p.relative_to(src).as_posix(), p.read_bytes()))
+    for dirpath, dirnames, filenames in os.walk(src, followlinks=False):
+        base = Path(dirpath)
+        for name in list(dirnames) + list(filenames):
+            if name == MARKER_NAME:
+                continue
+            path = base / name
+            info = path.lstat()
+            if stat.S_ISLNK(info.st_mode):
+                data = os.readlink(path).encode("utf-8")
+            elif stat.S_ISREG(info.st_mode):
+                data = path.read_bytes()
+            else:
+                continue
+            rows.append((path.relative_to(src).as_posix(), data))
     rows.append((MARKER_NAME, MARKER))
-    rows.sort(key=lambda x: x[0])
+    rows.sort()
     return _hash_rows(rows)
 
 
