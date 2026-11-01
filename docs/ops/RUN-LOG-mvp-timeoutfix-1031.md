@@ -57,3 +57,5 @@ poll-0018Z | none | read-only | dogfood2 b90ae61 (run 08 PASS, findings still F1
 dogfood2-F2 | a450f5b | tests.test_pfy_build_cloud tests.test_pfy_build_p 80 OK skipped 1 in 24.776s | PASS review.truncated matches the review prompt cut marker (false under the cap, true past it)
 merge-cloudfix-2 | c9bef6c | docs only on their side | PASS merge of origin/bot/mvp-cloudfix-1031 at 10b4f5b (handoff, no runner change) before the F2 push
 dogfood2-F3 | 270f75f | tests.test_pfy_build_cloud tests.test_pfy_build_p 81 OK skipped 1 in 24.849s | PASS review-rejected attempt keeps a unified diff after the worktree is removed
+poll-0026Z | none | read-only | dogfood2 bea476d adds run 09 PASS, no new finding id. gom still 88a841b. selfhost2 16c59c2 records kolibri archive recheck walking into the caller repo. That finding resets the quiet clock.
+selfhost2-kolibri-recheck | ff6b855 | tests.test_pfy_build_cloud tests.test_pfy_build_p exit 0; new test red first (exit 1 commit-recheck-failed) then green; helper recheck test still green | PASS recheck git toplevel is the extract. Quiet clock restarts 2026-11-01T00:29Z. Next poll 00:49Z.
