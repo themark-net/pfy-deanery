@@ -193,7 +193,7 @@ def install_skill_tree(src: Path, dest: Path) -> tuple[bool, str]:
     if dest.exists():
         shutil.rmtree(dest)
     dest.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copytree(src, dest)
+    shutil.copytree(src, dest, symlinks=True)
     (dest / MARKER_NAME).write_bytes(MARKER)
     got = tree_hash(dest)
     if got != desired:

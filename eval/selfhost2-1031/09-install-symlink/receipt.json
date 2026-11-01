@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/pfylib-adapters-base-py-install-skill-tr-20261101T011303231450Z",
+  "commit": "89b35a5b68216d5525ef5f2e775ec570854cc78e",
+  "base": "HEAD",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll change only `install_skill_tree` so it copies symlinks as symlinks and leaves hash logic alone. First I'm reading the function and the test that defines the expected behavior.`copytree` follows links, so a mode-000 target raises and a readable one is installed as a regular file. The hash already stores the link text, so the copy has to keep the symlink. I'll set `symlinks=True` and leave the hash functions alone.`install_skill_tree` now copies symlinks as symlinks. `shutil.copytree` is called with `symlinks=True`, so the install stores the link text and never opens the target.\n\n`tree_hash` and `desired_skill_hash` are unchanged. A regular tree still installs, writes `.pfy-owned`, and a second install of the same tree returns `wrote False`. Editing a symlink target outside the tree does not cause the next install to rewrite.\n\n`python3 -m unittest tests.test_adapter_install_symlink` passed.\n\nI'll check `install_skill_tree` against the task and the reject rules before giving a verdict.verdict: accept\n\nThe diff changes only `install_skill_tree`, adding `symlinks=True` to `shutil.copytree`. That copies the link text and does not open the target, so a mode-000 target no longer raises and the installed link matches the readlink text already stored by `tree_hash` and `desired_skill_hash`. Regular-file installs, the `.pfy-owned` marker, and the second-install `wrote False` path are unchanged. The diff does not edit tests, alter the hash helpers, add a recursive delete, or target the filesystem root.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "python3 -m unittest tests.test_adapter_install_symlink",
+    "before": {
+      "cmd": "python3 -m unittest tests.test_adapter_install_symlink",
+      "exit": 1,
+      "tail": "\nE\n======================================================================\nERROR: test_symlink_is_copied_and_regular_tree_stays_clean (tests.test_adapter_install_symlink.AdapterInstallSymlinkTests.test_symlink_is_copied_and_regular_tree_stays_clean)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-selfhost2-1031/tmp/selfhost2-clones/target-9/tmp/cloud-build/20261101T011303231450Z/tests/test_adapter_install_symlink.py\", line 51, in test_symlink_is_copied_and_regular_tree_stays_clean\n    wrote, _digest = install_skill_tree(src, installed)\n                     ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-selfhost2-1031/tmp/selfhost2-clones/target-9/tmp/cloud-build/20261101T011303231450Z/pfylib/adapters/base.py\", line 196, in install_skill_tree\n    shutil.copytree(src, dest)\n    ~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/usr/lib/python3.14/shutil.py\", line 654, in copytree\n    return _copytree(entries=entries, src=src, dst=dst, symlinks=symlinks,\n                     ignore=ignore, copy_function=copy_function,\n                     ignore_dangling_symlinks=ignore_dangling_symlinks,\n                     dirs_exist_ok=dirs_exist_ok)\n  File \"/usr/lib/python3.14/shutil.py\", line 608, in _copytree\n    raise Error(errors)\nshutil.Error: [('/home/mark/DEVELOP/pfy-mentat/tmp/mvp-selfhost2-1031/tmp/selfhost2-clones/target-9/tmp/cloud-build/20261101T011303231450Z/tmp/selfhost2-tests/adapter-install-53y70l_o/link-src/a.txt', '/home/mark/DEVELOP/pfy-mentat/tmp/mvp-selfhost2-1031/tmp/selfhost2-clones/target-9/tmp/cloud-build/20261101T011303231450Z/tmp/selfhost2-tests/adapter-install-53y70l_o/link-dest/a.txt', \"[Errno 13] Permission denied: '/home/mark/DEVELOP/pfy-mentat/tmp/mvp-selfhost2-1031/tmp/selfhost2-clones/target-9/tmp/cloud-build/20261101T011303231450Z/tmp/selfhost2-tests/adapter-install-53y70l_o/link-src/a.txt'\")]\n\n----------------------------------------------------------------------\nRan 1 test in 0.015s\n\nFAILED (errors=1)\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "python3 -m unittest tests.test_adapter_install_symlink",
+      "exit": 0,
+      "tail": "\n.\n----------------------------------------------------------------------\nRan 1 test in 0.005s\n\nOK\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": true,
+  "task": "pfylib/adapters/base.py install_skill_tree uses shutil.copytree, which copies the target of a symlink. A mode-000 target raises. A readable target is written into the install as a regular file. tree_hash and desired_skill_hash now store readlink text, so that copy also fails the hash check.\n\nChange only install_skill_tree. Do not edit tests. Do not change tree_hash or desired_skill_hash. Copy symlinks as symlinks (shutil.copytree symlinks=True is fine on Python 3.12). Do not open the target. A tree of regular files still installs, writes .pfy-owned, and a second install of the same tree returns wrote False. An outside edit of a symlink target must not make the next install rewrite.",
+  "finished_at": "2026-11-01T01:14:51Z"
+}

@@ -58,3 +58,5 @@ Survey skips, recorded before item 01, not a no-progress streak: T-0091 voice sh
 05 smoke140-hash | 9138656 | tests.test_smoke_140_tree_hash_symlink 1 OK on Python 3.14 and 3.12 | PASS receipt, attempts 1, wall 251s, review accept, human accept. Cloud SHA b9de401.
 06 smoke137-hash | 1faa9fd | tests.test_smoke_137_tree_hash_symlink 1 OK on Python 3.14 and 3.12 | PASS receipt, attempts 1, wall 131s, review accept, human accept. Cloud SHA fdef8d6.
 07 adapter-symlink-ops | e6339ca | tests.test_adapter_symlink_file_ops tests.test_adapter_tree_hash_symlink 2 OK on Python 3.14 and 3.12 | PASS receipt, attempts 1, wall 174s, review accept, human accept. Cloud SHA e762c1a.
+08 surface-symlink | 67e3333 | tests.test_harness2_surface_symlink tests.test_harness2_local_surface 6 OK on Python 3.14 and 3.12 | PASS receipt, attempts 1, wall 360s, review accept, human accept. Cloud SHA dff338c.
+09 install-symlink | d217349 | tests.test_adapter_install_symlink tests.test_adapter_tree_hash_symlink tests.test_adapter_symlink_file_ops 3 OK on Python 3.14 and 3.12 | PASS receipt, attempts 1, wall 108s, review accept, human accept. Cloud SHA 89b35a5.

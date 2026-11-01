@@ -189,8 +189,15 @@ def enforce_path_allow(present: list[tuple[str, bool]]) -> list[str]:
 
 def _present(harness: Path, expected: dict[str, str]) -> list[tuple[str, bool]]:
     rows = []
-    for path in sorted(p for p in harness.rglob("*") if p.is_file()):
+    for path in sorted(harness.rglob("*")):
+        # A symlink is changed. Do not stat or read its target, even if missing.
+        link = path.is_symlink()
+        if not link and not path.is_file():
+            continue
         rel = path.relative_to(harness).as_posix()
+        if link:
+            rows.append((rel, True))
+            continue
         text = path.read_text(encoding="utf-8")
         if rel == HARNESS_SCRIPT:
             changed = text != HARNESS_SCRIPT_BODY
