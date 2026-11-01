@@ -80,3 +80,12 @@ item | commit | tests | result
 04-smoke137-tree-hash | skipped | n/a | skip: selfhost2 1faa9fd already hashes that tree_hash. Not a third skip in a row; 05 is next.
 04-smoke098-timeout | 4ef4c66 | tests.test_smoke_098_bad_timeout tests.test_x_intake_smoke_098_100 13 OK | PASS human-accept wall 103s attempts 1 review accept
 05-smoke103-timeout | 775e34b | tests.test_smoke_103_bad_timeout tests.test_x_intake_smoke_103_105 9 OK | PASS human-accept wall 82s attempts 1 review accept
+06-smoke106-timeout | 98e5795 | tests.test_smoke_106_bad_timeout tests.test_x_intake_smoke_106_108 13 OK | PASS human-accept wall 72s attempts 1 review accept
+
+## Close
+
+Checked 2026-11-01T01:14:13Z before the handoff. MemAvailable 70330368 kB. Load 3.82 3.77 3.89 on 32 cores. Not host pressure. Runner.Worker empty. `flock -n` on `~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock` failed, so the lock is held.
+
+No unowned smoke main still swallows a bad PFY_XINTAKE_TIMEOUT. The files that still do are already committed on other bot branches (smoke_109, smoke_112, smoke_115, smoke_117, smoke_119, smoke_122, smoke_137, smoke_148, smoke_149). Two cloud-build slots of the turn cap (8) were not used.
+
+state: lane empty | 6 cloud builds, 5 human-accept, 1 human-reject (cross-lane). Pass rate 5/6. No unowned bad-timeout main left. Pregate not run: host busy.
