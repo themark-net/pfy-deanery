@@ -200,10 +200,11 @@ class CloudPhaseReceiptTests(unittest.TestCase):
         extra: list[str],
         env: dict | None = None,
         gate_body: str | None = None,
+        grok_body: str | None = None,
         proc_timeout: float = 60,
         use_default: bool = False,
     ) -> subprocess.CompletedProcess:
-        grok = _write_exe(self.side / "grok.py", _grok_script(0.25, 0.30))
+        grok = _write_exe(self.side / "grok.py", grok_body or _grok_script(0.25, 0.30))
         argv = [
             sys.executable,
             str(CLOUD),
@@ -257,8 +258,14 @@ class CloudPhaseReceiptTests(unittest.TestCase):
         self.assertGreater(phases["preflight"], 0.0, phases)
         self.assertGreater(phases["commit"], 0.0, phases)
         self.assertEqual(self._count(), 4, payload)
-        self.assertGreaterEqual(payload["wall_seconds"], phases["gate"])
-        self.assertLessEqual(sum(phases.values()), payload["wall_seconds"] + 0.05)
+        # Review overlaps the recheck gate. Each phase keeps its own
+        # seconds, so the sum may pass the wall by about that overlap.
+        self.assertGreaterEqual(payload["wall_seconds"] + 0.05, phases["gate"])
+        self.assertGreaterEqual(payload["wall_seconds"] + 0.05, phases["review"])
+        self.assertLessEqual(
+            sum(phases.values()),
+            payload["wall_seconds"] + min(phases["review"], phases["gate"]) + 0.05,
+        )
 
     def test_red_gate_still_records_time_for_the_gates_that_ran(self) -> None:
         # Fail: a red gate skips the receipt phases, so a slow failure looks free.
@@ -287,6 +294,9 @@ class CloudPhaseReceiptTests(unittest.TestCase):
         self.assertEqual(payload["phases"]["review"], 0.0, payload["phases"])
         self.assertGreaterEqual(payload["phases"]["gate"], GATE_FLOOR, payload["phases"])
         self.assertEqual(self._count(), 4, payload)
+        # No review call, so nothing overlaps the recheck. The sum stays
+        # inside the wall.
+        self.assertLessEqual(sum(payload["phases"].values()), payload["wall_seconds"] + 0.05)
 
     def _commit_suite(self, body: str) -> None:
         tests = self.repo / "tests"
@@ -447,4 +457,250 @@ class CloudPhaseReceiptTests(unittest.TestCase):
                     break
                 time.sleep(0.05)
             self.assertFalse(alive, "gate pid %s still alive" % pid)
+
+    def _tagged(self, log: Path) -> list[tuple[float, float, str]]:
+        rows = []
+        for line in log.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            start, end, kind = line.split()
+            rows.append((float(start), float(end), kind))
+        return rows
+
+    def test_review_overlaps_the_recheck_and_four_gates_still_run(self) -> None:
+        # Fail: the clean extract waits until review returns, so a long
+        # suite is paid again after the model call.
+        # Recover: the review call overlaps that extract, and the run
+        # still executes four gates.
+        log = self.side / "gate-log"
+        gate = (
+            "#!/usr/bin/env python3\n"
+            "import fcntl, os, time\n"
+            "from pathlib import Path\n"
+            "start = time.monotonic()\n"
+            "time.sleep(0.45)\n"
+            "end = time.monotonic()\n"
+            "log = Path(os.environ['PFY_GATE_LOG'])\n"
+            "with open(log, 'a', encoding='utf-8') as handle:\n"
+            "    fcntl.flock(handle, fcntl.LOCK_EX)\n"
+            "    handle.write('%s %s gate\\n' % (start, end))\n"
+            "raise SystemExit(0)\n"
+        )
+        grok = (
+            "#!/usr/bin/env python3\n"
+            "import fcntl, os, sys, time\n"
+            "from pathlib import Path\n"
+            "blob = '\\n'.join(sys.argv)\n"
+            "if 'PFY-CLOUD-REVIEW' in blob:\n"
+            "    start = time.monotonic()\n"
+            "    time.sleep(0.55)\n"
+            "    end = time.monotonic()\n"
+            "    log = Path(os.environ['PFY_GATE_LOG'])\n"
+            "    with open(log, 'a', encoding='utf-8') as handle:\n"
+            "        fcntl.flock(handle, fcntl.LOCK_EX)\n"
+            "        handle.write('%s %s review\\n' % (start, end))\n"
+            "    print('verdict: accept')\n"
+            "    raise SystemExit(0)\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n"
+        )
+        proc = self._build(
+            0,
+            [],
+            env={"PFY_GATE_LOG": str(log)},
+            gate_body=gate,
+            grok_body=grok,
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        rows = self._tagged(log)
+        gates = sorted((row for row in rows if row[2] == "gate"), key=lambda row: row[0])
+        reviews = [row for row in rows if row[2] == "review"]
+        self.assertEqual(len(gates), 4, rows)
+        self.assertEqual(len(reviews), 1, rows)
+        review = reviews[0]
+        last = gates[-1]
+        earlier = gates[:-1]
+        self.assertTrue(review[0] < last[1] and last[0] < review[1], rows)
+        for row in earlier:
+            self.assertFalse(review[0] < row[1] and row[0] < review[1], rows)
+        payload = self._payload()
+        self.assertGreaterEqual(payload["phases"]["review"], 0.4, payload["phases"])
+        self.assertGreaterEqual(payload["phases"]["gate"], 1.6, payload["phases"])
+        self.assertEqual(payload["status"], "PASS", text)
+
+    def test_review_reject_wins_when_the_extract_also_fails(self) -> None:
+        # Fail: a red extract overwrites a review reject, or the extract
+        # is skipped once review is going to reject.
+        # Recover: the extract still runs, and the receipt says
+        # review-rejected with no branch.
+        ignore = self.repo / ".gitignore"
+        ignore.write_text(ignore.read_text(encoding="utf-8") + "helper.py\n", encoding="utf-8")
+        added = _git(self.repo, "add", ".gitignore")
+        self.assertEqual(added.returncode, 0, added.stderr)
+        committed = _git(self.repo, "commit", "-m", "ignore helper")
+        self.assertEqual(committed.returncode, 0, committed.stderr)
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        marker = self.side / "extract-missed-helper"
+        gate = (
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "from pathlib import Path\n"
+            "p = Path(%r)\n"
+            "n = int(p.read_text(encoding='utf-8') or '0') if p.exists() else 0\n"
+            "p.write_text(str(n + 1), encoding='utf-8')\n"
+            "sys.path.insert(0, str(Path('.').resolve()))\n"
+            "try:\n"
+            "    import kept\n"
+            "except Exception as exc:\n"
+            "    print('GATE-IMPORT-FAIL %%s' %% exc)\n"
+            "    if Path('kept.py').is_file():\n"
+            "        Path(%r).write_text('extract-missed-helper\\n', encoding='utf-8')\n"
+            "    raise SystemExit(1)\n"
+            "print('GATE-OK')\n"
+            "raise SystemExit(0)\n" % (str(self.counter), str(marker))
+        )
+        grok = (
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "from pathlib import Path\n"
+            "blob = '\\n'.join(sys.argv)\n"
+            "if 'PFY-CLOUD-REVIEW' in blob:\n"
+            "    print('verdict: reject')\n"
+            "    print('reasons: both-failed')\n"
+            "    raise SystemExit(0)\n"
+            "Path('helper.py').write_text('VALUE = 1\\n', encoding='utf-8')\n"
+            "Path('kept.py').write_text('import helper\\nvalue = helper.VALUE\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n"
+        )
+        proc = self._build(0, [], gate_body=gate, grok_body=grok)
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 1, text)
+        payload = self._payload()
+        self.assertEqual(payload["reason"], "review-rejected", text)
+        self.assertIsNone(payload["branch"])
+        self.assertIsNone(payload["commit"])
+        self.assertEqual(self._count(), 4, payload)
+        self.assertEqual(marker.read_text(encoding="utf-8"), "extract-missed-helper\n")
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+        self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
+
+    def test_signal_during_review_and_recheck_kills_both(self) -> None:
+        # Fail: the runner tracks the review process and leaves the extract
+        # gate sleeping after SIGTERM.
+        # Recover: both pids are dead, the receipt says interrupted, and
+        # no branch is kept.
+        log = self.side / "gate-log"
+        gate = (
+            "#!/usr/bin/env python3\n"
+            "import fcntl, os, time\n"
+            "from pathlib import Path\n"
+            "if Path('.git').exists():\n"
+            "    raise SystemExit(0)\n"
+            "log = Path(os.environ['PFY_GATE_LOG'])\n"
+            "with open(log, 'a', encoding='utf-8') as handle:\n"
+            "    fcntl.flock(handle, fcntl.LOCK_EX)\n"
+            "    handle.write(str(os.getpid()) + '\\n')\n"
+            "    handle.flush()\n"
+            "time.sleep(8)\n"
+            "raise SystemExit(0)\n"
+        )
+        grok = (
+            "#!/usr/bin/env python3\n"
+            "import fcntl, os, sys, time\n"
+            "from pathlib import Path\n"
+            "blob = '\\n'.join(sys.argv)\n"
+            "if 'PFY-CLOUD-REVIEW' in blob:\n"
+            "    log = Path(os.environ['PFY_GATE_LOG'])\n"
+            "    with open(log, 'a', encoding='utf-8') as handle:\n"
+            "        fcntl.flock(handle, fcntl.LOCK_EX)\n"
+            "        handle.write(str(os.getpid()) + '\\n')\n"
+            "        handle.flush()\n"
+            "    time.sleep(8)\n"
+            "    print('verdict: accept')\n"
+            "    raise SystemExit(0)\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n"
+        )
+        gate_path = _write_exe(self.side / "gate.py", gate)
+        grok_path = _write_exe(self.side / "grok.py", grok)
+        proc = subprocess.Popen(
+            [
+                sys.executable,
+                str(CLOUD),
+                "add kept value",
+                "--repo",
+                str(self.repo),
+                "--base",
+                "HEAD",
+                "--retries",
+                "0",
+                "--timeout",
+                "30",
+                "--test-cmd",
+                "%s %s" % (sys.executable, gate_path),
+                "--grok-cmd",
+                str(grok_path),
+                "--receipt-dir",
+                str(self.receipt_dir),
+            ],
+            cwd=self.repo,
+            env={
+                **os.environ,
+                "TMPDIR": str(SCRATCH),
+                "PYTHONDONTWRITEBYTECODE": "1",
+                "PFY_GATE_LOG": str(log),
+            },
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+
+        def _stop() -> None:
+            if proc.poll() is None:
+                try:
+                    os.kill(proc.pid, signal.SIGKILL)
+                except OSError:
+                    pass
+            try:
+                proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                pass
+
+        self.addCleanup(_stop)
+        deadline = time.monotonic() + 8
+        pids: list[int] = []
+        while time.monotonic() < deadline:
+            if log.exists():
+                pids = [
+                    int(line)
+                    for line in log.read_text(encoding="utf-8").split()
+                    if line.strip().isdigit()
+                ]
+                if len(pids) >= 2:
+                    break
+            time.sleep(0.05)
+        self.assertGreaterEqual(len(pids), 2, "review and recheck did not start: %s" % pids)
+        os.kill(proc.pid, signal.SIGTERM)
+        try:
+            out, err = proc.communicate(timeout=15)
+        except subprocess.TimeoutExpired:
+            _stop()
+            self.fail("runner did not exit after SIGTERM")
+        text = (out or "") + (err or "")
+        self.assertEqual(proc.returncode, 1, text)
+        payload = self._payload()
+        self.assertEqual(payload["reason"], "interrupted", text)
+        self.assertIsNone(payload["branch"], text)
+        for pid in pids[:2]:
+            gone = time.monotonic() + 2
+            alive = True
+            while time.monotonic() < gone:
+                try:
+                    os.kill(pid, 0)
+                except ProcessLookupError:
+                    alive = False
+                    break
+                time.sleep(0.05)
+            self.assertFalse(alive, "pid %s still alive" % pid)
 

@@ -939,6 +939,7 @@ class CloudBuild:
         self.phase_clock = phase_clock or PhaseClock()
         self._pid_lock = threading.Lock()
         self._suppress_gate = False
+        self._suppress_phases = frozenset()
         install_build_phases(self, self.phase_clock, grok_phase_name)
 
     def child_env(self) -> dict[str, str]:
@@ -1099,25 +1100,44 @@ class CloudBuild:
             }
         self.attempts.append(row)
 
-    def commit_paths(self, paths: list[str]) -> str | None:
+    def _undo_commit(self, keep_edits: bool) -> None:
+        """Drop the commit just made.
+
+        keep_edits leaves the worktree files in place so a review retry
+        still sees them. A failed recheck drops the files, matching the
+        old hard reset.
+        """
+        if self.worktree is None:
+            return
+        if keep_edits:
+            _git(self.worktree, ["reset", "--soft", "HEAD~1"])
+            _git(self.worktree, ["reset"])
+            return
+        _git(self.worktree, ["reset", "--hard", "HEAD~1"])
+
+    def _commit_index(self, paths: list[str]) -> tuple[str | None, str | None]:
+        """Commit paths. Returns (sha, None) or (None, error).
+
+        Does not recheck and does not create the branch.
+        """
         if self.worktree is None:
             self.reason = "commit-failed"
-            return "commit-failed"
+            return None, "commit-failed"
         hooks = self.worktree / "tmp" / "empty-hooks"
         hooks.mkdir(parents=True, exist_ok=True)
         added = _git(self.worktree, ["add", "--", *[":(literal)%s" % path for path in paths]])
         if added.returncode != 0:
             _git(self.worktree, ["reset"])
             self.reason = "commit-failed"
-            return "commit-failed"
+            return None, "commit-failed"
         if set(cached_names(self.worktree)) != set(paths):
             _git(self.worktree, ["reset"])
             self.reason = "scope-commit-mismatch"
-            return "scope-commit-mismatch"
+            return None, "scope-commit-mismatch"
         if self.state.interrupted:
             _git(self.worktree, ["reset"])
             self.reason = "interrupted"
-            return "interrupted"
+            return None, "interrupted"
         flat = " ".join((self.args.task_text or "").split())
         subject = redact(commit_subject(flat))
         body = redact(flat)
@@ -1144,17 +1164,17 @@ class CloudBuild:
         if committed.returncode != 0:
             _git(self.worktree, ["reset"])
             self.reason = "commit-failed"
-            return "commit-failed"
+            return None, "commit-failed"
         sha = (_git(self.worktree, ["rev-parse", "HEAD"]).stdout or "").strip()
         if len(sha) != 40:
             self.reason = "commit-failed"
+            return None, "commit-failed"
+        return sha, None
+
+    def _publish_branch(self, sha: str) -> str | None:
+        if self.worktree is None or not sha:
+            self.reason = "commit-failed"
             return "commit-failed"
-        reason, tail = self.recheck_sha(sha)
-        self.recheck_tail = tail
-        if reason:
-            _git(self.worktree, ["reset", "--hard", "HEAD~1"])
-            self.reason = reason
-            return reason
         created = _git(self.repo, ["branch", self.branch_name, sha])
         if created.returncode != 0:
             _git(self.worktree, ["reset", "--soft", "HEAD~1"])
@@ -1165,6 +1185,62 @@ class CloudBuild:
         self.branch = self.branch_name
         self.commit = sha
         return None
+
+    def _overlap_review_recheck(self, sha: str, prompt: str):
+        """Run the review call and the clean-extract gate together.
+
+        Returns (grok_call result, recheck_sha result). The phase wrapper
+        is suppressed for both. The caller adds each duration afterwards
+        so the receipt still shows review and gate.
+        """
+        box: dict = {}
+        errors: list[BaseException] = []
+
+        def run_review() -> None:
+            try:
+                started = time.monotonic()
+                box["review"] = self.grok_call(prompt)
+                box["review_s"] = time.monotonic() - started
+            except BaseException as exc:
+                errors.append(exc)
+
+        def run_recheck() -> None:
+            try:
+                started = time.monotonic()
+                box["recheck"] = self.recheck_sha(sha)
+                box["recheck_s"] = time.monotonic() - started
+            except BaseException as exc:
+                errors.append(exc)
+
+        self._suppress_phases = frozenset({"review", "gate"})
+        try:
+            threads = [
+                threading.Thread(target=run_review),
+                threading.Thread(target=run_recheck),
+            ]
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join()
+        finally:
+            self._suppress_phases = frozenset()
+        if errors:
+            raise errors[0]
+        self.phase_clock.add("review", float(box.get("review_s") or 0.0))
+        self.phase_clock.add("gate", float(box.get("recheck_s") or 0.0))
+        return box["review"], box["recheck"]
+
+    def commit_paths(self, paths: list[str]) -> str | None:
+        sha, err = self._commit_index(paths)
+        if err:
+            return err
+        reason, tail = self.recheck_sha(sha or "")
+        self.recheck_tail = tail
+        if reason:
+            self._undo_commit(keep_edits=False)
+            self.reason = reason
+            return reason
+        return self._publish_branch(sha or "")
 
     def drop_branch(self) -> None:
         if self.branch_created and self.branch:
@@ -1511,25 +1587,50 @@ class CloudBuild:
                 return self.fail("FAIL", "tests-flaky", EXIT_FAIL, "")
             diff_text = capture_diff(self.worktree, changed)
             if not self.args.no_review:
-                review_status, review_code, review_out, review_err = self.grok_call(
-                    review_prompt(self.args.task_text, diff_text, str(again.get("tail") or ""))
+                # Commit first so the extract is of that commit, then overlap
+                # the review call with the extract gate. A reject undoes the
+                # commit and keeps the edits. A failed extract undoes the
+                # commit and drops the edits. When both fail, review wins.
+                with self.phase_clock.phase("commit"):
+                    sha, indexed = self._commit_index(changed)
+                if indexed or not sha:
+                    reason = indexed or "commit-failed"
+                    self.record(number, "FAIL", reason, output)
+                    if reason == "timeout":
+                        return self._gate_timeout_fail(number, output)
+                    return self.fail("FAIL", reason, EXIT_FAIL, "")
+                if self.state.interrupted:
+                    self._undo_commit(keep_edits=True)
+                    self.record(number, "FAIL", "interrupted", output)
+                    return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
+                review_row, recheck_row = self._overlap_review_recheck(
+                    sha,
+                    review_prompt(self.args.task_text, diff_text, str(again.get("tail") or "")),
                 )
+                review_status, review_code, review_out, review_err = review_row
+                recheck_reason, recheck_tail = recheck_row
+                self.recheck_tail = recheck_tail
                 review_output = (review_out or "") + ("\n" + review_err if review_err else "")
                 output = output + "\n" + review_output
                 if review_status == "interrupted" or self.state.interrupted:
+                    self._undo_commit(keep_edits=True)
                     self.record(number, "FAIL", "interrupted", output)
                     return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
                 if review_status == "timeout":
+                    self._undo_commit(keep_edits=True)
                     self.record(number, "TIMEOUT", "timeout", output)
                     return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")
                 if review_status == "missing":
+                    self._undo_commit(keep_edits=True)
                     self.record(number, "FAIL", "unauthenticated", output)
                     return self.fail("FAIL", "unauthenticated", EXIT_FAIL, auth_recovery(self.args.task_text))
                 review_kind = classify_runner_failure(review_code, review_out, review_err)
                 if review_kind == "rate-limit":
+                    self._undo_commit(keep_edits=True)
                     self.record(number, "BLOCKED", "rate-limit", output)
                     return self.fail("BLOCKED", "rate-limit", EXIT_BLOCKED, rate_recovery(self.args.task_text))
                 if review_kind == "unauthenticated":
+                    self._undo_commit(keep_edits=True)
                     self.record(number, "FAIL", "unauthenticated", output)
                     return self.fail("FAIL", "unauthenticated", EXIT_FAIL, auth_recovery(self.args.task_text))
                 verdict, reasons = parse_verdict(review_output)
@@ -1538,12 +1639,30 @@ class CloudBuild:
                     reasons = ["review-rejected"]
                 self.review = {"verdict": verdict, "reasons": reasons}
                 if verdict != "accept":
+                    self._undo_commit(keep_edits=True)
                     feedback = "review-rejected\n%s" % "\n".join(reasons)
                     previous_diff = diff_text
                     self.record(number, "PASS-REJECTED", "review-rejected", output)
                     if number < self.max_attempts:
                         continue
                     return self.fail("FAIL", "review-rejected", EXIT_FAIL, "")
+                if recheck_reason == "timeout":
+                    self._undo_commit(keep_edits=False)
+                    return self._gate_timeout_fail(number, output + "\n" + (recheck_tail or ""))
+                if recheck_reason == "interrupted" or self.state.interrupted:
+                    self._undo_commit(keep_edits=False)
+                    self.record(number, "FAIL", "interrupted", output)
+                    return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
+                if recheck_reason:
+                    self._undo_commit(keep_edits=False)
+                    feedback = "commit-recheck-failed\n%s" % (self.recheck_tail or "")
+                    previous_diff = diff_text
+                    self.record(number, "FAIL", recheck_reason, output)
+                    if number < self.max_attempts:
+                        continue
+                    return self.fail("FAIL", recheck_reason, EXIT_FAIL, "")
+                with self.phase_clock.phase("commit"):
+                    err = self._publish_branch(sha)
             else:
                 if diff_aims_at_root(diff_text):
                     self.review = {"verdict": "reject", "reasons": ["review-rejected"]}
@@ -1554,7 +1673,7 @@ class CloudBuild:
                         continue
                     return self.fail("FAIL", "review-rejected", EXIT_FAIL, "")
                 self.review = {"verdict": "skipped", "reasons": []}
-            err = self.commit_paths(changed)
+                err = self.commit_paths(changed)
             if err == "timeout":
                 return self._gate_timeout_fail(number, output)
             if err == "commit-recheck-failed" and number < self.max_attempts:

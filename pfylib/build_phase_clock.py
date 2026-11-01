@@ -60,6 +60,17 @@ class PhaseClock:
                 totals[name] += self._now() - started
         return {name: round(max(0.0, totals[name]), 3) for name in PHASES}
 
+    def add(self, name: str, seconds: float) -> None:
+        """Add seconds that already ran beside another phase.
+
+        The stack cannot bill both sides of an overlap. Dropping one
+        would hide that phase on the receipt.
+        """
+        if name not in self._totals:
+            raise KeyError(name)
+        if seconds > 0:
+            self._totals[name] += seconds
+
     def wall_seconds(self) -> float:
         return round(max(0.0, self._now() - self._t0), 3)
 
@@ -95,7 +106,12 @@ def install_build_phases(build, clock: PhaseClock, grok_phase) -> None:
         def wrapped(*args, **kwargs):
             # Overlapped gates bill one wall span on the caller. Counting
             # each thread as well would hide the saving and break the sum.
+            # A phase named in _suppress_phases is billed by the caller
+            # after the overlap, via PhaseClock.add.
+            held = getattr(build, "_suppress_phases", ())
             if phase == "gate" and getattr(build, "_suppress_gate", False):
+                return original(*args, **kwargs)
+            if phase in held:
                 return original(*args, **kwargs)
             with clock.phase(phase):
                 return original(*args, **kwargs)
@@ -109,6 +125,9 @@ def install_build_phases(build, clock: PhaseClock, grok_phase) -> None:
 
     def grok_wrapped(prompt, *args, **kwargs):
         name = grok_phase(prompt)
+        held = getattr(build, "_suppress_phases", ())
+        if name in held:
+            return original_grok(prompt, *args, **kwargs)
         with clock.phase(name):
             return original_grok(prompt, *args, **kwargs)
 
