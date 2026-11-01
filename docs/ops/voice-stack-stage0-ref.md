@@ -2,7 +2,7 @@
 
 **Status:** 2026-10-30 PT. Reference only. Stage-0 FAIL / I0 for all three. ADR-0012 half-duplex local-first stays the product path.
 **Primary voice path:** `examples/voice-stt-edge/` plus the orchestrator. Not these runtimes.
-**Issue #10:** closed 2026-07-30 on the short stub. These receipts are the three-leg check (license, under-5-minute self-host quickstart, hello-world). Nothing was installed.
+**Issue #10:** closed 2026-07-29 PT (2026-07-30 UTC) on the short stub. These receipts are the three-leg check (license, under-5-minute self-host quickstart, hello-world). Nothing was installed.
 
 | Project | Entry | Stage | Install? |
 |---------|-------|-------|----------|
