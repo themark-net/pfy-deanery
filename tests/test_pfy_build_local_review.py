@@ -1013,6 +1013,103 @@ class ReviewLoopTests(unittest.TestCase):
                 self.assertNotIn("EVIL_GATE = 1", path.read_text(encoding="utf-8", errors="replace"))
         self.inner.assert_clean_origin()
 
+    def _commit_mode(self, sha, rel):
+        text = harness._git(self.inner.repo, "ls-tree", sha, "--", rel)
+        line = text.strip().splitlines()
+        self.assertTrue(line, rel)
+        return line[0].split()[0]
+
+    def test_gate_executable_bit_does_not_commit(self):
+        # The gate imports src.calc, which sets the executable bit. The
+        # reviewer never saw 100755. That mode must not land in a commit.
+        body = (
+            "import os as _os\n"
+            "from pathlib import Path as _P\n"
+            "_p = _P(__file__)\n"
+            "_m = _p.stat().st_mode\n"
+            "if not (_m & 0o111):\n"
+            "    _p.chmod(_m | 0o111)\n"
+            "def add(a, b):\n"
+            "    return a + b\n"
+        )
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        proc, receipt = self._run(task, [{"mode": "fix", "write": {"src/calc.py": body}}])
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "FAIL")
+        self.assertEqual(data["reason"], "gate-modified-reviewed-file")
+        self.assertIsNone(data["commit"])
+        self.assertIsNone(data["branch"])
+        self.assertEqual(harness._branches(self.inner.repo), [])
+        self.inner.assert_clean_origin()
+
+    def test_gate_clearing_executable_bit_does_not_commit(self):
+        # The agent marks the file executable. The gate then clears that bit.
+        # The reviewed diff says 100755. The commit must not quietly store 100644.
+        body = (
+            "import os as _os\n"
+            "from pathlib import Path as _P\n"
+            "_p = _P(__file__)\n"
+            "_m = _p.stat().st_mode\n"
+            "if _m & 0o111:\n"
+            "    _p.chmod(_m & ~0o111)\n"
+            "def add(a, b):\n"
+            "    return a + b\n"
+        )
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        proc, receipt = self._run(
+            task,
+            [{"mode": "fix", "write": {"src/calc.py": body}, "chmod": {"src/calc.py": 0o755}}],
+        )
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "FAIL")
+        self.assertEqual(data["reason"], "gate-modified-reviewed-file")
+        self.assertIsNone(data["commit"])
+        self.assertEqual(harness._branches(self.inner.repo), [])
+        self.inner.assert_clean_origin()
+
+    def test_non_git_mode_tweak_during_the_gate_still_commits(self):
+        # 0600 and 0644 are both git mode 100644. The gate may tighten the
+        # unix mode. The commit still matches the reviewed blob and git mode.
+        body = (
+            "import os as _os\n"
+            "from pathlib import Path as _P\n"
+            "_p = _P(__file__)\n"
+            "if (_p.stat().st_mode & 0o777) != 0o600:\n"
+            "    _p.chmod(0o600)\n"
+            "def add(a, b):\n"
+            "    return a + b\n"
+        )
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        proc, receipt = self._run(task, [{"mode": "fix", "write": {"src/calc.py": body}}])
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "PASS")
+        self.assertEqual(self._commit_mode(data["commit"], "src/calc.py"), "100644")
+        shown = harness._git(self.inner.repo, "show", "%s:src/calc.py" % data["commit"])
+        self.assertIn("return a + b\n", shown)
+        self.assertNotIn("100755", json.dumps(self.inner.httpd.posts))
+        self.inner.assert_clean_origin()
+
+    def test_agent_executable_bit_is_what_gets_committed(self):
+        # The agent sets the bit before review. The gate does not change it.
+        # The reviewer sees 100755 and the commit stores 100755.
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        proc, receipt = self._run(task, [{"mode": "fix", "chmod": {"src/calc.py": 0o755}}])
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "PASS")
+        self.assertEqual(self._commit_mode(data["commit"], "src/calc.py"), "100755")
+        reviewed = [
+            json.dumps(payload)
+            for path, payload in self.inner.httpd.posts
+            if "chat" in path and "pfy-review-v1" in json.dumps(payload)
+        ]
+        self.assertEqual(len(reviewed), 1)
+        self.assertIn("100755", reviewed[0])
+        self.inner.assert_clean_origin()
+
     def _sentinel_file(self):
         marker = "PFY_SYMLINK_TARGET_SENTINEL_42"
         path = self.inner.tmp / "sentinel-outside.txt"

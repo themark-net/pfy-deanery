@@ -44,8 +44,9 @@ Risks:
 
 ## Items
 
-(none yet)
+- exits | 8ce94e3 | none | exit card pushed
+- reprobe | scratch tmp/probe/results.jsonl | 29 CLI probes at d2521b5 | 4 judge flags, 2 real findings (mode bit, hardlink). Holds: e5c, g1, g2, s7 rename, s7 rename+edit, s7 across dir, s7 old name unlisted, s7 swap, s8 NFC, s8 NFD, s8 emoji, s8 unicode dir, s8 NFC-allow vs NFD file, symlink-to-dir, relative symlink, replace src, M10 variants, M17 retries 5, gate delete, gate extra file, mode 0600. s7 low-similarity and NFC+NFD pair were judge/host false flags (decisions 6 and 7).
 
 ## Progress
 
-state: plan | tests: none yet | files: run log and decisions | err: none
+state: probes done | tests: scratch probes | files: 0 product yet | err: none

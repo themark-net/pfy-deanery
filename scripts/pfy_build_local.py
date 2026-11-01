@@ -2384,8 +2384,22 @@ def _named_by_test_cmd(rel: str, test_cmd: str) -> bool:
     return False
 
 
+def _tracks_filemode(worktree: Path) -> bool:
+    """True when git will store the executable bit. Unset config follows git's default."""
+    proc = _git(worktree, ["config", "--bool", "core.filemode"])
+    text = (proc.stdout or "").strip().lower()
+    if not text:
+        return True
+    return text == "true"
+
+
 def _reviewed_digest(worktree: Path, rel: str) -> str:
-    """Digest of the bytes a commit of this path would store. Does not follow symlinks."""
+    """Digest of the blob and the git file mode a commit of this path would store.
+
+    Does not follow symlinks. Only the executable bit is part of the digest,
+    and only when core.filemode is on. A chmod that git will not record
+    (0600 versus 0644, or any mode change when filemode is off) stays equal.
+    """
     full = worktree / rel
     try:
         st = os.lstat(full)
@@ -2399,6 +2413,9 @@ def _reviewed_digest(worktree: Path, rel: str) -> str:
         return "link:" + hashlib.sha256(target.encode("utf-8", "surrogateescape")).hexdigest()
     if not stat.S_ISREG(st.st_mode):
         return "other:%s" % stat.S_IFMT(st.st_mode)
+    mode_token = "100644"
+    if _tracks_filemode(worktree) and (st.st_mode & 0o111):
+        mode_token = "100755"
     flags = os.O_RDONLY
     if hasattr(os, "O_NOFOLLOW"):
         flags |= os.O_NOFOLLOW
@@ -2415,7 +2432,7 @@ def _reviewed_digest(worktree: Path, rel: str) -> str:
             hasher.update(chunk)
     finally:
         os.close(fd)
-    return "file:" + hasher.hexdigest()
+    return "file:%s:%s" % (mode_token, hasher.hexdigest())
 
 
 def _gate_rewrote(worktree: Path, digests: dict[str, str]) -> bool:

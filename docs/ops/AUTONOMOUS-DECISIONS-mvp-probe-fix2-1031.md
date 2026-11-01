@@ -7,3 +7,9 @@
 3. Choice: scratch repos and TMPDIR stay under this worktree `tmp/`. Hardlink targets live in the stub-notes directory the test seam already bind-mounts, so the probe does not need the host `/tmp`. Alternatives: put sentinels in `/tmp`. Why: the drop-in forbids `/tmp`.
 
 4. Choice: a probe is a FINDING only when the tip commits bytes or a mode the reviewer did not see, leaks sentinel bytes into a receipt or review prompt, mangles a name, or accepts a review body that should fail closed. A fail-closed result is a hold. Alternatives: treat every non-PASS as a bug. Why: S7's old bug was a false fail, so a legitimate rename or unicode path that still fails closed is also a FINDING. Speculative policy beyond those two shapes waits for a probe result.
+
+5. Choice: treat bx1-mode-set-x and bx1-mode-clear-x as one finding. The digest gains the git executable bit only when core.filemode is on. Alternatives: hash the full unix mode, or ignore mode. Why: git stores 100644 or 100755. A 0600 tweak stays 100644 and must still commit. The probe bx1-mode-0600 passed faithfully.
+
+6. Choice: s7-rename-low-similarity is a hold. Alternatives: treat the judge flag as a bug. Why: the commit was A new / D old / M calc and the review prompt contained EDITED_RENAME_LINE. The judge only kept the last 180 bytes of the blob, so it missed the marker at the top.
+
+7. Choice: s8-nfc-and-nfd-both is a hold on this host. Alternatives: teach the loop to commit two unicode names. Why: the dataset normalization is formD (`zfs get normalization` on rpool/USERDATA/home_wgyfpj). NFC and NFD are the same directory entry, so the worktree cannot hold both. Single NFC and single NFD each committed under the bytes git stored.

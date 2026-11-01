@@ -316,6 +316,8 @@ elif scenario == "plan":
         if dest.is_symlink() or dest.exists():
             dest.unlink()
         os.symlink(str(target), dest)
+    for rel, mode in (step.get("chmod") or {}).items():
+        os.chmod(root / rel, int(mode))
     for rel in step.get("gitdir") or []:
         dest = root / rel
         dest.mkdir(parents=True, exist_ok=True)
