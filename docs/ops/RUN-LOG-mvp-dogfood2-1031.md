@@ -76,6 +76,7 @@ report-checker | 67ee5f8 | tests.test_dogfood2_1031_report 3 OK | rows match 6 r
 07-hr-sigterm | none | gate red (exit -15), then cloud attempts tests / review-rejected / timeout | FAIL human-reject wall 2942s attempts 3 review reject on attempt 2, final none cloudfix 90d3c6e
 08-hr-sigterm-exact | e8a216a | tests.test_hr_sigterm_exact plus 4 harnessrouter cleanup tests, 5 OK | PASS human-accept wall 891s attempts 1 review accept cloudfix 0dfc9d1
 09-state-snapshot | 110f24a | tests.test_state_snapshot_109 plus tests.test_x_intake_smoke_109_111, 14 OK | PASS human-accept wall 643s attempts 1 review accept cloudfix 8047018
+handoff | closing commit | tests.test_dogfood2_1031_report 3 OK | lane empty after 09 | pregate not run: host busy
 
 ## States
 
@@ -90,3 +91,4 @@ state: report-checker | tests: tests.test_dogfood2_1031_report 3 OK | files: REP
 state: 07 FAIL | tests: gate red exit -15, cloud exit 3 TIMEOUT | files: no product commit | err: timeout after review-rejected
 state: 08 PASS | tests: exact SIGTERM gate plus 4 harnessrouter cleanup tests, 5 OK | files: smoke_122_124.py | err: none
 state: 09 PASS | tests: state_snapshot gate plus smoke_109_111, 14 OK | files: smoke_109_111.py | err: none
+state: lane empty | tests: tests.test_dogfood2_1031_report 3 OK | files: HANDOFF-mvp-dogfood2-1031.md | err: none | pregate not run: host busy
