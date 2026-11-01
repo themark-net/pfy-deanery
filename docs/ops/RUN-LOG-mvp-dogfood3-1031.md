@@ -75,3 +75,4 @@ Each build: throwaway clone under `tmp/target-<n>`, `./pfy build` with `--repo` 
 
 item | commit | tests | result
 01-smoke128-timeout | 2587cad | tests.test_smoke_128_bad_timeout tests.test_x_intake_smoke_128_130 44 OK | PASS human-accept wall 63s attempts 1 review accept
+02-smoke131-timeout | 55ad1b1 | tests.test_smoke_131_bad_timeout tests.test_x_intake_smoke_131_133 40 OK | PASS human-accept wall 63s attempts 1 review accept

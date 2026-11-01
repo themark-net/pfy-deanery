@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/edit-only-examples-x-intake-local-smoke-20261101T005715505363Z",
+  "commit": "fc03f165b86645705af6af727fd3c311c4d4d905",
+  "base": "HEAD",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll edit only `examples/x-intake-local/smoke_131_133.py` so a bad `PFY_XINTAKE_TIMEOUT` exits before the entry runs. First I'll read that module and how `timeout_problem` is defined.`timeout_problem` already lives in `smoke_128_130`. I'll import it, call it in `main()` before the entry runs, and note the bad-value exit in the module docstring.`smoke_131_133.main()` now rejects a bad `PFY_XINTAKE_TIMEOUT` before the entry runs.\n\n- The import from `smoke_128_130` includes `timeout_problem`. The function is not copied.\n- After the entry function is chosen and before the `try` that calls it, a bad timeout sets `receipt[\"reason\"]` and returns `write(a.entry, receipt, 2)`.\n- An unset or empty value still runs the entry, so a missing `jah` still reports `jah not found`.\n- The module docstring now says that `abc`, `0`, `-1`, `nan`, and `inf` exit 2 before the entry runs.\n\n`python3 -m unittest tests.test_smoke_131_bad_timeout` passed (2 tests). No commit and no push.\n\nI'll check the diff against the task and the surrounding code before giving a verdict.verdict: accept\n\nThe diff only edits `examples/x-intake-local/smoke_131_133.py`. It imports `timeout_problem` from `smoke_128_130`, checks it in `main()` after the entry function is chosen and before `fn(receipt)`, and adds the docstring sentence. Entry functions, tests, and `smoke_128_130.py` are unchanged.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "python3 -m unittest tests.test_smoke_131_bad_timeout",
+    "before": {
+      "cmd": "python3 -m unittest tests.test_smoke_131_bad_timeout",
+      "exit": 1,
+      "tail": "re_jah_lookup (tests.test_smoke_131_bad_timeout.BadTimeoutTests.test_bad_timeout_exits_2_before_jah_lookup) (timeout='abc')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood3-1031/tmp/target-02/tmp/cloud-build/20261101T005715505363Z/tests/test_smoke_131_bad_timeout.py\", line 64, in test_bad_timeout_exits_2_before_jah_lookup\n    self.assertIn(\"PFY_XINTAKE_TIMEOUT\", receipt[\"reason\"])\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'PFY_XINTAKE_TIMEOUT' not found in 'jah not found ($JAH_BIN, tmp/jevagentharness/.venv/bin/jah, PATH); see the handoff'\n\n======================================================================\nFAIL: test_bad_timeout_exits_2_before_jah_lookup (tests.test_smoke_131_bad_timeout.BadTimeoutTests.test_bad_timeout_exits_2_before_jah_lookup) (timeout='0')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood3-1031/tmp/target-02/tmp/cloud-build/20261101T005715505363Z/tests/test_smoke_131_bad_timeout.py\", line 64, in test_bad_timeout_exits_2_before_jah_lookup\n    self.assertIn(\"PFY_XINTAKE_TIMEOUT\", receipt[\"reason\"])\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'PFY_XINTAKE_TIMEOUT' not found in 'jah not found ($JAH_BIN, tmp/jevagentharness/.venv/bin/jah, PATH); see the handoff'\n\n======================================================================\nFAIL: test_bad_timeout_exits_2_before_jah_lookup (tests.test_smoke_131_bad_timeout.BadTimeoutTests.test_bad_timeout_exits_2_before_jah_lookup) (timeout='-1')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood3-1031/tmp/target-02/tmp/cloud-build/20261101T005715505363Z/tests/test_smoke_131_bad_timeout.py\", line 64, in test_bad_timeout_exits_2_before_jah_lookup\n    self.assertIn(\"PFY_XINTAKE_TIMEOUT\", receipt[\"reason\"])\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'PFY_XINTAKE_TIMEOUT' not found in 'jah not found ($JAH_BIN, tmp/jevagentharness/.venv/bin/jah, PATH); see the handoff'\n\n======================================================================\nFAIL: test_bad_timeout_exits_2_before_jah_lookup (tests.test_smoke_131_bad_timeout.BadTimeoutTests.test_bad_timeout_exits_2_before_jah_lookup) (timeout='nan')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood3-1031/tmp/target-02/tmp/cloud-build/20261101T005715505363Z/tests/test_smoke_131_bad_timeout.py\", line 64, in test_bad_timeout_exits_2_before_jah_lookup\n    self.assertIn(\"PFY_XINTAKE_TIMEOUT\", receipt[\"reason\"])\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'PFY_XINTAKE_TIMEOUT' not found in 'jah not found ($JAH_BIN, tmp/jevagentharness/.venv/bin/jah, PATH); see the handoff'\n\n======================================================================\nFAIL: test_bad_timeout_exits_2_before_jah_lookup (tests.test_smoke_131_bad_timeout.BadTimeoutTests.test_bad_timeout_exits_2_before_jah_lookup) (timeout='inf')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood3-1031/tmp/target-02/tmp/cloud-build/20261101T005715505363Z/tests/test_smoke_131_bad_timeout.py\", line 64, in test_bad_timeout_exits_2_before_jah_lookup\n    self.assertIn(\"PFY_XINTAKE_TIMEOUT\", receipt[\"reason\"])\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'PFY_XINTAKE_TIMEOUT' not found in 'jah not found ($JAH_BIN, tmp/jevagentharness/.venv/bin/jah, PATH); see the handoff'\n\n----------------------------------------------------------------------\nRan 2 tests in 0.427s\n\nFAILED (failures=5)\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "python3 -m unittest tests.test_smoke_131_bad_timeout",
+      "exit": 0,
+      "tail": "\n..\n----------------------------------------------------------------------\nRan 2 tests in 0.368s\n\nOK\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": true,
+  "task": "Edit only examples/x-intake-local/smoke_131_133.py. Do not edit any file under tests/. Do not edit smoke_128_130.py. Do not add a file. Do not commit. Do not push.\n\nsmoke_128_130.timeout_problem() returns a reason when PFY_XINTAKE_TIMEOUT is set and is not a finite number of seconds > 0. It returns None when the variable is unset or empty. smoke_131 main() does not call it, so a bad value still falls through to tmo() and the entry runs.\n\nAdd timeout_problem to the existing import from smoke_128_130. Do not copy the function.\n\nIn main(), after fn is chosen and before the try that calls fn(receipt):\n\n    bad = timeout_problem()\n    if bad:\n        receipt[\"reason\"] = bad\n        return write(a.entry, receipt, 2)\n\nUnset or empty still calls the entry, so a missing jah still reports jah not found. A bad value exits 2 with the timeout_problem reason and does not call the entry.\n\nIn the module docstring, after the sentence that says PFY_XINTAKE_TIMEOUT overrides the 600s per-command timeout, add: Any other value (abc, 0, -1, nan, inf) exits 2 before the entry runs.\n\nDo not change the entry functions.",
+  "finished_at": "2026-11-01T00:58:18Z"
+}
