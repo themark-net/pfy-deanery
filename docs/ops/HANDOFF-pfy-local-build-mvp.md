@@ -170,6 +170,8 @@ Exit codes: 0 PASS, a clean dry-run, or `--reap`. 1 FAIL. 2 usage, or `no-openco
 | fewer tests than before, even if exit 0 | 1 | `tests-regressed` | do not delete tests |
 | a gate file changes or appears, and the judge did not already fail | 1 | `tests-tampered` | do not rewrite asserts, add a conftest, or edit `.gitignore` to hide a file. `--writable-test` is the only exception for test bodies. Gate basenames are still hashed |
 | the same command fails on the second run | 1 | `tests-flaky` | no commit |
+| the gate rewrites a file that was already digested for review | 1 | `gate-modified-reviewed-file` | no review, no commit, and no retry. The digest is the file bytes, or the link text for a symlink. It is taken before the gate and compared after the flaky check |
+| a symlink resolves outside the worktree | 1 | `review-rejected` | the path is out of scope even when it is on the allow list. With no allow list the scope check is not skipped. The diff, the prompt, and the receipts contain the link text, not the target file. No commit |
 | the worktree digest changes after the gate and before `git add` | 1 | `worktree-changed-after-gate` | the pid namespace should have died with bwrap. A survivor that rewrites `src` fails here |
 | the fresh checkout of the new commit fails the gate | 1 | `commit-recheck-failed` | the commit is reset before the branch is created. A gitignored helper cannot be the only copy of the fix |
 | the only changed paths are excluded from the commit (tmp, bytecode, pytest cache) | 1 | `no-reviewable-change` | nothing is committed and no branch is created. The index is reset. Change a path the commit will keep. This is not retried |
