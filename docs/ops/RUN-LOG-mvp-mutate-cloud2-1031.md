@@ -118,4 +118,37 @@ state: DONE | tests: baseline C17-C43, 19 killed, 8 survived | files: results/be
 
 ### survivor-tests
 
-Eight behavior tests in `tests/test_mut_cloud2_survivors.py`. Each passes on the unmutated runner (8 tests, with the harness checks, 11 tests in 10.071s). `first_detail` now prefers `FAIL: test_` so the after run names the killing test.
+Eight behavior tests in `tests/test_mut_cloud2_survivors.py`. Each passes on the unmutated runner (8 tests, with the harness checks, 11 tests in 10.071s at `7ded452`). `first_detail` now prefers `FAIL: test_` so the after run names the killing test.
+
+The C21 test in `7ded452` used a bracket filename. A git probe in this worktree's `tmp/` showed that `:(literal)foo[1].py` and `:(glob)foo[1].py` both stage that one file, so the mutant still exited 0. The first after run (log `tmp/mutation-after.log`, not the score) was 26 killed and 1 survived (C21).
+
+`dd0c34e` replaces that test. Grok writes a file named `*` and a root `extra.pyc`. Literal staging commits only the star file. Glob staging also commits the pyc and the scope check fails.
+
+Checked again on the unmutated runner after `dd0c34e`: `tests.test_mut_cloud2_harness`, `tests.test_mut_cloud2_survivors`, `tests.test_mut_cloud_harness`, `tests.test_mut_cloud_survivors`. 17 tests, OK, 13.385s, at 2026-11-01T00:34Z.
+
+item | 7ded452 | 11 tests OK in 10.071s on the unmutated runner | eight kill tests added; C21 bracket case still survived
+item | dd0c34e | included in the 17 tests OK in 13.385s | sibling pyc kills the glob pathspec mutant
+
+### rerun
+
+Host at the start of the scoring run: 2026-11-01T00:18:19Z, MemAvailable about 71 GiB, load about 4 on 32 cores. Under the pressure line. Inside the window.
+
+`nice -n 19 python3 eval/mutation-1031/cloud/run_mutants.py --label after --timeout 180` for C17-C43. Modules: `tests.test_pfy_build_cloud`, `tests.test_mut_cloud_survivors`, `tests.test_mut_cloud2_survivors`. 27 killed, 0 survived, 0 unapplicable, 0 error. 708.7s. Result file time 2026-11-01T00:30:19Z. Raw rows: `eval/mutation-1031/cloud/results/after.json`. Runner sha256 unchanged: `f2dd898417eafaf99a70562a36ca0f31e3db7a8112af936b4359d757a05e5c00`.
+
+Before, for the same ids, `--baseline-only --label before`: 19 killed, 8 survived, 516.8s, HEAD `1dd23ee`. Raw rows: `results/before.json`.
+
+No equivalent mutant. No runner bug. No findings file.
+
+Report: `eval/mutation-1031/cloud/REPORT.md`.
+
+### further-gaps
+
+Clock 2026-11-01T00:34:51Z. MemAvailable about 71 GiB, load about 4. Under the pressure line. Stop-new-items bound is 2026-11-01T07:19:33Z.
+
+The drop-in sites each have at least one killed mutant: writable-test C17-C19, literal pathspec C20-C21, archive recheck C22-C24, protected paths C25-C27, redaction C28-C32, recovery C33-C34 and C42-C43, base-missing C35-C37, timeouts C38-C41.
+
+C1-C16 stay the wave-3 score. This lane did not re-run them. Another mutant round on classify, reap, or dry-run would rescore that lane.
+
+No other plan item fits these owned files. The classifier, the local review loop, and `docs/TODO.md` belong to other lanes.
+
+state: lane empty | next is the handoff | err: none
