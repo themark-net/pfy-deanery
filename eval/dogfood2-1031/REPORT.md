@@ -1,6 +1,6 @@
 # Dogfood report: mvp-dogfood2-1031
 
-Real cloud `./pfy build "<task>"` runs from this worktree against a throwaway clone under `tmp/target-<n>`. No `--local`. Nothing from a target is pushed. A PASS that this lane accepts is cherry-picked onto `bot/mvp-dogfood2-1031` with a Built-by trailer. The runner merged before each run was `origin/bot/mvp-cloudfix-1031`. The cloudfix column is that SHA. Runs 01 to 06 used `d35af20`. Run 07 used `90d3c6e`. Run 08 used `0dfc9d1`.
+Real cloud `./pfy build "<task>"` runs from this worktree against a throwaway clone under `tmp/target-<n>`. No `--local`. Nothing from a target is pushed. A PASS that this lane accepts is cherry-picked onto `bot/mvp-dogfood2-1031` with a Built-by trailer. The runner merged before each run was `origin/bot/mvp-cloudfix-1031`. The cloudfix column is that SHA. Runs 01 to 06 used `d35af20`. Run 07 used `90d3c6e`. Run 08 used `0dfc9d1`. Run 09 used `8047018`.
 
 Gate pass means receipt status PASS and exit_code 0. Review accept means `review.verdict` is accept. Human accept means this lane cherry-picked the cloud commit.
 
@@ -16,16 +16,17 @@ Gate pass means receipt status PASS and exit_code 0. Review accept means `review
 | 06-daemon-stop-timeout | PASS | 0 | accept | yes | 301 | 072c7cd | d35af20 | ok |
 | 07-hr-sigterm | TIMEOUT | 3 | none | no | 2942 | none | 90d3c6e | timeout after review-rejected |
 | 08-hr-sigterm-exact | PASS | 0 | accept | yes | 891 | e8a216a | 0dfc9d1 | ok |
+| 09-state-snapshot | PASS | 0 | accept | yes | 643 | 110f24a | 8047018 | ok |
 
 ## Rates
 
-- runs: 8
-- gate_pass_rate: 7/8
-- review_accept_rate: 7/8
-- human_accept_rate: 7/8
-- median_wall_s: 529
+- runs: 9
+- gate_pass_rate: 8/9
+- review_accept_rate: 8/9
+- human_accept_rate: 8/9
+- median_wall_s: 643
 
-Median is the middle wall in seconds, or the integer mean of the two middle values when the count is even. Sorted walls: 223, 301, 306, 398, 661, 891, 1490, 2942.
+Median is the middle wall in seconds, or the integer mean of the two middle values when the count is even. Sorted walls: 223, 301, 306, 398, 643, 661, 891, 1490, 2942.
 
 ## Scope against the DoD
 
@@ -41,8 +42,9 @@ The band asked for 2 to 3 files and about 60 to 250 changed lines, which is the 
 | 06-daemon-stop-timeout | 1 | 7 | 1666 | no |
 | 07-hr-sigterm | 0 | 0 | 0 | no |
 | 08-hr-sigterm-exact | 1 | 19 | 3423 | no |
+| 09-state-snapshot | 1 | 64 | 2892 | no |
 
-The closest run is 02 at 10454 of 12000 characters. A change inside the 250 line band did not truncate the review. Runs 03, 05, 06, and 08 are under the 60 line aim. They were still human-accepted because the behavior matched the gate. Runs 06 and 08 are one file. Run 07 kept no product diff. Run 08 is the same cleanup as 07 with an exact argv gate, and it passed on attempt 1.
+The closest run is 02 at 10454 of 12000 characters. A change inside the 250 line band did not truncate the review. Runs 03, 05, 06, and 08 are under the 60 line aim. They were still human-accepted because the behavior matched the gate. Runs 06, 08, and 09 are one file. Run 07 kept no product diff. Run 08 is the same cleanup as 07 with an exact argv gate, and it passed on attempt 1. Run 09 is 64 changed lines, just over the 60 line aim, and the snapshot matches the gate.
 
 ## Findings
 
