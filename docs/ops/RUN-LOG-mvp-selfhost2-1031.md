@@ -52,3 +52,4 @@ Survey skips, recorded before item 01, not a no-progress streak: T-0091 voice sh
 
 01 ad-snap | 4a0fe4e | tests.test_agentdescent_snap tests.test_agentdescent_trial_harness 74 OK | PASS receipt, attempts 1, wall 457s, review accept, human accept. Cloud SHA 35b7585.
 02 kolibri-receipt A | none | worktree gate OK, archive recheck FAIL on tests.test_x_intake_smoke_103_111_receipts | FAIL receipt, attempts 3, wall 1866s, review accept on the small write() (attempts 1 and 3), review reject on a git-init side effect (attempt 2), human accept of the small diff, no SHA. Retry with only the behavior test.
+02 kolibri-receipt | cdf4d68 | tests.test_kolibri_receipt_absolute tests.test_x_intake_smoke_103_111_receipts 2 OK | PASS receipt, attempts 1, wall 135s, review accept, human accept. Cloud SHA 7a79465.
