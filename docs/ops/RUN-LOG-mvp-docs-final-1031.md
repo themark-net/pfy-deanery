@@ -77,3 +77,4 @@ Format: `item | commit | tests | result`
 - exits | 1da0cbb | none | exit card and decisions written before the verdict
 - verdict | aea5f84 | no CLI change, no test required | GO. eval/mvp-1031/VERDICT.md cites DoD lines 1-6
 - help-check | none | `./pfy build` exit 2, `./pfy build --help` exit 0 | help already names the daily command, `-p`, `--local`, and `--writable-test`. No edit. cloudfix owns `scripts/pfy`.
+- daily-card | 90b1436 | `nice -n 19 python3 -m unittest tests.test_pfy_build_docs` 5 tests OK | card and module name `--writable-test` and link the verdict. Stale "before that lands" sentence removed.
