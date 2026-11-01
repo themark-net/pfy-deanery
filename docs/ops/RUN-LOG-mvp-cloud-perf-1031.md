@@ -74,4 +74,9 @@ survey | (recorded in the phase-timing commit) | read-only receipt scan plus git
 phase-timing | bce574b | nice -n 19 python3 -m unittest tests.test_pfy_build_phase_clock (4 OK, 5.719s) and tests.test_pfy_build_cloud (61 OK, 22.261s) | pushed
 cut-a | 11bcb7d | nice -n 19 python3 -m unittest tests.test_pfy_build_phase_clock (7 OK, 9.272s) and tests.test_pfy_build_cloud (61 OK, 14.549s) | pushed
 cut-b | f4a64ec | nice -n 19 python3 -m unittest tests.test_pfy_build_phase_clock (10 OK, 11.407s) and tests.test_pfy_build_cloud (61 OK, 14.493s) | pushed
+measure | 0f87672 | nice -n 19 python3 -m unittest tests.test_pfy_build_phase_clock tests.test_pfy_build_cloud (71 OK, 25.821s) | two TIMEOUT rows at wall 602.155s and 602.147s; operator stopped the heavy-lock rerun; no after runs
 ```
+
+2026-11-01T01:18Z. Operator killed the measurement driver at 18:10 local. Finding is in `eval/mvp-1031/perf/REPORT.md`. No further item fits without the heavy lock. Handoff: `docs/ops/HANDOFF-mvp-cloud-perf-1031.md`.
+
+state: lane empty | operator stop 2026-10-31 18:10 local; two TIMEOUT rows recorded; no after-cut wall times; no further item fits without the heavy lock
