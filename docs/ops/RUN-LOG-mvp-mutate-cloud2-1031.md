@@ -103,3 +103,19 @@ item | 03bce4f | 6 tests OK in 3.933s | anchors C1-C16 apply on the merged runne
 Added CLOUD2_MUTANTS C17-C43 (27 mutants) on the new runner code: writable-test (C17-C19), literal pathspec (C20-C21), archive recheck (C22-C24), protected paths (C25-C27), redaction (C28-C32), recovery lines (C33-C34, C42-C43), base-missing (C35-C37), timeouts (C38-C41). MUTANTS stays C1-C16. Each new anchor matches once and the mutated source parses. Unmutated `tests.test_pfy_build_cloud` is green: 61 tests, 24.938s. That suite is the baseline. It is not red.
 
 state: DONE | tests: tests.test_mut_cloud2_harness tests.test_mut_cloud_harness tests.test_mut_cloud_survivors (8 OK, 4.161s); tests.test_pfy_build_cloud (61 OK, 24.938s) | files: harness, one new test, decisions | err: none
+
+item | 1dd23ee | 8 harness tests OK; cloud suite 61 OK in 24.938s | C17-C43 apply once
+
+### first-run
+
+Host before the run: MemAvailable about 36 GiB, load about 7 on 32 cores. Under the pressure line. Clock inside the window. Baseline suite is not red.
+
+`nice -n 19 python3 eval/mutation-1031/cloud/run_mutants.py --baseline-only --label before --timeout 180` for C17-C43. 19 killed, 8 survived. No unapplicable. No source edit. Raw rows: `eval/mutation-1031/cloud/results/before.json`. The harness detail line on that run is noisy: a passing recovery test prints `FAIL: commit-recheck-failed` before unittest's own `FAIL: test_...`. Status is the process exit code. Killing tests were read from the clone logs.
+
+Survivors: C19 writable glob, C21 glob pathspec, C23 recheck timeout, C27 protected basename, C30 PEM body, C39 review timeout, C40 before-gate timeout, C41 timeout 0.
+
+state: DONE | tests: baseline C17-C43, 19 killed, 8 survived | files: results/before.json (committed with the report) | err: none
+
+### survivor-tests
+
+Eight behavior tests in `tests/test_mut_cloud2_survivors.py`. Each passes on the unmutated runner (8 tests, with the harness checks, 11 tests in 10.071s). `first_detail` now prefers `FAIL: test_` so the after run names the killing test.

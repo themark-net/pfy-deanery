@@ -62,6 +62,21 @@ class Cloud2CatalogTests(unittest.TestCase):
         self.assertNotIn("tests.test_mut_cloud_survivors", baseline)
         self.assertTrue(all(not name.endswith("_harness") for name in modules))
 
+    def test_detail_prefers_the_unittest_failure_over_a_printed_reason(self) -> None:
+        # Fail: the report names FAIL: commit-recheck-failed from a passing
+        # recovery test, so a real kill is hidden.
+        # Recover: the first FAIL: test_ line is the detail.
+        text = (
+            "FAIL: commit-recheck-failed\n"
+            "Mark: the fresh extract of the commit did not pass the gate.\n"
+            "FAIL: test_star_filename_commits_that_file_and_not_the_pyc "
+            "(tests.test_pfy_build_cloud.CloudBuildNoChangeTests)\n"
+            "AssertionError: 1 != 0\n"
+        )
+        detail = self.mod.first_detail(text)
+        self.assertIn("test_star_filename_commits_that_file_and_not_the_pyc", detail)
+        self.assertNotIn("commit-recheck-failed", detail)
+
 
 if __name__ == "__main__":
     unittest.main()

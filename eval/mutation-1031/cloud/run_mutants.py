@@ -546,12 +546,25 @@ def scrub(text: str) -> str:
 
 
 def first_detail(text: str) -> str:
+    """Prefer the unittest failure over the runner's own FAIL: reason line.
+
+    A passing recovery test prints `FAIL: commit-recheck-failed`. That line
+    is not the kill. `FAIL: test_...` is.
+    """
+    preferred: list[str] = []
+    fallback: list[str] = []
     for line in (text or "").splitlines():
         stripped = line.strip()
         if not stripped:
             continue
-        if stripped.startswith(("FAIL:", "ERROR:", "AssertionError", "Traceback", "Ran ")):
-            return scrub(stripped)[:240]
+        if stripped.startswith(("FAIL: test_", "ERROR: test_", "AssertionError", "Traceback")):
+            preferred.append(stripped)
+        elif stripped.startswith(("FAIL:", "ERROR:", "Ran ")):
+            fallback.append(stripped)
+    if preferred:
+        return scrub(preferred[0])[:240]
+    if fallback:
+        return scrub(fallback[0])[:240]
     lines = [line.strip() for line in (text or "").splitlines() if line.strip()]
     if not lines:
         return ""
