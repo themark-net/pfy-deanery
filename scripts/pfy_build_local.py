@@ -2472,6 +2472,7 @@ def _collect_diff(worktree: Path, env: dict, paths: list[str]) -> tuple[str, dic
     num = _git(worktree, ["-c", "core.quotepath=false", "diff", "HEAD", "--numstat", "-z"], env=env)
     added = 0
     removed = 0
+    binary = False
     seen: set[str] = set()
     fields = _nul_fields(num.stdout or "")
     index = 0
@@ -2481,6 +2482,11 @@ def _collect_diff(worktree: Path, env: dict, paths: list[str]) -> tuple[str, dic
         parts = rec.split("\t")
         if len(parts) < 3:
             continue
+        # Git prints "-" for a binary change. That is 0 lines, and the
+        # text diff is only "Binary files differ", so the reviewer cannot
+        # see the bytes. The caller refuses the attempt.
+        if parts[0] == "-" or parts[1] == "-":
+            binary = True
         if parts[0] != "-":
             try:
                 added += int(parts[0])
@@ -2539,6 +2545,7 @@ def _collect_diff(worktree: Path, env: dict, paths: list[str]) -> tuple[str, dic
         "added": added,
         "removed": removed,
         "lines": added + removed,
+        "binary": binary,
         "paths": list(paths),
     }
     return text, stats
@@ -2728,7 +2735,28 @@ def _no_change_feedback(record: dict | None) -> str:
     return "no-change"
 
 
+def _binary_diff_marker(diff_text: str) -> bool:
+    """True when git's own binary notice is in the diff. Not a hunk line."""
+    for line in (diff_text or "").splitlines():
+        if line.startswith("Binary files ") and line.endswith(" differ"):
+            return True
+    return False
+
+
+def _review_refusal(diff_text: str, diff_stats: dict) -> str | None:
+    """Stop before the reviewer when the prompt would hide part of the commit.
+
+    None means the whole diff can be sent. The diff is never sliced to fit.
+    """
+    if diff_stats.get("binary") or _binary_diff_marker(diff_text):
+        return "review-binary-change"
+    if len(redact(diff_text or "")) > DIFF_PROMPT_CAP:
+        return "review-diff-too-large"
+    return None
+
+
 def _review_prompt(task: str, diff_text: str, gate_tail: str) -> str:
+    # The caller refuses a diff over DIFF_PROMPT_CAP. Do not cut the diff here.
     return (
         "%s\n"
         "Reply with JSON only, no markdown: "
@@ -2737,7 +2765,7 @@ def _review_prompt(task: str, diff_text: str, gate_tail: str) -> str:
         "without widening behavior. A green test can still be wrong if the change applies to a "
         "broader block than the task names.\n\n"
         "Task:\n%s\n\nDiff:\n%s\n\nGate:\n%s\n"
-        % (REVIEW_MARKER, (task or "")[:4000], (diff_text or "")[:DIFF_PROMPT_CAP], (gate_tail or "")[:2000])
+        % (REVIEW_MARKER, (task or "")[:4000], diff_text or "", (gate_tail or "")[:2000])
     )
 
 
@@ -3465,7 +3493,7 @@ def build_local(argv: list[str] | None = None) -> int:
             changed = []
             diff_text = ""
             reviewed_digests: dict[str, str] = {}
-            diff_stats = {"files": 0, "added": 0, "removed": 0, "lines": 0, "paths": []}
+            diff_stats = {"files": 0, "added": 0, "removed": 0, "lines": 0, "binary": False, "paths": []}
             checks = None
             model_review = None
             agent_cut = False
@@ -3814,6 +3842,25 @@ def build_local(argv: list[str] | None = None) -> int:
                     attempts_used, attempt_t0, mem_snap, "PASS-REJECTED", "review-rejected", checks, None, diff_stats, diff_text
                 )
                 continue
+
+            # The prompt must carry every byte the commit would store.
+            # A cut diff, or "Binary files differ" with no bytes, is a miss.
+            # Do not retry: the same diff would be sent again.
+            refusal = _review_refusal(diff_text, diff_stats)
+            if refusal:
+                status, reason, exit_code = "FAIL", refusal, EXIT_FAIL
+                _record_attempt(
+                    attempts_used,
+                    attempt_t0,
+                    mem_snap,
+                    "FAIL",
+                    refusal,
+                    checks,
+                    None,
+                    diff_stats,
+                    diff_text,
+                )
+                return finish()
 
             # A changed path with an empty diff would let the model accept a
             # path it never saw. Stop before the call.

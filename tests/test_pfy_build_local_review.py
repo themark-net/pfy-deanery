@@ -1347,3 +1347,76 @@ class ReviewLoopTests(unittest.TestCase):
         self.assertIn("café", reviewed[0])
         self.assertNotIn("\\303", reviewed[0])
         self.inner.assert_clean_origin()
+
+    def _chat_posts(self):
+        return [path for path, _payload in self.inner.httpd.posts if "chat" in path]
+
+    def _assert_refused_before_review(self, proc, receipt, reason):
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "FAIL")
+        self.assertEqual(data["reason"], reason)
+        self.assertEqual(data["attempts"], 1)
+        self.assertIsNone(data["commit"])
+        self.assertIsNone(data["branch"])
+        self.assertEqual(harness._branches(self.inner.repo), [])
+        self.assertEqual(self._chat_posts(), [])
+        self.assertFalse((receipt / "attempt-2").exists())
+        self.inner.assert_clean_origin()
+        return data
+
+    def test_diff_over_the_prompt_cap_is_not_committed(self):
+        # One line is already over the 8000-character reviewer cap. The tail
+        # sits past that cut. A silent slice would commit the tail unseen.
+        body = "PAD = '" + ("x" * 9000) + "'\nEVIL_TAIL = 1\n"
+        task = "fix add so one plus one is two\nfiles: src/calc.py, src/helper.py\n"
+        proc, receipt = self._run(
+            task,
+            [{"mode": "fix", "write": {"src/helper.py": body}}],
+            extra=["--retries", "2"],
+        )
+        data = self._assert_refused_before_review(proc, receipt, "review-diff-too-large")
+        self.assertIn("src/helper.py", data["files_changed"])
+        patch = (receipt / "attempt-1" / "patch.diff").read_text(encoding="utf-8")
+        self.assertIn("EVIL_TAIL = 1", patch)
+        self.assertGreater(len(patch), 8000)
+
+    def test_many_short_lines_over_the_prompt_cap_are_not_committed(self):
+        # 201 lines is under the 250-line cap and still over 8000 characters.
+        body = "".join(
+            "V%03d = 'ordinary padding line for size %03d'\n" % (i, i) for i in range(200)
+        ) + "EVIL_TAIL2 = 1\n"
+        self.assertLess(body.count("\n"), 250)
+        self.assertGreater(len(body), 8000)
+        task = "fix add so one plus one is two\nfiles: src/calc.py, src/helper.py\n"
+        proc, receipt = self._run(
+            task,
+            [{"mode": "fix", "write": {"src/helper.py": body}}],
+            extra=["--retries", "2"],
+        )
+        data = self._assert_refused_before_review(proc, receipt, "review-diff-too-large")
+        self.assertIn("src/helper.py", data["files_changed"])
+        patch = (receipt / "attempt-1" / "patch.diff").read_text(encoding="utf-8")
+        self.assertIn("EVIL_TAIL2 = 1", patch)
+        self.assertIn("V199 = ", patch)
+
+    def test_tracked_binary_edit_is_not_committed(self):
+        blob = self.inner.repo / "src" / "blob.bin"
+        blob.write_bytes(b"\x00\x01BASE\x00")
+        self.inner.commit_base("add blob")
+        task = "fix add so one plus one is two\nfiles: src/calc.py, src/blob.bin\n"
+        proc, receipt = self._run(
+            task,
+            [{"mode": "fix", "write": {"src/blob.bin": "\x00\x01EVIL_BIN2\x00"}}],
+            extra=["--retries", "2"],
+        )
+        data = self._assert_refused_before_review(proc, receipt, "review-binary-change")
+        self.assertIn("src/blob.bin", data["files_changed"])
+        patch = (receipt / "attempt-1" / "patch.diff").read_text(encoding="utf-8")
+        self.assertIn("Binary files ", patch)
+        self.assertIn(" differ", patch)
+        self.assertNotIn("EVIL_BIN2", patch)
+        stored = subprocess.check_output(
+            ["git", "-C", str(self.inner.repo), "show", "HEAD:src/blob.bin"]
+        )
+        self.assertEqual(stored, b"\x00\x01BASE\x00")
