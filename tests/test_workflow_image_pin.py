@@ -297,6 +297,23 @@ class WorkflowImagePinTests(unittest.TestCase):
             shutil.rmtree(path.parent)
 
     @needs_yaml
+    def test_echo_of_apt_install_does_not_count_as_install(self) -> None:
+        """Fail: echo apt-get install ripgrep plus a real rg --version passes.
+
+        Recovery: the helper still says the workflow does not install ripgrep.
+        A real apt-get install line is unchanged.
+        """
+        path = self._structural(
+            "      - run: |\n"
+            "          echo apt-get install -y ripgrep\n"
+            "          rg --version\n"
+        )
+        try:
+            self.assert_fail(run_helper(str(path)), "does not install ripgrep")
+        finally:
+            shutil.rmtree(path.parent)
+
+    @needs_yaml
     def test_commented_out_apt_install_does_not_pass(self) -> None:
         path = self._structural(
             "      - name: Install ripgrep\n"
@@ -308,6 +325,24 @@ class WorkflowImagePinTests(unittest.TestCase):
             self.assert_fail(run_helper(str(path)), "does not install ripgrep")
         finally:
             shutil.rmtree(path.parent)
+
+    @needs_yaml
+    def test_echo_of_rg_version_does_not_count_as_running_rg(self) -> None:
+        """Fail: a real apt install plus echo rg --version passes the check.
+
+        Recovery: the helper says ripgrep was installed but rg was not run.
+        A real rg --version line still passes.
+        """
+        for spoken in ("echo rg --version", "sudo echo rg --version", "printf rg --version"):
+            path = self._structural(
+                "      - run: |\n"
+                "          sudo apt-get install -y -qq ripgrep\n"
+                "          %s\n" % spoken
+            )
+            try:
+                self.assert_fail(run_helper(str(path)), "does not run rg")
+            finally:
+                shutil.rmtree(path.parent)
 
     @needs_yaml
     def test_install_without_running_rg_fails(self) -> None:
