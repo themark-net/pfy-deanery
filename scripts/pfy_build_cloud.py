@@ -1240,6 +1240,35 @@ class CloudBuild:
                 worktree_recovery(self.args.task_text, self.base_ref, self.recovery_detail or "add-failed"),
             )
         assert self.worktree is not None
+        # Run budget is --timeout times the attempt count. One grok call stays
+        # at --timeout, except a review-reject retry, which may use the time
+        # still left so the per-call cap does not abort it early. Nothing runs
+        # past the budget.
+        call_cap = float(self.args.timeout)
+        deadline = time.monotonic() + call_cap * max(1, self.max_attempts)
+        last_reject: list[str] | None = None
+
+        def time_left() -> float:
+            return deadline - time.monotonic()
+
+        def arm(extend: bool) -> float:
+            left = time_left()
+            if extend and left > 0:
+                self.args.timeout = left
+            else:
+                self.args.timeout = min(call_cap, left) if left > 0 else 0.05
+            return left
+
+        def as_reject(number: int | None, output: str, timed_out: bool) -> int:
+            self.review = {
+                "verdict": "reject",
+                "reasons": list(last_reject or ["review-rejected"]),
+            }
+            if timed_out and number is not None:
+                self.record(number, "TIMEOUT", "timeout", output)
+            return self.fail("FAIL", "review-rejected", EXIT_FAIL, "")
+
+        arm(False)
         self.gate_before = self.gate()
         if (self.gate_before or {}).get("aborted") == "timeout":
             return self._gate_timeout_fail(0, str((self.gate_before or {}).get("tail") or ""))
@@ -1264,6 +1293,9 @@ class CloudBuild:
             if self.state.interrupted:
                 self.record(number, "FAIL", "interrupted", "")
                 return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
+            if last_reject is not None and time_left() < 1.0:
+                return as_reject(None, "", False)
+            arm(last_reject is not None)
             status, code, out, err = self.grok_call(
                 implement_prompt(self.args.task_text, self.args.test_cmd, feedback, previous_diff)
             )
@@ -1272,6 +1304,8 @@ class CloudBuild:
                 self.record(number, "FAIL", "interrupted", output)
                 return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
             if status == "timeout":
+                if last_reject is not None:
+                    return as_reject(number, output, True)
                 self.record(number, "TIMEOUT", "timeout", output)
                 return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")
             if status == "missing":
@@ -1304,6 +1338,7 @@ class CloudBuild:
                 if number < self.max_attempts:
                     continue
                 return self.fail("FAIL", "tests-tampered", EXIT_FAIL, "")
+            arm(False)
             after = self.gate()
             self.gate_after = after
             if after.get("aborted") == "timeout":
@@ -1325,6 +1360,7 @@ class CloudBuild:
                 if number < self.max_attempts:
                     continue
                 return self.fail("FAIL", "tests", EXIT_FAIL, "")
+            arm(False)
             again = self.gate()
             self.gate_after = again
             if again.get("aborted") == "timeout":
@@ -1341,6 +1377,12 @@ class CloudBuild:
                 return self.fail("FAIL", "tests-flaky", EXIT_FAIL, "")
             diff_text = capture_diff(self.worktree, changed)
             if not self.args.no_review:
+                if time_left() < 0.05:
+                    if last_reject is not None:
+                        return as_reject(number, output, True)
+                    self.record(number, "TIMEOUT", "timeout", output)
+                    return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")
+                arm(False)
                 review_status, review_code, review_out, review_err = self.grok_call(
                     review_prompt(self.args.task_text, diff_text, str(again.get("tail") or ""))
                 )
@@ -1350,6 +1392,8 @@ class CloudBuild:
                     self.record(number, "FAIL", "interrupted", output)
                     return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
                 if review_status == "timeout":
+                    if last_reject is not None:
+                        return as_reject(number, output, True)
                     self.record(number, "TIMEOUT", "timeout", output)
                     return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")
                 if review_status == "missing":
@@ -1370,6 +1414,7 @@ class CloudBuild:
                 if verdict != "accept":
                     feedback = "review-rejected\n%s" % "\n".join(reasons)
                     previous_diff = diff_text
+                    last_reject = list(reasons) if reasons else ["review-rejected"]
                     self.record(number, "PASS-REJECTED", "review-rejected", output)
                     if number < self.max_attempts:
                         continue
@@ -1377,6 +1422,7 @@ class CloudBuild:
             else:
                 if diff_aims_at_root(diff_text):
                     self.review = {"verdict": "reject", "reasons": ["review-rejected"]}
+                    last_reject = ["review-rejected"]
                     feedback = "review-rejected\nrecursive delete aimed at the filesystem root"
                     previous_diff = diff_text
                     self.record(number, "PASS-REJECTED", "review-rejected", output)
@@ -1384,6 +1430,7 @@ class CloudBuild:
                         continue
                     return self.fail("FAIL", "review-rejected", EXIT_FAIL, "")
                 self.review = {"verdict": "skipped", "reasons": []}
+            arm(False)
             err = self.commit_paths(changed)
             if err == "timeout":
                 return self._gate_timeout_fail(number, output)

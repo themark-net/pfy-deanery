@@ -644,6 +644,79 @@ class CloudBuildRetryTests(unittest.TestCase):
         self.assertIn("NEEDS-FIX-77", implement[1])
         self.assertIn("kept.py", implement[1])
 
+    def test_review_reject_retry_that_times_out_stays_rejected(self) -> None:
+        """A review reject whose retry does not finish stays review-rejected.
+
+        dogfood2 row 07 ended TIMEOUT after a reject, with recovery that told
+        Mark to raise --timeout. The sleeper must still be killed inside the
+        run budget.
+        """
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\nprint('GATE-OK')\nraise SystemExit(0)\n",
+        )
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import sys, time\n"
+            "from pathlib import Path\n"
+            "blob = '\\n'.join(sys.argv)\n"
+            "if 'PFY-CLOUD-REVIEW' in blob:\n"
+            "    print('verdict: reject')\n"
+            "    print('reasons: volume command is wrong')\n"
+            "    raise SystemExit(0)\n"
+            "mark = Path('attempt.txt')\n"
+            "n = int(mark.read_text()) + 1 if mark.exists() else 1\n"
+            "mark.write_text(str(n))\n"
+            "if n == 1:\n"
+            "    Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "    raise SystemExit(0)\n"
+            "time.sleep(30)\n",
+        )
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        started = time.monotonic()
+        proc = _run(
+            [
+                sys.executable,
+                str(CLOUD),
+                "fix the volume command",
+                "--repo",
+                str(self.repo),
+                "--retries",
+                "1",
+                "--timeout",
+                "1",
+                "--test-cmd",
+                "%s %s" % (sys.executable, gate),
+                "--grok-cmd",
+                str(grok),
+            ],
+            self.repo,
+            timeout=20,
+        )
+        elapsed = time.monotonic() - started
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertLess(elapsed, 12, text)
+        self.assertEqual(proc.returncode, 1, text)
+        payload = json.loads(
+            list((self.repo / "pipelines" / "dogfood" / "build-cloud").glob("*/receipt.json"))[0].read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(payload["status"], "FAIL")
+        self.assertEqual(payload["reason"], "review-rejected")
+        self.assertEqual(payload["exit_code"], 1)
+        self.assertEqual(payload["review"]["verdict"], "reject")
+        self.assertIn("volume command is wrong", payload["review"]["reasons"])
+        self.assertIn("review rejected", payload["recovery"].lower())
+        self.assertNotIn("larger --timeout", payload["recovery"])
+        self.assertIsNone(payload["branch"])
+        self.assertIsNone(payload["commit"])
+        self.assertEqual(payload["attempts"][0]["status"], "PASS-REJECTED")
+        self.assertEqual(payload["attempts"][0]["reason"], "review-rejected")
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+        self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
+
     def test_final_review_reject_leaves_no_branch(self) -> None:
         gate = _write_exe(
             self.side / "gate.py",
@@ -1506,6 +1579,47 @@ class CloudBuildFailureTests(unittest.TestCase):
         self.assertIsNone(payload["branch"])
         self.assertTrue(_wait_file(pidfile))
         self.assertTrue(_dead(int(pidfile.read_text(encoding="utf-8").strip())))
+
+    def test_review_call_stops_at_the_run_budget(self) -> None:
+        """One attempt's review call does not get a fresh full --timeout.
+
+        The run budget is --timeout times the attempt count. After the
+        implement call has used most of it, the review call is killed on
+        the time that is left, not after another full --timeout.
+        """
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import sys, time\n"
+            "from pathlib import Path\n"
+            "blob = '\\n'.join(sys.argv)\n"
+            "if 'PFY-CLOUD-REVIEW' in blob:\n"
+            "    time.sleep(30)\n"
+            "    print('verdict: accept')\n"
+            "    raise SystemExit(0)\n"
+            "time.sleep(2.0)\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        started = time.monotonic()
+        proc = self._run_task(
+            grok,
+            self._gate(),
+            "add kept value",
+            extra=["--timeout", "3", "--retries", "0"],
+            timeout=20,
+        )
+        elapsed = time.monotonic() - started
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 3, text)
+        self.assertLess(elapsed, 6.0, text)
+        payload = self._receipt()
+        self.assertEqual(payload["status"], "TIMEOUT")
+        self.assertEqual(payload["reason"], "timeout")
+        self.assertEqual(payload["exit_code"], 3)
+        self.assertIn("larger --timeout", payload["recovery"])
+        self.assertIsNone(payload["branch"])
+        self.assertIsNone(payload["commit"])
 
     def test_sigkill_during_grok_reap_kills_that_grok(self) -> None:
         gate_pidfile = self.side / "gate.pid"
