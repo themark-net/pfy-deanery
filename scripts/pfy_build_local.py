@@ -2394,6 +2394,19 @@ def _gate_rewrote(worktree: Path, digests: dict[str, str]) -> bool:
     return False
 
 
+def _synthetic_symlink_diff(rel: str, target: str) -> str:
+    """A symlink diff is the link text. Never the bytes of the target file."""
+    shown = (target or "").replace("\n", " ")
+    return (
+        "diff --git a/%s b/%s\n"
+        "new file mode 120000\n"
+        "--- /dev/null\n"
+        "+++ b/%s\n"
+        "@@ -0,0 +1 @@\n"
+        "+%s\n" % (rel, rel, rel, shown)
+    )
+
+
 def _synthetic_new_diff(rel: str, lines: list[str]) -> str:
     body = "".join("+%s\n" % line for line in lines)
     return (
@@ -2432,6 +2445,14 @@ def _collect_diff(worktree: Path, env: dict, paths: list[str]) -> tuple[str, dic
         if not norm or norm in seen:
             continue
         full = worktree / norm
+        if full.is_symlink():
+            try:
+                target = os.readlink(full)
+            except OSError:
+                target = ""
+            added += 1
+            text += _synthetic_symlink_diff(norm, target)
+            continue
         if not full.is_file():
             continue
         try:
@@ -2470,10 +2491,38 @@ def _added_text_for(diff_text: str, rel: str) -> str:
     return "\n".join(blobs)
 
 
-def _check_scope(paths: list[str], patterns: list[str], declared: bool) -> dict:
+def _symlink_outside(worktree: Path, rel: str) -> bool:
+    """True when this path is a symlink whose target resolves outside the worktree."""
+    full = worktree / rel
+    try:
+        if not full.is_symlink():
+            return False
+        raw = os.readlink(full)
+    except OSError:
+        return True
+    resolved = Path(raw) if os.path.isabs(raw) else (full.parent / raw)
+    try:
+        resolved = resolved.resolve()
+        root = worktree.resolve()
+    except OSError:
+        return True
+    try:
+        resolved.relative_to(root)
+    except ValueError:
+        return True
+    return False
+
+
+def _check_scope(paths: list[str], patterns: list[str], declared: bool, worktree: Path | None = None) -> dict:
+    escaping = [path for path in paths if worktree is not None and _symlink_outside(worktree, path)]
     if not declared:
+        if escaping:
+            return {"ok": False, "outside": escaping, "skipped": None, "patterns": []}
         return {"ok": True, "outside": [], "skipped": "no-allow-list", "patterns": []}
     outside = [path for path in paths if not _protected(path, patterns)]
+    for rel in escaping:
+        if rel not in outside:
+            outside.append(rel)
     return {"ok": not outside, "outside": outside, "skipped": None, "patterns": list(patterns)}
 
 
@@ -3578,7 +3627,7 @@ def build_local(argv: list[str] | None = None) -> int:
                 commit_ready = True
                 break
 
-            scope = _check_scope(changed, allow_patterns, allow_declared)
+            scope = _check_scope(changed, allow_patterns, allow_declared, worktree)
             if scope.get("skipped") == "no-allow-list" and not scope_warning:
                 scope_warning = SCOPE_SKIPPED_NOTE
                 print(SCOPE_SKIPPED_NOTE, file=sys.stderr)

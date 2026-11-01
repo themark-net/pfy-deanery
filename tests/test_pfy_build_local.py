@@ -311,6 +311,10 @@ elif scenario == "plan":
         if dest.is_symlink() or dest.exists():
             dest.unlink()
         os.symlink(str(target), dest)
+    for rel in step.get("gitdir") or []:
+        dest = root / rel
+        dest.mkdir(parents=True, exist_ok=True)
+        subprocess.run(["git", "init", "-q"], cwd=dest, check=False)
 if scenario == "crash":
     raise SystemExit(2)
 if scenario == "crash-after-fix" and calc.exists():

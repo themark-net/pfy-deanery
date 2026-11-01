@@ -621,7 +621,7 @@ class ReviewLoopTests(unittest.TestCase):
             "empty_diff_gate.py",
         )
         task = "fix add so one plus one is two\n"
-        steps = [{"mode": "noop", "symlink": {"src/hole": "missing-target"}}]
+        steps = [{"mode": "noop", "gitdir": ["src/hole"]}]
         proc, receipt = self._run(
             task,
             steps,
@@ -917,4 +917,67 @@ class ReviewLoopTests(unittest.TestCase):
         for path in receipt.rglob("*"):
             if path.is_file() and not path.is_symlink():
                 self.assertNotIn("EVIL_GATE = 1", path.read_text(encoding="utf-8", errors="replace"))
+        self.inner.assert_clean_origin()
+
+    def _sentinel_file(self):
+        marker = "PFY_SYMLINK_TARGET_SENTINEL_42"
+        path = self.inner.tmp / "sentinel-outside.txt"
+        path.write_text(marker + "\n", encoding="utf-8")
+        return marker, path
+
+    def _leak_hits(self, receipt, marker):
+        hits = []
+        if receipt is not None and Path(receipt).exists():
+            for path in Path(receipt).rglob("*"):
+                if not path.is_file() or path.is_symlink():
+                    continue
+                try:
+                    text = path.read_text(encoding="utf-8", errors="replace")
+                except OSError:
+                    continue
+                if marker in text:
+                    hits.append(str(path.relative_to(receipt)))
+        if marker in json.dumps(self.inner.httpd.posts):
+            hits.append("review-http")
+        if self.prompts.is_file() and marker in self.prompts.read_text(encoding="utf-8", errors="replace"):
+            hits.append("agent-prompts")
+        return hits
+
+    def test_in_scope_symlink_to_outside_is_not_committed(self):
+        marker, path = self._sentinel_file()
+        task = "fix add so one plus one is two\nfiles: src/calc.py, src/helper.py\n"
+        proc, receipt = self._run(
+            task,
+            [{"mode": "fix", "symlink": {"src/helper.py": str(path)}}],
+            extra=["--retries", "0"],
+        )
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertNotEqual(data["status"], "PASS")
+        self.assertIsNone(data["commit"])
+        self.assertIsNone(data["branch"])
+        self.assertEqual(harness._branches(self.inner.repo), [])
+        first = json.loads((receipt / "attempt-1" / "receipt.json").read_text(encoding="utf-8"))
+        outside = ((first.get("checks") or {}).get("scope") or {}).get("outside") or []
+        self.assertIn("src/helper.py", outside, data.get("reason"))
+        self.assertEqual(self._leak_hits(receipt, marker), [])
+        log = harness._git(self.inner.repo, "log", "--all", "--name-only", "--pretty=format:")
+        self.assertNotIn("src/helper.py", log)
+        self.inner.assert_clean_origin()
+
+    def test_out_of_scope_symlink_does_not_leak(self):
+        marker, path = self._sentinel_file()
+        task = "fix add so one plus one is two\nfiles: src/calc.py\n"
+        proc, receipt = self._run(
+            task,
+            [{"mode": "fix", "symlink": {"src/helper.py": str(path)}}],
+            extra=["--retries", "2"],
+        )
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertNotEqual(data["status"], "PASS")
+        self.assertIsNone(data["commit"])
+        self.assertIsNone(data["branch"])
+        self.assertEqual(self._leak_hits(receipt, marker), [])
+        self.assertEqual(len(list(receipt.glob("attempt-*"))), 3)
         self.inner.assert_clean_origin()
