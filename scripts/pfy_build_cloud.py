@@ -592,6 +592,18 @@ def failure_recovery(reason: str, task: str, detail: str = "") -> str:
             "Run ./pfy build --reap, then rerun the same ./pfy build task."
         )
     quoted = _quoted_task(task)
+    if reason == "review-diff-too-large":
+        return (
+            "Mark: the diff is too large for the review prompt (%d characters), so it was "
+            "not reviewed or published. Split the task and rerun ./pfy build %s."
+            % (DIFF_CAP, quoted)
+        )
+    if reason == "review-binary-change":
+        return (
+            "Mark: the attempt added or changed a binary file the reviewer cannot read, so it "
+            "was not reviewed or published. Remove the binary change and rerun ./pfy build %s."
+            % quoted
+        )
     if reason == "protected-path-changed":
         shown = (detail or "").strip() or "a protected file"
         return (
@@ -711,10 +723,23 @@ def implement_prompt(task: str, test_cmd: str, feedback: str, previous_diff: str
     )
 
 
+def review_refusal(diff_text: str) -> str | None:
+    """Refuse before the review when the prompt cannot show the whole commit.
+
+    #308: a cut diff, or git's "Binary files ... differ" with no bytes,
+    would let an accept publish lines the reviewer never saw.
+    """
+    for line in (diff_text or "").splitlines():
+        if line.startswith("Binary files ") and line.endswith(" differ"):
+            return "review-binary-change"
+    if len(redact(diff_text or "")) > DIFF_CAP:
+        return "review-diff-too-large"
+    return None
+
+
 def review_prompt(task: str, diff_text: str, gate_tail: str) -> str:
+    # The caller refuses a diff over DIFF_CAP (review_refusal). Never cut here.
     shown = redact(diff_text or "")
-    if len(shown) > DIFF_CAP:
-        shown = shown[:DIFF_CAP] + "\n...[diff truncated]\n"
     return (
         "%s\n"
         "Reply with a line `verdict: accept` or `verdict: reject`.\n"
@@ -1700,7 +1725,17 @@ class CloudBuild:
                     self.record(number, "TIMEOUT", "timeout", output)
                     return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")
                 arm(False)
-                review_truncated = len(redact(diff_text or "")) > DIFF_CAP
+                refusal = review_refusal(diff_text)
+                if refusal:
+                    # Same diff on a retry, so no retry. Nothing is committed.
+                    self.review = {
+                        "verdict": "refused",
+                        "reasons": [refusal],
+                        "truncated": False,
+                    }
+                    self.record(number, "FAIL", refusal, output)
+                    return self.fail("FAIL", refusal, EXIT_FAIL, "")
+                review_truncated = False
                 # Commit first so the extract is of that commit, then overlap
                 # the review call with the extract gate. A reject undoes the
                 # commit and keeps the edits. A failed extract undoes the

@@ -717,73 +717,90 @@ class CloudBuildRetryTests(unittest.TestCase):
         self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
         self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
 
-    def test_receipt_records_whether_the_review_diff_was_truncated(self) -> None:
-        """The receipt says if the review prompt's diff was cut at the cap.
-
-        Dogfood2 F2: a short patch is review.truncated false and the prompt
-        has no cut marker. A patch past the cap is true and the marker is in
-        the prompt the reviewer actually received.
-        """
+    def _review_cap_case(self, name: str, write_line: str, task: str, expect_rc: int):
         gate = _write_exe(
             self.side / "gate.py",
             "#!/usr/bin/env python3\nprint('GATE-OK')\nraise SystemExit(0)\n",
         )
+        log = self.side / ("prompts-%s.txt" % name)
+        grok = _write_exe(
+            self.side / ("grok-%s.py" % name),
+            "#!/usr/bin/env python3\n"
+            "import os, sys\n"
+            "from pathlib import Path\n"
+            "blob = '\\n'.join(sys.argv)\n"
+            "Path(os.environ['PFY_PROMPT_LOG']).open('a', encoding='utf-8').write(blob + '\\n---PROMPT---\\n')\n"
+            "if 'PFY-CLOUD-REVIEW' in blob:\n"
+            "    print('verdict: accept')\n"
+            "    raise SystemExit(0)\n"
+            "%s\n"
+            "raise SystemExit(0)\n" % write_line,
+        )
+        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
+        proc = _run(
+            [
+                sys.executable,
+                str(CLOUD),
+                task,
+                "--repo",
+                str(self.repo),
+                "--retries",
+                "2",
+                "--timeout",
+                "30",
+                "--test-cmd",
+                "%s %s" % (sys.executable, gate),
+                "--grok-cmd",
+                str(grok),
+            ],
+            self.repo,
+            env={"PFY_PROMPT_LOG": str(log)},
+            timeout=60,
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, expect_rc, text)
+        receipts = sorted((self.repo / "pipelines" / "dogfood" / "build-cloud").glob("*/receipt.json"))
+        payload = json.loads(receipts[-1].read_text(encoding="utf-8"))
+        prompts = log.read_text(encoding="utf-8").split("---PROMPT---")
+        review = [item for item in prompts if "PFY-CLOUD-REVIEW" in item]
+        return payload, review, head, text
 
-        def run_case(width: int, task: str) -> tuple[dict, str]:
-            log = self.side / ("prompts-%d.txt" % width)
-            grok = _write_exe(
-                self.side / ("grok-%d.py" % width),
-                "#!/usr/bin/env python3\n"
-                "import os, sys\n"
-                "from pathlib import Path\n"
-                "blob = '\\n'.join(sys.argv)\n"
-                "Path(os.environ['PFY_PROMPT_LOG']).open('a', encoding='utf-8').write(blob + '\\n---PROMPT---\\n')\n"
-                "if 'PFY-CLOUD-REVIEW' in blob:\n"
-                "    print('verdict: accept')\n"
-                "    raise SystemExit(0)\n"
-                "Path('wide.py').write_text('x' * %d, encoding='utf-8')\n"
-                "raise SystemExit(0)\n" % width,
-            )
-            proc = _run(
-                [
-                    sys.executable,
-                    str(CLOUD),
-                    task,
-                    "--repo",
-                    str(self.repo),
-                    "--retries",
-                    "0",
-                    "--timeout",
-                    "30",
-                    "--test-cmd",
-                    "%s %s" % (sys.executable, gate),
-                    "--grok-cmd",
-                    str(grok),
-                ],
-                self.repo,
-                env={"PFY_PROMPT_LOG": str(log)},
-                timeout=60,
-            )
-            text = (proc.stdout or "") + (proc.stderr or "")
-            self.assertEqual(proc.returncode, 0, text)
-            match = re.search(r"PASS ok branch=\S+ receipt=(\S+)", proc.stdout or "")
-            self.assertIsNotNone(match, text)
-            payload = json.loads(Path(match.group(1)).read_text(encoding="utf-8"))
-            prompts = log.read_text(encoding="utf-8").split("---PROMPT---")
-            review = [item for item in prompts if "PFY-CLOUD-REVIEW" in item]
-            self.assertEqual(len(review), 1, prompts)
-            return payload, review[0]
+    def test_short_review_diff_is_whole_and_accepted(self) -> None:
+        payload, review, _head, _text = self._review_cap_case(
+            "short", "Path('wide.py').write_text('x' * 40, encoding='utf-8')", "add a short marker", 0
+        )
+        self.assertEqual(len(review), 1)
+        self.assertIs(payload["review"]["truncated"], False)
+        self.assertNotIn("...[diff truncated]", review[0])
+        self.assertEqual(payload["review"]["verdict"], "accept")
+        self.assertIsNotNone(payload["branch"])
 
-        short_payload, short_review = run_case(40, "add a short marker")
-        self.assertIs(short_payload["review"]["truncated"], False)
-        self.assertNotIn("...[diff truncated]", short_review)
-        self.assertEqual(short_payload["review"]["verdict"], "accept")
+    def _assert_refused_unpublished(self, payload, review, head, text, reason):
+        # #308: an accept on a prompt that hides part of the diff must not
+        # publish. The refusal comes before the review call and the commit,
+        # so _publish_branch (after an accept) is never reached.
+        self.assertEqual(payload["status"], "FAIL", text)
+        self.assertEqual(payload["reason"], reason, text)
+        self.assertEqual(review, [], "review was called")
+        self.assertIsNone(payload["branch"])
+        self.assertIsNone(payload["commit"])
+        self.assertEqual(len(payload["attempts"]), 1, payload["attempts"])
+        self.assertNotIn("PASS ok", text)
+        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
+        self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
 
-        long_payload, long_review = run_case(20000, "add a long marker file")
-        self.assertIs(long_payload["review"]["truncated"], True)
-        self.assertIn("...[diff truncated]", long_review)
-        self.assertEqual(long_payload["review"]["verdict"], "accept")
-        self.assertLess(len(long_review), 20000)
+    def test_review_diff_over_the_cap_is_refused_and_not_published(self) -> None:
+        payload, review, head, text = self._review_cap_case(
+            "long", "Path('wide.py').write_text('x' * 20000, encoding='utf-8')", "add a long marker file", 1
+        )
+        self._assert_refused_unpublished(payload, review, head, text, "review-diff-too-large")
+        self.assertIn("too large", payload["recovery"].lower())
+
+    def test_new_binary_file_is_refused_and_not_published(self) -> None:
+        payload, review, head, text = self._review_cap_case(
+            "binary", "Path('evil.bin').write_bytes(b'EVIL \\xff\\xfe\\x00 tail')", "add a blob", 1
+        )
+        self._assert_refused_unpublished(payload, review, head, text, "review-binary-change")
 
     def test_review_rejected_diff_stays_after_the_worktree_is_removed(self) -> None:
         """A review reject keeps its unified diff after the worktree is dropped.
