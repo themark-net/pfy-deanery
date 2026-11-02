@@ -37,7 +37,7 @@ Usage: `./pfy build` with no task exits 2 and prints the daily command, plus a p
 
 | Case | Command result | Receipt | Recovery |
 |------|----------------|---------|----------|
-| Cloud rate limit | Exit 4. No branch. | `status` `BLOCKED`, `reason` `rate-limit` | `recovery` is the exact `./pfy build --local "<task>"` command. This run does not start it. Mark runs that command later, under `flock ~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock`, only when he chooses the fallback. |
+| Cloud rate limit | Exit 4. No branch. | `status` `BLOCKED`, `reason` `rate-limit` | `recovery` is the exact `./pfy build --local "<task>"` command. This run does not start it. DevBot or Hermes runs that command later, under `flock ~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock`, only when the lane chooses the fallback. |
 | Cloud auth failure or grok missing | Exit 1. No branch. | `status` `FAIL`, `reason` `unauthenticated` | `recovery` is `run grok once to log in, then rerun the same ./pfy build`. The runner does not open `auth.json` and does not suggest `--local` for this case. |
 | Gate red, retries left | Exit stays open. No commit yet. | Attempt row `status` `FAIL`, `reason` the gate reason (`tests`, `tests-flaky`, or `tests-tampered`) | Feedback to the next grok call includes the gate tail. A later attempt may PASS. |
 | Gate red, retries spent | Exit 1. No branch. | `status` `FAIL`, `reason` the gate reason, `attempts` length 3 by default | Fix the task or the test command and rerun. The failed tree is not committed. |
@@ -326,7 +326,7 @@ D1. The daily command is `./pfy build "<task>"`. `./pfy build -p` stays the jev 
 
 D2. Cloud review is a second cloud grok call. The default path never starts Ollama. Local review stays inside `./pfy build --local`.
 
-D3. A cloud rate limit does not auto-start `--local`. MVP-2 and MVP-3 both say local is NO-GO as the default. The receipt names the fallback command. Mark runs it if he wants.
+D3. A cloud rate limit does not auto-start `--local`. MVP-2 and MVP-3 both say local is NO-GO as the default. The receipt names the fallback command. DevBot or Hermes runs it when the lane chooses the fallback.
 
 D4. PASS does not push and does not open a PR. `pushed` is false. The branch ref remains after the worktree is removed.
 
