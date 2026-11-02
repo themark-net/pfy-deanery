@@ -83,7 +83,9 @@ Scope: `python3 -m unittest discover -s tests -t .` (the CI scope; fixture tests
 - `_undo_commit` before `as_reject`: `scripts/pfy_build_cloud.py` review-timeout block calls `self._undo_commit(keep_edits=True)` before `as_reject`.
 - The recheck extract has its own git repo: the nested `git init -q` stays; `test_recheck_git_does_not_walk_up_to_the_caller_repo` is in the green run.
 
-## Branch-delete list (step 6 of #306, only after `main` contains this stack)
+## Branch-delete list (owner confirms; step 6 of #306, only after `main` contains this stack)
+
+Nothing below is deleted by a bot. The owner confirms the list, then DevBot deletes after `main` holds the stack.
 
 Checked with `git merge-base --is-ancestor <tip> b528486` after `git fetch` on 2026-11-02. Re-check against `main` before deleting.
 
@@ -96,7 +98,7 @@ Cherry-picked, subject check done (non-merge subjects missing from the stack):
 | `bot/mvp-intfix-1031` | 0 | delete after main holds the stack |
 | `bot/mvp3-followups-1031` | 0 | delete after main holds the stack |
 | `bot/mvp-probe-fix2-1031` | 3 | keep until those 3 are checked (tip moved after the cherry-pick) |
-| `bot/mvp3-review-retry` | 1 (`d168446`, docs only; its file `HANDOFF-mvp3-fix2-1031.md` came in through `ff8b881`) | BX3 resolved: `3a550e5`, `0d3c0fc`, `0e683b9`, `ff8b881` cherry-picked onto this stack (Tester FAIL at `89cc0d2`, see B1 below). Delete after main holds the stack. |
+| `bot/mvp3-review-retry` | 1 (`d168446`, docs only; its file `HANDOFF-mvp3-fix2-1031.md` came in through `ff8b881`) | BX3 resolved: `3a550e5`, `0d3c0fc`, `0e683b9`, `ff8b881` cherry-picked onto this stack (Tester FAIL at `89cc0d2`, see B1 below). Keep until BX3 is on `main`; then owner confirms the delete. |
 
 Keep (commits after the 2026-10-31 18:20 PT freeze, not on this stack; a later lane must land or drop them): `bot/doctrine-commit-integrity-1031` (1), `bot/flake-pgrep-x-1031` (10), `bot/lessons-xstaging-1031` (1), `bot/mvp-backlog-fu-1031` (7), `bot/mvp-cloud347-1031` (15), `bot/mvp-dogfood4-1031` (22), `bot/mvp-dogfood5-1031` (15), `bot/mvp-dogfood6-1031` (26), `bot/mvp-flake-harness2-1031` (11), `bot/mvp-hermes-check-1031` (5), `bot/mvp-integrate-pass4-1031` (48), `bot/mvp-localbench-tmpdir-1031` (3), `bot/mvp-merge-plan-1031` (5, plan lane), `bot/mvp-pfy-followups-next-1031` (11), `bot/mvp-pregate-fixture-tmp-1031` (3), `bot/mvp-probe-int-1031` (7), `bot/mvp-probe-s2s5-1031` (14), `bot/mvp-selfhost2-1031` (10), `bot/mvp-tautology-scan-1031` (13), `bot/mvp-timeoutfix-1031` (1, handoff doc only), `bot/mvp3-s2s5-1031` (7). Counts are missing non-merge subjects.
 

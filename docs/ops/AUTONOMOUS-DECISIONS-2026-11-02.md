@@ -14,3 +14,6 @@
 - #306 B2a: skip the real-tree dogfood2 audit only in a shallow clone with the commit absent, instead of raising CI fetch-depth, so CI stays fast and a full clone still fails on a missing commit.
 - #306 S1: recorded patch-ids rather than pushing the 10 receipt commits to origin, since the patch-ids prove the diffs match without adding refs.
 - #306 S6: filed #307 for the bare ./pfy ollama serve start; not fixed in this lane.
+- #306 Reviewer FAIL: reworded only the 14 listed "Mark merges/cherry-picks" lines to name DevBot (and relabeled those "Human gate:" lines "Merge gate:"); other historical docs untouched.
+- #306 Reviewer B4: removed the one em dash in code (scripts/pregate_orphans.py:89); the other 10 added em dashes are inside recorded receipts and planted diffs, left byte-for-byte as evidence.
+- #306: filed #308 for the cloud runner's 12000-char review cut (fail closed instead), alongside #307.
