@@ -118,17 +118,11 @@ def sandbox_mount_args() -> tuple[list[str], str | None]:
     return ["--tmpfs", SHM_PATH, "--proc", PROC_PATH], None
 
 
-def walk_nofollow(root: Path) -> list[Path]:
-    """Every file, directory, and symlink under root.
-
-    A symlink to a directory is one entry and is not descended into. Same
-    membership as Path.rglob("*", recurse_symlinks=False), which is 3.13+.
-    """
-    found: list[Path] = []
-    for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
-        parent = Path(dirpath)
-        found.extend(parent / name for name in (*dirnames, *filenames))
-    return found
+# One shared helper. Loaded by path in tests, so put this directory on sys.path.
+_HERE = str(Path(__file__).resolve().parent)
+if _HERE not in sys.path:
+    sys.path.insert(0, _HERE)
+from xintake_walk import walk_nofollow  # noqa: E402
 
 
 def home_sig(home: Path) -> dict:

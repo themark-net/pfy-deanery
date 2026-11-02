@@ -6,6 +6,9 @@ How we recover: list the symlink and do not descend into it.
 """
 from __future__ import annotations
 
+import contextlib
+import io
+import os
 import sys
 import tempfile
 import unittest
@@ -49,6 +52,41 @@ class WalkNoFollowTests(unittest.TestCase):
                     )
                     self.assertEqual(got, expect)
                     self.assertNotIn("link_dir/hidden.txt", got)
+
+    def test_one_shared_helper(self) -> None:
+        # One walk, not a copy per smoke: every site gets the same function.
+        if str(LOCAL) not in sys.path:
+            sys.path.insert(0, str(LOCAL))
+        import xintake_walk
+
+        for name in SITES + ("smoke",):
+            with self.subTest(name):
+                self.assertIs(__import__(name).walk_nofollow, xintake_walk.walk_nofollow)
+
+    @unittest.skipIf(hasattr(os, "geteuid") and os.geteuid() == 0, "root reads a mode-000 directory")
+    def test_unreadable_subdirectory_is_reported(self) -> None:
+        # How this fails: os.walk drops a directory it cannot list, so its
+        # files vanish from the walk with no sign. Recover: report it.
+        if str(LOCAL) not in sys.path:
+            sys.path.insert(0, str(LOCAL))
+        import xintake_walk
+
+        with tempfile.TemporaryDirectory(prefix="pfy-walk-unreadable-") as raw:
+            root = Path(raw) / "tree"
+            locked = root / "locked"
+            locked.mkdir(parents=True)
+            (locked / "inside.txt").write_text("x\n", encoding="utf-8")
+            locked.chmod(0)
+            try:
+                errors: list[OSError] = []
+                err = io.StringIO()
+                with contextlib.redirect_stderr(err):
+                    got = xintake_walk.walk_nofollow(root, errors=errors)
+            finally:
+                locked.chmod(0o700)
+            self.assertIn(locked, got)
+            self.assertEqual([Path(e.filename) for e in errors], [locked])
+            self.assertIn("cannot read %s" % locked, err.getvalue())
 
 
 if __name__ == "__main__":
