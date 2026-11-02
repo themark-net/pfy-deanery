@@ -2466,6 +2466,24 @@ def _synthetic_new_diff(rel: str, lines: list[str]) -> str:
     )
 
 
+def _strict_text(raw: bytes) -> str | None:
+    """The file as text, or None when it has a NUL or is not strict UTF-8."""
+    if b"\x00" in raw:
+        return None
+    try:
+        return raw.decode("utf-8")
+    except UnicodeDecodeError:
+        return None
+
+
+def _synthetic_binary_diff(rel: str) -> str:
+    return (
+        "diff --git a/%s b/%s\n"
+        "new file mode 100644\n"
+        "Binary files /dev/null and b/%s differ\n" % (rel, rel, rel)
+    )
+
+
 def _collect_diff(worktree: Path, env: dict, paths: list[str]) -> tuple[str, dict]:
     proc = _git(worktree, ["-c", "core.quotepath=false", "diff", "HEAD", "--"], env=env)
     text = proc.stdout or ""
@@ -2521,9 +2539,17 @@ def _collect_diff(worktree: Path, env: dict, paths: list[str]) -> tuple[str, dic
         if not full.is_file():
             continue
         try:
-            content = full.read_text(encoding="utf-8", errors="replace")
+            raw = full.read_bytes()
         except OSError:
-            content = ""
+            raw = b""
+        content = _strict_text(raw)
+        if content is None:
+            # BX3b: never decode with errors="replace" into the prompt. The
+            # reviewer would see U+FFFD while the commit stores the bytes.
+            # Mark it binary so the caller refuses before the review call.
+            binary = True
+            text += _synthetic_binary_diff(norm)
+            continue
         lines = content.splitlines()
         added += len(lines)
         text += _synthetic_new_diff(norm, lines)

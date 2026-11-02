@@ -1421,6 +1421,32 @@ class ReviewLoopTests(unittest.TestCase):
         )
         self.assertEqual(stored, b"\x00\x01BASE\x00")
 
+    def _assert_new_binary_refused(self, rel, raw):
+        # Tester probe q3: a new untracked file the model writes. git diff
+        # HEAD does not list it, so the runner pastes it into the prompt.
+        task = "fix add so one plus one is two\nfiles: src/calc.py, %s\n" % rel
+        proc, receipt = self._run(
+            task,
+            [{"mode": "fix", "write_hex": {rel: raw.hex()}}],
+            extra=["--retries", "2"],
+        )
+        data = self._assert_refused_before_review(proc, receipt, "review-binary-change")
+        self.assertIn(rel, data["files_changed"])
+        patch = (receipt / "attempt-1" / "patch.diff").read_text(encoding="utf-8")
+        self.assertIn("Binary files /dev/null and b/%s differ" % rel, patch)
+        self.assertNotIn("\ufffd", patch)
+        listed = subprocess.check_output(
+            ["git", "-C", str(self.inner.repo), "ls-tree", "-r", "--name-only", "HEAD"], text=True
+        )
+        self.assertNotIn(rel, listed.splitlines())
+
+    def test_new_untracked_non_utf8_file_is_not_committed(self):
+        self._assert_new_binary_refused("src/evil.bin", b"EVIL_Q3 \xff\xfe\x80 tail\n")
+
+    def test_new_untracked_file_with_a_nul_byte_is_not_committed(self):
+        # Valid UTF-8, but a NUL makes git treat it as binary in the commit.
+        self._assert_new_binary_refused("src/nul.dat", b"EVIL_NUL\x00tail\n")
+
     def test_reviewer_prompt_shows_a_tracked_non_ascii_path_unescaped(self):
         # A new file is pasted by the runner, so its path never goes through
         # git diff. A tracked edit does. core.quotepath would quote that path

@@ -300,6 +300,10 @@ elif scenario == "plan":
         dest = root / rel
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_text(content, encoding="utf-8")
+    for rel, hexed in (step.get("write_hex") or {}).items():
+        dest = root / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_bytes(bytes.fromhex(hexed))
     for rel, extra in (step.get("append") or {}).items():
         dest = root / rel
         dest.parent.mkdir(parents=True, exist_ok=True)
