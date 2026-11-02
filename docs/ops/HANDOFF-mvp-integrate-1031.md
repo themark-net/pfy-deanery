@@ -102,7 +102,7 @@ Operator pregates this stamp. No further gap in `origin/bot/mvp-plan-1031:docs/p
 | `origin/bot/mvp-dogfood-1031` | `4d0991e` | Tip `e404b42`. Clean |
 | `origin/bot/mvp-dogfood2-1031` | `94612ca` | Tip `b6d5b76` (drop-in only). Clean |
 | `origin/bot/mvp-gom-dogfood-1031` | `6921552` | Tip `86639b7` (exit card). Clean |
-| `origin/bot/mvp-selfhost-1031` | not merged | Seen at `62ae324`. Mark cherry-picks from it |
+| `origin/bot/mvp-selfhost-1031` | not merged | Seen at `62ae324`. DevBot cherry-picks from it after Tester+Reviewer PASS |
 | Classifier proof | tree `135eebb` | One import. No inline classifier. `tests.test_pfy_build_cloud` and `tests.test_build_preflight`: 54 OK in 10.080s |
 | Suite | tree `135eebb` | Ran 1098 in 731.925s. Failures 2, skipped 16 |
 | Demo 2 receipt and report | `7997dd6` | PASS. Checker exit 0. Commit `535d000075744709b2752cec7511d087801f2aa5` |

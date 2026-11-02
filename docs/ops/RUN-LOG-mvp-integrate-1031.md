@@ -145,7 +145,7 @@ Pass 2 merge order:
 14. `origin/bot/mvp-dogfood2-1031`
 15. `origin/bot/mvp-gom-dogfood-1031`
 
-Not merged: `origin/bot/mvp-selfhost-1031` (Mark cherry-picks from it).
+Not merged: `origin/bot/mvp-selfhost-1031` (DevBot cherry-picks from it after Tester+Reviewer PASS).
 
 Conflict rule: round-1 owner wins when the plan matrix names one. For `docs/TODO.md` and `docs/modules/pfylib.md`, keep both sides' facts. Do not drop a done row. For `scripts/pfy_build_cloud.py`, cloudfix wins: one import, no inline duplicate classifier. One decisions line per conflict.
 

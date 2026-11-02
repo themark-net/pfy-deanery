@@ -4,7 +4,7 @@ Branch `bot/mvp-gom-dogfood-1031`. Base `origin/bot/mvp-integrate-1031` (`86fcfb
 
 Launch: 2026-10-31T21:15:13Z (grok pid 2167101 start). Wall cap: 2026-11-01T05:15:13Z (8 hours), or 2026-11-02T02:00Z (Sunday 2026-11-01 18:00 PT), whichever comes first. Stop new items by 2026-11-01T04:55:13Z so the handoff has 20 minutes. Binding cap is the 8 hour mark.
 
-Overview: Prove `./pfy build` on a second real repo, Gom Jabbar (`themark-net/gom-jabbar-grok4`). Six or more small tasks from that repo's TODO and handoffs run through the cloud runner against throwaway clones. PASS plus a human accept is cherry-picked onto `bot/gom-dogfood-1031` with a Built-by trailer, tested, and pushed. Receipts, diffs, and a report land in `eval/gom-dogfood-1031/`. A behavior test checks that report rows match receipts and that a planted mismatch fails.
+Overview: Prove `./pfy build` on a second real repo, Gom Jobbar (`themark-net/gom-jabbar-grok4`). Six or more small tasks from that repo's TODO and handoffs run through the cloud runner against throwaway clones. PASS plus a human accept is cherry-picked onto `bot/gom-dogfood-1031` with a Built-by trailer, tested, and pushed. Receipts, diffs, and a report land in `eval/gom-dogfood-1031/`. A behavior test checks that report rows match receipts and that a planted mismatch fails.
 
 Phases:
 - exits | `docs/ops/RUN-LOG-mvp-gom-dogfood-1031.md`, `docs/ops/AUTONOMOUS-DECISIONS-mvp-gom-dogfood-1031.md` | exit card and phase plan are in this file before any gom command or build | none | lead
@@ -21,7 +21,7 @@ Risks: cloud quota, so builds stay serial and never use `--local`. A throwaway c
 
 ```text
 LOOP EXIT CARD
-Goal (success criteria):     six or more real ./pfy build runs on throwaway clones of Gom Jabbar; each recorded under eval/gom-dogfood-1031/<n>-<slug>/; PASS and human-accept commits cherry-picked to bot/gom-dogfood-1031 with Built-by trailer, tests run, branch pushed; REPORT.md rows match receipts; tests.test_gom_dogfood_1031_report fails a planted mismatch
+Goal (success criteria):     six or more real ./pfy build runs on throwaway clones of Gom Jobbar; each recorded under eval/gom-dogfood-1031/<n>-<slug>/; PASS and human-accept commits cherry-picked to bot/gom-dogfood-1031 with Built-by trailer, tests run, branch pushed; REPORT.md rows match receipts; tests.test_gom_dogfood_1031_report fails a planted mismatch
 1 Goal met:                  tests.test_gom_dogfood_1031_report plus the recorded receipt fields (exit, attempts, review verdict, human verdict) for each run
 2 Turn cap:                  8 build tasks, then report, land notes, and handoff (stop new builds at 8 even if the wall clock remains)
 3 Budget cap:                cloud Grok only; no --local; no second model; stop new builds if two runs return rate-limit
@@ -124,7 +124,7 @@ prior-state: goal met 2026-10-31T22:52:50Z. Lane empty. Pregate not run: host bu
 
 The drop-in addendum supersedes the earlier goal-met lines. Same worktree and branch rules. No rebase, no force-push, no PR, no merge to main. No `--local`.
 
-Overview: Merge `origin/bot/mvp-integrate-1031` so this branch uses the latest cloud runner, then run six more real `./pfy build` tasks on Gom Jabbar. The six are T-0034 slices that are not 01 through 06: view `to`, view `cc`, view stored Date header, land `from` and `reply_to`, land `to` and `cc`, list `references`. PASS plus human accept is cherry-picked onto `bot/gom-dogfood-1031`. Rejected diffs stay off that branch. Receipts and a Wave 5 section land in `eval/gom-dogfood-1031/REPORT.md`. Runner friction is a cross-lane request for mvp-cloudfix-1031.
+Overview: Merge `origin/bot/mvp-integrate-1031` so this branch uses the latest cloud runner, then run six more real `./pfy build` tasks on Gom Jobbar. The six are T-0034 slices that are not 01 through 06: view `to`, view `cc`, view stored Date header, land `from` and `reply_to`, land `to` and `cc`, list `references`. PASS plus human accept is cherry-picked onto `bot/gom-dogfood-1031`. Rejected diffs stay off that branch. Receipts and a Wave 5 section land in `eval/gom-dogfood-1031/REPORT.md`. Runner friction is a cross-lane request for mvp-cloudfix-1031.
 
 Phases:
 - wave5-exits | this log, `docs/ops/AUTONOMOUS-DECISIONS-mvp-gom-dogfood-1031.md` | this card is in the log before the merge and before any build | none | lead

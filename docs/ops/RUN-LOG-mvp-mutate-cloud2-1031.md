@@ -24,7 +24,7 @@ Goal (success criteria):     At least 20 new meaningful mutants of the current s
 7 Error threshold:           3 consecutive same failure, or the same assertion twice. Stop and record. Do not weaken tests.
 8 External event:            If origin/main or another bot branch already closed an item, skip it and say so here. Re-check origin/bot/mvp-integrate-1031 and origin/bot/mvp-dogfood-fix-1031 before the catalog run. This run does not merge to main.
 Loop type:                   goal
-Human gate:                  Mark merges after pregate plus Reviewer for this eval and test-only lane. Tester plus Reviewer if a later item changes runtime. This run does not change runner behavior, merge, open a PR, or tag.
+Merge gate:                  DevBot fast-forwards main after pregate plus Reviewer for this eval and test-only lane. Tester plus Reviewer if a later item changes runtime. This run does not change runner behavior, merge, open a PR, or tag.
 ```
 
 ## Drop-in exits (check before every item)

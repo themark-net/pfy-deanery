@@ -21,7 +21,7 @@ Goal (success criteria):     Reviewer HTTP error and timeout record their own at
 7 Error threshold:           3 consecutive same failure, or the same assertion twice. Stop and record. Do not weaken tests.
 8 External event:            If origin/main or another bot branch already closed an item, skip it and say so here. Do not check out other branches. Integration note only: merge this branch after bot/mvp-review-fix-1031. This run does not merge.
 Loop type:                   goal
-Human gate:                  Mark merges after Tester plus Reviewer (runtime). This run does not merge, open a PR, or tag.
+Merge gate:                  DevBot fast-forwards main after Tester plus Reviewer (runtime). This run does not merge, open a PR, or tag.
 ```
 
 ## Drop-in exits (check before every item)
@@ -244,7 +244,7 @@ Goal (success criteria):     Merge 582414b. S1: an unreachable reviewer (HTTP er
 7 Error threshold:           3 consecutive same failure, or the same assertion twice. Stop and record. Do not weaken tests.
 8 External event:            If origin already has an S item, skip it and say so. This run does not merge to main. Integration remains: merge this branch after bot/mvp-review-fix-1031.
 Loop type:                   goal
-Human gate:                  Mark merges after Tester plus Reviewer. This run does not merge, open a PR, or tag.
+Merge gate:                  DevBot fast-forwards main after Tester plus Reviewer. This run does not merge, open a PR, or tag.
 ```
 
 ### Plan (wave 4)

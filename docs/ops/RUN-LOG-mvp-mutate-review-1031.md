@@ -21,7 +21,7 @@ Goal (success criteria):     eval/mutation-1031/review/run_mutants.py runs one m
 7 Error threshold:           3 consecutive same failure, or the same assertion twice. Stop and record. Do not weaken tests.
 8 External event:            If origin/main or another bot branch already closed an item, skip it and say so here. Re-run the mutant suite when origin/bot/mvp-review-fix2-1031 moves. This run does not merge to main.
 Loop type:                   goal
-Human gate:                  Mark merges after pregate plus Reviewer for this eval and test-only lane. Tester plus Reviewer if a later item changes runtime (it should not; runner edits are cross-lane). This run does not merge, open a PR, or tag.
+Merge gate:                  DevBot fast-forwards main after pregate plus Reviewer for this eval and test-only lane. Tester plus Reviewer if a later item changes runtime (it should not; runner edits are cross-lane). This run does not merge, open a PR, or tag.
 ```
 
 ## Drop-in exits (check before every item)

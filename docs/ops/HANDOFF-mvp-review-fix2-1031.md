@@ -1,6 +1,6 @@
 # Handoff: reviewer follow-ups (mvp-review-fix2-1031)
 
-Branch `bot/mvp-review-fix2-1031`. Worktree `~/DEVELOP/pfy-mentat/tmp/mvp-review-fix2-1031`. No PR. No force push. Mark merges after Tester plus Reviewer. This run does not merge.
+Branch `bot/mvp-review-fix2-1031`. Worktree `~/DEVELOP/pfy-mentat/tmp/mvp-review-fix2-1031`. No PR. No force push. DevBot fast-forwards main after Tester plus Reviewer. This run does not merge.
 
 Integrate after `bot/mvp-review-fix-1031`. `./pfy build --local` stays opt-in. Review stays on unless `--no-review`. `--retries` default stays 2. Exit codes stay 0 PASS, 1 FAIL (including reviewer-unavailable, crash, PASS-REJECTED, and stale-worktree), 2 usage, 3 TIMEOUT, 4 BLOCKED. No Ollama process was started. No model was loaded.
 

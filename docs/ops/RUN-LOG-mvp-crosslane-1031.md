@@ -21,7 +21,7 @@ Goal (success criteria):     Every open cross-lane request from origin/bot/mvp-*
 7 Error threshold:           3 consecutive same failure, or the same assertion twice. Stop and record. Do not weaken tests.
 8 External event:            If origin/bot/mvp-cloudfix-1031, origin/bot/mvp-integrate-1031, or origin/main already closed an item, skip it and say so here. Do not check out other branches. This run does not merge to main.
 Loop type:                   goal
-Human gate:                  Mark merges after Tester plus Reviewer for runtime changes, or pregate plus Reviewer for docs, eval, or test-only changes. This run does not merge, open a PR, or tag.
+Merge gate:                  DevBot fast-forwards main after Tester plus Reviewer for runtime changes, or pregate plus Reviewer for docs, eval, or test-only changes. This run does not merge, open a PR, or tag.
 ```
 
 ## Drop-in exits (check before every item)

@@ -22,7 +22,7 @@ Goal (success criteria):     On ./pfy build --local with the stub agent: a gitig
 7 Error threshold:           3 consecutive same failure, or the same assertion twice. Stop and record. Do not weaken tests.
 8 External event:            If origin/main or another bot branch already closed a hole, skip that item and say so here. Do not check out other branches.
 Loop type:                   goal
-Human gate:                  Mark merges after Tester plus Reviewer. This run does not merge, open a PR, or tag.
+Merge gate:                  DevBot fast-forwards main after Tester plus Reviewer. This run does not merge, open a PR, or tag.
 ```
 
 ## Drop-in exits (check before every item)

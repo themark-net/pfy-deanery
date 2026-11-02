@@ -10,7 +10,7 @@ Plan and DoD: `git show origin/bot/mvp-plan-1031:docs/plans/MVP-PARALLEL-1031.md
 
 Needs a local model: no. Cloud Grok only. Never pass `--local` to a real run.
 
-## Scope: use `./pfy build` on a second real repo, Gom Jabbar (themark-net/gom-jabbar-grok4)
+## Scope: use `./pfy build` on a second real repo, Gom Jobbar (themark-net/gom-jabbar-grok4)
 
 This proves the daily runner works outside pfy-mentat.
 

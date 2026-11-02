@@ -72,7 +72,7 @@ Reviewer reads this branch at the wave 5 handoff SHA and the Wave 5 section of `
 
 ## Earlier finish (first six runs)
 
-Lane finished. Goal met: six real cloud `./pfy build` runs on Gom Jabbar, each recorded, human-accepted, and cherry-picked to `bot/gom-dogfood-1031`. No merge, no PR, no force push, no `--local`.
+Lane finished. Goal met: six real cloud `./pfy build` runs on Gom Jobbar, each recorded, human-accepted, and cherry-picked to `bot/gom-dogfood-1031`. No merge, no PR, no force push, no `--local`.
 
 Pfy branch: `bot/mvp-gom-dogfood-1031` in `~/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031`.
 Gom branch: `bot/gom-dogfood-1031` in `~/DEVELOP/jobbar-master/tmp/gom-dogfood-1031`.

@@ -86,7 +86,7 @@ def _save(path: Path, seen: dict[int, str]) -> None:
 def _with_seen(path: str, fn):
     dest = Path(path)
     dest.parent.mkdir(parents=True, exist_ok=True)
-    lock = open(Path(str(dest) + ".lock"), "a+")  # noqa: SIM115 — flock needs the handle
+    lock = open(Path(str(dest) + ".lock"), "a+")  # noqa: SIM115 - flock needs the handle
     try:
         fcntl.flock(lock, fcntl.LOCK_EX)
         seen = _load(dest)

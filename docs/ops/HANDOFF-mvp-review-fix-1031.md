@@ -1,6 +1,6 @@
 # Handoff: local review-loop holes (mvp-review-fix-1031)
 
-Branch `bot/mvp-review-fix-1031`. Worktree `~/DEVELOP/pfy-mentat/tmp/mvp-review-fix-1031`. Base `origin/bot/mvp3-review-retry`. No PR. Mark merges after Tester plus Reviewer. This run does not merge.
+Branch `bot/mvp-review-fix-1031`. Worktree `~/DEVELOP/pfy-mentat/tmp/mvp-review-fix-1031`. Base `origin/bot/mvp3-review-retry`. No PR. DevBot fast-forwards main after Tester plus Reviewer. This run does not merge.
 
 `./pfy build --local` is still opt-in. Review stays on unless `--no-review`. `--retries` default stays 2. Exit codes are unchanged (0 PASS, 1 FAIL, 2 usage, 3 TIMEOUT, 4 BLOCKED). `eval/mvp3/REPORT.md` was not edited. The six MVP-3 tasks were not re-run. No Ollama process was started.
 
