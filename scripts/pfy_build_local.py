@@ -3854,6 +3854,30 @@ def build_local(argv: list[str] | None = None) -> int:
             size = _check_size(changed, diff_stats, args.test_cmd_s, args.max_files_n, args.max_lines_n)
             wire = _check_wiring(diff_text, wiring_rules)
             checks = {"scope": scope, "size": size, "wiring": wire}
+            if not size.get("ok") and int(size.get("lines") or 0) > int(size.get("max_lines") or 0):
+                # Over the line cap: the reviewer is not asked, so this is not
+                # a review reject. Refuse once with the numbers; a retry would
+                # resend the same feedback. Gated on size["ok"] so mutants
+                # R8 and R9 (which edit "ok") still change the outcome.
+                print(
+                    "pfy build --local: diff has %d changed lines, over the %d-line cap; "
+                    "not reviewed, not committed, not retried. Split the task or pass --max-lines."
+                    % (size.get("lines"), size.get("max_lines")),
+                    file=sys.stderr,
+                )
+                status, reason, exit_code = "FAIL", "review-diff-over-line-cap", EXIT_FAIL
+                _record_attempt(
+                    attempts_used,
+                    attempt_t0,
+                    mem_snap,
+                    "FAIL",
+                    "review-diff-over-line-cap",
+                    checks,
+                    None,
+                    diff_stats,
+                    diff_text,
+                )
+                return finish()
             reasons = _reject_reasons(scope, size, wire)
             if reasons:
                 feedback = "\n".join(reasons)
