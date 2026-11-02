@@ -129,6 +129,14 @@ Fail: a later rebase changes one of these diffs, and the allowlist still passes 
 
 Pregate on the commit that adds this section, then Tester plus Reviewer at that SHA (behavior-changing code), then fast-forward `main`. This lane sends no gate request.
 
+## Reviewer FAIL at `89cc0d2` (2026-11-02): root causes, written before the fixes
+
+- R-B1 (CI reds): same causes as Tester B2a-B2d above. The `1372 OK` count under "Tests at `b528486`" was from nimo's Python 3.14 in a linked worktree with full history, so it could not show the 3.12 and shallow-clone failures. Fix: the B2 fixes, then replace the count with the real counts at the new pin on both interpreters.
+- R-B2 (merges left to Mark): the lane templates of 2026-10-31 carried a "Human gate: Mark merges after ..." line, and the integrate lane copied "Mark cherry-picks" from its addendum. The current flow has DevBot fast-forward `main` after the gates, so those lines name the wrong actor. Fix: reword the 14 listed lines to name DevBot; history is unchanged.
+- R-B3 (product name): the gom-dogfood lane spelled the product "Gom Jabbar" from the repo slug. The product is "Gom Jobbar"; the repo slug `gom-jabbar-grok4` stays. Fix: the five listed lines only.
+- R-B4 (em dash): `scripts/pregate_orphans.py:89` came in with an em dash in a `noqa` comment. The other added em dashes are inside recorded receipts and planted diffs, which are evidence and stay byte-for-byte. Fix: that one comment.
+- R-B5 (BX3): covered by B1 above; `0e683b9` is in the cherry-pick set (`dd4a2d2`).
+
 ## Tester FAIL at `89cc0d2` (2026-11-02): root causes, written before the fixes
 
 Write-up: https://github.com/themark-net/pfy-mentat/issues/306#issuecomment-6587809738. CI run 41510427750 (eval-structural, `workflow_dispatch` on `bot/mvp-land-1031`): nimo job 125500577002 had 3 failures, Ubuntu job 125500577122 (Python 3.12.15) had 15 failures and 11 errors.
