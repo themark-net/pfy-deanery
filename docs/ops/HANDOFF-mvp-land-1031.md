@@ -41,4 +41,10 @@ Four miss in `scripts/pfy_build_local.py`:
 
 ### 4. Planted review diffs (`test_planted_set_shape_and_patches_apply`)
 
-`b07-shell-rm.diff` no longer applies at `scripts/pfy_build_cloud.py:616`: later merges moved `diff_aims_at_root` (now line 638), so the hunk context and offsets are stale. Fix: regenerate all 20 diffs and `cases.json` with the repo generator `eval/mvp-1031/review-quality/build_cases.py`; do not hand-edit diffs.
+The test stops at the first miss (`b07-shell-rm`, `scripts/pfy_build_cloud.py:616`). Applying all 20 at `f4c317e`: 15 apply, 5 do not.
+
+- b07, b09: context drift only. Later merges moved `diff_aims_at_root` (now line 638) and the attempt loop. The generator's edits still match once; only the saved hunks are stale.
+- b08, g01 (`examples/x-intake-local/smoke_109_111.py`): `110f24a` rewrote `state_snapshot` to hash content via `os.lstat`, so the `if not p.exists(): ... newest = p.stat().st_mtime` text is gone. The generator also stops on its `snap` needle (`base missing snap needle`). g01's old task (use lstat on the root) is already what the code does.
+- g04 (`examples/x-intake-local/smoke_149.py`): the same rewrite made `home_sig` lstat-based with `os.readlink` and a content hash, so the old `q.stat().st_size` shape (and the `149` needle) is gone, and the old task is already done.
+
+Fix: in `eval/mvp-1031/review-quality/build_cases.py`, update the two needles and re-cut b08, g01, g04 against the current functions with the same label and the same kind of change (b08: drop the missing-path `None` branch, so a missing path is recorded as unreadable; g01 and g04: a no-behavior-change edit that matches its task). Keep ids, so the saved `results/before` and `results/after` rows still line up. Then regenerate all 20 diffs and `cases.json` with the generator. Do not hand-edit diffs.
