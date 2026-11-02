@@ -1,8 +1,8 @@
 diff --git a/examples/x-intake-local/smoke_122_124.py b/examples/x-intake-local/smoke_122_124.py
-index cffc4dd..b1ed4e9 100644
+index dbfa846..eb3b185 100644
 --- a/examples/x-intake-local/smoke_122_124.py
 +++ b/examples/x-intake-local/smoke_122_124.py
-@@ -71,7 +71,7 @@ def tmo() -> float:
+@@ -73,7 +73,7 @@ def tmo() -> float:
  # llm_router_home, every hook's fallback ~/.llm-router); Squadra's selftest folder (selftest.py
  # ~/.local/state/squadra) and usage cache (usage_cache.py ~/.cache/squadra). HarnessRouter runs in Docker only.
  WATCH = {"llmrouter": (".llm-router",),
@@ -11,7 +11,7 @@ index cffc4dd..b1ed4e9 100644
  
  
  def tree_sig(p: Path) -> str | None:
-@@ -100,7 +100,7 @@ def tree_sig(p: Path) -> str | None:
+@@ -102,7 +102,7 @@ def tree_sig(p: Path) -> str | None:
              elif stat.S_ISREG(st.st_mode):
                  try:
                      fh = hashlib.sha256()

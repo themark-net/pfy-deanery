@@ -1,8 +1,8 @@
 diff --git a/tests/test_pfy_build_cloud.py b/tests/test_pfy_build_cloud.py
-index 2d8aeb1..70af543 100644
+index 7b141ab..89f37d9 100644
 --- a/tests/test_pfy_build_cloud.py
 +++ b/tests/test_pfy_build_cloud.py
-@@ -674,7 +674,6 @@ class CloudBuildRetryTests(unittest.TestCase):
+@@ -878,7 +878,6 @@ class CloudBuildRetryTests(unittest.TestCase):
          self.assertEqual(payload["exit_code"], 1)
          self.assertIsNone(payload["branch"])
          self.assertIsNone(payload["commit"])

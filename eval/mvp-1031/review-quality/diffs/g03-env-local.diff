@@ -1,8 +1,8 @@
 diff --git a/scripts/pfy_build_cloud.py b/scripts/pfy_build_cloud.py
-index acd3ba4..2286054 100644
+index 665737d..b19e261 100644
 --- a/scripts/pfy_build_cloud.py
 +++ b/scripts/pfy_build_cloud.py
-@@ -83,6 +83,7 @@ REVIEW_MARKER = "PFY-CLOUD-REVIEW"
+@@ -85,6 +85,7 @@ REVIEW_MARKER = "PFY-CLOUD-REVIEW"
  DEFAULT_PROTECT = (
      "auth.json",
      ".env",

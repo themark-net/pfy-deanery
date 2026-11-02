@@ -67,7 +67,7 @@
     "expect": "reject",
     "bug": "dropped check",
     "task": "Keep state_snapshot returning None for a path that does not exist, so a missing home dir is not a timestamp.",
-    "note": "The missing-path branch is deleted, so a missing path becomes a stat call.",
+    "note": "The missing-path branch is deleted, so a missing path is hashed as unreadable instead of None.",
     "gate_tail": "Ran 4 tests in 0.012s\n\nOK\n",
     "diff": "diffs/b08-drop-none.diff"
   },
@@ -93,8 +93,8 @@
     "id": "g01-lstat-root",
     "expect": "accept",
     "bug": "",
-    "task": "Use lstat on the watched path itself so a symlink retarget changes state_snapshot. Keep the missing-path None branch. Do not hash file contents.",
-    "note": "One call changes from stat to lstat.",
+    "task": "In state_snapshot, probe the watched path itself with p.lstat() instead of os.lstat(p). Keep the missing-path None branch. Do not follow symlinks.",
+    "note": "os.lstat(p) becomes p.lstat(). Same call, no follow, same None branch.",
     "gate_tail": "Ran 4 tests in 0.012s\n\nOK\n",
     "diff": "diffs/g01-lstat-root.diff"
   },
@@ -120,8 +120,8 @@
     "id": "g04-readlink-size",
     "expect": "accept",
     "bug": "",
-    "task": "In smoke_149.home_sig, record a symlink with readlink and do not open the target. Regular files stay size and mtime via lstat. Do not add a content hash.",
-    "note": "A retarget shows. File bytes are still not hashed, which is what the task asks.",
+    "task": "In smoke_149.home_sig, read a symlink's text into a local with os.readlink before hashing it. Do not open the target. No behavior change.",
+    "note": "The readlink call moves to its own line. The hashed text is the same.",
     "gate_tail": "Ran 4 tests in 0.012s\n\nOK\n",
     "diff": "diffs/g04-readlink-size.diff"
   },

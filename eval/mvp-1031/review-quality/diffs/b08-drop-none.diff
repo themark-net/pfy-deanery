@@ -1,14 +1,14 @@
 diff --git a/examples/x-intake-local/smoke_109_111.py b/examples/x-intake-local/smoke_109_111.py
-index 7a37abd..d57c345 100644
+index ac4a9fa..8af2da0 100644
 --- a/examples/x-intake-local/smoke_109_111.py
 +++ b/examples/x-intake-local/smoke_109_111.py
-@@ -147,9 +147,6 @@ def state_snapshot(paths: list[Path]) -> dict:
-     """Existence + newest mtime of each path's tree, to detect writes into the real HOME."""
-     out = {}
+@@ -193,9 +193,6 @@ def state_snapshot(paths: list[Path]) -> dict:
      for p in paths:
--        if not p.exists():
+         try:
+             os.lstat(p)
+-        except FileNotFoundError:
 -            out[str(p)] = None
 -            continue
-         newest = p.stat().st_mtime
-         for root, dirs, files in os.walk(p):
-             for n in dirs + files:
+         except OSError:
+             out[str(p)] = hashlib.sha256(f"{p}:unreadable\n".encode()).hexdigest()
+             continue

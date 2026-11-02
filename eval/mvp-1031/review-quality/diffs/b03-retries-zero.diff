@@ -1,8 +1,8 @@
 diff --git a/scripts/pfy_build_cloud.py b/scripts/pfy_build_cloud.py
-index acd3ba4..8946640 100644
+index 665737d..d452220 100644
 --- a/scripts/pfy_build_cloud.py
 +++ b/scripts/pfy_build_cloud.py
-@@ -70,7 +70,7 @@ EXIT_BLOCKED = 4
+@@ -72,7 +72,7 @@ EXIT_BLOCKED = 4
  SCHEMA = "pfy-cloud-build/1"
  DEFAULT_TEST_CMD = "python3 -m unittest discover -s tests -t ."
  DEFAULT_TIMEOUT = 1200.0

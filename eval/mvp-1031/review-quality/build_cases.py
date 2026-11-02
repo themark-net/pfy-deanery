@@ -87,7 +87,7 @@ CASES = [
             "Keep state_snapshot returning None for a path that does not exist, "
             "so a missing home dir is not a timestamp."
         ),
-        "note": "The missing-path branch is deleted, so a missing path becomes a stat call.",
+        "note": "The missing-path branch is deleted, so a missing path is hashed as unreadable instead of None.",
     },
     {
         "id": "b09-attempt-range",
@@ -108,10 +108,10 @@ CASES = [
         "expect": "accept",
         "bug": "",
         "task": (
-            "Use lstat on the watched path itself so a symlink retarget changes "
-            "state_snapshot. Keep the missing-path None branch. Do not hash file contents."
+            "In state_snapshot, probe the watched path itself with p.lstat() instead of "
+            "os.lstat(p). Keep the missing-path None branch. Do not follow symlinks."
         ),
-        "note": "One call changes from stat to lstat.",
+        "note": "os.lstat(p) becomes p.lstat(). Same call, no follow, same None branch.",
     },
     {
         "id": "g02-subject-limit",
@@ -135,10 +135,10 @@ CASES = [
         "expect": "accept",
         "bug": "",
         "task": (
-            "In smoke_149.home_sig, record a symlink with readlink and do not open the target. "
-            "Regular files stay size and mtime via lstat. Do not add a content hash."
+            "In smoke_149.home_sig, read a symlink's text into a local with os.readlink "
+            "before hashing it. Do not open the target. No behavior change."
         ),
-        "note": "A retarget shows. File bytes are still not hashed, which is what the task asks.",
+        "note": "The readlink call moves to its own line. The hashed text is the same.",
     },
     {
         "id": "g05-chunk-name",
@@ -298,8 +298,8 @@ def main() -> None:
     for label, blob, needle in (
         ("cloud", cloud, "DEFAULT_RETRIES = 2"),
         ("tree", tree, "streamed in 1 MiB chunks"),
-        ("snap", snap, "if not p.exists():"),
-        ("149", home149, "q.stat().st_size"),
+        ("snap", snap, "except FileNotFoundError:\n            out[str(p)] = None"),
+        ("149", home149, "os.readlink(f)"),
         ("148", home148, "fp.read(1 << 20)"),
         ("tests", tests, 'self.assertEqual(len(payload["attempts"]), 2)'),
     ):
@@ -384,12 +384,14 @@ def cleanup_worktree(path: str) -> None:
     subprocess.run("rm -rf %s" % path, shell=True)
 '''
     diffs["b07-shell-rm"] = _mutate([(c, root_fn, root_fn_new, 1)])
-    none_old = """        if not p.exists():
+    none_old = """            os.lstat(p)
+        except FileNotFoundError:
             out[str(p)] = None
             continue
-        newest = p.stat().st_mtime
+        except OSError:
 """
-    none_new = """        newest = p.stat().st_mtime
+    none_new = """            os.lstat(p)
+        except OSError:
 """
     diffs["b08-drop-none"] = _mutate([(t109, none_old, none_new, 1)])
     diffs["b09-attempt-range"] = _mutate(
@@ -404,7 +406,16 @@ def cleanup_worktree(path: str) -> None:
     return h.hexdigest()
 """
     diffs["b10-swallow-oserror"] = _mutate([(t122, swallow_old, swallow_new, 1)])
-    diffs["g01-lstat-root"] = _mutate([(t109, "newest = p.stat().st_mtime", "newest = p.lstat().st_mtime", 1)])
+    diffs["g01-lstat-root"] = _mutate(
+        [
+            (
+                t109,
+                "            os.lstat(p)\n        except FileNotFoundError:\n",
+                "            p.lstat()\n        except FileNotFoundError:\n",
+                1,
+            )
+        ]
+    )
     subject_old = """    flat = " ".join((task_text or "").split())
     if not flat:
         return "task"
@@ -449,29 +460,10 @@ def cleanup_worktree(path: str) -> None:
 )
 '''
     diffs["g03-env-local"] = _mutate([(c, protect_old, protect_new, 1)])
-    sig_old = """        if p.is_dir():
-            sig[rel] = sorted((str(q.relative_to(p)), q.stat().st_size, q.stat().st_mtime_ns) for q in p.rglob("*"))
-        elif p.exists():
-            sig[rel] = [p.stat().st_size, p.stat().st_mtime_ns]
-        else:
-            sig[rel] = None
+    sig_old = """                    h.update(f"{f}:{mode:o}:link:{os.readlink(f)}\\n".encode())
 """
-    sig_new = """        if p.is_symlink():
-            sig[rel] = ("link", os.readlink(p))
-        elif p.is_dir():
-            rows = []
-            for q in p.rglob("*"):
-                if q.is_symlink():
-                    rows.append((str(q.relative_to(p)), "link", os.readlink(q)))
-                else:
-                    st = q.lstat()
-                    rows.append((str(q.relative_to(p)), st.st_size, st.st_mtime_ns))
-            sig[rel] = sorted(rows)
-        elif p.exists():
-            st = p.lstat()
-            sig[rel] = [st.st_size, st.st_mtime_ns]
-        else:
-            sig[rel] = None
+    sig_new = """                    link = os.readlink(f)
+                    h.update(f"{f}:{mode:o}:link:{link}\\n".encode())
 """
     diffs["g04-readlink-size"] = _mutate([(t149, sig_old, sig_new, 1)])
     chunk_old = """    def digest(path: Path) -> str:
