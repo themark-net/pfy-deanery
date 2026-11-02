@@ -86,6 +86,23 @@ jobs:
           set -euo pipefail
           python3 scripts/check_no_encoded_payloads.py --selftest
           python3 scripts/check_no_encoded_payloads.py
+      - name: Real-tree audits with full history (dogfood2 trailers, S1 patch-ids)
+        if: always() && !cancelled()
+        run: |
+          set -euo pipefail
+          # The checkout is fetch-depth 1, so the discover above skips the
+          # dogfood2 real-tree audit and never lists the reworded commits.
+          # Unshallow here, last, so the earlier steps are unchanged.
+          git fetch --no-tags --quiet --unshallow origin
+          test "$(git rev-parse --is-shallow-repository)" = false
+          log="$RUNNER_TEMP/real-tree-audits.log"
+          python3 -m unittest -v tests.test_dogfood2_1031_report tests.test_selfhost_1031_log 2>&1 | tee "$log"
+          if grep -q "skipped" "$log"; then
+            echo "real-tree audit skipped with full history"
+            exit 1
+          fi
+          grep -q "test_real_tree_matches_receipts_and_trailers .* ok$" "$log"
+          grep -q "test_this_branch_has_no_bad_built_by_trailer .* ok$" "$log"
       - name: Upload receipts
         if: always()
         uses: actions/upload-artifact@v4
