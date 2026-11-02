@@ -106,24 +106,27 @@ def _catalog():
         "    return verdict, reasons, raw[:500]\n",
     )
     outage = (
+        "    if _review_transport_error(raw) or _review_outage_kind(raw):\n"
         '        return "unavailable", {\n'
-        '            "verdict": "unavailable",\n'
-        '            "reasons": ["review-unavailable"],\n'
-        '            "raw_tail": redact(detail)[:500],\n'
+        '            "verdict": "reviewer-unavailable",\n'
+        '            "reasons": ["reviewer-unavailable"],\n'
+        '            "raw_tail": redact(raw[:500])[:500],\n'
         "        }\n"
     )
     outage_accept = (
+        "    if _review_transport_error(raw) or _review_outage_kind(raw):\n"
         '        return "accept", {\n'
         '            "verdict": "accept",\n'
-        '            "reasons": ["review-unavailable"],\n'
-        '            "raw_tail": redact(detail)[:500],\n'
+        '            "reasons": ["reviewer-unavailable"],\n'
+        '            "raw_tail": redact(raw[:500])[:500],\n'
         "        }\n"
     )
     outage_reject = (
+        "    if _review_transport_error(raw) or _review_outage_kind(raw):\n"
         '        return "reject", {\n'
         '            "verdict": "reject",\n'
         '            "reasons": ["review-unparseable"],\n'
-        '            "raw_tail": redact(detail)[:500],\n'
+        '            "raw_tail": redact(raw[:500])[:500],\n'
         "        }\n"
     )
     drop_diff = (
@@ -145,12 +148,15 @@ def _catalog():
         '            "-A",\n'
         '            "-f",\n'
         '            "--",\n'
-        '            *(":(literal)%s" % rel for rel in wanted),\n'
+        "            # Excludes first. On git 2.53 an exclude after a positive\n"
+        "            # pathspec drops an untracked path, so a rename's new name\n"
+        "            # never reaches the index.\n"
         '            ":!tmp",\n'
         '            ":!**/__pycache__",\n'
         '            ":!**/*.pyc",\n'
         '            ":!.pytest_cache",\n'
         '            ":!**/.pytest_cache",\n'
+        '            *(":(literal)%s" % rel for rel in wanted),\n'
         "        ]\n",
         '        argv = ["add", "-A", "-f"]\n',
     )
@@ -177,9 +183,12 @@ def _catalog():
         "                return\n",
     )
     stub = (
-        '    if os.environ.get("PFY_LOCAL_BUILD_TEST_SEAM") != "1":\n'
-        "        return []\n",
-        "",
+        "def _test_seam_on() -> bool:\n"
+        '    """True only for PFY_LOCAL_BUILD_TEST_SEAM=1. Any other value, including unset, is off."""\n'
+        '    return os.environ.get("PFY_LOCAL_BUILD_TEST_SEAM") == "1"\n',
+        "def _test_seam_on() -> bool:\n"
+        '    """True only for PFY_LOCAL_BUILD_TEST_SEAM=1. Any other value, including unset, is off."""\n'
+        "    return True\n",
     )
     return [
         _m("R1", "review skipped", "", review_off[0], review_off[1]),
