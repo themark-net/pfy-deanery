@@ -96,9 +96,34 @@ Cherry-picked, subject check done (non-merge subjects missing from the stack):
 | `bot/mvp-intfix-1031` | 0 | delete after main holds the stack |
 | `bot/mvp3-followups-1031` | 0 | delete after main holds the stack |
 | `bot/mvp-probe-fix2-1031` | 3 | keep until those 3 are checked (tip moved after the cherry-pick) |
-| `bot/mvp3-review-retry` | 5 | keep: commits after the freeze |
+| `bot/mvp3-review-retry` | 1 (`d168446`, docs only; its file `HANDOFF-mvp3-fix2-1031.md` came in through `ff8b881`) | BX3 resolved: `3a550e5`, `0d3c0fc`, `0e683b9`, `ff8b881` cherry-picked onto this stack (Tester FAIL at `89cc0d2`, see B1 below). Delete after main holds the stack. |
 
 Keep (commits after the 2026-10-31 18:20 PT freeze, not on this stack; a later lane must land or drop them): `bot/doctrine-commit-integrity-1031` (1), `bot/flake-pgrep-x-1031` (10), `bot/lessons-xstaging-1031` (1), `bot/mvp-backlog-fu-1031` (7), `bot/mvp-cloud347-1031` (15), `bot/mvp-dogfood4-1031` (22), `bot/mvp-dogfood5-1031` (15), `bot/mvp-dogfood6-1031` (26), `bot/mvp-flake-harness2-1031` (11), `bot/mvp-hermes-check-1031` (5), `bot/mvp-integrate-pass4-1031` (48), `bot/mvp-localbench-tmpdir-1031` (3), `bot/mvp-merge-plan-1031` (5, plan lane), `bot/mvp-pfy-followups-next-1031` (11), `bot/mvp-pregate-fixture-tmp-1031` (3), `bot/mvp-probe-int-1031` (7), `bot/mvp-probe-s2s5-1031` (14), `bot/mvp-selfhost2-1031` (10), `bot/mvp-tautology-scan-1031` (13), `bot/mvp-timeoutfix-1031` (1, handoff doc only), `bot/mvp3-s2s5-1031` (7). Counts are missing non-merge subjects.
+
+### S1. Patch-ids for the 10 reworded Built-by commits (`b528486`)
+
+`tests/test_selfhost_1031_log.py` `REWORDED_SUBJECTS` accepts these 10 stack commits, whose subjects differ from the cloud runner's subject. Each receipt names the commit the cloud runner made (`commit`). That commit is on no branch on origin (it lived on the lane's local `cloud/*` branch on nimo), so the subject cannot be compared there. The diff can: `git show <sha> | git patch-id --stable` is the same for the stack commit and the receipt commit in all 10 rows, so only the message changed. Recomputed on nimo on 2026-11-02.
+
+| Stack commit | Receipt dir (`eval/selfhost2-1031/`) | Receipt `commit` | `patch-id --stable` | Receipt commit |
+| --- | --- | --- | --- | --- |
+| `4a0fe4eeebd2` | `01-ad-snap` | `35b758513b59` | `a8f753bf6787ebd6a549ae5e87955c9b244363b2` | same |
+| `cdf4d681c19c` | `02b-kolibri-receipt` | `7a79465f4544` | `e20e3149f2c812c58c5909303b6e62cf75faf588` | same |
+| `36bc071c3e82` | `03-typed-receipt` | `a586ad16cee9` | `7b440a5182510475a22ea846f8f86c6b11240e92` | same |
+| `ae5e5e5e7459` | `04-adapter-hash` | `f11f7de07b3c` | `95fd165c5326d0bf053a5ee8d67a681c10d7283b` | same |
+| `91386568b3c5` | `05-smoke140-hash` | `b9de401890a2` | `3730685bb7410c1147ca49dd73f137bf7e89f164` | same |
+| `1faa9fd7e80b` | `06-smoke137-hash` | `fdef8d6f11c2` | `7f3a790fdc403cd739acf16af5c4798e5dbf5ea6` | same |
+| `e6339ca3c6de` | `07-adapter-symlink-ops` | `e762c1aef89a` | `bfc57e5324a7f3fe383cad013bef11ebf44bf9ef` | same |
+| `67e3333a76c3` | `08-surface-symlink` | `dff338cf6bf8` | `0e6f4ce86700748862329d36452ce865f6999dc4` | same |
+| `d217349f1acc` | `09-install-symlink` | `89b35a5b6821` | `753d397bf8510701d92480e5d1d77d0c077f1b3b` | same |
+| `3eeab428e879` | `10-hedge-ledger` | `e8cc4f32bca3` | `1726ad83ff6e833cafe0c724c47a9f70ef1e8404` | same |
+
+Fail: a later rebase changes one of these diffs, and the allowlist still passes on SHA alone. Recover: rerun the loop above; any row that is not `same` is a new build and needs a new receipt, not an allowlist entry.
+
+### S5. Pregate fail/recover notes (from `HANDOFF-mvp-followups-fix2-1031.md`)
+
+- P2 failing lint: `PREGATE_IMAGE_PIN_ROOT`, when set, is the path linted by `scripts/check_workflow_image_pin.py`. A scratch copy of `tests/fixtures/workflow_image_pin/latest.yml` makes `scripts/pregate.sh --only lint` print `OVERALL=FAIL` with `unpinned GitHub-hosted runs-on (ubuntu-latest)`. Recover: pin the job to `ubuntu-24.04`, or unset the hook. A missing hook path fails closed.
+- G1 root length: pregate refuses `RUN_ROOT` or `SCRATCH` longer than `PREGATE_MAX_ROOT_LEN` (default 60) with `path too long (N > LIMIT chars): <path>`, exit 2 before any check, no OVERALL line. A limit equal to the longer path passes and `--only lint` prints `OVERALL=PASS` (`test_root_path_at_the_limit_passes_the_guard`, which again asserts `PASS workflow image pin:`). Recover: a shorter checkout, or a higher `PREGATE_MAX_ROOT_LEN`.
+- Shallow checkout: `--base` defaults to `origin/main`, which a `fetch-depth: 1` clone does not have, so pregate exits 2 `unknown base ref`. The image-pin tests pass `--base HEAD` (B2d). Recover for a real run: pass `--base <sha>` or fetch `origin/main`.
 
 ## Next
 

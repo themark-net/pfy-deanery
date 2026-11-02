@@ -10,6 +10,8 @@ Each case is a git diff against this repo (`diffs/`, `cases.json`). The harness 
 
 Before: timeout 180s. `b01` produced no verdict and was retried once at 420s. The row below is that retry. After: timeout 480s, one pass, no retries. Prompt change: `67e7a4a`.
 
+Note on `b08`, `g01` and `g04`: the Before and After verdicts below were measured on the original diffs. Commit `6c1405e` later re-cut those three diffs so they apply to the union runner on the mvp-land stack, and regenerated all 20 files. The re-cut diffs keep the same intent but were not re-run through the reviewer, so their rows describe the old diffs, not the files now in `diffs/`.
+
 ## Before
 
 False accepts: 3. False rejects: 0. Errors: 0 after the retry.
