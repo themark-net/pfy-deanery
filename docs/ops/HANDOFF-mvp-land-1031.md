@@ -167,3 +167,29 @@ Six example smokes (`smoke_112_114.py:126`, `smoke_115_116.py:128`, `smoke_117_1
 - x_intake smokes (`test_x_intake_smoke_112_114`, `_117_118`, `_119_121`, `_112_115_receipts`) and the home/tree signature tests (`test_home_sig_148`, `test_remaining_home_sigs`, `test_tree_sig_112/115/117/119`, `test_tree_sig_copies`): every traceback ends in the B2c `TypeError` (the timeout cases hit it in the post-timeout home check, so stderr shows `TimeoutExpired` chained to it).
 - `test_workflow_image_pin` (4 tests): they run `scripts/pregate.sh --in-place --only lint`. Pregate resolves `--base` (default `origin/main`) before it looks at `--only`, and a fetch-depth 1 checkout has no `origin/main`, so it exits 2 (`unknown base ref`) with no OVERALL line. The tests only exercise lint, which never uses the base. Fix: those test invocations pass `--base HEAD`; pregate's documented exit 2 for an unknown base is kept.
 - `CloudBuildUnchangedTests.test_help_and_dry_run_stay_the_same`: argparse in 3.13 prints `-p, --prompt PROMPT`; 3.12 prints `-p PROMPT, --prompt PROMPT`. The test pinned the 3.13 text. Fix: accept either spelling of the same option.
+
+## Tester FAIL at `ae24af4` (2026-11-02): root causes, written before the fixes
+
+### BX3b. A new binary file is committed unreviewed (local)
+
+`_collect_diff` in `scripts/pfy_build_local.py` builds a synthetic diff for each new file that `git diff HEAD` does not list. It read the file with `read_text(encoding="utf-8", errors="replace")`, so non-UTF-8 bytes became U+FFFD in the reviewer prompt, and `binary` stayed False. `_review_refusal` only refuses on `stats["binary"]` (set from tracked numstat `-`) or git's `Binary files ... differ` line, and neither fires for a pasted new file. Probe q3 (untracked `src/evil.bin` with non-UTF-8 bytes) was accepted by the fake reviewer and committed. Fix: read new files as bytes; a file with a NUL byte or bytes that are not strict UTF-8 sets `binary` and gets git's binary marker instead of decoded text, so the attempt is refused before the review call.
+
+### #308. Cloud review cuts the diff at 12000 characters and still publishes
+
+`review_prompt` in `scripts/pfy_build_cloud.py` sliced the redacted diff at `DIFF_CAP` and appended `...[diff truncated]`. The run loop only recorded `review.truncated`, so an accept on a cut prompt still committed and called `_publish_branch`. `tests/test_pfy_build_cloud.py` asserted that accept as correct. A new untracked binary file has the same gap: `git diff --no-index` prints only `Binary files ... differ`. Fix: refuse before the commit when the redacted diff is over `DIFF_CAP` (`review-diff-too-large`) or has git's binary marker (`review-binary-change`), no retry, no publish; `review_prompt` never slices.
+
+### Over the 250-line cap is retried as a review reject
+
+`_reject_reasons` folds the size check into the scope reasons, so a diff over `--max-lines` was `PASS-REJECTED` / `review-rejected` and was retried up to `--retries` times, although the reviewer was never asked. Fix: a diff over the line cap is a single `FAIL` with reason `review-diff-over-line-cap` and no retry. The file cap keeps its current retry behavior.
+
+### dogfood2 real-tree audit never runs in CI
+
+Both eval-structural jobs check out with the default `fetch-depth: 1`. `test_real_tree_matches_receipts_and_trailers` skips in a shallow clone when trailer commits are missing, so the audit was skipped on every CI run. Fix: the Ubuntu job checks out with `fetch-depth: 0` and a dedicated step runs the module verbose and fails on a skip.
+
+### S1. Patch-ids were recorded but not checked
+
+`REWORDED_SUBJECTS` in `tests/test_selfhost_1031_log.py` skips the subject check for 10 SHAs. The patch-ids sat in this handoff only, so a rebase that changed one of those diffs would still pass. Fix: the allowlist maps each SHA to its `git patch-id --stable`, and the test recomputes it.
+
+### Stale counts
+
+This handoff's "Tests at" section and `docs/PENDING-HANDOFF.md` cite run 41527508885 at `07c9f63`. The ae24af4 run is 41537542671.
