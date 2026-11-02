@@ -82,6 +82,21 @@ def write(entry: str, receipt: dict, code: int) -> int:
     return code
 
 
+def walk_nofollow(root: Path) -> list[Path]:
+    """Every file, directory, and symlink under root.
+
+    A symlink to a directory is one entry and is not descended into. Same
+    membership as Path.rglob("*", recurse_symlinks=False), which is 3.13+.
+    os.walk(followlinks=False) is that walk on 3.12 and later. Callers that
+    need a stable order sort the result.
+    """
+    found: list[Path] = []
+    for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
+        parent = Path(dirpath)
+        found.extend(parent / name for name in (*dirnames, *filenames))
+    return found
+
+
 def run(cmd: list[str], cwd: str | None = None, timeout: int = 120) -> subprocess.CompletedProcess:
     return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=timeout)
 

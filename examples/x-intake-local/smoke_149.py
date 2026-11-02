@@ -118,6 +118,19 @@ def sandbox_mount_args() -> tuple[list[str], str | None]:
     return ["--tmpfs", SHM_PATH, "--proc", PROC_PATH], None
 
 
+def walk_nofollow(root: Path) -> list[Path]:
+    """Every file, directory, and symlink under root.
+
+    A symlink to a directory is one entry and is not descended into. Same
+    membership as Path.rglob("*", recurse_symlinks=False), which is 3.13+.
+    """
+    found: list[Path] = []
+    for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
+        parent = Path(dirpath)
+        found.extend(parent / name for name in (*dirnames, *filenames))
+    return found
+
+
 def home_sig(home: Path) -> dict:
     """Content, lstat mode, and symlink text per watched path. mtime is ignored; links are not followed."""
     import hashlib
@@ -132,7 +145,7 @@ def home_sig(home: Path) -> dict:
             return hashlib.sha256(f"{p}:unreadable\n".encode()).hexdigest()
         if stat.S_ISDIR(root_st.st_mode):
             try:
-                nodes = [p, *sorted(p.rglob("*", recurse_symlinks=False))]
+                nodes = [p, *sorted(walk_nofollow(p))]
             except OSError:
                 nodes = [p]
         else:

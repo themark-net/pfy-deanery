@@ -82,6 +82,19 @@ def bwrap_ok() -> bool:
     return p.returncode == 0
 
 
+def walk_nofollow(root: Path) -> list[Path]:
+    """Every file, directory, and symlink under root.
+
+    A symlink to a directory is one entry and is not descended into. Same
+    membership as Path.rglob("*", recurse_symlinks=False), which is 3.13+.
+    """
+    found: list[Path] = []
+    for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
+        parent = Path(dirpath)
+        found.extend(parent / name for name in (*dirnames, *filenames))
+    return found
+
+
 def home_sig(home: Path) -> dict:
     """One entry per watched path. None when missing.
 
@@ -132,7 +145,7 @@ def home_sig(home: Path) -> dict:
             sig[rel] = ("link", mode, os.readlink(p))
         elif stat.S_ISDIR(st.st_mode):
             try:
-                kids = list(p.rglob("*", recurse_symlinks=False))
+                kids = walk_nofollow(p)
             except OSError:
                 sig[rel] = ("dir", mode, "unlistable")
                 continue

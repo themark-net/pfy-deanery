@@ -53,7 +53,7 @@ import tempfile
 import time
 from pathlib import Path
 
-from smoke import TMP, run_isolated, timeout_reason, write
+from smoke import TMP, run_isolated, timeout_reason, walk_nofollow, write
 
 OVERTIME_PIN = "0.5.3"
 # festival v0.3.20 festival-0.3.20-linux-x86_64.tar.gz (tarball sha256
@@ -123,7 +123,7 @@ def tree_sig(p: Path) -> str | None:
             h.update(f"{p}:{mode}:link:{os.readlink(p)}\n".encode())
         except OSError:
             h.update(f"{p}:unreadable\n".encode())
-    for f in sorted(p.rglob("*", recurse_symlinks=False)):
+    for f in sorted(walk_nofollow(p)):
         try:
             st = f.lstat()
         except OSError:
