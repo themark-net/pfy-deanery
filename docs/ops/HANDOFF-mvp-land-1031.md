@@ -103,3 +103,29 @@ Keep (commits after the 2026-10-31 18:20 PT freeze, not on this stack; a later l
 ## Next
 
 Pregate on the commit that adds this section, then Tester plus Reviewer at that SHA (behavior-changing code), then fast-forward `main`. This lane sends no gate request.
+
+## Tester FAIL at `89cc0d2` (2026-11-02): root causes, written before the fixes
+
+Write-up: https://github.com/themark-net/pfy-mentat/issues/306#issuecomment-6587809738. CI run 41510427750 (eval-structural, `workflow_dispatch` on `bot/mvp-land-1031`): nimo job 125500577002 had 3 failures, Ubuntu job 125500577122 (Python 3.12.15) had 15 failures and 11 errors.
+
+### B1. BX3: the reviewer can be shown less than the commit stores
+
+The stack has the mvp3 review-retry lane only up to the `16f17d8` era (its fixes were cherry-picked). The BX3 fix landed later on `bot/mvp3-review-retry` (`3a550e5`, test `0d3c0fc`, docs `0e683b9`/`ff8b881`, tip `4be797e`), after the plan's freeze, and the branch-delete list above wrongly parked it as "commits after the freeze" without naming BX3 or the open Tester FAIL. So `_review_prompt` still slices the diff to `DIFF_PROMPT_CAP` (`scripts/pfy_build_local.py:2740`), and a binary change reaches the reviewer only as `Binary files ... differ`. The Tester's h11 (long tail), h11b (many short lines) and h12b (tracked binary) runs committed content the reviewer never saw. Fix: cherry-pick `3a550e5` and `0d3c0fc` (and the two lane docs). They fail closed before the reviewer is called: `review-diff-too-large` over the cap, `review-binary-change` for a binary numstat or git's binary notice; no commit and no retry. Their E2E tests are the h11/h11b/h12b shapes. `_agent_prompt` (`:1155`) still trims the previous diff, but that is feedback to the builder on a rejected attempt, not what the reviewer approves.
+
+### B2a. `test_dogfood2_1031_report` needs history
+
+`eval/dogfood2-1031/check_reports.py` checks that each receipt's commit and its Built-by trailer exist in the repo. `eval-structural.yml` checks out with `fetch-depth: 1` on both jobs, so `31a863c` and the other build commits are absent, and both runners report `commit ... is not in the repo`. The pregate PASS ran in a linked worktree with full history, so it never saw this. Fetching full history in CI would hide the coupling instead of fixing it, and G0 is meant to be a fast tree check. Fix: the real-tree audit skips with a named reason when the repo is shallow and the commit is absent (it still runs, and must pass, wherever history exists, such as pregate in a full clone); the planted-mismatch case builds its own temp repo so it runs everywhere.
+
+### B2b. `tests/test_pfy_local_build_eval.py:566`
+
+`assertNotEqual(main, ROOT)` assumes the suite runs in a linked worktree (as every lane did). In a plain checkout (CI, a fresh clone) the main checkout is ROOT. Fix: drop that assumption; the test still proves the eval refuses scratch in the main checkout, which in a plain checkout is ROOT itself.
+
+### B2c. `rglob(..., recurse_symlinks=False)` is Python 3.13+
+
+Six example smokes (`smoke_112_114.py:126`, `smoke_115_116.py:128`, `smoke_117_118.py:86`, `smoke_119_121.py:95`, `smoke_148.py:135`, `smoke_149.py:135`) pass that keyword. Python 3.12 raises `TypeError`. nimo runs 3.14, so nimo was green. Fix: one stdlib walk that lists a symlink (to a file or directory) as an entry and never descends into it, on 3.12 and later, plus a test.
+
+### B2d. Ubuntu-only failures
+
+- x_intake smokes (`test_x_intake_smoke_112_114`, `_117_118`, `_119_121`, `_112_115_receipts`) and the home/tree signature tests (`test_home_sig_148`, `test_remaining_home_sigs`, `test_tree_sig_112/115/117/119`, `test_tree_sig_copies`): every traceback ends in the B2c `TypeError` (the timeout cases hit it in the post-timeout home check, so stderr shows `TimeoutExpired` chained to it).
+- `test_workflow_image_pin` (4 tests): they run `scripts/pregate.sh --in-place --only lint`. Pregate resolves `--base` (default `origin/main`) before it looks at `--only`, and a fetch-depth 1 checkout has no `origin/main`, so it exits 2 (`unknown base ref`) with no OVERALL line. The tests only exercise lint, which never uses the base. Fix: those test invocations pass `--base HEAD`; pregate's documented exit 2 for an unknown base is kept.
+- `CloudBuildUnchangedTests.test_help_and_dry_run_stay_the_same`: argparse in 3.13 prints `-p, --prompt PROMPT`; 3.12 prints `-p PROMPT, --prompt PROMPT`. The test pinned the 3.13 text. Fix: accept either spelling of the same option.
