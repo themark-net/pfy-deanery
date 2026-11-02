@@ -48,3 +48,12 @@ The test stops at the first miss (`b07-shell-rm`, `scripts/pfy_build_cloud.py:61
 - g04 (`examples/x-intake-local/smoke_149.py`): the same rewrite made `home_sig` lstat-based with `os.readlink` and a content hash, so the old `q.stat().st_size` shape (and the `149` needle) is gone, and the old task is already done.
 
 Fix: in `eval/mvp-1031/review-quality/build_cases.py`, update the two needles and re-cut b08, g01, g04 against the current functions with the same label and the same kind of change (b08: drop the missing-path `None` branch, so a missing path is recorded as unreadable; g01 and g04: a no-behavior-change edit that matches its task). Keep ids, so the saved `results/before` and `results/after` rows still line up. Then regenerate all 20 diffs and `cases.json` with the generator. Do not hand-edit diffs.
+
+### 5. Built-by subject check (`tests.test_selfhost_1031_log`, found by the full suite at `28daaa6`)
+
+Not in the plan's red list, and already red at `cee9bdd` (the last merge of the stack is `bot/mvp-selfhost2-1031`). `test_this_branch_has_no_bad_built_by_trailer` walks every `Built-by: ./pfy build (cloud) receipt` commit in history and wants the subject to equal the task cut at 72 characters. 15 of the 36 trailer commits fail:
+
+- 5 `dogfood3` commits (`2587cad`, `55ad1b1`, `4ef4c66`, `775e34b`, `98e5795`): the subject is exactly what the union runner writes. The dogfood fix changed `scripts/pfy_build_cloud.py` `commit_subject` to whole words plus `...`, so a mid-word cut no longer appears. The test's `expected_subject` is the pre-fix rule. The runner is right; the check is stale.
+- 10 `selfhost2` commits (`4a0fe4e`, `cdf4d68`, `36bc071`, `ae5e5e5`, `9138656`, `1faa9fd`, `e6339ca`, `67e3333`, `d217349`, `3eeab42`): the lane cherry-picked each cloud build and gave it a readable subject, as its drop-in asked ("Commit with a clear message naming the item"). The receipts are PASS. On nimo each commit has the same `git patch-id --stable` as the receipt's `commit`, so the change is the cloud build's change; only the message differs. Those receipt commits are not on origin, so CI cannot repeat that check. History is not rewritten (no force-push).
+
+Fix: the check accepts either runner rule (the old 72-character cut, still in history from the selfhost/dogfood2 lanes, or the current `commit_subject`). The 10 reworded selfhost2 SHAs get an exact-SHA list with the reason; for them only the subject comparison is skipped, and the trailer path, receipt presence and PASS status are still checked. Any new mismatch still fails.
