@@ -512,6 +512,45 @@ def _common_main() -> Path:
     return Path(proc.stdout.strip()).resolve().parent
 
 
+def _drop_linked_worktree(repo: Path, linked: Path) -> None:
+    subprocess.run(
+        ["git", "-C", str(repo), "worktree", "remove", "--force", str(linked)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if linked.exists():
+        shutil.rmtree(linked, ignore_errors=True)
+    subprocess.run(
+        ["git", "-C", str(repo), "worktree", "prune"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def _linked_eval_worktree(repo: Path) -> Path:
+    """Detached worktree so the eval script does not live in a plain checkout.
+
+    The script allows --repo of its own tree. In a plain checkout that tree
+    is the main checkout, so the refusal only shows up from another worktree.
+    """
+    parent = repo / "tmp" / "eval-refuse-worktree"
+    parent.mkdir(parents=True, exist_ok=True)
+    dest = parent / "wt"
+    if dest.exists():
+        _drop_linked_worktree(repo, dest)
+    proc = subprocess.run(
+        ["git", "-C", str(repo), "worktree", "add", "--detach", "--quiet", str(dest), "HEAD"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if proc.returncode != 0:
+        raise RuntimeError(proc.stderr or proc.stdout or "git worktree add failed")
+    return dest
+
+
 def _drop_new_children(root: Path, pattern: str, before: set[str]) -> None:
     if not root.is_dir():
         return
@@ -564,13 +603,21 @@ class ScratchPathTests(unittest.TestCase):
 
     def test_eval_refuses_scratch_in_the_main_checkout(self):
         main = _common_main()
-        self.assertNotEqual(main.resolve(), ROOT.resolve())
+        script = ROOT / "scripts" / "pfy_local_build_eval.py"
+        # A linked worktree already lives outside the main checkout. A plain
+        # checkout is the main checkout, so run the same script from a
+        # throwaway worktree and point --repo at this tree.
+        if main.resolve() == ROOT.resolve():
+            linked = _linked_eval_worktree(ROOT)
+            self.addCleanup(_drop_linked_worktree, ROOT, linked)
+            script = linked / "scripts" / "pfy_local_build_eval.py"
+        (ROOT / "tmp").mkdir(parents=True, exist_ok=True)
         watched = main / "tmp"
         before = {p.name for p in watched.glob("local-build-eval-*")} if watched.is_dir() else set()
         proc = subprocess.run(
             [
                 "python3",
-                str(ROOT / "scripts" / "pfy_local_build_eval.py"),
+                str(script),
                 "--repo",
                 str(main),
                 "--limit",

@@ -1706,6 +1706,16 @@ class LocalBuildTests(unittest.TestCase):
         self.assertIn("/tmp", proc.stderr or "")
 
 
+def _has_prompt_flag(text: str) -> bool:
+    """True for either argparse spelling of -p/--prompt.
+
+    3.13 prints '-p, --prompt PROMPT'. 3.12 prints '-p PROMPT, --prompt PROMPT'.
+    Both the short and long options have to be present.
+    """
+    spelling = "-p, --prompt" in text or "-p PROMPT, --prompt PROMPT" in text
+    return spelling and "-p" in text and "--prompt" in text
+
+
 class CloudBuildUnchangedTests(unittest.TestCase):
     def test_help_and_dry_run_stay_the_same(self):
         """Bare help is the cloud card. ./pfy build -p --help keeps dogfood flags.
@@ -1759,7 +1769,7 @@ class CloudBuildUnchangedTests(unittest.TestCase):
             self.assertIn("--local", help_text)
             self.assertIn("--dry-run", help_text)
             self.assertNotIn("--prompt-file", help_text)
-            self.assertNotIn("-p, --prompt", help_text)
+            self.assertFalse(_has_prompt_flag(help_text), help_text)
             dogfood = subprocess.run(
                 [str(ROOT / "pfy"), "build", "-p", "--help"],
                 cwd=ROOT,
@@ -1774,7 +1784,9 @@ class CloudBuildUnchangedTests(unittest.TestCase):
             self.assertIn("Apply local jev toolset", dogfood_text)
             self.assertIn("--dry-run", dogfood_text)
             self.assertIn("--prompt-file", dogfood_text)
-            self.assertIn("-p, --prompt", dogfood_text)
+            self.assertIn("-p", dogfood_text)
+            self.assertIn("--prompt", dogfood_text)
+            self.assertTrue(_has_prompt_flag(dogfood_text), dogfood_text)
             self.assertNotIn("Daily cloud build", dogfood_text)
             dry = subprocess.run(
                 [str(ROOT / "pfy"), "build", "-p", "x", "--dry-run"],

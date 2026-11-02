@@ -78,7 +78,7 @@ def run_pregate_lint(limit: int, timeout: int) -> subprocess.CompletedProcess[st
     env["TMPDIR"] = str(SCRATCH)
     env["PREGATE_MAX_ROOT_LEN"] = str(limit)
     return subprocess.run(
-        ["nice", "-n", "19", "scripts/pregate.sh", "--in-place", "--allow-dirty", "--only", "lint"],
+        ["nice", "-n", "19", "scripts/pregate.sh", "--in-place", "--allow-dirty", "--base", "HEAD", "--only", "lint"],
         cwd=ROOT,
         env=env,
         capture_output=True,
@@ -515,6 +515,8 @@ class WorkflowImagePinTests(unittest.TestCase):
                     "scripts/pregate.sh",
                     "--in-place",
                     "--allow-dirty",
+                    "--base",
+                    "HEAD",
                     "--only",
                     "lint",
                 ],
@@ -680,6 +682,8 @@ class WorkflowImagePinTests(unittest.TestCase):
                     "scripts/pregate.sh",
                     "--in-place",
                     "--allow-dirty",
+                    "--base",
+                    "HEAD",
                     "--only",
                     "lint",
                 ],
@@ -735,6 +739,11 @@ class WorkflowImagePinTests(unittest.TestCase):
         self.assertNotIn("path too long", blob)
         self.assertEqual(proc.returncode, 0, blob)
         self.assertIn("OVERALL=PASS", proc.stdout)
+        match = re.search(r"Summary: (\S+)", proc.stdout)
+        self.assertIsNotNone(match, blob)
+        log = Path(match.group(1)).parent / "logs" / "lint.log"
+        text = log.read_text(encoding="utf-8")
+        self.assertIn("PASS workflow image pin:", text)
 
 
 if __name__ == "__main__":
