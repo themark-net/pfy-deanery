@@ -9,3 +9,8 @@
 - #306: Hermes `-z -m qwen3.6:35b` on the mutant re-cut ran 45 min (timeout 2700, exit 124) with zero edits; fell back to Grok Build headless (`grok --prompt-file ... --always-approve`, same task file), which finished in about 9 min, exit 0.
 - #306: Build's re-cut of C9 C22 C31 C38 C39 R3 R4 R11 R14 reviewed line by line and kept; R3/R4 anchor on the HTTP/transport outage branch (includes its `if`), R14 flips `_test_seam_on()` to `return True`.
 - #306: full suite at `28daaa6` found a fifth stale check (`test_selfhost_1031_log` Built-by subjects, red since `cee9bdd`). Fixed directly (small): accept the current runner `commit_subject` rule and list the 10 reworded selfhost2 SHAs by exact id. Alternative was rewording history; rejected because it needs a force-push and touches other lanes.
+- #306 Tester FAIL at 89cc0d2: BX3 came in by cherry-picking 3a550e5, 0d3c0fc, 0e683b9, ff8b881 (not a merge of 4be797e), because the stack already holds the earlier retry fixes as cherry-picks and a merge would re-add their originals. The ff8b881 conflict on HANDOFF-mvp3-fix2-1031.md (absent on the stack) took the branch's version, which equals the file at 4be797e.
+- #306: the B2/S3/S4 test fixes went to Grok Build, not Hermes, because Hermes timed out at 45 min with no edits on today's comparable multi-file task.
+- #306 B2a: skip the real-tree dogfood2 audit only in a shallow clone with the commit absent, instead of raising CI fetch-depth, so CI stays fast and a full clone still fails on a missing commit.
+- #306 S1: recorded patch-ids rather than pushing the 10 receipt commits to origin, since the patch-ids prove the diffs match without adding refs.
+- #306 S6: filed #307 for the bare ./pfy ollama serve start; not fixed in this lane.
