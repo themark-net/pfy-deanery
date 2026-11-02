@@ -68,13 +68,16 @@ Fix: the check accepts either runner rule (the old 72-character cut, still in hi
 
 Who did the work: Hermes (`-z -m qwen3.6:35b`) took the mutant re-cut first and timed out after 45 minutes with no edits (its default `minimax-m3:cloud` returned nothing; an earlier log shows HTTP 402). Grok Build headless did the mutant re-cut (exit 0), reviewed line by line here. The planted re-cut and item 5 were small and done directly.
 
-## Tests at `b528486`
+## Tests at `07c9f63` (replaces the `b528486` count)
 
-Scope: `python3 -m unittest discover -s tests -t .` (the CI scope; fixture tests under `eval/` are not suites), `TMPDIR` under the worktree `tmp/`, host nimo with bwrap.
+Scope: `python3 -m unittest discover -s tests -t .` (the CI scope; fixture tests under `eval/` are not suites). The earlier `Ran 1372 tests` / `OK (skipped=16)` at `b528486` was one interpreter (nimo Python 3.14) in a linked worktree with full history, so it did not cover Python 3.12 or a shallow clone and is withdrawn.
 
-- `Ran 1372 tests in 993.210s` / `OK (skipped=16)`. At `28daaa6` the same run was `FAILED (failures=1, skipped=16)`, only item 5.
-- Per-module counts: [mvp-land-1031-tests.txt](mvp-land-1031-tests.txt) (133 modules, from the unittest loader; skips counted from the log).
-- The five re-cut checks: `test_mut_cloud_harness` 4, `test_mut_cloud2_harness` 3, `test_mut_review_harness` 6, `test_review_quality_replay` 7, `test_selfhost_1031_log` 3; all ok, none skipped. `eval/mutation-1031/review/run_mutants.py --check-anchors` prints `anchors 14 ok`.
+- eval-structural run 41527508885 (workflow_dispatch on `bot/mvp-land-1031` at `07c9f6311cb18beac7c4460ce657b5ec30d74f4e`), both jobs `fetch-depth: 1`:
+  - `G0 (self-hosted nimo)` job 125558932039, Python 3.14: `Ran 1377 tests in 996.834s` / `OK (skipped=17)`. Conclusion success.
+  - `G0 (ubuntu-24.04)` job 125558932587, Python 3.12.15: `Ran 1377 tests in 903.955s` / `OK (skipped=109)`. Conclusion success. The extra skips are host-gated tests (bwrap, local models, ollama) that the hosted image does not have.
+- New since `b528486`: the BX3 E2E tests (`test_diff_over_the_prompt_cap_is_not_committed` h11, `test_many_short_lines_over_the_prompt_cap_are_not_committed` h11b, `test_tracked_binary_edit_is_not_committed` h12b, plus the non-ASCII path test) and `tests/test_x_intake_walk_no_follow.py`. The new shallow-clone skip in `test_dogfood2_1031_report` is expected to be one of the nimo skips (CI checks out at depth 1); unittest does not print skip reasons, so this is not confirmed from the log.
+- Per-module counts at `b528486`: [mvp-land-1031-tests.txt](mvp-land-1031-tests.txt) (133 modules). Not regenerated.
+- The five re-cut checks: `test_mut_cloud_harness` 4, `test_mut_cloud2_harness` 3, `test_mut_review_harness` 6, `test_review_quality_replay` 7, `test_selfhost_1031_log` 3; all ok. `eval/mutation-1031/review/run_mutants.py --check-anchors` prints `anchors 14 ok` (rechecked at `07c9f63`).
 
 ## Fail/recover checks from MERGE-PLAN-1031 (still hold)
 
