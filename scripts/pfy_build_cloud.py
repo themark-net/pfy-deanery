@@ -513,6 +513,7 @@ TERMINAL_FAILURE_REASONS = (
     "build-busy",
     "commit-failed",
     "commit-recheck-failed",
+    "gate-rewrote",
     "interrupted",
     "no-change",
     "no-receipt",
@@ -629,6 +630,10 @@ def failure_recovery(reason: str, task: str, detail: str = "") -> str:
         ),
         "tests": "Mark: the gate stayed red. Read the receipt gate tail, then rerun ./pfy build %s.",
         "tests-flaky": "Mark: the gate passed once and failed once. Rerun ./pfy build %s.",
+        "gate-rewrote": (
+            "Mark: the gate changed files in the worktree. "
+            "Make the gate only check, then rerun ./pfy build %s."
+        ),
         "review-rejected": (
             "Mark: review rejected the diff. Change the task or the patch, then rerun ./pfy build %s."
         ),
@@ -805,6 +810,37 @@ def cached_names(worktree: Path) -> list[str]:
         if rel:
             names.append(rel)
     return names
+
+
+def gate_tree_manifest(root: Path) -> dict[str, str]:
+    """Path to content hash under root, skipping tmp/.
+
+    A gate that only reads keeps this map. A write, add, or delete does not.
+    """
+    found: dict[str, str] = {}
+    if not root.is_dir():
+        return found
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [name for name in dirnames if name != "tmp"]
+        for name in filenames:
+            full = Path(dirpath) / name
+            try:
+                rel = _norm_rel(full.relative_to(root).as_posix())
+            except ValueError:
+                continue
+            if not rel or rel == "tmp" or rel.startswith("tmp/"):
+                continue
+            try:
+                if full.is_symlink():
+                    payload = os.readlink(full).encode("utf-8", "surrogateescape")
+                elif full.is_file():
+                    payload = full.read_bytes()
+                else:
+                    continue
+                found[rel] = hashlib.sha256(payload).hexdigest()
+            except OSError:
+                found[rel] = ":unreadable"
+    return found
 
 
 def snapshot_tests(worktree: Path) -> dict[str, str]:
@@ -1065,6 +1101,8 @@ class CloudBuild:
             env["TMPDIR"] = str(gate_tmp)
         except OSError:
             pass
+        # Snapshot after tmp/ exists so the runner's own temp dir is not a rewrite.
+        before_tree = gate_tree_manifest(where)
         status, code, out, err = run_command(
             argv,
             where,
@@ -1086,6 +1124,8 @@ class CloudBuild:
             record["aborted"] = "timeout"
         elif status == "interrupted" or self.state.interrupted:
             record["aborted"] = "interrupted"
+        elif gate_tree_manifest(where) != before_tree:
+            record["rewrote"] = True
         return record
 
     def recheck_sha(self, sha: str) -> tuple[str | None, str]:
@@ -1145,6 +1185,8 @@ class CloudBuild:
                 return "timeout", tail
             if self.state.interrupted or again.get("aborted") == "interrupted":
                 return "interrupted", tail
+            if again.get("rewrote"):
+                return "gate-rewrote", tail
             if again.get("exit") != 0 or not again.get("started"):
                 return "commit-recheck-failed", tail
             return None, tail
@@ -1487,6 +1529,11 @@ class CloudBuild:
         self.record(number, "TIMEOUT", "timeout", output)
         return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")
 
+    def _gate_rewrote_fail(self, number: int, output: str) -> int:
+        """The gate edited the tree. Terminal: no retry, no commit, no branch."""
+        self.record(number, "FAIL", "gate-rewrote", output)
+        return self.fail("FAIL", "gate-rewrote", EXIT_FAIL, "")
+
     def prepare_worktree(self) -> str | None:
         dest = self.repo / "tmp" / "cloud-build" / self.stamp
         try:
@@ -1668,6 +1715,8 @@ class CloudBuild:
         if self.state.interrupted or (self.gate_before or {}).get("aborted") == "interrupted":
             self.record(0, "FAIL", "interrupted", "")
             return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
+        if (self.gate_before or {}).get("rewrote"):
+            return self._gate_rewrote_fail(0, str((self.gate_before or {}).get("tail") or ""))
         blocked = before_gate_block(self.gate_before, self.args.test_cmd)
         if blocked:
             tail = str((self.gate_before or {}).get("tail") or "")
@@ -1758,6 +1807,8 @@ class CloudBuild:
             if self.state.interrupted or after.get("aborted") == "interrupted":
                 self.record(number, "FAIL", "interrupted", output)
                 return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
+            if after.get("rewrote"):
+                return self._gate_rewrote_fail(number, output + "\n" + str(after.get("tail") or ""))
             if not changed:
                 feedback = "no-change\n%s" % (after.get("tail") or "")
                 self.record(number, "FAIL", "no-change", output)
@@ -1781,6 +1832,8 @@ class CloudBuild:
             if self.state.interrupted or again.get("aborted") == "interrupted":
                 self.record(number, "FAIL", "interrupted", output)
                 return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
+            if again.get("rewrote"):
+                return self._gate_rewrote_fail(number, output + "\n" + str(again.get("tail") or ""))
             if again.get("exit") != 0 or not again.get("started"):
                 feedback = "gate failed: tests-flaky\n%s" % (again.get("tail") or "")
                 self.record(number, "FAIL", "tests-flaky", output)
@@ -1884,6 +1937,9 @@ class CloudBuild:
                     self._undo_commit(keep_edits=False)
                     self.record(number, "FAIL", "interrupted", output)
                     return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
+                if recheck_reason == "gate-rewrote":
+                    self._undo_commit(keep_edits=False)
+                    return self._gate_rewrote_fail(number, output + "\n" + (recheck_tail or ""))
                 if recheck_reason:
                     self._undo_commit(keep_edits=False)
                     feedback = "commit-recheck-failed\n%s" % (self.recheck_tail or "")
