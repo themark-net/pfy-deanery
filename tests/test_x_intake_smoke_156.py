@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -18,6 +19,11 @@ import os, sys, time
 a = sys.argv[1:]
 if K.get("orphan"):
     if os.fork() == 0:
+        for fd in (1, 2):
+            try:
+                os.close(fd)
+            except OSError:
+                pass
         time.sleep(30)
         os._exit(0)
     os._exit(0)
@@ -40,6 +46,43 @@ if "--dry-run" in a:
 print("usage")
 raise SystemExit(2)
 '''
+
+# Enough of bwrap for the probe and for argv stripping. Ubuntu-parity hides the real
+# binary; the dry-run checks still need shutil.which("bwrap") to succeed. This shim
+# does not isolate. It only lets the stub run.
+BWRAP_SHIM = """
+import os, sys
+args = sys.argv[1:]
+two = {"--ro-bind", "--bind"}
+one = {"--dev", "--proc", "--chdir", "--uid", "--gid", "--setenv"}
+i = 0
+while i < len(args):
+    flag = args[i]
+    if flag in two:
+        i += 3
+        continue
+    if flag in one:
+        i += 2
+        continue
+    if flag.startswith("--"):
+        i += 1
+        continue
+    break
+if i >= len(args):
+    raise SystemExit(1)
+os.execv(args[i], args[i:])
+"""
+
+
+def _path_bwrap(td: Path, path: str) -> str:
+    if shutil.which("bwrap", path=path):
+        return path
+    bindir = td / "bin"
+    bindir.mkdir()
+    shim = bindir / "bwrap"
+    shim.write_text("#!" + sys.executable + "\n" + BWRAP_SHIM, encoding="utf-8")
+    shim.chmod(0o755)
+    return str(bindir) + os.pathsep + path
 
 
 def survivors_of(path: str) -> list[int]:
@@ -82,6 +125,8 @@ class Smoke156(unittest.TestCase):
             else:
                 env2["SYSKNIFE_BIN"] = str(td / "missing")
             env2.update(env or {})
+            if not env or "PATH" not in env:
+                env2["PATH"] = _path_bwrap(td, env2.get("PATH", ""))
             proc = subprocess.run(
                 [sys.executable, str(SCRIPT)], env=env2, capture_output=True, text=True, timeout=60,
             )
