@@ -75,9 +75,11 @@ New smokes must start every subprocess with `run_isolated` in `smoke.py` and wit
 not `os.system`, and not the older `run` helper (that one stays for Entries 095-097). `run_isolated` builds a clean
 environment and does not copy the parent process's variables. It sets `HOME` to the temp directory the caller
 passes. It starts the child in a new session and SIGKILLs the process group on timeout, so a grandchild the child
-forked dies too. Pass `bwrap_writable` (a list of directories to bind writable) to add a bubblewrap prefix when
-`bwrap` works; the prefix includes `--unshare-pid` when that flag works. Pass `None` to skip bubblewrap. `extra`
-is only for variables the smoke itself names. Do not pass the parent environment as `extra`.
+forked dies too. Pass `kill_on_exit=True` to SIGKILL that process group after a normal return as well.
+Entries 156-158 do that, so a grandchild cannot outlive the smoke. Pass `bwrap_writable` (a list of directories
+to bind writable) to add a bubblewrap prefix when `bwrap` works; the prefix includes `--unshare-pid` when that
+flag works. Pass `None` to skip bubblewrap. `extra` is only for variables the smoke itself names. Do not pass
+the parent environment as `extra`.
 
 Entries 115-116 (`smoke_115_116.py`):
 
@@ -270,3 +272,16 @@ and the routing/decision commands. Both fingerprint the real-HOME paths the tool
 (default 45 s) bounds the wait after SIGTERM. `PFY_XINTAKE_TIMEOUT` and bad overrides behave as for 140-142.
 
 Not wired into CI or Make.
+
+Entries 153-155 keep the self-contained runners in `smoke_153.py`, `smoke_154.py`, and `smoke_155.py` (renumbered from 150-152). Entries 156-158 use `run_isolated` / `find_bin` / `pinned` / `timeout_reason` and pass `kill_on_exit=True`:
+
+```sh
+python3 examples/x-intake-local/smoke_153.py   # dsh-superagent: staged clone typecheck, vitest, build; else exit 2
+python3 examples/x-intake-local/smoke_154.py   # RoBrain: staged offline VetoBench; else exit 2
+python3 examples/x-intake-local/smoke_155.py   # Kanzo: staged binary init + MCP; else exit 2
+python3 examples/x-intake-local/smoke_156.py   # SysKnife: pinned clone build or --help/--dry-run; else exit 2
+python3 examples/x-intake-local/smoke_157.py   # Emdash: pinned Linux release metadata, then exit 2 (GUI not launched)
+python3 examples/x-intake-local/smoke_158.py   # skills-manager-cli help + list; HOME and npm cache under tmp/
+```
+
+SysKnife reads `$SYSKNIFE_BIN`, else `tmp/sysknife/sysknife`, else PATH. With no binary it builds only when `$CARGO_BIN` or `cargo` exists and `$SYSKNIFE_DIR` (else `tmp/sysknife`) is the pinned commit. The build's `CARGO_HOME` and target dir stay under this worktree's `tmp/`. `--dry-run` is the planner preview (`check disk usage`); the smoke never passes `--yes` or `--dangerously-skip-approval`. No bubblewrap means no dry-run (the planner would not be network-isolated). Emdash reads the pinned GitHub release JSON through `$EMDASH_FETCH_BIN` or a stdlib fetch. It does not download the AppImage. Skills Manager reads `$SKILLS_MANAGER_BIN` or installs `skills-manager-cli` at the pinned version with `npm` into a scratch prefix under `tmp/`, with `HOME` and the npm cache in that same tree. `list` may refuse with no skill home; the smoke does not bootstrap. `PFY_XINTAKE_TIMEOUT` overrides the per-command limit. A bad value exits 2.

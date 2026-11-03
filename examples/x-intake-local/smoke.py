@@ -91,26 +91,48 @@ def _child_env(home: str, path: str = "/usr/bin:/bin", extra: dict | None = None
     return env
 
 
-def _spawn(cmd: list[str], env: dict, cwd: str | None, timeout: float) -> subprocess.CompletedProcess:
-    """New session. On timeout SIGKILL the process group so a forked grandchild dies too."""
+def _kill_group(proc: subprocess.Popen) -> None:
+    try:
+        os.killpg(proc.pid, signal.SIGKILL)
+    except (ProcessLookupError, PermissionError):
+        try:
+            proc.kill()
+        except OSError:
+            pass
+
+
+def _spawn(
+    cmd: list[str],
+    env: dict,
+    cwd: str | None,
+    timeout: float,
+    *,
+    kill_on_exit: bool = False,
+) -> subprocess.CompletedProcess:
+    """New session. On timeout SIGKILL the process group so a forked grandchild dies too.
+
+    kill_on_exit does that same SIGKILL after a normal return as well. Entries 156-158
+    set it so a bwrap child that exits and leaves a grandchild cannot outlive the smoke.
+    """
     proc = subprocess.Popen(
         cmd, cwd=cwd, env=env, stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True,
     )
     try:
-        out, err = proc.communicate(timeout=timeout)
-    except subprocess.TimeoutExpired:
         try:
-            os.killpg(proc.pid, signal.SIGKILL)
-        except (ProcessLookupError, PermissionError):
-            proc.kill()
-        try:
-            proc.communicate(timeout=5)
+            out, err = proc.communicate(timeout=timeout)
         except subprocess.TimeoutExpired:
-            proc.kill()
-            proc.wait(timeout=5)
-        raise subprocess.TimeoutExpired(cmd, timeout)
-    return subprocess.CompletedProcess(cmd, proc.returncode, out, err)
+            _kill_group(proc)
+            try:
+                proc.communicate(timeout=5)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                proc.wait(timeout=5)
+            raise subprocess.TimeoutExpired(cmd, timeout)
+        return subprocess.CompletedProcess(cmd, proc.returncode, out, err)
+    finally:
+        if kill_on_exit:
+            _kill_group(proc)
 
 
 def _probe_bwrap() -> tuple[str, ...]:
@@ -151,6 +173,7 @@ def run_isolated(
     path: str = "/usr/bin:/bin",
     extra: dict | None = None,
     bwrap_writable: list[str] | None = None,
+    kill_on_exit: bool = False,
 ) -> subprocess.CompletedProcess:
     """Start the one kind of child a new x-intake smoke is allowed to start.
 
@@ -159,13 +182,15 @@ def run_isolated(
     is not copied. The child is a new session; a timeout SIGKILLs that process group, grandchildren
     included. When `bwrap_writable` is a list and bubblewrap can run, the command is prefixed with a
     read-only root and no network, plus --unshare-pid when that flag works. None skips bubblewrap.
+    `kill_on_exit` SIGKILLs that process group after the child returns too, so a grandchild that
+    outlives its parent dies before this function returns. Entries 156-158 pass True.
     """
     argv = list(cmd)
     if bwrap_writable is not None:
         prefix = _bwrap_prefix(bwrap_writable)
         if prefix:
             argv = prefix + argv
-    return _spawn(argv, _child_env(home, path, extra), cwd, timeout)
+    return _spawn(argv, _child_env(home, path, extra), cwd, timeout, kill_on_exit=kill_on_exit)
 
 
 def find_bin(env: str, tmp_rel: str, name: str) -> str | None:

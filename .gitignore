@@ -151,7 +151,10 @@ examples/agentdescent-trial/.results.trash-*/
 examples/agentdescent-trial/.promote-journal.json.tmp
 examples/agentdescent-trial/skill/.SKILL.evolved.md.absent-*
 pipelines/smoke/mempalace/
-# 150-152 receipts.
+# 153-158 receipts.
 pipelines/smoke/dsh-superagent/
 pipelines/smoke/robrain/
 pipelines/smoke/kanzo/
+pipelines/smoke/sysknife/
+pipelines/smoke/emdash/
+pipelines/smoke/skills-manager/
