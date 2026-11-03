@@ -813,22 +813,24 @@ def cached_names(worktree: Path) -> list[str]:
 
 
 def gate_tree_manifest(root: Path) -> dict[str, str]:
-    """Path to content hash under root, skipping tmp/.
+    """Path to content hash under root, skipping git metadata and tmp/.
 
+    Skips .git (file or directory), .git.private, tmp, and __pycache__.
     A gate that only reads keeps this map. A write, add, or delete does not.
     """
     found: dict[str, str] = {}
     if not root.is_dir():
         return found
+    skip = {".git", ".git.private", "tmp", "__pycache__"}
     for dirpath, dirnames, filenames in os.walk(root):
-        dirnames[:] = [name for name in dirnames if name != "tmp"]
+        dirnames[:] = [name for name in dirnames if name not in skip]
         for name in filenames:
             full = Path(dirpath) / name
             try:
                 rel = _norm_rel(full.relative_to(root).as_posix())
             except ValueError:
                 continue
-            if not rel or rel == "tmp" or rel.startswith("tmp/"):
+            if not rel or any(part in skip for part in rel.split("/")):
                 continue
             try:
                 if full.is_symlink():
@@ -1080,6 +1082,8 @@ class CloudBuild:
             local_tmp = Path(where) / "tmp"
             local_tmp.mkdir(parents=True, exist_ok=True)
             env["TMPDIR"] = str(local_tmp)
+        # Snapshot after tmp/ exists so the runner's own temp dir is not a rewrite.
+        before_tree = gate_tree_manifest(where)
         for key in list(env):
             upper = key.upper()
             if (
@@ -1101,8 +1105,6 @@ class CloudBuild:
             env["TMPDIR"] = str(gate_tmp)
         except OSError:
             pass
-        # Snapshot after tmp/ exists so the runner's own temp dir is not a rewrite.
-        before_tree = gate_tree_manifest(where)
         status, code, out, err = run_command(
             argv,
             where,
