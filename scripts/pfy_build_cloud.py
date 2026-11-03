@@ -24,7 +24,6 @@ This runner does not keep a second copy of those phrases.
 from __future__ import annotations
 
 import argparse
-import fcntl
 import hashlib
 import json
 import os
@@ -1446,6 +1445,8 @@ class CloudBuild:
         None means this run holds it until finish. build-busy means another
         live run holds it. worktree-failed means tmp cannot be written.
         """
+        import fcntl
+
         path = self.repo / "tmp" / "cloud-build.lock"
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -1466,6 +1467,8 @@ class CloudBuild:
         return None
 
     def _release_run_lock(self) -> None:
+        import fcntl
+
         fd = self._lock_fd
         if fd is None:
             return
