@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Operate-or-FAIL smoke for X intake Entry 152 (Kanzo, local kanban board + MCP server). Stdlib only, self-contained.
+"""Operate-or-FAIL smoke for X intake Entry 155 (Kanzo, local kanban board + MCP server). Stdlib only, self-contained.
 
-Usage: python3 examples/x-intake-local/smoke_152.py
+Usage: python3 examples/x-intake-local/smoke_155.py
 
 Exit 0 = PASS, 1 = the tool ran but a check failed, 2 = can't run here (prereq missing; reason recorded).
 Receipt: $PFY_SMOKE_RECEIPT_DIR/latest.json, else pipelines/smoke/kanzo/latest.json. Never installs or downloads
@@ -210,7 +210,7 @@ def body(rec: dict, binary: str, tmp: Path, sandbox: bool, timeout: float) -> in
         mcp = Mcp(wrap([binary, "mcp", "--home", data], tmp, sandbox), child_env(tmp), str(tmp), timeout)
         try:
             init = mcp.call("initialize", {"protocolVersion": "2025-06-18", "capabilities": {},
-                                           "clientInfo": {"name": "pfy-smoke-152", "version": "0"}})
+                                           "clientInfo": {"name": "pfy-smoke-155", "version": "0"}})
             rec["server_info"] = (init.get("result") or {}).get("serverInfo")
             mcp.send({"jsonrpc": "2.0", "method": "notifications/initialized"})
             tools = mcp.call("tools/list")
@@ -256,7 +256,7 @@ def body(rec: dict, binary: str, tmp: Path, sandbox: bool, timeout: float) -> in
 
 
 def main() -> int:
-    rec: dict = {"entry": "152-kanzo", "pin": PIN, "failed": [], "checks": {}}
+    rec: dict = {"entry": "155-kanzo", "pin": PIN, "failed": [], "checks": {}}
     try:
         timeout = float(os.environ.get("PFY_XINTAKE_TIMEOUT", "60"))
         if timeout <= 0:
@@ -275,7 +275,7 @@ def main() -> int:
     before = home_sig(real_home)
     code = 1
     try:
-        with tempfile.TemporaryDirectory(prefix="pfy-smoke-152-") as td:
+        with tempfile.TemporaryDirectory(prefix="pfy-smoke-155-") as td:
             code = body(rec, binary, Path(td), sandbox, timeout)
     except Exception as e:  # any crash is a FAIL with a receipt, never a traceback without one
         rec["failed"].append(f"exception: {e!r}")

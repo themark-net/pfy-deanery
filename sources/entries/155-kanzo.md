@@ -1,5 +1,5 @@
 
-### Entry 152: Kanzo: a local kanban board and MCP server in one small Rust binary
+### Entry 155: Kanzo: a local kanban board and MCP server in one small Rust binary
 
 - **URL**: https://github.com/emanuele-em/kanzo (AGPL-3.0-only, Rust). Checked at `HEAD` `005424d4d0b4c2971278a14de6fbca6189605e6c` (2026-10-28); latest release `v0.2.1` (2026-10-27), `kanzo --version` = `kanzo 0.2.1`.
 - **Date**: 2026-10-31 (daily X intake, window 2026-10-31T00:41Z to 2026-11-01T00:35Z)
@@ -16,7 +16,7 @@
   - Agents find "their" project from the git remote of the repo they work in, so a trial should create projects explicitly by slug.
 - **Extracted Repos / Tools**: https://github.com/emanuele-em/kanzo · releases https://github.com/emanuele-em/kanzo/releases/tag/v0.2.1 · crates.io `kanzo`
 - **TOOLS.md Link**: None yet. I0 awareness. No TOOLS.md row, no `data/tools.json` row.
-- **Smoke**: `python3 examples/x-intake-local/smoke_152.py`. Reads `$KANZO_BIN`, else `tmp/kanzo/bin/kanzo`, else PATH; version pinned (`$KANZO_VERSION`, default 0.2.1), else exit 2; never downloads. Temp `--home`, temp HOME, no `KANZO_HOME`; runs `init`, an MCP stdio session (initialize, tools/list, create_project, create_task, list_tasks) and both exports. FAILs if a step fails, a core task tool is missing, the task is not stored or exported, the server stops replying within the timeout, anything is written outside `--home`, or the real `~/kanzo` changes. Receipt: `pipelines/smoke/kanzo/latest.json`. Tests: `python3 -m unittest tests.test_x_intake_smoke_152` (12 stub tests).
+- **Smoke**: `python3 examples/x-intake-local/smoke_155.py`. Reads `$KANZO_BIN`, else `tmp/kanzo/bin/kanzo`, else PATH; version pinned (`$KANZO_VERSION`, default 0.2.1), else exit 2; never downloads. Temp `--home`, temp HOME, no `KANZO_HOME`; runs `init`, an MCP stdio session (initialize, tools/list, create_project, create_task, list_tasks) and both exports. FAILs if a step fails, a core task tool is missing, the task is not stored or exported, the server stops replying within the timeout, anything is written outside `--home`, or the real `~/kanzo` changes. Receipt: `pipelines/smoke/kanzo/latest.json`. Tests: `python3 -m unittest tests.test_x_intake_smoke_155` (12 stub tests).
 - **Non-goals**: No web board left running, no `service`, no `sync`, no `update`, no MCP registration in Grok Build, Hermes or any editor, no network listen.
 - **How this fails / how we recover**:
 

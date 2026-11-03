@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Operate-or-FAIL smoke for X intake Entry 151 (RoBrain, shared decision memory with veto warnings).
+"""Operate-or-FAIL smoke for X intake Entry 154 (RoBrain, shared decision memory with veto warnings).
 Stdlib only, self-contained.
 
-Usage: python3 examples/x-intake-local/smoke_151.py
+Usage: python3 examples/x-intake-local/smoke_154.py
 
 Exit 0 = PASS, 1 = the bench ran but a check failed, 2 = can't run here (prereq missing; reason recorded).
 Receipt: $PFY_SMOKE_RECEIPT_DIR/latest.json, else pipelines/smoke/robrain/latest.json. Never installs or downloads
@@ -200,7 +200,7 @@ def body(rec: dict, repo: Path, node: str, tmp: Path, timeout: float) -> int:
 
 
 def main() -> int:
-    rec: dict = {"entry": "151-robrain", "pin": PIN, "failed": [], "checks": {}}
+    rec: dict = {"entry": "154-robrain", "pin": PIN, "failed": [], "checks": {}}
     try:
         timeout = float(os.environ.get("PFY_XINTAKE_TIMEOUT", "120"))
         if timeout <= 0:
@@ -244,7 +244,7 @@ def main() -> int:
     before = home_sig(real_home)
     code = 1
     try:
-        with tempfile.TemporaryDirectory(prefix="pfy-smoke-151-") as td:
+        with tempfile.TemporaryDirectory(prefix="pfy-smoke-154-") as td:
             code = body(rec, repo, node, Path(td), timeout)
     except Exception as e:  # any crash is a FAIL with a receipt
         rec["failed"].append(f"exception: {e!r}")

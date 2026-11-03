@@ -1,4 +1,4 @@
-"""Entry 150 smoke (dsh-superagent static check): a missing clone, wrong commit, missing node_modules, unsupported
+"""Entry 153 smoke (dsh-superagent static check): a missing clone, wrong commit, missing node_modules, unsupported
 node and a bad timeout exit 2; a typecheck failure, an unexpected test failure, too few tests, a build that writes no
 lib/index.js, a step that edits tracked sources, a missing vitest report, or a write into the real HOME FAILs; a
 failure of the one known-flaky upstream test is only a warning. Stubs are tiny Python scripts (shebang = this
@@ -14,7 +14,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "examples/x-intake-local/smoke_150.py"
+SCRIPT = ROOT / "examples/x-intake-local/smoke_153.py"
 PIN = "6337fc823ce20251c8de8085948165c81aaa701e"
 FLAKY = ("feishu event consumer takes in the event lines it reads, records each chat as direct or not, "
          "and reports a malformed line without stopping")
@@ -59,7 +59,7 @@ def write_stub(path: Path, knobs: dict, body: str) -> None:
     path.chmod(0o755)
 
 
-class Smoke150(unittest.TestCase):
+class Smoke153(unittest.TestCase):
     def run_smoke(self, knobs=None, env=None, head=PIN, deps=True, clone=True, packed=False):
         k = dict(knobs or {})
         with tempfile.TemporaryDirectory() as td:

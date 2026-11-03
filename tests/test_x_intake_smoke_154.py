@@ -1,4 +1,4 @@
-"""Entry 151 smoke (RoBrain VetoBench offline): a missing clone, wrong commit, unbuilt clone, old node and a bad
+"""Entry 154 smoke (RoBrain VetoBench offline): a missing clone, wrong commit, unbuilt clone, old node and a bad
 timeout exit 2; recall under the upstream gate, recall that drifts from the pinned numbers, a missing scenario row, a
 non-zero bench exit, a missing offline marker, node:test failures, an archive written into results/, or a write into
 the real HOME FAILs; a correct stub PASSes. The stub is a tiny Python `node` (shebang = this interpreter) that prints
@@ -14,7 +14,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "examples/x-intake-local/smoke_151.py"
+SCRIPT = ROOT / "examples/x-intake-local/smoke_154.py"
 PIN = "ac53011016e5f7dd42bae9c00c1a9b7d207a68b8"
 
 NODE = r'''
@@ -46,7 +46,7 @@ sys.exit(K.get("bench_exit", 0 if files >= 0.8 else 1))
 '''
 
 
-class Smoke151(unittest.TestCase):
+class Smoke154(unittest.TestCase):
     def run_smoke(self, knobs=None, env=None, head=PIN, built=True, clone=True):
         k = dict(knobs or {})
         with tempfile.TemporaryDirectory() as td:

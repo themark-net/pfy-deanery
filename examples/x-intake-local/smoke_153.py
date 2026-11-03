@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Static operate-or-FAIL smoke for X intake Entry 150 (dsh-superagent, DeepSeek's proactive repo agent prototype).
+"""Static operate-or-FAIL smoke for X intake Entry 153 (dsh-superagent, DeepSeek's proactive repo agent prototype).
 Stdlib only, self-contained.
 
-Usage: python3 examples/x-intake-local/smoke_150.py
+Usage: python3 examples/x-intake-local/smoke_153.py
 
 Exit 0 = PASS, 1 = the checks ran and one failed, 2 = can't run here (prereq missing; reason recorded).
 Receipt: $PFY_SMOKE_RECEIPT_DIR/latest.json, else pipelines/smoke/dsh-superagent/latest.json. Never installs or
@@ -210,7 +210,7 @@ def body(rec: dict, repo: Path, node: str, tmp: Path, timeout: float) -> int:
 
 
 def main() -> int:
-    rec: dict = {"entry": "150-dsh-superagent", "pin": PIN, "failed": [], "checks": {}, "warnings": []}
+    rec: dict = {"entry": "153-dsh-superagent", "pin": PIN, "failed": [], "checks": {}, "warnings": []}
     try:
         timeout = float(os.environ.get("PFY_XINTAKE_TIMEOUT", "600"))
         if timeout <= 0:
@@ -250,7 +250,7 @@ def main() -> int:
     before = home_sig(real_home)
     code = 1
     try:
-        with tempfile.TemporaryDirectory(prefix="pfy-smoke-150-") as td:
+        with tempfile.TemporaryDirectory(prefix="pfy-smoke-153-") as td:
             code = body(rec, repo, node, Path(td), timeout)
     except Exception as e:  # any crash is a FAIL with a receipt
         rec["failed"].append(f"exception: {e!r}")

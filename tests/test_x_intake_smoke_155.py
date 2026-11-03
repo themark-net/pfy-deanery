@@ -1,4 +1,4 @@
-"""Entry 152 smoke (Kanzo): a missing binary, a version mismatch and a bad timeout exit 2; a failing init, a missing
+"""Entry 155 smoke (Kanzo): a missing binary, a version mismatch and a bad timeout exit 2; a failing init, a missing
 core MCP tool, a task the MCP server reports but never stores, a server that never replies (timeout, and it must not outlive the smoke), an export
 without the task, a write outside --home, or a write into the real HOME FAILs; a correct stub PASSes, including one
 that emits unrelated lines before its replies. The stub is a tiny Python `kanzo` (shebang = this interpreter) that
@@ -14,7 +14,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "examples/x-intake-local/smoke_152.py"
+SCRIPT = ROOT / "examples/x-intake-local/smoke_155.py"
 
 STUB = r'''
 import json, os, pathlib, sys, time
@@ -107,7 +107,7 @@ def survivors_of(path: str) -> list[int]:
     return found
 
 
-class Smoke152(unittest.TestCase):
+class Smoke155(unittest.TestCase):
     def run_smoke(self, knobs=None, env=None):
         with tempfile.TemporaryDirectory() as td:
             td = Path(td)

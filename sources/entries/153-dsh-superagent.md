@@ -1,5 +1,5 @@
 
-### Entry 150: dsh-superagent: DeepSeek's attention-minimizing proactive agent for one GitHub repo (research prototype)
+### Entry 153: dsh-superagent: DeepSeek's attention-minimizing proactive agent for one GitHub repo (research prototype)
 
 - **URL**: https://github.com/deepseek-ai/dsh-superagent-prototype (MIT, TypeScript, created 2026-10-31). Checked at `HEAD` `6337fc823ce20251c8de8085948165c81aaa701e` (2026-10-31), package `dsh-superagent` 0.1.0, `engines.dsh` `^0.2.1-alpha.2`. Upstream calls it a research prototype for reference only, not an official DeepSeek product, and says it differs from their internal version.
 - **Date**: 2026-10-31 (daily X intake, window 2026-10-31T00:41Z to 2026-11-01T00:35Z)
@@ -15,7 +15,7 @@
   - The bundle changes process-wide `PATH` and git settings in its DSH profile, so upstream keeps it in a separate `superagent` profile.
 - **Extracted Repos / Tools**: https://github.com/deepseek-ai/dsh-superagent-prototype · DeepSeek Harness, https://www.deepseek.com/en/harness/ (npm `@deepseek-ai/dsh`) · upstream article *Exploring Super-agent Design: Towards a More Autonomous Agent System* (referenced in the README; not read here)
 - **TOOLS.md Link**: None yet. I0 awareness. No TOOLS.md row, no `data/tools.json` row.
-- **Smoke**: `python3 examples/x-intake-local/smoke_150.py`. Static only. Reads `$DSH_SUPERAGENT_DIR`, else `tmp/dsh-superagent`; the clone must be at the pinned commit (`$DSH_SUPERAGENT_COMMIT`) with dependencies already installed, and node must be `^22.19 || >=24`, else exit 2; never installs. Runs typecheck, vitest (JSON report) and the build; FAILs on any test failure except the one known-flaky test, on fewer than 1100 passing tests, on a build that writes no `lib/index.js`, on edits to tracked sources, or on writes to `~/.dsh`, `~/.config/gh-agent`, `~/.lark-cli-dsh-superagent`. Receipt: `pipelines/smoke/dsh-superagent/latest.json`. Tests: `python3 -m unittest tests.test_x_intake_smoke_150` (15 stub tests).
+- **Smoke**: `python3 examples/x-intake-local/smoke_153.py`. Static only. Reads `$DSH_SUPERAGENT_DIR`, else `tmp/dsh-superagent`; the clone must be at the pinned commit (`$DSH_SUPERAGENT_COMMIT`) with dependencies already installed, and node must be `^22.19 || >=24`, else exit 2; never installs. Runs typecheck, vitest (JSON report) and the build; FAILs on any test failure except the one known-flaky test, on fewer than 1100 passing tests, on a build that writes no `lib/index.js`, on edits to tracked sources, or on writes to `~/.dsh`, `~/.config/gh-agent`, `~/.lark-cli-dsh-superagent`. Receipt: `pipelines/smoke/dsh-superagent/latest.json`. Tests: `python3 -m unittest tests.test_x_intake_smoke_153` (15 stub tests).
 - **Non-goals**: No DSH install, no agent GitHub account, no Feishu bot, no model key, no running the agent against any repo, no `danger-full-access` preset as Mark's user.
 - **How this fails / how we recover**:
 

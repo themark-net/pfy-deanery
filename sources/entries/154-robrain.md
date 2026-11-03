@@ -1,5 +1,5 @@
 
-### Entry 151: RoBrain: shared decision memory with structured vetoes and pre-task warnings
+### Entry 154: RoBrain: shared decision memory with structured vetoes and pre-task warnings
 
 - **URL**: https://github.com/adelinamart/robrain (Apache-2.0, TypeScript monorepo, version 2.5.0). Checked at `HEAD` `ac53011016e5f7dd42bae9c00c1a9b7d207a68b8` (2026-10-29).
 - **Date**: 2026-10-31 (daily X intake, window 2026-10-31T00:41Z to 2026-11-01T00:35Z)
@@ -15,7 +15,7 @@
   - The offline layer uses a bag-of-tokens hash embedder, so its 0.70 no-files number is a floor rather than what real embeddings would score.
 - **Extracted Repos / Tools**: https://github.com/adelinamart/robrain · `packages/vetobench` (offline bench and adapter interface) · `integrations/hermes/robrain` (Hermes memory provider) · `plugins/claude-code`, `plugins/codex` · `docs/concepts.md` (provider setups, fully-local mode)
 - **TOOLS.md Link**: None yet. I0 awareness. No TOOLS.md row, no `data/tools.json` row.
-- **Smoke**: `python3 examples/x-intake-local/smoke_151.py`. Reads `$ROBRAIN_DIR`, else `tmp/robrain`; needs the clone at the pinned commit (`$ROBRAIN_COMMIT`) with the vetobench and shared builds present and Node 20+, else exit 2; never installs, never passes `--live`, and no keys reach the child env. Runs both offline suites and the node:test files; FAILs if recall misses the upstream 0.80 gate or drifts from the pinned numbers, a scenario row is missing, the offline marker is missing, any node test fails, `results/` changes, or `~/.robrain` / `~/.mem0` change. Receipt: `pipelines/smoke/robrain/latest.json`. Tests: `python3 -m unittest tests.test_x_intake_smoke_151` (14 stub tests).
+- **Smoke**: `python3 examples/x-intake-local/smoke_154.py`. Reads `$ROBRAIN_DIR`, else `tmp/robrain`; needs the clone at the pinned commit (`$ROBRAIN_COMMIT`) with the vetobench and shared builds present and Node 20+, else exit 2; never installs, never passes `--live`, and no keys reach the child env. Runs both offline suites and the node:test files; FAILs if recall misses the upstream 0.80 gate or drifts from the pinned numbers, a scenario row is missing, the offline marker is missing, any node test fails, `results/` changes, or `~/.robrain` / `~/.mem0` change. Receipt: `pipelines/smoke/robrain/latest.json`. Tests: `python3 -m unittest tests.test_x_intake_smoke_154` (14 stub tests).
 - **Non-goals**: No Docker stack, no Perception, no `robrain install` or `init-project`, no Hermes or editor wiring, no `--live` run, no cloud mode, no API keys.
 - **How this fails / how we recover**:
 
