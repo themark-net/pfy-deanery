@@ -57,19 +57,19 @@ Active work is also tracked as issues: https://github.com/themark-net/pfy-mentat
 | T-0090 | [#1](https://github.com/themark-net/pfy-mentat/issues/1) | P0 |
 | T-0110 | [#76](https://github.com/themark-net/pfy-mentat/issues/76) | P1 doing/partial |
 | T-0091 | [#2](https://github.com/themark-net/pfy-mentat/issues/2) | P1 doing |
-| T-0070 | [#3](https://github.com/themark-net/pfy-mentat/issues/3) | P1 doing |
-| T-0074 | [#4](https://github.com/themark-net/pfy-mentat/issues/4) | P1 doing |
+| T-0070 | [#3](https://github.com/themark-net/pfy-mentat/issues/3) | P1 **done** |
+| T-0074 | [#4](https://github.com/themark-net/pfy-mentat/issues/4) | P1 **done** |
 | T-0076 | [#6](https://github.com/themark-net/pfy-mentat/issues/6) | P2 **done** |
 | T-0081 | [#7](https://github.com/themark-net/pfy-mentat/issues/7) | P2 |
 | T-0040 | [#8](https://github.com/themark-net/pfy-mentat/issues/8) | P2 **done** |
 | T-0094 | [#9](https://github.com/themark-net/pfy-mentat/issues/9) | P3 |
-| T-0095 | [#10](https://github.com/themark-net/pfy-mentat/issues/10) | P3 |
+| T-0095 | [#10](https://github.com/themark-net/pfy-mentat/issues/10) | P3 **done** |
 | T-0064 | [#11](https://github.com/themark-net/pfy-mentat/issues/11) | P3 parked |
 | T-0043 | [#12](https://github.com/themark-net/pfy-mentat/issues/12) | P3 parked |
 | T-0062 | [#13](https://github.com/themark-net/pfy-mentat/issues/13) | P3 |
 | T-0046 | [#14](https://github.com/themark-net/pfy-mentat/issues/14) | P3 |
-| T-0002 | [#16](https://github.com/themark-net/pfy-mentat/issues/16) | P3 |
-| T-0005 | [#21](https://github.com/themark-net/pfy-mentat/issues/21) | P2 todo |
+| T-0002 | [#16](https://github.com/themark-net/pfy-mentat/issues/16) | P3 **done** |
+| T-0005 | [#21](https://github.com/themark-net/pfy-mentat/issues/21) | P2 doing |
 | T-0004 | [#22](https://github.com/themark-net/pfy-mentat/issues/22) | P2 **done** |
 | T-0015 | [#23](https://github.com/themark-net/pfy-mentat/issues/23) | P3 **done** |
 | T-0016 | [#24](https://github.com/themark-net/pfy-mentat/issues/24) | P2 todo |
@@ -113,9 +113,7 @@ Active work is also tracked as issues: https://github.com/themark-net/pfy-mentat
 | T-0093 | P1 | done | Tools-capable Ollama select + tool-split | — | T-0080 | `eval-select-tools-model` |
 | T-0096 | P1 | done | **Dual-tier orchestrator** high↔low (`VOICE_ROUTE=high-first` default) | — | T-0092, T-0093 | [voice-orchestrator.md](ops/voice-orchestrator.md); `smoke-voice-orchestrate` |
 | T-0094 | P3 | todo | Optional short **local TTS** status (not duplex) | — | T-0092 | [#9](https://github.com/themark-net/pfy-mentat/issues/9) · Kokoro/piper after local agent path green |
-| T-0095 | P3 | todo | Catalog Stage 0: Pipecat / LiveKit / freeapp (ref only) | — | ADR-0012 | [#10](https://github.com/themark-net/pfy-mentat/issues/10) · No primary install |
-| T-0070 | P1 | doing | Grow design/coding **skills + structural eval** (more text scorers) | — | T-0065 | [#3](https://github.com/themark-net/pfy-mentat/issues/3) · `013-stage-card` scorer. Keep `eval-structural` green |
-| T-0074 | P1 | doing | Implement-lane via `make eval-auto` (fit-select + candidates) | — | — | [#4](https://github.com/themark-net/pfy-mentat/issues/4) · empty fit-select falls back to `deepseek-coder:6.7b-instruct`, then `deepseek-coder:6.7b` |
+
 | T-0075 | P2 | done | More structural scorers: ADR shape, open-question row shape | — | T-0070 | [#5](https://github.com/themark-net/pfy-mentat/issues/5) **done** |
 | T-0076 | P2 | done | Wire mattpocock to-spec/tdd checklist into structural or skill cross-links | — | — | [#6](https://github.com/themark-net/pfy-mentat/issues/6) · paths pack already installed |
 | T-0081 | P2 | todo | Optional OpenCode-in-cage smoke | — | T-0080 | [#7](https://github.com/themark-net/pfy-mentat/issues/7) · After host smoke green |
@@ -129,7 +127,6 @@ Active work is also tracked as issues: https://github.com/themark-net/pfy-mentat
 | T-0043 | P3 | todo | Write-guard mcp-host wiring | — | T-0031 | [#12](https://github.com/themark-net/pfy-mentat/issues/12) · Parked |
 | T-0062 | P3 | todo | Laguna local model DoD | — | — | [#13](https://github.com/themark-net/pfy-mentat/issues/13) · Hardware-gated |
 | T-0046 | P3 | todo | Re-evaluate AgenC | [ADR-0010](adr/0010-reject-agenc-as-primary-runtime.md) | T-0044 | [#14](https://github.com/themark-net/pfy-mentat/issues/14) |
-| T-0002 | P3 | todo | Aggregate synthesis | — | — | [#16](https://github.com/themark-net/pfy-mentat/issues/16) |
 
 ### Active — follow-ups (OQs answered; not blocked)
 
@@ -146,6 +143,10 @@ Active work is also tracked as issues: https://github.com/themark-net/pfy-mentat
 
 | ID | Priority | Status | Item | Notes |
 |----|----------|--------|------|-------|
+| T-0070 | P1 | done | Grow design/coding skills + structural eval | Issue #3 closed completed 2026-07-29 PT (2026-07-30 UTC). Scorers 009 and 010 are on main at `7197200`. `013-stage-card` is on main at `c0d9072`. This run did not re-run `make eval-structural` (MVP-3 busy). |
+| T-0074 | P1 | done | Implement-lane via `make eval-auto` | Issue #4 closed completed 2026-07-29 PT (2026-07-30 UTC). `scripts/eval-auto.sh` is on main at `7197200` and still at `c0d9072`. Soft-SKIP when Ollama is down. This run did not re-run the host matrix (MVP-3 busy). |
+| T-0002 | P3 | done | Aggregate synthesis | Issue #16 was already closed on the 2026-07-30 rollup (closed 2026-07-29 PT, 2026-07-30 UTC). The 2026-10-30 section is the diff since then. No new scores. `sources/aggregates.md` still empty. Not a Feature GO. |
+| T-0095 | P3 | done | Catalog Stage 0: Pipecat / LiveKit / freeapp (ref only) | Entries 150-152. Issue #10 was already closed on the 2026-07-30 stub (closed 2026-07-29 PT, 2026-07-30 UTC). Receipts are Stage-0 FAIL / I0. No install. No TOOLS.md row. ADR-0012 primary unchanged. Not a Feature GO. |
 | — | P1 | done | pfy launcher phase 1: `install.sh`, catalog v2 (`core-skills`, `code-graph`, `rea`), setup/doctor/uninstall on grok, claude-code, codex, opencode | [#290](https://github.com/themark-net/pfy-mentat/issues/290) · PR 291 · `build/pfy-launcher-p1` · review fixes on the same branch (created-file uninstall, npx allowlist, shared-skill dedupe, backup delete, needs_human receipt) · suite 228 OK skipped=4 · `v0.4.17` tag still absent on origin · not a Feature GO · HOLD 70–75 untouched · phases 2–4 not started |
 | — | P3 | done | X-intake receipt sha source, shared timeout text, har temp HOME, graphjin log close, pfylib tmp cleanup | `build/orch-fixes-1011` · 2026-10-11 · not a Feature GO · catalog HOLD untouched |
 | — | — | done | #230 Jev-style decision layer (CUA-S1-FORMS primary local; TypeSafe optional) | — |

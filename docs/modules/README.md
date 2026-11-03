@@ -6,7 +6,7 @@ Short structural maps for first-party packages in this repo. Deep design stays i
 |--------|------|-----|
 | Consultant eval pack | `docs/ops/consultant-eval.md` | [consultant-eval.md](../ops/consultant-eval.md) |
 | `./pfy` simple surface | `scripts/pfy` | [pfy.md](pfy.md) |
-| Toolset × harness handoff + hedge | `pfylib/` + `data/toolsets.json` | [pfylib.md](pfylib.md) · [ADR-0017](../adr/0017-product-catalog-evaluation-handoff-harness.md) |
+| Toolset × harness handoff + hedge | `pfylib/` + `data/toolsets.json` | [pfylib.md](pfylib.md). ADR-0017 is cited and the file is not in `docs/adr/` yet ([pfy-launcher.md](../design/pfy-launcher.md)) |
 | Launch wizard | `scripts/pfy_launch_wizard_225.py` | [launch-wizard.md](launch-wizard.md) · [ops/launch-wizard.md](../ops/launch-wizard.md) |
 | Session compose | `scripts/pfy_session_compose_224.py` | [session-compose.md](session-compose.md) · [ops/session-compose.md](../ops/session-compose.md) |
 | OpenContext `oc` handoff | `scripts/pfy_opencontext_205.py` | [opencontext.md](opencontext.md) · [ops/opencontext.md](../ops/opencontext.md) |
@@ -35,5 +35,5 @@ Short structural maps for first-party packages in this repo. Deep design stays i
 
 **Catalog (not modules):** [TOOLS.md](../../TOOLS.md) · [data/tools.json](../../data/tools.json) · [sources/x-posts.md](../../sources/x-posts.md)  
 **Deploy map:** [docs/ops/DEPLOY.md](../ops/DEPLOY.md)
-- [gab-228.md](gab-228.md) — Gab cloud + local recommend sync (#228)
-- [jev-230.md](jev-230.md) — Jev-style decision layer (#230; CUA-S1-FORMS primary local)
+- [gab-228.md](gab-228.md) - Gab cloud + local recommend sync (#228)
+- [jev-230.md](jev-230.md) - Jev-style decision layer (#230; CUA-S1-FORMS primary local)

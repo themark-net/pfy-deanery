@@ -321,6 +321,7 @@
       "integration_stage": "I0",
       "intent": "ref_only",
       "notes_doc": "docs/ops/voice-stack-stage0-ref.md",
+      "entry": "sources/entries/150-pipecat.md",
       "issues": [
         10
       ]
@@ -329,6 +330,7 @@
       "integration_stage": "I0",
       "intent": "ref_only",
       "notes_doc": "docs/ops/voice-stack-stage0-ref.md",
+      "entry": "sources/entries/151-livekit.md",
       "issues": [
         10
       ]
@@ -1653,6 +1655,26 @@
         "78gb_weight_download",
         "feature_go"
       ],
+      "catalog_tier": "B",
+      "catalog_overall": "72",
+      "catalog_tags": [
+        "#moe",
+        "#reasoning",
+        "#tool-calling",
+        "#german",
+        "#open-weights",
+        "#1m-context",
+        "#vllm"
+      ],
+      "catalog_github": "https://huggingface.co/Aleph-Alpha/Kolibri-1",
+      "posture": [
+        "i0_explicit"
+      ],
+      "evidence": [
+        "make:smoke-kolibri1",
+        "notes_doc:examples/kolibri1-llamacpp/README.md"
+      ],
+      "tier_ceiling": "I0",
       "uses": "Optional local DE/EN reasoning MoE via patched llama.cpp GGUF smoke (I0 lab).",
       "features": [
         "patched llama.cpp kolibri1 runtime",
