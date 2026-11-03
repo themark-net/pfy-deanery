@@ -24,6 +24,7 @@ This runner does not keep a second copy of those phrases.
 from __future__ import annotations
 
 import argparse
+import fcntl
 import hashlib
 import json
 import os
@@ -510,6 +511,7 @@ def auth_recovery(task: str) -> str:
 
 
 TERMINAL_FAILURE_REASONS = (
+    "build-busy",
     "commit-failed",
     "commit-recheck-failed",
     "interrupted",
@@ -613,6 +615,10 @@ def failure_recovery(reason: str, task: str, detail: str = "") -> str:
             % (shown, quoted)
         )
     lines = {
+        "build-busy": (
+            "Mark: another cloud build is already running on this repo. "
+            "Wait for the first build to finish, then rerun ./pfy build %s."
+        ),
         "interrupted": "Mark: the build was interrupted. Rerun ./pfy build %s.",
         "tests-tampered": (
             "Mark: a base test changed and was not named by --writable-test. "
@@ -986,6 +992,7 @@ class CloudBuild:
         self.recheck_tail = ""
         self.phase_clock = phase_clock or PhaseClock()
         self._pid_lock = threading.Lock()
+        self._lock_fd: int | None = None
         self._suppress_gate = False
         self._suppress_phases = frozenset()
         install_build_phases(self, self.phase_clock, grok_phase_name)
@@ -1430,7 +1437,47 @@ class CloudBuild:
                 # The receipt holds the same line. Print it so the terminal
                 # says what to run next without opening the json.
                 print(self.recovery, file=sys.stderr)
+        self._release_run_lock()
         return self.exit_code
+
+    def _acquire_run_lock(self) -> str | None:
+        """Take an exclusive non-blocking lock on <repo>/tmp/cloud-build.lock.
+
+        None means this run holds it until finish. build-busy means another
+        live run holds it. worktree-failed means tmp cannot be written.
+        """
+        path = self.repo / "tmp" / "cloud-build.lock"
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            fd = os.open(path, os.O_CREAT | os.O_RDWR | os.O_CLOEXEC, 0o644)
+        except OSError:
+            self.recovery_detail = "unwritable"
+            return "worktree-failed"
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            os.close(fd)
+            return "build-busy"
+        except OSError:
+            os.close(fd)
+            self.recovery_detail = "unwritable"
+            return "worktree-failed"
+        self._lock_fd = fd
+        return None
+
+    def _release_run_lock(self) -> None:
+        fd = self._lock_fd
+        if fd is None:
+            return
+        self._lock_fd = None
+        try:
+            fcntl.flock(fd, fcntl.LOCK_UN)
+        except OSError:
+            pass
+        try:
+            os.close(fd)
+        except OSError:
+            pass
 
     def _gate_timeout_fail(self, number: int, output: str) -> int:
         self.recovery_detail = "gate"
@@ -1551,6 +1598,21 @@ class CloudBuild:
             shutil.rmtree(flake, ignore_errors=True)
 
     def execute(self) -> int:
+        lock_problem = self._acquire_run_lock()
+        if lock_problem == "build-busy":
+            self.record(0, "FAIL", "build-busy", "")
+            return self.fail("FAIL", "build-busy", EXIT_FAIL, "")
+        if lock_problem:
+            return self.fail(
+                "FAIL",
+                lock_problem,
+                EXIT_FAIL,
+                worktree_recovery(
+                    self.args.task_text,
+                    self.base_ref,
+                    self.recovery_detail or "unwritable",
+                ),
+            )
         with self.phase_clock.phase("preflight"):
             _install_signals(self.state)
             missing_grok = not self.grok
