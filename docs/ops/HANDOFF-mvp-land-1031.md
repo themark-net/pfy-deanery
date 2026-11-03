@@ -68,6 +68,12 @@ Fix: the check accepts either runner rule (the old 72-character cut, still in hi
 
 Who did the work: Hermes (`-z -m qwen3.6:35b`) took the mutant re-cut first and timed out after 45 minutes with no edits (its default `minimax-m3:cloud` returned nothing; an earlier log shows HTTP 402). Grok Build headless did the mutant re-cut (exit 0), reviewed line by line here. The planted re-cut and item 5 were small and done directly.
 
+## Tests at the pin
+
+- eval-structural run 41537542671 (workflow_dispatch on `bot/mvp-land-1031` at `ae24af4bde6547342c5bbd6801e06dcaf669948a`): `G0 (self-hosted nimo)` job 125593128678, Python 3.14, `Ran 1377` / `OK (skipped=17)`, success; `G0 (ubuntu-24.04)` job 125593128154, Python 3.12, `Ran 1377` / `OK (skipped=109)`, success. Fresh shallow-clone pregate `ae24af4-20261102T215707Z-194329`: `OVERALL=PASS wall=1849s pass=6 fail=0 skip=1`.
+- Blocker-fix commit `158b2cf` (fixes for the Tester FAIL at `ae24af4`): eval-structural run 41547388884 (workflow_dispatch on `bot/mvp-land-1031` at `158b2cf4255dce556e34285cfec3cc89b26476ae`): `G0 (self-hosted nimo)` job 125626193541, Python 3.14, `Ran 1384` / `OK (skipped=17)`, success; `G0 (ubuntu-24.04)` job 125626193790, Python 3.12, `Ran 1384` / `OK (skipped=109)`, success. The Ubuntu step "Real-tree audits with full history" unshallowed and ran 8 tests OK with no skip, including `test_real_tree_matches_receipts_and_trailers`, `test_this_branch_has_no_bad_built_by_trailer` and `test_reworded_commit_must_keep_its_recorded_patch_id`. operator-launch-filemode at `158b2cf`: runs 41547376936 and 41547373489, success.
+- After `158b2cf`: `a670265` (docs wording), `a197315` (shared walk helper; 475 x-intake and smoke tests OK on nimo) and the final docs commit (this file, `docs/PENDING-HANDOFF.md`, the decisions log). The eval-structural run and fresh shallow-clone pregate at the final pin are in a #306 comment, since a commit cannot cite its own run.
+
 ## Tests at `07c9f63` (replaces the `b528486` count)
 
 Scope: `python3 -m unittest discover -s tests -t .` (the CI scope; fixture tests under `eval/` are not suites). The earlier `Ran 1372 tests` / `OK (skipped=16)` at `b528486` was one interpreter (nimo Python 3.14) in a linked worktree with full history, so it did not cover Python 3.12 or a shallow clone and is withdrawn.
@@ -107,7 +113,7 @@ Keep (commits after the 2026-10-31 18:20 PT freeze, not on this stack; a later l
 
 ### S1. Patch-ids for the 10 reworded Built-by commits (`b528486`)
 
-`tests/test_selfhost_1031_log.py` `REWORDED_SUBJECTS` accepts these 10 stack commits, whose subjects differ from the cloud runner's subject. Each receipt names the commit the cloud runner made (`commit`). That commit is on no branch on origin (it lived on the lane's local `cloud/*` branch on nimo), so the subject cannot be compared there. The diff can: `git show <sha> | git patch-id --stable` is the same for the stack commit and the receipt commit in all 10 rows, so only the message changed. Recomputed on nimo on 2026-11-02.
+`tests/test_selfhost_1031_log.py` `REWORDED_PATCH_IDS` (was `REWORDED_SUBJECTS` until `191d6b0`) accepts these 10 stack commits, whose subjects differ from the cloud runner's subject. Each receipt names the commit the cloud runner made (`commit`). That commit is on no branch on origin (it lived on the lane's local `cloud/*` branch on nimo), so the subject cannot be compared there. The diff can: `git show <sha> | git patch-id --stable` is the same for the stack commit and the receipt commit in all 10 rows, so only the message changed. Recomputed on nimo on 2026-11-02.
 
 | Stack commit | Receipt dir (`eval/selfhost2-1031/`) | Receipt `commit` | `patch-id --stable` | Receipt commit |
 | --- | --- | --- | --- | --- |
@@ -193,3 +199,18 @@ Both eval-structural jobs check out with the default `fetch-depth: 1`. `test_rea
 ### Stale counts
 
 This handoff's "Tests at" section and `docs/PENDING-HANDOFF.md` cite run 41527508885 at `07c9f63`. The ae24af4 run is 41537542671.
+
+### Fixes for the Tester FAIL at `ae24af4`
+
+| Item | Commit | Red-first evidence |
+| --- | --- | --- |
+| BX3b local new binary file | `ca3ed8d` | `test_new_untracked_non_utf8_file_is_not_committed` (probe q3) and `test_new_untracked_file_with_a_nul_byte_is_not_committed` failed with `0 != 1 : PASS ok branch=local/...` before the fix |
+| #308 cloud cut or binary diff | `58b497b` | `test_review_diff_over_the_cap_is_refused_and_not_published` and `test_new_binary_file_is_refused_and_not_published` failed with `0 != 1 : PASS ok branch=cloud/...` before the fix |
+| Line cap retried as a review reject | `158b2cf` | `test_over_the_line_cap_is_refused_once_without_retries` and the updated 251-line case failed with `'PASS-REJECTED' != 'FAIL'`; mutant R8 is still killed |
+| S1 patch-ids checked | `191d6b0` | `test_reworded_commit_must_keep_its_recorded_patch_id` errored before `stable_patch_id` and `REWORDED_PATCH_IDS` existed; a wrong recorded patch-id is now a problem |
+| dogfood2 audit runs in CI | `a13aea5` | Ubuntu job step "Real-tree audits with full history" unshallows, runs both audits verbose, and fails on a skip |
+| Shared walk helper with an onerror report | `a197315` | `test_one_shared_helper` and `test_unreadable_subdirectory_is_reported` errored with ModuleNotFoundError (`xintake_walk`) before the helper; 475 x-intake and smoke tests OK after |
+| Fallback operator named DevBot or Hermes | `a670265` | docs only (pfy-build-daily.md:17, MVP-PARALLEL-1031.md:40 and :329) |
+| Stale counts | final docs commit | this section and `docs/PENDING-HANDOFF.md` |
+
+Fail/recover: a reviewer that accepts a cut or binary diff can no longer land it on either runner; the refusal is one FAIL with a recovery line, so rerun with a smaller task. If the full-history CI step fails, read its log for the commit named by `test_real_tree_matches_receipts_and_trailers` or the `patch-id ... != recorded` line; a changed patch-id means a new build and a new receipt, not an allowlist edit.

@@ -17,3 +17,13 @@
 - #306 Reviewer FAIL: reworded only the 14 listed "Mark merges/cherry-picks" lines to name DevBot (and relabeled those "Human gate:" lines "Merge gate:"); other historical docs untouched.
 - #306 Reviewer B4: removed the one em dash in code (scripts/pregate_orphans.py:89); the other 10 added em dashes are inside recorded receipts and planted diffs, left byte-for-byte as evidence.
 - #306: filed #308 for the cloud runner's 12000-char review cut (fail closed instead), alongside #307.
+- #306 BX3b: a new file with a NUL byte or bytes that are not strict UTF-8 is treated as binary and refused before review (git's NUL heuristic plus strict decode), rather than shown as hex, since the reviewer cannot judge bytes either way.
+- #306 #308: the cloud runner also refuses a new untracked binary file (git diff --no-index prints only "Binary files ... differ"), the same gap as BX3b, fixed in the same commit.
+- #306 #308: commented on #308 with the fix SHA and left it open until main has the stack.
+- #306 line cap: only the line cap became a one-shot FAIL (review-diff-over-line-cap); the 3-file cap keeps its retry with feedback, since the brief named the line limit. The new branch is gated on size["ok"] so mutants R8 and R9 stay killed.
+- #306 dogfood2: a dedicated last step unshallows the Ubuntu checkout instead of fetch-depth 0 on the whole job, so the earlier steps (and their skip counts) are unchanged; the step also runs the S1 patch-id check, which needs the same history.
+- #306 re-pin: pinned on a docs-only commit; the docs cite the eval-structural run at 158b2cf (the last blocker fix), and the final-pin run, pregate summary and gate-hash.log go in a #306 comment, because a commit cannot cite its own run.
+- #306 round 3: code by direct edits (small); no Grok Build or Hermes run.
+- #306 extras: walk_nofollow now lives once in examples/x-intake-local/xintake_walk.py (smoke.py, smoke_148.py, smoke_149.py import it); an os.walk onerror hook prints each unreadable subdirectory to stderr instead of skipping it silently. It reports and keeps walking, so a smoke run still finishes.
+- #306 docs: the --local fallback lines in pfy-build-daily.md and MVP-PARALLEL-1031.md (rows 17, 40, 329) now name DevBot or Hermes as the operator, not Mark.
+- #306 R14: the mutant timed out under load; left for Reviewer to rerun, not touched here.

@@ -2,8 +2,9 @@
 
 - Branch: `build/306-mvp-stack` (same tip pushed to `bot/mvp-land-1031` for CI). Not merged. No PR. Not a Feature GO. DevBot fast-forwards `main` after Tester+Reviewer PASS at the pinned SHA.
 - Fixes for the Tester and Reviewer FAIL at `89cc0d2`: BX3 fail-closed review (`3a550e5`, `0d3c0fc`, `0e683b9`, `ff8b881` cherry-picked), Python 3.12 and shallow-clone test fixes, DevBot named for merges, Gom Jobbar spelling.
-- Suite: eval-structural run 41527508885 at `07c9f63`: nimo 3.14 `Ran 1377` OK (skipped=17), Ubuntu 3.12 `Ran 1377` OK (skipped=109). The CI run and fresh shallow-clone pregate at the final pin are in the #306 report.
-- Follow-ups: #307 (bare `./pfy` starts `ollama serve`), #308 (cloud review cuts the diff at 12000 chars).
+- Suite: eval-structural run 41537542671 at `ae24af4`: nimo 3.14 `Ran 1377` OK (skipped=17), Ubuntu 3.12 `Ran 1377` OK (skipped=109). Blocker-fix commit `158b2cf`: run 41547388884: nimo `Ran 1384` OK (skipped=17), Ubuntu `Ran 1384` OK (skipped=109), full-history audit step 8 OK. The run and fresh shallow-clone pregate at the final pin are in a #306 comment.
+- Tester FAIL at `ae24af4` fixed: BX3b local binary new file (`ca3ed8d`), #308 cloud cut or binary diff (`58b497b`), line cap one FAIL (`158b2cf`), S1 patch-ids checked (`191d6b0`), dogfood2 and S1 audits with full history in CI (`a13aea5`).
+- Follow-ups: #307 (bare `./pfy` starts `ollama serve`). #308 is fixed here (`58b497b`) and stays open until main has it.
 - Handoff: [ops/HANDOFF-mvp-land-1031.md](ops/HANDOFF-mvp-land-1031.md). Decisions: [ops/AUTONOMOUS-DECISIONS-2026-11-02.md](ops/AUTONOMOUS-DECISIONS-2026-11-02.md).
 
 ## 2026-10-31: mvp-integrate-1031
