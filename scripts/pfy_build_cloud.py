@@ -1410,9 +1410,17 @@ class CloudBuild:
             write_receipt(self.receipt_path, payload)
         except OSError as exc:
             print("FAIL: receipt: %s" % exc, file=sys.stderr)
+        # Remove the pid file only when it still names this runner. A file
+        # that names another process, or that cannot be parsed, stays.
         try:
-            if self.pid_path.is_file():
-                self.pid_path.unlink()
+            with self._pid_lock:
+                if self.pid_path.is_file():
+                    try:
+                        recorded = json.loads(self.pid_path.read_text(encoding="utf-8"))
+                    except (OSError, UnicodeError, json.JSONDecodeError):
+                        recorded = None
+                    if isinstance(recorded, dict) and recorded.get("pid") == os.getpid():
+                        self.pid_path.unlink()
         except OSError:
             pass
         print(_summary(self.status, self.reason, self.branch, self.receipt_path))
