@@ -505,8 +505,19 @@ class OpenCodeEnterableTests(_Tmp):
         self.assertFalse((self.state / "opencode-attach-base").exists())
         self.assertEqual(len(self.spawned), 1)
 
+    def _record_live_sleep(self):
+        """A real process plus the start time launch now requires before reuse."""
+        proc = subprocess.Popen(["/bin/sleep", "60"], start_new_session=True)
+        self.addCleanup(proc.wait, 2)
+        self.addCleanup(_sure_kill, proc.pid)
+        start = self.term.proc_starttime(proc.pid)
+        self.assertTrue(start, "sleep has no /proc start time")
+        (self.state / "opencode-terminal.pid").write_text("%s\n" % proc.pid, encoding="utf-8")
+        (self.state / "opencode-terminal.start").write_text(start + "\n", encoding="utf-8")
+        return proc.pid
+
     def test_reuse_prove_does_not_spawn_when_the_base_matches(self):
-        (self.state / "opencode-terminal.pid").write_text("4242\n", encoding="utf-8")
+        pid = self._record_live_sleep()
         (self.state / "opencode-attach-base").write_text("http://127.0.0.1:9/v1\n", encoding="utf-8")
         seen = []
 
@@ -517,13 +528,13 @@ class OpenCodeEnterableTests(_Tmp):
         self.prove.prove_developer_usable = prove
         out = self._open()
         self.assertTrue(out["ok"], out)
-        self.assertEqual(out["pid"], 4242)
+        self.assertEqual(out["pid"], pid)
         self.assertTrue(out["usable"])
         self.assertEqual(self.spawned, [])
         self.assertEqual(seen, ["http://127.0.0.1:9/v1"])
 
     def test_reuse_prove_failure_does_not_spawn(self):
-        (self.state / "opencode-terminal.pid").write_text("4242\n", encoding="utf-8")
+        self._record_live_sleep()
         (self.state / "opencode-attach-base").write_text("http://127.0.0.1:9/v1\n", encoding="utf-8")
         (self.state / "opencode-session-reach").write_text("stale\n", encoding="utf-8")
         self.prove.prove_developer_usable = lambda base, inspect: (False, "", "reuse smoke failed")

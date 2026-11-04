@@ -25,6 +25,15 @@ probe() {
   return 1
 }
 
+# Test-only pin. When set, do not probe the host spine or a live Ollama.
+# Unset in normal use. A launch test points this at its own fake engine.
+if [[ -n "${PFY_TEST_OPENAI_BASE:-}" ]]; then
+  eng="${PFY_LOCAL_RUNTIME:-openai-compat}"
+  base="${PFY_TEST_OPENAI_BASE%/}"
+  if probe "$base"; then emit "$eng" "$base" "ready"; else emit "$eng" "$base" "partial"; fi
+  exit 0
+fi
+
 # First live spine before Ollama / env overrides (#167).
 # FreeToken → llama-swap → llama-server (Ollama is later).
 emit_spine_ready() {

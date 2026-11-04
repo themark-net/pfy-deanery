@@ -317,6 +317,9 @@ def snapshot_fields(STATE):
 def _probe_ft():
     import urllib.request
 
+    # Same test pin as detect-local-runtime.sh. Do not let a live :1919 win.
+    if os.environ.get("PFY_TEST_OPENAI_BASE", "").strip():
+        return False
     for path in ("http://127.0.0.1:1919/v1/models", "http://127.0.0.1:1919/health"):
         try:
             req = urllib.request.Request(path, method="GET")
