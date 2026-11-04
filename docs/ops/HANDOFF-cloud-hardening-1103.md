@@ -17,8 +17,11 @@ Lanes ran through sandcastle-grok (`batches/fix-533.json`, `batches/fix-533b.jso
 | Reviewer a205d2b B1 | `d977d1f` | Real pytest gate test skips only when `sys.executable` cannot import pytest (`importlib.util.find_spec`). The ubuntu eval-structural job pip-installs pytest, so the test runs there. pytest is not installed on nimo, so it skips locally. |
 | Reviewer a205d2b B2 | `2b5fe59` | `tests/test_cloud_lane_isolated_gitdir.py`: a worktree copy isolated by `_isolate_gitdir` runs `git status` (refreshing `.git.private/index`) and the manifest is unchanged. With `_git_metadata_path` returning False it fails (verified). |
 | Reviewer a205d2b B4, wording | `e594949` | `gate_tree_manifest` fails closed when `git ls-files` exits nonzero: a unique marker makes the before/after compare differ, so the build ends gate-rewrote, before or after the gate. Test `tests/test_cloud_lane_lsfiles_fail.py` uses a PATH git shim while the gate rewrites `src/kept.py`. Gate-timeout recovery line capitalized, gate-rewrote line now also names the listing failure. |
+| Tester a205d2b should-fixes | `359886c` | `_git` decodes with surrogateescape and `capture_diff` diffs one path at a time. A non-UTF-8 new file, non-UTF-8 OLD content, a deleted non-UTF-8 file, or a non-UTF-8 filename all end `review-binary-change` (test asserts that exact outcome). The filename case skips on filesystems that reject such names (nimo is utf8only) and runs in the ubuntu CI job. Tester probe r19 (fake git first on PATH, only ls-files exits 128, gate rewrites a file) is `tests/test_cloud_lane_lsfiles_fail.py`. |
 
 ## Notes, not fixed
+
+- `files_changed` and `_omit_from_commit` still hold the skip rule twice. Sharing one source breaks saved replay diff g10 (its context is the `files_changed` body), so it was left; both lists are equal today.
 
 - Lock scope: the lock is `<clone>/tmp/cloud-build.lock`, so two separate clones of the repo never block each other. Two worktrees of one clone that pass the same `--repo` do.
 - p05/S4: deleting the lock file mid-build lets a second build take a fresh lock on a new inode, so two builds can run at once.
