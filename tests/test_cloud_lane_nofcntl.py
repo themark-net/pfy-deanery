@@ -13,27 +13,39 @@ from tests.test_pfy_build_cloud import CLOUD, _git, _run, _write_exe
 
 
 class RunnerWithoutFcntl(_Base):
-    def shadow(self) -> dict:
-        block = self.side / "nofcntl"
-        block.mkdir(parents=True, exist_ok=True)
-        (block / "fcntl.py").write_text("raise ImportError('fcntl blocked for this test')\n", encoding="utf-8")
-        return {"PYTHONPATH": str(block)}
+    """fcntl is made unimportable (sys.modules entry None), not just shadowed."""
+
+    BLOCK = "import sys; sys.modules['fcntl'] = None\n"
+
+    def launcher(self) -> Path:
+        path = self.side / "nofcntl_launch.py"
+        path.write_text(
+            self.BLOCK + "import runpy\nsys.argv = sys.argv[1:]\nrunpy.run_path(sys.argv[0], run_name='__main__')\n",
+            encoding="utf-8",
+        )
+        return path
+
+    def test_fcntl_is_really_blocked_in_the_launcher(self) -> None:
+        proc = subprocess.run([sys.executable, "-c", self.BLOCK + "import fcntl"], capture_output=True, text=True, timeout=30)
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertIn("fcntl", proc.stderr)
 
     def test_runner_module_loads_without_fcntl(self) -> None:
-        env = dict(os.environ, **self.shadow())
-        code = "import importlib.util as u; s = u.spec_from_file_location('m', %r); m = u.module_from_spec(s); s.loader.exec_module(m); print('LOADED')" % str(CLOUD)
-        proc = subprocess.run([sys.executable, "-c", code], env=env, capture_output=True, text=True, timeout=60)
+        code = self.BLOCK + "import importlib.util as u; s = u.spec_from_file_location('m', %r); m = u.module_from_spec(s); s.loader.exec_module(m); print('LOADED')" % str(CLOUD)
+        proc = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, timeout=60)
         self.assertIn("LOADED", proc.stdout, proc.stderr[-1500:])
 
-    def test_build_without_fcntl_is_not_a_runner_crash(self) -> None:
+    def test_build_without_fcntl_runs_unlocked_and_passes(self) -> None:
         grok = _write_exe(self.side / "grok.py", HEAD + REVIEW_OK + "Path('k.py').write_text('k = 1\\n')\n")
         gate = _write_exe(self.side / "gate.py", HEAD + "print('ok')\n")
-        proc = _run(self.argv("add k", grok, gate, "r"), self.repo, env=self.shadow(), timeout=90)
+        argv = self.argv("add k", grok, gate, "r")
+        argv[1:1] = [str(self.launcher())]
+        proc = _run(argv, self.repo, timeout=90)
         text = (proc.stdout or "") + (proc.stderr or "")
         r = self.receipt("r")
-        self.assertNotEqual(r.get("reason"), "runner-crash", text[-1500:])
         self.assertNotIn("Traceback", text, text[-1500:])
         self.assertEqual((r.get("status"), r.get("reason")), ("PASS", "ok"), text[-1500:])
+        self.assertIn("without the repo lock", text)
 
 
 class LockIsHeldForTheWholeRunAndReleased(_Base):

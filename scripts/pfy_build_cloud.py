@@ -1566,8 +1566,14 @@ class CloudBuild:
 
         None means this run holds it until finish. build-busy means another
         live run holds it. worktree-failed means tmp cannot be written.
+        Without fcntl (not POSIX) the run goes on unlocked. The lock lives in
+        this clone's tmp/, so two separate clones never block each other.
         """
-        import fcntl
+        try:
+            import fcntl
+        except ImportError:
+            print("note: fcntl is not available, so this build runs without the repo lock", file=sys.stderr)
+            return None
 
         path = self.repo / "tmp" / "cloud-build.lock"
         try:
@@ -1589,11 +1595,11 @@ class CloudBuild:
         return None
 
     def _release_run_lock(self) -> None:
-        import fcntl
-
         fd = self._lock_fd
         if fd is None:
             return
+        import fcntl
+
         self._lock_fd = None
         try:
             fcntl.flock(fd, fcntl.LOCK_UN)
