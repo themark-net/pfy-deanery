@@ -948,6 +948,27 @@ def tests_tampered(worktree: Path, snap: dict[str, str], writable: list[str] | N
     return bad
 
 
+def _non_utf8_file(worktree: Path, rel: str) -> bool:
+    """True when a regular file is not strict UTF-8.
+
+    Git prints bytes such as 0xff in a text diff. Decoding that diff as
+    UTF-8 crashes the runner. A NUL is already "Binary files differ".
+    The same line makes this attempt review-binary-change.
+    """
+    full = worktree / rel
+    try:
+        if full.is_symlink() or not full.is_file():
+            return False
+        raw = full.read_bytes()
+    except OSError:
+        return False
+    try:
+        raw.decode("utf-8")
+    except UnicodeDecodeError:
+        return True
+    return False
+
+
 def capture_diff(worktree: Path, paths: list[str]) -> str:
     if not paths:
         return ""
@@ -955,6 +976,11 @@ def capture_diff(worktree: Path, paths: list[str]) -> str:
     tracked: list[str] = []
     untracked: list[str] = []
     for path in paths:
+        if _non_utf8_file(worktree, path):
+            # Same marker git prints for a NUL file, so review_refusal
+            # returns review-binary-change and the bytes stay out of the prompt.
+            chunks.append("Binary files /dev/null and b/%s differ" % path)
+            continue
         proc = _git(worktree, ["status", "--porcelain", "--", path])
         line = (proc.stdout or "").splitlines()
         text = line[0] if line else ""
