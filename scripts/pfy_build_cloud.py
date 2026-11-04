@@ -812,36 +812,65 @@ def cached_names(worktree: Path) -> list[str]:
     return names
 
 
-def gate_tree_manifest(root: Path) -> dict[str, str]:
-    """Path to content hash under root, skipping git metadata and tmp/.
+def _omit_from_commit(rel: str) -> bool:
+    """Paths files_changed drops, so a commit will not include them.
 
-    Skips .git (file or directory), .git.private, tmp, and __pycache__.
-    A gate that only reads keeps this map. A write, add, or delete does not.
+    Only the root tmp/ directory is runner scratch. A nested tmp/ stays.
+    Bytecode and the pytest cache stay out. Git metadata is not a path
+    files_changed reports; the manifest drops that itself.
+    """
+    if not rel or rel == "tmp" or rel.startswith("tmp/"):
+        return True
+    if rel.startswith("__pycache__/") or rel.endswith(".pyc") or "/__pycache__/" in rel:
+        return True
+    if rel.startswith(".pytest_cache/") or "/.pytest_cache/" in rel:
+        return True
+    return False
+
+
+def _git_metadata_path(rel: str) -> bool:
+    """The worktree .git pointer and a private gitdir are never committable."""
+    return (
+        rel == ".git"
+        or rel.startswith(".git/")
+        or rel == ".git.private"
+        or rel.startswith(".git.private/")
+    )
+
+
+def gate_tree_manifest(root: Path) -> dict[str, str]:
+    """Content hash of every path a commit could include.
+
+    Tracked names come from `git ls-files` (ignored-but-tracked stay).
+    Untracked names come from `git ls-files --others --exclude-standard`.
+    Skips are the ones files_changed uses, plus git metadata. A tracked
+    file the gate removes is stored as missing so the delete shows up.
     """
     found: dict[str, str] = {}
     if not root.is_dir():
         return found
-    skip = {".git", ".git.private", "tmp", "__pycache__"}
-    for dirpath, dirnames, filenames in os.walk(root):
-        dirnames[:] = [name for name in dirnames if name not in skip]
-        for name in filenames:
-            full = Path(dirpath) / name
-            try:
-                rel = _norm_rel(full.relative_to(root).as_posix())
-            except ValueError:
+    listed = _git(
+        root,
+        ["ls-files", "-z", "--cached", "--others", "--exclude-standard"],
+    )
+    for part in (listed.stdout or "").split("\0"):
+        rel = _norm_rel(part)
+        if _omit_from_commit(rel) or _git_metadata_path(rel):
+            continue
+        if rel in found:
+            continue
+        full = root / rel
+        try:
+            if full.is_symlink():
+                payload = os.readlink(full).encode("utf-8", "surrogateescape")
+            elif full.is_file():
+                payload = full.read_bytes()
+            else:
+                found[rel] = ":missing"
                 continue
-            if not rel or any(part in skip for part in rel.split("/")):
-                continue
-            try:
-                if full.is_symlink():
-                    payload = os.readlink(full).encode("utf-8", "surrogateescape")
-                elif full.is_file():
-                    payload = full.read_bytes()
-                else:
-                    continue
-                found[rel] = hashlib.sha256(payload).hexdigest()
-            except OSError:
-                found[rel] = ":unreadable"
+            found[rel] = hashlib.sha256(payload).hexdigest()
+        except OSError:
+            found[rel] = ":unreadable"
     return found
 
 
