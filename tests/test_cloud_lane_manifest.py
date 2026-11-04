@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib.util
 import os
 import shutil
 import subprocess
@@ -143,7 +144,7 @@ class GateArtifactsThatCannotBeCommittedPass(_Rewrite):
         )
         self.assert_passed(r)
 
-    @unittest.skipUnless(shutil.which("pytest") or subprocess.run([sys.executable, "-c", "import pytest"], capture_output=True).returncode == 0, "pytest not installed")
+    @unittest.skipUnless(importlib.util.find_spec("pytest") is not None, "sys.executable cannot import pytest")
     def test_real_pytest_gate_passes(self) -> None:
         tests = self.repo / "tests_k"
         tests.mkdir()

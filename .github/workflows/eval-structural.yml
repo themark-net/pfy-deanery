@@ -23,12 +23,13 @@ jobs:
       - name: Install PyYAML for the workflow image pin
         run: |
           set -euo pipefail
-          # setup-python's interpreter does not ship PyYAML. Install into the
+          # setup-python's interpreter ships neither PyYAML nor pytest (the real
+          # pytest gate test needs it). Install into the
           # same absolute PATH python3 the next step runs. Do not apt-install:
           # that package would not be on this interpreter.
           pin_py="$(command -v python3)"
           test -n "$pin_py"
-          "$pin_py" -m pip install --disable-pip-version-check -q pyyaml
+          "$pin_py" -m pip install --disable-pip-version-check -q pyyaml pytest
       - name: Workflow image pin
         run: |
           set -euo pipefail
