@@ -575,7 +575,7 @@ def failure_recovery(reason: str, task: str, detail: str = "") -> str:
         quoted_timeout = _quoted_task(task)
         if (detail or "").strip() == "gate":
             return (
-                "the gate timed out. Rerun with a longer --timeout. "
+                "The gate timed out. Rerun with a longer --timeout. "
                 "Then rerun ./pfy build %s."
                 % quoted_timeout
             )
@@ -632,8 +632,8 @@ def failure_recovery(reason: str, task: str, detail: str = "") -> str:
         "tests": "The gate stayed red. Read the receipt gate tail, then rerun ./pfy build %s.",
         "tests-flaky": "The gate passed once and failed once. Rerun ./pfy build %s.",
         "gate-rewrote": (
-            "The gate changed files in the worktree. "
-            "The gate must only check, not write files, then rerun ./pfy build %s."
+            "The gate changed files in the worktree, or git could not list them. "
+            "Make the gate only check, not write files, then rerun ./pfy build %s."
         ),
         "review-rejected": (
             "Review rejected the diff. Change the task or the patch, then rerun ./pfy build %s."
@@ -873,6 +873,11 @@ def gate_tree_manifest(root: Path) -> dict[str, str]:
         root,
         ["ls-files", "-z", "--cached", "--others", "--exclude-standard"],
     )
+    if listed.returncode != 0:
+        # Fail closed: a unique marker never equals another manifest, so a
+        # listing failure before or after the gate ends as gate-rewrote.
+        found[":ls-files-failed"] = os.urandom(16).hex()
+        return found
     for part in (listed.stdout or "").split("\0"):
         rel = _norm_rel(part)
         if _omit_from_commit(rel) or _git_metadata_path(rel):

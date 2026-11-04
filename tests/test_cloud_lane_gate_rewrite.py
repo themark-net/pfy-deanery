@@ -72,7 +72,7 @@ class GateRewriteIsNotCommitted(_Base):
         self.assertEqual(r["exit_code"], 1)
         self.assertIsNone(r["commit"])
         self.assertIsNone(r["branch"])
-        self.assertIn("must only check, not write files", r["recovery"])
+        self.assertIn("only check, not write files", r["recovery"])
         self.assertIn("gate", r["recovery"].lower())
         self.assertNotIn("--local", r["recovery"])
         self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)

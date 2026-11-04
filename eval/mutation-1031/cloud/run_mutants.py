@@ -338,13 +338,13 @@ CLOUD2_MUTANTS: list[dict[str, str]] = [
         "title": "gate timeout recovery says grok timed out",
         "old": '        if (detail or "").strip() == "gate":\n'
         "            return (\n"
-        '                "the gate timed out. Rerun with a longer --timeout. "\n'
+        '                "The gate timed out. Rerun with a longer --timeout. "\n'
         '                "Then rerun ./pfy build %s."\n'
         "                % quoted_timeout\n"
         "            )\n",
         "new": '        if False and (detail or "").strip() == "gate":\n'
         "            return (\n"
-        '                "the gate timed out. Rerun with a longer --timeout. "\n'
+        '                "The gate timed out. Rerun with a longer --timeout. "\n'
         '                "Then rerun ./pfy build %s."\n'
         "                % quoted_timeout\n"
         "            )\n",

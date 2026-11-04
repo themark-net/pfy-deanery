@@ -234,7 +234,7 @@ class Cloud2SurvivorTests(unittest.TestCase):
         self.assertEqual(payload["reason"], "timeout")
         self.assertIsNone(payload["branch"])
         self.assertIsNone(payload["commit"])
-        self.assertIn("the gate timed out", payload["recovery"])
+        self.assertIn("The gate timed out", payload["recovery"])
         self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
 
     def test_nested_auth_json_is_protected(self) -> None:
@@ -372,7 +372,7 @@ class Cloud2SurvivorTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 3, text)
         payload = self._receipt()
         self.assertEqual(payload["reason"], "timeout", payload)
-        self.assertIn("the gate timed out", payload["recovery"])
+        self.assertIn("The gate timed out", payload["recovery"])
         self.assertFalse(marker.exists(), text)
         self.assertIsNone(payload["branch"])
         self.assertIsNone(payload["commit"])

@@ -3361,7 +3361,7 @@ class CloudBuildGateReasonTests(unittest.TestCase):
         self.assertEqual(payload["exit_code"], 3)
         self.assertIsNone(payload["branch"])
         self.assertIsNone(payload["commit"])
-        self.assertIn("the gate timed out", payload["recovery"])
+        self.assertIn("The gate timed out", payload["recovery"])
         self.assertIn("--timeout", payload["recovery"])
         self.assertNotIn("--local", payload["recovery"])
         self.assertEqual(payload["gate"]["before"]["exit"], 0)
