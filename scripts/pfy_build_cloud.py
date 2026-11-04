@@ -31,6 +31,7 @@ import re
 import shlex
 import shutil
 import signal
+import stat
 import subprocess
 import sys
 import threading
@@ -838,13 +839,32 @@ def _git_metadata_path(rel: str) -> bool:
     )
 
 
+def _commit_mode(path: Path) -> str:
+    """Mode git would store for this worktree path.
+
+    Any exec bit is 100755. A regular file with none is 100644. A symlink
+    is 120000. Other permission bits stay out, matching the index.
+    """
+    try:
+        mode = path.lstat().st_mode
+    except OSError:
+        return "000000"
+    if stat.S_ISLNK(mode):
+        return "120000"
+    if stat.S_ISREG(mode) and (mode & 0o111):
+        return "100755"
+    return "100644"
+
+
 def gate_tree_manifest(root: Path) -> dict[str, str]:
-    """Content hash of every path a commit could include.
+    """Content hash of every path a commit could include, with its git mode.
 
     Tracked names come from `git ls-files` (ignored-but-tracked stay).
     Untracked names come from `git ls-files --others --exclude-standard`.
     Skips are the ones files_changed uses, plus git metadata. A tracked
     file the gate removes is stored as missing so the delete shows up.
+    Each value starts with the mode git records (100644 or 100755, 120000
+    for a symlink) so an exec-bit change counts as a rewrite.
     """
     found: dict[str, str] = {}
     if not root.is_dir():
@@ -860,17 +880,18 @@ def gate_tree_manifest(root: Path) -> dict[str, str]:
         if rel in found:
             continue
         full = root / rel
+        mode = _commit_mode(full)
         try:
             if full.is_symlink():
                 payload = os.readlink(full).encode("utf-8", "surrogateescape")
             elif full.is_file():
                 payload = full.read_bytes()
             else:
-                found[rel] = ":missing"
+                found[rel] = "%s :missing" % mode
                 continue
-            found[rel] = hashlib.sha256(payload).hexdigest()
+            found[rel] = "%s %s" % (mode, hashlib.sha256(payload).hexdigest())
         except OSError:
-            found[rel] = ":unreadable"
+            found[rel] = "%s :unreadable" % mode
     return found
 
 
