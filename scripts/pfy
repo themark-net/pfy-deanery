@@ -83,6 +83,11 @@ warn_if_active_stub() {
 }
 
 launch_native_gui() {
+  # Test hook: window step is a no-op. Operators do not set this.
+  if [[ "${PFY_SKIP_WINDOW:-}" == "1" ]]; then
+    echo "native window skipped"
+    return 0
+  fi
   local tbin
   tbin="$(tauri_bin || true)"
   if [[ -n "$tbin" ]]; then
@@ -102,9 +107,92 @@ launch_native_gui() {
   exit 1
 }
 
+down_engine_line() {
+  # One line: the engine a window command would have started, and the command to start it.
+  local rt engine st pick
+  rt=$(local_runtime)
+  engine=$(rt_get "$rt" engine)
+  st=$(rt_get "$rt" status)
+  if [[ "$st" == "ready" ]]; then
+    return 1
+  fi
+  if [[ -n "${PFY_LOCAL_RUNTIME:-}" ]]; then
+    pick="${PFY_LOCAL_RUNTIME}"
+  elif have ft || have freetoken; then
+    pick="freetoken"
+  elif have llama-swap; then
+    pick="llama-swap"
+  elif have llama-server; then
+    pick="llama-server"
+  elif have ollama; then
+    pick="ollama"
+  elif have shimmy; then
+    pick="shimmy"
+  else
+    pick="${engine:-none}"
+  fi
+  case "$pick" in
+    ollama) echo "ollama down: ollama serve" ;;
+    freetoken|ft) echo "freetoken down: ft serve --model \$PFY_FT_MODEL" ;;
+    llama-swap) echo "llama-swap down: llama-swap" ;;
+    llama-server|llama.cpp) echo "llama-server down: llama-server -m \$PFY_LLAMA_MODEL --port 8080 --host 127.0.0.1" ;;
+    shimmy) echo "shimmy down: shimmy serve --bind 127.0.0.1:11435" ;;
+    *) echo "engine down: install FreeToken, llama-swap, llama-server, or ollama" ;;
+  esac
+}
+
+window_engine_opt_in() {
+  # Bare window commands start a daemon only with PFY_START_ENGINE=1, --start-engine, or a TTY yes.
+  [[ "${PFY_START_ENGINE:-}" == "1" || "${PFY_START_ENGINE_FLAG:-}" == "1" ]] && return 0
+  if [[ -t 0 ]]; then
+    local line ans
+    line="$(down_engine_line || true)"
+    [[ -z "$line" ]] && return 1
+    printf '%s\nStart it now? [y/N] ' "$line" >&2
+    IFS= read -r ans || true
+    ans="$(printf '%s' "$ans" | tr '[:upper:]' '[:lower:]')"
+    case "$ans" in
+      y|yes) return 0 ;;
+    esac
+    export PFY_ENGINE_HINT_SHOWN=1
+    return 1
+  fi
+  return 1
+}
+
+note_engine_down() {
+  # Down and not opted in: exactly one line (engine name + start command). #307.
+  local rt engine st base line
+  rt=$(local_runtime)
+  engine=$(rt_get "$rt" engine)
+  st=$(rt_get "$rt" status)
+  base=$(rt_get "$rt" base_url)
+  if [[ "$st" == "ready" ]]; then
+    echo "detected: engine=${engine:-(none)} status=${st:-(none)} base_url=${base:-(none)}"
+    echo "engine: $engine"
+    echo "status: $st"
+    return 0
+  fi
+  if [[ "${PFY_ENGINE_HINT_SHOWN:-}" == "1" ]]; then
+    return 0
+  fi
+  line="$(down_engine_line || true)"
+  [[ -n "$line" ]] && echo "$line"
+  return 0
+}
+
+maybe_start_engine_for_window() {
+  if window_engine_opt_in; then
+    ensure_inference || true
+  else
+    note_engine_down || true
+  fi
+}
+
 cmd_gui() {
   # #191: surface ensure_inference FAIL in log; still open window (board Launch uses ./pfy env).
-  ensure_inference || true
+  # #307: do not start ollama/ft/llama/shimmy unless the operator opts in.
+  maybe_start_engine_for_window
   run_product_stage || true
   warn_if_active_stub
   echo "native window is the main interface (no harness exec into this process)"
@@ -116,7 +204,8 @@ usage() {
   cat <<'U'
 pfy — simple setup & launch for the pfy-mentat stack
 
-  pfy                     inference → env-stage → native operator window (no harness exec)
+  pfy                     env-stage → native window (no harness exec; no engine daemon unless opted in)
+  pfy --start-engine      same as pfy, but may start the down engine (also PFY_START_ENGINE=1)
   pfy env                 inference + env-stage (no window, no harness exec)
   pfy setup [local-only|balanced|max-performance]
   pfy setup --preset core --harness <id> [--yes|--dry-run]  catalog install (#290); flags select this path
@@ -322,9 +411,16 @@ ensure_freetoken() {
   return 1
 }
 
+ollama_base_url() {
+  local b="${PFY_OLLAMA_BASE:-http://127.0.0.1:11434}"
+  printf '%s' "${b%/}"
+}
+
 ollama_health() {
-  curl -sf --max-time 2 http://127.0.0.1:11434/api/tags >/dev/null 2>&1 \
-    || curl -sf --max-time 2 http://127.0.0.1:11434/v1/models >/dev/null 2>&1
+  local b
+  b="$(ollama_base_url)"
+  curl -sf --max-time 2 "$b/api/tags" >/dev/null 2>&1 \
+    || curl -sf --max-time 2 "$b/v1/models" >/dev/null 2>&1
 }
 
 wait_ollama_health() {
@@ -1042,6 +1138,11 @@ ensure_inference() {
 }
 
 run_product_stage() {
+  # Test hook: do not re-enter structural eval from a test that calls ./pfy.
+  if [[ "${PFY_SKIP_STAGE:-}" == "1" ]]; then
+    echo "env-stage skipped"
+    return 0
+  fi
   echo "==> env-stage (product; honest skip if a piece is missing)"
   if [[ ! -f "$ROOT/scripts/env-stage.sh" ]]; then
     echo "note: scripts/env-stage.sh missing — skip stage"
@@ -1333,7 +1434,7 @@ exec_harness() {
         echo "  ollama serve"
         exit 2
       fi
-      export LOCAL_OPENAI_BASE_URL="http://127.0.0.1:11434/v1"
+      export LOCAL_OPENAI_BASE_URL="$(ollama_base_url)/v1"
       export OPENAI_BASE_URL="$LOCAL_OPENAI_BASE_URL"
       local omodel
       omodel="$(ollama_default_model)"
@@ -2077,6 +2178,7 @@ record_verb() {
 
 cmd_board() {
   [[ -f "$ROOT/scripts/pfy-board.py" ]] || die "scripts/pfy-board.py missing"
+  maybe_start_engine_for_window
   local open_flag=0
   local -a args=()
   local a
@@ -2102,6 +2204,24 @@ cmd_board() {
 main() {
   local cmd="${1:-gui}"
   shift || true
+  local -a _rest=()
+  local _a
+  if [[ "$cmd" == "--start-engine" ]]; then
+    export PFY_START_ENGINE_FLAG=1
+    cmd="gui"
+  fi
+  for _a in "$@"; do
+    if [[ "$_a" == "--start-engine" ]]; then
+      export PFY_START_ENGINE_FLAG=1
+    else
+      _rest+=("$_a")
+    fi
+  done
+  if [[ ${#_rest[@]} -gt 0 ]]; then
+    set -- "${_rest[@]}"
+  else
+    set --
+  fi
   if [[ "$cmd" != "help" && "$cmd" != "-h" && "$cmd" != "--help" ]]; then
     record_verb "$cmd" "$@"
   fi

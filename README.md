@@ -13,17 +13,17 @@ Repository: https://github.com/themark-net/pfy-mentat
 Operator environment: local inference, then product stage (honest skip if a piece is missing), then the native operator window. Loop paints **LOCAL COMPUTE | CLOUD ORCHESTRATION** plus gathered catalog **MODULES**. **Launch session** applies enabled modules into an enterable TUI — that session is the proof. Attach grok/opencode remains on the Attach tab. Do not exec a harness into the GUI process.
 
 ```bash
-./pfy           # inference → env-stage → native window (no harness exec)
+./pfy           # env-stage → native window (no harness exec; no engine daemon unless opted in)
 ./pfy board     # same native window (Tauri if built, else already-on-box webkit, else stdlib tk)
 ./pfy start grok  # named harness after inference/stage (still execs that harness)
-./pfy launch      # Launch session: apply enabled Loop modules, then enterable TUI
+./pfy launch      # one command: fill missing lane local, toolsets bare, ready harness, then the TUI
 ./pfy models    # inspect-only: live GET /v1/models (and Ollama /api/tags); usage if exposed
 ```
 
 Daily build: [docs/QUICKSTART-pfy-build.md](docs/QUICKSTART-pfy-build.md).
 DoD walkthrough: [docs/ops/MVP-DOD-WALKTHROUGH.md](docs/ops/MVP-DOD-WALKTHROUGH.md).
 
-Bare `./pfy` / `./pfy up` / `./pfy start` (no name) open the native window. `./pfy board` aliases it. Optional `./pfy board --open` is a browser hatch only (not the main path). Board is not a supervisor.
+Bare `./pfy`, `./pfy up`, `./pfy start` with no name, and `./pfy board` do not start FreeToken, llama-swap, llama-server, or `ollama serve`. When the engine is down they print one line with the start command and open the window with the engine down. Opt in with `PFY_START_ENGINE=1`, `--start-engine`, or yes at the terminal prompt. `./pfy start <harness>` still starts the engine before that harness. `./pfy env` still starts it. `./pfy board` is the same window. Optional `./pfy board --open` is a browser hatch only (not the main path). Board is not a supervisor.
 
 If continue or agent-cage is the active harness: FAIL and copy `pfy harness use grok` (no grok/opencode fallback). Chips bind `./pfy status` **live** (`missing` not `unknown`).
 
@@ -148,7 +148,7 @@ One-shot design: [docs/ops/one-shot-workflow.md](docs/ops/one-shot-workflow.md) 
 
 ## Current status (v0.4 → G8 launch)
 
-- **`./pfy`** simple surface (ADR-0012): bare `./pfy` / `up` / unnamed `start` bring up inference + stage + native operator window; named `start <harness>` still execs that harness; `models` is inspect-only
+- **`./pfy`** simple surface (ADR-0012): bare `./pfy` / `up` / unnamed `start` / `board` open the window and do not start an engine unless opted in (`PFY_START_ENGINE=1`, `--start-engine`, or a terminal yes); named `start <harness>` and `./pfy env` still start inference; `models` is inspect-only
 - Catalog + eval pipeline remain first-class (`./pfy eval`, structural/golden)
 
 
@@ -183,7 +183,7 @@ One launcher. Inference first, then product stage, then the native operator wind
 git clone https://github.com/themark-net/pfy-mentat.git
 cd pfy-mentat
 ./pfy setup              # env + Grok skills if CLI present
-./pfy                    # inference → env-stage → native operator window
+./pfy                    # env-stage → native window (engine starts only if opted in)
 ./pfy board              # same native window
 ./pfy models             # inspect-only; listing tags is not success
 # or: ./pfy up            # same as bare ./pfy
@@ -194,7 +194,7 @@ Bare `./pfy` opens the native window (Tauri if built, else already-on-box webkit
 
 | Command | Purpose |
 |---------|---------|
-| `./pfy` / `./pfy up` / unnamed `./pfy start` | Inference, then env-stage, then native operator window. Does **not** exec a harness into that process. |
+| `./pfy` / `./pfy up` / unnamed `./pfy start` | Env-stage, then native operator window. Does not start an engine daemon unless `PFY_START_ENGINE=1`, `--start-engine`, or a terminal yes. Does not exec a harness into that process. |
 | `./pfy start <harness>` | Same bring-up, then that harness (stubs: STUB + issue, exit 2) |
 | `./pfy board` / `./pfy board --open` | Same native window. --open is an optional browser hatch (honest skip if it fails) |
 | `./pfy models` | Inspect-only: list models from the live endpoint (`GET /v1/models`, Ollama `/api/tags`) |

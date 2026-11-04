@@ -39,6 +39,17 @@ NEXT_HOLD = "catalog 70-75 HOLD (do not auto-lift)"
 NEXT_CLOUD = "pick Grok | Claude | Codex | Gab for cloud/subscription"
 NEXT_FREE = "pick OpenCode for OpenCode free"
 HOLD_ENTRIES = frozenset(range(70, 76))
+INSTALL_HINT = "curl -fsSL https://x.ai/cli/install.sh | bash"
+# Catalog id -> wizard harness id. claude-code is the same session as claude.
+_LAUNCHABLE = {
+    "opencode": "opencode",
+    "grok": "grok",
+    "hermes": "hermes",
+    "codex": "codex",
+    "claude": "claude",
+    "claude-code": "claude",
+    "gab": "gab",
+}
 
 
 def _now():
@@ -315,6 +326,8 @@ def snapshot_fields(STATE):
 
 
 def _probe_ft():
+    if os.environ.get("PFY_DETECT_SKIP_HOST") == "1":
+        return False
     import urllib.request
 
     # Same test pin as detect-local-runtime.sh. Do not let a live :1919 win.
@@ -669,6 +682,93 @@ def apply_step(STATE, step, value="", ROOT=None, which=None, live_openai_base=No
     return _decorate_compose(STATE, rec)
 
 
+def _harness_rows(ROOT):
+    path = Path(ROOT) / "data" / "harnesses.json"
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    rows = data.get("harnesses") if isinstance(data, dict) else None
+    return rows if isinstance(rows, list) else []
+
+
+def _row_ready(row):
+    if not isinstance(row, dict):
+        return False
+    if str(row.get("role") or "") != "harness":
+        return False
+    if str(row.get("status") or "") == "stub":
+        return False
+    hid = str(row.get("id") or "")
+    if hid not in _LAUNCHABLE or hid in ("continue", "agent-cage"):
+        return False
+    for name in row.get("detect") or []:
+        if shutil.which(str(name)):
+            return True
+    return False
+
+
+def pick_default_harness(STATE, ROOT):
+    """Active harness if ready, else grok if ready, else the first ready launchable harness."""
+    ready = []
+    for row in _harness_rows(ROOT):
+        if not _row_ready(row):
+            continue
+        canon = _LAUNCHABLE.get(str(row.get("id") or ""))
+        if canon and canon not in ready:
+            ready.append(canon)
+    active_raw = _read(Path(STATE) / "active-harness")
+    active = ""
+    if active_raw:
+        active = _LAUNCHABLE.get(active_raw.splitlines()[0].strip(), "")
+    if active and active in ready:
+        return active
+    if "grok" in ready:
+        return "grok"
+    return ready[0] if ready else ""
+
+
+def fill_launch_defaults(STATE, ROOT, live_openai_base=None):
+    """Fill missing wizard steps. Do not invent a harness when runtime or harness is not ready."""
+    rt = probe_runtime(STATE, live_openai_base=live_openai_base, ROOT=ROOT)
+    if not rt.get("ok"):
+        return rt
+    comp = load_comp(STATE)
+    filled = []
+    if not str(comp.get("lane") or "").strip():
+        comp["lane"] = "local"
+        filled.append("lane local")
+    if not str(comp.get("toolsets") or "").strip():
+        comp["toolsets"] = "bare"
+        comp["mode"] = "bare"
+        filled.append("toolsets bare")
+    if not str(comp.get("harness") or "").strip():
+        hid = pick_default_harness(STATE, ROOT)
+        if not hid:
+            return fail(
+                "launch",
+                "no ready harness",
+                INSTALL_HINT,
+                step="harness",
+            )
+        comp["harness"] = hid
+        filled.append("harness %s" % hid)
+    comp["step"] = "review"
+    save_comp(STATE, comp)
+    note = ("defaults: " + ", ".join(filled)) if filled else ""
+    return {"ok": True, "defaults": note, "filled": filled}
+
+
+def _tag_defaults(rec, note):
+    rec = dict(rec or {})
+    if note:
+        rec["defaults"] = note
+        copy = str(rec.get("copy") or "")
+        if note not in copy:
+            rec["copy"] = (note + " · " + copy).strip(" ·")
+    return rec
+
+
 def launch_session(
     ROOT,
     STATE,
@@ -677,10 +777,22 @@ def launch_session(
     which=None,
     set_mode_fn=None,
 ):
-    """Primary CTA: enterable TUI with composed env OR FAIL+next. Cite #225."""
+    """Primary CTA: enterable TUI with composed env OR FAIL+next. Cite #225.
+
+    Missing lane/toolsets/harness are filled (local, bare, ready harness) and
+    written before the terminal step, so a later terminal FAIL still leaves
+    the review complete.
+    """
+    pre = fill_launch_defaults(STATE, ROOT, live_openai_base=live_openai_base)
+    if not pre.get("ok"):
+        return pre
+    note = pre.get("defaults") or ""
+    def _ret(rec):
+        return _tag_defaults(rec, note)
+
     rec = review(STATE, live_openai_base=live_openai_base)
     if not rec.get("ok"):
-        return rec
+        return _ret(rec)
     jev = _load_jev_230()
     if jev is not None:
         live = {
@@ -695,7 +807,7 @@ def launch_session(
         if gated.get("skipped"):
             pass
         elif not gated.get("ok"):
-            return gated
+            return _ret(gated)
         else:
             rec = dict(rec)
             rec["decision"] = gated
@@ -712,20 +824,20 @@ def launch_session(
     mode = "bare" if toolset == "catalog" else (comp.get("mode") or toolset or "bare")
     c224 = _load_compose_224()
     if c224 is None:
-        return fail("launch", "session compose helper missing", NEXT_SETUP, harness=hid, mode=mode)
+        return _ret(fail("launch", "session compose helper missing", NEXT_SETUP, harness=hid, mode=mode))
     try:
         brief = c224.write_brief(STATE, ROOT=ROOT, hid=hid, which=which, comp=comp)
     except Exception as e:
-        return fail("launch", "session brief: %s" % str(e)[:160], NEXT_SETUP, harness=hid, mode=mode)
+        return _ret(fail("launch", "session brief: %s" % str(e)[:160], NEXT_SETUP, harness=hid, mode=mode))
     if not brief.get("ok"):
-        return brief
+        return _ret(brief)
     if callable(set_mode_fn) and toolset != "catalog":
         try:
             set_mode_fn(mode)
         except Exception:
             pass
     if not callable(start_fn):
-        return {
+        return _ret({
             "ok": True,
             "live": "READY",
             "copy": "READY launch -- %s" % rec.get("review"),
@@ -745,13 +857,13 @@ def launch_session(
             "brief": brief.get("brief") or "",
             "lane_label": brief.get("lane") or "",
             "enabled": brief.get("enabled") or "",
-        }
+        })
     try:
         result = start_fn(hid, mode=mode)
     except TypeError:
         result = start_fn(hid)
     except Exception as e:
-        return fail("launch", str(e)[:200], NEXT_UP, harness=hid, mode=mode)
+        return _ret(fail("launch", str(e)[:200], NEXT_UP, harness=hid, mode=mode))
     result = dict(result or {})
     if result.get("ok") and result.get("usable") is not False:
         result["review"] = rec.get("review") or ""
@@ -769,10 +881,10 @@ def launch_session(
         tag = rec.get("review") or ""
         if tag and tag not in copy:
             result["copy"] = (copy + " · " + tag).strip(" ·")
-        return result
+        return _ret(result)
     nxt = result.get("next_step") or NEXT_UP
     err = result.get("error") or result.get("copy") or "launch failed"
-    return fail("launch", err, nxt, harness=hid, mode=mode, review=rec.get("review") or "")
+    return _ret(fail("launch", err, nxt, harness=hid, mode=mode, review=rec.get("review") or ""))
 
 
 def cmd_selftest():

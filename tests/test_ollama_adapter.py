@@ -14,7 +14,7 @@ PFY = ROOT / "scripts" / "pfy"
 
 def _ensure_chunk(state: str) -> str:
     text = PFY.read_text(encoding="utf-8")
-    start = text.index("ollama_health()")
+    start = text.index("ollama_base_url()")
     end = text.index("\nllama_swap_health(")
     head = (
         'have() { command -v "$1" >/dev/null 2>&1; }\n'
@@ -32,9 +32,11 @@ class OllamaAdapterTests(unittest.TestCase):
         case = arm.split("ollama)", 1)[1].split("freetoken|shimmy", 1)[0]
         self.assertIn("ensure_ollama_adapter", case)
         self.assertLess(case.index("ensure_ollama_adapter"), case.index("exec_harness ollama"))
-        spine = text.split("    ollama)\n", 1)[1].split("freetoken|shimmy", 1)[0]
-        self.assertIn("ollama_health", spine)
-        self.assertIn("http://127.0.0.1:11434/v1", spine)
+        exec_body = text.split("exec_harness()", 1)[1]
+        ollama_exec = exec_body.split("\n    ollama)\n", 1)[1].split("freetoken|shimmy", 1)[0]
+        self.assertIn("ollama_health", ollama_exec)
+        self.assertIn("$(ollama_base_url)/v1", ollama_exec)
+        self.assertIn("PFY_OLLAMA_BASE:-http://127.0.0.1:11434", text)
 
     def test_missing_binary_is_stub(self):
         with tempfile.TemporaryDirectory() as tmp:
