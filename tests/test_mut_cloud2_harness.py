@@ -68,7 +68,7 @@ class Cloud2CatalogTests(unittest.TestCase):
         # Recover: the first FAIL: test_ line is the detail.
         text = (
             "FAIL: commit-recheck-failed\n"
-            "Mark: the fresh extract of the commit did not pass the gate.\n"
+            "The fresh extract of the commit did not pass the gate.\n"
             "FAIL: test_star_filename_commits_that_file_and_not_the_pyc "
             "(tests.test_pfy_build_cloud.CloudBuildNoChangeTests)\n"
             "AssertionError: 1 != 0\n"

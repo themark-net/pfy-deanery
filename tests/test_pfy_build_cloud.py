@@ -2022,7 +2022,7 @@ class CloudBuildFailureTests(unittest.TestCase):
         aborted = json.loads((receipt_dir / "receipt.json").read_text(encoding="utf-8"))
         self.assertEqual(aborted["status"], "ABORTED")
         self.assertEqual(aborted["reason"], "no-receipt")
-        self.assertIn("Mark:", aborted["recovery"])
+        self.assertIn("The build died before it wrote a receipt", aborted["recovery"])
         self.assertIn("--reap", aborted["recovery"])
         self.assertNotIn("--local", aborted["recovery"])
         self.assertIsNone(aborted["branch"])
@@ -2080,7 +2080,7 @@ class CloudBuildFailureTests(unittest.TestCase):
         aborted = json.loads((stale / "receipt.json").read_text(encoding="utf-8"))
         self.assertEqual(aborted["status"], "ABORTED")
         self.assertEqual(aborted["reason"], "no-receipt")
-        self.assertIn("Mark:", aborted["recovery"])
+        self.assertIn("The build died before it wrote a receipt", aborted["recovery"])
         self.assertIn("--reap", aborted["recovery"])
         self.assertFalse(cloud_pids.exists())
 
@@ -2350,7 +2350,7 @@ class CloudBuildFailureTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 1, text)
         payload = self._receipt()
         self.assertEqual(payload["reason"], "protected-path-changed")
-        self.assertIn("Mark:", payload["recovery"])
+        self.assertIn("Remove that change and rerun ./pfy build", payload["recovery"])
         self.assertIn("auth.json", payload["recovery"])
         self.assertNotIn("--local", payload["recovery"])
         self.assertIsNone(payload["branch"])
@@ -2408,7 +2408,7 @@ class CloudBuildFailureTests(unittest.TestCase):
                 self.assertNotIn("--local", payload["recovery"])
             else:
                 self.assertNotIn("--local", payload["recovery"])
-                self.assertIn("Mark:", payload["recovery"])
+                self.assertIn("./pfy build", payload["recovery"])
         crashed = mod.CloudBuild(
             mod.parse_args(["task crash", "--repo", str(self.repo), "--retries", "0", "--test-cmd", "true"]),
             self.repo,
@@ -2424,7 +2424,7 @@ class CloudBuildFailureTests(unittest.TestCase):
         crashed.finish()
         crash_payload = json.loads(crashed.receipt_path.read_text(encoding="utf-8"))
         self.assertEqual(crash_payload["reason"], "runner-crash")
-        self.assertIn("Mark:", crash_payload["recovery"])
+        self.assertIn("The runner crashed before it could finish", crash_payload["recovery"])
         self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
 
     def test_direct_grok_home_fails_then_a_clean_retry_lands(self) -> None:
@@ -3140,7 +3140,7 @@ class CloudBuildGateReasonTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 1, text)
         payload = self._receipt()
         self.assertEqual(payload["reason"], "worktree-failed")
-        self.assertIn("Mark:", payload["recovery"])
+        self.assertIn("Fix the worktree error, then rerun ./pfy build", payload["recovery"])
         self.assertIn("worktree", payload["recovery"].lower())
         self.assertNotIn("--local", payload["recovery"])
         self.assertIsNone(payload["branch"])
@@ -3198,7 +3198,7 @@ class CloudBuildGateReasonTests(unittest.TestCase):
         self.assertIs(payload["pushed"], False)
         recovery = payload["recovery"]
         self.assertTrue(recovery.strip(), recovery)
-        self.assertIn("Mark:", recovery)
+        self.assertIn("Fetch it or pass --base with a ref that exists", recovery)
         self.assertIn(ref, recovery)
         self.assertIn("--base", recovery)
         self.assertIn("fetch", recovery.lower())
@@ -3291,7 +3291,7 @@ class CloudBuildGateReasonTests(unittest.TestCase):
         self.assertEqual(payload["exit_code"], 1)
         self.assertIsNone(payload["branch"])
         self.assertIsNone(payload["commit"])
-        self.assertIn("Mark:", payload["recovery"])
+        self.assertIn("Make the repo tmp directory writable", payload["recovery"])
         self.assertIn("writable", payload["recovery"].lower())
         self.assertIn("worktree", payload["recovery"].lower())
         self.assertNotIn("PermissionError", payload["recovery"])

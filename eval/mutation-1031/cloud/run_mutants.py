@@ -338,13 +338,13 @@ CLOUD2_MUTANTS: list[dict[str, str]] = [
         "title": "gate timeout recovery says grok timed out",
         "old": '        if (detail or "").strip() == "gate":\n'
         "            return (\n"
-        '                "Mark: the gate timed out. Rerun with a longer --timeout. "\n'
+        '                "the gate timed out. Rerun with a longer --timeout. "\n'
         '                "Then rerun ./pfy build %s."\n'
         "                % quoted_timeout\n"
         "            )\n",
         "new": '        if False and (detail or "").strip() == "gate":\n'
         "            return (\n"
-        '                "Mark: the gate timed out. Rerun with a longer --timeout. "\n'
+        '                "the gate timed out. Rerun with a longer --timeout. "\n'
         '                "Then rerun ./pfy build %s."\n'
         "                % quoted_timeout\n"
         "            )\n",
@@ -439,14 +439,14 @@ CLOUD2_MUTANTS: list[dict[str, str]] = [
         "title": "missing-base recovery omits the ref",
         "old": '    if detail == "missing-ref":\n'
         "        return (\n"
-        '            "Mark: base ref %s is not in this repo, so no worktree was created. "\n'
+        '            "Base ref %s is not in this repo, so no worktree was created. "\n'
         '            "Fetch it or pass --base with a ref that exists, then rerun ./pfy build %s. "\n'
         '            "The caller checkout was not changed."\n'
         "            % (ref, quoted)\n"
         "        )\n",
         "new": '    if detail == "missing-ref":\n'
         "        return (\n"
-        '            "Mark: base ref is not in this repo, so no worktree was created. "\n'
+        '            "Base ref is not in this repo, so no worktree was created. "\n'
         '            "Fetch it or pass --base with a ref that exists, then rerun ./pfy build %s. "\n'
         '            "The caller checkout was not changed."\n'
         "            % quoted\n"

@@ -506,7 +506,7 @@ def rate_recovery(task: str) -> str:
 
 
 def auth_recovery(task: str) -> str:
-    return "Mark: run grok once to log in, then rerun the same ./pfy build %s" % shlex.quote(task)
+    return "run grok once to log in, then rerun the same ./pfy build %s" % shlex.quote(task)
 
 
 TERMINAL_FAILURE_REASONS = (
@@ -532,24 +532,24 @@ TERMINAL_FAILURE_REASONS = (
 
 
 def worktree_recovery(task: str, ref: str, detail: str) -> str:
-    """Tell Mark how to get a worktree when the base cannot be checked out."""
+    """Say the next step when the base cannot be checked out."""
     quoted = shlex.quote(task) if (task or "").strip() else '""'
     if detail == "missing-ref":
         return (
-            "Mark: base ref %s is not in this repo, so no worktree was created. "
+            "Base ref %s is not in this repo, so no worktree was created. "
             "Fetch it or pass --base with a ref that exists, then rerun ./pfy build %s. "
             "The caller checkout was not changed."
             % (ref, quoted)
         )
     if detail == "unwritable":
         return (
-            "Mark: the worktree directory could not be created for base %s. "
+            "The worktree directory could not be created for base %s. "
             "Make the repo tmp directory writable, then rerun ./pfy build %s. "
             "The caller checkout was not changed."
             % (ref, quoted)
         )
     return (
-        "Mark: git worktree add failed for base %s. "
+        "Git worktree add failed for base %s. "
         "Fix the worktree error, then rerun ./pfy build %s. "
         "The caller checkout was not changed."
         % (ref, quoted)
@@ -574,87 +574,87 @@ def failure_recovery(reason: str, task: str, detail: str = "") -> str:
         quoted_timeout = _quoted_task(task)
         if (detail or "").strip() == "gate":
             return (
-                "Mark: the gate timed out. Rerun with a longer --timeout. "
+                "the gate timed out. Rerun with a longer --timeout. "
                 "Then rerun ./pfy build %s."
                 % quoted_timeout
             )
         return (
-            "Mark: grok timed out. Rerun ./pfy build %s, or pass a larger --timeout."
+            "Grok timed out. Rerun ./pfy build %s, or pass a larger --timeout."
             % quoted_timeout
         )
     if reason == "no-receipt":
         if (task or "").strip():
             return (
-                "Mark: the build died before it wrote a receipt. "
+                "The build died before it wrote a receipt. "
                 "Run ./pfy build --reap, then rerun ./pfy build %s."
                 % _quoted_task(task)
             )
         return (
-            "Mark: the build died before it wrote a receipt. "
+            "The build died before it wrote a receipt. "
             "Run ./pfy build --reap, then rerun the same ./pfy build task."
         )
     quoted = _quoted_task(task)
     if reason == "review-diff-too-large":
         return (
-            "Mark: the diff is too large for the review prompt (%d characters), so it was "
+            "The diff is too large for the review prompt (%d characters), so it was "
             "not reviewed or published. Split the task and rerun ./pfy build %s."
             % (DIFF_CAP, quoted)
         )
     if reason == "review-binary-change":
         return (
-            "Mark: the attempt added or changed a binary file the reviewer cannot read, so it "
+            "The attempt added or changed a binary file the reviewer cannot read, so it "
             "was not reviewed or published. Remove the binary change and rerun ./pfy build %s."
             % quoted
         )
     if reason == "protected-path-changed":
         shown = (detail or "").strip() or "a protected file"
         return (
-            "Mark: the attempt changed a protected path (%s). "
+            "The attempt changed a protected path (%s). "
             "Remove that change and rerun ./pfy build %s. "
             "auth.json, .env, and grok-home stay out of the commit."
             % (shown, quoted)
         )
     lines = {
         "build-busy": (
-            "Mark: another cloud build is already running on this repo. "
-            "Wait for the first build to finish, then rerun ./pfy build %s."
+            "Another cloud build is running on this repo. "
+            "Wait for it to finish, then rerun ./pfy build %s."
         ),
-        "interrupted": "Mark: the build was interrupted. Rerun ./pfy build %s.",
+        "interrupted": "The build was interrupted. Rerun ./pfy build %s.",
         "tests-tampered": (
-            "Mark: a base test changed and was not named by --writable-test. "
+            "A base test changed and was not named by --writable-test. "
             "Restore it or pass --writable-test for that file, then rerun ./pfy build %s."
         ),
         "no-change": (
-            "Mark: grok made no committable change. "
+            "Grok made no committable change. "
             "Restate the task so it edits a file, then rerun ./pfy build %s."
         ),
-        "tests": "Mark: the gate stayed red. Read the receipt gate tail, then rerun ./pfy build %s.",
-        "tests-flaky": "Mark: the gate passed once and failed once. Rerun ./pfy build %s.",
+        "tests": "The gate stayed red. Read the receipt gate tail, then rerun ./pfy build %s.",
+        "tests-flaky": "The gate passed once and failed once. Rerun ./pfy build %s.",
         "gate-rewrote": (
-            "Mark: the gate changed files in the worktree. "
-            "Make the gate only check, then rerun ./pfy build %s."
+            "The gate changed files in the worktree. "
+            "The gate must only check, not write files, then rerun ./pfy build %s."
         ),
         "review-rejected": (
-            "Mark: review rejected the diff. Change the task or the patch, then rerun ./pfy build %s."
+            "Review rejected the diff. Change the task or the patch, then rerun ./pfy build %s."
         ),
         "commit-recheck-failed": (
-            "Mark: the fresh extract of the commit did not pass the gate. "
+            "The fresh extract of the commit did not pass the gate. "
             "The branch was not kept. Rerun ./pfy build %s."
         ),
-        "commit-failed": "Mark: git commit failed. The branch was not kept. Rerun ./pfy build %s.",
+        "commit-failed": "Git commit failed. The branch was not kept. Rerun ./pfy build %s.",
         "scope-commit-mismatch": (
-            "Mark: the commit set did not match the reviewed files. "
+            "The commit set did not match the reviewed files. "
             "The index was reset and no branch was kept. Rerun ./pfy build %s."
         ),
         "runner-crash": (
-            "Mark: the runner crashed before it could finish. "
+            "The runner crashed before it could finish. "
             "The caller checkout was left as it was. Rerun ./pfy build %s."
         ),
     }
     line = lines.get(reason)
     if line:
         return line % quoted
-    return "Mark: the build failed (%s). Rerun ./pfy build %s." % (reason, quoted)
+    return "The build failed (%s). Rerun ./pfy build %s." % (reason, quoted)
 
 
 def diff_aims_at_root(diff_text: str) -> bool:

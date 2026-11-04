@@ -84,7 +84,7 @@ class SecondCloudBuildIsBusy(_Base):
         self.assertEqual(b["reason"], "build-busy")
         self.assertEqual(b["exit_code"], 1)
         self.assertIsNone(b["commit"])
-        self.assertIn("Mark:", b["recovery"])
+        self.assertIn("Wait for it to finish, then rerun ./pfy build", b["recovery"])
         self.assertNotIn("--local", b["recovery"])
         self.assertFalse(second_marker.exists(), "the busy build started grok")
         out, err = self.proc.communicate(timeout=30)
