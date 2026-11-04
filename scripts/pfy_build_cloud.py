@@ -972,9 +972,11 @@ def _non_utf8_file(worktree: Path, rel: str) -> bool:
 def capture_diff(worktree: Path, paths: list[str]) -> str:
     if not paths:
         return ""
-    chunks: list[str] = []
     tracked: list[str] = []
     untracked: list[str] = []
+    # Created before the loop. A non-UTF-8 path appends here and never
+    # reaches git diff, whose strict UTF-8 decode would crash the runner.
+    chunks: list[str] = []
     for path in paths:
         if _non_utf8_file(worktree, path):
             # Same marker git prints for a NUL file, so review_refusal
