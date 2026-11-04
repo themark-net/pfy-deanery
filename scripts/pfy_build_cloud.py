@@ -232,6 +232,7 @@ def _git(repo: Path, args: list[str], timeout: float = 60) -> subprocess.Complet
         cwd=repo,
         env=env,
         text=True,
+        errors="surrogateescape",
         capture_output=True,
         timeout=timeout,
         check=False,
@@ -974,33 +975,44 @@ def _non_utf8_file(worktree: Path, rel: str) -> bool:
     return False
 
 
+def _not_utf8_text(text: str) -> bool:
+    """True when git output held bytes that are not UTF-8 (surrogates)."""
+    try:
+        text.encode("utf-8")
+    except UnicodeEncodeError:
+        return True
+    return False
+
+
 def capture_diff(worktree: Path, paths: list[str]) -> str:
+    """Diff text for review, one path at a time.
+
+    _git decodes with surrogateescape, so non-UTF-8 bytes in a filename,
+    the old content, the new content, or a deleted file never crash the
+    runner. Any such path becomes git's "Binary files ... differ" line, so
+    review_refusal returns review-binary-change and the bytes stay out of
+    the prompt.
+    """
     if not paths:
         return ""
-    tracked: list[str] = []
-    untracked: list[str] = []
-    # Created before the loop. A non-UTF-8 path appends here and never
-    # reaches git diff, whose strict UTF-8 decode would crash the runner.
     chunks: list[str] = []
     for path in paths:
-        if _non_utf8_file(worktree, path):
-            # Same marker git prints for a NUL file, so review_refusal
-            # returns review-binary-change and the bytes stay out of the prompt.
-            chunks.append("Binary files /dev/null and b/%s differ" % path)
+        marker = "Binary files a/%s and b/%s differ" % (path, path)
+        if _not_utf8_text(path) or _non_utf8_file(worktree, path):
+            chunks.append(marker.encode("utf-8", "backslashreplace").decode("utf-8"))
             continue
         proc = _git(worktree, ["status", "--porcelain", "--", path])
         line = (proc.stdout or "").splitlines()
         text = line[0] if line else ""
         if text.startswith("??"):
-            untracked.append(path)
+            proc = _git(worktree, ["diff", "--no-index", "--", "/dev/null", path])
         else:
-            tracked.append(path)
-    if tracked:
-        proc = _git(worktree, ["diff", "--", *tracked])
-        chunks.append(proc.stdout or "")
-    for path in untracked:
-        proc = _git(worktree, ["diff", "--no-index", "--", "/dev/null", path])
-        chunks.append(proc.stdout or "")
+            proc = _git(worktree, ["diff", "--", path])
+        out = proc.stdout or ""
+        if _not_utf8_text(out):
+            chunks.append(marker)
+            continue
+        chunks.append(out)
     return "\n".join(chunk for chunk in chunks if chunk)
 
 
