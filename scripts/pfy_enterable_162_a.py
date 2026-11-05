@@ -480,7 +480,7 @@ def _signal_recorded(pid) -> None:
         pid = int(pid)
     except (TypeError, ValueError):
         return
-    if pid <= 1:
+    if pid <= 1 or pid == os.getpid():
         return
     try:
         os.kill(pid, signal.SIGTERM)
@@ -497,6 +497,116 @@ def _signal_recorded(pid) -> None:
         os.kill(pid, signal.SIGKILL)
     except OSError:
         pass
+
+
+def _ppid(pid: int) -> int:
+    fields = _stat_fields(pid)
+    if len(fields) < 2 or not str(fields[1]).isdigit():
+        return 0
+    return int(fields[1])
+
+
+def _direct_child_ancestor(pid) -> int:
+    """Ancestor of pid whose parent is this process, including pid itself. Else 0."""
+    me = os.getpid()
+    try:
+        cur = int(pid)
+    except (TypeError, ValueError):
+        return 0
+    seen = set()
+    while cur > 1 and cur not in seen and len(seen) < 32:
+        seen.add(cur)
+        parent = _ppid(cur)
+        if parent == me:
+            return cur
+        if parent <= 1:
+            return 0
+        cur = parent
+    return 0
+
+
+def _still_under(pid, ancestor) -> bool:
+    """True when pid is ancestor or a descendant of it. Does not signal."""
+    try:
+        cur = int(pid)
+        ancestor = int(ancestor)
+    except (TypeError, ValueError):
+        return False
+    if cur <= 1 or ancestor <= 1:
+        return False
+    seen = set()
+    while cur > 1 and cur not in seen and len(seen) < 32:
+        if cur == ancestor:
+            return True
+        seen.add(cur)
+        cur = _ppid(cur)
+    return False
+
+
+def _headless_record_matches(state, pid, start) -> bool:
+    """True when the headless files name this pid and the start ticks we saved."""
+    try:
+        recorded_pid = int(_state_text(state, HEADLESS_PID) or 0)
+    except ValueError:
+        return False
+    if recorded_pid != int(pid) or not start:
+        return False
+    path = Path(state) / pid_start_name(HEADLESS_PID)
+    try:
+        recorded = path.read_text(encoding="utf-8", errors="replace").strip()
+    except OSError:
+        return False
+    return recorded == start
+
+
+def _clear_spawn_record(state, pid, start) -> None:
+    """Unlink pid files that name this spawn. Does not signal."""
+    matches = _headless_record_matches(state, pid, start)
+    _clear_pid_files_matching(state, pid)
+    if matches:
+        _clear_headless_files(state)
+
+
+def reap_failed_spawn(state, pid, start, pid_alive) -> None:
+    """Stop a terminal this call just spawned after models-and-smoke failed.
+
+    Signals the pid only when `start` is still its live start time and the pid
+    is a descendant of this process or the headless process this call recorded.
+    Descendants of that spawn are signalled too. A mismatch, a foreign pid,
+    and pid <= 1 are not signalled. Session and pid files for this spawn are
+    cleared. Recovery: fix the model or engine, then launch again.
+    """
+    try:
+        pid = int(pid or 0)
+    except (TypeError, ValueError):
+        pid = 0
+    start = str(start or "").strip()
+    if pid <= 1 or pid == os.getpid() or not start:
+        return
+    recorded = _headless_record_matches(state, pid, start)
+    live = proc_starttime(pid)
+    still = bool(live) and live == start and _live_pid(pid, pid_alive)
+    root = _direct_child_ancestor(pid) if still else 0
+    if root <= 1 and not recorded:
+        return
+    if still:
+        signal_root = root if root > 1 else pid
+        if signal_root <= 1 or signal_root == os.getpid():
+            signal_root = pid
+        kids = [
+            kid for kid in _descendants(signal_root)
+            if kid > 1 and kid != os.getpid() and kid != pid
+        ]
+        for kid in reversed(kids):
+            if _still_under(kid, signal_root):
+                _signal_recorded(kid)
+        if signal_root != pid and _ppid(signal_root) == os.getpid():
+            _signal_recorded(signal_root)
+        if proc_starttime(pid) == start and _live_pid(pid, pid_alive):
+            _signal_recorded(pid)
+        if recorded:
+            _stop_private_mux(state, _state_text(state, HEADLESS_NAME))
+    _clear_spawn_record(state, pid, start)
 
 
 def _still_started_at(pid, start, pid_alive) -> bool:

@@ -407,6 +407,25 @@ def _remember_sidecar_start(state, sid, pid, term) -> None:
         writer(state, "sidecar-%s.pid" % sid, pid)
 
 
+def _spawn_start(term, pid) -> str:
+    """Start ticks of a pid this call just spawned. Empty when /proc cannot say."""
+    reader = getattr(term, "proc_starttime", None)
+    if not callable(reader):
+        return ""
+    try:
+        return str(reader(pid) or "").strip()
+    except Exception:
+        return ""
+
+
+def _reap_failed_spawn(term, state, pid, started, pid_alive) -> None:
+    """Reap a new spawn after prove failed. A missing helper leaves the process up."""
+    fn = getattr(term, "reap_failed_spawn", None)
+    if not callable(fn):
+        return
+    fn(state, pid, started, pid_alive)
+
+
 # ------------------------------------------------------------------ probes ---
 
 def _probe_freetoken(base, det):
@@ -743,10 +762,12 @@ def open_session(
     real = term.resolve_enterable_pid(bin_path, pid if ok else 0, pid_alive)
     zombie = getattr(term, "is_zombie", None)
     if real and pid_alive(real) and not (callable(zombie) and zombie(real)):
+        started = _spawn_start(term, real)
         usable_ok, smoke_model, usable_err, field = _read_prove(
             prove.prove_developer_usable(base, inspect_models)
         )
         if not usable_ok:
+            _reap_failed_spawn(term, STATE, real, started, pid_alive)
             return fail_not_usable(
                 hid, STATE, sid, usable_err or "session not usable",
                 _pull_next(usable_err, smoke_model, next_step),
@@ -988,10 +1009,12 @@ def open_opencode_session(
     real = resolve_enterable_pid(bin_path, pid if ok else 0, pid_alive)
     zombie = getattr(term, "is_zombie", None)
     if real and pid_alive(real) and not (callable(zombie) and zombie(real)):
+        started = _spawn_start(term, real)
         usable_ok, smoke_model, usable_err, field = _read_prove(
             prove.prove_developer_usable(base, inspect_models)
         )
         if not usable_ok:
+            _reap_failed_spawn(term, STATE, real, started, pid_alive)
             return prove.fail_not_usable(
                 clear_session_reach,
                 STATE, hid, usable_err or "session not usable",

@@ -534,7 +534,7 @@ class OpenCodeEnterableTests(_Tmp):
         self.assertEqual(seen, ["http://127.0.0.1:9/v1"])
 
     def test_reuse_prove_failure_does_not_spawn(self):
-        self._record_live_sleep()
+        pid = self._record_live_sleep()
         (self.state / "opencode-attach-base").write_text("http://127.0.0.1:9/v1\n", encoding="utf-8")
         (self.state / "opencode-session-reach").write_text("stale\n", encoding="utf-8")
         self.prove.prove_developer_usable = lambda base, inspect: (False, "", "reuse smoke failed")
@@ -545,6 +545,7 @@ class OpenCodeEnterableTests(_Tmp):
         self.assertEqual(self.spawned, [])
         self.assertFalse((self.state / "opencode-session-reach").exists())
         self.assertFalse((self.state / "opencode-attach-base").exists())
+        self.assertTrue(_alive(pid), "reuse prove failure signalled the existing session")
 
     def test_no_engine_fails_closed_and_clears_the_session(self):
         (self.state / "opencode-session-reach").write_text("stale\n", encoding="utf-8")

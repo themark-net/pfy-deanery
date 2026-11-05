@@ -6,6 +6,10 @@ operator session and must still be alive at the end.
 
 How this fails and how we recover: a terminal that exits immediately and
 leaves no harness child is FAIL "terminal exited", and no pid file is written.
+A smoke failure after that terminal is up must reap the spawn and leave a
+pre-existing grok alive. Recover by signalling only the pid this launch
+started when its start time still matches, or a descendant of that spawn,
+then clearing pid files and returning FAIL with the smoke reason and a next step.
 """
 from __future__ import annotations
 
@@ -82,6 +86,23 @@ def _alive(pid):
     except OSError:
         return False
     return True
+
+
+def _wait_dead(pid, timeout=3.0):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline and _alive(pid):
+        time.sleep(0.05)
+    return not _alive(pid)
+
+
+def _pid_list(path):
+    if not path.is_file():
+        return []
+    found = []
+    for token in path.read_text(encoding="utf-8", errors="replace").split():
+        if token.isdigit():
+            found.append(int(token))
+    return found
 
 
 def _json_object(text):
@@ -483,6 +504,41 @@ class LaunchSessionE2E(unittest.TestCase):
         self.assertTrue(_descends_from(second, terminal), "new pid %s terminal %s" % (second, terminal))
         self.assertTrue(_alive(first), "earlier session was signalled after a start-time mismatch")
         self._assert_foreign_untouched()
+
+    def test_smoke_failure_after_spawn_reaps_only_our_terminal(self):
+        """Smoke FAIL after a new GUI spawn reaps that spawn and spares a pretender.
+
+        The pretender is a grok started before launch. It must still be alive
+        and absent from pid files. The harness and terminal this launch started
+        must be gone, and the FAIL must name the smoke reason and a next step.
+        """
+        before = set(_pid_list(self.pids_path))
+        proc, body = self._launch(mode="empty")
+        blob = (proc.stdout or "") + (proc.stderr or "")
+        self.assertNotEqual(proc.returncode, 0, blob[-2000:])
+        self.assertFalse(body.get("ok"))
+        self.assertEqual(body.get("live"), "FAIL")
+        self.assertEqual(body.get("error"), "smoke empty completion")
+        self.assertIn("./pfy up", body.get("next_step") or "", blob[-2000:])
+        spawned = [pid for pid in _pid_list(self.pids_path) if pid not in before and pid != self.foreign.pid]
+        self.assertTrue(spawned, "launch did not spawn a harness before smoke failed\n%s" % blob[-2000:])
+        self.assertTrue(self.term_pid_path.is_file(), blob[-2000:])
+        terminal = int(self.term_pid_path.read_text(encoding="utf-8").strip())
+        self.assertNotEqual(terminal, self.foreign.pid)
+        self.assertTrue(_wait_dead(terminal), "spawned terminal %s still alive after FAIL" % terminal)
+        for pid in spawned:
+            self.assertNotEqual(pid, self.foreign.pid)
+            self.assertTrue(_wait_dead(pid), "spawned harness %s still alive after FAIL" % pid)
+        self._assert_foreign_untouched()
+        for name in ("sidecar-grok.pid", "grok-terminal.pid", "headless-session.pid", "headless-spawn.pid"):
+            path = self.state / name
+            self.assertFalse(path.exists(), "%s still recorded after FAIL" % name)
+            self.assertFalse(_pid_in_file(path, self.foreign.pid))
+        for path in self.state.iterdir():
+            if path.is_file() and path.name.endswith(".pid"):
+                self.assertFalse(_pid_in_file(path, self.foreign.pid), path.name)
+                for pid in spawned:
+                    self.assertFalse(_pid_in_file(path, pid), path.name)
 
 
 if __name__ == "__main__":

@@ -10,7 +10,11 @@ stays red until the headless spawn path runs. A launch that records the
 pre-existing grok fails the ownership check. A stop that signals that grok
 fails the same-starttime guard. A second spawn that leaves the previous
 harness alive fails the replacement check; recover by stopping only the
-owned pid after the new session is recorded.
+owned pid after the new session is recorded. A smoke failure after a new
+headless spawn must reap that spawn and leave the pre-existing grok alive.
+Recover by signalling the recorded pid only when its start time still
+matches, or a descendant of that spawn, then clearing the session files
+and returning FAIL with the smoke reason and a next step.
 """
 from __future__ import annotations
 
@@ -105,6 +109,23 @@ def _alive(pid):
     return True
 
 
+def _wait_dead(pid, timeout=3.0):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline and _alive(pid):
+        time.sleep(0.05)
+    return not _alive(pid)
+
+
+def _pid_list(path):
+    if not path.is_file():
+        return []
+    found = []
+    for token in path.read_text(encoding="utf-8", errors="replace").split():
+        if token.isdigit():
+            found.append(int(token))
+    return found
+
+
 def _session_leader(pid):
     try:
         return os.getsid(int(pid)) == int(pid)
@@ -179,10 +200,14 @@ class _Handler(BaseHTTPRequestHandler):
         length = int(self.headers.get("Content-Length") or 0)
         if length:
             self.rfile.read(length)
+        if getattr(self.server, "mode", "") == "empty":
+            message = {"role": "assistant", "content": ""}
+        else:
+            message = {"role": "assistant", "content": "PFY_ATTACH_SMOKE_OK"}
         body = {
             "choices": [{
                 "finish_reason": "stop",
-                "message": {"role": "assistant", "content": "PFY_ATTACH_SMOKE_OK"},
+                "message": message,
             }]
         }
         self._send(200, json.dumps(body))
@@ -675,6 +700,53 @@ exec CURLBIN "$@"
             time.sleep(0.05)
         self.assertFalse(_alive(pid2))
         self.assertTrue(_alive(self.foreign.pid))
+
+    def _assert_failed_smoke_reaped_our_spawn(self):
+        """FAIL names the smoke reason, the new harness is gone, the pretender lives."""
+        before = set(_pid_list(self.pids_path))
+        self.engine.mode = "empty"
+        env = self._env()
+        proc = self._run(["launch"], env, 45)
+        blob = (proc.stdout or "") + (proc.stderr or "")
+        body = _json_object(proc.stdout)
+        self.assertNotEqual(proc.returncode, 0, blob[-2500:])
+        self.assertFalse(body.get("ok"), blob[-2500:])
+        self.assertEqual(body.get("live"), "FAIL")
+        self.assertEqual(body.get("error"), "smoke empty completion", blob[-2500:])
+        self.assertIn("./pfy up", body.get("next_step") or "", blob[-2500:])
+        self._assert_no_daemon()
+        spawned = [pid for pid in _pid_list(self.pids_path) if pid not in before and pid != self.foreign.pid]
+        self.assertTrue(spawned, "launch did not spawn a harness before smoke failed\n%s" % blob[-2500:])
+        for pid in spawned:
+            self.assertTrue(_wait_dead(pid), "spawned harness %s still alive after FAIL" % pid)
+        self._assert_foreign_not_recorded()
+        for name in ("headless-session.pid", "headless-session.name", "headless-spawn.pid", "sidecar-grok.pid", "grok-terminal.pid"):
+            self.assertFalse((self.state / name).exists(), "%s still recorded after FAIL" % name)
+        for path in list(self.state.iterdir()):
+            if path.is_file() and path.name.endswith(".pid"):
+                self.assertFalse(_pid_in_file(path, self.foreign.pid), path.name)
+                for pid in spawned:
+                    self.assertFalse(_pid_in_file(path, pid), path.name)
+
+    def test_smoke_failure_after_spawn_reaps_only_our_session(self):
+        """Smoke FAIL after a setsid spawn reaps that pid and spares a pretender.
+
+        The pretender is a grok started before launch. It must still be alive
+        and absent from pid files. The harness this launch started must be
+        gone, the headless record cleared, and the FAIL must name the smoke
+        reason and a next step.
+        """
+        self._assert_failed_smoke_reaped_our_spawn()
+
+    def test_smoke_failure_after_tmux_spawn_reaps_the_recorded_session(self):
+        """Smoke FAIL after tmux detaches still reaps the recorded pid only.
+
+        The mux stub reparents the harness, so a parent walk from this process
+        does not find it. Ownership is the headless pid and start time.
+        """
+        self._install_mux("tmux")
+        self._install_mux("screen")
+        self._assert_failed_smoke_reaped_our_spawn()
 
 
 if __name__ == "__main__":
