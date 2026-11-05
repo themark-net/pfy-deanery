@@ -1,24 +1,23 @@
 #!/usr/bin/env python3
-"""Operate-or-FAIL smoke for X intake Entry 154 (RoBrain, shared decision memory with veto warnings).
+"""Static operate-or-FAIL smoke for X intake Entry 154 (dsh-superagent, DeepSeek's proactive repo agent prototype).
 Stdlib only, self-contained.
 
 Usage: python3 examples/x-intake-local/smoke_154.py
 
-Exit 0 = PASS, 1 = the bench ran but a check failed, 2 = can't run here (prereq missing; reason recorded).
-Receipt: $PFY_SMOKE_RECEIPT_DIR/latest.json, else pipelines/smoke/robrain/latest.json. Never installs or downloads
-anything, never starts Docker/Postgres/Perception, never calls an LLM (no --live, no keys in the child env).
+Exit 0 = PASS, 1 = the checks ran and one failed, 2 = can't run here (prereq missing; reason recorded).
+Receipt: $PFY_SMOKE_RECEIPT_DIR/latest.json, else pipelines/smoke/dsh-superagent/latest.json. Never installs or
+downloads anything, never starts DeepSeek Harness, never talks to GitHub or Feishu, needs no model key.
 
-Runs VetoBench's offline retrieval layer (packages/vetobench, deterministic hash embedder, no API key) from a
-pre-built clone: $ROBRAIN_DIR, else ~/DEVELOP/pfy-mentat/tmp/robrain, checked out at ROBRAIN_COMMIT (default the
-pinned commit below) with `pnpm install --filter "@robrain/vetobench..."` and the shared + vetobench builds done
-(packages/vetobench/dist/run.js and packages/shared/dist present); otherwise exit 2.
-Node: $NODE_BIN, else `node` on PATH, major >= 20, else exit 2.
-Steps (temp HOME/TMPDIR, clean env, timeout $PFY_XINTAKE_TIMEOUT default 120 s, bwrap --unshare-net when it works):
-`node dist/run.js` (default suite), `node dist/run.js --suite lifecycle`, and the package's node:test files.
-Checks: each exits 0 with "PASS", veto recall@5 with files known meets the upstream gate (>= 0.80) and both recall
-numbers match the values pinned for this commit (deterministic, so drift means the bench changed), every scenario
-row is present, the run says it is offline, node:test reports 0 failures, packages/vetobench/results is unchanged
-(no archive written), and the real-HOME paths ~/.robrain and ~/.mem0 are unchanged.
+This is the upstream `pnpm check` (typecheck, vitest, tsdown build) run straight from the clone's node_modules/.bin,
+so neither pnpm nor corepack (which would fetch pnpm 11.7.0) is needed at smoke time.
+Clone: $DSH_SUPERAGENT_DIR, else ~/DEVELOP/pfy-mentat/tmp/dsh-superagent, checked out at DSH_SUPERAGENT_COMMIT
+(default the pinned commit below) with `pnpm install --frozen-lockfile` already done; otherwise exit 2.
+Node: $NODE_BIN, else `node` on PATH; must be ^22.19 or >=24 (upstream engines), else exit 2.
+Steps run with a temp HOME/TMPDIR, a clean env and a timeout ($PFY_XINTAKE_TIMEOUT, default 600 s per step), under
+bwrap --unshare-net when it works. Checks: typecheck and build exit 0, the build writes lib/index.js, the vitest JSON
+report has at least MIN_TESTS passing and no failures other than the known timing-dependent upstream test below
+(recorded as a warning), tracked sources (src/, tests/, package.json, pnpm-lock.yaml) are byte-identical afterwards,
+and the real-HOME paths ~/.dsh, ~/.config/gh-agent, ~/.lark-cli-dsh-superagent are unchanged.
 """
 from __future__ import annotations
 
@@ -35,21 +34,19 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-PIN = os.environ.get("ROBRAIN_COMMIT", "ac53011016e5f7dd42bae9c00c1a9b7d207a68b8")
+PIN = os.environ.get("DSH_SUPERAGENT_COMMIT", "6337fc823ce20251c8de8085948165c81aaa701e")
 SYS_PATH = "/usr/local/bin:/usr/bin:/bin"
-WATCHED = [".robrain", ".mem0"]
-GATE = 0.80
-# suite -> (scenario count, recall@5 files known, recall@5 without files) at the pinned commit
-EXPECT = {"default": (10, 1.00, 0.70), "lifecycle": (4, 1.00, 1.00)}
-TEST_FILES = ["dist/score.test.js", "dist/adapters.test.js", "dist/mem0-adapter.test.js"]
-MIN_NODE_TESTS = 20  # 22 at the pinned commit
-RECALL_RE = re.compile(r"veto recall@5:\s*([0-9.]+)\s+with files known.*?([0-9.]+)\s+without")
-ROW_RE = re.compile(r"^(s\w+)\s+\S+\s+\d+\s+[✓✗]\s+\d+\s+[✓✗]\s*$", re.M)
+WATCHED = [".dsh", ".config/gh-agent", ".lark-cli-dsh-superagent"]
+SOURCES = ["src", "tests", "package.json", "pnpm-lock.yaml"]
+MIN_TESTS = 1100  # 1197 tests at the pinned commit
+# Fails on the Grok Bot box in most runs (health flips back to "ready" before the assertion reads "error").
+KNOWN_FLAKY = {"feishu event consumer takes in the event lines it reads, records each chat as direct or not, "
+               "and reports a malformed line without stopping"}
 
 
 def receipt_dir() -> Path:
     env = os.environ.get("PFY_SMOKE_RECEIPT_DIR")
-    return Path(env) if env else ROOT / "pipelines/smoke/robrain"
+    return Path(env) if env else ROOT / "pipelines/smoke/dsh-superagent"
 
 
 def finish(code: int, rec: dict) -> int:
@@ -59,7 +56,8 @@ def finish(code: int, rec: dict) -> int:
     d = receipt_dir()
     d.mkdir(parents=True, exist_ok=True)
     (d / "latest.json").write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({"status": rec["status"], "reason": rec.get("reason"), "failed": rec.get("failed", [])}))
+    print(json.dumps({"status": rec["status"], "reason": rec.get("reason"), "failed": rec.get("failed", []),
+                      "warnings": rec.get("warnings", [])}))
     return code
 
 
@@ -87,11 +85,20 @@ def read_head(repo: Path) -> str | None:
     return None
 
 
+def node_ok(version: str) -> bool:
+    m = re.match(r"v?(\d+)\.(\d+)", version.strip())
+    if not m:
+        return False
+    major, minor = int(m.group(1)), int(m.group(2))
+    return major >= 24 or (major == 22 and minor >= 19)
+
+
 def bwrap_ok() -> bool:
     if not shutil.which("bwrap"):
         return False
-    p = subprocess.run(["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--proc", "/proc", "--unshare-net", "true"],
-                       capture_output=True)
+    # Probe with the same mounts the run uses (/dev/shm tmpfs, /proc), so a host that can't make them falls back.
+    p = subprocess.run(["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--tmpfs", "/dev/shm", "--proc", "/proc",
+                        "--unshare-net", "true"], capture_output=True)
     return p.returncode == 0
 
 
@@ -108,11 +115,13 @@ def home_sig(home: Path) -> dict:
     return sig
 
 
-def dir_hash(p: Path) -> str:
+def tree_hash(repo: Path) -> str:
     h = hashlib.sha256()
-    if p.is_dir():
-        for f in sorted(q for q in p.rglob("*") if q.is_file()):
-            h.update(str(f.relative_to(p)).encode() + b"\0" + f.read_bytes() + b"\0")
+    for rel in SOURCES:
+        p = repo / rel
+        files = sorted(q for q in p.rglob("*") if q.is_file()) if p.is_dir() else ([p] if p.is_file() else [])
+        for f in files:
+            h.update(str(f.relative_to(repo)).encode() + b"\0" + f.read_bytes() + b"\0")
     return h.hexdigest()
 
 
@@ -139,14 +148,13 @@ def run_group(cmd: list[str], env: dict, cwd: str, timeout: float) -> subprocess
     return subprocess.CompletedProcess(cmd, p.returncode, out, err)
 
 
-def run(node: str, args: list[str], cwd: Path, tmp: Path, sandbox: bool, timeout: float):
-    env = {"PATH": f"{Path(node).resolve().parent}:{SYS_PATH}", "HOME": str(tmp / "home"), "TMPDIR": str(tmp / "t"),
-           "LANG": "C.UTF-8", "NO_COLOR": "1", "TERM": "dumb"}
-    cmd = [node, *args]
+def run(cmd: list[str], repo: Path, tmp: Path, node_dir: str, sandbox: bool, timeout: float):
+    env = {"PATH": f"{node_dir}:{SYS_PATH}", "HOME": str(tmp / "home"), "TMPDIR": str(tmp / "t"), "LANG": "C.UTF-8",
+           "NO_COLOR": "1", "TERM": "dumb", "CI": "1"}
     if sandbox:
-        cmd = ["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--proc", "/proc", "--bind", str(tmp), str(tmp),
-               "--unshare-net", "--die-with-parent", *cmd]
-    return run_group(cmd, env, str(cwd), timeout)
+        cmd = ["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--tmpfs", "/dev/shm", "--proc", "/proc",
+               "--bind", str(tmp), str(tmp), "--bind", str(repo), str(repo), "--unshare-net", "--die-with-parent", *cmd]
+    return run_group(cmd, env, str(repo), timeout)
 
 
 def body(rec: dict, repo: Path, node: str, tmp: Path, timeout: float) -> int:
@@ -159,71 +167,70 @@ def body(rec: dict, repo: Path, node: str, tmp: Path, timeout: float) -> int:
     (tmp / "home").mkdir()
     sandbox = bwrap_ok()
     rec["sandbox"] = "bwrap --unshare-net" if sandbox else "none (network reachable)"
-    vb = repo / "packages/vetobench"
-    results_before = dir_hash(vb / "results")
+    node_dir = str(Path(node).resolve().parent)
+    bins = repo / "node_modules/.bin"
+    src_before = tree_hash(repo)
+    lib = repo / "lib/index.js"
+    lib_before = lib.stat().st_mtime_ns if lib.exists() else None
+    report = tmp / "vitest.json"
     outs = {}
     try:
-        for suite, (rows, want_files, want_nofiles) in EXPECT.items():
-            args = ["dist/run.js"] + ([] if suite == "default" else ["--suite", suite])
-            p = run(node, args, vb, tmp, sandbox, timeout)
-            out = p.stdout + p.stderr
-            outs[suite] = out
-            check(f"{suite}_exit_0", p.returncode == 0)
-            check(f"{suite}_says_pass", "✓ PASS" in out and "✗ FAIL" not in out)
-            check(f"{suite}_offline", "offline run" in out)
-            m = RECALL_RE.search(out)
-            got = (float(m.group(1)), float(m.group(2))) if m else None
-            rec[f"{suite}_recall_files_known_nofiles"] = got
-            check(f"{suite}_recall_meets_gate", got is not None and got[0] >= GATE)
-            check(f"{suite}_recall_matches_pin", got is not None and abs(got[0] - want_files) < 1e-9
-                  and abs(got[1] - want_nofiles) < 1e-9)
-            n_rows = len(ROW_RE.findall(out))
-            rec[f"{suite}_rows"] = n_rows
-            check(f"{suite}_rows_{rows}", n_rows == rows)
-        p = run(node, ["--test", *TEST_FILES], vb, tmp, sandbox, timeout)
-        out = p.stdout + p.stderr
-        outs["node_test"] = out
-        passed = re.search(r"^\D*pass (\d+)\s*$", out, re.M)
-        failed = re.search(r"^\D*fail (\d+)\s*$", out, re.M)
-        rec["node_test_pass"] = int(passed.group(1)) if passed else None
-        rec["node_test_fail"] = int(failed.group(1)) if failed else None
-        check("node_test_exit_0", p.returncode == 0)
-        check("node_test_no_failures", rec["node_test_fail"] == 0)
-        check(f"node_test_at_least_{MIN_NODE_TESTS}", (rec["node_test_pass"] or 0) >= MIN_NODE_TESTS)
+        p = run([str(bins / "tsc"), "--noEmit"], repo, tmp, node_dir, sandbox, timeout)
+        outs["typecheck"] = p.stdout + p.stderr
+        check("typecheck_ok", p.returncode == 0)
+        p = run([str(bins / "vitest"), "run", "--reporter=json", f"--outputFile={report}"], repo, tmp, node_dir,
+                sandbox, timeout)
+        outs["test"] = p.stdout + p.stderr
+        rec["checks"]["test_exit"] = p.returncode
+        p = run([str(bins / "tsdown")], repo, tmp, node_dir, sandbox, timeout)
+        outs["build"] = p.stdout + p.stderr
+        check("build_ok", p.returncode == 0)
     except subprocess.TimeoutExpired as e:
         rec["failed"].append(f"timed out: {e.cmd[-2:] if e.cmd else ''}")
         return 1
-    check("results_dir_unchanged", dir_hash(vb / "results") == results_before)
+    try:
+        rep = json.loads(report.read_text())
+        failed = sorted(a.get("fullName", "?") for f in rep.get("testResults", [])
+                        for a in f.get("assertionResults", []) if a.get("status") == "failed")
+        rec["tests_passed"] = int(rep.get("numPassedTests", 0))
+        rec["tests_failed"] = failed[:20]
+        suite_errors = [f.get("name") for f in rep.get("testResults", [])
+                        if f.get("status") == "failed" and not f.get("assertionResults")]
+    except (OSError, ValueError, AttributeError, TypeError):
+        rec["tests_passed"], failed, suite_errors = 0, ["no vitest JSON report"], []
+    unexpected = [n for n in failed if n not in KNOWN_FLAKY]
+    rec["warnings"] = [f"known flaky upstream test failed: {n[:80]}" for n in failed if n in KNOWN_FLAKY]
+    check("tests_no_unexpected_failures", not unexpected and not suite_errors)
+    check(f"tests_at_least_{MIN_TESTS}_pass", rec["tests_passed"] >= MIN_TESTS)
+    check("build_wrote_lib", lib.exists() and lib.stat().st_mtime_ns != lib_before)
+    check("sources_unchanged", tree_hash(repo) == src_before)
     if rec["failed"]:
         rec["tail"] = {k: v[-400:] for k, v in outs.items()}
     return 1 if rec["failed"] else 0
 
 
 def main() -> int:
-    rec: dict = {"entry": "154-robrain", "pin": PIN, "failed": [], "checks": {}}
+    rec: dict = {"entry": "154-dsh-superagent", "pin": PIN, "failed": [], "checks": {}, "warnings": []}
     try:
-        timeout = float(os.environ.get("PFY_XINTAKE_TIMEOUT", "120"))
+        timeout = float(os.environ.get("PFY_XINTAKE_TIMEOUT", "600"))
         if timeout <= 0:
             raise ValueError
     except ValueError:
         rec["reason"] = "bad PFY_XINTAKE_TIMEOUT"
         return finish(2, rec)
-    repo = Path(os.environ.get("ROBRAIN_DIR") or Path.home() / "DEVELOP/pfy-mentat/tmp/robrain")
+    repo = Path(os.environ.get("DSH_SUPERAGENT_DIR") or Path.home() / "DEVELOP/pfy-mentat/tmp/dsh-superagent")
     rec["clone"] = str(repo)
-    if not (repo / "packages/vetobench/package.json").is_file():
-        rec["reason"] = f"robrain clone not staged at {repo}"
+    if not (repo / "package.json").is_file():
+        rec["reason"] = f"dsh-superagent clone not staged at {repo}"
         return finish(2, rec)
     head = read_head(repo)
     rec["head"] = head
     if head != PIN:
         rec["reason"] = f"clone HEAD {head} is not the pinned commit {PIN}"
         return finish(2, rec)
-    vb = repo / "packages/vetobench"
-    need = [vb / "dist/run.js", *(vb / t for t in TEST_FILES), repo / "packages/shared/dist",
-            vb / "node_modules/@robrain/shared"]
-    missing = [str(p.relative_to(repo)) for p in need if not p.exists()]
+    missing = [b for b in ("tsc", "vitest", "tsdown") if not os.access(repo / "node_modules/.bin" / b, os.X_OK)]
     if missing:
-        rec["reason"] = f"clone not built (missing {', '.join(missing)})"
+        rec["reason"] = f"dependencies not installed in the clone (missing node_modules/.bin/{', '.join(missing)})"
         return finish(2, rec)
     node = os.environ.get("NODE_BIN") or shutil.which("node")
     if not node or not os.access(node, os.X_OK):
@@ -236,9 +243,8 @@ def main() -> int:
         rec["reason"] = f"node --version failed: {e}"
         return finish(2, rec)
     rec["node"] = v
-    m = re.match(r"v?(\d+)\.", v)
-    if not m or int(m.group(1)) < 20:
-        rec["reason"] = f"node {v!r} is older than 20"
+    if not node_ok(v):
+        rec["reason"] = f"node {v!r} does not satisfy ^22.19.0 || >=24"
         return finish(2, rec)
     real_home = Path.home()
     before = home_sig(real_home)

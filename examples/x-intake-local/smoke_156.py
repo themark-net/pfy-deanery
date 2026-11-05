@@ -1,252 +1,295 @@
 #!/usr/bin/env python3
-"""Operate-or-FAIL smoke for X intake Entry 156 (SysKnife). Uses smoke.py helpers.
+"""Operate-or-FAIL smoke for X intake Entry 156 (Kanzo, local kanban board + MCP server). Stdlib only, self-contained.
 
 Usage: python3 examples/x-intake-local/smoke_156.py
 
-Exit 0 = --version, --help, and --dry-run of a typed plan all completed, and nothing ran.
-Exit 1 = the binary ran but a check failed (including a real-HOME write).
-Exit 2 = can't run here. No staged binary and no cargo, a bad timeout, no bubblewrap
-for the dry-run, the planner or daemon is unreachable, or the time box fired.
+Exit 0 = PASS, 1 = the tool ran but a check failed, 2 = can't run here (prereq missing; reason recorded).
+Receipt: $PFY_SMOKE_RECEIPT_DIR/latest.json, else pipelines/smoke/kanzo/latest.json. Never installs or downloads
+anything, never starts the web board, never runs `sync`, `update` or `service`.
 
-Receipt: $PFY_SMOKE_RECEIPT_DIR/sysknife/latest.json, else pipelines/smoke/sysknife/latest.json.
-Does not download a release binary, does not pass --yes or --dangerously-skip-approval,
-and does not use root. A build runs only when cargo and a pinned clone are already staged.
-That build keeps CARGO_HOME and the target directory under this worktree's tmp/.
+Binary: $KANZO_BIN, else ~/DEVELOP/pfy-mentat/tmp/kanzo/bin/kanzo, else `kanzo` on PATH. `--version` must print
+`kanzo $KANZO_VERSION` (default 0.2.1) or the smoke exits 2.
+Flow (temp data folder via --home, temp HOME, clean env without KANZO_HOME, timeout $PFY_XINTAKE_TIMEOUT default
+60 s, bwrap --unshare-net when it works): `init --home`, then `mcp --home` over stdio driven one request at a time
+(initialize, tools/list, create_project, create_task, list_tasks; replies matched by id because Kanzo answers
+concurrently), then `export -f json` and `export` (Markdown). Checks: each step exits 0, the agent tool list has the
+core task tools, the created task shows up in list_tasks and in both exports with status todo, nothing is written to
+the temp HOME (all data stays under --home), and the real ~/kanzo is unchanged.
 """
 from __future__ import annotations
 
-import math
+import json
 import os
+import select
 import shutil
+import signal
 import subprocess
+import sys
 import tempfile
+import time
 from pathlib import Path
 
-from smoke import find_bin, pinned, run_isolated, timeout_reason, write
-
-PIN_COMMIT = "1b3aab98b878128a267368cd47b51c921cd31219"
-PIN_VERSION = "0.30.0"
-WATCHED = (".sysknife", ".config/sysknife", ".local/share/sysknife", ".local/bin/sysknife")
-BANNED = ("--yes", "--dangerously-skip-approval")
-
-
-def _limit(default: float) -> float:
-    raw = os.environ.get("PFY_XINTAKE_TIMEOUT", "").strip()
-    if not raw:
-        return default
-    try:
-        value = float(raw)
-    except ValueError as exc:
-        raise ValueError("PFY_XINTAKE_TIMEOUT is not a positive number") from exc
-    if not math.isfinite(value) or value <= 0:
-        raise ValueError("PFY_XINTAKE_TIMEOUT is not a positive number")
-    return value
+ROOT = Path(__file__).resolve().parents[2]
+PIN = os.environ.get("KANZO_VERSION", "0.2.1")
+SYS_PATH = "/usr/local/bin:/usr/bin:/bin"
+WATCHED = ["kanzo", ".config/kanzo", ".local/share/kanzo"]
+CORE_TOOLS = {"create_project", "create_task", "list_tasks", "next_task", "update_task", "add_comment"}
+TITLE = "pfy smoke task"
 
 
-def _executable(path: str | None) -> bool:
-    return bool(path) and os.path.isfile(path) and os.access(path, os.X_OK)
+def receipt_dir() -> Path:
+    env = os.environ.get("PFY_SMOKE_RECEIPT_DIR")
+    return Path(env) if env else ROOT / "pipelines/smoke/kanzo"
 
 
-def _explicit(env_name: str, tmp_rel: str, name: str) -> tuple[str | None, str | None]:
-    """(path, error). A set env var that is not executable does not fall through to PATH."""
-    if env_name in os.environ:
-        path = os.environ[env_name]
-        if _executable(path):
-            return path, None
-        return None, f"{env_name} is not an executable file ({path})"
-    return find_bin(env_name, tmp_rel, name), None
+def finish(code: int, rec: dict) -> int:
+    rec["status"] = {0: "PASS", 1: "FAIL", 2: "SKIP"}[code]
+    rec["exit"] = code
+    rec["at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    d = receipt_dir()
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "latest.json").write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps({"status": rec["status"], "reason": rec.get("reason"), "failed": rec.get("failed", [])}))
+    return code
 
 
-def _sig(home: Path) -> dict:
-    out = {}
+def find_bin() -> str | None:
+    env = os.environ.get("KANZO_BIN")
+    if env:
+        return env if os.access(env, os.X_OK) else None
+    local = Path.home() / "DEVELOP/pfy-mentat/tmp/kanzo/bin/kanzo"
+    if os.access(local, os.X_OK):
+        return str(local)
+    return shutil.which("kanzo")
+
+
+def bwrap_ok() -> bool:
+    if not shutil.which("bwrap"):
+        return False
+    p = subprocess.run(["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--proc", "/proc", "--unshare-net", "true"],
+                       capture_output=True)
+    return p.returncode == 0
+
+
+def home_sig(home: Path) -> dict:
+    sig = {}
     for rel in WATCHED:
-        path = home / rel
-        if path.is_symlink():
-            out[rel] = ("symlink", os.readlink(path))
-        elif path.is_dir():
-            files = sorted(
-                (str(item.relative_to(path)), item.stat().st_size)
-                for item in path.rglob("*")
-                if item.is_file() and not item.is_symlink()
-            )
-            out[rel] = ("dir", files)
-        elif path.exists():
-            out[rel] = ("file", path.stat().st_size)
+        p = home / rel
+        if p.is_dir():
+            sig[rel] = sorted((str(q.relative_to(p)), q.stat().st_size, q.stat().st_mtime_ns) for q in p.rglob("*"))
+        elif p.exists():
+            sig[rel] = [p.stat().st_size, p.stat().st_mtime_ns]
         else:
-            out[rel] = None
-    return out
+            sig[rel] = None
+    return sig
 
 
-def _call(cmd: list[str], home: str, timeout: float, scratch: str) -> subprocess.CompletedProcess | str | OSError:
+def wrap(cmd: list[str], tmp: Path, sandbox: bool) -> list[str]:
+    if not sandbox:
+        return cmd
+    return ["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--proc", "/proc", "--bind", str(tmp), str(tmp),
+            "--unshare-net", "--die-with-parent", *cmd]
+
+
+def child_env(tmp: Path) -> dict:
+    return {"PATH": SYS_PATH, "HOME": str(tmp / "home"), "TMPDIR": str(tmp / "t"), "LANG": "C.UTF-8",
+            "NO_COLOR": "1", "TERM": "dumb"}
+
+
+def kill_group(p: subprocess.Popen) -> None:
+    """SIGKILL the child's whole process group (start_new_session=True), so a sandboxed grandchild can't outlive us."""
     try:
-        return run_isolated(
-            cmd, home=home, cwd=scratch, timeout=timeout, bwrap_writable=[scratch], kill_on_exit=True,
-        )
-    except subprocess.TimeoutExpired:
-        return "timeout"
-    except OSError as exc:
-        return exc
+        os.killpg(p.pid, signal.SIGKILL)
+    except (ProcessLookupError, PermissionError):
+        pass
 
 
-def _text(proc: subprocess.CompletedProcess) -> str:
-    return (proc.stdout or "") + "\n" + (proc.stderr or "")
-
-
-def _build(cargo: str, repo: Path, commit: str, scratch: Path, timeout: float, rec: dict) -> str | int:
-    if not (repo / "Cargo.toml").is_file() or not (repo / ".git").is_dir():
-        rec["reason"] = f"pinned sysknife clone is not staged at {repo}"
-        return 2
-    home = str(scratch / "home")
-    rev = _call(["git", "-C", str(repo), "rev-parse", "HEAD"], home, min(timeout, 30), str(scratch))
-    if rev == "timeout":
-        rec["reason"] = timeout_reason("sysknife rev-parse", min(timeout, 30))
-        return 2
-    if isinstance(rev, OSError):
-        rec["reason"] = f"git rev-parse failed: {rev}"
-        return 2
-    got = (rev.stdout or "").strip().lower()
-    if rev.returncode != 0 or got != commit:
-        rec["reason"] = f"sysknife clone is {got or 'unreadable'}, pin is {commit}"
-        return 2
-    target = scratch / "target"
-    cargo_home = scratch / "cargo-home"
-    cmd = [
-        cargo, "build", "-p", "sysknife-cli", "--bin", "sysknife", "--locked",
-        "--manifest-path", str(repo / "Cargo.toml"),
-    ]
+def run_group(cmd: list[str], env: dict, cwd: str, timeout: float) -> subprocess.CompletedProcess:
+    """subprocess.run, but the process group is killed on timeout and after exit (no orphans under bwrap)."""
+    p = subprocess.Popen(cmd, env=env, cwd=cwd, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE, text=True, start_new_session=True)
     try:
-        built = run_isolated(
-            cmd, home=home, cwd=str(scratch), timeout=timeout, kill_on_exit=True,
-            path=os.path.dirname(cargo) + ":/usr/bin:/bin",
-            extra={"CARGO_HOME": str(cargo_home), "CARGO_TARGET_DIR": str(target)},
-            bwrap_writable=None,
-        )
+        out, err = p.communicate(timeout=timeout)
     except subprocess.TimeoutExpired:
-        rec["reason"] = timeout_reason("sysknife cargo build", timeout)
+        kill_group(p)
+        p.communicate()
+        raise
+    finally:
+        kill_group(p)
+    return subprocess.CompletedProcess(cmd, p.returncode, out, err)
+
+
+def run(binary: str, args: list[str], tmp: Path, sandbox: bool, timeout: float) -> subprocess.CompletedProcess:
+    return run_group(wrap([binary, *args], tmp, sandbox), child_env(tmp), str(tmp), timeout)
+
+
+class Mcp:
+    """Minimal stdio JSON-RPC client: one request at a time, replies matched by id."""
+
+    def __init__(self, cmd: list[str], env: dict, cwd: str, timeout: float):
+        self.p = subprocess.Popen(cmd, env=env, cwd=cwd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                  stderr=subprocess.PIPE, start_new_session=True)
+        self.deadline = time.monotonic() + timeout
+        self.buf = b""
+        self.next_id = 1
+
+    def send(self, msg: dict) -> None:
+        self.p.stdin.write((json.dumps(msg) + "\n").encode())
+        self.p.stdin.flush()
+
+    def call(self, method: str, params: dict | None = None) -> dict:
+        rid = self.next_id
+        self.next_id += 1
+        self.send({"jsonrpc": "2.0", "id": rid, "method": method, "params": params or {}})
+        while True:
+            while b"\n" in self.buf:
+                line, self.buf = self.buf.split(b"\n", 1)
+                try:
+                    msg = json.loads(line)
+                except ValueError:
+                    continue
+                if isinstance(msg, dict) and msg.get("id") == rid:
+                    return msg
+            left = self.deadline - time.monotonic()
+            if left <= 0:
+                raise TimeoutError(f"no reply to {method}")
+            r, _, _ = select.select([self.p.stdout], [], [], left)
+            if not r:
+                raise TimeoutError(f"no reply to {method}")
+            chunk = os.read(self.p.stdout.fileno(), 65536)
+            if not chunk:
+                raise EOFError(f"server closed before replying to {method}")
+            self.buf += chunk
+
+    def close(self) -> int | None:
+        # The group kill runs on every path: killing only bwrap left the sandboxed server alive on nimo.
+        try:
+            self.p.stdin.close()
+            return self.p.wait(timeout=max(1.0, min(10.0, self.deadline - time.monotonic())))
+        except (OSError, subprocess.TimeoutExpired):
+            kill_group(self.p)
+            self.p.wait()
+            return None
+        finally:
+            kill_group(self.p)
+
+
+def tool_text(reply: dict) -> tuple[bool, str]:
+    res = reply.get("result") or {}
+    text = " ".join(c.get("text", "") for c in res.get("content", []) if isinstance(c, dict))
+    return ("error" not in reply and not res.get("isError")), text
+
+
+def body(rec: dict, binary: str, tmp: Path, sandbox: bool, timeout: float) -> int:
+    outs: dict = {}
+
+    def check(name: str, ok: bool) -> None:
+        rec["checks"][name] = bool(ok)
+        if not ok:
+            rec["failed"].append(name)
+
+    (tmp / "t").mkdir()
+    (tmp / "home").mkdir()
+    data = str(tmp / "data")
+    try:
+        v = run(binary, ["--version"], tmp, sandbox, timeout)
+    except (OSError, subprocess.TimeoutExpired) as e:
+        rec["reason"] = f"--version failed: {e}"
         return 2
-    except OSError as exc:
-        rec["reason"] = f"cargo failed to start: {exc}"
+    rec["version_output"] = (v.stdout + v.stderr).strip()[:200]
+    if rec["version_output"].split()[-1:] != [PIN]:
+        rec["reason"] = f"version pin {PIN} not in --version output"
         return 2
-    binary = target / "debug" / "sysknife"
-    rec["checks"]["cargo_build"] = built.returncode
-    if built.returncode != 0 or not _executable(str(binary)):
-        rec["reason"] = "cargo build did not produce sysknife within the time box: " + _text(built)[-400:]
-        return 2
-    return str(binary)
-
-
-def body(rec: dict, scratch: Path | None) -> tuple[int, Path | None]:
-    commit = pinned(rec, "SYSKNIFE_COMMIT", PIN_COMMIT, lower=True)
-    version = pinned(rec, "SYSKNIFE_VERSION", PIN_VERSION)
-    timeout = _limit(120)
-    binary, err = _explicit("SYSKNIFE_BIN", "sysknife/sysknife", "sysknife")
-    if err:
-        rec["reason"] = err
-        return 2, scratch
-    if binary is None:
-        cargo, cargo_err = _explicit("CARGO_BIN", "cargo/bin/cargo", "cargo")
-        if cargo_err:
-            rec["reason"] = cargo_err
-            return 2, scratch
-        if not cargo:
-            rec["reason"] = (
-                "sysknife is not staged and cargo is not available; "
-                "not downloading a release binary and not building"
-            )
-            return 2, scratch
-        scratch = Path(tempfile.mkdtemp(prefix="sysknife-", dir=_scratch_root()))
-        repo = Path(os.environ["SYSKNIFE_DIR"]) if os.environ.get("SYSKNIFE_DIR") else (
-            Path.home() / "DEVELOP/pfy-mentat/tmp/sysknife"
-        )
-        built = _build(cargo, repo, commit, scratch, timeout, rec)
-        if isinstance(built, int):
-            return built, scratch
-        binary = built
-    if scratch is None:
-        scratch = Path(tempfile.mkdtemp(prefix="sysknife-", dir=_scratch_root()))
-    home = scratch / "home"
-    home.mkdir(parents=True, exist_ok=True)
-    home_s = str(home)
-    scratch_s = str(scratch)
-    version_proc = _call([binary, "--version"], home_s, timeout, scratch_s)
-    if version_proc == "timeout":
-        rec["reason"] = timeout_reason("sysknife --version", timeout)
-        return 2, scratch
-    if isinstance(version_proc, OSError):
-        rec["reason"] = f"sysknife failed to start: {version_proc}"
-        return 2, scratch
-    if version_proc.returncode != 0 or version not in _text(version_proc):
-        rec["reason"] = f"version pin {version} not in sysknife --version output"
-        rec["output"] = _text(version_proc)[-400:]
-        return 2, scratch
-    help_proc = _call([binary, "--help"], home_s, timeout, scratch_s)
-    if help_proc == "timeout":
-        rec["reason"] = timeout_reason("sysknife --help", timeout)
-        return 2, scratch
-    if isinstance(help_proc, OSError) or help_proc.returncode != 0 or "--dry-run" not in _text(help_proc):
-        rec["reason"] = "sysknife --help did not show --dry-run"
-        rec["failed"] = ["help"]
-        return 1, scratch
-    if shutil.which("bwrap") is None:
-        rec["reason"] = (
-            "sysknife --help ok; --dry-run skipped because bubblewrap is unavailable, "
-            "so the planner would not be network-isolated. No system change."
-        )
-        return 2, scratch
-    secs = str(int(max(1, min(timeout, 20))))
-    args = ["--dry-run", "--non-interactive", "--json", "--timeout", secs, "check", "disk", "usage"]
-    if any(flag in args for flag in BANNED):
-        rec["reason"] = "smoke refused to arm execution flags"
-        return 1, scratch
-    rec["dry_run_argv"] = args
-    dry = _call([binary, *args], home_s, timeout, scratch_s)
-    if dry == "timeout":
-        rec["reason"] = timeout_reason("sysknife --dry-run", timeout)
-        return 2, scratch
-    if isinstance(dry, OSError):
-        rec["reason"] = f"sysknife --dry-run failed to start: {dry}"
-        return 2, scratch
-    out = _text(dry)
-    rec["checks"]["dry_run_exit"] = dry.returncode
-    if dry.returncode != 0:
-        rec["reason"] = (
-            "sysknife --help ok; --dry-run did not return a plan "
-            "(planner, daemon, or usage). No --yes and no system change. " + out[-400:]
-        )
-        return 2, scratch
-    if "action" not in out and "dry_run" not in out and "dry-run" not in out.lower():
-        rec["reason"] = "sysknife --dry-run exited 0 without a typed plan"
-        rec["failed"] = ["dry_run_plan"]
-        return 1, scratch
-    rec["checks"]["dry_run"] = "plan"
-    return 0, scratch
-
-
-def _scratch_root() -> str:
-    root = Path(__file__).resolve().parents[2] / "tmp" / "xintake-156"
-    root.mkdir(parents=True, exist_ok=True)
-    return str(root)
+    try:
+        p = run(binary, ["init", "--home", data], tmp, sandbox, timeout)
+        outs["init"] = p.stdout + p.stderr
+        check("init_ok", p.returncode == 0)
+        check("init_made_db", (tmp / "data" / "kanzo.db").is_file())
+        if rec["failed"]:
+            return 1
+        mcp = Mcp(wrap([binary, "mcp", "--home", data], tmp, sandbox), child_env(tmp), str(tmp), timeout)
+        try:
+            init = mcp.call("initialize", {"protocolVersion": "2025-06-18", "capabilities": {},
+                                           "clientInfo": {"name": "pfy-smoke-156", "version": "0"}})
+            rec["server_info"] = (init.get("result") or {}).get("serverInfo")
+            mcp.send({"jsonrpc": "2.0", "method": "notifications/initialized"})
+            tools = mcp.call("tools/list")
+            names = {t.get("name") for t in (tools.get("result") or {}).get("tools", [])}
+            rec["missing_tools"] = sorted(CORE_TOOLS - names)
+            ok_p, outs["create_project"] = tool_text(mcp.call("tools/call", {
+                "name": "create_project", "arguments": {"slug": "smoke", "name": "Smoke"}}))
+            ok_t, outs["create_task"] = tool_text(mcp.call("tools/call", {
+                "name": "create_task", "arguments": {"title": TITLE, "project": "smoke"}}))
+            ok_l, outs["list_tasks"] = tool_text(mcp.call("tools/call", {
+                "name": "list_tasks", "arguments": {"project": "smoke"}}))
+        except (TimeoutError, EOFError, OSError) as e:
+            mcp.close()
+            rec["failed"].append(f"mcp: {e}")
+            return 1
+        rec["checks"]["mcp_exit"] = mcp.close()
+        check("mcp_clean_exit_on_eof", rec["checks"]["mcp_exit"] == 0)
+        check("mcp_core_tools", not rec["missing_tools"])
+        check("mcp_create_project_ok", ok_p)
+        check("mcp_create_task_ok", ok_t and "smoke#1" in outs["create_task"])
+        check("mcp_list_shows_task", ok_l and TITLE in outs["list_tasks"])
+        j = run(binary, ["export", "-f", "json", "--home", data], tmp, sandbox, timeout)
+        m = run(binary, ["export", "--home", data], tmp, sandbox, timeout)
+    except subprocess.TimeoutExpired as e:
+        rec["failed"].append(f"timed out: {e.cmd[-3:] if e.cmd else ''}")
+        return 1
+    outs["export_md"] = m.stdout
+    check("export_json_ok", j.returncode == 0)
+    check("export_md_ok", m.returncode == 0)
+    try:
+        board = json.loads(j.stdout)
+        tasks = [t for pr in board.get("projects", []) if pr.get("slug") == "smoke" for t in pr.get("tasks", [])]
+    except (ValueError, AttributeError, TypeError):
+        tasks = []
+    check("export_json_has_task", any(t.get("title") == TITLE and t.get("status") == "todo" for t in tasks))
+    check("export_md_has_task", TITLE in m.stdout)
+    leaked = sorted(str(q.relative_to(tmp / "home")) for q in (tmp / "home").rglob("*"))
+    rec["temp_home_writes"] = leaked[:20]
+    check("data_only_under_home_flag", not leaked)
+    if rec["failed"]:
+        rec["tail"] = {k: v[-400:] for k, v in outs.items()}
+    return 1 if rec["failed"] else 0
 
 
 def main() -> int:
-    rec: dict = {"entry": "156-sysknife", "failed": [], "checks": {}}
-    before = _sig(Path.home())
-    scratch: Path | None = None
+    rec: dict = {"entry": "156-kanzo", "pin": PIN, "failed": [], "checks": {}}
+    try:
+        timeout = float(os.environ.get("PFY_XINTAKE_TIMEOUT", "60"))
+        if timeout <= 0:
+            raise ValueError
+    except ValueError:
+        rec["reason"] = "bad PFY_XINTAKE_TIMEOUT"
+        return finish(2, rec)
+    binary = find_bin()
+    if not binary:
+        rec["reason"] = "kanzo not staged (set KANZO_BIN or stage tmp/kanzo/bin/kanzo)"
+        return finish(2, rec)
+    rec["binary"] = binary
+    sandbox = bwrap_ok()
+    rec["sandbox"] = "bwrap --unshare-net" if sandbox else "none (network reachable)"
+    real_home = Path.home()
+    before = home_sig(real_home)
     code = 1
     try:
-        code, scratch = body(rec, scratch)
-    except ValueError as exc:
-        rec["reason"] = str(exc)
-        code = 2
+        with tempfile.TemporaryDirectory(prefix="pfy-smoke-156-") as td:
+            code = body(rec, binary, Path(td), sandbox, timeout)
+    except Exception as e:  # any crash is a FAIL with a receipt, never a traceback without one
+        rec["failed"].append(f"exception: {e!r}")
+        code = 1
     finally:
-        if _sig(Path.home()) != before:
-            rec["reason"] = "real HOME sysknife paths changed"
-            rec["failed"] = ["real_home_unchanged"]
-            code = 1
-        if scratch is not None:
-            shutil.rmtree(scratch, ignore_errors=True)
-    return write("sysknife", rec, code)
+        # Real-HOME check runs on every path (PASS, FAIL, SKIP, timeout, exception).
+        after = home_sig(real_home)
+        rec["real_home_changed"] = [k for k in WATCHED if before[k] != after[k]]
+        rec["checks"]["real_home_unchanged"] = not rec["real_home_changed"]
+    if rec["real_home_changed"]:
+        rec["failed"].append("real_home_unchanged")
+        code = 1
+    return finish(code, rec)
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    sys.exit(main())

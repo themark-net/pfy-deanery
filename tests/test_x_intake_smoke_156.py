@@ -1,10 +1,12 @@
-"""Entry 156 smoke (SysKnife): a missing binary exits 2, a hang and a forked grandchild are killed,
-a dry-run that cannot plan exits 2, a real-HOME write fails, and a stub plan passes without --yes."""
+"""Entry 156 smoke (Kanzo): a missing binary, a version mismatch and a bad timeout exit 2; a failing init, a missing
+core MCP tool, a task the MCP server reports but never stores, a server that never replies (timeout, and it must not outlive the smoke), an export
+without the task, a write outside --home, or a write into the real HOME FAILs; a correct stub PASSes, including one
+that emits unrelated lines before its replies. The stub is a tiny Python `kanzo` (shebang = this interpreter) that
+keeps the board in a JSON file under --home; receipts go to a temp dir."""
 from __future__ import annotations
 
 import json
 import os
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -15,89 +17,91 @@ ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "examples/x-intake-local/smoke_156.py"
 
 STUB = r'''
-import os, sys, time
+import json, os, pathlib, sys, time
 a = sys.argv[1:]
-if K.get("orphan"):
-    if os.fork() == 0:
-        for fd in (1, 2):
-            try:
-                os.close(fd)
-            except OSError:
-                pass
-        time.sleep(30)
-        os._exit(0)
-    os._exit(0)
-if K.get("hang"):
-    time.sleep(60)
+if a[:1] in (["--version"], ["-V"]):
+    print("kanzo " + K.get("version", "0.2.1")); sys.exit(0)
+home = pathlib.Path(a[a.index("--home") + 1])
+db = home / "kanzo.db"
+if K.get("write_home"):
+    (pathlib.Path(os.environ["HOME"]) / "kanzo").mkdir(exist_ok=True)
 if K.get("touch_real"):
-    os.makedirs(os.path.join(K["touch_real"], ".sysknife"), exist_ok=True)
-if "--version" in a:
-    print(K.get("version", "0.30.0"))
-    raise SystemExit(0)
-if "--help" in a or "-h" in a:
-    print("Usage: sysknife\n--dry-run  print the plan and do not execute")
-    raise SystemExit(0)
-if "--dry-run" in a:
-    if "--yes" in a or "--dangerously-skip-approval" in a:
-        print("armed")
-        raise SystemExit(1)
-    print('{"dry_run":true,"plan":{"steps":[{"action":"GetDiskUsage","risk":"low"}]}}')
-    raise SystemExit(K.get("dry_exit", 0))
-print("usage")
-raise SystemExit(2)
+    try:
+        pathlib.Path(K["touch_real"], "kanzo").mkdir(exist_ok=True)
+    except OSError:
+        pass
+def load():
+    return json.loads(db.read_text())
+if a[0] == "init":
+    if K.get("init_exit"):
+        sys.exit(K["init_exit"])
+    home.mkdir(parents=True, exist_ok=True)
+    db.write_text(json.dumps({"projects": {}}))
+    print("Kanzo data folder ready at %s" % home); sys.exit(0)
+if a[0] == "export":
+    board = load()
+    if "-f" in a:
+        print(json.dumps({"projects": [{"slug": s, "tasks": t} for s, t in board["projects"].items()]}))
+    else:
+        print("# Kanzo board")
+        for s, ts in board["projects"].items():
+            for t in ts:
+                if not K.get("md_missing"):
+                    print("#### %s#%d %s" % (s, 1, t["title"]))
+    sys.exit(0)
+tools = ["add_comment", "create_project", "create_task", "delete_task", "get_task", "link_repo",
+         "list_projects", "list_tasks", "next_task", "update_task"]
+if K.get("missing_tool"):
+    tools.remove(K["missing_tool"])
+def reply(i, res):
+    if K.get("noise"):
+        print(json.dumps({"jsonrpc": "2.0", "method": "notifications/message", "params": {}}))
+        print("not json at all")
+    print(json.dumps({"jsonrpc": "2.0", "id": i, "result": res}), flush=True)
+def text(t):
+    return {"content": [{"type": "text", "text": t}], "isError": False}
+for line in sys.stdin:
+    m = json.loads(line)
+    if "id" not in m:
+        continue
+    if K.get("hang"):
+        time.sleep(60)
+    meth, p = m["method"], m.get("params", {})
+    if meth == "initialize":
+        reply(m["id"], {"serverInfo": {"name": "kanzo", "version": "0.2.1"}})
+    elif meth == "tools/list":
+        reply(m["id"], {"tools": [{"name": n} for n in tools]})
+    else:
+        board = load(); args = p["arguments"]
+        if p["name"] == "create_project":
+            board["projects"][args["slug"]] = []
+            reply(m["id"], text("Created project %s." % args["slug"]))
+        elif p["name"] == "create_task":
+            if not K.get("drop_task"):
+                board["projects"][args["project"]].append({"title": args["title"], "status": "todo"})
+            reply(m["id"], text("Created %s#1 in todo: %s" % (args["project"], args["title"])))
+        elif p["name"] == "list_tasks":
+            ts = board["projects"].get(args["project"], [])
+            reply(m["id"], text("\n".join("%s#1 [todo] %s" % (args["project"], t["title"]) for t in ts)))
+        db.write_text(json.dumps(board))
+sys.exit(0)
 '''
-
-# Enough of bwrap for the probe and for argv stripping. Ubuntu-parity hides the real
-# binary; the dry-run checks still need shutil.which("bwrap") to succeed. This shim
-# does not isolate. It only lets the stub run.
-BWRAP_SHIM = """
-import os, sys
-args = sys.argv[1:]
-two = {"--ro-bind", "--bind"}
-one = {"--dev", "--proc", "--chdir", "--uid", "--gid", "--setenv"}
-i = 0
-while i < len(args):
-    flag = args[i]
-    if flag in two:
-        i += 3
-        continue
-    if flag in one:
-        i += 2
-        continue
-    if flag.startswith("--"):
-        i += 1
-        continue
-    break
-if i >= len(args):
-    raise SystemExit(1)
-os.execv(args[i], args[i:])
-"""
-
-
-def _path_bwrap(td: Path, path: str) -> str:
-    if shutil.which("bwrap", path=path):
-        return path
-    bindir = td / "bin"
-    bindir.mkdir()
-    shim = bindir / "bwrap"
-    shim.write_text("#!" + sys.executable + "\n" + BWRAP_SHIM, encoding="utf-8")
-    shim.chmod(0o755)
-    return str(bindir) + os.pathsep + path
 
 
 def survivors_of(path: str) -> list[int]:
+    """Live pids whose argv mentions the stub path; any found are killed so a failing test can't leak them."""
     found = []
-    for entry in Path("/proc").iterdir():
-        if not entry.name.isdigit():
+    for d in Path("/proc").iterdir():
+        if not d.name.isdigit():
             continue
         try:
-            argv = (entry / "cmdline").read_bytes().split(b"\0")
+            argv = (d / "cmdline").read_bytes().split(b"\0")
         except OSError:
             continue
         if path.encode() in argv:
-            found.append(int(entry.name))
+            found.append(int(d.name))
             try:
-                os.kill(int(entry.name), 9)
+                os.kill(int(d.name), 9)
             except OSError:
                 pass
     return found
@@ -109,74 +113,79 @@ class Smoke156(unittest.TestCase):
             td = Path(td)
             real = td / "realhome"
             real.mkdir()
-            env2 = {
-                "PATH": os.environ.get("PATH", ""),
-                "HOME": str(real),
-                "PFY_SMOKE_RECEIPT_DIR": str(td / "r"),
-            }
-            stub_path = td / "sysknife"
+            env2 = {"PATH": os.environ.get("PATH", ""), "HOME": str(real), "PFY_SMOKE_RECEIPT_DIR": str(td / "r")}
             if knobs is not None:
                 k = dict(knobs)
                 if k.get("touch_real"):
                     k["touch_real"] = str(real)
-                stub_path.write_text(f"#!{sys.executable}\nK = {k!r}\n" + STUB, encoding="utf-8")
-                stub_path.chmod(0o755)
-                env2["SYSKNIFE_BIN"] = str(stub_path)
+                stub = td / "kanzo"
+                stub.write_text(f"#!{sys.executable}\nK = {k!r}\n" + STUB, encoding="utf-8")
+                stub.chmod(0o755)
+                env2["KANZO_BIN"] = str(stub)
             else:
-                env2["SYSKNIFE_BIN"] = str(td / "missing")
+                env2["KANZO_BIN"] = str(td / "missing")
             env2.update(env or {})
-            if not env or "PATH" not in env:
-                env2["PATH"] = _path_bwrap(td, env2.get("PATH", ""))
-            proc = subprocess.run(
-                [sys.executable, str(SCRIPT)], env=env2, capture_output=True, text=True, timeout=60,
-            )
-            receipt = json.loads((td / "r" / "sysknife" / "latest.json").read_text())
-            survivors = survivors_of(str(stub_path))
-            self.assertEqual(survivors, [], "stub sysknife outlived the smoke")
-            return proc.returncode, receipt
+            p = subprocess.run([sys.executable, str(SCRIPT)], env=env2, capture_output=True, text=True, timeout=120)
+            rec = json.loads((td / "r" / "latest.json").read_text())
+            survivors = survivors_of(str(td / "kanzo"))
+            self.assertEqual(survivors, [], "stub kanzo outlived the smoke (orphan)")
+            return p.returncode, rec
 
-    def test_missing_binary_exits_2(self):
-        code, rec = self.run_smoke(None)
-        self.assertEqual(code, 2)
-        self.assertIn("not an executable", rec["reason"])
-
-    def test_hang_is_killed(self):
-        code, rec = self.run_smoke({"hang": True}, {"PFY_XINTAKE_TIMEOUT": "2"})
-        self.assertEqual(code, 2)
-        self.assertIn("timeout after 2s", rec["reason"])
-
-    def test_grandchild_does_not_survive(self):
-        code, rec = self.run_smoke({"orphan": True}, {"PFY_XINTAKE_TIMEOUT": "5"})
-        self.assertEqual(code, 2, rec)
-        self.assertIn("version pin", rec["reason"])
-
-    def test_plan_passes_without_execution_flags(self):
+    def test_pass(self):
         code, rec = self.run_smoke({})
         self.assertEqual(code, 0, rec)
-        argv = rec["dry_run_argv"]
-        self.assertIn("--dry-run", argv)
-        self.assertNotIn("--yes", argv)
-        self.assertNotIn("--dangerously-skip-approval", argv)
 
-    def test_planner_unavailable_exits_2(self):
-        code, rec = self.run_smoke({"dry_exit": 4})
-        self.assertEqual(code, 2, rec)
-        self.assertIn("did not return a plan", rec["reason"])
+    def test_noise_lines_before_replies_pass(self):
+        code, rec = self.run_smoke({"noise": True})
+        self.assertEqual(code, 0, rec)
 
-    def test_real_home_write_fails(self):
-        code, rec = self.run_smoke({"touch_real": True}, {"PATH": "/nonexistent"})
-        self.assertEqual(code, 1, rec)
-        self.assertIn("real_home_unchanged", rec["failed"])
+    def test_missing_binary_exit_2(self):
+        self.assertEqual(self.run_smoke(None)[0], 2)
 
-    def test_bad_timeout_exits_2(self):
+    def test_version_pin_exit_2(self):
+        code, rec = self.run_smoke({"version": "0.2.10"})
+        self.assertEqual(code, 2)
+        self.assertIn("version pin", rec["reason"])
+
+    def test_bad_timeout_exit_2(self):
         self.assertEqual(self.run_smoke({}, {"PFY_XINTAKE_TIMEOUT": "soon"})[0], 2)
 
-    def test_receipt_dir_is_gitignored(self):
-        proc = subprocess.run(
-            ["git", "check-ignore", "-q", "pipelines/smoke/sysknife/latest.json"],
-            cwd=ROOT,
-        )
-        self.assertEqual(proc.returncode, 0)
+    def test_init_failure_fails(self):
+        code, rec = self.run_smoke({"init_exit": 1})
+        self.assertEqual(code, 1)
+        self.assertIn("init_ok", rec["failed"])
+
+    def test_missing_core_tool_fails(self):
+        code, rec = self.run_smoke({"missing_tool": "next_task"})
+        self.assertEqual(code, 1)
+        self.assertEqual(rec["failed"], ["mcp_core_tools"])
+
+    def test_task_not_stored_fails(self):
+        code, rec = self.run_smoke({"drop_task": True})
+        self.assertEqual(code, 1)
+        for name in ("mcp_list_shows_task", "export_json_has_task", "export_md_has_task"):
+            self.assertIn(name, rec["failed"])
+
+    def test_markdown_export_without_task_fails(self):
+        code, rec = self.run_smoke({"md_missing": True})
+        self.assertEqual(code, 1)
+        self.assertEqual(rec["failed"], ["export_md_has_task"])
+
+    def test_server_hang_times_out_and_fails(self):
+        code, rec = self.run_smoke({"hang": True}, {"PFY_XINTAKE_TIMEOUT": "2"})
+        self.assertEqual(code, 1)
+        self.assertTrue(any(f.startswith("mcp: no reply") for f in rec["failed"]), rec["failed"])
+
+    def test_write_outside_home_flag_fails(self):
+        code, rec = self.run_smoke({"write_home": True})
+        self.assertEqual(code, 1)
+        self.assertIn("data_only_under_home_flag", rec["failed"])
+
+    def test_real_home_write_fails(self):
+        # No bwrap on PATH, so the stub can reach the real HOME (bwrap's read-only bind would block it).
+        code, rec = self.run_smoke({"touch_real": True}, {"PATH": "/nonexistent"})
+        self.assertEqual(code, 1)
+        self.assertIn("real_home_unchanged", rec["failed"])
 
 
 if __name__ == "__main__":

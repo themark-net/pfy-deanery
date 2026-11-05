@@ -1,43 +1,58 @@
 #!/usr/bin/env python3
-"""Operate-or-FAIL smoke for X intake Entry 158 (Skills Manager). Uses smoke.py helpers.
+"""Operate-or-FAIL smoke for X intake Entry 158 (Emdash). Uses smoke.py helpers.
 
 Usage: python3 examples/x-intake-local/smoke_158.py
 
-Exit 0 = the pinned CLI printed its version and help, and `list` either printed
-skills or refused because no skill home exists. Nothing is bootstrapped.
-Exit 1 = the CLI ran but a check failed, or a real-HOME path changed.
-Exit 2 = node or npm/npx is missing, the pinned package cannot be installed
-(network or time box), the version pin misses, or the timeout value is bad.
+Emdash is an Electron GUI. This smoke checks the pinned Linux release asset's
+name, size, and digest from the GitHub release JSON (or from $EMDASH_FETCH_BIN)
+and then exits 2. It does not download the AppImage and it does not launch the app.
 
-HOME, the npm cache, and the install prefix are a scratch directory under this
-worktree's tmp/. The scratch is removed when the smoke exits.
+Exit 1 = the metadata fetch ran and the asset does not match the pin.
+Exit 2 = metadata matches and the GUI was not launched, or the fetch cannot run here.
 
-Receipt: $PFY_SMOKE_RECEIPT_DIR/skills-manager/latest.json, else pipelines/smoke/skills-manager/latest.json.
+Receipt: $PFY_SMOKE_RECEIPT_DIR/emdash/latest.json, else pipelines/smoke/emdash/latest.json.
 """
 from __future__ import annotations
 
+import json
 import math
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
-from smoke import pinned, run_isolated, timeout_reason, write
+from smoke import find_bin, pinned, run_isolated, timeout_reason, write
 
-PIN_VERSION = "2026.10.27-1"
-PIN_COMMIT = "fae0bb864a8b96c1d0ca6278a6b7062e62992a36"
-WATCHED = (
-    ".skills-manager", ".claude", ".codex", ".grok", ".cursor",
-    ".config/opencode", ".npm", ".npm-global",
-)
-ROOT = Path(__file__).resolve().parents[2]
+PIN_TAG = "v1.2.10"
+PIN_ASSET = "emdash-x86_64.AppImage"
+PIN_SHA = "274586c70ba70466667fa811c5ead49610493859bed8c51e4f9abc0850c26d7d"
+PIN_SIZE = "233276140"
+PIN_COMMIT = "ab766e8fbb436584dcf0f299740e79d559b8ed31"
+FETCH = r"""
+import json, sys, urllib.request
+url, asset = sys.argv[1], sys.argv[2]
+req = urllib.request.Request(url, headers={"User-Agent": "pfy-xintake", "Accept": "application/vnd.github+json"})
+try:
+    with urllib.request.urlopen(req, timeout=float(sys.argv[3])) as resp:
+        data = json.load(resp)
+except Exception as exc:
+    print(json.dumps({"error": str(exc)}))
+    raise SystemExit(2)
+assets = []
+for item in data.get("assets") or []:
+    if item.get("name") == asset:
+        assets.append({"name": item.get("name"), "size": item.get("size"), "digest": item.get("digest")})
+print(json.dumps({"tag": data.get("tag_name"), "commit": data.get("target_commitish"), "assets": assets}))
+"""
+WATCHED = (".config/emdash", ".local/share/emdash", ".emdash")
 
 
-def _limit(default: float) -> float:
+def _limit() -> float:
     raw = os.environ.get("PFY_XINTAKE_TIMEOUT", "").strip()
     if not raw:
-        return default
+        return 30.0
     try:
         value = float(raw)
     except ValueError as exc:
@@ -47,212 +62,103 @@ def _limit(default: float) -> float:
     return value
 
 
-def _executable(path: str | None) -> bool:
-    return bool(path) and os.path.isfile(path) and os.access(path, os.X_OK)
-
-
-def _tool(env_name: str, which_name: str) -> str | None:
-    if env_name in os.environ:
-        path = os.environ[env_name]
-        return path if _executable(path) else None
-    found = shutil.which(which_name)
-    return found if _executable(found) else None
-
-
 def _sig(home: Path) -> dict:
     out = {}
     for rel in WATCHED:
         path = home / rel
-        try:
-            if not path.exists():
-                out[rel] = None
-            elif path.is_dir() and not path.is_symlink():
-                names = []
-                for child in sorted(path.iterdir(), key=lambda item: item.name):
-                    if child.is_dir() and not child.is_symlink() and child.name in {"skills", "plugins"}:
-                        names.append((child.name, tuple(sorted(item.name for item in child.iterdir()))))
-                    else:
-                        names.append(child.name)
-                out[rel] = tuple(names)
-            else:
-                out[rel] = ("leaf", path.stat().st_size)
-        except OSError as exc:
-            out[rel] = ("error", type(exc).__name__)
+        out[rel] = path.exists()
     return out
 
 
-def _under_worktree(path: Path) -> bool:
-    try:
-        path.resolve().relative_to(ROOT.resolve())
-    except ValueError:
-        return False
-    return True
+def _fetch_cmd(tag: str, asset: str, timeout: float) -> list[str] | str:
+    override = os.environ.get("EMDASH_FETCH_BIN")
+    if override is not None:
+        if not (os.path.isfile(override) and os.access(override, os.X_OK)):
+            return f"emdash metadata fetcher is not executable ({override})"
+        return [override]
+    url = f"https://api.github.com/repos/generalaction/emdash/releases/tags/{tag}"
+    return [sys.executable, "-c", FETCH, url, asset, str(timeout)]
 
 
-def _call(cmd: list[str], home: str, timeout: float, cwd: str, extra: dict, path: str):
+def body(rec: dict, home: str) -> int:
+    tag = pinned(rec, "EMDASH_TAG", PIN_TAG)
+    asset = pinned(rec, "EMDASH_ASSET", PIN_ASSET)
+    sha = pinned(rec, "EMDASH_SHA256", PIN_SHA, lower=True)
+    size = pinned(rec, "EMDASH_SIZE", PIN_SIZE)
+    commit = pinned(rec, "EMDASH_COMMIT", PIN_COMMIT, lower=True)
+    timeout = _limit()
+    cmd = _fetch_cmd(tag, asset, timeout)
+    if isinstance(cmd, str):
+        rec["reason"] = cmd
+        return 2
+    # No local binary is required. Record one if a staged copy exists, and do not launch it.
+    rec["checks"]["local_bin"] = find_bin("EMDASH_BIN", "emdash/emdash", "emdash")
     try:
-        return run_isolated(
-            cmd, home=home, cwd=cwd, timeout=timeout, path=path, extra=extra,
-            bwrap_writable=None, kill_on_exit=True,
+        proc = run_isolated(
+            cmd, home=home, timeout=timeout, bwrap_writable=None, kill_on_exit=True,
         )
     except subprocess.TimeoutExpired:
-        return "timeout"
+        rec["reason"] = timeout_reason("emdash metadata", timeout)
+        return 2
     except OSError as exc:
-        return exc
-
-
-def _text(proc: subprocess.CompletedProcess) -> str:
-    return (proc.stdout or "") + "\n" + (proc.stderr or "")
-
-
-def _install(npm: str, node: str, scratch: Path, version: str, timeout: float, rec: dict) -> str | int:
-    prefix = scratch / "prefix"
-    cache = scratch / "npm-cache"
-    home = scratch / "home"
-    tmp = scratch / "tmp"
-    for directory in (prefix, cache, home, tmp):
-        directory.mkdir(parents=True)
-    if not all(_under_worktree(directory) for directory in (prefix, cache, home)):
-        rec["reason"] = "skills-manager scratch escaped the worktree"
+        rec["reason"] = f"emdash metadata fetcher failed to start: {exc}"
         return 2
-    npmrc = scratch / "npmrc"
-    npmrc.write_text("fund=false\naudit=false\nupdate-notifier=false\n", encoding="utf-8")
-    (scratch / "package.json").write_text(
-        '{"name":"pfy-xintake-158","private":true}\n', encoding="utf-8",
+    raw = (proc.stdout or "").strip()
+    if proc.returncode != 0 or not raw:
+        rec["reason"] = "emdash release metadata could not be read: " + ((proc.stderr or raw)[-300:])
+        return 2
+    try:
+        data = json.loads(raw.splitlines()[-1])
+    except json.JSONDecodeError:
+        rec["reason"] = "emdash metadata was not JSON"
+        return 2
+    if data.get("error"):
+        rec["reason"] = "emdash release metadata could not be read: " + str(data["error"])[:300]
+        return 2
+    got = (data.get("assets") or [None])[0] or {}
+    digest = str(got.get("digest") or "")
+    hexpart = digest.split(":", 1)[-1].lower()
+    got_commit = str(data.get("commit") or "").lower()
+    match = (
+        data.get("tag") == tag
+        and got.get("name") == asset
+        and str(got.get("size")) == str(size)
+        and hexpart == sha
+        and (not _is_sha(got_commit) or got_commit == commit)
     )
-    extra = {
-        "npm_config_cache": str(cache),
-        "npm_config_prefix": str(prefix),
-        "npm_config_userconfig": str(npmrc),
-        "npm_config_fund": "false",
-        "npm_config_audit": "false",
-        "npm_config_update_notifier": "false",
-        "TMPDIR": str(tmp),
-    }
-    path = ":".join(dict.fromkeys([os.path.dirname(node), os.path.dirname(npm), "/usr/bin", "/bin"]))
-    cmd = [
-        npm, "install", "--ignore-scripts", "--no-fund", "--no-audit", "--no-package-lock",
-        "--prefix", str(prefix), f"skills-manager-cli@{version}",
-    ]
-    rec["checks"]["npm_cache"] = str(cache)
-    rec["checks"]["npm_home"] = str(home)
-    proc = _call(cmd, str(home), timeout, str(scratch), extra, path)
-    if proc == "timeout":
-        rec["reason"] = timeout_reason("skills-manager npm install", timeout)
-        return 2
-    if isinstance(proc, OSError):
-        rec["reason"] = f"npm failed to start: {proc}"
-        return 2
-    if proc.returncode != 0:
-        rec["reason"] = "npm install failed or the network is blocked: " + _text(proc)[-400:]
-        return 2
-    for candidate in (prefix / "bin" / "skills-manager", prefix / "node_modules" / ".bin" / "skills-manager"):
-        if _executable(str(candidate)):
-            return str(candidate)
-    rec["reason"] = "npm install finished without a skills-manager binary"
+    rec["checks"]["asset"] = {"name": got.get("name"), "size": got.get("size"), "digest": digest, "commit": got_commit}
+    if not match:
+        rec["reason"] = f"emdash release asset does not match pin {tag} {asset} {sha} {size}"
+        rec["failed"] = ["asset_pin"]
+        return 1
+    rec["reason"] = (
+        f"Linux release asset {asset} matches pin {tag} (sha256 {sha}, {size} bytes) "
+        f"at commit {commit}; Emdash is an Electron GUI desktop app and was not launched"
+    )
     return 2
 
 
-def _run_cli(binary: str, args: list[str], scratch: Path, timeout: float, path: str):
-    home = scratch / "home"
-    home.mkdir(parents=True, exist_ok=True)
-    return _call(
-        [binary, *args], str(home), timeout, str(scratch),
-        {"TMPDIR": str(scratch / "tmp")}, path,
-    )
-
-
-def body(rec: dict) -> tuple[int, Path | None]:
-    version = pinned(rec, "SKILLS_MANAGER_VERSION", PIN_VERSION)
-    pinned(rec, "SKILLS_MANAGER_COMMIT", PIN_COMMIT, lower=True)
-    command_timeout = _limit(60)
-    install_timeout = command_timeout if os.environ.get("PFY_XINTAKE_TIMEOUT") else _limit(180)
-    scratch: Path | None = None
-    if "SKILLS_MANAGER_BIN" in os.environ:
-        binary = os.environ["SKILLS_MANAGER_BIN"]
-        if not _executable(binary):
-            rec["reason"] = f"skills-manager binary is not executable ({binary})"
-            return 2, None
-        node = _tool("SKILLS_MANAGER_NODE", "node") or "/usr/bin/node"
-        path = os.path.dirname(node) + ":/usr/bin:/bin" if _executable(node) else "/usr/bin:/bin"
-    else:
-        node = _tool("SKILLS_MANAGER_NODE", "node")
-        npm = _tool("SKILLS_MANAGER_NPM", "npm") or _tool("SKILLS_MANAGER_NPX", "npx")
-        if not node:
-            rec["reason"] = "node is not available; skills-manager smoke cannot run"
-            return 2, None
-        if not npm:
-            rec["reason"] = "npx/npm is not available or the network install cannot start"
-            return 2, None
-        root = ROOT / "tmp" / "xintake-158"
-        root.mkdir(parents=True, exist_ok=True)
-        scratch = Path(tempfile.mkdtemp(prefix="skills-manager-", dir=root))
-        installed = _install(npm, node, scratch, version, install_timeout, rec)
-        if isinstance(installed, int):
-            return installed, scratch
-        binary = installed
-        path = ":".join([os.path.dirname(node), os.path.dirname(binary), "/usr/bin", "/bin"])
-    if scratch is None:
-        root = ROOT / "tmp" / "xintake-158"
-        root.mkdir(parents=True, exist_ok=True)
-        scratch = Path(tempfile.mkdtemp(prefix="skills-manager-", dir=root))
-    (scratch / "tmp").mkdir(exist_ok=True)
-    ran = _run_cli(binary, ["--version"], scratch, command_timeout, path)
-    if ran == "timeout":
-        rec["reason"] = timeout_reason("skills-manager --version", command_timeout)
-        return 2, scratch
-    if isinstance(ran, OSError):
-        rec["reason"] = f"skills-manager failed to start: {ran}"
-        return 2, scratch
-    if ran.returncode != 0 or version not in _text(ran):
-        rec["reason"] = f"version pin {version} not in skills-manager --version"
-        rec["output"] = _text(ran)[-400:]
-        return 2, scratch
-    help_proc = _run_cli(binary, ["--help"], scratch, command_timeout, path)
-    if help_proc == "timeout":
-        rec["reason"] = timeout_reason("skills-manager --help", command_timeout)
-        return 2, scratch
-    if isinstance(help_proc, OSError) or help_proc.returncode != 0 or "skills-manager" not in _text(help_proc).lower():
-        rec["reason"] = "skills-manager --help failed"
-        rec["failed"] = ["help"]
-        return 1, scratch
-    hub = scratch / "hub"
-    listed = _run_cli(binary, ["list", "--home", str(hub)], scratch, command_timeout, path)
-    if listed == "timeout":
-        rec["reason"] = timeout_reason("skills-manager list", command_timeout)
-        return 2, scratch
-    if isinstance(listed, OSError):
-        rec["reason"] = f"skills-manager list failed to start: {listed}"
-        return 2, scratch
-    listing = _text(listed)
-    rec["checks"]["list_exit"] = listed.returncode
-    refused = listed.returncode == 1 and "No skill home" in listing
-    if listed.returncode != 0 and not refused:
-        rec["reason"] = "skills-manager list failed: " + listing[-400:]
-        rec["failed"] = ["list"]
-        return 1, scratch
-    rec["checks"]["list"] = "no_skill_home" if refused else "listed"
-    return 0, scratch
+def _is_sha(value: str) -> bool:
+    return len(value) == 40 and all(ch in "0123456789abcdef" for ch in value)
 
 
 def main() -> int:
-    rec: dict = {"entry": "158-skills-manager", "failed": [], "checks": {}}
+    rec: dict = {"entry": "158-emdash", "failed": [], "checks": {}}
     before = _sig(Path.home())
-    scratch: Path | None = None
+    home = tempfile.mkdtemp(prefix="emdash-smoke-")
     code = 1
     try:
-        code, scratch = body(rec)
+        code = body(rec, home)
     except ValueError as exc:
         rec["reason"] = str(exc)
         code = 2
     finally:
+        shutil.rmtree(home, ignore_errors=True)
         if _sig(Path.home()) != before:
-            rec["reason"] = "real HOME skills-manager paths changed"
+            rec["reason"] = "real HOME emdash paths changed"
             rec["failed"] = ["real_home_unchanged"]
             code = 1
-        if scratch is not None:
-            shutil.rmtree(scratch, ignore_errors=True)
-    return write("skills-manager", rec, code)
+    return write("emdash", rec, code)
 
 
 if __name__ == "__main__":

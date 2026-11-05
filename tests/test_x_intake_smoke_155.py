@@ -1,8 +1,8 @@
-"""Entry 155 smoke (Kanzo): a missing binary, a version mismatch and a bad timeout exit 2; a failing init, a missing
-core MCP tool, a task the MCP server reports but never stores, a server that never replies (timeout, and it must not outlive the smoke), an export
-without the task, a write outside --home, or a write into the real HOME FAILs; a correct stub PASSes, including one
-that emits unrelated lines before its replies. The stub is a tiny Python `kanzo` (shebang = this interpreter) that
-keeps the board in a JSON file under --home; receipts go to a temp dir."""
+"""Entry 155 smoke (RoBrain VetoBench offline): a missing clone, wrong commit, unbuilt clone, old node and a bad
+timeout exit 2; recall under the upstream gate, recall that drifts from the pinned numbers, a missing scenario row, a
+non-zero bench exit, a missing offline marker, node:test failures, an archive written into results/, or a write into
+the real HOME FAILs; a correct stub PASSes. The stub is a tiny Python `node` (shebang = this interpreter) that prints
+VetoBench-shaped output; receipts go to a temp dir."""
 from __future__ import annotations
 
 import json
@@ -15,174 +15,136 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "examples/x-intake-local/smoke_155.py"
+PIN = "ac53011016e5f7dd42bae9c00c1a9b7d207a68b8"
 
-STUB = r'''
-import json, os, pathlib, sys, time
+NODE = r'''
+import pathlib, sys
 a = sys.argv[1:]
-if a[:1] in (["--version"], ["-V"]):
-    print("kanzo " + K.get("version", "0.2.1")); sys.exit(0)
-home = pathlib.Path(a[a.index("--home") + 1])
-db = home / "kanzo.db"
-if K.get("write_home"):
-    (pathlib.Path(os.environ["HOME"]) / "kanzo").mkdir(exist_ok=True)
+if a[:1] == ["--version"]:
+    print(K.get("node", "v24.22.1")); sys.exit(0)
 if K.get("touch_real"):
     try:
-        pathlib.Path(K["touch_real"], "kanzo").mkdir(exist_ok=True)
+        pathlib.Path(K["touch_real"], ".robrain").mkdir(exist_ok=True)
     except OSError:
         pass
-def load():
-    return json.loads(db.read_text())
-if a[0] == "init":
-    if K.get("init_exit"):
-        sys.exit(K["init_exit"])
-    home.mkdir(parents=True, exist_ok=True)
-    db.write_text(json.dumps({"projects": {}}))
-    print("Kanzo data folder ready at %s" % home); sys.exit(0)
-if a[0] == "export":
-    board = load()
-    if "-f" in a:
-        print(json.dumps({"projects": [{"slug": s, "tasks": t} for s, t in board["projects"].items()]}))
-    else:
-        print("# Kanzo board")
-        for s, ts in board["projects"].items():
-            for t in ts:
-                if not K.get("md_missing"):
-                    print("#### %s#%d %s" % (s, 1, t["title"]))
-    sys.exit(0)
-tools = ["add_comment", "create_project", "create_task", "delete_task", "get_task", "link_repo",
-         "list_projects", "list_tasks", "next_task", "update_task"]
-if K.get("missing_tool"):
-    tools.remove(K["missing_tool"])
-def reply(i, res):
-    if K.get("noise"):
-        print(json.dumps({"jsonrpc": "2.0", "method": "notifications/message", "params": {}}))
-        print("not json at all")
-    print(json.dumps({"jsonrpc": "2.0", "id": i, "result": res}), flush=True)
-def text(t):
-    return {"content": [{"type": "text", "text": t}], "isError": False}
-for line in sys.stdin:
-    m = json.loads(line)
-    if "id" not in m:
-        continue
-    if K.get("hang"):
-        time.sleep(60)
-    meth, p = m["method"], m.get("params", {})
-    if meth == "initialize":
-        reply(m["id"], {"serverInfo": {"name": "kanzo", "version": "0.2.1"}})
-    elif meth == "tools/list":
-        reply(m["id"], {"tools": [{"name": n} for n in tools]})
-    else:
-        board = load(); args = p["arguments"]
-        if p["name"] == "create_project":
-            board["projects"][args["slug"]] = []
-            reply(m["id"], text("Created project %s." % args["slug"]))
-        elif p["name"] == "create_task":
-            if not K.get("drop_task"):
-                board["projects"][args["project"]].append({"title": args["title"], "status": "todo"})
-            reply(m["id"], text("Created %s#1 in todo: %s" % (args["project"], args["title"])))
-        elif p["name"] == "list_tasks":
-            ts = board["projects"].get(args["project"], [])
-            reply(m["id"], text("\n".join("%s#1 [todo] %s" % (args["project"], t["title"]) for t in ts)))
-        db.write_text(json.dumps(board))
-sys.exit(0)
+if a[:1] == ["--test"]:
+    print("\u2139 tests %d\n\u2139 pass %d\n\u2139 fail %d" % (22, 22 - K.get("test_fail", 0), K.get("test_fail", 0)))
+    sys.exit(1 if K.get("test_fail") else 0)
+suite = "lifecycle" if "lifecycle" in a else "default"
+rows = {"default": 10, "lifecycle": 4}[suite] - K.get("drop_rows", 0)
+files, nofiles = K.get("recall", {}).get(suite, {"default": (1.0, 0.7), "lifecycle": (1.0, 1.0)}[suite])
+if K.get("write_results"):
+    pathlib.Path("results/new.json").write_text("{}")
+print("VetoBench\nscenario  veto   files known  no files")
+for i in range(rows):
+    print("s%02d       d1%02d           1 \u2713       2 \u2713" % (i + 1, i + 1))
+print("\nveto recall@5: %.2f with files known (gate: \u2265 0.80) \u00b7 %.2f without\n" % (files, nofiles))
+if not K.get("no_offline"):
+    print("(offline run \u2014 add --live with an LLM key for the behavioral layer)")
+print("\n\u2713 PASS" if files >= 0.8 else "\n\u2717 FAIL \u2014 veto retrieval below threshold")
+sys.exit(K.get("bench_exit", 0 if files >= 0.8 else 1))
 '''
 
 
-def survivors_of(path: str) -> list[int]:
-    """Live pids whose argv mentions the stub path; any found are killed so a failing test can't leak them."""
-    found = []
-    for d in Path("/proc").iterdir():
-        if not d.name.isdigit():
-            continue
-        try:
-            argv = (d / "cmdline").read_bytes().split(b"\0")
-        except OSError:
-            continue
-        if path.encode() in argv:
-            found.append(int(d.name))
-            try:
-                os.kill(int(d.name), 9)
-            except OSError:
-                pass
-    return found
-
-
 class Smoke155(unittest.TestCase):
-    def run_smoke(self, knobs=None, env=None):
+    def run_smoke(self, knobs=None, env=None, head=PIN, built=True, clone=True):
+        k = dict(knobs or {})
         with tempfile.TemporaryDirectory() as td:
             td = Path(td)
             real = td / "realhome"
             real.mkdir()
-            env2 = {"PATH": os.environ.get("PATH", ""), "HOME": str(real), "PFY_SMOKE_RECEIPT_DIR": str(td / "r")}
-            if knobs is not None:
-                k = dict(knobs)
-                if k.get("touch_real"):
-                    k["touch_real"] = str(real)
-                stub = td / "kanzo"
-                stub.write_text(f"#!{sys.executable}\nK = {k!r}\n" + STUB, encoding="utf-8")
-                stub.chmod(0o755)
-                env2["KANZO_BIN"] = str(stub)
-            else:
-                env2["KANZO_BIN"] = str(td / "missing")
+            if k.get("touch_real"):
+                k["touch_real"] = str(real)
+            repo = td / "robrain"
+            vb = repo / "packages/vetobench"
+            if clone:
+                (vb / "results").mkdir(parents=True)
+                (vb / "results/old.json").write_text("{}")
+                (vb / "package.json").write_text("{}\n")
+                (repo / ".git").mkdir()
+                (repo / ".git/HEAD").write_text("ref: refs/heads/main\n")
+                (repo / ".git/refs/heads").mkdir(parents=True)
+                (repo / ".git/refs/heads/main").write_text(head + "\n")
+                if built:
+                    (vb / "dist").mkdir()
+                    for f in ("run.js", "score.test.js", "adapters.test.js", "mem0-adapter.test.js"):
+                        (vb / "dist" / f).write_text("")
+                    (repo / "packages/shared/dist").mkdir(parents=True)
+                    (vb / "node_modules/@robrain/shared").mkdir(parents=True)
+            nodedir = td / "nodebin"
+            nodedir.mkdir()
+            node = nodedir / "node"
+            node.write_text(f"#!{sys.executable}\nK = {k!r}\n" + NODE, encoding="utf-8")
+            node.chmod(0o755)
+            env2 = {"PATH": os.environ.get("PATH", ""), "HOME": str(real), "ROBRAIN_DIR": str(repo),
+                    "NODE_BIN": str(node), "PFY_SMOKE_RECEIPT_DIR": str(td / "r")}
             env2.update(env or {})
             p = subprocess.run([sys.executable, str(SCRIPT)], env=env2, capture_output=True, text=True, timeout=120)
             rec = json.loads((td / "r" / "latest.json").read_text())
-            survivors = survivors_of(str(td / "kanzo"))
-            self.assertEqual(survivors, [], "stub kanzo outlived the smoke (orphan)")
             return p.returncode, rec
 
     def test_pass(self):
-        code, rec = self.run_smoke({})
+        code, rec = self.run_smoke()
         self.assertEqual(code, 0, rec)
+        self.assertEqual(rec["default_recall_files_known_nofiles"], [1.0, 0.7])
 
-    def test_noise_lines_before_replies_pass(self):
-        code, rec = self.run_smoke({"noise": True})
-        self.assertEqual(code, 0, rec)
+    def test_missing_clone_exit_2(self):
+        self.assertEqual(self.run_smoke(clone=False)[0], 2)
 
-    def test_missing_binary_exit_2(self):
-        self.assertEqual(self.run_smoke(None)[0], 2)
-
-    def test_version_pin_exit_2(self):
-        code, rec = self.run_smoke({"version": "0.2.10"})
+    def test_wrong_commit_exit_2(self):
+        code, rec = self.run_smoke(head="1" * 40)
         self.assertEqual(code, 2)
-        self.assertIn("version pin", rec["reason"])
+        self.assertIn("pinned commit", rec["reason"])
+
+    def test_unbuilt_exit_2(self):
+        code, rec = self.run_smoke(built=False)
+        self.assertEqual(code, 2)
+        self.assertIn("not built", rec["reason"])
+
+    def test_old_node_exit_2(self):
+        self.assertEqual(self.run_smoke({"node": "v18.19.0"})[0], 2)
 
     def test_bad_timeout_exit_2(self):
-        self.assertEqual(self.run_smoke({}, {"PFY_XINTAKE_TIMEOUT": "soon"})[0], 2)
+        self.assertEqual(self.run_smoke(env={"PFY_XINTAKE_TIMEOUT": "-1"})[0], 2)
 
-    def test_init_failure_fails(self):
-        code, rec = self.run_smoke({"init_exit": 1})
+    def test_recall_below_gate_fails(self):
+        code, rec = self.run_smoke({"recall": {"default": (0.6, 0.5)}})
         self.assertEqual(code, 1)
-        self.assertIn("init_ok", rec["failed"])
+        self.assertIn("default_recall_meets_gate", rec["failed"])
+        self.assertIn("default_exit_0", rec["failed"])
 
-    def test_missing_core_tool_fails(self):
-        code, rec = self.run_smoke({"missing_tool": "next_task"})
+    def test_recall_drift_fails(self):
+        # Still above the gate, but the deterministic bench no longer gives the pinned numbers.
+        code, rec = self.run_smoke({"recall": {"lifecycle": (1.0, 0.75)}})
         self.assertEqual(code, 1)
-        self.assertEqual(rec["failed"], ["mcp_core_tools"])
+        self.assertEqual(rec["failed"], ["lifecycle_recall_matches_pin"])
 
-    def test_task_not_stored_fails(self):
-        code, rec = self.run_smoke({"drop_task": True})
+    def test_missing_row_fails(self):
+        code, rec = self.run_smoke({"drop_rows": 1})
         self.assertEqual(code, 1)
-        for name in ("mcp_list_shows_task", "export_json_has_task", "export_md_has_task"):
-            self.assertIn(name, rec["failed"])
+        self.assertIn("default_rows_10", rec["failed"])
 
-    def test_markdown_export_without_task_fails(self):
-        code, rec = self.run_smoke({"md_missing": True})
+    def test_bench_exit_fails(self):
+        code, rec = self.run_smoke({"bench_exit": 3})
         self.assertEqual(code, 1)
-        self.assertEqual(rec["failed"], ["export_md_has_task"])
+        self.assertIn("default_exit_0", rec["failed"])
 
-    def test_server_hang_times_out_and_fails(self):
-        code, rec = self.run_smoke({"hang": True}, {"PFY_XINTAKE_TIMEOUT": "2"})
+    def test_not_offline_fails(self):
+        code, rec = self.run_smoke({"no_offline": True})
         self.assertEqual(code, 1)
-        self.assertTrue(any(f.startswith("mcp: no reply") for f in rec["failed"]), rec["failed"])
+        self.assertIn("default_offline", rec["failed"])
 
-    def test_write_outside_home_flag_fails(self):
-        code, rec = self.run_smoke({"write_home": True})
+    def test_node_test_failure_fails(self):
+        code, rec = self.run_smoke({"test_fail": 2})
         self.assertEqual(code, 1)
-        self.assertIn("data_only_under_home_flag", rec["failed"])
+        self.assertIn("node_test_no_failures", rec["failed"])
+
+    def test_results_write_fails(self):
+        code, rec = self.run_smoke({"write_results": True}, {"PATH": "/nonexistent"})
+        self.assertEqual(code, 1)
+        self.assertIn("results_dir_unchanged", rec["failed"])
 
     def test_real_home_write_fails(self):
-        # No bwrap on PATH, so the stub can reach the real HOME (bwrap's read-only bind would block it).
         code, rec = self.run_smoke({"touch_real": True}, {"PATH": "/nonexistent"})
         self.assertEqual(code, 1)
         self.assertIn("real_home_unchanged", rec["failed"])

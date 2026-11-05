@@ -1,58 +1,39 @@
 #!/usr/bin/env python3
-"""Operate-or-FAIL smoke for X intake Entry 157 (Emdash). Uses smoke.py helpers.
+"""Operate-or-FAIL smoke for X intake Entry 157 (SysKnife). Uses smoke.py helpers.
 
 Usage: python3 examples/x-intake-local/smoke_157.py
 
-Emdash is an Electron GUI. This smoke checks the pinned Linux release asset's
-name, size, and digest from the GitHub release JSON (or from $EMDASH_FETCH_BIN)
-and then exits 2. It does not download the AppImage and it does not launch the app.
+Exit 0 = --version, --help, and --dry-run of a typed plan all completed, and nothing ran.
+Exit 1 = the binary ran but a check failed (including a real-HOME write).
+Exit 2 = can't run here. No staged binary and no cargo, a bad timeout, no bubblewrap
+for the dry-run, the planner or daemon is unreachable, or the time box fired.
 
-Exit 1 = the metadata fetch ran and the asset does not match the pin.
-Exit 2 = metadata matches and the GUI was not launched, or the fetch cannot run here.
-
-Receipt: $PFY_SMOKE_RECEIPT_DIR/emdash/latest.json, else pipelines/smoke/emdash/latest.json.
+Receipt: $PFY_SMOKE_RECEIPT_DIR/sysknife/latest.json, else pipelines/smoke/sysknife/latest.json.
+Does not download a release binary, does not pass --yes or --dangerously-skip-approval,
+and does not use root. A build runs only when cargo and a pinned clone are already staged.
+That build keeps CARGO_HOME and the target directory under this worktree's tmp/.
 """
 from __future__ import annotations
 
-import json
 import math
 import os
 import shutil
 import subprocess
-import sys
 import tempfile
 from pathlib import Path
 
 from smoke import find_bin, pinned, run_isolated, timeout_reason, write
 
-PIN_TAG = "v1.2.10"
-PIN_ASSET = "emdash-x86_64.AppImage"
-PIN_SHA = "274586c70ba70466667fa811c5ead49610493859bed8c51e4f9abc0850c26d7d"
-PIN_SIZE = "233276140"
-PIN_COMMIT = "ab766e8fbb436584dcf0f299740e79d559b8ed31"
-FETCH = r"""
-import json, sys, urllib.request
-url, asset = sys.argv[1], sys.argv[2]
-req = urllib.request.Request(url, headers={"User-Agent": "pfy-xintake", "Accept": "application/vnd.github+json"})
-try:
-    with urllib.request.urlopen(req, timeout=float(sys.argv[3])) as resp:
-        data = json.load(resp)
-except Exception as exc:
-    print(json.dumps({"error": str(exc)}))
-    raise SystemExit(2)
-assets = []
-for item in data.get("assets") or []:
-    if item.get("name") == asset:
-        assets.append({"name": item.get("name"), "size": item.get("size"), "digest": item.get("digest")})
-print(json.dumps({"tag": data.get("tag_name"), "commit": data.get("target_commitish"), "assets": assets}))
-"""
-WATCHED = (".config/emdash", ".local/share/emdash", ".emdash")
+PIN_COMMIT = "1b3aab98b878128a267368cd47b51c921cd31219"
+PIN_VERSION = "0.30.0"
+WATCHED = (".sysknife", ".config/sysknife", ".local/share/sysknife", ".local/bin/sysknife")
+BANNED = ("--yes", "--dangerously-skip-approval")
 
 
-def _limit() -> float:
+def _limit(default: float) -> float:
     raw = os.environ.get("PFY_XINTAKE_TIMEOUT", "").strip()
     if not raw:
-        return 30.0
+        return default
     try:
         value = float(raw)
     except ValueError as exc:
@@ -62,103 +43,209 @@ def _limit() -> float:
     return value
 
 
+def _executable(path: str | None) -> bool:
+    return bool(path) and os.path.isfile(path) and os.access(path, os.X_OK)
+
+
+def _explicit(env_name: str, tmp_rel: str, name: str) -> tuple[str | None, str | None]:
+    """(path, error). A set env var that is not executable does not fall through to PATH."""
+    if env_name in os.environ:
+        path = os.environ[env_name]
+        if _executable(path):
+            return path, None
+        return None, f"{env_name} is not an executable file ({path})"
+    return find_bin(env_name, tmp_rel, name), None
+
+
 def _sig(home: Path) -> dict:
     out = {}
     for rel in WATCHED:
         path = home / rel
-        out[rel] = path.exists()
+        if path.is_symlink():
+            out[rel] = ("symlink", os.readlink(path))
+        elif path.is_dir():
+            files = sorted(
+                (str(item.relative_to(path)), item.stat().st_size)
+                for item in path.rglob("*")
+                if item.is_file() and not item.is_symlink()
+            )
+            out[rel] = ("dir", files)
+        elif path.exists():
+            out[rel] = ("file", path.stat().st_size)
+        else:
+            out[rel] = None
     return out
 
 
-def _fetch_cmd(tag: str, asset: str, timeout: float) -> list[str] | str:
-    override = os.environ.get("EMDASH_FETCH_BIN")
-    if override is not None:
-        if not (os.path.isfile(override) and os.access(override, os.X_OK)):
-            return f"emdash metadata fetcher is not executable ({override})"
-        return [override]
-    url = f"https://api.github.com/repos/generalaction/emdash/releases/tags/{tag}"
-    return [sys.executable, "-c", FETCH, url, asset, str(timeout)]
-
-
-def body(rec: dict, home: str) -> int:
-    tag = pinned(rec, "EMDASH_TAG", PIN_TAG)
-    asset = pinned(rec, "EMDASH_ASSET", PIN_ASSET)
-    sha = pinned(rec, "EMDASH_SHA256", PIN_SHA, lower=True)
-    size = pinned(rec, "EMDASH_SIZE", PIN_SIZE)
-    commit = pinned(rec, "EMDASH_COMMIT", PIN_COMMIT, lower=True)
-    timeout = _limit()
-    cmd = _fetch_cmd(tag, asset, timeout)
-    if isinstance(cmd, str):
-        rec["reason"] = cmd
-        return 2
-    # No local binary is required. Record one if a staged copy exists, and do not launch it.
-    rec["checks"]["local_bin"] = find_bin("EMDASH_BIN", "emdash/emdash", "emdash")
+def _call(cmd: list[str], home: str, timeout: float, scratch: str) -> subprocess.CompletedProcess | str | OSError:
     try:
-        proc = run_isolated(
-            cmd, home=home, timeout=timeout, bwrap_writable=None, kill_on_exit=True,
+        return run_isolated(
+            cmd, home=home, cwd=scratch, timeout=timeout, bwrap_writable=[scratch], kill_on_exit=True,
         )
     except subprocess.TimeoutExpired:
-        rec["reason"] = timeout_reason("emdash metadata", timeout)
+        return "timeout"
+    except OSError as exc:
+        return exc
+
+
+def _text(proc: subprocess.CompletedProcess) -> str:
+    return (proc.stdout or "") + "\n" + (proc.stderr or "")
+
+
+def _build(cargo: str, repo: Path, commit: str, scratch: Path, timeout: float, rec: dict) -> str | int:
+    if not (repo / "Cargo.toml").is_file() or not (repo / ".git").is_dir():
+        rec["reason"] = f"pinned sysknife clone is not staged at {repo}"
+        return 2
+    home = str(scratch / "home")
+    rev = _call(["git", "-C", str(repo), "rev-parse", "HEAD"], home, min(timeout, 30), str(scratch))
+    if rev == "timeout":
+        rec["reason"] = timeout_reason("sysknife rev-parse", min(timeout, 30))
+        return 2
+    if isinstance(rev, OSError):
+        rec["reason"] = f"git rev-parse failed: {rev}"
+        return 2
+    got = (rev.stdout or "").strip().lower()
+    if rev.returncode != 0 or got != commit:
+        rec["reason"] = f"sysknife clone is {got or 'unreadable'}, pin is {commit}"
+        return 2
+    target = scratch / "target"
+    cargo_home = scratch / "cargo-home"
+    cmd = [
+        cargo, "build", "-p", "sysknife-cli", "--bin", "sysknife", "--locked",
+        "--manifest-path", str(repo / "Cargo.toml"),
+    ]
+    try:
+        built = run_isolated(
+            cmd, home=home, cwd=str(scratch), timeout=timeout, kill_on_exit=True,
+            path=os.path.dirname(cargo) + ":/usr/bin:/bin",
+            extra={"CARGO_HOME": str(cargo_home), "CARGO_TARGET_DIR": str(target)},
+            bwrap_writable=None,
+        )
+    except subprocess.TimeoutExpired:
+        rec["reason"] = timeout_reason("sysknife cargo build", timeout)
         return 2
     except OSError as exc:
-        rec["reason"] = f"emdash metadata fetcher failed to start: {exc}"
+        rec["reason"] = f"cargo failed to start: {exc}"
         return 2
-    raw = (proc.stdout or "").strip()
-    if proc.returncode != 0 or not raw:
-        rec["reason"] = "emdash release metadata could not be read: " + ((proc.stderr or raw)[-300:])
+    binary = target / "debug" / "sysknife"
+    rec["checks"]["cargo_build"] = built.returncode
+    if built.returncode != 0 or not _executable(str(binary)):
+        rec["reason"] = "cargo build did not produce sysknife within the time box: " + _text(built)[-400:]
         return 2
-    try:
-        data = json.loads(raw.splitlines()[-1])
-    except json.JSONDecodeError:
-        rec["reason"] = "emdash metadata was not JSON"
-        return 2
-    if data.get("error"):
-        rec["reason"] = "emdash release metadata could not be read: " + str(data["error"])[:300]
-        return 2
-    got = (data.get("assets") or [None])[0] or {}
-    digest = str(got.get("digest") or "")
-    hexpart = digest.split(":", 1)[-1].lower()
-    got_commit = str(data.get("commit") or "").lower()
-    match = (
-        data.get("tag") == tag
-        and got.get("name") == asset
-        and str(got.get("size")) == str(size)
-        and hexpart == sha
-        and (not _is_sha(got_commit) or got_commit == commit)
-    )
-    rec["checks"]["asset"] = {"name": got.get("name"), "size": got.get("size"), "digest": digest, "commit": got_commit}
-    if not match:
-        rec["reason"] = f"emdash release asset does not match pin {tag} {asset} {sha} {size}"
-        rec["failed"] = ["asset_pin"]
-        return 1
-    rec["reason"] = (
-        f"Linux release asset {asset} matches pin {tag} (sha256 {sha}, {size} bytes) "
-        f"at commit {commit}; Emdash is an Electron GUI desktop app and was not launched"
-    )
-    return 2
+    return str(binary)
 
 
-def _is_sha(value: str) -> bool:
-    return len(value) == 40 and all(ch in "0123456789abcdef" for ch in value)
+def body(rec: dict, scratch: Path | None) -> tuple[int, Path | None]:
+    commit = pinned(rec, "SYSKNIFE_COMMIT", PIN_COMMIT, lower=True)
+    version = pinned(rec, "SYSKNIFE_VERSION", PIN_VERSION)
+    timeout = _limit(120)
+    binary, err = _explicit("SYSKNIFE_BIN", "sysknife/sysknife", "sysknife")
+    if err:
+        rec["reason"] = err
+        return 2, scratch
+    if binary is None:
+        cargo, cargo_err = _explicit("CARGO_BIN", "cargo/bin/cargo", "cargo")
+        if cargo_err:
+            rec["reason"] = cargo_err
+            return 2, scratch
+        if not cargo:
+            rec["reason"] = (
+                "sysknife is not staged and cargo is not available; "
+                "not downloading a release binary and not building"
+            )
+            return 2, scratch
+        scratch = Path(tempfile.mkdtemp(prefix="sysknife-", dir=_scratch_root()))
+        repo = Path(os.environ["SYSKNIFE_DIR"]) if os.environ.get("SYSKNIFE_DIR") else (
+            Path.home() / "DEVELOP/pfy-mentat/tmp/sysknife"
+        )
+        built = _build(cargo, repo, commit, scratch, timeout, rec)
+        if isinstance(built, int):
+            return built, scratch
+        binary = built
+    if scratch is None:
+        scratch = Path(tempfile.mkdtemp(prefix="sysknife-", dir=_scratch_root()))
+    home = scratch / "home"
+    home.mkdir(parents=True, exist_ok=True)
+    home_s = str(home)
+    scratch_s = str(scratch)
+    version_proc = _call([binary, "--version"], home_s, timeout, scratch_s)
+    if version_proc == "timeout":
+        rec["reason"] = timeout_reason("sysknife --version", timeout)
+        return 2, scratch
+    if isinstance(version_proc, OSError):
+        rec["reason"] = f"sysknife failed to start: {version_proc}"
+        return 2, scratch
+    if version_proc.returncode != 0 or version not in _text(version_proc):
+        rec["reason"] = f"version pin {version} not in sysknife --version output"
+        rec["output"] = _text(version_proc)[-400:]
+        return 2, scratch
+    help_proc = _call([binary, "--help"], home_s, timeout, scratch_s)
+    if help_proc == "timeout":
+        rec["reason"] = timeout_reason("sysknife --help", timeout)
+        return 2, scratch
+    if isinstance(help_proc, OSError) or help_proc.returncode != 0 or "--dry-run" not in _text(help_proc):
+        rec["reason"] = "sysknife --help did not show --dry-run"
+        rec["failed"] = ["help"]
+        return 1, scratch
+    if shutil.which("bwrap") is None:
+        rec["reason"] = (
+            "sysknife --help ok; --dry-run skipped because bubblewrap is unavailable, "
+            "so the planner would not be network-isolated. No system change."
+        )
+        return 2, scratch
+    secs = str(int(max(1, min(timeout, 20))))
+    args = ["--dry-run", "--non-interactive", "--json", "--timeout", secs, "check", "disk", "usage"]
+    if any(flag in args for flag in BANNED):
+        rec["reason"] = "smoke refused to arm execution flags"
+        return 1, scratch
+    rec["dry_run_argv"] = args
+    dry = _call([binary, *args], home_s, timeout, scratch_s)
+    if dry == "timeout":
+        rec["reason"] = timeout_reason("sysknife --dry-run", timeout)
+        return 2, scratch
+    if isinstance(dry, OSError):
+        rec["reason"] = f"sysknife --dry-run failed to start: {dry}"
+        return 2, scratch
+    out = _text(dry)
+    rec["checks"]["dry_run_exit"] = dry.returncode
+    if dry.returncode != 0:
+        rec["reason"] = (
+            "sysknife --help ok; --dry-run did not return a plan "
+            "(planner, daemon, or usage). No --yes and no system change. " + out[-400:]
+        )
+        return 2, scratch
+    if "action" not in out and "dry_run" not in out and "dry-run" not in out.lower():
+        rec["reason"] = "sysknife --dry-run exited 0 without a typed plan"
+        rec["failed"] = ["dry_run_plan"]
+        return 1, scratch
+    rec["checks"]["dry_run"] = "plan"
+    return 0, scratch
+
+
+def _scratch_root() -> str:
+    root = Path(__file__).resolve().parents[2] / "tmp" / "xintake-157"
+    root.mkdir(parents=True, exist_ok=True)
+    return str(root)
 
 
 def main() -> int:
-    rec: dict = {"entry": "157-emdash", "failed": [], "checks": {}}
+    rec: dict = {"entry": "157-sysknife", "failed": [], "checks": {}}
     before = _sig(Path.home())
-    home = tempfile.mkdtemp(prefix="emdash-smoke-")
+    scratch: Path | None = None
     code = 1
     try:
-        code = body(rec, home)
+        code, scratch = body(rec, scratch)
     except ValueError as exc:
         rec["reason"] = str(exc)
         code = 2
     finally:
-        shutil.rmtree(home, ignore_errors=True)
         if _sig(Path.home()) != before:
-            rec["reason"] = "real HOME emdash paths changed"
+            rec["reason"] = "real HOME sysknife paths changed"
             rec["failed"] = ["real_home_unchanged"]
             code = 1
-    return write("emdash", rec, code)
+        if scratch is not None:
+            shutil.rmtree(scratch, ignore_errors=True)
+    return write("sysknife", rec, code)
 
 
 if __name__ == "__main__":

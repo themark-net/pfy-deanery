@@ -127,7 +127,7 @@ def _spawn(
 ) -> subprocess.CompletedProcess:
     """New session. On timeout SIGKILL the process group so a forked grandchild dies too.
 
-    kill_on_exit does that same SIGKILL after a normal return as well. Entries 156-158
+    kill_on_exit does that same SIGKILL after a normal return as well. Entries 157-161
     set it so a bwrap child that exits and leaves a grandchild cannot outlive the smoke.
     """
     proc = subprocess.Popen(
@@ -199,7 +199,7 @@ def run_isolated(
     included. When `bwrap_writable` is a list and bubblewrap can run, the command is prefixed with a
     read-only root and no network, plus --unshare-pid when that flag works. None skips bubblewrap.
     `kill_on_exit` SIGKILLs that process group after the child returns too, so a grandchild that
-    outlives its parent dies before this function returns. Entries 156-158 pass True.
+    outlives its parent dies before this function returns. Entries 157-161 pass True.
     """
     argv = list(cmd)
     if bwrap_writable is not None:
