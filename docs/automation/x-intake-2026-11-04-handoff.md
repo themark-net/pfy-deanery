@@ -53,7 +53,8 @@ Real-HOME one-level names each smoke watches were unchanged on the passing runs.
 - Full unittest discover inside the dirty-tree pregate (`ubuntu-parity`), before this file existed: 1525 tests in 925.450s, FAILED (failures=1, skipped=107). The only failure was `tests.test_docs_hygiene.DocsHygieneTests.test_docs_relative_links_resolve`, because the 2026-10-31 and 2026-11-02 handoffs already linked this file.
 - The same pregate's `eval-structural` discover reported 1525 tests, failures=1, skipped=18. Its summary does not name the test. That discover started before this file existed. After this file existed, `python3 -m unittest tests.test_docs_hygiene` passed (2 tests, OK).
 - `python3 scripts/catalog_check.py`: PASS (`catalog-check slim-subset ok`, n_json=8, toolsets=8, linked=2, catalog_tool=null:6, tools_md=53, stage_cards=53, i1_cards_open=0, stage_only=4).
-- Dirty-tree `scripts/pregate.sh --in-place --allow-dirty` before the commit: lint PASS, ci-parity PASS, gate-hash FAIL because the renumber and the new tests were not committed yet. That failure is the dirty tree, not a bad gate file. The clean pregate is on the commit that contains this file.
+- Dirty-tree `scripts/pregate.sh --in-place --allow-dirty` before the commit: lint PASS, ci-parity PASS, gate-hash FAIL because the renumber and the new tests were not committed yet. That failure is the dirty tree, not a bad gate file.
+- Clean `scripts/pregate.sh --in-place` on `2bb3d97`: OVERALL PASS (wall 2028s, pass=6, fail=0, suite skipped because the two discovers already ran). `ubuntu-parity`: 1525 tests in 927.602s, OK (skipped=107). `eval-structural`: 1525 tests in 1085.955s, OK (skipped=18). gate-hash PASS.
 
 ## Left open
 
