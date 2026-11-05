@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/timeouts-in-examples-x-intake-local-smok-20261031T223104595785Z",
+  "commit": "b35ddd53025edc0b594ef776f1729c99ecb19cdb",
+  "base": "HEAD",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "The overtime and festival smokes label the entry name on timeout. I'll read the smoke script and the two assertions so the reason names the command that actually timed out.The gate names the sub-step, and the smoke still records the entry name. I'll read how overtime and festival catch timeouts so the reason matches the command.The `new` and `fest --version` timeouts are caught at the entry level, so the receipt names overtime or festival. I'll catch each command and keep the shared `timeout_reason` text.Timeouts in the 112–114 smoke now name the command that stopped, using the shared `timeout_reason` text.\n\n- Overtime `new` records `new timeout after 0.4s` and still exits 1. A later overtime command that times out still uses `overtime`, and a dirty real `~/overtime` still wins over the timeout reason.\n- Festival `fest --version` records `version timeout after 0.4s` and exits 1. `main` still labels any other timeout with the entry name.\n- The overtime daemon-stop step is unchanged: `overtime daemon stop timeout after 0.4s`.\n\nThe two allowed assertions now expect `new timeout after 0.4s` and `version timeout after 0.4s`. The gate passed: 5 tests in 6.630s. The real-home grandchild check also passed.\n\nI'll check the diff against the required timeout labels and the two allowed test edits.verdict: accept\n\nThe diff names the sub-step that timed out (`new`, `version`) through `timeout_reason` at those commands, leaves every other timeout path and `main` unchanged, and edits only the two allowed assertion strings. No tests were deleted, and nothing targets a recursive delete or the filesystem root.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "python3 -m unittest tests.test_mvp2_t4_timeout_step tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_overtime_timeout_reason_is_shared_text tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_festival_timeout_reason_is_shared_text tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_overtime_daemon_stop_timeout_uses_shared_text",
+    "before": {
+      "cmd": "python3 -m unittest tests.test_mvp2_t4_timeout_step tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_overtime_timeout_reason_is_shared_text tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_festival_timeout_reason_is_shared_text tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_overtime_daemon_stop_timeout_uses_shared_text",
+      "exit": 1,
+      "tail": "\nFF...\n======================================================================\nFAIL: test_festival_version_timeout_names_version (tests.test_mvp2_t4_timeout_step.TimeoutSubstepTests.test_festival_version_timeout_names_version)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood2-1031/tmp/target-05/tmp/cloud-build/20261031T223104595785Z/tests/test_mvp2_t4_timeout_step.py\", line 91, in test_festival_version_timeout_names_version\n    self.assertEqual(reason, \"version timeout after 0.4s\", blob)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'festival timeout after 0.4s' != 'version timeout after 0.4s'\n- festival timeout after 0.4s\n? ^  - ^^^\n+ version timeout after 0.4s\n? ^ +  ^^\n : {\"verdict\": \"FAIL\", \"reason\": \"festival timeout after 0.4s\"}\nreceipt: /home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood2-1031/tmp/target-05/tmp/cloud-build/20261031T223104595785Z/tmp/mvp2-t4-fest-npfm0rst/receipts/festival/latest.json\n\n\n======================================================================\nFAIL: test_overtime_new_timeout_names_new (tests.test_mvp2_t4_timeout_step.TimeoutSubstepTests.test_overtime_new_timeout_names_new)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood2-1031/tmp/target-05/tmp/cloud-build/20261031T223104595785Z/tests/test_mvp2_t4_timeout_step.py\", line 60, in test_overtime_new_timeout_names_new\n    self.assertEqual(reason, \"new timeout after 0.4s\", blob)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'overtime timeout after 0.4s' != 'new timeout after 0.4s'\n- overtime timeout after 0.4s\n? ^^ ^^^^^\n+ new timeout after 0.4s\n? ^ ^\n : {\"verdict\": \"FAIL\", \"reason\": \"overtime timeout after 0.4s\"}\nreceipt: /home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood2-1031/tmp/target-05/tmp/cloud-build/20261031T223104595785Z/tmp/mvp2-t4-ot-6h5k3glt/receipts/overtime/latest.json\n\n\n----------------------------------------------------------------------\nRan 5 tests in 6.643s\n\nFAILED (failures=2)\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "python3 -m unittest tests.test_mvp2_t4_timeout_step tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_overtime_timeout_reason_is_shared_text tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_festival_timeout_reason_is_shared_text tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_overtime_daemon_stop_timeout_uses_shared_text",
+      "exit": 0,
+      "tail": "\n.....\n----------------------------------------------------------------------\nRan 5 tests in 6.636s\n\nOK\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": true,
+  "task": "Timeouts in examples/x-intake-local/smoke_112_114.py name the entry (overtime, festival) instead of the sub-step that actually timed out.\n\nRequired behavior, with PFY_XINTAKE_TIMEOUT=0.4:\n\n- The overtime smoke's new command times out: exit 1, receipt reason exactly `new timeout after 0.4s`.\n- Festival's fest --version times out: exit 1, receipt reason exactly `version timeout after 0.4s`.\n\nUse timeout_reason so the text stays the shared form. Catch the timeout at that command. Do not relabel every timeout in main with one fixed word.\n\nYou may edit only these two assertions in tests/test_x_intake_smoke_112_114.py, and no other line in that file:\n\n- test_overtime_timeout_reason_is_shared_text expects `overtime timeout after 0.4s`. Change that expected string to `new timeout after 0.4s`.\n- test_festival_timeout_reason_is_shared_text expects `festival timeout after 0.4s`. Change that expected string to `version timeout after 0.4s`.\n\nLeave test_overtime_daemon_stop_timeout_uses_shared_text and every other test unchanged.\n\nDo not edit tests/test_mvp2_t4_timeout_step.py. Do not edit any other file. Stay at or under 250 changed lines.\n\nThe gate is python3 -m unittest tests.test_mvp2_t4_timeout_step tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_overtime_timeout_reason_is_shared_text tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_festival_timeout_reason_is_shared_text tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_overtime_daemon_stop_timeout_uses_shared_text. It is red before your edit. Do not weaken it.",
+  "finished_at": "2026-10-31T22:36:10Z"
+}

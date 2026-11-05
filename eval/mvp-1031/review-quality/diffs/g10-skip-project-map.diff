@@ -1,0 +1,13 @@
+diff --git a/scripts/pfy_build_cloud.py b/scripts/pfy_build_cloud.py
+index 665737d..68e46b4 100644
+--- a/scripts/pfy_build_cloud.py
++++ b/scripts/pfy_build_cloud.py
+@@ -759,6 +759,8 @@ def files_changed(worktree: Path) -> list[str]:
+         rel = _norm_rel(path)
+         if not rel or rel == "tmp" or rel.startswith("tmp/"):
+             continue
++        if rel == ".project-map" or rel.startswith(".project-map/"):
++            continue
+         if rel.startswith("__pycache__/") or rel.endswith(".pyc") or "/__pycache__/" in rel:
+             continue
+         if rel.startswith(".pytest_cache/") or "/.pytest_cache/" in rel:

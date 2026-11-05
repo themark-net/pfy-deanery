@@ -253,8 +253,8 @@ class XIntakeSmoke112114Tests(unittest.TestCase):
             self.assertEqual(left, [], "a forked tool grandchild outlived the smoke timeout")
 
     def test_bwrap_probe_drops_paid_keys_and_uses_temp_home(self) -> None:
-        # Fail: bwrap_prefix's `bwrap ... true` inherits the parent env, so a planted paid key
-        # is visible or HOME is still the operator HOME.
+        # Fail: containment's run_isolated(/bin/true) probe inherits the parent env, so a planted
+        # paid key is visible or HOME is still the operator HOME.
         # Recover: the probe child has none of PAID_KEYS and HOME is a different temp dir.
         loc = str(ROOT / "examples" / "x-intake-local")
         if loc not in sys.path:
@@ -294,7 +294,8 @@ class XIntakeSmoke112114Tests(unittest.TestCase):
             self.assertTrue(str(child_home).startswith(tempfile.gettempdir()))
 
     def test_node_ok_hanging_stub_on_path_reaps_grandchild(self) -> None:
-        # Fail: node_ok's `node --version` uses subprocess.run, so a forked sleeper outlives the timeout.
+        # Fail: node_ok's run_isolated(`node --version`) does not kill the process group, so a
+        # forked sleeper outlives the timeout.
         # Recover: node_ok returns false and that grandchild is dead.
         loc = str(ROOT / "examples" / "x-intake-local")
         if loc not in sys.path:
@@ -332,8 +333,8 @@ class XIntakeSmoke112114Tests(unittest.TestCase):
             self.assertFalse(alive, "a node --version grandchild outlived node_ok")
 
     def test_overtime_timeout_reason_is_shared_text(self) -> None:
-        # Fail: a timed-out `new` records "timeout after <s>s: <cmd>".
-        # Recover: exit 1 and the receipt reason names the overtime step and 0.4s.
+        # Fail: a timed-out `new` records "overtime timeout after 0.4s" or "timeout after <s>s: <cmd>".
+        # Recover: exit 1 and the receipt reason is "new timeout after 0.4s".
         with tempfile.TemporaryDirectory(prefix="pfy-xintake-112-to-") as td:
             root = Path(td)
             home = root / "home"
@@ -350,11 +351,12 @@ class XIntakeSmoke112114Tests(unittest.TestCase):
             self.assertNotIn("Traceback", proc.stderr, blob)
             self.assertEqual(proc.returncode, 1, blob)
             self.assertFalse((home / "overtime").exists(), blob)
-            self.assertEqual(_receipt("overtime").get("reason"), "overtime timeout after 0.4s", blob)
+            self.assertEqual(_receipt("overtime").get("reason"), "new timeout after 0.4s", blob)
 
     def test_festival_timeout_reason_is_shared_text(self) -> None:
-        # Fail: a timed-out fest --version records "timeout after <s>s: <cmd>" from main().
-        # Recover: exit 1 and the receipt reason names the festival step and 0.4s.
+        # Fail: a timed-out fest --version falls through to main() as "festival timeout after 0.4s",
+        # or records the old "timeout after <s>s: <cmd>" sentence.
+        # Recover: smoke_festival returns 1 and the reason is "version timeout after 0.4s".
         with tempfile.TemporaryDirectory(prefix="pfy-xintake-112-fest-") as td:
             root = Path(td)
             home = root / "home"
@@ -376,7 +378,7 @@ class XIntakeSmoke112114Tests(unittest.TestCase):
             blob = proc.stdout + proc.stderr
             self.assertNotIn("Traceback", proc.stderr, blob)
             self.assertEqual(proc.returncode, 1, blob)
-            self.assertEqual(_receipt("festival").get("reason"), "festival timeout after 0.4s", blob)
+            self.assertEqual(_receipt("festival").get("reason"), "version timeout after 0.4s", blob)
 
     def test_overtime_daemon_stop_timeout_uses_shared_text(self) -> None:
         # Fail: a daemon-stop timeout is recorded as the bare word "timeout".

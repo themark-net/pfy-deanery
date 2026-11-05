@@ -1,0 +1,14 @@
+Started 2026-10-31T21:13:32Z. Finished 2026-10-31T21:16:18Z. Wall 166 seconds.
+
+./pfy build <task> \
+  --repo /home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood-1031/tmp/target-10 \
+  --base demo-base \
+  --test-cmd "python3 dogfood_gate.py" \
+  --receipt-dir /home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood-1031/eval/mvp-1031/dogfood/10-board-loaders-rest
+
+Task: in scripts/pfy-board.py only, add _load_script and make _load_recommend_207, _load_launch_225, and _load_catalog_209 return it. Leave _load_live_org_214 and _load_enterable_162 inline. Diff at or under 50 lines.
+
+Target: fresh clone, demo-base plus a local dogfood_gate.py commit (5a1f492), not pushed.
+No --local. Default retries and timeout. Review on.
+Exit 0. Cloud commit fe9ccc5c82e458b58d856bbdeb056d880e4b36c4 matches git rev-parse of the cloud branch.
+Caller branch unchanged. Nothing pushed from the target.

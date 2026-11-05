@@ -1,0 +1,108 @@
+# Run log mvp-selfhost-1031
+
+Lane: daily-use proof of `./pfy build`. Branch `bot/mvp-selfhost-1031`. Worktree `~/DEVELOP/pfy-mentat/tmp/mvp-selfhost-1031`. Base `origin/bot/mvp-cloud-1031`. No local model. No `--local`.
+
+Launch: 2026-10-31T20:30:12Z (local 13:30 PDT).
+Wall cap: 8 hours from launch, so 2026-11-01T04:30:12Z, or Sunday 2026-11-01 18:00 PT (2026-11-02T02:00Z), whichever comes first. Leave 20 minutes to write the handoff. No new item after 2026-11-01T04:10:12Z.
+Clock check before every item. Host at launch: MemAvailable about 64 GiB, 32 cores, load 3.46 (threshold 64).
+
+## LOOP EXIT CARD
+
+```text
+LOOP EXIT CARD
+Goal (success criteria): at least 8 real small backlog items driven through ./pfy build; keep only PASS plus human-accept commits; eval/selfhost-1031/REPORT.md and tests/test_selfhost_1031_log.py green
+1 Goal met:             human accept plus the receipt checker (status PASS, subject matches) and the targeted test for that item
+2 Turn cap:             one ./pfy build per item, runner retries default 2 (3 attempts); do not start a 9th item after 8 accepts unless the clock still has room and a real item remains
+3 Budget cap:           cloud Grok only; a rate-limit receipt (exit 4) is BLOCKED and does not start --local
+4 Wall clock:           2026-11-01T04:10:12Z for new items; handoff by 2026-11-01T04:30:12Z
+5 No-progress:          the same failure twice with no new information, or 3 items in a row skipped
+6 Human interrupt:      user stop. No question stops the loop
+7 Error threshold:      3 consecutive build failures that are not a recorded skip, then stop
+8 External event:       item already on origin/main or on this branch before the build
+Loop type:              goal
+Human gate:             this lane's human verdict before cherry-pick. No merge, no PR
+```
+
+Drop-in exits, same clock:
+
+1. Wall cap: the clock above. On this exit, write the handoff and stop.
+2. Lane empty: no item left that fits this lane and the drop-in rules.
+3. No progress: the same failure twice with no new information, or 3 items in a row skipped. Record and stop.
+4. Host pressure: MemAvailable under 16 GiB, or load over 2x cores (64) for 5 minutes. Pause 10 minutes, then stop if it persists.
+5. Red base: tests that fail on the base before this lane's change. Record them and skip that area. Do not stop the lane.
+
+Skip items that need special hardware, a human decision (an open OQ), a secret, or Mark's hands. Log each skip with a reason. An item that needs an ADR is an OQ draft in the handoff, then a skip. Do not invent architecture.
+
+Orchestrator clock of about 6 hours does not apply. This drop-in sets the 8 hour cap.
+
+## Plan
+
+Overview: Pick real small backlog items that are code, tests, or docs, and that no other MVP lane owns. For each one, clone this worktree under `tmp/`, run `./pfy build` with `--repo`, and cherry-pick only a commit that passed the runner review and a careful human read. Record every run under `eval/selfhost-1031/`. The runner treats any edit under `tests/` as tampering, so the behavior test is planted on this branch before the build and the build may change only non-test files.
+
+Phases:
+
+- loop-card | `docs/ops/RUN-LOG-mvp-selfhost-1031.md`, `docs/ops/AUTONOMOUS-DECISIONS-mvp-selfhost-1031.md`, `tests/test_selfhost_1031_log.py`, `eval/selfhost-1031/LOG.md` | exits are in this file before the first `./pfy build`; the checker fails a planted bad trailer in a temp repo | depends on nothing | general
+- item-loop | product files the task names, `eval/selfhost-1031/<n>-<slug>/` | each item has a log row; PASS plus human-accept is cherry-picked, tested, and pushed | loop-card | general
+- report | `eval/selfhost-1031/REPORT.md` | tried, PASS, human accept, SHAs, median wall, runner findings | item-loop | general
+- handoff | `docs/ops/HANDOFF-mvp-selfhost-1031.md`, final `state:` line in this log | committed and pushed, no merge | report | general
+
+Risks:
+
+- The runner rejects new or edited test files (`tests-tampered`). Mitigation: plant the behavior test in a commit before the clone. If the build edits a test, do not cherry-pick and do not hand-fix.
+- mvp-sixtask-1031 is already spending Grok on MVP-2 tasks t1 through t6 and does not merge those product diffs. Mitigation: do not start those six while that lane is still writing their receipts. Land other gaps first.
+- A clone that shares Mark's git dir would touch his checkout. Mitigation: `git clone --no-hardlinks` into this worktree's `tmp/`. The runner adds its worktree inside that clone.
+- Full `unittest discover` is a heavy job and can be red for unrelated reasons. Mitigation: pass a targeted `--test-cmd`. Run that same command niced after a cherry-pick.
+- Default `--base` is `origin/main`, which is behind this branch. Mitigation: `--base HEAD` on the clone so the cherry-pick applies onto this branch.
+- Receipts can contain tokens. Mitigation: runner redact plus a scan before every commit. Raw values are not printed.
+- Grok rate limit (exit 4) stops the item. Mitigation: one build at a time. Record BLOCKED. Do not start `--local`.
+
+## Item log
+
+Format: `item | commit | tests | result`
+
+- loop-card | 5d0575b | nice python3 -m unittest tests.test_selfhost_1031_log (2 OK) | PASS
+- relative receipt dir | 00dbdd9 | nice python3 -m unittest tests.test_smoke_receipt_absolute (1 OK, was red before the fix) | PASS human-accept
+- tree sig mode | 89d34af | nice python3 -m unittest tests.test_tree_sig_mode tests.test_x_intake_smoke_122_124.XIntakeSmoke122124Tests.test_tree_sig_streams_file_contents tests.test_selfhost_1031_log (4 OK) | PASS human-accept
+- tree sig symlink | none | runner gate green (before 1, after 0), human reject | REJECT not cherry-picked. Content hash skipped for symlink targets.
+- tree sig link retry | ff86c4d | nice python3 -m unittest tests.test_tree_sig_symlink tests.test_tree_sig_mode tests.test_x_intake_smoke_122_124.XIntakeSmoke122124Tests.test_tree_sig_streams_file_contents tests.test_selfhost_1031_log (5 OK) | PASS human-accept
+- tree sig root link | f8fcac9 | nice python3 -m unittest tests.test_tree_sig_root_link tests.test_tree_sig_symlink tests.test_tree_sig_mode tests.test_x_intake_smoke_122_124.XIntakeSmoke122124Tests.test_tree_sig_streams_file_contents tests.test_selfhost_1031_log (6 OK) | PASS human-accept
+- home sig docstring | 4b01771 | nice python3 -m unittest tests.test_home_sig_doc tests.test_selfhost_1031_log (3 OK) | PASS human-accept
+- tree sig 119 | c6f0cbd | nice python3 -m unittest tests.test_tree_sig_119 tests.test_selfhost_1031_log tests.test_x_intake_smoke_119_121 (real-home write and clean, 7 OK) | PASS human-accept
+- smolvm stderr pull | none | runner exit 1 review-rejected after 3 attempts | REJECT not cherry-picked. test_h expects the cache line when stderr also has pull progress.
+- tree sig 115 | 90c9037 | nice python3 -m unittest tests.test_tree_sig_115 tests.test_selfhost_1031_log tests.test_x_intake_smoke_115_116 (7 OK) | PASS human-accept
+- tree sig 117 | b9b8898 | nice python3 -m unittest tests.test_tree_sig_117 tests.test_selfhost_1031_log tests.test_x_intake_smoke_117_118 (10 OK) | PASS human-accept
+- tree sig 112 | 828063b | nice python3 -m unittest tests.test_tree_sig_112 tests.test_selfhost_1031_log tests.test_x_intake_smoke_112_114 (11 OK) | PASS human-accept
+- daemon stop timeout | 15fbf71 | nice python3 -m unittest tests.test_mvp2_t3_daemon_stop tests.test_tree_sig_112 tests.test_selfhost_1031_log tests.test_x_intake_smoke_112_114 (12 OK) | PASS human-accept
+- skillspector receipt dir | a663854 | nice python3 -m unittest tests.test_smoke_148_receipt_absolute tests.test_x_intake_smoke_148.Smoke148.test_missing_binary_exit_2 tests.test_selfhost_1031_log (4 OK) | PASS human-accept
+- mempalace receipt dir | b06e41a | nice python3 -m unittest tests.test_smoke_149_receipt_absolute tests.test_x_intake_smoke_149.Smoke149.test_missing_binary_exit_2 tests.test_selfhost_1031_log (4 OK) | PASS human-accept
+- home sig 148 | f2f43f9 | nice python3 -m unittest tests.test_home_sig_148 tests.test_x_intake_smoke_148.Smoke148.test_missing_binary_exit_2 tests.test_x_intake_smoke_148.Smoke148.test_real_home_write_fails tests.test_selfhost_1031_log (5 OK) | PASS human-accept
+
+Skips after the builds (lane empty; these do not fit):
+
+- MVP-2 t1 retry: item 08 already showed test_h and the pull-wins rule disagree
+- MVP-2 t4 timeout labels: dogfood2 was driving that cloud build on smoke_112_114.py
+- MVP-2 t5 repo receipts: the 117 and 119 tests read pipelines/smoke, so the fix edits tests, which the runner rejects
+- smoke_149.home_sig content hash: watched paths include .cache/chroma
+- smoke_109 state_snapshot content hash: watched paths include smolvm and runx caches
+- harness2 large-tree fingerprint: decision D1 already skips file bodies over 32 MiB
+
+state: LANE EMPTY | tried 15, runner PASS 14, human accept 13, median wall 119s | commits 00dbdd9 89d34af ff86c4d f8fcac9 4b01771 c6f0cbd 90c9037 b9b8898 828063b 15fbf71 a663854 b06e41a f2f43f9 | err: none | pregate not run: host busy
+
+Skips logged before the first build (not three in a row of attempted items; these are out of scope up front):
+
+- T-0091 voice: shelved, needs Mark
+- T-0094 local TTS: local model and shelved voice
+- T-0095 Pipecat catalog row: catalog work
+- T-0070 new scorer: plan D10 excludes a new scorer tonight
+- T-0074 eval-auto: needs a local model
+- T-0081 OpenCode-in-cage: docker cage, not a small daily edit
+- T-0064 EBUSY: ops doc says no code change; copy-import is the mitigation
+- T-0043 write-guard mcp-host: parked
+- T-0062 Laguna: hardware
+- T-0046 re-evaluate AgenC: ADR-0010 already rejects it; human decision
+- T-0002 aggregate synthesis: catalog-scale, not a small edit
+- T-0016 colibri lab: OQ-0008 and hardware
+- T-0005 integration stages: OQ-0003, human, catalog
+- T-0124 OpenCode attach fold: not small, and dogfood lane is in enterable code
+- G8 pfy-build operator card: mvp-surface-1031 owns that card
+- MVP-2 t1-t6 right now: mvp-sixtask-1031 is running those Grok calls; do not double-spend until that lane's receipt for the task exists and this queue still needs items

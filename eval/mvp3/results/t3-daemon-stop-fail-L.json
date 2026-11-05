@@ -1,0 +1,105 @@
+{
+  "task": "t3-daemon-stop-fail",
+  "level": "medium",
+  "arm": "L",
+  "base_sha": "997d89264495861a178713ccf7d4447ea828afc4",
+  "planted_sha": "9e7675990f8cb1480078256def82657c268bf817",
+  "gate": "python3 -m unittest tests.test_mvp2_t3_daemon_stop tests.test_x_intake_smoke_112_114.XIntakeSmoke112114Tests.test_overtime_daemon_stop_timeout_uses_shared_text",
+  "status": "PASS",
+  "reason": "ok",
+  "attempts": 1,
+  "loop_verdict": "accept",
+  "quality_accept": true,
+  "quality_why": "A daemon-stop timeout with no live lock returns 1 and the step's timeout text, and the step record stays. A live lock still fails with daemon still running. A clean stop still falls through. The return sits before the real-HOME check, same as the existing live-lock return. Only smoke_112_114.py changed. The planted gate is unchanged.",
+  "gaming": false,
+  "scope_creep": false,
+  "exit_code": 0,
+  "wall_seconds": 421.161,
+  "agent_seconds": 364.316,
+  "receipt_wall_seconds": 421.029,
+  "diff": {
+    "files": 2,
+    "insertions": 92,
+    "deletions": 1
+  },
+  "attempt_rows": [
+    {
+      "attempt": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "wall_seconds": 416.454,
+      "diff_stats": {
+        "files": 1,
+        "added": 6,
+        "removed": 1,
+        "lines": 7,
+        "paths": [
+          "examples/x-intake-local/smoke_112_114.py"
+        ]
+      },
+      "checks": {
+        "scope": {
+          "ok": true,
+          "outside": [],
+          "skipped": null,
+          "patterns": [
+            "examples/x-intake-local/smoke_112_114.py"
+          ]
+        },
+        "size": {
+          "ok": true,
+          "files": 1,
+          "lines": 7,
+          "max_files": 3,
+          "max_lines": 250,
+          "counted_paths": [
+            "examples/x-intake-local/smoke_112_114.py"
+          ]
+        },
+        "wiring": {
+          "ok": true,
+          "missing": [],
+          "rules": []
+        }
+      },
+      "model_review": {
+        "verdict": "accept",
+        "reasons": [
+          "The change correctly captures the timeout reason in a variable to reuse it for both the step record and the return value. It adds the required check after verifying the lock status, ensuring a timeout with no live lock returns 1 with the correct reason, while preserving existing behavior for live locks and clean stops. The gate tests pass successfully."
+        ],
+        "raw_tail": "{\"verdict\": \"accept\", \"reasons\": [\"The change correctly captures the timeout reason in a variable to reuse it for both the step record and the return value. It adds the required check after verifying the lock status, ensuring a timeout with no live lock returns 1 with the correct reason, while preserving existing behavior for live locks and clean stops. The gate tests pass successfully.\"]}"
+      },
+      "mem_min_available_gb": 43.749
+    }
+  ],
+  "free_gib_before": 89.588,
+  "receipt_status": "PASS",
+  "receipt_reason": "ok",
+  "branch": "local/t3-overtime-daemon-stop-timeout-is-a-fai-20261030T175545851213Z",
+  "commit": "6f4ea358713d854c79314c9b175f098fbb1a2bc5",
+  "sandbox": "bwrap-unshare-net",
+  "files_changed": [
+    "examples/x-intake-local/smoke_112_114.py"
+  ],
+  "review": {
+    "enabled": true,
+    "retries": 2,
+    "max_files": 3,
+    "max_lines": 250,
+    "allow_path": [],
+    "require_wiring": []
+  },
+  "canonical_gate": {
+    "acceptance_test_unchanged": true,
+    "exit": 0,
+    "passed": 2,
+    "failed": 0,
+    "errors": 0
+  },
+  "patch": "eval/mvp3/patches/t3-daemon-stop-fail-L.patch",
+  "mem": {
+    "mem_available_gb": 89.577,
+    "swap_free_gb": 0.0,
+    "min_available_gb": 43.737
+  }
+}

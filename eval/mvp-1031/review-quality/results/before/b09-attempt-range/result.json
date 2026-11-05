@@ -1,0 +1,13 @@
+{
+  "id": "b09-attempt-range",
+  "expect": "reject",
+  "bug": "off-by-one",
+  "status": "done",
+  "verdict": "reject",
+  "reasons": [
+    "review-rejected"
+  ],
+  "elapsed_s": 10.555,
+  "grok_status": "done",
+  "code": 0
+}

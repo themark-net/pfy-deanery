@@ -1,0 +1,11 @@
+{
+  "id": "g04-readlink-size",
+  "expect": "accept",
+  "bug": "",
+  "status": "done",
+  "verdict": "accept",
+  "reasons": [],
+  "elapsed_s": 90.174,
+  "grok_status": "done",
+  "code": 0
+}

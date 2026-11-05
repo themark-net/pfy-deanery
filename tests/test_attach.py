@@ -10,10 +10,14 @@ code.
 from __future__ import annotations
 
 import importlib.util
+import json
 import os
 import shutil
+import signal
+import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -25,6 +29,72 @@ from pfylib import _legacy, attach, registry  # noqa: E402
 
 BASE = "http://127.0.0.1:1919/v1"
 NEXT_UP = "Launch env or ./pfy up"
+
+
+def _alive(pid: int) -> bool:
+    try:
+        os.kill(int(pid), 0)
+    except OSError:
+        return False
+    return True
+
+
+def _running(pid: int) -> bool:
+    """True when the pid is running or sleeping, not a zombie and not gone."""
+    try:
+        text = Path("/proc/%s/status" % int(pid)).read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return False
+    for line in text.splitlines():
+        if line.startswith("State:"):
+            parts = line.split()
+            return len(parts) >= 2 and parts[1] in ("R", "S", "D")
+    return False
+
+
+def _wait_dead(pid: int, timeout: float = 1.5) -> bool:
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if not _alive(pid):
+            return True
+        time.sleep(0.02)
+    return False
+
+
+def _sure_kill(pid: int) -> None:
+    if not _alive(pid):
+        return
+    try:
+        os.killpg(int(pid), signal.SIGKILL)
+    except OSError:
+        try:
+            os.kill(int(pid), signal.SIGKILL)
+        except OSError:
+            pass
+
+
+def _child_pids() -> set[int]:
+    found = set()
+    me = os.getpid()
+    proc = Path("/proc")
+    try:
+        names = list(proc.iterdir())
+    except OSError:
+        return found
+    for entry in names:
+        if not entry.name.isdigit():
+            continue
+        try:
+            text = (entry / "status").read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        for line in text.splitlines():
+            if line.startswith("PPid:"):
+                parts = line.split()
+                if len(parts) >= 2 and parts[1].isdigit() and int(parts[1]) == me:
+                    found.add(int(entry.name))
+                break
+    return found
 
 # harness id -> pre-refactor observations (verbatim).
 EXPECTED = {
@@ -283,6 +353,31 @@ class OpenSessionTests(_Tmp):
         self.assertFalse((self.state / "codex-session-reach").exists())
         self.assertFalse((self.state / "codex-terminal.pid").exists())
 
+    def test_failed_terminal_reaps_open_session_child(self):
+        """A4/A3 on the four-harness path: a child left by a failed terminal is reaped."""
+        proc = subprocess.Popen(["/bin/sleep", "60"], start_new_session=True)
+        self.addCleanup(proc.wait, 2)
+        self.addCleanup(_sure_kill, proc.pid)
+        term = _legacy.enterable_helpers(ROOT)
+        real_spawn = term.spawn_terminal_opencode
+        try:
+            def fake_spawn(bin_path, cwd, env, log, pid_alive):
+                return False, proc.pid, "terminal cannot start"
+
+            term.spawn_terminal_opencode = fake_spawn
+            out = attach.open_session(
+                "codex",
+                which_bin=lambda *a: "/bin/sleep",
+                live_openai_base=lambda: (BASE, {"engine": "freetoken", "status": "ready"}),
+                root_dir=ROOT,
+                **_deps(self.state),
+            )
+            self.assertFalse(out["ok"])
+            self.assertEqual(out["live"], "FAIL")
+            self.assertTrue(_wait_dead(proc.pid), "spawned child still alive")
+        finally:
+            term.spawn_terminal_opencode = real_spawn
+
     def test_selftest_passes_for_every_harness(self):
         import contextlib
         import io
@@ -354,6 +449,8 @@ class OpenCodeEnterableTests(_Tmp):
 
     def _record_spawn(self, bin_path, cwd, env, log, pid_alive):
         self.spawned.append({"bin": bin_path, "cwd": cwd, "env": dict(env), "log": str(log)})
+        self.reach_at_spawn = (self.state / "opencode-session-reach").exists()
+        self.base_at_spawn = (self.state / "opencode-attach-base").exists()
         return self._spawn_result
 
     def _deps(self, **over):
@@ -396,13 +493,120 @@ class OpenCodeEnterableTests(_Tmp):
 
     def test_terminal_cannot_start_fails_closed(self):
         self._spawn_result = (False, 0, "terminal cannot start")
+        # A file that was never created cannot prove the failure path cleared it.
+        (self.state / "opencode-session-reach").write_text("stale\n", encoding="utf-8")
+        (self.state / "opencode-attach-base").write_text("http://127.0.0.1:9/v1\n", encoding="utf-8")
         out = self._open()
         self.assertFalse(out["ok"])
         self.assertFalse(out["usable"])
         self.assertEqual(out["error"], "terminal cannot start")
         self.assertNotEqual(out["live"], "READY")
         self.assertFalse((self.state / "opencode-session-reach").exists())
+        self.assertFalse((self.state / "opencode-attach-base").exists())
         self.assertEqual(len(self.spawned), 1)
+
+    def _record_live_sleep(self):
+        """A real process plus the start time launch now requires before reuse."""
+        proc = subprocess.Popen(["/bin/sleep", "60"], start_new_session=True)
+        self.addCleanup(proc.wait, 2)
+        self.addCleanup(_sure_kill, proc.pid)
+        start = self.term.proc_starttime(proc.pid)
+        self.assertTrue(start, "sleep has no /proc start time")
+        (self.state / "opencode-terminal.pid").write_text("%s\n" % proc.pid, encoding="utf-8")
+        (self.state / "opencode-terminal.start").write_text(start + "\n", encoding="utf-8")
+        return proc.pid
+
+    def test_reuse_prove_does_not_spawn_when_the_base_matches(self):
+        pid = self._record_live_sleep()
+        (self.state / "opencode-attach-base").write_text("http://127.0.0.1:9/v1\n", encoding="utf-8")
+        seen = []
+
+        def prove(base, inspect):
+            seen.append(base)
+            return (True, "stub-model", "")
+
+        self.prove.prove_developer_usable = prove
+        out = self._open()
+        self.assertTrue(out["ok"], out)
+        self.assertEqual(out["pid"], pid)
+        self.assertTrue(out["usable"])
+        self.assertEqual(self.spawned, [])
+        self.assertEqual(seen, ["http://127.0.0.1:9/v1"])
+
+    def test_reuse_prove_failure_does_not_spawn(self):
+        self._record_live_sleep()
+        (self.state / "opencode-attach-base").write_text("http://127.0.0.1:9/v1\n", encoding="utf-8")
+        (self.state / "opencode-session-reach").write_text("stale\n", encoding="utf-8")
+        self.prove.prove_developer_usable = lambda base, inspect: (False, "", "reuse smoke failed")
+        out = self._open()
+        self.assertFalse(out["ok"])
+        self.assertEqual(out["error"], "reuse smoke failed")
+        self.assertEqual(out["session_reach"], "FAIL")
+        self.assertEqual(self.spawned, [])
+        self.assertFalse((self.state / "opencode-session-reach").exists())
+        self.assertFalse((self.state / "opencode-attach-base").exists())
+
+    def test_no_engine_fails_closed_and_clears_the_session(self):
+        (self.state / "opencode-session-reach").write_text("stale\n", encoding="utf-8")
+        out = self._open(
+            live_openai_base=lambda: ("", {"engine": "none", "status": "missing"})
+        )
+        self.assertFalse(out["ok"])
+        self.assertIsNot(out.get("usable"), True)
+        self.assertEqual(out["error"], "no local engine")
+        self.assertIn("Launch env", out.get("next_step") or "")
+        self.assertEqual(out["session_reach"], "FAIL")
+        self.assertEqual(self.spawned, [])
+        self.assertFalse((self.state / "opencode-session-reach").exists())
+
+    def test_base_drift_clears_the_old_session_before_spawn(self):
+        (self.state / "opencode-terminal.pid").write_text("4242\n", encoding="utf-8")
+        (self.state / "opencode-attach-base").write_text(
+            "http://127.0.0.1:11434/v1\n", encoding="utf-8"
+        )
+        (self.state / "opencode-session-reach").write_text("stale\n", encoding="utf-8")
+        self._spawn_result = (True, 5151, "")
+        out = self._open()
+        self.assertTrue(out["ok"], out)
+        self.assertEqual(len(self.spawned), 1)
+        self.assertFalse(self.reach_at_spawn)
+        self.assertFalse(self.base_at_spawn)
+        child = self.spawned[0]["env"]
+        self.assertEqual(child["LOCAL_OPENAI_BASE_URL"], "http://127.0.0.1:9/v1")
+        self.assertNotIn("11434", child["LOCAL_OPENAI_BASE_URL"])
+
+    def test_attach_mode_reaches_the_child_env(self):
+        (self.state / "attach-mode").write_text("orchestration\n", encoding="utf-8")
+        self._spawn_result = (True, 4242, "")
+        out = self._open()
+        self.assertTrue(out["ok"], out)
+        self.assertEqual(self.spawned[0]["env"].get("PFY_ATTACH_MODE"), "orchestration")
+
+    def test_opencontext_env_reaches_the_child_when_oc_is_on_path(self):
+        keys = ("OPENCONTEXT_BIN", "OPENCONTEXT_CONTEXTS_ROOT", "OPENCONTEXT_DB_PATH")
+        saved = {key: os.environ.get(key) for key in keys}
+        bindir = self.tmp / "bin"
+        bindir.mkdir()
+        oc = bindir / "oc"
+        oc.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        oc.chmod(0o755)
+        try:
+            for key in keys:
+                os.environ.pop(key, None)
+            os.environ["PATH"] = str(bindir)
+            self._spawn_result = (True, 4242, "")
+            out = self._open()
+            self.assertTrue(out["ok"], out)
+            child = self.spawned[0]["env"]
+            self.assertEqual(child.get("OPENCONTEXT_BIN"), str(oc))
+            self.assertTrue(child.get("OPENCONTEXT_CONTEXTS_ROOT"))
+            self.assertTrue(child.get("OPENCONTEXT_DB_PATH"))
+        finally:
+            for key, value in saved.items():
+                if value is None:
+                    os.environ.pop(key, None)
+                else:
+                    os.environ[key] = value
 
     def test_prove_failure_does_not_paint_ready(self):
         self._spawn_result = (True, 4242, "")
@@ -449,6 +653,127 @@ class OpenCodeEnterableTests(_Tmp):
         child = self.spawned[0]["env"]
         self.assertEqual(child["LOCAL_OPENAI_BASE_URL"], BASE)
         self.assertNotIn("11434", child["LOCAL_OPENAI_BASE_URL"])
+
+    def _spawn_pid(self, pid: int, err: str = "terminal exited"):
+        def spawn(bin_path, cwd, env, log, pid_alive):
+            self.spawned.append({"bin": bin_path})
+            return False, pid, err
+
+        self.term.spawn_terminal_opencode = spawn
+
+    def test_failed_terminal_reaps_the_spawned_child(self):
+        """A3: skipping the reap leaves the spawned process running."""
+        proc = subprocess.Popen(["/bin/sleep", "60"], start_new_session=True)
+        self.addCleanup(proc.wait, 2)
+        self.addCleanup(_sure_kill, proc.pid)
+        self.assertTrue(_alive(proc.pid), "spawned child was not alive before the call")
+        self._spawn_pid(proc.pid)
+        out = self._open()
+        self.assertFalse(out["ok"])
+        self.assertEqual(out["live"], "FAIL")
+        self.assertTrue(_wait_dead(proc.pid), "spawned child still alive")
+
+    def test_failed_terminal_reaps_the_process_group(self):
+        """A4: killing only the leader leaves the grandchildren running."""
+        work = self.tmp / "grp"
+        work.mkdir()
+        script = work / "run.sh"
+        script.write_text(
+            "echo $$ > leader.pid\n"
+            "/bin/sleep 60 &\n"
+            "echo $! > c1.pid\n"
+            "/bin/sleep 60 &\n"
+            "echo $! > c2.pid\n"
+            "wait\n",
+            encoding="utf-8",
+        )
+        proc = subprocess.Popen(
+            ["/bin/bash", str(script)],
+            cwd=str(work),
+            start_new_session=True,
+        )
+        self.addCleanup(proc.wait, 2)
+        self.addCleanup(_sure_kill, proc.pid)
+        deadline = time.monotonic() + 5
+        while not (work / "c2.pid").is_file():
+            if proc.poll() is not None:
+                self.fail("leader exited before the children were recorded: %s" % proc.returncode)
+            if time.monotonic() > deadline:
+                self.fail("process group did not record its children")
+            time.sleep(0.02)
+        pids = [int((work / name).read_text(encoding="utf-8")) for name in ("leader.pid", "c1.pid", "c2.pid")]
+        for pid in pids:
+            self.addCleanup(_sure_kill, pid)
+            self.assertTrue(_running(pid), "pid %s was not running before the call" % pid)
+        self._spawn_pid(proc.pid)
+        out = self._open()
+        self.assertFalse(out["ok"])
+        self.assertEqual(out["live"], "FAIL")
+        for pid in pids:
+            self.assertTrue(_wait_dead(pid), "pid %s still alive" % pid)
+
+    def _exit_7(self) -> subprocess.Popen:
+        """Child exits 7. The caller must keep this Popen until the attach call returns.
+
+        Dropping it lets Popen.__del__ waitpid the zombie, and the status is gone
+        before attach can read it.
+        """
+        flag = self.tmp / "exited-7"
+        proc = subprocess.Popen(
+            [
+                sys.executable,
+                "-c",
+                "import pathlib,sys; pathlib.Path(sys.argv[1]).write_text('x'); raise SystemExit(7)",
+                str(flag),
+            ],
+            start_new_session=True,
+        )
+        self.addCleanup(proc.wait, 2)
+        self.addCleanup(_sure_kill, proc.pid)
+        deadline = time.monotonic() + 5
+        while not flag.is_file():
+            if time.monotonic() > deadline:
+                self.fail("child did not exit")
+            time.sleep(0.01)
+        self._spawn_pid(proc.pid)
+        return proc
+
+    def test_failed_terminal_exit_code_reaches_the_caller(self):
+        """A5: a constant exit code hides the child's real status from the caller."""
+        proc = self._exit_7()
+        out = self._open()
+        self.assertFalse(out["ok"])
+        self.assertEqual(out.get("exit_code"), 7)
+        proc.poll()
+
+    def test_failed_terminal_exit_code_reaches_the_receipt(self):
+        """A7: the receipt must record the same child status the caller sees."""
+        proc = self._exit_7()
+        out = self._open()
+        self.assertFalse(out["ok"])
+        proc.poll()
+        receipt_path = self.state / "opencode-attach-receipt.json"
+        self.assertTrue(receipt_path.is_file(), "receipt was not written")
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        self.assertEqual(receipt.get("exit_code"), 7)
+        self.assertEqual(receipt.get("live"), "FAIL")
+
+    def test_missing_opencode_prints_install_hint_and_does_not_spawn(self):
+        """A8 drops the printed hint. A10 drops the hint the caller receives, or spawns anyway."""
+        import contextlib
+        import io
+
+        before = _child_pids()
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            out = self._open(which_bin=lambda *names: "")
+        self.assertFalse(out["ok"])
+        self.assertEqual(out["live"], "FAIL")
+        self.assertEqual(out["error"], "opencode missing")
+        self.assertIn("install opencode", out.get("next_step") or "")
+        self.assertIn("install opencode", buf.getvalue())
+        self.assertEqual(self.spawned, [])
+        self.assertEqual(_child_pids(), before)
 
 
 if __name__ == "__main__":

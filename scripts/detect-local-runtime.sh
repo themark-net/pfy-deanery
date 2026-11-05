@@ -25,6 +25,31 @@ probe() {
   return 1
 }
 
+# Test-only pin. When set, do not probe the host spine or a live Ollama.
+# Unset in normal use. A launch test points this at its own fake engine.
+if [[ -n "${PFY_TEST_OPENAI_BASE:-}" ]]; then
+  eng="${PFY_LOCAL_RUNTIME:-openai-compat}"
+  base="${PFY_TEST_OPENAI_BASE%/}"
+  if probe "$base"; then emit "$eng" "$base" "ready"; else emit "$eng" "$base" "partial"; fi
+  exit 0
+fi
+
+# PFY_OLLAMA_BASE moves the Ollama probe off the default port (tests use a closed port).
+OLLAMA_BASE="${PFY_OLLAMA_BASE:-http://127.0.0.1:11434}"
+OLLAMA_BASE="${OLLAMA_BASE%/}"
+
+# Test hook: do not probe fixed host ports. Honor only LOCAL_OPENAI_BASE_URL.
+if [[ "${PFY_DETECT_SKIP_HOST:-}" == "1" ]]; then
+  if [[ -n "${LOCAL_OPENAI_BASE_URL:-}" ]]; then
+    eng="${PFY_LOCAL_RUNTIME:-openai-compat}"
+    base="${LOCAL_OPENAI_BASE_URL%/}"
+    if probe "$base"; then emit "$eng" "$base" "ready"; else emit "$eng" "$base" "partial"; fi
+    exit 0
+  fi
+  emit "none" "" "missing"
+  exit 0
+fi
+
 # First live spine before Ollama / env overrides (#167).
 # FreeToken → llama-swap → llama-server (Ollama is later).
 emit_spine_ready() {
@@ -58,8 +83,8 @@ if [[ -n "${PFY_LOCAL_RUNTIME:-}" ]]; then
     llama-server|llama.cpp) bases=(http://127.0.0.1:8080) ;;
     shimmy) bases=(http://127.0.0.1:11435) ;;
     ollama)
-      if probe "http://127.0.0.1:11434"; then emit "ollama" "http://127.0.0.1:11434" "ready"; exit 0; fi
-      if have ollama; then emit "ollama" "http://127.0.0.1:11434" "partial"; else emit "ollama" "" "missing"; fi
+      if probe "$OLLAMA_BASE"; then emit "ollama" "$OLLAMA_BASE" "ready"; exit 0; fi
+      if have ollama; then emit "ollama" "$OLLAMA_BASE" "partial"; else emit "ollama" "" "missing"; fi
       exit 0
       ;;
     *) bases=(http://127.0.0.1:1919) ;;
@@ -74,8 +99,8 @@ fi
 # Ready first (do not exit on PATH-only partial).
 if emit_spine_ready; then exit 0; fi
 
-if have ollama && probe "http://127.0.0.1:11434"; then emit "ollama" "http://127.0.0.1:11434" "ready"; exit 0; fi
-if probe "http://127.0.0.1:11434"; then emit "ollama" "http://127.0.0.1:11434" "ready"; exit 0; fi
+if have ollama && probe "$OLLAMA_BASE"; then emit "ollama" "$OLLAMA_BASE" "ready"; exit 0; fi
+if probe "$OLLAMA_BASE"; then emit "ollama" "$OLLAMA_BASE" "ready"; exit 0; fi
 
 if have shimmy && probe "http://127.0.0.1:11435"; then emit "shimmy" "http://127.0.0.1:11435" "ready"; exit 0; fi
 
@@ -83,7 +108,7 @@ if have shimmy && probe "http://127.0.0.1:11435"; then emit "shimmy" "http://127
 if have_ft; then emit "freetoken" "http://127.0.0.1:1919" "partial"; exit 0; fi
 if have llama-swap; then emit "llama-swap" "http://127.0.0.1:9292" "partial"; exit 0; fi
 if have llama-server; then emit "llama-server" "http://127.0.0.1:8080" "partial"; exit 0; fi
-if have ollama; then emit "ollama" "http://127.0.0.1:11434" "partial"; exit 0; fi
+if have ollama; then emit "ollama" "$OLLAMA_BASE" "partial"; exit 0; fi
 if have shimmy; then emit "shimmy" "http://127.0.0.1:11435" "partial"; exit 0; fi
 
 emit "none" "" "missing"

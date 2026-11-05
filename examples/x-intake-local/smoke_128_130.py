@@ -9,7 +9,8 @@ Never installs or downloads anything. Every child process starts through `run_is
 env limited to PATH/HOME/TERM/LANG/NO_COLOR plus the variables named below; nothing copied from this process, so no
 provider key is ever seen; a timeout SIGKILLs the process group) under bwrap with no network when bwrap works.
 No smoke calls a model, adds a key, runs an `install`/`connect`/`setup` command or starts an agent CLI.
-PFY_XINTAKE_TIMEOUT (float seconds, > 0) overrides the 600s per-command timeout.
+PFY_XINTAKE_TIMEOUT (float seconds, > 0) overrides the 600s per-command timeout. Any other value (abc, 0, -1,
+nan, inf) exits 2 before the entry runs.
 Real HOME: each entry fingerprints the real-HOME dirs the tool could write (harnessscore: ~/.harness-score,
 ~/.config/harness-score, precautionary, upstream says it writes nothing; openlore: ~/.openlore, which holds its update
 check, token descriptors and local embedding models, and ~/.pi/agent/extensions) with home_sig() before the run and
@@ -43,6 +44,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 import re
 import shutil
@@ -95,6 +97,20 @@ def tmo() -> float:
         return 600.0
 
 
+def timeout_problem() -> str | None:
+    """PFY_XINTAKE_TIMEOUT must be a finite number of seconds > 0 when set; tmo() would quietly use 600 s instead."""
+    raw = os.environ.get("PFY_XINTAKE_TIMEOUT", "")
+    if not raw:
+        return None
+    try:
+        v = float(raw)
+    except ValueError:
+        v = math.nan
+    if math.isfinite(v) and v > 0:
+        return None
+    return f"PFY_XINTAKE_TIMEOUT={raw[:40]!r} is not a number of seconds > 0"
+
+
 def iso(argv: list[str], tag: str, **kw) -> subprocess.CompletedProcess:
     try:
         return run_isolated(argv, timeout=tmo(), **kw)
@@ -121,8 +137,9 @@ def home_note(entry: str, r: dict) -> str:
 
 
 def home_sig(p: Path) -> str | None:
-    """Real-HOME fingerprint of p, or None when p doesn't exist. Stricter than smoke_122_124.tree_sig (left as is for
-    the 122-124 smokes): one line per entry, p included, with path, file type, permission bits and mtime_ns, plus size
+    """Real-HOME fingerprint of p, or None when p doesn't exist. Stricter than smoke_122_124.tree_sig (which records
+    permission bits and symlink readlink, including when the path itself is a symlink, and still does not record
+    mtime): one line per entry, p included, with path, file type, permission bits and mtime_ns, plus size
     and content hash for a regular file, or size and inode when it can't be read (a rewrite still shows in size, mtime
     or inode), and the target string for a symlink. Symlinks below p are never followed; a symlinked p is recorded as
     a link and then its target is walked."""
@@ -378,6 +395,10 @@ def main() -> int:
     receipt = {"entry": a.entry, "script": "examples/x-intake-local/smoke_128_130.py",
                "started": time.strftime("%Y-%m-%dT%H:%M:%S%z")}
     fn = {"harnessscore": smoke_harnessscore, "openlore": smoke_openlore}[a.entry]
+    bad = timeout_problem()
+    if bad:
+        receipt["reason"] = bad
+        return write(a.entry, receipt, 2)
     try:
         code = fn(receipt)
     except Exception as e:  # TimeoutError or any crash still writes a FAIL receipt (watched() saved the checks)

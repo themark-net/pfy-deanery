@@ -1,0 +1,14 @@
+Started 2026-11-01T00:07:38Z. Finished 2026-11-01T00:18:21Z. Wall 643 seconds.
+Runner: origin/bot/mvp-cloudfix-1031 at 80470185e9bfccadef83ae19401344e8dcd0d945 (merged before the run, lane HEAD b90ae61).
+
+./pfy build <task> \
+  --repo /home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood2-1031/tmp/target-09 \
+  --base HEAD \
+  --test-cmd "python3 -m unittest tests.test_state_snapshot_109 tests.test_x_intake_smoke_109_111.XIntakeSmoke109111Tests.test_no_bwrap_records_real_home_snapshot" \
+  --receipt-dir /home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood2-1031/eval/dogfood2-1031/09-state-snapshot
+
+Task file: tmp/gates/task-09.txt. state_snapshot records one value per path. None when missing. The value changes when file bytes change and mtime is restored, when the mode changes, and when an unreadable file is compared with an empty directory. Symlinks stay unfollowed. mtime stays out of the value.
+
+Target: fresh local clone of this worktree, plus a local red-gate commit (3673e15) that is not pushed.
+No --local. Default retries and timeout. Review on.
+Exit 0. Cloud commit 98f56953149aa953270818190040186ed390ccef. Cherry-picked and amended as 110f24a with the Built-by trailer. Caller branch was not switched. Nothing pushed from the target.

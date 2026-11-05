@@ -1,0 +1,16 @@
+{
+  "build_exit": -9,
+  "caller_unchanged": true,
+  "cloud_branch_count": 0,
+  "grok_alive_after_reap": false,
+  "grok_alive_before_reap": true,
+  "grok_pid_recorded": 2462576,
+  "process_exit": 0,
+  "reap_exit": 0,
+  "reason": "no-receipt",
+  "runner_sha": "acadab4f19e7e6e07d477844a9ec664c15c5bfdd",
+  "scrubbed": [],
+  "sleeper_alive_after_reap": true,
+  "status": "ABORTED",
+  "stray_grok_count": 1
+}

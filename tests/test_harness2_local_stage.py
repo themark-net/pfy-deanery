@@ -330,45 +330,6 @@ class StageScriptTests(HomeWatch):
         text = (work / "stub.log").read_text(encoding="utf-8")
         return [json.loads(line) for line in text.splitlines() if line.strip()]
 
-    def test_dry_run_prints_the_pin_steps_and_nothing_upstream(self):
-        with tempfile.TemporaryDirectory(dir=_scratch()) as tmp:
-            work = Path(tmp)
-            env = os.environ.copy()
-            env["HARNESS2_W"] = str(work / "wt")
-            env["PYTHONDONTWRITEBYTECODE"] = "1"
-            proc = subprocess.run(
-                ["bash", str(STAGE), "--dry-run"],
-                cwd=ROOT,
-                env=env,
-                capture_output=True,
-                text=True,
-            )
-            self.assertEqual(proc.returncode, 0, proc.stderr)
-            text = proc.stdout
-            for bit in (
-                "git clone https://github.com/google-research/harness2",
-                f"checkout --detach {H2_PIN}",
-                "uv venv --python",
-                "uv pip install --python",
-                " -e ",
-                "git init -q",
-                "https://github.com/anomalyco/opencode.git",
-                f"fetch --depth 1 origin {OC_PIN}",
-                "checkout --detach FETCH_HEAD",
-                "opencode-compat.diff",
-                "apply --check",
-                "npm install --prefix",
-                "bun@1.3.11",
-                "--frozen-lockfile --ignore-scripts",
-                "check.py",
-                "env: written from env.local.example",
-                "UV_PYTHON_DOWNLOADS",
-            ):
-                self.assertIn(bit, text, bit)
-            for bad in ("harness2-setup", "job-bench-eval", "huggingface", "[render]", "harness2-check"):
-                self.assertNotIn(bad, text)
-            self.assertFalse((work / "wt" / "tmp" / "harness2").exists())
-
     def test_dry_run_picks_another_312_patch_without_the_override(self):
         # No HARNESS2_PY312 and no 3.12.12: the glob fallback must find 3.12.9.
         with tempfile.TemporaryDirectory(dir=_scratch()) as tmp:
@@ -489,6 +450,71 @@ class StageScriptTests(HomeWatch):
             self.assertEqual(proc.returncode, 2, proc.stdout + proc.stderr)
             self.assertIn("refusing existing checkout", proc.stderr)
             self.assertNotIn("BLOCKED: home-write", proc.stderr)
+
+
+class DryRunTests(unittest.TestCase):
+    """Dry-run must not hash the operator home.
+
+    HomeWatch walks ~/.cache/uv (about 21 GiB) and ~/.npm. On nimo those
+    trees change while the hash runs, so tearDown failed even though
+    stage.sh --dry-run never writes them. The assertion text was only the
+    missing step name, so the script stderr was not in the failure.
+    This class does not inherit HomeWatch. It still uses the private HOME
+    from StageScriptTests._stub_env.
+    """
+
+    def test_dry_run_prints_the_pin_steps_and_nothing_upstream(self):
+        with tempfile.TemporaryDirectory(dir=_scratch()) as tmp:
+            work = Path(tmp)
+            env = StageScriptTests._stub_env(None, work)
+            leak = work / "leak.sh"
+            leak.write_text("echo huggingface\n", encoding="utf-8")
+            # A parent BASH_ENV would print before the steps. Drop it.
+            env["BASH_ENV"] = str(leak)
+            env["ENV"] = str(leak)
+            env["CDPATH"] = str(work)
+            for key in ("BASH_ENV", "ENV", "CDPATH"):
+                env.pop(key, None)
+            home = Path(env["HOME"])
+            before = common.home_snapshot(home)
+            proc = subprocess.run(
+                ["bash", str(STAGE), "--dry-run"],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+            )
+            blob = f"stdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
+            self.assertEqual(proc.returncode, 0, blob)
+            text = proc.stdout
+            py = env["HARNESS2_PY312"]
+            for bit in (
+                "git clone https://github.com/google-research/harness2",
+                f"checkout --detach {H2_PIN}",
+                "uv venv --python",
+                "uv pip install --python",
+                " -e ",
+                "git init -q",
+                "https://github.com/anomalyco/opencode.git",
+                f"fetch --depth 1 origin {OC_PIN}",
+                "checkout --detach FETCH_HEAD",
+                "opencode-compat.diff",
+                "apply --check",
+                "npm install --prefix",
+                "bun@1.3.11",
+                "--frozen-lockfile --ignore-scripts",
+                "check.py",
+                "env: written from env.local.example",
+                "UV_PYTHON_DOWNLOADS",
+                f"realpath {py}",
+            ):
+                self.assertIn(bit, text, blob)
+            for bad in ("harness2-setup", "job-bench-eval", "huggingface", "[render]", "harness2-check"):
+                self.assertNotIn(bad, text, blob)
+            wt = Path(env["HARNESS2_W"])
+            self.assertFalse((wt / "tmp" / "harness2").exists(), blob)
+            changed = common.snapshot_diff(before, common.home_snapshot(home))
+            self.assertEqual(changed, [], blob)
 
 
 if __name__ == "__main__":

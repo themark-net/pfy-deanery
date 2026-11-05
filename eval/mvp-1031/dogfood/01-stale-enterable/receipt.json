@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/edit-only-scripts-pfy-enterable-162-py-i-20261031T203103057213Z",
+  "commit": "8d29f5d8d6bd0af5b8acf1c418fc3ade561e71de",
+  "base": "demo-base",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll fix the failed-launch path in `arm_launch_env_session` so the stripped `next_steps` list is saved before return. First I'm reading that function and the gate test.The not-ok branch strips enterable and session steps, then returns without writing that list back. I'll assign the stripped list to `out[\"next_steps\"]` before the return.A failed launch in `arm_launch_env_session` now stores the stripped `next_steps` list before it returns.\n\nOn the not-ok branch, enterable and session markers are already removed from the local list. That list is now written to `out[\"next_steps\"]`. `session_reach` stays `FAIL`, `enterable` stays `False`, and `open_fn` is still not called. The SKIP and success branches are unchanged.\n\n`python3 dogfood_gate.py` printed `gate-ok` and exited 0.\n\nI'll check the not-ok branch in `scripts/pfy_enterable_162.py` against the task and confirm nothing else changed.verdict: accept\n\nThe not-ok branch in `arm_launch_env_session` now assigns the already-stripped `next_steps` before returning. `session_reach` stays `FAIL`, `enterable` stays `False`, and `open_fn` is still not called on that path. The SKIP and success branches are unchanged. The diff is one line in `scripts/pfy_enterable_162.py`, uncommitted.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "python3 dogfood_gate.py",
+    "before": {
+      "cmd": "python3 dogfood_gate.py",
+      "exit": 1,
+      "tail": "stale markers remain: ['enterable', 'session', 'env']\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "python3 dogfood_gate.py",
+      "exit": 0,
+      "tail": "gate-ok\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": true,
+  "task": "Edit only scripts/pfy_enterable_162.py.\n\nIn arm_launch_env_session, when the launch result is not ok, the function builds a next_steps list with enterable and session markers removed, then returns without saving that list. A failed launch therefore keeps a stale enterable step.\n\nOn that not-ok branch, set out[\"next_steps\"] to the stripped list before returning. Keep session_reach as FAIL and enterable as False. Do not change the SKIP branch or the success branch. Do not call open_fn when the launch is not ok.\n\nDo not edit dogfood_gate.py. Do not edit any file under tests/. Do not add a test file. Do not commit. Do not push.",
+  "finished_at": "2026-10-31T20:31:41Z"
+}

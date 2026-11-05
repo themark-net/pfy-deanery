@@ -1,0 +1,11 @@
+{
+  "id": "g10-skip-project-map",
+  "expect": "accept",
+  "bug": "",
+  "status": "done",
+  "verdict": "accept",
+  "reasons": [],
+  "elapsed_s": 16.482,
+  "grok_status": "done",
+  "code": 0
+}

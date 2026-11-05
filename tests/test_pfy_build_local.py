@@ -265,6 +265,78 @@ elif scenario == "late-rewrite" and calc.exists():
                 time.sleep(0.2)
         os._exit(0)
     _wait_ready(root / "tmp" / "daemon.heartbeat")
+elif scenario == "plan":
+    plan_path = os.environ.get("PFY_STUB_PLAN") or ""
+    count_path = os.environ.get("PFY_STUB_COUNT") or ""
+    prompts_path = os.environ.get("PFY_STUB_PROMPTS") or ""
+    n = 0
+    if count_path:
+        try:
+            n = int(Path(count_path).read_text(encoding="utf-8").strip() or "0")
+        except (OSError, ValueError):
+            n = 0
+        _mark(Path(count_path), str(n + 1))
+    prompt = argv[-1] if argv else ""
+    if prompts_path:
+        line = json.dumps({"attempt": n + 1, "prompt": prompt}) + "\n"
+        try:
+            with open(prompts_path, "a", encoding="utf-8") as handle:
+                handle.write(line)
+        except OSError:
+            pass
+    steps = []
+    if plan_path:
+        try:
+            steps = json.loads(Path(plan_path).read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            steps = []
+    step = steps[n] if n < len(steps) else (steps[-1] if steps else {"mode": "fix"})
+    mode = step.get("mode") or "noop"
+    if mode == "fix" and calc.exists():
+        calc.write_text(calc.read_text(encoding="utf-8").replace("return a + b + 1", "return a + b"), encoding="utf-8")
+    elif mode == "worse" and calc.exists():
+        calc.write_text("def add(a, b):\n    return a + b + 5\n", encoding="utf-8")
+    for rel, content in (step.get("write") or {}).items():
+        dest = root / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(content, encoding="utf-8")
+    for rel, hexed in (step.get("write_hex") or {}).items():
+        dest = root / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_bytes(bytes.fromhex(hexed))
+    for rel, extra in (step.get("append") or {}).items():
+        dest = root / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        prev = dest.read_text(encoding="utf-8") if dest.is_file() else ""
+        dest.write_text(prev + extra, encoding="utf-8")
+    for pair in step.get("mv") or []:
+        src, dst = pair
+        dest = root / dst
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        os.rename(root / src, dest)
+    for rel, target in (step.get("symlink") or {}).items():
+        dest = root / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        if dest.is_symlink() or dest.exists():
+            dest.unlink()
+        os.symlink(str(target), dest)
+    for rel, mode in (step.get("chmod") or {}).items():
+        os.chmod(root / rel, int(mode))
+    for rel, target in (step.get("hardlink") or {}).items():
+        dest = root / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        if dest.is_symlink() or dest.exists():
+            dest.unlink()
+        os.link(str(target), dest)
+    for rel in step.get("gitdir") or []:
+        dest = root / rel
+        dest.mkdir(parents=True, exist_ok=True)
+        subprocess.run(["git", "init", "-q"], cwd=dest, check=False)
+if scenario == "crash":
+    raise SystemExit(2)
+if scenario == "crash-after-fix" and calc.exists():
+    calc.write_text(calc.read_text(encoding="utf-8").replace("return a + b + 1", "return a + b"), encoding="utf-8")
+    raise SystemExit(2)
 raise SystemExit(0)
 """
 
@@ -303,7 +375,10 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
-        self.wfile.write(data)
+        try:
+            self.wfile.write(data)
+        except BrokenPipeError:
+            return
 
     def do_GET(self):  # noqa: N802
         if self.path.startswith("/api/tags"):
@@ -329,7 +404,33 @@ class Handler(BaseHTTPRequestHandler):
             payload = {}
         self.server.posts.append((self.path, payload))
         if "/chat/completions" in self.path:
-            self._send(200, {"id": "c", "choices": [{"message": {"role": "assistant", "content": "ok"}}]})
+            blob = json.dumps(payload)
+            content = "ok"
+            if "pfy-review-v1" in blob:
+                started = getattr(self.server, "review_started", None)
+                if started is not None:
+                    started.set()
+                blocker = getattr(self.server, "review_block", None)
+                if blocker is not None:
+                    blocker.wait()
+                http_status = getattr(self.server, "review_http_status", 200)
+                if http_status != 200:
+                    self._send(int(http_status), {"error": "review-down"})
+                    return
+                raw_body = getattr(self.server, "review_raw", None)
+                if raw_body is not None:
+                    self._send(200, raw_body)
+                    return
+                queue = getattr(self.server, "review_queue", None)
+                if queue:
+                    content = queue.pop(0)
+                else:
+                    content = json.dumps({"verdict": "accept", "reasons": []})
+                http_status = getattr(self.server, "review_http_status", None)
+                if http_status not in (None, 200):
+                    self._send(int(http_status), {"error": "review-unavailable"})
+                    return
+            self._send(200, {"id": "c", "choices": [{"message": {"role": "assistant", "content": content}}]})
             return
         self._send(200, {"ok": True})
 
@@ -497,7 +598,7 @@ class LocalBuildTests(unittest.TestCase):
         env.update(extra)
         return env
 
-    def command(self, scenario, extra=None, auto_unsafe=True):
+    def command(self, scenario, extra=None, auto_unsafe=True, task=None):
         self._seq += 1
         receipt = self.repo / "tmp" / "receipts" / ("%s-%s" % (scenario, self._seq))
         cmd = [
@@ -506,7 +607,7 @@ class LocalBuildTests(unittest.TestCase):
             "--repo",
             str(self.repo),
             "--local",
-            "fix add so one plus one is two",
+            task or "fix add so one plus one is two",
             "--model",
             "fixture:small",
             "--endpoint",
@@ -528,10 +629,10 @@ class LocalBuildTests(unittest.TestCase):
             cmd.append("--unsafe-no-sandbox")
         return cmd, receipt
 
-    def run_build(self, scenario="fix", extra=None, env_extra=None, timeout=60, auto_unsafe=True):
+    def run_build(self, scenario="fix", extra=None, env_extra=None, timeout=60, auto_unsafe=True, task=None):
         if self.marker.exists():
             self.marker.unlink()
-        cmd, receipt = self.command(scenario, extra, auto_unsafe=auto_unsafe)
+        cmd, receipt = self.command(scenario, extra, auto_unsafe=auto_unsafe, task=task)
         proc = subprocess.run(
             cmd,
             cwd=self.repo,
@@ -659,6 +760,149 @@ class LocalBuildTests(unittest.TestCase):
         data = self.assert_no_commit(proc, receipt)
         self.assertEqual(data["status"], "FAIL")
         self.assertEqual(data["reason"], "no-change")
+
+    def test_nonzero_exit_with_no_diff_is_a_crash_and_is_not_retried(self):
+        proc, receipt = self.run_build("crash", extra=["--retries", "2"])
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self.assert_no_commit(proc, receipt)
+        self.assertEqual(data["status"], "crash")
+        self.assertEqual(data["reason"], "crash")
+        self.assertNotEqual(data["reason"], "no-change")
+        self.assertNotEqual(data["status"], "FAIL")
+        self.assertEqual(data["attempts"], 1)
+        self.assertIn("exited 2", data.get("recovery") or "")
+        self.assertIn("not an empty edit", data.get("recovery") or "")
+        self.assertIn("not retried", data.get("recovery") or "")
+        self.assertIn("Recovery:", data.get("recovery") or "")
+        self.assertFalse((receipt / "attempt-2").exists())
+        first = json.loads((receipt / "attempt-1" / "receipt.json").read_text(encoding="utf-8"))
+        self.assertEqual(first["status"], "crash")
+        self.assertEqual(first["reason"], "crash")
+
+    def test_nonzero_exit_with_a_diff_still_reaches_the_gate(self):
+        proc, receipt = self.run_build("crash-after-fix")
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        data = self.receipt(proc, receipt)
+        self.assertEqual(data["status"], "PASS")
+        self.assertNotEqual(data["status"], "crash")
+        self.assertIsNotNone(data["commit"])
+        shown = _git(self.repo, "show", "%s:src/calc.py" % data["branch"])
+        self.assertIn("return a + b\n", shown)
+        self.assert_clean_origin()
+
+    def test_receipt_status_matches_the_stdout_label_and_the_docs(self):
+        source = (ROOT / "scripts" / "pfy_build_local.py").read_text(encoding="utf-8")
+        doc = source.split('"""', 2)[1]
+        documented = (
+            "PASS",
+            "FAIL",
+            "PASS-REJECTED",
+            "reviewer-unavailable",
+            "crash",
+            "TIMEOUT",
+            "BLOCKED",
+            "ABORTED",
+        )
+        self.assertEqual(sorted(BUILD.LABELS), sorted(documented))
+        self.assertEqual(len(BUILD.LABELS), len(set(BUILD.LABELS)))
+        for label in documented:
+            self.assertIn(label, doc)
+        with self.assertRaises(BUILD.LabelError) as caught:
+            BUILD._lab("NOT-A-STATUS")
+        self.assertIn("NOT-A-STATUS", str(caught.exception))
+        self.assertNotEqual(str(caught.exception), "FAIL")
+
+        runs = []
+        proc, receipt = self.run_build("crash", extra=["--retries", "0"])
+        runs.append((proc, receipt))
+        proc, receipt = self.run_build("noop", extra=["--retries", "0"])
+        runs.append((proc, receipt))
+        self.write_mem(10, 0, 64)
+        proc, receipt = self.run_build("fix")
+        runs.append((proc, receipt))
+        seen = set()
+        for proc, receipt in runs:
+            data = self.receipt(proc, receipt)
+            status = data["status"]
+            reason = data["reason"]
+            seen.add(status)
+            self.assertIn(status, documented)
+            self.assertIn(status, BUILD.LABELS)
+            prefix = "%s %s " % (status, reason)
+            lines = [
+                line
+                for line in (proc.stdout or "").splitlines()
+                if line.startswith(prefix) and "receipt=" in line
+            ]
+            self.assertEqual(len(lines), 1, proc.stdout)
+            self.assertEqual(lines[0].split(" ", 1)[0], status)
+            self.assertFalse(lines[0].startswith(status + ":"))
+            attempt = receipt / "attempt-1" / "receipt.json"
+            if attempt.is_file():
+                first = json.loads(attempt.read_text(encoding="utf-8"))
+                self.assertEqual(first["status"], status)
+        self.assertEqual(seen, {"crash", "FAIL", "BLOCKED"})
+
+    def _plant_worktree(self, name):
+        path = self.repo / "tmp" / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.check_call(
+            ["git", "-C", str(self.repo), "worktree", "add", "--detach", str(path), "HEAD"],
+            stdout=subprocess.DEVNULL,
+        )
+        (path / "STALE.txt").write_text("from a previous run\n", encoding="utf-8")
+        return path
+
+    def test_stale_worktree_is_removed_and_not_reused(self):
+        stale = self._plant_worktree("local-build-previous")
+        proc, receipt = self.run_build("noop", extra=["--retries", "0"])
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self.assert_no_commit(proc, receipt)
+        self.assertEqual(data["reason"], "no-change")
+        self.assertIn("local-build-previous", data["stale_worktrees"])
+        self.assertFalse(stale.exists())
+        self.assertNotIn(str(stale), _git(self.repo, "worktree", "list"))
+        live = data["worktree"]
+        self.assertIsNotNone(live)
+        self.assertNotEqual(Path(live).name, "local-build-previous")
+        self.assertFalse((Path(live) / "STALE.txt").exists())
+
+    def test_unstaleable_worktree_stops_before_add(self):
+        stale = self.repo / "tmp" / "local-build-stuck"
+        stale.mkdir(parents=True)
+        (stale / "keep.txt").write_text("keep\n", encoding="utf-8")
+        os.chmod(stale, 0)
+        self.addCleanup(lambda: os.chmod(stale, 0o755) if stale.exists() else None)
+        proc, receipt = self.run_build("fix", extra=["--retries", "0"])
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self.assert_no_commit(proc, receipt)
+        self.assertEqual(data["status"], "FAIL")
+        self.assertEqual(data["reason"], "stale-worktree")
+        self.assertIn("local-build-stuck", data["stale_worktrees"])
+        self.assertIsNone(data["worktree"])
+        self.assertIn("could not be removed", data.get("recovery") or "")
+        self.assertIn("not reused", data.get("recovery") or "")
+        self.assertIn("Nothing was committed", data.get("recovery") or "")
+        self.assertIn("Recovery:", data.get("recovery") or "")
+        self.assertTrue(stale.exists())
+        self.assert_agent_did_not_start()
+        names = sorted(path.name for path in self.repo.glob("tmp/local-build-*"))
+        self.assertEqual(names, ["local-build-stuck"])
+
+    def test_dry_run_does_not_delete_a_stale_worktree(self):
+        stale = self._plant_worktree("local-build-previous")
+        proc, receipt = self.run_build("fix", extra=["--dry-run"])
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        data = self.receipt(proc, receipt)
+        self.assertEqual(data["status"], "PASS")
+        self.assertEqual(data["reason"], "dry-run")
+        self.assertIsNone(data["worktree"])
+        self.assertIn("local-build-previous", data["stale_worktrees"])
+        self.assertTrue(stale.is_dir())
+        self.assertEqual((stale / "STALE.txt").read_text(encoding="utf-8"), "from a previous run\n")
+        self.assertIn(str(stale), _git(self.repo, "worktree", "list"))
+        self.assert_agent_did_not_start()
+        self.assert_clean_origin()
 
     def test_protected_test_edit_does_not_commit(self):
         proc, receipt = self.run_build("protect", extra=["--protect", "tests/*"])
@@ -1186,6 +1430,7 @@ class LocalBuildTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 4, proc.stdout + proc.stderr)
         data = self.receipt(proc, receipt)
         self.assertEqual(data["reason"], "no-sandbox")
+        self.assertFalse(data.get("gate_unsandboxed"))
         self.assert_agent_did_not_start()
         cmd2, receipt2 = self.command("noop", extra=["--unsafe-no-sandbox"])
         proc2 = subprocess.run(
@@ -1199,6 +1444,7 @@ class LocalBuildTests(unittest.TestCase):
         self.assertEqual(proc2.returncode, 1, proc2.stdout + proc2.stderr)
         data2 = self.receipt(proc2, receipt2)
         self.assertEqual(data2["sandbox"], "unsafe-no-sandbox")
+        self.assertTrue(data2["gate_unsandboxed"])
         self.assertEqual(data2["reason"], "no-change")
         self.assertIn("not sandboxed", proc2.stderr or "")
 
@@ -1208,6 +1454,40 @@ class LocalBuildTests(unittest.TestCase):
         proc, receipt = self.run_build("noop", extra=["--unsafe-no-sandbox"])
         data = self.receipt(proc, receipt)
         self.assertTrue(str(data["sandbox"]).startswith("bwrap"), data["sandbox"])
+        self.assertFalse(data["gate_unsandboxed"])
+
+    def test_stub_bwrap_keeps_the_gate_sandboxed_when_the_flag_is_set(self):
+        bindir = self.tmp / "bin"
+        bindir.mkdir()
+        log = self.tmp / "bwrap-invocations.txt"
+        stub = bindir / "bwrap"
+        stub.write_text(
+            "#!/bin/sh\n"
+            "log=\"$PFY_STUB_BWRAP_LOG\"\n"
+            "if [ -n \"$log\" ]; then printf '%s\\n' \"$*\" >> \"$log\"; fi\n"
+            "while [ $# -gt 0 ]; do\n"
+            "  if [ \"$1\" = \"--\" ]; then shift; exec \"$@\"; fi\n"
+            "  shift\n"
+            "done\n"
+            "exit 0\n",
+            encoding="utf-8",
+        )
+        stub.chmod(0o755)
+        path = str(bindir) + os.pathsep + os.environ.get("PATH", "")
+        proc, receipt = self.run_build(
+            "noop",
+            extra=["--no-review", "--unsafe-no-sandbox"],
+            env_extra={"PATH": path, "PFY_STUB_BWRAP_LOG": str(log)},
+            timeout=60,
+        )
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self.receipt(proc, receipt)
+        self.assertEqual(data["reason"], "no-change")
+        self.assertFalse(data["gate_unsandboxed"])
+        self.assertTrue(str(data["sandbox"]).startswith("bwrap"), data["sandbox"])
+        text = log.read_text(encoding="utf-8")
+        wrapped = [line for line in text.splitlines() if "--unshare-net" in line and "unittest" in line]
+        self.assertTrue(wrapped, text)
 
     def test_os_exit_in_src_is_not_a_pass(self):
         proc, receipt = self.run_build("exit-zero")
@@ -1257,18 +1537,21 @@ class LocalBuildTests(unittest.TestCase):
         data = self.assert_no_commit(proc, receipt)
         self.assertEqual(data["reason"], "tests-tampered")
 
-    def test_ignored_helper_is_in_the_commit(self):
+    def test_ignored_helper_is_not_committed(self):
         ignore = self.repo / ".gitignore"
         ignore.write_text(ignore.read_text(encoding="utf-8") + "helper.py\n", encoding="utf-8")
         self.commit_base("ignore helper.py")
         proc, receipt = self.run_build("ignored-helper")
-        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
-        data = self.receipt(proc, receipt)
-        self.assertEqual(data["status"], "PASS")
-        shown = _git(self.repo, "show", "%s:src/helper.py" % data["commit"])
-        self.assertIn("def add_impl", shown)
-        calc = _git(self.repo, "show", "%s:src/calc.py" % data["commit"])
-        self.assertIn("add_impl", calc)
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        data = self.assert_no_commit(proc, receipt)
+        # 0f0d889 renamed this from test_ignored_helper_is_in_the_commit on purpose.
+        # The helper stays out. git status hides it, so the reviewed set is only
+        # src/calc.py, the commit succeeds, and the archive recheck fails.
+        # scope-commit-mismatch does not fire on this path.
+        self.assertEqual(data["reason"], "commit-recheck-failed")
+        names = _git(self.repo, "log", "--all", "--name-only", "--pretty=format:")
+        self.assertNotIn("src/helper.py", names)
+        self.assertNotIn("helper.py", data["files_changed"])
 
     def test_sandboxed_tests_block_push_write_and_tcp(self):
         if not BUILD.bwrap_works():
@@ -1427,14 +1710,50 @@ class LocalBuildTests(unittest.TestCase):
         self.assertIn("/tmp", proc.stderr or "")
 
 
+def _has_prompt_flag(text: str) -> bool:
+    """True for either argparse spelling of -p/--prompt.
+
+    3.13 prints '-p, --prompt PROMPT'. 3.12 prints '-p PROMPT, --prompt PROMPT'.
+    Both the short and long options have to be present.
+    """
+    spelling = "-p, --prompt" in text or "-p PROMPT, --prompt PROMPT" in text
+    return spelling and "-p" in text and "--prompt" in text
+
+
 class CloudBuildUnchangedTests(unittest.TestCase):
     def test_help_and_dry_run_stay_the_same(self):
-        if shutil.which("grok") is None:
-            self.skipTest("SKIP: grok-missing")
+        """Bare help is the cloud card. ./pfy build -p --help keeps dogfood flags.
+
+        Fail: bare ./pfy build --help still lists --prompt-file, so the daily
+        cloud card from plan D1 is hidden. The reverse fail is -p --help
+        showing Daily cloud build and dropping -p, --prompt.
+        Recover: bare help names ./pfy build "<task>" and points at -p and
+        --local. -p --help lists the dogfood flags. -p x --dry-run still
+        prints READY and leaves no new receipt directory entries.
+        A host with no grok binary, including the ubuntu G0 job, still runs
+        these checks. A fake grok on PATH is enough: dry-run does not exec it.
+        Fail: the test skips when grok is missing, so the cloud card is never
+        compared to the dogfood help.
+        """
         env = os.environ.copy()
-        env["TMPDIR"] = str(ROOT / "tmp" / "scratch")
-        receipt_root = ROOT / "pipelines" / "dogfood" / "build"
-        before = {path.name for path in receipt_root.iterdir()} if receipt_root.is_dir() else set()
+        scratch = ROOT / "tmp" / "scratch"
+        scratch.mkdir(parents=True, exist_ok=True)
+        env["TMPDIR"] = str(scratch)
+        fake_bin = scratch / "fake-grok-path"
+        fake_bin.mkdir(parents=True, exist_ok=True)
+        fake = fake_bin / "grok"
+        fake.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        fake.chmod(0o755)
+        env["PATH"] = str(fake_bin) + os.pathsep + env.get("PATH", "")
+        receipt_roots = (
+            ROOT / "pipelines" / "dogfood" / "build",
+            ROOT / "pipelines" / "dogfood" / "build-cloud",
+        )
+
+        def names(path):
+            return {child.name for child in path.iterdir()} if path.is_dir() else set()
+
+        before = {path: names(path) for path in receipt_roots}
         try:
             help_proc = subprocess.run(
                 [str(ROOT / "pfy"), "build", "--help"],
@@ -1445,11 +1764,34 @@ class CloudBuildUnchangedTests(unittest.TestCase):
                 timeout=30,
             )
             self.assertEqual(help_proc.returncode, 0, help_proc.stderr)
-            help_text = help_proc.stdout or ""
+            help_text = (help_proc.stdout or "") + (help_proc.stderr or "")
             self.assertIn("usage: pfy build", help_text)
+            self.assertIn("Daily cloud build", help_text)
+            self.assertIn('./pfy build "<task>"', help_text)
+            self.assertIn("jev dogfood wrap", help_text)
+            self.assertIn("opt-in fallback", help_text)
+            self.assertIn("--local", help_text)
             self.assertIn("--dry-run", help_text)
-            self.assertIn("--prompt-file", help_text)
-            self.assertIn("-p, --prompt", help_text)
+            self.assertNotIn("--prompt-file", help_text)
+            self.assertFalse(_has_prompt_flag(help_text), help_text)
+            dogfood = subprocess.run(
+                [str(ROOT / "pfy"), "build", "-p", "--help"],
+                cwd=ROOT,
+                env=env,
+                text=True,
+                capture_output=True,
+                timeout=30,
+            )
+            self.assertEqual(dogfood.returncode, 0, dogfood.stderr)
+            dogfood_text = (dogfood.stdout or "") + (dogfood.stderr or "")
+            self.assertIn("usage: pfy build", dogfood_text)
+            self.assertIn("Apply local jev toolset", dogfood_text)
+            self.assertIn("--dry-run", dogfood_text)
+            self.assertIn("--prompt-file", dogfood_text)
+            self.assertIn("-p", dogfood_text)
+            self.assertIn("--prompt", dogfood_text)
+            self.assertTrue(_has_prompt_flag(dogfood_text), dogfood_text)
+            self.assertNotIn("Daily cloud build", dogfood_text)
             dry = subprocess.run(
                 [str(ROOT / "pfy"), "build", "-p", "x", "--dry-run"],
                 cwd=ROOT,
@@ -1463,15 +1805,17 @@ class CloudBuildUnchangedTests(unittest.TestCase):
             self.assertIn("READY", dry.stdout)
             self.assertIn("receipt:", dry.stdout)
         finally:
-            if receipt_root.is_dir():
+            for receipt_root, seen in before.items():
+                if not receipt_root.is_dir():
+                    continue
                 for child in list(receipt_root.iterdir()):
-                    if child.name not in before:
+                    if child.name not in seen:
                         if child.is_dir():
                             shutil.rmtree(child, ignore_errors=True)
                         else:
                             child.unlink(missing_ok=True)
-        after = {path.name for path in receipt_root.iterdir()} if receipt_root.is_dir() else set()
-        self.assertEqual(after, before)
+        for receipt_root, seen in before.items():
+            self.assertEqual(names(receipt_root), seen)
 
     def test_real_opencode_accepts_the_flags_we_pass(self):
         binary = shutil.which("opencode")

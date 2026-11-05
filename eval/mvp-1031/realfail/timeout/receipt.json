@@ -1,0 +1,36 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "TIMEOUT",
+  "reason": "timeout",
+  "exit_code": 3,
+  "branch": null,
+  "commit": null,
+  "base": "HEAD",
+  "review": {
+    "verdict": null,
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "TIMEOUT",
+      "reason": "timeout",
+      "output_tail": "I'll add the one-line comment at the top of `app.py` and then run the gate check."
+    }
+  ],
+  "gate": {
+    "cmd": "python3 -c 'print(\"gate-ok\")'",
+    "before": {
+      "cmd": "python3 -c 'print(\"gate-ok\")'",
+      "exit": 0,
+      "tail": "gate-ok\n",
+      "started": true
+    },
+    "after": null
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": true,
+  "task": "Add a one line comment at the top of app.py that says hello from pfy.",
+  "finished_at": "2026-10-31T20:34:19Z"
+}

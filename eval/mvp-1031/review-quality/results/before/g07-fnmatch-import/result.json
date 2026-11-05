@@ -1,0 +1,11 @@
+{
+  "id": "g07-fnmatch-import",
+  "expect": "accept",
+  "bug": "",
+  "status": "done",
+  "verdict": "accept",
+  "reasons": [],
+  "elapsed_s": 13.311,
+  "grok_status": "done",
+  "code": 0
+}

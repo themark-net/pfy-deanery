@@ -46,13 +46,14 @@ import json
 import os
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
 import time
 from pathlib import Path
 
-from smoke import TMP, run_isolated, timeout_reason, write
+from smoke import TMP, run_isolated, timeout_reason, walk_nofollow, write
 
 OVERTIME_PIN = "0.5.3"
 # festival v0.3.20 festival-0.3.20-linux-x86_64.tar.gz (tarball sha256
@@ -109,15 +110,40 @@ def containment(home: str, writable: list[str], bare: str) -> str:
 
 
 def tree_sig(p: Path) -> str | None:
+    """Content, lstat mode, and symlink text. mtime is ignored and links are not followed."""
     if not p.exists():
         return None
     h = hashlib.sha256()
-    for f in sorted(p.rglob("*")):
+    # Root symlink: lstat mode and readlink, so a retarget shows when the
+    # directory holds the same bytes. Children are hashed below. mtime stays out.
+    if p.is_symlink():
         try:
-            st = f.stat()
-            h.update(f"{f}:{st.st_size}:{st.st_mtime_ns}".encode())
+            st = p.lstat()
+            mode = f"{stat.S_IMODE(st.st_mode):o}"
+            h.update(f"{p}:{mode}:link:{os.readlink(p)}\n".encode())
         except OSError:
-            pass
+            h.update(f"{p}:unreadable\n".encode())
+    for f in sorted(walk_nofollow(p)):
+        try:
+            st = f.lstat()
+        except OSError:
+            h.update(f"{f}:unreadable\n".encode())
+            continue
+        mode = stat.S_IMODE(st.st_mode)
+        try:
+            if stat.S_ISLNK(st.st_mode):
+                h.update(f"{f}:{mode:o}:link:{os.readlink(f)}\n".encode())
+            elif stat.S_ISREG(st.st_mode):
+                fh = hashlib.sha256()
+                with f.open("rb") as fp:  # 1 MiB chunks; a large file stays out of RAM
+                    for chunk in iter(lambda: fp.read(1 << 20), b""):
+                        fh.update(chunk)
+                h.update(f"{f}:{mode:o}:{st.st_size}:{fh.hexdigest()}\n".encode())
+            else:
+                kind = "dir" if stat.S_ISDIR(st.st_mode) else "other"
+                h.update(f"{f}:{mode:o}:{kind}\n".encode())
+        except OSError:
+            h.update(f"{f}:{mode:o}:unreadable\n".encode())
     return h.hexdigest()
 
 
@@ -163,6 +189,8 @@ def smoke_overtime(r: dict) -> int:
     before = tree_sig(real)
     r["containment"] = "real-home-check (daemon is detached; no bwrap)"
     timed_out: subprocess.TimeoutExpired | None = None
+    stop_timeout_reason: str | None = None
+    timeout_step = "overtime"
     try:
         with tempfile.TemporaryDirectory(prefix="pfy-overtime-") as td:
             home = Path(td) / "home"
@@ -174,7 +202,11 @@ def smoke_overtime(r: dict) -> int:
             ot = [node, str(pkg / "dist/bin.js")]
             steps = r.setdefault("steps", [])
             try:
-                p = sh(ot + ["new", "smoke-agent"], home=home_s, path=path)
+                try:
+                    p = sh(ot + ["new", "smoke-agent"], home=home_s, path=path)
+                except subprocess.TimeoutExpired:
+                    timeout_step = "new"
+                    raise
                 steps.append({"new": p.returncode})
                 a = home / "overtime/agents/smoke-agent"
                 if p.returncode != 0 or not (a / "AGENT.md").is_file() or not (a / ".overtime/settings.json").is_file():
@@ -213,7 +245,8 @@ def smoke_overtime(r: dict) -> int:
                     p = sh(ot + ["daemon", "stop"], home=home_s, path=path)
                     steps.append({"daemon_stop": p.returncode})
                 except subprocess.TimeoutExpired as e:
-                    steps.append({"daemon_stop": timeout_reason("overtime daemon stop", float(e.timeout))})
+                    stop_timeout_reason = timeout_reason("overtime daemon stop", float(e.timeout))
+                    steps.append({"daemon_stop": stop_timeout_reason})
                 time.sleep(1)
             lock = home / "overtime/overtimed.lock"
             alive = False
@@ -228,13 +261,17 @@ def smoke_overtime(r: dict) -> int:
             if alive:
                 r["reason"] = "daemon still running after `daemon stop`"
                 return 1
+            # Home check runs next. A stop timeout is still a failure, after that check.
     except subprocess.TimeoutExpired as e:
         timed_out = e
     if tree_sig(real) != before:
         r["reason"] = "real HOME ~/overtime was created or changed"
         return 1
     if timed_out is not None:
-        r["reason"] = timeout_reason("overtime", float(timed_out.timeout))
+        r["reason"] = timeout_reason(timeout_step, float(timed_out.timeout))
+        return 1
+    if stop_timeout_reason is not None:
+        r["reason"] = stop_timeout_reason
         return 1
     r["reason"] = "agent created, listed, budget/protect set and shown, no session run, daemon stopped, real HOME untouched"
     return 0
@@ -270,7 +307,11 @@ def smoke_festival(r: dict) -> int:
                  "GIT_COMMITTER_NAME": "smoke", "GIT_COMMITTER_EMAIL": "smoke@localhost"}
         r["containment"] = containment(home_s, [td], "real-home-check")
         W = lambda c, cwd=None: sh(c, home=home_s, path=path, cwd=cwd, extra=extra, bwrap_writable=[td])
-        p = W([fest, "--version"])
+        try:
+            p = W([fest, "--version"])
+        except subprocess.TimeoutExpired as e:
+            r["reason"] = timeout_reason("version", float(e.timeout))
+            return 1
         r["version"] = p.stdout.strip()
         p = W([camp, "create", "smokecamp", "-d", "smoke", "-m", "smoke mission"])
         root = home / "campaigns/smokecamp"

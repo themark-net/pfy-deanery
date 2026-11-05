@@ -1,0 +1,14 @@
+diff --git a/examples/x-intake-local/smoke_109_111.py b/examples/x-intake-local/smoke_109_111.py
+index ac4a9fa..8af2da0 100644
+--- a/examples/x-intake-local/smoke_109_111.py
++++ b/examples/x-intake-local/smoke_109_111.py
+@@ -193,9 +193,6 @@ def state_snapshot(paths: list[Path]) -> dict:
+     for p in paths:
+         try:
+             os.lstat(p)
+-        except FileNotFoundError:
+-            out[str(p)] = None
+-            continue
+         except OSError:
+             out[str(p)] = hashlib.sha256(f"{p}:unreadable\n".encode()).hexdigest()
+             continue

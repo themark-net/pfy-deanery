@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/pfylib-hedge-py-save-ledger-writes-with-20261101T011724111689Z",
+  "commit": "e8cc4f32bca3464bcac88cd5f54f7333f5f84185",
+  "base": "HEAD",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll change only `save_ledger` so it writes a temp file and replaces the ledger path without following a symlink. First I'm reading the current function and the symlink test.`save_ledger` uses `Path.write_text`, which follows a symlink. I'll write a temp file in the same directory and `os.replace` it onto the ledger path so the link is replaced and the target is left alone.`save_ledger` now writes the ledger through a temp file in the same directory and `os.replace`s it onto the ledger path. The symlink is replaced, and its target is never opened.\n\n- A mode-000 target stays byte-for-byte.\n- After the save, the ledger path is a regular file and `load_ledger` reads the new entries.\n- A ledger that is already a regular file still updates, and `load_ledger` still returns those entries.\n\n`decide`, `record`, and `load_ledger` are unchanged. `python3 -m unittest tests.test_hedge_ledger_symlink tests.test_hedge` passed (17 tests).\n\nI'll check the diff against `save_ledger` only: temp file in the same directory, `os.replace`, no symlink follow, and no extra edits.verdict: accept\n\n`save_ledger` is the only behavior change. It writes a same-directory temp file and `os.replace`s it onto the ledger path, so a symlink is swapped and its mode-000 target is never opened. `decide`, `record`, `load_ledger`, and the tests are untouched.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "python3 -m unittest tests.test_hedge_ledger_symlink",
+    "before": {
+      "cmd": "python3 -m unittest tests.test_hedge_ledger_symlink",
+      "exit": 1,
+      "tail": "\nE\n======================================================================\nERROR: test_symlink_ledger_is_replaced_and_regular_file_still_loads (tests.test_hedge_ledger_symlink.HedgeLedgerSymlinkTests.test_symlink_ledger_is_replaced_and_regular_file_still_loads)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-selfhost2-1031/tmp/selfhost2-clones/target-10/tmp/cloud-build/20261101T011724111689Z/tests/test_hedge_ledger_symlink.py\", line 42, in test_symlink_ledger_is_replaced_and_regular_file_still_loads\n    got = hedge.save_ledger(ledger, state)\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-selfhost2-1031/tmp/selfhost2-clones/target-10/tmp/cloud-build/20261101T011724111689Z/pfylib/hedge.py\", line 122, in save_ledger\n    path.write_text(json.dumps(payload, indent=2) + \"\\n\", encoding=\"utf-8\")\n    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.14/pathlib/__init__.py\", line 810, in write_text\n    with self.open(mode='w', encoding=encoding, errors=errors, newline=newline) as f:\n         ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.14/pathlib/__init__.py\", line 772, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nPermissionError: [Errno 13] Permission denied: '/home/mark/DEVELOP/pfy-mentat/tmp/mvp-selfhost2-1031/tmp/selfhost2-clones/target-10/tmp/cloud-build/20261101T011724111689Z/tmp/selfhost2-tests/hedge-ledger-wgj0wxk1/state/hedge-ledger.json'\n\n----------------------------------------------------------------------\nRan 1 test in 0.001s\n\nFAILED (errors=1)\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "python3 -m unittest tests.test_hedge_ledger_symlink",
+      "exit": 0,
+      "tail": "\n.\n----------------------------------------------------------------------\nRan 1 test in 0.001s\n\nOK\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": true,
+  "task": "pfylib/hedge.py save_ledger writes with Path.write_text. write_text follows a symlink, so a mode-000 target raises and a readable target is overwritten.\n\nChange only save_ledger. Do not edit tests. Write the ledger by creating a temp file in the same directory and os.replace onto the ledger path, so a symlink is replaced and is not followed. Do not open the target. A mode-000 target must stay byte-for-byte. After the save, the ledger path is a regular file and load_ledger reads the new entries. A ledger that is already a regular file still updates and load_ledger still returns those entries. Do not change decide, record, or load_ledger.",
+  "finished_at": "2026-11-01T01:19:36Z"
+}

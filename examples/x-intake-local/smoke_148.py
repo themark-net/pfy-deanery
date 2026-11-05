@@ -20,9 +20,11 @@ and ~/.config/skillspector are unchanged.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -47,6 +49,11 @@ def receipt_dir() -> Path:
 
 
 def finish(code: int, rec: dict) -> int:
+    # Unset or empty keeps pipelines/smoke/skillspector. A relative path is refused: resolving it from cwd can clobber a real receipt.
+    raw = os.environ.get("PFY_SMOKE_RECEIPT_DIR")
+    if raw and not Path(raw).is_absolute():
+        print(f"PFY_SMOKE_RECEIPT_DIR must be absolute; directory refused: {raw}")
+        return 1
     rec["exit"] = code
     rec["status"] = {0: "PASS", 1: "FAIL", 2: "SKIP"}[code]
     rec["finished_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
@@ -75,15 +82,82 @@ def bwrap_ok() -> bool:
     return p.returncode == 0
 
 
+# One shared helper. Loaded by path in tests, so put this directory on sys.path.
+_HERE = str(Path(__file__).resolve().parent)
+if _HERE not in sys.path:
+    sys.path.insert(0, _HERE)
+from xintake_walk import walk_nofollow  # noqa: E402
+
+
 def home_sig(home: Path) -> dict:
+    """One entry per watched path. None when missing.
+
+    A regular file keeps permission bits, mtime_ns, and a streamed sha256, so a chmod, an mtime-only
+    touch, or a same-size edit that puts the old mtime back all change the signature. A symlink keeps
+    permission bits and its readlink and is not opened, so a retarget shows and an outside target's bytes
+    do not. Replacing a link with the same target matches, because the link mtime is not stored. The
+    watched directory's own mtime is left out: adding or replacing a child updates it even when that
+    child's recorded state is unchanged. An unreadable regular file is recorded and does not raise.
+    """
+
+    def digest(path: Path) -> str:
+        h = hashlib.sha256()
+        with path.open("rb") as fp:  # 1 MiB chunks, so a large file is not loaded whole
+            for chunk in iter(lambda: fp.read(1 << 20), b""):
+                h.update(chunk)
+        return h.hexdigest()
+
+    def describe(path: Path, root: Path) -> tuple:
+        st = path.lstat()
+        mode = stat.S_IMODE(st.st_mode)
+        name = str(path.relative_to(root))
+        if stat.S_ISLNK(st.st_mode):
+            return (name, "link", mode, os.readlink(path))
+        if stat.S_ISREG(st.st_mode):
+            try:
+                body = digest(path)
+            except OSError:
+                body = "unreadable"
+            return (name, "file", mode, st.st_mtime_ns, st.st_size, body)
+        if stat.S_ISDIR(st.st_mode):
+            return (name, "dir", mode, st.st_mtime_ns)
+        return (name, "other", mode, st.st_mtime_ns, st.st_size)
+
     sig = {}
     for rel in WATCHED:
         p = home / rel
-        if p.exists():
-            sig[rel] = sorted((str(q.relative_to(p)), q.stat().st_size, q.stat().st_mtime_ns)
-                              for q in p.rglob("*")) if p.is_dir() else [p.stat().st_size, p.stat().st_mtime_ns]
-        else:
+        try:
+            st = p.lstat()
+        except FileNotFoundError:
             sig[rel] = None
+            continue
+        except OSError:
+            sig[rel] = ("unreadable",)
+            continue
+        mode = stat.S_IMODE(st.st_mode)
+        if stat.S_ISLNK(st.st_mode):
+            sig[rel] = ("link", mode, os.readlink(p))
+        elif stat.S_ISDIR(st.st_mode):
+            try:
+                kids = walk_nofollow(p)
+            except OSError:
+                sig[rel] = ("dir", mode, "unlistable")
+                continue
+            rows = []
+            for q in kids:
+                try:
+                    rows.append(describe(q, p))
+                except OSError:
+                    rows.append((str(q.relative_to(p)), "unreadable"))
+            sig[rel] = ("dir", mode, sorted(rows))
+        elif stat.S_ISREG(st.st_mode):
+            try:
+                body = digest(p)
+            except OSError:
+                body = "unreadable"
+            sig[rel] = ("file", mode, st.st_mtime_ns, st.st_size, body)
+        else:
+            sig[rel] = ("other", mode, st.st_mtime_ns, st.st_size)
     return sig
 
 

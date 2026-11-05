@@ -135,9 +135,21 @@ def node_major(node: str, home: str, cwd: str) -> int | None:
 
 
 def tree_hash(p: Path) -> str:
+    # is_symlink before is_file: is_file follows the link, so a mode-000 target raises
+    # and an edit outside the tree changes the digest. rglob is not given
+    # recurse_symlinks (3.13+); on 3.12 it already does not walk a linked directory.
     h = hashlib.sha256()
-    for f in sorted(x for x in p.rglob("*") if x.is_file()):
-        h.update(str(f.relative_to(p)).encode() + b"\0" + f.read_bytes() + b"\0")
+    rows = []
+    for f in p.rglob("*"):
+        if f.is_symlink():
+            data = os.readlink(f).encode()
+        elif f.is_file():
+            data = f.read_bytes()
+        else:
+            continue
+        rows.append((f, data))
+    for f, data in sorted(rows, key=lambda item: item[0]):
+        h.update(str(f.relative_to(p)).encode() + b"\0" + data + b"\0")
     return h.hexdigest()
 
 

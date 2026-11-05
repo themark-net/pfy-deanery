@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/edit-only-scripts-pfy-board-py-do-not-ed-20261031T210626285728Z",
+  "commit": "51f4cd74e301c58dadf097fe9675a886b4ed2512",
+  "base": "demo-base",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll refactor only `scripts/pfy-board.py`: add `_load_script` and point the first three loaders at it, leaving the other two loaders and every call site as they are.The gate checks a shared `_load_script` and the next three loaders. I'll read that gate so the edit matches it exactly.The tree is clean. I'll add `_load_script` and turn the three named loaders into one-line wrappers, leaving the earlier loaders and `_load_recommend_207` inline.`scripts/pfy-board.py` now shares one loader for the next three attach helpers. `python3 dogfood_gate.py` printed `gate-ok`.\n\n- `_load_script` loads `scripts/<filename>` as `module_name` and returns `(None, error)` when the file is missing or the module raises.\n- `_load_attach_220`, `_load_attach_221`, and `_load_attach_mode_208` keep their names and docstrings and each return that helper.\n- `_load_enterable_162`, `_load_attach_196`, `_load_attach_202`, and `_load_recommend_207` still use their own `spec_from_file_location` bodies. Call sites and `ROOT` are unchanged.\n\nThe diff is 10 insertions and 26 deletions, only in `scripts/pfy-board.py`. Nothing was committed or pushed.\n\nI'll check the diff against the task: only `scripts/pfy-board.py`, the three loaders become `_load_script` wrappers, and nothing else moves.verdict: accept\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "python3 dogfood_gate.py",
+    "before": {
+      "cmd": "python3 dogfood_gate.py",
+      "exit": 1,
+      "tail": "missing _load_script\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "python3 dogfood_gate.py",
+      "exit": 0,
+      "tail": "gate-ok\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": true,
+  "task": "Edit only scripts/pfy-board.py. Do not edit dogfood_gate.py. Do not edit any file under tests/. Do not add a file. Do not commit. Do not push.\n\nThis is a refactor under 50 changed lines. The first three loaders stay as they are.\n\nAdd this helper if it is not already there:\n\ndef _load_script(module_name, filename):\n    \"\"\"Load scripts/<filename> as module_name, or return (None, error).\"\"\"\n    import importlib.util\n    path = ROOT / \"scripts\" / filename\n    if not path.is_file():\n        return None, str(path)\n    try:\n        spec = importlib.util.spec_from_file_location(module_name, path)\n        mod = importlib.util.module_from_spec(spec)\n        spec.loader.exec_module(mod)\n        return mod, \"\"\n    except Exception as e:\n        return None, str(e)[:400]\n\nKeep these three functions, with the same names and the same docstrings, and make each one only return _load_script:\n\n- _load_attach_220 returns _load_script(\"pfy_attach_usable_220\", \"pfy_attach_usable_220.py\")\n- _load_attach_221 returns _load_script(\"pfy_attach_usable_221\", \"pfy_attach_usable_221.py\")\n- _load_attach_mode_208 returns _load_script(\"pfy_attach_mode_208\", \"pfy_attach_mode_208.py\")\n\nLeave _load_enterable_162 and _load_recommend_207 unchanged, still with their own spec_from_file_location body.\n\nDo not change call sites. Do not change ROOT. The diff of scripts/pfy-board.py must stay at or under 50 lines added plus deleted, and no other tracked file may change.",
+  "finished_at": "2026-10-31T21:08:36Z"
+}

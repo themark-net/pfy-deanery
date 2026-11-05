@@ -119,4 +119,4 @@ Shared body (FreeToken-first probe, child env via #205/#208, models+smoke prove,
 
 ### Extension points (T-0124)
 
-Add a `_plan_<toolset>()` in `toolsets.py`, register it in `_PLANNERS`, import the legacy module through `_legacy.load("<script stem>")`, and flip the relevant cells in `data/toolsets.json` only to the status the code earns. Add a test in `tests/test_toolsets.py` asserting non-empty `env`/`files`/`brief` (or honest FAIL) for every non-stub cell. OpenCode attach is `attach.open_opencode_session`, which writes OpenCode config, skills, and tools env.
+Add a `_plan_<toolset>()` in `toolsets.py`, register it in `_PLANNERS`, import the legacy module through `_legacy.load("<script stem>")`, and flip the relevant cells in `data/toolsets.json` only to the status the code earns. Add a test in `tests/test_toolsets.py` asserting non-empty `env`/`files`/`brief` (or honest FAIL) for every non-stub cell. OpenCode attach is `attach.open_opencode_session`, which writes OpenCode config, skills, and tools env. `scripts/pfy_enterable_162_b.py` remains the shim (T-0124). The four harnesses stay on `open_session`.

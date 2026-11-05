@@ -1,0 +1,2 @@
+I'll check the `files_changed` change against the task and the reject rules before giving a verdict.verdict: accept
+reasons: The change skips only `.project-map` and `.project-map/` the same way `tmp` is skipped, and it does not ignore other dot directories or trip any reject rule.

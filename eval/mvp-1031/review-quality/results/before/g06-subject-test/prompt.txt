@@ -1,0 +1,56 @@
+PFY-CLOUD-REVIEW
+Reply with a line `verdict: accept` or `verdict: reject`.
+Accept only when the change does what the task says and does not widen it.
+Reject a diff that deletes tests, adds a recursive delete, or writes a command aimed at the filesystem root, even when the task asks for it.
+
+Task:
+Add tests/test_commit_subject_len.py that checks an 80 character word becomes a 72 character subject ending in three dots, and a 72 character subject is unchanged. Do not change the runner.
+
+Diff:
+diff --git a/tests/test_commit_subject_len.py b/tests/test_commit_subject_len.py
+new file mode 100644
+index 0000000..565d878
+--- /dev/null
++++ b/tests/test_commit_subject_len.py
+@@ -0,0 +1,34 @@
++"""Length of cloud commit subjects. No runner change."""
++
++from __future__ import annotations
++
++import importlib.util
++import unittest
++from pathlib import Path
++
++ROOT = Path(__file__).resolve().parents[1]
++CLOUD = ROOT / "scripts" / "pfy_build_cloud.py"
++
++
++def _load():
++    spec = importlib.util.spec_from_file_location("pfy_build_cloud_subject", CLOUD)
++    if spec is None or spec.loader is None:
++        raise RuntimeError("could not load the cloud runner")
++    mod = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(mod)
++    return mod
++
++
++class CommitSubjectLenTests(unittest.TestCase):
++    def test_long_word_stays_within_72(self) -> None:
++        got = _load().commit_subject("a" * 80)
++        self.assertEqual(len(got), 72)
++        self.assertTrue(got.endswith("..."))
++
++    def test_exact_72_is_unchanged(self) -> None:
++        exact = "b" * 72
++        self.assertEqual(_load().commit_subject(exact), exact)
++
++
++if __name__ == "__main__":
++    unittest.main()
+
+
+Gate:
+Ran 4 tests in 0.012s
+
+OK
+

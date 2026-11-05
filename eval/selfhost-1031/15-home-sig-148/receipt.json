@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/see-bytes-in-smoke-148-home-sig-while-ea-20261031T225329651268Z",
+  "commit": "4c52c8e96047983d072e0eab27fed71074294182",
+  "base": "HEAD",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll implement `home_sig` so it still tracks mtime and also sees permission bits, streamed file bytes, and symlink targets. First I'll read the gate test and the current function.The gate wants `home_sig` to keep mtime and also see mode, streamed file bytes, and symlink readlink without following the target. I'll change only that function.`home_sig` in `examples/x-intake-local/smoke_148.py` now sees file bytes, permission bits, and symlink targets, and an mtime-only touch still changes the signature.\n\nEach watched path is still one dict entry, and a missing path is still `None`. A regular file records its permission bits, `mtime_ns`, and a streamed SHA-256, so a chmod, a touch, or a same-size edit with the old mtime restored all show up. A symlink records its permission bits and `readlink` result and is not opened, so retargeting it changes the signature and editing an outside target does not. An unreadable regular file is recorded and does not raise.\n\n`python3 -m unittest tests.test_home_sig_148 tests.test_x_intake_smoke_148.Smoke148.test_missing_binary_exit_2` passed (2 tests). `finish` and `receipt_dir` were not edited. Nothing was committed.\n\nI'll review the `home_sig` change against the task and the existing gate, then give a verdict.verdict: accept\n\n`home_sig` in `examples/x-intake-local/smoke_148.py` is the only edit, plus the `hashlib` and `stat` imports it uses. A missing watched path stays `None`. A regular file keeps permission bits, `mtime_ns`, and a streamed sha256, so a chmod, an mtime-only touch, and a same-size edit that restores mtime all change the signature. A symlink is stored as its permission bits and `readlink` and is not opened, so an outside target edit does not change the signature. An unreadable regular file is recorded and does not raise. `tests.test_home_sig_148` passed.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "python3 -m unittest tests.test_home_sig_148 tests.test_x_intake_smoke_148.Smoke148.test_missing_binary_exit_2",
+    "before": {
+      "cmd": "python3 -m unittest tests.test_home_sig_148 tests.test_x_intake_smoke_148.Smoke148.test_missing_binary_exit_2",
+      "exit": 1,
+      "tail": "\nF.\n======================================================================\nFAIL: test_content_mode_and_symlink_keep_mtime (tests.test_home_sig_148.HomeSig148Tests.test_content_mode_and_symlink_keep_mtime)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-selfhost-1031/tmp/selfhost-clones/target-15/tmp/cloud-build/20261031T225329651268Z/tests/test_home_sig_148.py\", line 50, in test_content_mode_and_symlink_keep_mtime\n    self.assertNotEqual(home_sig(home), before, \"same-size edit with restored mtime was invisible\")\n    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: {'.skillspector': [('note.txt', 5, 1793487209765523833)], '.cache/skillspector': None, '.config/skillspector': None} == {'.skillspector': [('note.txt', 5, 1793487209765523833)], '.cache/skillspector': None, '.config/skillspector': None} : same-size edit with restored mtime was invisible\n\n----------------------------------------------------------------------\nRan 2 tests in 0.030s\n\nFAILED (failures=1)\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "python3 -m unittest tests.test_home_sig_148 tests.test_x_intake_smoke_148.Smoke148.test_missing_binary_exit_2",
+      "exit": 0,
+      "tail": "\n..\n----------------------------------------------------------------------\nRan 2 tests in 0.057s\n\nOK\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": true,
+  "task": "See bytes in smoke_148.home_sig while each mtime-only touch still shows.\n\nEdit only home_sig in examples/x-intake-local/smoke_148.py, plus any import that function needs. Do not edit finish or receipt_dir. Do not edit tests. Do not commit. Do not edit smoke_149.py. Do not import another smoke module.\n\nhome_sig(home) still returns a dict with one entry per watched path. A missing path stays None. An existing path includes mtime, so an mtime-only touch still changes the signature. Include permission bits so a chmod changes it. Stream regular-file bytes so a same-size edit that restores mtime changes it. Record a symlink with its readlink and do not hash the bytes of its target. Editing an outside target must not change the signature. An unreadable regular file must not raise.\n\nNo em dashes or en dashes.\n\nGate already in the tree. Do not edit it:\ntests.test_home_sig_148",
+  "finished_at": "2026-10-31T23:03:31Z"
+}

@@ -1,0 +1,105 @@
+{
+  "task": "t1-smolvm-stderr-first",
+  "level": "trivial",
+  "arm": "L",
+  "base_sha": "997d89264495861a178713ccf7d4447ea828afc4",
+  "planted_sha": "97a8b24a5c60ef5bdd4cf8864289ec27edf3f987",
+  "gate": "python3 -m unittest tests.test_mvp2_t1_smolvm_evidence",
+  "status": "PASS",
+  "reason": "ok",
+  "attempts": 1,
+  "loop_verdict": "accept",
+  "quality_accept": true,
+  "quality_why": "stderr Pulling image is checked before the stdout cache line, and a cache-only stdout line still returns. The docstring matches that order. The agent edited only smoke_109_111.py. The planted gate is unchanged.",
+  "gaming": false,
+  "scope_creep": false,
+  "exit_code": 0,
+  "wall_seconds": 145.121,
+  "agent_seconds": 109.024,
+  "receipt_wall_seconds": 144.998,
+  "diff": {
+    "files": 2,
+    "insertions": 46,
+    "deletions": 5
+  },
+  "attempt_rows": [
+    {
+      "attempt": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "wall_seconds": 144.387,
+      "diff_stats": {
+        "files": 1,
+        "added": 5,
+        "removed": 5,
+        "lines": 10,
+        "paths": [
+          "examples/x-intake-local/smoke_109_111.py"
+        ]
+      },
+      "checks": {
+        "scope": {
+          "ok": true,
+          "outside": [],
+          "skipped": null,
+          "patterns": [
+            "examples/x-intake-local/smoke_109_111.py"
+          ]
+        },
+        "size": {
+          "ok": true,
+          "files": 1,
+          "lines": 10,
+          "max_files": 3,
+          "max_lines": 250,
+          "counted_paths": [
+            "examples/x-intake-local/smoke_109_111.py"
+          ]
+        },
+        "wiring": {
+          "ok": true,
+          "missing": [],
+          "rules": []
+        }
+      },
+      "model_review": {
+        "verdict": "accept",
+        "reasons": [
+          "The diff correctly implements the requested precedence rule where stderr pull lines take priority over stdout cache lines, and updates the docstring to reflect this change. The gate command passes successfully, and only the specified file is modified as instructed."
+        ],
+        "raw_tail": "{\"verdict\": \"accept\", \"reasons\": [\"The diff correctly implements the requested precedence rule where stderr pull lines take priority over stdout cache lines, and updates the docstring to reflect this change. The gate command passes successfully, and only the specified file is modified as instructed.\"]}"
+      },
+      "mem_min_available_gb": 55.558
+    }
+  ],
+  "free_gib_before": 68.779,
+  "receipt_status": "PASS",
+  "receipt_reason": "ok",
+  "branch": "local/t1-smolvm-stderr-pull-wins-level-trivial-20261030T175052372167Z",
+  "commit": "7be571b6553527c3e6ecc2c5eef25e7630e3a5fe",
+  "sandbox": "bwrap-unshare-net",
+  "files_changed": [
+    "examples/x-intake-local/smoke_109_111.py"
+  ],
+  "review": {
+    "enabled": true,
+    "retries": 2,
+    "max_files": 3,
+    "max_lines": 250,
+    "allow_path": [],
+    "require_wiring": []
+  },
+  "canonical_gate": {
+    "acceptance_test_unchanged": true,
+    "exit": 0,
+    "passed": 1,
+    "failed": 0,
+    "errors": 0
+  },
+  "patch": "eval/mvp3/patches/t1-smolvm-stderr-first-L.patch",
+  "mem": {
+    "mem_available_gb": 68.753,
+    "swap_free_gb": 0.005,
+    "min_available_gb": 55.558
+  }
+}

@@ -28,6 +28,12 @@ Branch `bot/mvp-local-build`. Not a Feature GO. Catalog HOLD 70-75 stays. Handof
 |----|------|--------|
 | MVP-1 | Headless `./pfy build --local` plus the offline coding eval | done after fix 2 (Tester FAIL at 42fcc229 closed on `bot/mvp-local-build`; live 8/8 on `qwen3.6:35b`, 617.949 s, stamp `20261027T070700973123Z`, sandbox `bwrap-unshare-net`; stub cheater scores 0; fix-1 8/8 was stamp `20261027T031008578576Z`) |
 | MVP-2 | Use `pfy build --local` for a real build-only task from this file, and compare with cloud Build on cost and pass rate | done on `bot/mvp2-trial` (historical branch name; the report now lives on main; gate local 5/6, cloud 6/6; review accept local 4/6, cloud 6/6; wall 1694 s vs 584 s; no-go as the default). Handoff: [HANDOFF-mvp2-trial.md](ops/HANDOFF-mvp2-trial.md) |
+| MVP-3 | Review-and-retry on `./pfy build --local`, then the six MVP-2 tasks locally | done as a measurement on `bot/mvp3-review-retry` (gate 5/6, loop accept 5/6, human accept 4/6, wall 3859.9 s; no-go as the default). Report: [eval/mvp3/REPORT.md](../eval/mvp3/REPORT.md). Handoff: [HANDOFF-mvp3-review-retry.md](ops/HANDOFF-mvp3-review-retry.md) |
+
+
+## MVP integrate (2026-10-31)
+
+Not a Feature GO. Catalog HOLD 70-75 stays. One cloud `./pfy build` on the mvp-1031 fixture PASSed on `bot/mvp-integrate-1031` (checker exit 0, receipt [eval/mvp-1031/demo-receipt.json](../eval/mvp-1031/demo-receipt.json), fixture commit `ebef4238a7eff8f938747623f7920b3fde74e586`). Handoff: [HANDOFF-mvp-integrate-1031.md](ops/HANDOFF-mvp-integrate-1031.md).
 
 
 ## G8 — Simple harness-agnostic launch (2026-07-31)
@@ -134,7 +140,6 @@ Active work is also tracked as issues: https://github.com/themark-net/pfy-mentat
 |----|----------|--------|------|----------------|---------|-------|
 | T-0016 | P2 | todo | colibri/large model lab under 250GB pool | — | OQ-0008 | [#24](https://github.com/themark-net/pfy-mentat/issues/24) |
 | T-0005 | P2 | doing | Apply integration-stages broadly | — | OQ-0003 | [#21](https://github.com/themark-net/pfy-mentat/issues/21) · 50 handoff cards. Facts recomputed by `scripts/catalog_stage_eval.py`. Stage letter still does not auto-promote |
-| T-0124 | P2 | done | Fold OpenCode enterable (`pfy_enterable_162*`) behind `pfylib/attach.py`; retire `_legacy` as remaining scripts move | - | T-0121 | OpenCode open path is `attach.open_opencode_session`; `pfy_enterable_162_b.py` is a shim. `_legacy` still loads the other scripts |
 | T-0127 | P2 | done | Live atg-compile once the host is quiet (one model: `qwen3.6:35b`, then opt-in coder-next) | — | T-0004 | 2026-10-06: `qwen3.6:35b` exit 0, 2/10 sink-correct, wall 478s. Stage I2. coder-next blocked: 48.19 GiB blob + 25 GiB > 65.3 GiB MemAvailable. Not a Feature GO. Catalog HOLD 70–75. Do not touch eval-harness. |
 
 ---
@@ -154,6 +159,7 @@ Active work is also tracked as issues: https://github.com/themark-net/pfy-mentat
 | T-0110 | P1 | done | Pluggable local runtime (FreeToken, llama-swap, llama-server, Ollama, Shimmy last) | ADR-0014 · [#76](https://github.com/themark-net/pfy-mentat/issues/76) stays closed — do not reopen |
 | T-0090 | P0 | done | Minimal product levers: default `make help` is onboard / stage / ship | `make help-platform` holds cage, smoke, eval · [#1](https://github.com/themark-net/pfy-mentat/issues/1) · [product-operator-surface.md](ops/product-operator-surface.md) |
 | T-0121 | P1 | done | Attach clones → `pfylib/attach.py` + remaining `plan()` bodies wrap legacy scripts (no rewrite) | `data/harnesses.json[].attach`; shims `pfy_attach_usable_{196,202,220,221}`; planners in `pfylib/toolsets.py`; leftover OpenCode 162 = T-0124 |
+| T-0124 | P2 | done | Fold OpenCode enterable (`pfy_enterable_162*`) behind `pfylib/attach.py`; retire `_legacy` as remaining scripts move | OpenCode open path is `attach.open_opencode_session`; `pfy_enterable_162_b.py` is a shim. `_legacy` still loads the other scripts. Depends on T-0121 |
 | T-0125 | P1 | done | Loop UI: catalog modules + live local/cloud hedge | `pfylib/loop_paint.py`; HTML+tk LOCAL COMPUTE \| CLOUD ORCHESTRATION + MODULES; Launch session applies enabled modules |
 | T-0120 | P1 | done | Toolset × harness matrix + jev reference `plan()`/`apply()` | `data/toolsets.json` · `pfylib/`; stacked PRs on this branch |
 | T-0075 | P2 | done | ADR + OQ structural scorers | #5; tasks 006/007 |

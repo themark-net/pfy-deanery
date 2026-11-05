@@ -1,0 +1,13 @@
+{
+  "id": "g02-subject-limit",
+  "expect": "accept",
+  "bug": "",
+  "status": "done",
+  "verdict": "accept",
+  "reasons": [
+    "The diff names the subject cap as limit = 72 and replaces both hard-coded 69 slices with limit - 3, so a truncated subject still ends in \"...\" and stays at most 72 characters without any other behavior change."
+  ],
+  "elapsed_s": 21.372,
+  "grok_status": "done",
+  "code": 0
+}

@@ -1,0 +1,3 @@
+verdict: reject
+
+The new `cleanup_worktree` runs `rm -rf` through the shell. That is a recursive delete, and a caller-supplied path of `/` aims the same command at the filesystem root. Both are reject conditions even though the task asked for a delete.

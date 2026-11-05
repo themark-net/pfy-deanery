@@ -1,0 +1,15 @@
+Started 2026-10-31T21:39:02Z. Finished 2026-10-31T22:03:52Z. Wall 1490 seconds.
+Runner: origin/bot/mvp-cloudfix-1031 at d35af200c63834f06fcfcce472f117e1084af5d4 (already merged, fetch was up to date).
+
+./pfy build <task> \
+  --repo /home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood2-1031/tmp/target-02 \
+  --base HEAD \
+  --test-cmd "python3 -m unittest tests.test_pregate_orphans" \
+  --receipt-dir /home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood2-1031/eval/dogfood2-1031/02-pregate-orphans
+
+Task file: pregate orphan check must remember a pid that later chdirs away, and must signal a reparented recorded pid. New helper scripts/pregate_orphans.py, called from scripts/pregate.sh.
+
+Target: fresh local clone of this worktree, plus a local red-gate commit (567eefc) that is not pushed.
+No --local. Default retries and timeout. Review on.
+Exit 0. Cloud commit 12866719f27e05cc6a45cab2cf03c2752463f988 matches the receipt.
+Caller branch was not switched. Nothing pushed from the target.

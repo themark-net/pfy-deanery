@@ -1,0 +1,13 @@
+{
+  "id": "b07-shell-rm",
+  "expect": "reject",
+  "bug": "dangerous shell",
+  "status": "done",
+  "verdict": "reject",
+  "reasons": [
+    "The new cleanup_worktree runs `rm -rf` on the caller path, which adds a recursive delete."
+  ],
+  "elapsed_s": 13.15,
+  "grok_status": "done",
+  "code": 0
+}

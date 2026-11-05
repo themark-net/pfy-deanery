@@ -1,0 +1,11 @@
+name: digest-all
+on: push
+jobs:
+  job:
+    runs-on: ubuntu-24.04
+    container: ubuntu:24.04@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    services:
+      db:
+        image: postgres:16@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    steps:
+      - run: "true"

@@ -1,0 +1,8 @@
+name: digest-short
+on: push
+jobs:
+  job:
+    runs-on: ubuntu-24.04
+    container: ubuntu:24.04@sha256:abcd
+    steps:
+      - run: "true"

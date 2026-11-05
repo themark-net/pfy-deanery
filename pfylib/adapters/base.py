@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 import shutil
+import stat
 import tempfile
 import tomllib
 from pathlib import Path
@@ -59,20 +60,40 @@ def _hash_rows(rows: list[tuple[str, bytes]]) -> str:
 
 def tree_hash(root: Path) -> str:
     rows: list[tuple[str, bytes]] = []
-    for p in root.rglob("*"):
-        if p.is_file():
-            rows.append((p.relative_to(root).as_posix(), p.read_bytes()))
-    rows.sort(key=lambda x: x[0])
+    for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
+        base = Path(dirpath)
+        for name in list(dirnames) + list(filenames):
+            path = base / name
+            info = path.lstat()
+            if stat.S_ISLNK(info.st_mode):
+                data = os.readlink(path).encode("utf-8")
+            elif stat.S_ISREG(info.st_mode):
+                data = path.read_bytes()
+            else:
+                continue
+            rows.append((path.relative_to(root).as_posix(), data))
+    rows.sort()
     return _hash_rows(rows)
 
 
 def desired_skill_hash(src: Path) -> str:
     rows: list[tuple[str, bytes]] = []
-    for p in src.rglob("*"):
-        if p.is_file() and p.name != MARKER_NAME:
-            rows.append((p.relative_to(src).as_posix(), p.read_bytes()))
+    for dirpath, dirnames, filenames in os.walk(src, followlinks=False):
+        base = Path(dirpath)
+        for name in list(dirnames) + list(filenames):
+            if name == MARKER_NAME:
+                continue
+            path = base / name
+            info = path.lstat()
+            if stat.S_ISLNK(info.st_mode):
+                data = os.readlink(path).encode("utf-8")
+            elif stat.S_ISREG(info.st_mode):
+                data = path.read_bytes()
+            else:
+                continue
+            rows.append((path.relative_to(src).as_posix(), data))
     rows.append((MARKER_NAME, MARKER))
-    rows.sort(key=lambda x: x[0])
+    rows.sort()
     return _hash_rows(rows)
 
 
@@ -172,7 +193,7 @@ def install_skill_tree(src: Path, dest: Path) -> tuple[bool, str]:
     if dest.exists():
         shutil.rmtree(dest)
     dest.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copytree(src, dest)
+    shutil.copytree(src, dest, symlinks=True)
     (dest / MARKER_NAME).write_bytes(MARKER)
     got = tree_hash(dest)
     if got != desired:
@@ -242,7 +263,12 @@ def remove_created_file(path: Path, sha: str, item_id: str, kind: str) -> str:
     """Drop a file pfy created, or only its entry when other content remains.
 
     The ledger hash must still match. A mismatch is a user edit: leave the file.
+    A symlink, including a broken link or a link to an unreadable file, is left
+    in place and reported as warn. is_symlink is checked before exists or is_file
+    because those follow the link.
     """
+    if path.is_symlink():
+        return "warn"
     if not path.exists():
         return "absent"
     if not path.is_file() or file_sha(path) != sha:
@@ -261,7 +287,13 @@ def remove_created_file(path: Path, sha: str, item_id: str, kind: str) -> str:
 
 
 def restore_file(path: Path, backup: str, sha: str) -> str:
-    """Copy the backup back when the live hash still matches, then delete that backup."""
+    """Copy the backup back when the live hash still matches, then delete that backup.
+
+    A symlink live path or backup is left untouched and reported as warn.
+    is_symlink is checked before is_file because is_file follows the link.
+    """
+    if path.is_symlink():
+        return "warn"
     if not path.is_file():
         return "absent"
     if file_sha(path) != sha:
@@ -269,6 +301,8 @@ def restore_file(path: Path, backup: str, sha: str) -> str:
     if not backup:
         return "warn"
     bpath = Path(backup)
+    if bpath.is_symlink():
+        return "warn"
     if not bpath.is_file():
         return "warn"
     data = bpath.read_bytes()

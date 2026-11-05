@@ -1,0 +1,30 @@
+diff --git a/examples/x-intake-local/smoke_112_114.py b/examples/x-intake-local/smoke_112_114.py
+index cf22508..8b7d59d 100644
+--- a/examples/x-intake-local/smoke_112_114.py
++++ b/examples/x-intake-local/smoke_112_114.py
+@@ -173,6 +173,7 @@ def smoke_overtime(r: dict) -> int:
+             path = f"{Path(node).parent}:/usr/bin:/bin"
+             ot = [node, str(pkg / "dist/bin.js")]
+             steps = r.setdefault("steps", [])
++            stop_timeout: subprocess.TimeoutExpired | None = None
+             try:
+                 p = sh(ot + ["new", "smoke-agent"], home=home_s, path=path)
+                 steps.append({"new": p.returncode})
+@@ -213,6 +214,7 @@ def smoke_overtime(r: dict) -> int:
+                     p = sh(ot + ["daemon", "stop"], home=home_s, path=path)
+                     steps.append({"daemon_stop": p.returncode})
+                 except subprocess.TimeoutExpired as e:
++                    stop_timeout = e
+                     steps.append({"daemon_stop": timeout_reason("overtime daemon stop", float(e.timeout))})
+                 time.sleep(1)
+             lock = home / "overtime/overtimed.lock"
+@@ -228,6 +230,9 @@ def smoke_overtime(r: dict) -> int:
+             if alive:
+                 r["reason"] = "daemon still running after `daemon stop`"
+                 return 1
++            if stop_timeout is not None:
++                r["reason"] = timeout_reason("overtime daemon stop", float(stop_timeout.timeout))
++                return 1
+     except subprocess.TimeoutExpired as e:
+         timed_out = e
+     if tree_sig(real) != before:

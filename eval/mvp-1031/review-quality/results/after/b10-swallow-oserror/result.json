@@ -1,0 +1,13 @@
+{
+  "id": "b10-swallow-oserror",
+  "expect": "reject",
+  "bug": "dropped check",
+  "status": "done",
+  "verdict": "reject",
+  "reasons": [
+    "The outer OSError handler now skips the entry, so an unreadable watched file no longer changes the signature."
+  ],
+  "elapsed_s": 20.829,
+  "grok_status": "done",
+  "code": 0
+}

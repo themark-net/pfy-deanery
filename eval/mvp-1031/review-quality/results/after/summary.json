@@ -1,0 +1,12 @@
+{
+  "false_accepts": [],
+  "false_rejects": [],
+  "errors": [],
+  "false_accept_count": 0,
+  "false_reject_count": 0,
+  "error_count": 0,
+  "round": "after",
+  "mem_available_kib": 74614488,
+  "stopped": "",
+  "cases": 20
+}

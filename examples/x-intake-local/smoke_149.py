@@ -14,9 +14,10 @@ $MEMPALACE_HOME/.cache/chroma/onnx_models/all-MiniLM-L6-v2 (MEMPALACE_HOME defau
 ~/DEVELOP/pfy-mentat/tmp/mempalace/home); without it the smoke exits 2 rather than fetch ~80 MB.
 The smoke copies that HOME into a temp dir, writes a two-note fixture project, then runs `init --yes`, `mine` and two
 `search` queries against a temp palace with a clean env and a timeout ($PFY_XINTAKE_TIMEOUT, default 180 s). Every
-step runs under bwrap with no network and a read-only root. If bwrap is missing or unusable, or a required
-`/proc` or `/dev/shm` mount cannot be made, the smoke exits 2 and never runs MemPalace unsandboxed (same rule as
-Entry 148). Checks: each step exits 0, mine files 2 drawers, each query ranks
+step runs under bwrap with no network and a read-only root. If bwrap is missing or unusable (it cannot bind the
+temp dir, die with its parent, or mount `/proc` or a tmpfs `/dev/shm`), or a required `/proc` or `/dev/shm`
+mount cannot be made, the smoke exits 2 and never runs MemPalace unsandboxed (same rule as Entry 148). Checks:
+each step exits 0, mine files 2 drawers, each query ranks
 the right note first, and real-HOME paths ~/.mempalace, ~/.config/mempalace and ~/.cache/chroma are unchanged.
 """
 from __future__ import annotations
@@ -51,6 +52,11 @@ def receipt_dir() -> Path:
 
 
 def finish(code: int, rec: dict) -> int:
+    # Unset or empty keeps pipelines/smoke/mempalace. A relative path is refused: resolving it from cwd can clobber a real receipt.
+    raw = os.environ.get("PFY_SMOKE_RECEIPT_DIR")
+    if raw and not Path(raw).is_absolute():
+        print(f"PFY_SMOKE_RECEIPT_DIR must be absolute; directory refused: {raw}")
+        return 1
     rec["status"] = {0: "PASS", 1: "FAIL", 2: "SKIP"}[code]
     rec["exit"] = code
     rec["at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
@@ -74,12 +80,23 @@ def find_bin() -> str | None:
 def bwrap_ok() -> bool:
     if not shutil.which("bwrap"):
         return False
-    # Probe with the same required mounts the real run uses, so a bwrap that
-    # cannot mount /proc or a tmpfs /dev/shm fails here as "bwrap is not usable".
-    p = subprocess.run(["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--tmpfs", SHM_PATH,
-                        "--proc", PROC_PATH, "--unshare-net", "true"],
-                       capture_output=True)
-    return p.returncode == 0
+    # Same flags as run(): bind a real temp dir and --die-with-parent, plus the
+    # /proc and tmpfs /dev/shm mounts. A bwrap that rejects any of them is not usable.
+    # Creating the temp dir can fail; that is also "not usable", not an unsandboxed run.
+    probe_dir = None
+    try:
+        probe_dir = tempfile.mkdtemp(prefix="pfy-smoke-149-probe-")
+        p = subprocess.run(
+            ["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--tmpfs", SHM_PATH,
+             "--proc", PROC_PATH, "--bind", probe_dir, probe_dir, "--unshare-net",
+             "--die-with-parent", "true"],
+            capture_output=True)
+        return p.returncode == 0
+    except OSError:
+        return False
+    finally:
+        if probe_dir is not None:
+            shutil.rmtree(probe_dir, ignore_errors=True)
 
 
 def dir_usable(path: str, *, writable: bool) -> bool:
@@ -101,16 +118,62 @@ def sandbox_mount_args() -> tuple[list[str], str | None]:
     return ["--tmpfs", SHM_PATH, "--proc", PROC_PATH], None
 
 
+# One shared helper. Loaded by path in tests, so put this directory on sys.path.
+_HERE = str(Path(__file__).resolve().parent)
+if _HERE not in sys.path:
+    sys.path.insert(0, _HERE)
+from xintake_walk import walk_nofollow  # noqa: E402
+
+
 def home_sig(home: Path) -> dict:
+    """Content, lstat mode, and symlink text per watched path. mtime is ignored; links are not followed."""
+    import hashlib
+    import stat
+
+    def one(p: Path) -> str | None:
+        try:
+            root_st = p.lstat()
+        except FileNotFoundError:
+            return None
+        except OSError:
+            return hashlib.sha256(f"{p}:unreadable\n".encode()).hexdigest()
+        if stat.S_ISDIR(root_st.st_mode):
+            try:
+                nodes = [p, *sorted(walk_nofollow(p))]
+            except OSError:
+                nodes = [p]
+        else:
+            nodes = [p]
+        h = hashlib.sha256()
+        for f in nodes:
+            try:
+                st = f.lstat()
+            except OSError:
+                h.update(f"{f}:unreadable\n".encode())
+                continue
+            mode = stat.S_IMODE(st.st_mode)
+            try:
+                if stat.S_ISLNK(st.st_mode):
+                    h.update(f"{f}:{mode:o}:link:{os.readlink(f)}\n".encode())
+                elif stat.S_ISREG(st.st_mode):
+                    fh = hashlib.sha256()
+                    with f.open("rb") as fp:  # 1 MiB chunks; a large file stays out of RAM
+                        for chunk in iter(lambda: fp.read(1 << 20), b""):
+                            fh.update(chunk)
+                    h.update(f"{f}:{mode:o}:{fh.hexdigest()}\n".encode())
+                else:
+                    kind = "dir" if stat.S_ISDIR(st.st_mode) else "other"
+                    h.update(f"{f}:{mode:o}:{kind}\n".encode())
+            except OSError:
+                h.update(f"{f}:{mode:o}:unreadable\n".encode())
+        return h.hexdigest()
+
     sig = {}
     for rel in WATCHED:
-        p = home / rel
-        if p.is_dir():
-            sig[rel] = sorted((str(q.relative_to(p)), q.stat().st_size, q.stat().st_mtime_ns) for q in p.rglob("*"))
-        elif p.exists():
-            sig[rel] = [p.stat().st_size, p.stat().st_mtime_ns]
-        else:
-            sig[rel] = None
+        try:
+            sig[rel] = one(home / rel)
+        except OSError:
+            sig[rel] = hashlib.sha256(f"{rel}:unreadable\n".encode()).hexdigest()
     return sig
 
 

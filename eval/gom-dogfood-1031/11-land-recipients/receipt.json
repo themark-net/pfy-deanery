@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/t-0034-capture-land-must-copy-recipients-20261031T234559328652Z",
+  "commit": "5d1ecaa4a7a31ddf64307f2d832a0a7203812daa",
+  "base": "3ad836aa63996b0de6c0d74af43ef6be3d427889",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll implement T-0034 so capture copies non-empty `to` and `cc` onto item provenance, and I'll start by reading the test and the capture path.Capture already copies `from` and `reply_to` onto provenance. I'll add the same copy for non-empty `to` and `cc`, and leave empty or missing keys off the item.Capture land now copies non-empty `to` and `cc` from the catch onto the item provenance.\n\nIn `gomjobbar/capture.py`, `land` treats recipients the same way it already treats `from` and `reply_to`. A non-empty string is stored on provenance. A missing or empty value leaves that key off. `message_id` is still copied when present. `raw_source` stays on the catch. Land still does not call IMAP and does not set `submitted`.\n\n`tests/test_land_recipients.py` passed unchanged, along with the mailbox-party and thread-provenance land tests.\n\nI'll check the land change against T-0034 and reject it if it widens the task or hits a hard reject rule.verdict: accept\n\nThe land path copies a non-empty string `to` and `cc` from the catch onto provenance and leaves either key off when the value is missing or empty. `message_id` is unchanged, `raw_source` is not copied, and the diff does not call IMAP, submit, set `submitted`, edit `tests/`, delete tests, or add a recursive or root filesystem command. The gate reports `tests/test_land_recipients.py` passed.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "env JOURNAL_DB_PATH=./tmp/land-recipients-journal.db USE_OLLAMA=false PYTHONDONTWRITEBYTECODE=1 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/tmp/gom-venv/bin/python -m pytest -q -p no:cacheprovider tests/test_land_recipients.py",
+    "before": {
+      "cmd": "env JOURNAL_DB_PATH=./tmp/land-recipients-journal.db USE_OLLAMA=false PYTHONDONTWRITEBYTECODE=1 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/tmp/gom-venv/bin/python -m pytest -q -p no:cacheprovider tests/test_land_recipients.py",
+      "exit": 1,
+      "tail": "F                                                                        [100%]\n=================================== FAILURES ===================================\n__________________________ test_land_copies_to_and_cc __________________________\n\ntmp_path = PosixPath('/home/mark/DEVELOP/jobbar-master/tmp/gom-dogfood-1031-scratch/clones/11-land-recipients/tmp/cloud-build/20261031T234559328652Z/tmp/pytest-of-mark/pytest-0/test_land_copies_to_and_cc0')\n\n    def test_land_copies_to_and_cc(tmp_path: Path) -> None:\n        db_path = tmp_path / \"journal.db\"\n        marker = \"raw-only-in-source\"\n        jb = GomJobbar(db=ExperienceJournalDB(str(db_path)))\n        landed = jb.capture_land(\n            \"land-rcpt-user\",\n            catch={\n                \"ts\": \"2026-10-02T00:00:00Z\",\n                \"subject\": \"Re: shipped the queue\",\n                \"body\": \"added the graph\",\n                \"message_id\": \"mid-child@example\",\n                \"to\": \"ada@example\",\n                \"cc\": \"bee@example\",\n                \"raw_source\": marker,\n            },\n            provenance={\"source\": \"email_fixture\"},\n        )\n        assert landed[\"ok\"] is True\n        prov = landed[\"item\"][\"provenance\"]\n        assert prov.get(\"message_id\") == \"mid-child@example\"\n>       assert prov.get(\"to\") == \"ada@example\"\nE       AssertionError: assert None == 'ada@example'\nE        +  where None = <built-in method get of dict object at 0x7fbe0c914800>('to')\nE        +    where <built-in method get of dict object at 0x7fbe0c914800> = {'source': 'email_fixture', 'landed_at': '2026-10-31T23:45:59.935214+00:00', 'message_id': 'mid-child@example', 'dedupe_key': 'mid:mid-child@example', ...}.get\n\ntests/test_land_recipients.py:38: AssertionError\n----------------------------- Captured stderr call -----------------------------\n2026-10-31 16:45:59 [debug    ] journal upserted               user_key=[redacted]\n=========================== short test summary info ============================\nFAILED tests/test_land_recipients.py::test_land_copies_to_and_cc - AssertionError: assert None == 'ada@example'\n +  where None = <built-in method get of dict object at 0x7fbe0c914800>('to')\n +    where <built-in method get of dict object at 0x7fbe0c914800> = {'source': 'email_fixture', 'landed_at': '2026-10-31T23:45:59.935214+00:00', 'message_id': 'mid-child@example', 'dedupe_key': 'mid:mid-child@example', ...}.get\n1 failed in 0.09s\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "env JOURNAL_DB_PATH=./tmp/land-recipients-journal.db USE_OLLAMA=false PYTHONDONTWRITEBYTECODE=1 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/tmp/gom-venv/bin/python -m pytest -q -p no:cacheprovider tests/test_land_recipients.py",
+      "exit": 0,
+      "tail": ".                                                                        [100%]\n1 passed in 0.05s\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": false,
+  "task": "T-0034: capture land must copy recipients already stored on the catch. When to is a non-empty string, copy it onto the capture item provenance. When cc is a non-empty string, copy it onto provenance. When either field is missing or empty, leave that key off provenance. Keep copying message_id when it is present. Do not copy raw_source onto the item. Do not call IMAP. Do not submit anything and do not set submitted to true (Decision 0006). Do not edit files under tests/. tests/test_land_recipients.py must pass unchanged.",
+  "finished_at": "2026-10-31T23:47:20Z"
+}

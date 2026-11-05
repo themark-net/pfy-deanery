@@ -1,0 +1,228 @@
+{
+  "label": "before",
+  "baseline_only": true,
+  "modules": [
+    "tests.test_pfy_build_cloud"
+  ],
+  "head": "1dd23eeae049e1d25d9634380a8a361914dce8ce",
+  "cloudfix": "0dfc9d1c3f63ee21ff95a2bb683a197825ae0167",
+  "runner_sha256": "f2dd898417eafaf99a70562a36ca0f31e3db7a8112af936b4359d757a05e5c00",
+  "rows": [
+    {
+      "id": "C17",
+      "title": "writable-test allow list ignored",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 24.522,
+      "detail": "FAIL: commit-recheck-failed"
+    },
+    {
+      "id": "C18",
+      "title": "every base test treated as writable",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 25.383,
+      "detail": "FAIL: commit-recheck-failed"
+    },
+    {
+      "id": "C19",
+      "title": "writable-test match is exact, globs do not apply",
+      "status": "survived",
+      "returncode": 0,
+      "seconds": 26.149,
+      "detail": "FAIL: commit-recheck-failed"
+    },
+    {
+      "id": "C20",
+      "title": "git add drops the literal pathspec",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 26.77,
+      "detail": "FAIL: commit-recheck-failed"
+    },
+    {
+      "id": "C21",
+      "title": "git add uses a glob pathspec",
+      "status": "survived",
+      "returncode": 0,
+      "seconds": 25.024,
+      "detail": "FAIL: commit-recheck-failed"
+    },
+    {
+      "id": "C22",
+      "title": "archive recheck skipped",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 26.002,
+      "detail": "FAIL: commit-recheck-failed"
+    },
+    {
+      "id": "C23",
+      "title": "archive recheck timeout counted as a pass",
+      "status": "survived",
+      "returncode": 0,
+      "seconds": 27.095,
+      "detail": "FAIL: commit-recheck-failed"
+    },
+    {
+      "id": "C24",
+      "title": "archive recheck failure does not retry",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 22.936,
+      "detail": "FAIL: commit-recheck-failed"
+    },
+    {
+      "id": "C25",
+      "title": "protected path check skipped",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 14.412,
+      "detail": "FAIL: commit-recheck-failed"
+    },
+    {
+      "id": "C26",
+      "title": "protected ** no longer matches zero directories",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 14.756,
+      "detail": "FAIL: commit-recheck-failed"
+    },
+    {
+      "id": "C27",
+      "title": "protected globs do not match the file basename",
+      "status": "survived",
+      "returncode": 0,
+      "seconds": 15.104,
+      "detail": "FAIL: commit-recheck-failed"
+    },
+    {
+      "id": "C28",
+      "title": "assignment redaction never fires",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 14.74,
+      "detail": "FAIL: commit-recheck-failed"
+    },
+    {
+      "id": "C29",
+      "title": "assignment redaction hides fixture ids",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 15.035,
+      "detail": "FAIL: commit-recheck-failed"
+    },
+    {
+      "id": "C30",
+      "title": "pem block redaction skipped",
+      "status": "survived",
+      "returncode": 0,
+      "seconds": 14.918,
+      "detail": "FAIL: commit-recheck-failed"
+    },
+    {
+      "id": "C31",
+      "title": "product gate keeps secret env vars",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 15.141,
+      "detail": "FAIL: commit-recheck-failed"
+    },
+    {
+      "id": "C32",
+      "title": "uppercase env name is not enough to redact",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 15.188,
+      "detail": "FAIL: commit-recheck-failed"
+    },
+    {
+      "id": "C33",
+      "title": "recovery line stays off the terminal",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 14.668,
+      "detail": "FAIL: commit-recheck-failed"
+    },
+    {
+      "id": "C34",
+      "title": "gate timeout recovery says grok timed out",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 15.088,
+      "detail": "FAIL: commit-recheck-failed"
+    },
+    {
+      "id": "C35",
+      "title": "missing base is a usage error",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 15.144,
+      "detail": "FAIL: commit-recheck-failed"
+    },
+    {
+      "id": "C36",
+      "title": "HEAD mismatch silently builds origin/main",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 14.82,
+      "detail": "FAIL: commit-recheck-failed"
+    },
+    {
+      "id": "C37",
+      "title": "absent origin/main is an error instead of HEAD",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 37.845,
+      "detail": "FAIL: commit-recheck-failed"
+    },
+    {
+      "id": "C38",
+      "title": "timeout does not kill the grok process group",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 20.839,
+      "detail": "FAIL: commit-recheck-failed"
+    },
+    {
+      "id": "C39",
+      "title": "review timeout is a review reject",
+      "status": "survived",
+      "returncode": 0,
+      "seconds": 15.052,
+      "detail": "FAIL: commit-recheck-failed"
+    },
+    {
+      "id": "C40",
+      "title": "before-gate timeout still starts grok",
+      "status": "survived",
+      "returncode": 0,
+      "seconds": 15.233,
+      "detail": "FAIL: commit-recheck-failed"
+    },
+    {
+      "id": "C41",
+      "title": "timeout of zero is accepted",
+      "status": "survived",
+      "returncode": 0,
+      "seconds": 15.407,
+      "detail": "FAIL: commit-recheck-failed"
+    },
+    {
+      "id": "C42",
+      "title": "failure recovery line is empty",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 14.982,
+      "detail": "FAIL: test_every_failure_reason_receipt_has_a_recovery_line (tests.test_pfy_build_cloud.CloudBuildFailureTests.test_every_failure_reason_receipt_has_a_recovery_line)"
+    },
+    {
+      "id": "C43",
+      "title": "missing-base recovery omits the ref",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 14.576,
+      "detail": "FAIL: commit-recheck-failed"
+    }
+  ]
+}

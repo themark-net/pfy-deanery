@@ -1,0 +1,23 @@
+diff --git a/scripts/pfy_build_cloud.py b/scripts/pfy_build_cloud.py
+index 665737d..58cc8e1 100644
+--- a/scripts/pfy_build_cloud.py
++++ b/scripts/pfy_build_cloud.py
+@@ -169,14 +169,15 @@ def commit_subject(task_text: str) -> str:
+     flat = " ".join((task_text or "").split())
+     if not flat:
+         return "task"
+-    if len(flat) <= 72:
++    limit = 72
++    if len(flat) <= limit:
+         return flat
+-    cut = flat[:69]
++    cut = flat[: limit - 3]
+     if " " in cut:
+         cut = cut.rsplit(" ", 1)[0]
+     cut = cut.rstrip()
+     if not cut:
+-        cut = flat[:69].rstrip()
++        cut = flat[: limit - 3].rstrip()
+     return (cut or "task") + "..."
+ 
+ 

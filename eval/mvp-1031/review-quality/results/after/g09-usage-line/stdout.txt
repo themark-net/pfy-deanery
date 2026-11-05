@@ -1,0 +1,2 @@
+I'll check the diff against the task: one HELP_TEXT line that a missing task exits 2, and no flag changes.verdict: accept
+reasons: The diff adds only the HELP_TEXT line that a missing task exits 2 and leaves the -p and --local flag text unchanged.

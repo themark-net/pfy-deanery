@@ -43,6 +43,7 @@ import hashlib
 import json
 import os
 import re
+import stat
 import subprocess
 import sys
 import tempfile
@@ -51,7 +52,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from smoke import TMP, find_bin, pinned, run_isolated, timeout_reason, write
+from smoke import TMP, find_bin, pinned, run_isolated, timeout_reason, walk_nofollow, write
 
 KANDER_PIN = "0.9.5"
 KANDER_SHA = "3a5f8979f94fc1325dbcf9aa30e73831d1db907302c13b5273362313c327e254"  # v0.9.5 kander-linux-amd64
@@ -68,15 +69,41 @@ def tmo() -> float:
 
 
 def tree_sig(p: Path) -> str | None:
+    """Content, lstat mode, and symlink text. mtime is ignored and links are not followed."""
+    import stat
     if not p.exists():
         return None
     h = hashlib.sha256()
-    for f in sorted(p.rglob("*")):
+    # Root symlink: lstat mode and readlink, so a retarget shows when the
+    # directory holds the same bytes. Children are hashed below. mtime stays out.
+    if p.is_symlink():
         try:
-            st = f.stat()
-            h.update(f"{f}:{st.st_size}:{st.st_mtime_ns}".encode())
+            st = p.lstat()
+            mode = f"{stat.S_IMODE(st.st_mode):o}"
+            h.update(f"{p}:{mode}:link:{os.readlink(p)}\n".encode())
         except OSError:
-            pass
+            h.update(f"{p}:unreadable\n".encode())
+    for f in sorted(walk_nofollow(p)):
+        try:
+            st = f.lstat()
+        except OSError:
+            h.update(f"{f}:unreadable\n".encode())
+            continue
+        mode = stat.S_IMODE(st.st_mode)
+        try:
+            if stat.S_ISLNK(st.st_mode):
+                h.update(f"{f}:{mode:o}:link:{os.readlink(f)}\n".encode())
+            elif stat.S_ISREG(st.st_mode):
+                fh = hashlib.sha256()
+                with f.open("rb") as fp:  # 1 MiB chunks; a large file stays out of RAM
+                    for chunk in iter(lambda: fp.read(1 << 20), b""):
+                        fh.update(chunk)
+                h.update(f"{f}:{mode:o}:{st.st_size}:{fh.hexdigest()}\n".encode())
+            else:
+                kind = "dir" if stat.S_ISDIR(st.st_mode) else "other"
+                h.update(f"{f}:{mode:o}:{kind}\n".encode())
+        except OSError:
+            h.update(f"{f}:{mode:o}:unreadable\n".encode())
     return h.hexdigest()
 
 

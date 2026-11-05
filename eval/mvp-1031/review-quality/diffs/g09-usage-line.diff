@@ -1,0 +1,13 @@
+diff --git a/scripts/pfy_build_cloud.py b/scripts/pfy_build_cloud.py
+index 665737d..d0a811e 100644
+--- a/scripts/pfy_build_cloud.py
++++ b/scripts/pfy_build_cloud.py
+@@ -94,6 +94,8 @@ Daily cloud build.
+ 
+   ./pfy build "<task>"
+ 
++A missing task exits 2.
++
+ -p is the jev dogfood wrap (./pfy build -p "<prompt>").
+ --local is the opt-in fallback (./pfy build --local "<task>").
+ """

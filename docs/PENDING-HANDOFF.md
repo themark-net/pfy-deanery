@@ -1,6 +1,23 @@
+## 2026-11-02: mvp-land-1031 (#306)
+
+- Branch: `build/306-mvp-stack` (same tip pushed to `bot/mvp-land-1031` for CI). Not merged. No PR. Not a Feature GO. DevBot fast-forwards `main` after Tester+Reviewer PASS at the pinned SHA.
+- Fixes for the Tester and Reviewer FAIL at `89cc0d2`: BX3 fail-closed review (`3a550e5`, `0d3c0fc`, `0e683b9`, `ff8b881` cherry-picked), Python 3.12 and shallow-clone test fixes, DevBot named for merges, Gom Jobbar spelling.
+- Suite: eval-structural run 41537542671 at `ae24af4`: nimo 3.14 `Ran 1377` OK (skipped=17), Ubuntu 3.12 `Ran 1377` OK (skipped=109). Blocker-fix commit `158b2cf`: run 41547388884: nimo `Ran 1384` OK (skipped=17), Ubuntu `Ran 1384` OK (skipped=109), full-history audit step 8 OK. The run and fresh shallow-clone pregate at the final pin are in a #306 comment.
+- Tester FAIL at `ae24af4` fixed: BX3b local binary new file (`ca3ed8d`), #308 cloud cut or binary diff (`58b497b`), line cap one FAIL (`158b2cf`), S1 patch-ids checked (`191d6b0`), dogfood2 and S1 audits with full history in CI (`a13aea5`).
+- Follow-ups: #307 (bare `./pfy` starts `ollama serve`). #308 is fixed here (`58b497b`) and stays open until main has it.
+- Handoff: [ops/HANDOFF-mvp-land-1031.md](ops/HANDOFF-mvp-land-1031.md). Decisions: [ops/AUTONOMOUS-DECISIONS-2026-11-02.md](ops/AUTONOMOUS-DECISIONS-2026-11-02.md).
+
+## 2026-10-31: mvp-integrate-1031
+
+- Branch: `bot/mvp-integrate-1031`. Not merged. No PR. No tag. Not a Feature GO. Catalog HOLD 70-75 stays.
+- Demo: PASS. One cloud `./pfy build` on a temp fixture. Checker exit 0. Receipt [eval/mvp-1031/demo-receipt.json](../eval/mvp-1031/demo-receipt.json). Fixture branch `cloud/make-add-return-the-sum-of-its-two-argum-20261031T210933627529Z` at `ebef4238a7eff8f938747623f7920b3fde74e586`. The integrate checkout was not the task target.
+- Suite: `nice -n 19 flock ~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock python3 -m unittest discover -s tests -t .` with `TMPDIR` on this worktree `tmp/`. Ran 1048 tests in 668.761s. Failures 2, skipped 16. Details in the handoff.
+- Handoff: [ops/HANDOFF-mvp-integrate-1031.md](ops/HANDOFF-mvp-integrate-1031.md). Report: [../eval/mvp-1031/REPORT.md](../eval/mvp-1031/REPORT.md).
+- Pregate not run: host busy.
+
 ## 2026-10-19: Hermes Agent bake-off (Entry 134)
 
-- **Branch:** `bot/hermes-eval` (worktree `/home/mark/DEVELOP/pfy-mentat/tmp/hermes-eval`). Lands on `main` by fast-forward after the Tester and Reviewer gate (no-PR flow). Not a Feature GO. Mark chooses Hermes as the bot interface (wiring pending; see the handoff).
+- **Branch:** `bot/hermes-eval` (worktree `/home/mark/DEVELOP/pfy-mentat/tmp/hermes-eval`). Landed on `main` by fast-forward after the Tester and Reviewer gate (no-PR flow). Not a Feature GO. Mark chooses Hermes as the bot interface (wiring pending; see the handoff).
 - **Verdict:** NO-WIN. Hermes 26/27 vs `opencode run` 25/27 on `qwen3.6:35b` (+3.70 pp, need +10). Valid tool-call rate 82.61% vs 97.83%. Hermes p50 8.75s vs 47.38s. Wilson intervals overlap.
 - **Handoff:** [eval/HERMES-EVAL-HANDOFF.md](eval/HERMES-EVAL-HANDOFF.md). Write-up [eval/hermes-vs-current.md](eval/hermes-vs-current.md). Entry 134. Item C (adapter plan) skipped.
 - **Isolation:** `~/.hermes` untouched. OpenClaw inactive and disabled. Model: the scored run left it loaded (`results.json` `model_unloaded: false`); the session cleanup unloaded it afterwards (see the handoff). `./tmp/` left in place.

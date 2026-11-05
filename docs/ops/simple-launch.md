@@ -12,7 +12,7 @@ git clone https://github.com/themark-net/pfy-mentat.git
 cd pfy-mentat
 ./pfy setup                 # or: ./pfy setup local-only
 ./pfy status                # ready | partial | stub
-./pfy                       # inference → env-stage → native operator window (no harness exec)
+./pfy                       # env-stage → native window (no engine daemon unless opted in)
 ./pfy board                 # same native window; chips == live status column
 ./pfy start grok            # named harness after inference/stage
 ./pfy up                    # same as bare ./pfy
@@ -28,7 +28,7 @@ cd pfy-mentat
 ./pfy catalog               # usable catalog browse (#209)
 ./pfy catalog ask <name>    # ask attached TUI to implement for next launch
 ./pfy catalog queue <name>  # REAL GitHub issue Design→DevBot (#214; FAIL if no auth)
-./pfy launch               # Loop wizard: compose then Launch session (#225/#224)
+./pfy launch               # one command: fill missing lane/toolsets/harness, then Launch session (#225/#224)
 ./pfy launch compose       # honest lane + enabled tools (#224)
 ./pfy launch brief         # write in-session AGENTS/prompt card (#224)
 ./pfy models pull deepseek-coder:6.7b
@@ -40,15 +40,18 @@ cd pfy-mentat
 
 Install Grok CLI once if missing: `curl -fsSL https://x.ai/cli/install.sh | bash` then `grok login` (missing/unauth grok does not abort the env; another ready adapter such as opencode is attached if present).  
 Install Ollama for the **adapter** path (not the spine): https://ollama.com
-When the detector selects Ollama (or `PFY_LOCAL_RUNTIME=ollama`), `./pfy start` / `./pfy up` wait for real health (`GET /api/tags` or `/v1/models`), then pull/select `PFY_OLLAMA_MODEL` (else `LOCAL_CODER_MODEL`). Honest skip if no name and none installed. Status is **ready** only when the API responds (binary + API down = partial; no binary = missing). `./pfy models pull <name>` still `ollama pull` when Ollama is the live engine.
 
-`./pfy models pull <name>` routes to the live engine. FreeToken (or `ft`/`freetoken` on PATH with no live engine): record the name under `$PFY_STATE_DIR`; next `./pfy` / `./pfy up` uses it for `ft serve --model` (load at serve; no `ft pull`). llama-swap / llama-server: honest skip, no GGUF download. Missing both: honest skip + one-liner, no crash.
+Bare `./pfy`, `./pfy up`, `./pfy start` with no name, and `./pfy board` do not start FreeToken, llama-swap, llama-server, shimmy, or `ollama serve`. When the engine is down they print one line naming that engine and the start command, then open the window with the engine down. Opt in with `PFY_START_ENGINE=1`, `--start-engine`, or yes at the prompt `Start it now? [y/N]`. `./pfy start <harness>` and `./pfy env` still start the engine. `./pfy launch` with a fresh wizard fills lane `local`, toolsets `bare`, and a ready harness (active harness, else grok, else the first ready row) and names those fills in the output.
 
-When the detector selects FreeToken (or `PFY_LOCAL_RUNTIME=freetoken`), `./pfy start` / `./pfy up` start `ft serve --model $model` in the background if `:1919` is not already healthy, then wait for `GET /v1/models` or `/health`. Model env: `PFY_FT_MODEL`, then `LOCAL_CODER_MODEL`, then `FREETOKEN_MODEL`. Missing binary or no model env is an honest skip (one-liner `ft serve --model $PFY_FT_MODEL`), not fake ready. Still down after wait = partial. Do not vendor FreeToken or invent `ft` flags.
+When the operator opts in, or runs named `./pfy start <harness>` or `./pfy env`, and the detector selects Ollama (or `PFY_LOCAL_RUNTIME=ollama`), pfy waits for real health (`GET /api/tags` or `/v1/models`), then pull/select `PFY_OLLAMA_MODEL` (else `LOCAL_CODER_MODEL`). Honest skip if no name and none installed. Status is **ready** only when the API responds (binary + API down = partial; no binary = missing). `./pfy models pull <name>` still `ollama pull` when Ollama is the live engine.
 
-When the detector selects llama-swap (or `PFY_LOCAL_RUNTIME=llama-swap`), `./pfy start` / `./pfy up` start `llama-swap` in the background if `:9292` is not already healthy, then wait for `GET /v1/models` or `/health`. Missing binary is an honest skip (one-liner), not fake ready. Still down after wait = partial.
+`./pfy models pull <name>` routes to the live engine. FreeToken (or `ft`/`freetoken` on PATH with no live engine): record the name under `$PFY_STATE_DIR`; the next opted-in `./pfy` / `./pfy up`, or `./pfy env`, uses it for `ft serve --model` (load at serve; no `ft pull`). llama-swap / llama-server: honest skip, no GGUF download. Missing both: honest skip + one-liner, no crash.
 
-When the detector selects llama-server (or `PFY_LOCAL_RUNTIME=llama-server`), same for `:8080` if a GGUF path is set (`PFY_LLAMA_MODEL`, then `LOCAL_CODER_MODEL` as an existing file). No path, missing binary, or API still down: honest skip / partial. Do not download weights. Shimmy stays an echo stub.
+When the detector selects FreeToken (or `PFY_LOCAL_RUNTIME=freetoken`), an opted-in window command, named `./pfy start <harness>`, or `./pfy env` starts `ft serve --model $model` in the background if `:1919` is not already healthy, then waits for `GET /v1/models` or `/health`. Model env: `PFY_FT_MODEL`, then `LOCAL_CODER_MODEL`, then `FREETOKEN_MODEL`. Missing binary or no model env is an honest skip (one-liner `ft serve --model $PFY_FT_MODEL`), not fake ready. Still down after wait = partial. Do not vendor FreeToken or invent `ft` flags.
+
+When the detector selects llama-swap (or `PFY_LOCAL_RUNTIME=llama-swap`), those same opt-in and named paths start `llama-swap` in the background if `:9292` is not already healthy, then wait for `GET /v1/models` or `/health`. Missing binary is an honest skip (one-liner), not fake ready. Still down after wait = partial.
+
+When the detector selects llama-server (or `PFY_LOCAL_RUNTIME=llama-server`), those same opt-in and named paths start it for `:8080` if a GGUF path is set (`PFY_LLAMA_MODEL`, then `LOCAL_CODER_MODEL` as an existing file). No path, missing binary, or API still down: honest skip / partial. Do not download weights. Shimmy stays an echo stub. Shimmy's opt-in start command is `shimmy serve --bind 127.0.0.1:11435`.
 
 ## Map to old Make levers
 
@@ -56,7 +59,7 @@ When the detector selects llama-server (or `PFY_LOCAL_RUNTIME=llama-server`), sa
 |--------|----------------|
 | `pfy setup` | `make env-init` + `bootstrap/grok-cli/install.sh` |
 | `pfy` / `pfy board` | native operator window (Tauri if built, else already-on-box webkit, else stdlib tk; `--open` browser hatch only) |
-| `pfy start` / `pfy up` | unnamed: same native window. named `pfy start <id>`: inference + env-stage + exec that harness |
+| `pfy start` / `pfy up` | unnamed: same native window, no engine daemon unless opted in. named `pfy start <id>`: inference + env-stage + exec that harness |
 | `pfy stage` | `make env-stage` |
 | `pfy stage --lab` | `make cage-doctor` then `cage-setup` then `cage-up-mcp` (missing Docker: honest skip) |
 | `pfy ship` | `make product-ship` |

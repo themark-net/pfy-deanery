@@ -621,5 +621,22 @@
       "catalog_hold_70_75"
     ],
     "next_gate": "Stay I1. I3 only after a proposal gate pass (gain at least 2 on the 16 held-out cases) and a human merge. This trial's gain was 0."
+  },
+  "DeepSeek-V4.1-Flash-1017 GGUF": {
+    "potential": "low",
+    "uses": "Awareness only. The Dynamic V3.1 GGUF does not fit nimo RAM+VRAM under the file-size plus 8 GiB rule.",
+    "features": [
+      "public MIT GGUF on Hugging Face",
+      "split shards plus a bundled engram file",
+      "fit receipt with byte math"
+    ],
+    "non_goals": [
+      "download_on_nimo",
+      "local_default",
+      "feature_go",
+      "weights_in_git",
+      "touch_mark_ollama"
+    ],
+    "next_gate": "Stay I0. Reconsider only on a host whose RAM+VRAM exceeds the chosen quant file size plus 8 GiB, with at least 50 GB free disk after download, then one MVP-3 pass."
   }
 }

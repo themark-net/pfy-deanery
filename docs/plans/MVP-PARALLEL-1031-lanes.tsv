@@ -1,0 +1,6 @@
+name	branch	base	needs_local	dropin
+mvp-cloud-1031	bot/mvp-cloud-1031	origin/main	no	docs/build-dropins/mvp-cloud-1031.md
+mvp-review-fix-1031	bot/mvp-review-fix-1031	origin/bot/mvp3-review-retry	no	docs/build-dropins/mvp-review-fix-1031.md
+mvp-preflight-1031	bot/mvp-preflight-1031	origin/main	no	docs/build-dropins/mvp-preflight-1031.md
+mvp-surface-1031	bot/mvp-surface-1031	origin/main	no	docs/build-dropins/mvp-surface-1031.md
+mvp-eval-1031	bot/mvp-eval-1031	origin/main	no	docs/build-dropins/mvp-eval-1031.md

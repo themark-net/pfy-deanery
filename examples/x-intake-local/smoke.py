@@ -62,15 +62,31 @@ def node_version_env(home: str) -> dict[str, str]:
 
 
 def write(entry: str, receipt: dict, code: int) -> int:
+    # $PFY_SMOKE_RECEIPT_DIR lets tests write receipts outside the repo (never over a real run's latest.json).
+    # Unset or empty keeps pipelines/smoke. A relative path is refused: resolving it from cwd can clobber a real receipt.
+    raw = os.environ.get("PFY_SMOKE_RECEIPT_DIR")
+    if raw:
+        base = Path(raw)
+        if not base.is_absolute():
+            print(f"PFY_SMOKE_RECEIPT_DIR must be absolute; directory refused: {raw}")
+            return 1
+    else:
+        base = ROOT / "pipelines/smoke"
     receipt["exit_code"] = code
     receipt["verdict"] = {0: "PASS", 1: "FAIL", 2: "FAIL_CANNOT_RUN_HERE"}[code]
-    # $PFY_SMOKE_RECEIPT_DIR lets tests write receipts outside the repo (never over a real run's latest.json)
-    out = Path(os.environ.get("PFY_SMOKE_RECEIPT_DIR") or ROOT / "pipelines/smoke") / entry / "latest.json"
+    out = base / entry / "latest.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(receipt, indent=2, ensure_ascii=False) + "\n")
     print(json.dumps({k: receipt.get(k) for k in ("verdict", "reason")}, ensure_ascii=False))
     print(f"receipt: {out}")
     return code
+
+
+# One shared helper. Loaded by path in tests, so put this directory on sys.path.
+_HERE = str(Path(__file__).resolve().parent)
+if _HERE not in sys.path:
+    sys.path.insert(0, _HERE)
+from xintake_walk import walk_nofollow  # noqa: E402
 
 
 def run(cmd: list[str], cwd: str | None = None, timeout: int = 120) -> subprocess.CompletedProcess:

@@ -1,0 +1,17 @@
+{
+  "false_accepts": [
+    "b01-target-hash-drop",
+    "b04-deleted-assertion",
+    "b05-token-stderr"
+  ],
+  "false_rejects": [],
+  "errors": [],
+  "false_accept_count": 3,
+  "false_reject_count": 0,
+  "error_count": 0,
+  "round": "before",
+  "mem_available_kib": 75676504,
+  "stopped": "",
+  "cases": 20,
+  "note": "b01 first call timed out at 180s with no verdict. The row is the 420s retry."
+}

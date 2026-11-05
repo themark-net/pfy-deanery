@@ -13,20 +13,42 @@ Repository: https://github.com/themark-net/pfy-mentat
 Operator environment: local inference, then product stage (honest skip if a piece is missing), then the native operator window. Loop paints **LOCAL COMPUTE | CLOUD ORCHESTRATION** plus gathered catalog **MODULES**. **Launch session** applies enabled modules into an enterable TUI — that session is the proof. Attach grok/opencode remains on the Attach tab. Do not exec a harness into the GUI process.
 
 ```bash
-./pfy           # inference → env-stage → native window (no harness exec)
+./pfy           # env-stage → native window (no harness exec; no engine daemon unless opted in)
 ./pfy board     # same native window (Tauri if built, else already-on-box webkit, else stdlib tk)
 ./pfy start grok  # named harness after inference/stage (still execs that harness)
-./pfy launch      # Launch session: apply enabled Loop modules, then enterable TUI
+./pfy launch      # one command: fill missing lane local, toolsets bare, ready harness, then the TUI
 ./pfy models    # inspect-only: live GET /v1/models (and Ollama /api/tags); usage if exposed
 ```
 
-Bare `./pfy` / `./pfy up` / `./pfy start` (no name) open the native window. `./pfy board` aliases it. Optional `./pfy board --open` is a browser hatch only (not the main path). Board is not a supervisor.
+Daily build: [docs/QUICKSTART-pfy-build.md](docs/QUICKSTART-pfy-build.md).
+DoD walkthrough: [docs/ops/MVP-DOD-WALKTHROUGH.md](docs/ops/MVP-DOD-WALKTHROUGH.md).
+
+Bare `./pfy`, `./pfy up`, `./pfy start` with no name, and `./pfy board` do not start FreeToken, llama-swap, llama-server, or `ollama serve`. When the engine is down they print one line with the start command and open the window with the engine down. Opt in with `PFY_START_ENGINE=1`, `--start-engine`, or yes at the terminal prompt. `./pfy start <harness>` still starts the engine before that harness. `./pfy env` still starts it. `./pfy board` is the same window. Optional `./pfy board --open` is a browser hatch only (not the main path). Board is not a supervisor.
 
 If continue or agent-cage is the active harness: FAIL and copy `pfy harness use grok` (no grok/opencode fallback). Chips bind `./pfy status` **live** (`missing` not `unknown`).
 
 `./pfy start <harness>` runs inference and stage, then that harness. Listing model tags is not success. Empty `ollama ps` is OK. A missing harness process is not. FreeToken model env: **`PFY_FT_MODEL`** (then `LOCAL_CODER_MODEL` or `FREETOKEN_MODEL`).
 
 Tauri is primary when `gui/operator/src-tauri/target/{release,debug}/pfy-operator` exists. Else already-on-box webkit (`scripts/pfy-gui.py`). Else stdlib tk with the same IA (Loop local/cloud + modules → Launch session, engine status, env-stage, Attach tab for grok / opencode sidecar). pywebview is PFY_GUI_DEV=1 only. The window always opens; not install-tips-as-UI.
+
+## Daily build
+
+Headless cloud build. Review stays on. Nothing is pushed.
+
+```bash
+./pfy build "<task>"
+```
+
+`./pfy build` with no task exits 2 and prints that command. `./pfy build --help` is the flag list. A dry-run (`./pfy build "<task>" --dry-run`) checks the defaults without calling grok:
+
+- Repo: the git toplevel of the current directory. Pass `--repo DIR` to build a different repo. This is not "whatever directory contains the `pfy` script" unless that directory is the current one.
+- Base: `origin/main` when that ref exists, otherwise `HEAD`. Pass `--base REF` to pick another ref. A clone of one non-main branch often has no `origin/main`, so the base is `HEAD`.
+- Gate: `python3 -m unittest discover -s tests -t .`. In this repository that is the full suite. For a small task, pass `--repo` and `--test-cmd`. Worked example: [eval/mvp-1031/README.md](eval/mvp-1031/README.md).
+- One grok call waits up to 1200 seconds (`--timeout`). `--retries` defaults to 2, so 3 attempts. `--no-review` skips the review call.
+- `grok` must already be on `PATH` and logged in (`grok login`). This command does not read `auth.json` and does not load `.env`. It does not start a local model. `--local` is opt-in. `-p` is the jev dogfood wrap, not the daily command.
+- A PASS leaves branch `cloud/<slug>-<stamp>` and `pipelines/dogfood/build-cloud/<stamp>/receipt.json` in the target repo. The caller branch stays as it was. Nothing is pushed.
+
+Operator card: [docs/ops/pfy-build-daily.md](docs/ops/pfy-build-daily.md). Module map: [docs/modules/pfy-build.md](docs/modules/pfy-build.md). Where those two disagree with `./pfy build --help` on the default repo, trust the help text.
 
 ## What it is
 
@@ -126,7 +148,7 @@ One-shot design: [docs/ops/one-shot-workflow.md](docs/ops/one-shot-workflow.md) 
 
 ## Current status (v0.4 → G8 launch)
 
-- **`./pfy`** simple surface (ADR-0012): bare `./pfy` / `up` / unnamed `start` bring up inference + stage + native operator window; named `start <harness>` still execs that harness; `models` is inspect-only
+- **`./pfy`** simple surface (ADR-0012): bare `./pfy` / `up` / unnamed `start` / `board` open the window and do not start an engine unless opted in (`PFY_START_ENGINE=1`, `--start-engine`, or a terminal yes); named `start <harness>` and `./pfy env` still start inference; `models` is inspect-only
 - Catalog + eval pipeline remain first-class (`./pfy eval`, structural/golden)
 
 
@@ -161,7 +183,7 @@ One launcher. Inference first, then product stage, then the native operator wind
 git clone https://github.com/themark-net/pfy-mentat.git
 cd pfy-mentat
 ./pfy setup              # env + Grok skills if CLI present
-./pfy                    # inference → env-stage → native operator window
+./pfy                    # env-stage → native window (engine starts only if opted in)
 ./pfy board              # same native window
 ./pfy models             # inspect-only; listing tags is not success
 # or: ./pfy up            # same as bare ./pfy
@@ -172,7 +194,7 @@ Bare `./pfy` opens the native window (Tauri if built, else already-on-box webkit
 
 | Command | Purpose |
 |---------|---------|
-| `./pfy` / `./pfy up` / unnamed `./pfy start` | Inference, then env-stage, then native operator window. Does **not** exec a harness into that process. |
+| `./pfy` / `./pfy up` / unnamed `./pfy start` | Env-stage, then native operator window. Does not start an engine daemon unless `PFY_START_ENGINE=1`, `--start-engine`, or a terminal yes. Does not exec a harness into that process. |
 | `./pfy start <harness>` | Same bring-up, then that harness (stubs: STUB + issue, exit 2) |
 | `./pfy board` / `./pfy board --open` | Same native window. --open is an optional browser hatch (honest skip if it fails) |
 | `./pfy models` | Inspect-only: list models from the live endpoint (`GET /v1/models`, Ollama `/api/tags`) |
@@ -194,6 +216,8 @@ make env-init                 # creates .env from example (gitignored)
 # edit .env: DEPLOY_PROFILE=local-only|balanced|max-performance + secrets
 make env-check                # validates required vars for profile
 ```
+
+Daily headless build is the [Daily build](#daily-build) section above. `make env-init` does not log grok in. `grok login` does. `./pfy build` does not load `.env`.
 
 | Profile | Intent |
 |---------|--------|

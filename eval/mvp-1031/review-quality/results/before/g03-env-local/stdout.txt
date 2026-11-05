@@ -1,0 +1,1 @@
+I'll check that `.env.local` is protected the same way as `.env` and that nothing else in the protect list changed.verdict: accept

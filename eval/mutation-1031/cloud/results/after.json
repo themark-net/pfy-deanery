@@ -1,0 +1,230 @@
+{
+  "label": "after",
+  "baseline_only": false,
+  "modules": [
+    "tests.test_pfy_build_cloud",
+    "tests.test_mut_cloud_survivors",
+    "tests.test_mut_cloud2_survivors"
+  ],
+  "head": "dd0c34ea9e1b9d4ac014942d072ce242453a7e78",
+  "cloudfix": "80470185e9bfccadef83ae19401344e8dcd0d945",
+  "runner_sha256": "f2dd898417eafaf99a70562a36ca0f31e3db7a8112af936b4359d757a05e5c00",
+  "rows": [
+    {
+      "id": "C17",
+      "title": "writable-test allow list ignored",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 24.992,
+      "detail": "FAIL: test_two_writable_tests_land_and_a_third_base_file_does_not (tests.test_pfy_build_cloud.CloudBuildGateReasonTests.test_two_writable_tests_land_and_a_third_base_file_does_not)"
+    },
+    {
+      "id": "C18",
+      "title": "every base test treated as writable",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 25.345,
+      "detail": "FAIL: test_changed_test_file_fails_before_the_gate_and_is_not_committed (tests.test_pfy_build_cloud.CloudBuildGateReasonTests.test_changed_test_file_fails_before_the_gate_and_is_not_committed)"
+    },
+    {
+      "id": "C19",
+      "title": "writable-test match is exact, globs do not apply",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 25.361,
+      "detail": "FAIL: test_writable_glob_lets_the_matching_base_test_change (tests.test_mut_cloud2_survivors.Cloud2SurvivorTests.test_writable_glob_lets_the_matching_base_test_change)"
+    },
+    {
+      "id": "C20",
+      "title": "git add drops the literal pathspec",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 25.385,
+      "detail": "FAIL: test_star_filename_commits_that_file_and_not_the_pyc (tests.test_pfy_build_cloud.CloudBuildNoChangeTests.test_star_filename_commits_that_file_and_not_the_pyc)"
+    },
+    {
+      "id": "C21",
+      "title": "git add uses a glob pathspec",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 25.566,
+      "detail": "FAIL: test_literal_star_does_not_stage_a_sibling_pyc (tests.test_mut_cloud2_survivors.Cloud2SurvivorTests.test_literal_star_does_not_stage_a_sibling_pyc)"
+    },
+    {
+      "id": "C22",
+      "title": "archive recheck skipped",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 21.382,
+      "detail": "FAIL: test_new_test_file_reaches_the_gate_and_lands (tests.test_pfy_build_cloud.CloudBuildGateReasonTests.test_new_test_file_reaches_the_gate_and_lands)"
+    },
+    {
+      "id": "C23",
+      "title": "archive recheck timeout counted as a pass",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 25.51,
+      "detail": "FAIL: test_recheck_timeout_does_not_commit (tests.test_mut_cloud2_survivors.Cloud2SurvivorTests.test_recheck_timeout_does_not_commit)"
+    },
+    {
+      "id": "C24",
+      "title": "archive recheck failure does not retry",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 25.305,
+      "detail": "FAIL: test_gitignored_helper_fails_recheck_then_a_clean_retry_lands (tests.test_pfy_build_cloud.CloudBuildNoChangeTests.test_gitignored_helper_fails_recheck_then_a_clean_retry_lands)"
+    },
+    {
+      "id": "C25",
+      "title": "protected path check skipped",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 25.552,
+      "detail": "FAIL: test_direct_grok_home_fails_then_a_clean_retry_lands (tests.test_pfy_build_cloud.CloudBuildFailureTests.test_direct_grok_home_fails_then_a_clean_retry_lands)"
+    },
+    {
+      "id": "C26",
+      "title": "protected ** no longer matches zero directories",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 24.659,
+      "detail": "FAIL: test_direct_grok_home_fails_then_a_clean_retry_lands (tests.test_pfy_build_cloud.CloudBuildFailureTests.test_direct_grok_home_fails_then_a_clean_retry_lands)"
+    },
+    {
+      "id": "C27",
+      "title": "protected globs do not match the file basename",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 24.891,
+      "detail": "FAIL: test_nested_auth_json_is_protected (tests.test_mut_cloud2_survivors.Cloud2SurvivorTests.test_nested_auth_json_is_protected)"
+    },
+    {
+      "id": "C28",
+      "title": "assignment redaction never fires",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 24.919,
+      "detail": "FAIL: test_receipt_keeps_fixture_ids_and_still_hides_secret_assignments (tests.test_pfy_build_cloud.CloudBuildFailureTests.test_receipt_keeps_fixture_ids_and_still_hides_secret_assignments)"
+    },
+    {
+      "id": "C29",
+      "title": "assignment redaction hides fixture ids",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 25.098,
+      "detail": "FAIL: test_receipt_keeps_fixture_ids_and_still_hides_secret_assignments (tests.test_pfy_build_cloud.CloudBuildFailureTests.test_receipt_keeps_fixture_ids_and_still_hides_secret_assignments)"
+    },
+    {
+      "id": "C30",
+      "title": "pem block redaction skipped",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 24.61,
+      "detail": "FAIL: test_private_key_body_is_redacted (tests.test_mut_cloud2_survivors.Cloud2SurvivorTests.test_private_key_body_is_redacted)"
+    },
+    {
+      "id": "C31",
+      "title": "product gate keeps secret env vars",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 25.305,
+      "detail": "FAIL: test_gate_drops_secret_env_and_grok_still_sees_it (tests.test_pfy_build_cloud.CloudBuildFailureTests.test_gate_drops_secret_env_and_grok_still_sees_it)"
+    },
+    {
+      "id": "C32",
+      "title": "uppercase env name is not enough to redact",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 25.189,
+      "detail": "FAIL: test_receipt_redacts_tokens_keys_and_private_key_blocks (tests.test_pfy_build_cloud.CloudBuildFailureTests.test_receipt_redacts_tokens_keys_and_private_key_blocks)"
+    },
+    {
+      "id": "C33",
+      "title": "recovery line stays off the terminal",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 25.236,
+      "detail": "FAIL: test_missing_gate_binary_exits_2_before_grok (tests.test_pfy_build_cloud.CloudBuildFailureTests.test_missing_gate_binary_exits_2_before_grok)"
+    },
+    {
+      "id": "C34",
+      "title": "gate timeout recovery says grok timed out",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 24.593,
+      "detail": "FAIL: test_hung_gate_is_timeout_and_does_not_commit (tests.test_pfy_build_cloud.CloudBuildGateReasonTests.test_hung_gate_is_timeout_and_does_not_commit)"
+    },
+    {
+      "id": "C35",
+      "title": "missing base is a usage error",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 25.42,
+      "detail": "FAIL: test_missing_base_is_worktree_failed_and_leaves_the_caller (tests.test_pfy_build_cloud.CloudBuildGateReasonTests.test_missing_base_is_worktree_failed_and_leaves_the_caller)"
+    },
+    {
+      "id": "C36",
+      "title": "HEAD mismatch silently builds origin/main",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 25.337,
+      "detail": "FAIL: test_head_that_is_not_origin_main_exits_2_before_grok (tests.test_pfy_build_cloud.CloudBuildPassTests.test_head_that_is_not_origin_main_exits_2_before_grok)"
+    },
+    {
+      "id": "C37",
+      "title": "absent origin/main is an error instead of HEAD",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 38.592,
+      "detail": "ERROR: test_default_gate_import_error_exits_2_before_grok (tests.test_pfy_build_cloud.CloudBuildFailureTests.test_default_gate_import_error_exits_2_before_grok)"
+    },
+    {
+      "id": "C38",
+      "title": "timeout does not kill the grok process group",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 39.808,
+      "detail": "FAIL: test_timeout_exits_3_and_kills_the_grok_group (tests.test_pfy_build_cloud.CloudBuildFailureTests.test_timeout_exits_3_and_kills_the_grok_group)"
+    },
+    {
+      "id": "C39",
+      "title": "review timeout is a review reject",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 25.113,
+      "detail": "FAIL: test_review_timeout_is_timeout_not_reject (tests.test_mut_cloud2_survivors.Cloud2SurvivorTests.test_review_timeout_is_timeout_not_reject)"
+    },
+    {
+      "id": "C40",
+      "title": "before-gate timeout still starts grok",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 28.339,
+      "detail": "FAIL: test_hung_before_gate_does_not_start_grok (tests.test_mut_cloud2_survivors.Cloud2SurvivorTests.test_hung_before_gate_does_not_start_grok)"
+    },
+    {
+      "id": "C41",
+      "title": "timeout of zero is accepted",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 27.127,
+      "detail": "FAIL: test_timeout_zero_is_usage_and_does_not_start_grok (tests.test_mut_cloud2_survivors.Cloud2SurvivorTests.test_timeout_zero_is_usage_and_does_not_start_grok)"
+    },
+    {
+      "id": "C42",
+      "title": "failure recovery line is empty",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 25.0,
+      "detail": "FAIL: test_every_failure_reason_receipt_has_a_recovery_line (tests.test_pfy_build_cloud.CloudBuildFailureTests.test_every_failure_reason_receipt_has_a_recovery_line)"
+    },
+    {
+      "id": "C43",
+      "title": "missing-base recovery omits the ref",
+      "status": "killed",
+      "returncode": 1,
+      "seconds": 25.083,
+      "detail": "FAIL: test_missing_base_is_worktree_failed_and_leaves_the_caller (tests.test_pfy_build_cloud.CloudBuildGateReasonTests.test_missing_base_is_worktree_failed_and_leaves_the_caller)"
+    }
+  ]
+}

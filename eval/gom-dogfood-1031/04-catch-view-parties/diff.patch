@@ -1,0 +1,19 @@
+diff --git a/gomjobbar/cli.py b/gomjobbar/cli.py
+index dd02a20..a6d9a60 100644
+--- a/gomjobbar/cli.py
++++ b/gomjobbar/cli.py
+@@ -655,6 +655,14 @@ def main_cli(argv: list[str] | None = None) -> int:
+                 print(f"  [{i}] {ts} | {subj}")
+                 print(f"       body: {body_preview}...")
+                 print(f"       has_url: {has_url}, message_id: {c.get('message_id', '')[:40]}")
++                # T-0034: surface mailbox parties already stored. Empty or
++                # missing stays hidden. Never print raw_source. Read-only.
++                sender = c.get("from")
++                if isinstance(sender, str) and sender:
++                    print(f"       from: {sender}")
++                reply_to = c.get("reply_to")
++                if isinstance(reply_to, str) and reply_to:
++                    print(f"       reply_to: {reply_to}")
+                 # T-0034: surface headers already stored on the catch. Read-only.
+                 in_reply_to = c.get("in_reply_to")
+                 if isinstance(in_reply_to, str) and in_reply_to:

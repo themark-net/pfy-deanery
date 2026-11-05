@@ -1,0 +1,14 @@
+Started 2026-10-31T21:02:17Z. Finished 2026-10-31T21:03:51Z. Wall 94 seconds.
+
+./pfy build <task> \
+  --repo /home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood-1031/tmp/target-07 \
+  --base demo-base \
+  --test-cmd "python3 dogfood_gate.py" \
+  --receipt-dir /home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood-1031/eval/mvp-1031/dogfood/07-pregate-lock
+
+Task: in scripts/pregate.sh only, add pregate_claim_lock. It takes a non-blocking flock on $MAIN_ROOT/tmp/pregate.lock, returns 2 with stderr "pregate busy" when the lock is held, and does not signal the other run. Call it after the whitespace check and before RUN_TS.
+
+Target: fresh clone, demo-base plus a local dogfood_gate.py commit (368c93a), not pushed.
+No --local. Default retries and timeout. Review on.
+Exit 0. Cloud commit f7d00a2b8b3c049244a277df6c5284aa6b2224d2 matches git rev-parse of the cloud branch.
+Caller branch unchanged. Nothing pushed from the target.

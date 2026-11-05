@@ -1,0 +1,18 @@
+{
+  "process_exit": 1,
+  "status": "FAIL",
+  "reason": "runner-crash",
+  "recovery": "",
+  "attempts": "1",
+  "verdict": "FINDING",
+  "exp_status": "FAIL",
+  "exp_reason": "worktree-failed",
+  "exp_exit": 1,
+  "invariant_problems": [],
+  "head": "8c1894829a84918d847a11f58e806666849d4a84",
+  "detached": false,
+  "porcelain": "",
+  "cloud_branches": [],
+  "runner_sha": "5a7ea048efd2025d762dc5b74206909dcd113aa3",
+  "elapsed_note": "see the driver clock in stdout of this process"
+}

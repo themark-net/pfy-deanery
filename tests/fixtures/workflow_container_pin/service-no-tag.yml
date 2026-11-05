@@ -1,0 +1,10 @@
+name: service-no-tag
+on: push
+jobs:
+  job:
+    runs-on: ubuntu-24.04
+    services:
+      db:
+        image: postgres
+    steps:
+      - run: "true"

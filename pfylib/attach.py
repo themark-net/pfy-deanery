@@ -24,7 +24,9 @@ from __future__ import annotations
 
 import json
 import os
+import signal
 import sys
+import time
 import urllib.request
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -96,7 +98,11 @@ def write_session_reach(hid: str, STATE, text: str) -> None:
 def clear_session_reach(hid: str, STATE) -> None:
     STATE = Path(STATE)
     prof = _require(hid)
-    for name in (prof["session_file"], prof["terminal_pid_file"], prof["attach_base_file"]):
+    names = [prof["session_file"], prof["terminal_pid_file"], prof["attach_base_file"]]
+    namer = getattr(_legacy.enterable_helpers(), "pid_start_name", None)
+    if callable(namer):
+        names.append(namer(prof["terminal_pid_file"]))
+    for name in names:
         path = STATE / name
         try:
             if path.is_file():
@@ -108,7 +114,11 @@ def clear_session_reach(hid: str, STATE) -> None:
 def write_terminal_pid(hid: str, STATE, pid: int) -> None:
     STATE = Path(STATE)
     STATE.mkdir(parents=True, exist_ok=True)
-    (STATE / _require(hid)["terminal_pid_file"]).write_text(str(int(pid)) + "\n", encoding="utf-8")
+    name = _require(hid)["terminal_pid_file"]
+    (STATE / name).write_text(str(int(pid)) + "\n", encoding="utf-8")
+    writer = getattr(_legacy.enterable_helpers(), "write_recorded_start", None)
+    if callable(writer):
+        writer(STATE, name, int(pid))
 
 
 def read_terminal_pid(hid: str, STATE):
@@ -142,6 +152,129 @@ def live_session_reach(hid: str, STATE, pid_alive=None) -> str:
     return reach
 
 
+def _our_child(pid: int) -> bool:
+    """True when pid is a live or zombie child of this process. Not our own pid."""
+    if pid <= 0 or pid == os.getpid():
+        return False
+    try:
+        text = Path("/proc/%s/status" % pid).read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return False
+    for line in text.splitlines():
+        if line.startswith("PPid:"):
+            parts = line.split()
+            if len(parts) >= 2 and parts[1].isdigit():
+                return int(parts[1]) == os.getpid()
+            return False
+    return False
+
+
+def _status_code(status: int) -> int | None:
+    if os.WIFEXITED(status):
+        return int(os.WEXITSTATUS(status))
+    if os.WIFSIGNALED(status):
+        return 128 + int(os.WTERMSIG(status))
+    return None
+
+
+def _poll_exit(pid: int) -> int | None:
+    try:
+        wpid, status = os.waitpid(pid, os.WNOHANG)
+    except ChildProcessError:
+        return None
+    if wpid == 0:
+        return None
+    return _status_code(status)
+
+
+def _reap_our_child(pid: int) -> None:
+    """SIGTERM the process group of a child this process spawned.
+
+    A pid that is not our child is left alone, so a fake pid cannot kill
+    an unrelated process. Our own process group is never the target.
+    """
+    if not _our_child(pid):
+        return
+    try:
+        pgid = os.getpgid(pid)
+    except OSError:
+        pgid = 0
+    if pgid <= 0 or pgid == os.getpgrp():
+        try:
+            os.kill(pid, signal.SIGTERM)
+        except OSError:
+            pass
+        return
+    try:
+        os.killpg(pgid, signal.SIGTERM)
+    except OSError:
+        try:
+            os.kill(pid, signal.SIGTERM)
+        except OSError:
+            pass
+
+
+def _await_exit(pid: int, timeout: float) -> int | None:
+    deadline = time.monotonic() + timeout
+    while True:
+        code = _poll_exit(pid)
+        if code is not None:
+            return code
+        if time.monotonic() >= deadline:
+            return None
+        time.sleep(0.02)
+
+
+def _write_spawn_receipt(state, sid: str, code: int | None) -> None:
+    try:
+        path = Path(state)
+        path.mkdir(parents=True, exist_ok=True)
+        text = json.dumps({"exit_code": code, "live": "FAIL"}, sort_keys=True) + "\n"
+        (path / ("%s-attach-receipt.json" % sid)).write_text(text, encoding="utf-8")
+    except OSError:
+        pass
+
+
+def _close_failed_spawn(state, sid: str, pid) -> int | None:
+    """Reap a spawn that did not stay up. Return the child exit code.
+
+    The code is written to ``<sid>-attach-receipt.json``. A write error does
+    not drop the code from the return value. Recovery: the session file is
+    cleared by the caller; install or fix the terminal, then call again.
+    """
+    try:
+        pid = int(pid or 0)
+    except (TypeError, ValueError):
+        pid = 0
+    if pid <= 0 or not _our_child(pid):
+        if pid > 0:
+            _write_spawn_receipt(state, sid, None)
+        return None
+    code = _await_exit(pid, 0.3)
+    if code is None:
+        _reap_our_child(pid)
+        code = _await_exit(pid, 2.0)
+    _write_spawn_receipt(state, sid, code)
+    return code
+
+
+def _with_exit(out: dict, state, sid: str, pid) -> dict:
+    if not pid:
+        return out
+    stamped = dict(out)
+    stamped["exit_code"] = _close_failed_spawn(state, sid, pid)
+    return stamped
+
+
+def _opencode_install_hint() -> str:
+    """Operator hint when the opencode binary is missing. From harnesses.json setup."""
+    row = registry.harness("opencode")
+    setup = str((row or {}).get("setup") or "").strip()
+    if "install opencode" in setup.lower():
+        return setup
+    return "install opencode or opencode-cli"
+
+
 def fail_not_usable(hid: str, STATE, sid, reason, next_step, engine, status, base="", model=""):
     clear_session_reach(hid, STATE)
     copy = "FAIL attach -- %s \u00b7 %s" % (reason, next_step)
@@ -162,6 +295,97 @@ def fail_not_usable(hid: str, STATE, sid, reason, next_step, engine, status, bas
     }
 
 
+def _read_prove(proved):
+    """Accept the 4-tuple prove, or an older 3-tuple stub from tests."""
+    if not proved:
+        return False, "", "", ""
+    ok = bool(proved[0])
+    model = proved[1] if len(proved) > 1 else ""
+    err = proved[2] if len(proved) > 2 else ""
+    field = proved[3] if len(proved) > 3 else ""
+    return ok, model, err, field
+
+
+def _pull_next(err, model, default):
+    if err and "not on live endpoint" in str(err) and model:
+        return "./pfy models pull %s" % model
+    return default
+
+
+def _stamp_field(out, field):
+    if not field:
+        return out
+    out = dict(out)
+    out["smoke_field"] = field
+    copy = str(out.get("copy") or "")
+    tag = "field %s" % field
+    if tag not in copy:
+        out["copy"] = (copy + " \u00b7 " + tag).strip(" \u00b7")
+    return out
+
+
+def _drop_recorded_pid(state, sid, pid) -> None:
+    """Unlink a sidecar pid file when it names this pid. Does not signal."""
+    try:
+        pid_s = str(int(pid))
+    except (TypeError, ValueError):
+        return
+    state = Path(state)
+    path = state / ("sidecar-%s.pid" % sid)
+    try:
+        text = path.read_text(encoding="utf-8", errors="replace").strip().split()
+    except OSError:
+        text = []
+    if not text or text[0] != pid_s:
+        return
+    try:
+        path.unlink()
+    except OSError:
+        pass
+    start = state / ("sidecar-%s.start" % sid)
+    try:
+        if start.is_file():
+            start.unlink()
+    except OSError:
+        pass
+
+
+def _claim_recorded_pid(state, sid, pid_file_name, term_pid, pid_alive, term, clear, base_path=None):
+    """Return the recorded pid when it is still that process, else 0.
+
+    A dead pid, a zombie, a reused pid number, or a missing start time is
+    forgotten. Forgetting unlinks the files. It does not signal the process.
+    """
+    try:
+        term_pid = int(term_pid or 0)
+    except (TypeError, ValueError):
+        term_pid = 0
+    if term_pid <= 0:
+        return 0
+    same = getattr(term, "same_recorded_process", None)
+    owned = False
+    if callable(same):
+        owned = bool(same(state, pid_file_name, term_pid, pid_alive))
+    if owned:
+        return term_pid
+    clear()
+    _drop_recorded_pid(state, sid, term_pid)
+    if base_path is not None:
+        try:
+            path = Path(base_path)
+            if path.is_file():
+                path.unlink()
+        except OSError:
+            pass
+    return 0
+
+
+def _remember_sidecar_start(state, sid, pid, term) -> None:
+    writer = getattr(term, "write_recorded_start", None)
+    if callable(writer):
+        writer(state, "sidecar-%s.pid" % sid, pid)
+
+
 # ------------------------------------------------------------------ probes ---
 
 def _probe_freetoken(base, det):
@@ -170,15 +394,17 @@ def _probe_freetoken(base, det):
     status = str((det or {}).get("status") or "").strip().lower()
     try:
         ft_ok = False
-        for path in (FT_MODELS, FT_HEALTH):
-            try:
-                req = urllib.request.Request(path, method="GET")
-                with urllib.request.urlopen(req, timeout=1) as r:
-                    if 200 <= int(getattr(r, "status", 200) or 200) < 300:
-                        ft_ok = True
-                        break
-            except Exception:
-                continue
+        # Test pin: leave the caller's base alone. Do not switch to a live :1919.
+        if not os.environ.get("PFY_TEST_OPENAI_BASE", "").strip():
+            for path in (FT_MODELS, FT_HEALTH):
+                try:
+                    req = urllib.request.Request(path, method="GET")
+                    with urllib.request.urlopen(req, timeout=1) as r:
+                        if 200 <= int(getattr(r, "status", 200) or 200) < 300:
+                            ft_ok = True
+                            break
+                except Exception:
+                    continue
         if ft_ok:
             base = FT_BASE
             engine = "freetoken"
@@ -446,34 +672,39 @@ def open_session(
     except OSError:
         prev_base = ""
 
-    term_pid = read_terminal_pid(hid, STATE)
-    real = term.resolve_enterable_pid(bin_path, term_pid, pid_alive) if term_pid else 0
-    if real and pid_alive(real) and prev_base and prev_base != base:
+    term_pid = _claim_recorded_pid(
+        STATE, sid, prof["terminal_pid_file"], read_terminal_pid(hid, STATE),
+        pid_alive, term, lambda: clear_session_reach(hid, STATE), attach_base_path,
+    )
+    if term_pid and prev_base and prev_base != base:
         clear_session_reach(hid, STATE)
-        real = 0
+        _drop_recorded_pid(STATE, sid, term_pid)
         term_pid = 0
-    if real and pid_alive(real) and prev_base == base:
-        usable_ok, model, usable_err = prove.prove_developer_usable(base, inspect_models)
+    if term_pid and prev_base == base:
+        usable_ok, model, usable_err, field = _read_prove(
+            prove.prove_developer_usable(base, inspect_models)
+        )
         if not usable_ok:
             return fail_not_usable(
-                hid, STATE, sid, usable_err or "session not usable", next_step,
+                hid, STATE, sid, usable_err or "session not usable",
+                _pull_next(usable_err, model, next_step),
                 engine, status, base=base, model=model,
             )
-        focused = term._focus_pid(real)
+        focused = term._focus_pid(term_pid)
         write_session_reach(hid, STATE, reach_ok)
-        write_terminal_pid(hid, STATE, real)
+        write_terminal_pid(hid, STATE, term_pid)
         if active_harness_setter:
             active_harness_setter(sid)
         record_last_verb(prof["start_verb"])
-        return {
+        return _stamp_field({
             "ok": True,
             "id": sid,
             "live": "READY",
-            "pid": real,
+            "pid": term_pid,
             "sidecar": True,
             "session_reach": reach_ok,
             "focused": bool(focused),
-            "copy": "attached %s pid %s \u00b7 %s \u00b7 %s" % (sid, real, reach_ok, engine),
+            "copy": "attached %s pid %s \u00b7 %s \u00b7 %s" % (sid, term_pid, reach_ok, engine),
             "error": "",
             "base_url": base,
             "engine": engine,
@@ -481,7 +712,7 @@ def open_session(
             "usable": True,
             "models_ok": True,
             "smoke_ok": True,
-        }
+        }, field)
 
     env = child_env(os.environ.copy(), base, STATE, root_dir)
     log = STATE / prof["log_file"]
@@ -489,15 +720,20 @@ def open_session(
     if err:
         err = str(err).replace("OpenCode", prof["label"])
     real = term.resolve_enterable_pid(bin_path, pid if ok else 0, pid_alive)
-    if real and pid_alive(real):
-        usable_ok, smoke_model, usable_err = prove.prove_developer_usable(base, inspect_models)
+    zombie = getattr(term, "is_zombie", None)
+    if real and pid_alive(real) and not (callable(zombie) and zombie(real)):
+        usable_ok, smoke_model, usable_err, field = _read_prove(
+            prove.prove_developer_usable(base, inspect_models)
+        )
         if not usable_ok:
             return fail_not_usable(
-                hid, STATE, sid, usable_err or "session not usable", next_step,
+                hid, STATE, sid, usable_err or "session not usable",
+                _pull_next(usable_err, smoke_model, next_step),
                 engine, status, base=base, model=smoke_model,
             )
         focused = term._focus_pid(real)
         record_sidecar_pid(sid, real)
+        _remember_sidecar_start(STATE, sid, real, term)
         write_terminal_pid(hid, STATE, real)
         write_session_reach(hid, STATE, reach_ok)
         if active_harness_setter:
@@ -513,7 +749,7 @@ def open_session(
             attach_base_path.write_text(base + "\n", encoding="utf-8")
         except OSError:
             pass
-        return {
+        return _stamp_field({
             "ok": True,
             "id": sid,
             "live": "READY",
@@ -530,21 +766,24 @@ def open_session(
             "usable": True,
             "models_ok": True,
             "smoke_ok": True,
-        }
+        }, field)
     clear_session_reach(hid, STATE)
-    return {
-        "ok": False,
-        "id": sid,
-        "live": "FAIL",
-        "copy": "FAIL open session -- " + (err or "terminal cannot start"),
-        "error": err or "terminal cannot start",
-        "session_reach": "FAIL",
-        "pid": "",
-        "log": str(log),
-        "base_url": base,
-        "usable": False,
-        "next_step": next_step,
-    }
+    return _with_exit(
+        {
+            "ok": False,
+            "id": sid,
+            "live": "FAIL",
+            "copy": "FAIL open session -- " + (err or "terminal cannot start"),
+            "error": err or "terminal cannot start",
+            "session_reach": "FAIL",
+            "pid": "",
+            "log": str(log),
+            "base_url": base,
+            "usable": False,
+            "next_step": next_step,
+        },
+        STATE, sid, pid,
+    )
 
 
 def _opencode_mode_env(env, STATE=None):
@@ -605,6 +844,8 @@ def open_opencode_session(
     bin_path = which_bin("opencode", "opencode-cli")
     if not bin_path:
         clear_session_reach(STATE)
+        hint = _opencode_install_hint()
+        print(hint)
         return {
             "ok": False,
             "id": hid,
@@ -612,6 +853,7 @@ def open_opencode_session(
             "copy": stub,
             "error": "opencode missing",
             "session_reach": "FAIL",
+            "next_step": hint,
         }
     base, det = live_openai_base()
     base, det, engine, status = _probe_freetoken(base, det)
@@ -640,40 +882,45 @@ def open_opencode_session(
             prev_base = attach_base_path.read_text(encoding="utf-8", errors="replace").strip()
     except OSError:
         prev_base = ""
-    term_pid = read_terminal_pid(STATE)
-    real = resolve_enterable_pid(bin_path, term_pid, pid_alive) if term_pid else 0
-    if real and pid_alive(real) and prev_base and prev_base != base:
+    term_pid = _claim_recorded_pid(
+        STATE, hid, term.TERMINAL_PID_FILE, read_terminal_pid(STATE),
+        pid_alive, term, lambda: clear_session_reach(STATE), attach_base_path,
+    )
+    if term_pid and prev_base and prev_base != base:
         clear_session_reach(STATE)
+        _drop_recorded_pid(STATE, hid, term_pid)
         try:
             if attach_base_path.is_file():
                 attach_base_path.unlink()
         except OSError:
             pass
-        real = 0
         term_pid = 0
-    if real and pid_alive(real) and prev_base == base:
-        usable_ok, model, usable_err = prove.prove_developer_usable(base, inspect_models)
+    if term_pid and prev_base == base:
+        usable_ok, model, usable_err, field = _read_prove(
+            prove.prove_developer_usable(base, inspect_models)
+        )
         if not usable_ok:
             return prove.fail_not_usable(
                 clear_session_reach,
-                STATE, hid, usable_err or "session not usable", next_step,
+                STATE, hid, usable_err or "session not usable",
+                _pull_next(usable_err, model, next_step),
                 engine, status, base=base, model=model,
             )
-        focused = term._focus_pid(real)
+        focused = term._focus_pid(term_pid)
         write_session_reach(STATE, reach_ok)
-        write_terminal_pid(STATE, real)
+        write_terminal_pid(STATE, term_pid)
         if active_harness_setter:
             active_harness_setter("opencode")
         record_last_verb("start opencode")
-        return {
+        return _stamp_field({
             "ok": True,
             "id": hid,
             "live": "READY",
-            "pid": real,
+            "pid": term_pid,
             "sidecar": True,
             "session_reach": reach_ok,
             "focused": bool(focused),
-            "copy": "attached opencode pid %s \u00b7 %s \u00b7 %s" % (real, reach_ok, engine),
+            "copy": "attached opencode pid %s \u00b7 %s \u00b7 %s" % (term_pid, reach_ok, engine),
             "error": "",
             "base_url": base,
             "engine": engine,
@@ -681,7 +928,7 @@ def open_opencode_session(
             "usable": True,
             "models_ok": True,
             "smoke_ok": True,
-        }
+        }, field)
 
     models = inspect_models(prove.openai_compat_root(base))
     cfg_path, model = write_opencode_config(base, models)
@@ -718,18 +965,23 @@ def open_opencode_session(
     log = STATE / "sidecar-opencode.log"
     ok, pid, err = term.spawn_terminal_opencode(bin_path, str(ROOT), env, log, pid_alive)
     real = resolve_enterable_pid(bin_path, pid if ok else 0, pid_alive)
-    if real and pid_alive(real):
-        usable_ok, smoke_model, usable_err = prove.prove_developer_usable(base, inspect_models)
+    zombie = getattr(term, "is_zombie", None)
+    if real and pid_alive(real) and not (callable(zombie) and zombie(real)):
+        usable_ok, smoke_model, usable_err, field = _read_prove(
+            prove.prove_developer_usable(base, inspect_models)
+        )
         if not usable_ok:
             return prove.fail_not_usable(
                 clear_session_reach,
-                STATE, hid, usable_err or "session not usable", next_step,
+                STATE, hid, usable_err or "session not usable",
+                _pull_next(usable_err, smoke_model or model, next_step),
                 engine, status, base=base, model=smoke_model or model,
             )
         if smoke_model:
             model = smoke_model
         focused = term._focus_pid(real)
         record_sidecar_pid("opencode", real)
+        _remember_sidecar_start(STATE, "opencode", real, term)
         write_terminal_pid(STATE, real)
         write_session_reach(STATE, reach_ok)
         if active_harness_setter:
@@ -745,7 +997,7 @@ def open_opencode_session(
             attach_base_path.write_text(base + "\n", encoding="utf-8")
         except OSError:
             pass
-        return {
+        return _stamp_field({
             "ok": True,
             "id": hid,
             "live": "READY",
@@ -762,26 +1014,29 @@ def open_opencode_session(
             "usable": True,
             "models_ok": True,
             "smoke_ok": True,
-        }
+        }, field)
     clear_session_reach(STATE)
     try:
         if attach_base_path.is_file():
             attach_base_path.unlink()
     except OSError:
         pass
-    return {
-        "ok": False,
-        "id": hid,
-        "live": "FAIL",
-        "copy": "FAIL open session -- " + (err or "terminal cannot start"),
-        "error": err or "terminal cannot start",
-        "session_reach": "FAIL",
-        "pid": "",
-        "log": str(log),
-        "base_url": base,
-        "model": model,
-        "usable": False,
-    }
+    return _with_exit(
+        {
+            "ok": False,
+            "id": hid,
+            "live": "FAIL",
+            "copy": "FAIL open session -- " + (err or "terminal cannot start"),
+            "error": err or "terminal cannot start",
+            "session_reach": "FAIL",
+            "pid": "",
+            "log": str(log),
+            "base_url": base,
+            "model": model,
+            "usable": False,
+        },
+        STATE, hid, pid,
+    )
 
 
 # -------------------------------------------------------------------- CLI ---
@@ -794,12 +1049,19 @@ def prove_cli(base, root_dir: Path | None = None) -> int:
         print("FAIL attach -- no live local endpoint \u00b7 %s" % next_step)
         print("  equiv: ./pfy models")
         return 1
-    ok, model, err = _legacy.attach_prove(root_dir).prove_developer_usable(base, inspect_models)
+    ok, model, err, field = _read_prove(
+        _legacy.attach_prove(root_dir).prove_developer_usable(base, inspect_models)
+    )
     if not ok:
-        print("FAIL attach -- %s \u00b7 %s" % (err or "session not usable", next_step))
+        print("FAIL attach -- %s \u00b7 %s" % (
+            err or "session not usable", _pull_next(err, model, next_step),
+        ))
         print("  equiv: ./pfy models")
         return 1
-    print("PASS prove \u00b7 %s \u00b7 models \u00b7 smoke" % (model or "local"))
+    line = "PASS prove \u00b7 %s \u00b7 models \u00b7 smoke" % (model or "local")
+    if field:
+        line += " \u00b7 field %s" % field
+    print(line)
     return 0
 
 

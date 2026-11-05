@@ -1,0 +1,13 @@
+{
+  "id": "g10-skip-project-map",
+  "expect": "accept",
+  "bug": "",
+  "status": "done",
+  "verdict": "accept",
+  "reasons": [
+    "The change skips only `.project-map` and `.project-map/` the same way `tmp` is skipped, and it does not ignore other dot directories or trip any reject rule."
+  ],
+  "elapsed_s": 13.604,
+  "grok_status": "done",
+  "code": 0
+}

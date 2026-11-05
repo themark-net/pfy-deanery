@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "FAIL",
+  "reason": "scope-commit-mismatch",
+  "exit_code": 1,
+  "branch": null,
+  "commit": null,
+  "base": "HEAD",
+  "review": {
+    "verdict": "skipped",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "FAIL",
+      "reason": "scope-commit-mismatch",
+      "output_tail": "I'll create `kept.py` with exactly `value = 1` in this directory, then run the gate. No commit.The gate checks that `kept.py` in this directory is exactly `value = 1`. I'll add that file and leave the rest of the tree alone.`kept.py` is in this directory and contains exactly `value = 1`.\n\nThe gate printed `GATE-OK`. The file is untracked, and nothing was committed or pushed.\n",
+      "review": {
+        "verdict": "skipped",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "python3 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-realfail2-1031/eval/mvp-1031/realfail2/gates/kept.py",
+    "before": {
+      "cmd": "python3 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-realfail2-1031/eval/mvp-1031/realfail2/gates/kept.py",
+      "exit": 1,
+      "tail": "GATE-RED\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "python3 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-realfail2-1031/eval/mvp-1031/realfail2/gates/kept.py",
+      "exit": 0,
+      "tail": "GATE-OK\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": false,
+  "task": "Create kept.py containing exactly the line value = 1. Do not commit.",
+  "finished_at": "2026-10-31T21:39:37Z"
+}

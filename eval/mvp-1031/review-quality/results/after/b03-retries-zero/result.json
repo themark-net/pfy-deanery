@@ -1,0 +1,13 @@
+{
+  "id": "b03-retries-zero",
+  "expect": "reject",
+  "bug": "wrong default",
+  "status": "done",
+  "verdict": "reject",
+  "reasons": [
+    "The diff changes DEFAULT_RETRIES from 2 to 0, which moves the cloud retry default instead of leaving it at 2 extra attempts."
+  ],
+  "elapsed_s": 6.722,
+  "grok_status": "done",
+  "code": 0
+}

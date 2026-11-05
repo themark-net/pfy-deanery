@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/in-scripts-catalog-stage-eval-py-evidenc-20261031T231342381608Z",
+  "commit": "84c2cbf4068430ec8915a426b5d4824401f05a66",
+  "base": "HEAD",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll look at `evidence_for` and the pin/score tests so the existing `pin:HEX` and `scored:HEX` entries stay on the list.`evidence_for` currently keeps only on-disk receipts, so real `pin:` and `scored:` SHAs get dropped. I'll keep lowercase hex stamps of at least 7 characters and leave everything else as it is.`evidence_for` now keeps an existing `pin:HEX` or `scored:HEX` entry. HEX is lowercase `0-9a-f` and at least 7 characters.\n\n`pin:543e778ed24fbf3fc903eb961feb627039019832` and `scored:86d1b890` stay on the Atomic Task Graph evidence list. `pin:not-a-sha` and `scored:nope` are still dropped. A set card pin field still adds the bare word `pin`. Receipts on disk are unchanged.\n\n`python3 -m unittest tests.test_catalog_stage_pin_score tests.test_catalog_stage_eval` passed: 5 tests, OK.\n\nI'll check the evidence change against the task and the pin/score tests before giving a verdict.verdict: accept\n\n`evidence_for` still keeps on-disk receipts and now also keeps an existing `pin:` or `scored:` value when the tail is at least 7 characters from `0-9` and `a-f`. `pin:543e778ed24fbf3fc903eb961feb627039019832` and `scored:86d1b890` stay. `pin:not-a-sha` and `scored:nope` drop. A set card pin field still adds the bare word `pin`. The diff edits only `scripts/catalog_stage_eval.py`. The five tests in the gate passed.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "python3 -m unittest tests.test_catalog_stage_pin_score tests.test_catalog_stage_eval",
+    "before": {
+      "cmd": "python3 -m unittest tests.test_catalog_stage_pin_score tests.test_catalog_stage_eval",
+      "exit": 1,
+      "tail": "applied 52 cards · still open 0 · methods tmp/stage-apply-jkce1kh9/methods.json\n\nF....\n======================================================================\nFAIL: test_atg_evidence_keeps_pin_and_scored_shas (tests.test_catalog_stage_pin_score.CatalogStagePinScoreTests.test_atg_evidence_keeps_pin_and_scored_shas)\nFail: recompute drops pin:FULLSHA and scored:SHORT.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-backlog-burn-1031/tmp/target-05/tmp/cloud-build/20261031T231342381608Z/tests/test_catalog_stage_pin_score.py\", line 41, in test_atg_evidence_keeps_pin_and_scored_shas\n    self.assertIn(PIN, evidence)\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^\nAssertionError: 'pin:543e778ed24fbf3fc903eb961feb627039019832' not found in ['notes_doc:docs/ops/atg-coupling.md', 'pin', 'receipt:pipelines/dogfood/atg-compile/receipt-live-qwen36-35b.json']\n\n----------------------------------------------------------------------\nRan 5 tests in 0.061s\n\nFAILED (failures=1)\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "python3 -m unittest tests.test_catalog_stage_pin_score tests.test_catalog_stage_eval",
+      "exit": 0,
+      "tail": "applied 52 cards · still open 0 · methods tmp/stage-apply-3sbzwn_r/methods.json\n\n.....\n----------------------------------------------------------------------\nRan 5 tests in 0.022s\n\nOK\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": true,
+  "task": "In scripts/catalog_stage_eval.py evidence_for, keep an existing evidence entry when it is pin:HEX or scored:HEX. HEX is one or more characters from 0-9 and a-f, at least 7 characters. pin:543e778ed24fbf3fc903eb961feb627039019832 and scored:86d1b890 must stay on the Atomic Task Graph evidence list. Drop pin:not-a-sha and scored:nope. The bare word pin may still be added when the card pin field is set. Do not edit tests. Do not edit data JSON. Do not run --apply against the repo data files. Do not change integration_stage or stage letters. Edit only scripts/catalog_stage_eval.py.\n\ntests.test_catalog_stage_pin_score is red and must pass. tests.test_catalog_stage_eval must stay green.\n\nNo em dashes or en dashes.",
+  "finished_at": "2026-10-31T23:15:38Z"
+}

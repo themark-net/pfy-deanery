@@ -1,0 +1,14 @@
+Started 2026-10-31T20:45:13Z. Finished 2026-10-31T20:50:02Z. Wall 289 seconds.
+
+./pfy build <task> \
+  --repo /home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood-1031/tmp/target-04 \
+  --base demo-base \
+  --test-cmd "python3 dogfood_gate.py" \
+  --receipt-dir /home/mark/DEVELOP/pfy-mentat/tmp/mvp-dogfood-1031/eval/mvp-1031/dogfood/04-pregate-latest
+
+Task: edit only scripts/pregate.sh. Emit "- start epoch: $START_EPOCH" from write_summary. Add latest_summary_is_newer (true only when the shared summary file has a later start epoch). Skip the copy onto tmp/pregate-latest-summary.md when that function succeeds, and print the exact stderr line "skip latest summary: newer run already recorded". Do not take a new flock.
+
+Target: fresh clone, demo-base plus a local dogfood_gate.py commit (7815e8d), not pushed.
+No --local. Default retries and timeout. Review on.
+Exit 0. Cloud commit daa83e5ee29c804561ceba36e4f9b33e2a9fdaa0 matches git rev-parse of the cloud branch.
+Caller branch unchanged. Nothing pushed from the target.

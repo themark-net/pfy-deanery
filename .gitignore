@@ -48,6 +48,7 @@ pipelines/dogfood/build/**/grok-home/
 
 # Headless local build receipts and agent logs (pfy build --local)
 pipelines/dogfood/build-local/
+pipelines/dogfood/build-cloud/
 pipelines/dogfood/build-local-eval/
 
 # Laya eval-auto trial (Entry 086) — venv + Hugging Face weights, never commit

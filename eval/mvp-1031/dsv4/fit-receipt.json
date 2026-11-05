@@ -1,0 +1,75 @@
+{
+  "lane": "mvp-dsv4-1031",
+  "host": "nimo",
+  "measured_at": "2026-11-01T00:04:13Z",
+  "repo": "unsloth/DeepSeek-V4.1-Flash-1017-GGUF",
+  "repo_url": "https://huggingface.co/unsloth/DeepSeek-V4.1-Flash-1017-GGUF",
+  "api_sha": "8a6ec9cf118e",
+  "claim_post": "https://x.com/0x0SojalSec/status/2116263439681417554",
+  "unsloth_post": "https://x.com/UnslothAI/status/2116156587404562491",
+  "guide": "https://unsloth.ai/docs/models/deepseek-v4.1-flash",
+  "fits": false,
+  "chosen_quant": null,
+  "stop_reason": "no quant file size plus 8 GiB fits RAM+VRAM",
+  "downloaded": false,
+  "server": {"started": false, "pid": null, "bind": null},
+  "smoke": null,
+  "mvp3_pass": "not_run",
+  "verdict": "NO-GO",
+  "quality_claim": "unverified",
+  "context_overhead_bytes": 8589934592,
+  "host_bytes": {
+    "mem_total": 115344580608,
+    "mem_available": 76125134848,
+    "swap_total": 8589930496,
+    "swap_free": 98304,
+    "vram_total": 17179869184,
+    "vram_used": 3714129920,
+    "vram_free": 13465739264,
+    "ram_plus_vram": 132524449792,
+    "disk_avail": 479862718464
+  },
+  "smallest_quant": {
+    "name": "UD-IQ1_S",
+    "bytes": 232979608420,
+    "plus_context_bytes": 241569543012,
+    "shortfall_bytes": 109045093220,
+    "disk_after_bytes": 246883110044,
+    "disk_ok_50gb": true,
+    "ram_ok": false
+  },
+  "quants_bytes": {
+    "UD-IQ1_S": 232979608420,
+    "UD-IQ1_M": 250404346724,
+    "UD-IQ2_XXS": 300475464795,
+    "UD-Q2_K_XL": 334793544836,
+    "UD-IQ3_XXS": 394736596867,
+    "UD-IQ3_S": 423631019994,
+    "UD-Q3_K_XL": 485068639215,
+    "UD-Q4_K_XL": 500707576573,
+    "UD-Q8_K_XL": 508376763197
+  },
+  "iq1_s_shards": [
+    {"path": "UD-IQ1_S/DeepSeek-V4.1-Flash-1017-UD-IQ1_S-00001-of-00005.gguf", "bytes": 5780868},
+    {"path": "UD-IQ1_S/DeepSeek-V4.1-Flash-1017-UD-IQ1_S-00002-of-00005.gguf", "bytes": 49120285248},
+    {"path": "UD-IQ1_S/DeepSeek-V4.1-Flash-1017-UD-IQ1_S-00003-of-00005.gguf", "bytes": 48899707008},
+    {"path": "UD-IQ1_S/DeepSeek-V4.1-Flash-1017-UD-IQ1_S-00004-of-00005.gguf", "bytes": 24358544704},
+    {"path": "UD-IQ1_S/DeepSeek-V4.1-Flash-1017-UD-IQ1_S-00005-of-00005.gguf", "bytes": 110595290592}
+  ],
+  "engram_bytes": {
+    "IQ4_NL": 110595290592,
+    "Q5_K": 135172021792,
+    "Q6_K": 161284798692,
+    "MXFP8": 202758032592
+  },
+  "not_the_model_bytes": {
+    "dspark-DeepSeek-V4.1-Flash-1017-Q8_0.gguf": 7976914240,
+    "dspark/dspark-DeepSeek-V4.1-Flash-1017-BF16.gguf": 8506281280,
+    "mmproj-BF16.gguf": 972208288,
+    "mmproj-F16.gguf": 971004064
+  },
+  "baselines": {
+    "mvp3_local": {"gate": "5/6", "loop_accept": "5/6", "human_accept": "4/6", "wall_s": 3859.9},
+    "mvp2_cloud": {"gate": "6/6", "loop_accept": "6/6", "human_accept": "6/6", "wall_s": 583.6}
+  }
+}

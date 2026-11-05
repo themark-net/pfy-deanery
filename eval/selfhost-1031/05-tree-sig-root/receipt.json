@@ -1,0 +1,45 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "PASS",
+  "reason": "ok",
+  "exit_code": 0,
+  "branch": "cloud/record-the-symlinked-root-in-smoke-122-1-20261031T212824589239Z",
+  "commit": "49fadb5104357c0c7fd2e98670ae124eda8d3867",
+  "base": "HEAD",
+  "review": {
+    "verdict": "accept",
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "PASS",
+      "reason": "ok",
+      "output_tail": "I'll record the symlinked root in `tree_sig` so a retarget changes the signature. First I'll read the function and the gates that already describe the expected behavior.`tree_sig` already hashes entries under a symlink, but it never records the root link itself, so a retarget to a same-bytes directory stays invisible. I'll add the root's lstat mode and readlink, and leave content hashing as it is.`tree_sig` now records a symlinked root, so pointing that root from directory A to directory B changes the signature even when both trees hold the same bytes.\n\nWhen the path passed in is itself a symlink, the signature includes its `lstat` permission bits and its `readlink` string. Entries under that link are still walked. Regular files keep a streamed content hash plus permission bits. Symlinks under the root still use the existing readlink rule. `mtime` is not hashed, and `Path.read_bytes` is not used. A missing path still returns `None`.\n\nThe four gates passed:\n\n`python3 -m unittest tests.test_tree_sig_root_link tests.test_tree_sig_symlink tests.test_tree_sig_mode tests.test_x_intake_smoke_122_124.XIntakeSmoke122124Tests.test_tree_sig_streams_file_contents`\n\nI'll review the `tree_sig` change against the task and the existing gates before giving a verdict.The diff is only the root-symlink case. I'll check the gates and that nothing else in the tree moved.The patch stays inside `tree_sig`. I'll confirm the new text has no dash characters and that the four gates still pass.verdict: accept\n\nThe edit is confined to `tree_sig` in `examples/x-intake-local/smoke_122_124.py` and is uncommitted. When the path itself is a symlink, the signature gains that link's `lstat` permission bits and `readlink` string, then still hashes the entries under it. Regular files keep the streamed content hash plus permission bits, child symlinks keep the existing readlink rule, and mtime stays out. The four gates passed.\n",
+      "review": {
+        "verdict": "accept",
+        "reasons": []
+      }
+    }
+  ],
+  "gate": {
+    "cmd": "python3 -m unittest tests.test_tree_sig_root_link tests.test_tree_sig_symlink tests.test_tree_sig_mode tests.test_x_intake_smoke_122_124.XIntakeSmoke122124Tests.test_tree_sig_streams_file_contents",
+    "before": {
+      "cmd": "python3 -m unittest tests.test_tree_sig_root_link tests.test_tree_sig_symlink tests.test_tree_sig_mode tests.test_x_intake_smoke_122_124.XIntakeSmoke122124Tests.test_tree_sig_streams_file_contents",
+      "exit": 1,
+      "tail": "\nF...\n======================================================================\nFAIL: test_symlinked_root_retarget_changes_signature_and_entries_remain (tests.test_tree_sig_root_link.TreeSigRootLinkTests.test_symlinked_root_retarget_changes_signature_and_entries_remain)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-selfhost-1031/tmp/selfhost-clones/target-5/tmp/cloud-build/20261031T212824589239Z/tests/test_tree_sig_root_link.py\", line 55, in test_symlinked_root_retarget_changes_signature_and_entries_remain\n    self.assertNotEqual(\n    ~~~~~~~~~~~~~~~~~~~^\n        tree_sig(link),\n        ^^^^^^^^^^^^^^^\n        before,\n        ^^^^^^^\n        \"retarget of a symlinked root to identical bytes left the signature unchanged\",\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\nAssertionError: 'f75be66ff045617a9fae5f0487d13d4c6a877b6825c7688c772aa024fc0f9ed5' == 'f75be66ff045617a9fae5f0487d13d4c6a877b6825c7688c772aa024fc0f9ed5' : retarget of a symlinked root to identical bytes left the signature unchanged\n\n----------------------------------------------------------------------\nRan 4 tests in 0.037s\n\nFAILED (failures=1)\n",
+      "started": true
+    },
+    "after": {
+      "cmd": "python3 -m unittest tests.test_tree_sig_root_link tests.test_tree_sig_symlink tests.test_tree_sig_mode tests.test_x_intake_smoke_122_124.XIntakeSmoke122124Tests.test_tree_sig_streams_file_contents",
+      "exit": 0,
+      "tail": "\n....\n----------------------------------------------------------------------\nRan 4 tests in 0.036s\n\nOK\n",
+      "started": true
+    }
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": true,
+  "task": "Record the symlinked root in smoke_122_124.tree_sig so a retarget shows.\n\nEdit only examples/x-intake-local/smoke_122_124.py. Do not edit tests. Do not commit.\n\nWhen the path passed to tree_sig is itself a symlink, include its lstat permission bits and its readlink string in the signature. Still hash the entries under it. Regular files keep a streamed content hash plus permission bits. Symlinks under it keep the readlink rule already in the function. Do not hash mtime. Do not call Path.read_bytes.\n\nA retarget of that root symlink from directory A to directory B, when both hold the same bytes, must change the signature.\n\nA content edit of a file under A must still change the signature.\n\nAn mtime-only touch of the root symlink must not change the signature.\n\nA missing path still returns None.\n\nDo not replace content hashes with a target marker. Do not skip a file because a symlink names it.\n\nDo not change home_sig. Do not edit smoke_128_130.py.\n\nNo em dashes or en dashes.\n\nGates already in the tree. Do not edit them:\ntests.test_tree_sig_root_link\ntests.test_tree_sig_symlink\ntests.test_tree_sig_mode\ntests.test_x_intake_smoke_122_124.XIntakeSmoke122124Tests.test_tree_sig_streams_file_contents",
+  "finished_at": "2026-10-31T21:33:20Z"
+}

@@ -1,0 +1,11 @@
+{
+  "id": "b05-token-stderr",
+  "expect": "reject",
+  "bug": "secret in output",
+  "status": "done",
+  "verdict": "accept",
+  "reasons": [],
+  "elapsed_s": 70.961,
+  "grok_status": "done",
+  "code": 0
+}

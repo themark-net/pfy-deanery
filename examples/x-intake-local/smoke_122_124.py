@@ -25,7 +25,8 @@ checks.real_home_untouched, and any change FAILs (exit 1), even when bwrap is un
                  if 127.0.0.1:$HR_SMOKE_PORT (default 3917) already answers. Runs the image pinned by digest
                  ($HR_IMAGE overrides, with a WARN) as container "pfy-hr-smoke" with volume "pfy-hr-smoke" bound to that loopback
                  port only (exit 2, removing nothing, if that container or volume already exists), waits for the Console to answer (< 500), then POST /api/harness/v1/responses with no key
-                 must be refused (401 or 403). Always removes the container and the volume after. No provider key,
+                 must be refused (401 or 403). Always removes the container and the volume after, including when
+                 SIGTERM arrives during docker run (exit 1, reason names SIGTERM). No provider key,
                  no CE API key, no task. For a non-default socket set $HR_DOCKER_HOST.
   squadra        $SQUADRA_DIR, then ~/DEVELOP/pfy-mentat/tmp/squadra: a checkout of dagoSte/squadra at tag v3.10.1
                  holding scripts/squadra.py; `--version` pinned to 3.10.1 ($SQUADRA_VERSION overrides). Needs
@@ -41,6 +42,8 @@ import hashlib
 import json
 import os
 import shutil
+import signal
+import stat
 import subprocess
 import sys
 import tempfile
@@ -77,17 +80,37 @@ def tree_sig(p: Path) -> str | None:
     if not p.exists():
         return None
     h = hashlib.sha256()
-    for f in sorted(p.rglob("*")):
-        # content hash, not mtime: a same-size in-place edit that restores mtime still changes the signature
+    # when p itself is a symlink, its lstat permission bits and readlink string join the signature so a retarget
+    # shows even when both directories hold the same bytes. entries under p are still hashed below. mtime stays out.
+    if p.is_symlink():
         try:
-            if f.is_file():
-                fh = hashlib.sha256()
-                with f.open("rb") as fp:  # streamed in 1 MiB chunks, so a huge file doesn't load into RAM
-                    for chunk in iter(lambda: fp.read(1 << 20), b""):
-                        fh.update(chunk)
-                h.update(f"{f}:{f.stat().st_size}:{fh.hexdigest()}\n".encode())
+            st = p.lstat()
+            mode = f"{stat.S_IMODE(st.st_mode):o}"
+            h.update(f"{p}:{mode}:link:{os.readlink(p)}\n".encode())
+        except OSError:
+            h.update(f"{p}:unreadable\n".encode())
+    for f in sorted(p.rglob("*")):
+        # permission bits plus a streamed content hash, not mtime: chmod and a same-size edit change the signature.
+        # a symlink is never opened: lstat mode and the readlink string, so a retarget changes the signature even
+        # when both targets hold the same bytes, and a file outside the tree is not hashed. an in-tree target stays
+        # its own entry and keeps its content hash.
+        try:
+            st = f.lstat()
+            mode = f"{stat.S_IMODE(st.st_mode):o}"
+            if stat.S_ISLNK(st.st_mode):
+                h.update(f"{f}:{mode}:link:{os.readlink(f)}\n".encode())
+            elif stat.S_ISREG(st.st_mode):
+                try:
+                    fh = hashlib.sha256()
+                    with f.open("rb") as fp:  # streamed in 1 MiB chunks, so a huge file doesn't load into RAM
+                        for chunk in iter(lambda: fp.read(1 << 20), b""):
+                            fh.update(chunk)
+                except OSError:
+                    h.update(f"{f}:{mode}:unreadable\n".encode())
+                else:
+                    h.update(f"{f}:{mode}:{st.st_size}:{fh.hexdigest()}\n".encode())
             else:
-                h.update(f"{f}:dir\n".encode())
+                h.update(f"{f}:{mode}:dir\n".encode())
         except OSError:
             h.update(f"{f}:unreadable\n".encode())
     return h.hexdigest()
@@ -200,6 +223,14 @@ def http(method: str, url: str, body: bytes | None = None, headers: dict | None 
         return 0
 
 
+class _Sigterm(Exception):
+    """SIGTERM arrived. Raised so the harnessrouter finally still removes the container."""
+
+
+def _on_sigterm(_signum, _frame) -> None:
+    raise _Sigterm("SIGTERM")
+
+
 def smoke_harnessrouter(r: dict) -> int:
     docker = find_bin("DOCKER_BIN", "docker/docker", "docker")
     if not docker:
@@ -237,6 +268,9 @@ def smoke_harnessrouter(r: dict) -> int:
         if dk("volume", "inspect", "pfy-hr-smoke", tag="docker volume inspect").returncode == 0:
             r["reason"] = "a volume named pfy-hr-smoke already exists; remove it yourself (nothing was removed)"
             return 2
+        # Default SIGTERM ends the process inside docker run, so this finally never starts and the
+        # container stays. Raising lets the same rm and volume rm below still run.
+        previous_sigterm = signal.signal(signal.SIGTERM, _on_sigterm)
         try:
             up = dk("run", "-d", "--name", "pfy-hr-smoke", "-p", f"127.0.0.1:{port}:3000",
                     "-v", "pfy-hr-smoke:/data", image, tag="docker run")
@@ -257,7 +291,11 @@ def smoke_harnessrouter(r: dict) -> int:
             nk = http("POST", base + "/api/harness/v1/responses", body, {"Content-Type": "application/json"})
             r["responses_status_no_key"] = nk
             checks["api_refuses_no_key"] = nk in (401, 403)
+        except _Sigterm:
+            r["reason"] = "SIGTERM during docker run"
+            return 1
         finally:
+            signal.signal(signal.SIGTERM, previous_sigterm)
             r["checks"] = checks  # partial checks survive a timeout
             # each cleanup step runs even if the one before timed out; a cleanup timeout never replaces an
             # earlier failure reason (it is kept in cleanup_reason)

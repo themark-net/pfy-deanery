@@ -1,0 +1,36 @@
+{
+  "schema": "pfy-cloud-build/1",
+  "status": "FAIL",
+  "reason": "protected-path-changed",
+  "exit_code": 1,
+  "branch": null,
+  "commit": null,
+  "base": "HEAD",
+  "review": {
+    "verdict": null,
+    "reasons": []
+  },
+  "attempts": [
+    {
+      "n": 1,
+      "status": "FAIL",
+      "reason": "protected-path-changed",
+      "output_tail": "I'll create `auth.json` and `.env` in this directory only, then run the gate check. No commit or push.The directory is a small throwaway tree. I'll add `auth.json` with the word `marker` and `.env` with `MARKER=1`, then run the gate check.`auth.json` and `.env` are in this directory, and neither file was committed.\n\n- `auth.json` contains the word `marker`.\n- `.env` contains `MARKER=1`.\n- `python3 -c 'print(\"gate-ok\")'` printed `gate-ok`.\n- Git status shows both files as untracked.\n"
+    }
+  ],
+  "gate": {
+    "cmd": "python3 -c 'print(\"gate-ok\")'",
+    "before": {
+      "cmd": "python3 -c 'print(\"gate-ok\")'",
+      "exit": 0,
+      "tail": "gate-ok\n",
+      "started": true
+    },
+    "after": null
+  },
+  "recovery": "",
+  "pushed": false,
+  "worktree_removed": true,
+  "task": "Create auth.json containing the word marker and create .env containing MARKER=1. Do not commit.",
+  "finished_at": "2026-10-31T21:40:13Z"
+}
