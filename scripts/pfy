@@ -238,7 +238,8 @@ pfy — simple setup & launch for the pfy-mentat stack
   pfy catalog ask [name]  ask attached TUI to implement for next launch
   pfy catalog queue [name] queue GitHub issue Design→DevBot (no Mark git/npm/CI)
   pfy catalog status      queued catalog items
-  pfy launch              Launch session after Loop wizard compose (#225/#224)
+  pfy launch [--headless]   Launch session; headless with --headless or no display
+  pfy launch status|stop    recorded headless session only
   pfy launch lane|toolset|harness|decision|review|compose
   pfy decision            Jev-style typed Choice/Score (#230; CUA-S1-FORMS local)
   pfy decision off|cua-s1-forms|typesafe|mini-jev
@@ -1968,9 +1969,24 @@ cmd_decision() {
 
 cmd_launch() {
   # #225: Loop launch wizard compose then Launch session. #224: honest lane+tools brief.
+  # Headless: --headless, or no DISPLAY/WAYLAND_DISPLAY inside the spawn path.
   local sub="${1:-session}"; shift || true
   case "$sub" in
-    session|go|"") python3 "$ROOT/scripts/pfy-board.py" --launch "$@" ;;
+    --headless)
+      export PFY_HEADLESS=1
+      python3 "$ROOT/scripts/pfy-board.py" --launch "$@"
+      ;;
+    status) python3 "$ROOT/scripts/pfy_enterable_162_a.py" --status "$@" ;;
+    stop) python3 "$ROOT/scripts/pfy_enterable_162_a.py" --stop "$@" ;;
+    session|go|"")
+      local arg
+      for arg in "$@"; do
+        if [[ "$arg" == "--headless" ]]; then
+          export PFY_HEADLESS=1
+        fi
+      done
+      python3 "$ROOT/scripts/pfy-board.py" --launch "$@"
+      ;;
     runtime|health) python3 "$ROOT/scripts/pfy_launch_wizard_225.py" --runtime "$@" ;;
     lane) python3 "$ROOT/scripts/pfy_launch_wizard_225.py" --lane "$@" ;;
     toolset|toolsets|mode) python3 "$ROOT/scripts/pfy_launch_wizard_225.py" --toolset "$@" ;;
@@ -1979,7 +1995,7 @@ cmd_launch() {
     decision|jev) python3 "$ROOT/scripts/pfy_launch_wizard_225.py" --decision "$@" ;;
     compose|paint) python3 "$ROOT/scripts/pfy_session_compose_224.py" --paint "$@" ;;
     brief) python3 "$ROOT/scripts/pfy_session_compose_224.py" --brief "$@" ;;
-    *) echo "launch subcommands: session|runtime|lane|toolset|harness|decision|review|compose|brief" >&2; return 2 ;;
+    *) echo "launch subcommands: session|status|stop|runtime|lane|toolset|harness|decision|review|compose|brief|--headless" >&2; return 2 ;;
   esac
 }
 

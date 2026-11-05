@@ -324,6 +324,27 @@ def _stamp_field(out, field):
     return out
 
 
+def _note_headless(term, out, state, pid):
+    """Add the session name when this pid is the headless process just recorded."""
+    reader = getattr(term, "read_headless_session", None)
+    if not callable(reader):
+        return out
+    try:
+        info = reader(state) or {}
+        recorded = int(info.get("pid") or 0)
+        pid = int(pid or 0)
+    except (TypeError, ValueError):
+        return out
+    if recorded <= 0 or recorded != pid:
+        return out
+    out = dict(out)
+    out["session"] = info.get("name") or ""
+    out["headless"] = True
+    if info.get("harness"):
+        out["harness"] = info["harness"]
+    return out
+
+
 def _drop_recorded_pid(state, sid, pid) -> None:
     """Unlink a sidecar pid file when it names this pid. Does not signal."""
     try:
@@ -696,7 +717,7 @@ def open_session(
         if active_harness_setter:
             active_harness_setter(sid)
         record_last_verb(prof["start_verb"])
-        return _stamp_field({
+        return _note_headless(term, _stamp_field({
             "ok": True,
             "id": sid,
             "live": "READY",
@@ -712,7 +733,7 @@ def open_session(
             "usable": True,
             "models_ok": True,
             "smoke_ok": True,
-        }, field)
+        }, field), STATE, term_pid)
 
     env = child_env(os.environ.copy(), base, STATE, root_dir)
     log = STATE / prof["log_file"]
@@ -749,7 +770,7 @@ def open_session(
             attach_base_path.write_text(base + "\n", encoding="utf-8")
         except OSError:
             pass
-        return _stamp_field({
+        return _note_headless(term, _stamp_field({
             "ok": True,
             "id": sid,
             "live": "READY",
@@ -766,7 +787,7 @@ def open_session(
             "usable": True,
             "models_ok": True,
             "smoke_ok": True,
-        }, field)
+        }, field), STATE, real)
     clear_session_reach(hid, STATE)
     return _with_exit(
         {
@@ -912,7 +933,7 @@ def open_opencode_session(
         if active_harness_setter:
             active_harness_setter("opencode")
         record_last_verb("start opencode")
-        return _stamp_field({
+        return _note_headless(term, _stamp_field({
             "ok": True,
             "id": hid,
             "live": "READY",
@@ -928,7 +949,7 @@ def open_opencode_session(
             "usable": True,
             "models_ok": True,
             "smoke_ok": True,
-        }, field)
+        }, field), STATE, term_pid)
 
     models = inspect_models(prove.openai_compat_root(base))
     cfg_path, model = write_opencode_config(base, models)
@@ -997,7 +1018,7 @@ def open_opencode_session(
             attach_base_path.write_text(base + "\n", encoding="utf-8")
         except OSError:
             pass
-        return _stamp_field({
+        return _note_headless(term, _stamp_field({
             "ok": True,
             "id": hid,
             "live": "READY",
@@ -1014,7 +1035,7 @@ def open_opencode_session(
             "usable": True,
             "models_ok": True,
             "smoke_ok": True,
-        }, field)
+        }, field), STATE, real)
     clear_session_reach(STATE)
     try:
         if attach_base_path.is_file():

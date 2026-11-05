@@ -6,8 +6,12 @@ Launch env must arm/open enterable path or honest SKIP (copy alone insufficient)
 """
 from __future__ import annotations
 
+import json
 import os
+import secrets
+import shlex
 import shutil
+import signal
 import subprocess
 import sys
 import time
@@ -379,18 +383,530 @@ def _terminal_cmds(bin_path: str, cwd: str):
             yield [osa, "-e", script]
 
 
+HEADLESS_NAME = "headless-session.name"
+HEADLESS_PID = "headless-session.pid"
+HEADLESS_HARNESS = "headless-session.harness"
+_HEADLESS_FILES = (
+    HEADLESS_NAME,
+    HEADLESS_PID,
+    "headless-session.start",
+    HEADLESS_HARNESS,
+    "headless-spawn.pid",
+)
+
+
+def _flag_on(env, name) -> bool:
+    for source in (env or {}, os.environ):
+        val = str(source.get(name) or "").strip().lower()
+        if val in ("1", "true", "yes", "on"):
+            return True
+    return False
+
+
+def _want_headless(env) -> bool:
+    """True for PFY_HEADLESS, or when this environment has no display."""
+    if _flag_on(env, "PFY_HEADLESS"):
+        return True
+    return not _has_display(env or {})
+
+
+def _state_text(state, name) -> str:
+    try:
+        return (Path(state) / name).read_text(encoding="utf-8", errors="replace").strip()
+    except OSError:
+        return ""
+
+
+def read_headless_session(state) -> dict:
+    """Name, pid, and harness recorded for the headless session, if any."""
+    pid = 0
+    try:
+        pid = int(_state_text(state, HEADLESS_PID) or 0)
+    except ValueError:
+        pid = 0
+    return {
+        "name": _state_text(state, HEADLESS_NAME),
+        "pid": pid,
+        "harness": _state_text(state, HEADLESS_HARNESS),
+    }
+
+
+def _clear_headless_files(state) -> None:
+    state = Path(state)
+    for name in _HEADLESS_FILES:
+        path = state / name
+        try:
+            if path.is_file():
+                path.unlink()
+        except OSError:
+            pass
+
+
+def _clear_pid_files_matching(state, pid) -> None:
+    """Unlink pid files that name this pid. Does not signal."""
+    try:
+        pid_s = str(int(pid))
+    except (TypeError, ValueError):
+        return
+    state = Path(state)
+    try:
+        entries = list(state.iterdir())
+    except OSError:
+        return
+    for path in entries:
+        if not path.is_file() or not path.name.endswith(".pid"):
+            continue
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace").split()
+        except OSError:
+            continue
+        if not text or text[0] != pid_s:
+            continue
+        try:
+            path.unlink()
+        except OSError:
+            pass
+        start = state / pid_start_name(path.name)
+        try:
+            if start.is_file():
+                start.unlink()
+        except OSError:
+            pass
+
+
+def _signal_recorded(pid) -> None:
+    """SIGTERM one pid. Never a process group, never pid 1."""
+    try:
+        pid = int(pid)
+    except (TypeError, ValueError):
+        return
+    if pid <= 1:
+        return
+    try:
+        os.kill(pid, signal.SIGTERM)
+    except OSError:
+        return
+    deadline = time.monotonic() + 2.0
+    while time.monotonic() < deadline:
+        try:
+            os.kill(pid, 0)
+        except OSError:
+            return
+        time.sleep(0.05)
+    try:
+        os.kill(pid, signal.SIGKILL)
+    except OSError:
+        pass
+
+
+def _still_started_at(pid, start, pid_alive) -> bool:
+    """True when pid is alive and its start ticks are still the ones we saved."""
+    try:
+        pid = int(pid or 0)
+    except (TypeError, ValueError):
+        return False
+    if pid <= 1 or not start or not _live_pid(pid, pid_alive):
+        return False
+    return proc_starttime(pid) == start
+
+
+def _owned_headless(state, pid_alive):
+    """Pid, name, and start ticks when the recorded headless process is still ours."""
+    info = read_headless_session(state)
+    try:
+        pid = int(info.get("pid") or 0)
+    except (TypeError, ValueError):
+        pid = 0
+    name = info.get("name") or ""
+    if pid <= 1 or not name or not same_recorded_process(state, HEADLESS_PID, pid, pid_alive):
+        return 0, "", ""
+    return pid, name, proc_starttime(pid)
+
+
+def _snapshot_headless_files(state) -> dict:
+    state = Path(state)
+    snap = {}
+    for name in _HEADLESS_FILES:
+        path = state / name
+        try:
+            if path.is_file():
+                snap[name] = path.read_bytes()
+        except OSError:
+            continue
+    return snap
+
+
+def _restore_headless_files(state, snap) -> None:
+    _clear_headless_files(state)
+    state = Path(state)
+    for name, data in (snap or {}).items():
+        try:
+            (state / name).write_bytes(data)
+        except OSError:
+            pass
+
+
+def _pids_looking_like(bin_path, pid_alive) -> set:
+    """Live pids that already look like bin_path. A deny-list, not a search to adopt."""
+    found = set()
+    proc = Path("/proc")
+    if not proc.is_dir():
+        return found
+    try:
+        names = [entry.name for entry in proc.iterdir()]
+    except OSError:
+        return found
+    for name in names:
+        if not name.isdigit():
+            continue
+        pid = int(name)
+        if _live_pid(pid, pid_alive) and _looks_like_bin(pid, bin_path):
+            found.add(pid)
+    return found
+
+
+def _write_runner(state, bin_path, pid_file) -> Path:
+    runner = Path(state) / "headless-run"
+    body = "#!/bin/sh\necho $$ > %s\nexec %s\n" % (
+        shlex.quote(str(pid_file)),
+        shlex.quote(str(bin_path)),
+    )
+    runner.write_text(body, encoding="utf-8")
+    runner.chmod(0o755)
+    return runner
+
+
+def _popen_logged(argv, cwd, env, log_path, new_session) -> subprocess.Popen:
+    log_path = Path(log_path)
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    with log_path.open("ab") as handle:
+        handle.write(("spawn: %s\n" % " ".join(argv)).encode("utf-8", "replace"))
+        return subprocess.Popen(
+            argv,
+            cwd=cwd,
+            env=env,
+            stdout=handle,
+            stderr=subprocess.STDOUT,
+            stdin=subprocess.DEVNULL,
+            start_new_session=new_session,
+        )
+
+
+def _accept_new_pid(pid, bin_path, pid_alive, before) -> int:
+    """Return pid when it is a new live harness. 0 if it is foreign or already gone."""
+    try:
+        pid = int(pid or 0)
+    except (TypeError, ValueError):
+        return 0
+    if pid <= 1 or pid in before:
+        return 0
+    if not (_live_pid(pid, pid_alive) and _looks_like_bin(pid, bin_path)):
+        return 0
+    time.sleep(0.15)
+    if pid in before or not (_live_pid(pid, pid_alive) and _looks_like_bin(pid, bin_path)):
+        return 0
+    real = resolve_enterable_pid(bin_path, pid, pid_alive)
+    try:
+        real = int(real or 0)
+    except (TypeError, ValueError):
+        return 0
+    if real <= 1 or real in before or not _looks_like_bin(real, bin_path):
+        return 0
+    if not _live_pid(real, pid_alive):
+        return 0
+    return real
+
+
+def _poll_direct(proc, bin_path, pid_alive, before) -> int:
+    deadline = time.monotonic() + 3.0
+    while time.monotonic() < deadline:
+        accepted = _accept_new_pid(proc.pid, bin_path, pid_alive, before)
+        if accepted:
+            return accepted
+        if not _live_pid(proc.pid, pid_alive):
+            return 0
+        time.sleep(0.05)
+    return 0
+
+
+def _poll_pidfile(proc, pid_file, bin_path, pid_alive, before) -> int:
+    deadline = time.monotonic() + 3.0
+    started = time.monotonic()
+    while time.monotonic() < deadline:
+        candidate = 0
+        try:
+            candidate = int(Path(pid_file).read_text(encoding="utf-8", errors="replace").strip())
+        except (OSError, ValueError):
+            candidate = 0
+        if candidate and candidate in before:
+            return 0
+        if candidate:
+            accepted = _accept_new_pid(candidate, bin_path, pid_alive, before)
+            if accepted:
+                return accepted
+            if not _live_pid(candidate, pid_alive):
+                return 0
+        if proc.poll() is not None and not candidate and time.monotonic() > started + 1.0:
+            return 0
+        time.sleep(0.05)
+    return 0
+
+
+def _spawned_by_us(pid, bin_path, runner) -> bool:
+    """True for the harness, or for the runner script this call wrote. Not a process-table search."""
+    if _looks_like_bin(pid, bin_path):
+        return True
+    runner_s = str(runner or "")
+    if not runner_s:
+        return False
+    return any(runner_s in token for token in _argv(pid))
+
+
+def _abandon(proc, pid_file, before, pid_alive, bin_path, runner) -> None:
+    """Stop a spawn this call started. A pid from the deny-list is left alone."""
+    candidate = 0
+    try:
+        candidate = int(Path(pid_file).read_text(encoding="utf-8", errors="replace").strip())
+    except (OSError, ValueError):
+        candidate = 0
+    if (
+        candidate
+        and candidate not in before
+        and _live_pid(candidate, pid_alive)
+        and _spawned_by_us(candidate, bin_path, runner)
+    ):
+        _signal_recorded(candidate)
+    if proc is None:
+        return
+    try:
+        if proc.poll() is None and proc.pid > 1 and proc.pid not in before:
+            os.kill(proc.pid, signal.SIGTERM)
+    except OSError:
+        return
+
+
+def _record_headless(state, name, harness, pid, pid_alive) -> bool:
+    state = Path(state)
+    try:
+        state.mkdir(parents=True, exist_ok=True)
+        (state / HEADLESS_NAME).write_text(name + "\n", encoding="utf-8")
+        (state / HEADLESS_HARNESS).write_text(harness + "\n", encoding="utf-8")
+        (state / HEADLESS_PID).write_text(str(int(pid)) + "\n", encoding="utf-8")
+    except OSError:
+        return False
+    write_recorded_start(state, HEADLESS_PID, int(pid))
+    return same_recorded_process(state, HEADLESS_PID, int(pid), pid_alive)
+
+
+def _stop_private_mux(state, name) -> None:
+    """Best-effort stop of the private tmux socket or screen dir. Ignores stubs."""
+    if not name:
+        return
+    state = Path(state)
+    tmux = _which("tmux")
+    sock = state / "headless-tmux.sock"
+    if tmux and sock.exists():
+        try:
+            subprocess.run(
+                [tmux, "-S", str(sock), "kill-session", "-t", name],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=2,
+                check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            pass
+    screen = _which("screen")
+    screen_dir = state / "screen"
+    if screen and screen_dir.is_dir():
+        env = os.environ.copy()
+        env["SCREENDIR"] = str(screen_dir)
+        try:
+            subprocess.run(
+                [screen, "-S", name, "-X", "quit"],
+                env=env,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=2,
+                check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            pass
+
+
+def _spawn_headless(bin_path, cwd, env, log_path, pid_alive):
+    """Detach bin_path under tmux, else screen, else setsid. Returns (ok, pid, error)."""
+    env = dict(env or {})
+    env.pop("TMUX", None)
+    env.pop("STY", None)
+    log_path = Path(log_path)
+    state = log_path.parent
+    state.mkdir(parents=True, exist_ok=True)
+    harness = Path(str(bin_path)).name or "harness"
+    name = "pfy-%s-%s" % (harness, secrets.token_hex(3))
+    pid_file = state / "headless-spawn.pid"
+    try:
+        if pid_file.is_file():
+            pid_file.unlink()
+    except OSError:
+        pass
+    runner = _write_runner(state, bin_path, pid_file)
+    previous_pid, previous_name, previous_start = _owned_headless(state, pid_alive)
+    saved = _snapshot_headless_files(state)
+    before = _pids_looking_like(bin_path, pid_alive)
+    tmux = _which("tmux")
+    screen = _which("screen")
+    proc = None
+    try:
+        if tmux:
+            proc = _popen_logged(
+                [tmux, "-S", str(state / "headless-tmux.sock"), "new-session", "-d", "-s", name, str(runner)],
+                cwd, env, log_path, True,
+            )
+            pid = _poll_pidfile(proc, pid_file, bin_path, pid_alive, before)
+        elif screen:
+            screen_dir = state / "screen"
+            screen_dir.mkdir(mode=0o700, exist_ok=True)
+            os.chmod(screen_dir, 0o700)
+            screen_env = dict(env)
+            screen_env["SCREENDIR"] = str(screen_dir)
+            proc = _popen_logged(
+                [screen, "-dmS", name, str(runner)],
+                cwd, screen_env, log_path, True,
+            )
+            pid = _poll_pidfile(proc, pid_file, bin_path, pid_alive, before)
+        else:
+            setsid_bin = _which("setsid")
+            if setsid_bin:
+                proc = _popen_logged([setsid_bin, str(runner)], cwd, env, log_path, False)
+            else:
+                proc = _popen_logged([str(runner)], cwd, env, log_path, True)
+            pid = _poll_direct(proc, bin_path, pid_alive, before)
+    except OSError as exc:
+        _abandon(proc, pid_file, before, pid_alive, bin_path, runner)
+        _stop_private_mux(state, name)
+        _restore_headless_files(state, saved)
+        return False, 0, str(exc)[:300]
+    if not pid:
+        _abandon(proc, pid_file, before, pid_alive, bin_path, runner)
+        _stop_private_mux(state, name)
+        _restore_headless_files(state, saved)
+        return False, 0, "headless session exited"
+    if not _record_headless(state, name, harness, pid, pid_alive):
+        _signal_recorded(pid)
+        _stop_private_mux(state, name)
+        _restore_headless_files(state, saved)
+        return False, 0, "headless session exited"
+    if (
+        previous_pid
+        and previous_pid != int(pid)
+        and previous_name
+        and previous_name != name
+        and _still_started_at(previous_pid, previous_start, pid_alive)
+    ):
+        _signal_recorded(previous_pid)
+        _stop_private_mux(state, previous_name)
+    return True, pid, ""
+
+
+def headless_status(state, pid_alive=None) -> dict:
+    """Report the recorded headless session when that process is still alive."""
+    info = read_headless_session(state)
+    pid = int(info.get("pid") or 0)
+    if pid > 0 and same_recorded_process(state, HEADLESS_PID, pid, pid_alive):
+        name = info.get("name") or ""
+        harness = info.get("harness") or ""
+        return {
+            "ok": True,
+            "live": "READY",
+            "session": name,
+            "pid": pid,
+            "harness": harness,
+            "copy": "headless session %s pid %s harness %s" % (name, pid, harness),
+        }
+    return {
+        "ok": False,
+        "live": "FAIL",
+        "session": "",
+        "pid": 0,
+        "harness": "",
+        "copy": "FAIL launch status -- no headless session",
+    }
+
+
+def headless_stop(state, pid_alive=None) -> dict:
+    """Signal the recorded pid only when its start time still matches.
+
+    A reused pid number is not signalled. The headless record is cleared either way.
+    """
+    info = read_headless_session(state)
+    pid = int(info.get("pid") or 0)
+    name = info.get("name") or ""
+    owned = pid > 0 and same_recorded_process(state, HEADLESS_PID, pid, pid_alive)
+    if owned:
+        _signal_recorded(pid)
+        _stop_private_mux(state, name)
+        _clear_pid_files_matching(state, pid)
+    _clear_headless_files(state)
+    if not owned:
+        return {
+            "ok": False,
+            "live": "FAIL",
+            "session": "",
+            "pid": 0,
+            "harness": "",
+            "stopped": False,
+            "copy": "FAIL launch stop -- no headless session",
+        }
+    return {
+        "ok": True,
+        "live": "STOPPED",
+        "session": name,
+        "pid": pid,
+        "harness": info.get("harness") or "",
+        "stopped": True,
+        "copy": "stopped %s pid %s" % (name, pid),
+    }
+
+
+def _cli_pid_alive(pid) -> bool:
+    try:
+        os.kill(int(pid), 0)
+    except OSError:
+        return False
+    return True
+
+
+def main(argv=None) -> int:
+    args = list(sys.argv[1:] if argv is None else argv)
+    state = Path(os.environ.get("PFY_STATE_DIR") or (Path.home() / ".pfy-mentat"))
+    cmd = args[0] if args else ""
+    if cmd == "--status":
+        result = headless_status(state, _cli_pid_alive)
+        print(json.dumps(result))
+        return 0 if result.get("ok") else 2
+    if cmd == "--stop":
+        result = headless_stop(state, _cli_pid_alive)
+        print(json.dumps(result))
+        return 0 if result.get("ok") else 2
+    print("usage: pfy_enterable_162_a.py --status|--stop", file=sys.stderr)
+    return 2
+
+
 def spawn_terminal_opencode(bin_path: str, cwd: str, env: dict, log_path: Path, pid_alive) -> tuple:
     """Spawn a native terminal running the harness. Returns (ok, pid, error).
 
     The pid is the terminal this call spawned, or a descendant of it. A harness
     that was already running is not adopted. A terminal that exits with no
-    harness child is "terminal exited".
+    harness child is "terminal exited". With PFY_HEADLESS or no display, detach
+    under tmux, screen, or setsid instead of a GUI terminal.
     """
     cwd = str(cwd)
     bin_path = str(bin_path)
+    env = env or {}
+    if _want_headless(env):
+        return _spawn_headless(bin_path, cwd, env, log_path, pid_alive)
     last_err = "no terminal"
-    if not _has_display(env):
-        return False, 0, "no DISPLAY · cannot open terminal"
     cmds = list(_terminal_cmds(bin_path, cwd))
     if not cmds:
         return False, 0, "no terminal binary on PATH"
@@ -441,3 +957,7 @@ def spawn_terminal_opencode(bin_path: str, cwd: str, env: dict, log_path: Path, 
             last_err = str(e)[:300]
             continue
     return False, 0, last_err or "terminal cannot start"
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
