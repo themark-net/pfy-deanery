@@ -7,6 +7,7 @@ import os
 import re
 import shutil
 import signal
+import stat
 import subprocess
 import sys
 import time
@@ -56,6 +57,35 @@ def _write_exe(path: Path, body: str) -> Path:
     path.write_text(body, encoding="utf-8")
     path.chmod(0o755)
     return path
+
+
+def _worktree_paths(repo: Path) -> list[Path]:
+    proc = _git(repo, "worktree", "list", "--porcelain")
+    found: list[Path] = []
+    for line in (proc.stdout or "").splitlines():
+        if line.startswith("worktree "):
+            found.append(Path(line.split(" ", 1)[1]))
+    return found
+
+
+def _drop_external_worktrees(repo: Path) -> None:
+    """Remove build worktrees that live outside the fixture repo.
+
+    Fail: --keep-worktree leaves /var/tmp/pfyb-* registered, and the class
+    tearDown only deletes the fixture. Recover: git worktree remove, then
+    delete the short directory. The caller repo stays.
+    """
+    if not repo.exists():
+        return
+    for path in _worktree_paths(repo):
+        try:
+            same = path.resolve() == repo.resolve()
+        except OSError:
+            same = False
+        if same:
+            continue
+        _git(repo, "worktree", "remove", "--force", str(path))
+        shutil.rmtree(path, ignore_errors=True)
 
 
 def _init_repo(path: Path) -> Path:
@@ -1512,6 +1542,7 @@ class CloudBuildFailureTests(unittest.TestCase):
         self.side.mkdir(parents=True, exist_ok=True)
 
     def tearDown(self) -> None:
+        _drop_external_worktrees(self.repo)
         shutil.rmtree(self.repo, ignore_errors=True)
         shutil.rmtree(self.side, ignore_errors=True)
 
@@ -2587,8 +2618,19 @@ class CloudBuildFailureTests(unittest.TestCase):
         payload = self._receipt()
         self.assertEqual(payload["status"], "PASS")
         self.assertFalse(payload["worktree_removed"])
-        self.assertTrue((self.repo / "tmp" / "cloud-build").is_dir())
-        self.assertTrue(any((self.repo / "tmp" / "cloud-build").iterdir()))
+        extras = [
+            path
+            for path in _worktree_paths(self.repo)
+            if path.resolve() != self.repo.resolve()
+        ]
+        self.assertEqual(len(extras), 1, _git(self.repo, "worktree", "list").stdout)
+        worktree = extras[0]
+        self.assertTrue(worktree.is_dir())
+        self.assertTrue(worktree.name.startswith("pfyb-"), worktree.name)
+        self.assertEqual(stat.S_IMODE(worktree.stat().st_mode), 0o700)
+        self.assertEqual(worktree.stat().st_uid, os.getuid())
+        self.assertTrue(any(worktree.iterdir()))
+        self.assertFalse((self.repo / "tmp" / "cloud-build").exists())
 
     def test_no_review_skips_the_second_grok_call(self) -> None:
         count = self.side / "calls.txt"
@@ -2688,11 +2730,11 @@ class CloudBuildGateReasonTests(unittest.TestCase):
     def test_changed_test_file_fails_before_the_gate_and_is_not_committed(self) -> None:
         tests = self.repo / "tests"
         tests.mkdir()
-        (tests / "test_keep.py").write_text(
-            "def test_keep():\n    assert True\n",
+        (tests / "conftest.py").write_text(
+            "def pytest_configure(config):\n    return None\n",
             encoding="utf-8",
         )
-        added = _git(self.repo, "add", "tests/test_keep.py")
+        added = _git(self.repo, "add", "tests/conftest.py")
         self.assertEqual(added.returncode, 0, added.stderr)
         committed = _git(self.repo, "commit", "-m", "keep")
         self.assertEqual(committed.returncode, 0, committed.stderr)
@@ -2712,7 +2754,7 @@ class CloudBuildGateReasonTests(unittest.TestCase):
             self.side / "grok.py",
             "#!/usr/bin/env python3\n"
             "from pathlib import Path\n"
-            "Path('tests/test_keep.py').write_text('def test_keep():\\n    assert False\\n', encoding='utf-8')\n"
+            "Path('tests/conftest.py').write_text('def pytest_configure(config):\\n    raise SystemExit(0)\\n', encoding='utf-8')\n"
             "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
             "raise SystemExit(0)\n",
         )
@@ -2747,15 +2789,17 @@ class CloudBuildGateReasonTests(unittest.TestCase):
     def test_writable_test_lets_that_base_file_change_and_land(self) -> None:
         tests = self.repo / "tests"
         tests.mkdir()
-        (tests / "test_keep.py").write_text(
+        harness = self.repo / "examples" / "eval-harness"
+        harness.mkdir(parents=True)
+        (harness / "test_keep.py").write_text(
             "def test_keep():\n    assert True\n",
             encoding="utf-8",
         )
-        (tests / "test_edit.py").write_text(
+        (harness / "test_edit.py").write_text(
             "def test_edit():\n    assert True\n",
             encoding="utf-8",
         )
-        added = _git(self.repo, "add", "tests/test_keep.py", "tests/test_edit.py")
+        added = _git(self.repo, "add", "examples/eval-harness/test_keep.py", "examples/eval-harness/test_edit.py")
         self.assertEqual(added.returncode, 0, added.stderr)
         committed = _git(self.repo, "commit", "-m", "tests")
         self.assertEqual(committed.returncode, 0, committed.stderr)
@@ -2763,8 +2807,8 @@ class CloudBuildGateReasonTests(unittest.TestCase):
             self.side / "gate.py",
             "#!/usr/bin/env python3\n"
             "from pathlib import Path\n"
-            "edit = Path('tests/test_edit.py').read_text(encoding='utf-8')\n"
-            "keep = Path('tests/test_keep.py').read_text(encoding='utf-8')\n"
+            "edit = Path('examples/eval-harness/test_edit.py').read_text(encoding='utf-8')\n"
+            "keep = Path('examples/eval-harness/test_keep.py').read_text(encoding='utf-8')\n"
             "if 'assert 1 == 1' not in edit or 'assert True' not in keep:\n"
             "    print('GATE-NEED-EDIT')\n"
             "    raise SystemExit(1)\n"
@@ -2780,7 +2824,7 @@ class CloudBuildGateReasonTests(unittest.TestCase):
             "if 'PFY-CLOUD-REVIEW' in blob:\n"
             "    print('verdict: accept')\n"
             "    raise SystemExit(0)\n"
-            "Path('tests/test_edit.py').write_text('def test_edit():\\n    assert 1 == 1\\n', encoding='utf-8')\n"
+            "Path('examples/eval-harness/test_edit.py').write_text('def test_edit():\\n    assert 1 == 1\\n', encoding='utf-8')\n"
             "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
             "raise SystemExit(0)\n",
         )
@@ -2796,7 +2840,7 @@ class CloudBuildGateReasonTests(unittest.TestCase):
                 "--timeout",
                 "30",
                 "--writable-test",
-                "tests/test_edit.py",
+                "examples/eval-harness/test_edit.py",
                 "--test-cmd",
                 "%s %s" % (sys.executable, gate),
                 "--grok-cmd",
@@ -2809,9 +2853,9 @@ class CloudBuildGateReasonTests(unittest.TestCase):
         payload = self._receipt()
         self.assertEqual(payload["status"], "PASS")
         self.assertEqual(payload["reason"], "ok")
-        shown = _git(self.repo, "show", payload["commit"] + ":tests/test_edit.py")
+        shown = _git(self.repo, "show", payload["commit"] + ":examples/eval-harness/test_edit.py")
         self.assertIn("assert 1 == 1", shown.stdout)
-        kept = _git(self.repo, "show", payload["commit"] + ":tests/test_keep.py")
+        kept = _git(self.repo, "show", payload["commit"] + ":examples/eval-harness/test_keep.py")
         self.assertEqual(kept.stdout, "def test_keep():\n    assert True\n")
         names = _git(self.repo, "ls-tree", "-r", "--name-only", payload["commit"]).stdout.splitlines()
         self.assertIn("kept.py", names)
@@ -2821,8 +2865,8 @@ class CloudBuildGateReasonTests(unittest.TestCase):
         tests.mkdir()
         (tests / "test_a.py").write_text("def test_a():\n    assert True\n", encoding="utf-8")
         (tests / "test_b.py").write_text("def test_b():\n    assert True\n", encoding="utf-8")
-        (tests / "test_gate.py").write_text("def test_gate():\n    assert True\n", encoding="utf-8")
-        added = _git(self.repo, "add", "tests/test_a.py", "tests/test_b.py", "tests/test_gate.py")
+        (tests / "conftest.py").write_text("def pytest_configure(config):\n    return None\n", encoding="utf-8")
+        added = _git(self.repo, "add", "tests/test_a.py", "tests/test_b.py", "tests/conftest.py")
         self.assertEqual(added.returncode, 0, added.stderr)
         committed = _git(self.repo, "commit", "-m", "tests")
         self.assertEqual(committed.returncode, 0, committed.stderr)
@@ -2832,8 +2876,8 @@ class CloudBuildGateReasonTests(unittest.TestCase):
             "from pathlib import Path\n"
             "a = Path('tests/test_a.py').read_text(encoding='utf-8')\n"
             "b = Path('tests/test_b.py').read_text(encoding='utf-8')\n"
-            "gate = Path('tests/test_gate.py').read_text(encoding='utf-8')\n"
-            "if 'assert 1 == 1' not in a or 'assert 2 == 2' not in b or gate != 'def test_gate():\\n    assert True\\n':\n"
+            "gate = Path('tests/conftest.py').read_text(encoding='utf-8')\n"
+            "if 'assert 1 == 1' not in a or 'assert 2 == 2' not in b or gate != 'def pytest_configure(config):\\n    return None\\n':\n"
             "    print('GATE-NEED-BOTH')\n"
             "    raise SystemExit(1)\n"
             "print('GATE-OK')\n"
@@ -2849,14 +2893,14 @@ class CloudBuildGateReasonTests(unittest.TestCase):
             "    print('verdict: accept')\n"
             "    raise SystemExit(0)\n"
             "if 'tests-tampered' in blob:\n"
-            "    Path('tests/test_gate.py').write_text('def test_gate():\\n    assert True\\n', encoding='utf-8')\n"
+            "    Path('tests/conftest.py').write_text('def pytest_configure(config):\\n    return None\\n', encoding='utf-8')\n"
             "    Path('tests/test_a.py').write_text('def test_a():\\n    assert 1 == 1\\n', encoding='utf-8')\n"
             "    Path('tests/test_b.py').write_text('def test_b():\\n    assert 2 == 2\\n', encoding='utf-8')\n"
             "    Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
             "    raise SystemExit(0)\n"
             "Path('tests/test_a.py').write_text('def test_a():\\n    assert 1 == 1\\n', encoding='utf-8')\n"
             "Path('tests/test_b.py').write_text('def test_b():\\n    assert 2 == 2\\n', encoding='utf-8')\n"
-            "Path('tests/test_gate.py').write_text('def test_gate():\\n    assert False\\n', encoding='utf-8')\n"
+            "Path('tests/conftest.py').write_text('def pytest_configure(config):\\n    return False\\n', encoding='utf-8')\n"
             "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
             "raise SystemExit(0)\n",
         )
@@ -2892,23 +2936,23 @@ class CloudBuildGateReasonTests(unittest.TestCase):
         self.assertIn("assert 1 == 1", _git(self.repo, "show", payload["commit"] + ":tests/test_a.py").stdout)
         self.assertIn("assert 2 == 2", _git(self.repo, "show", payload["commit"] + ":tests/test_b.py").stdout)
         self.assertEqual(
-            _git(self.repo, "show", payload["commit"] + ":tests/test_gate.py").stdout,
-            "def test_gate():\n    assert True\n",
+            _git(self.repo, "show", payload["commit"] + ":tests/conftest.py").stdout,
+            "def pytest_configure(config):\n    return None\n",
         )
         self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
 
     def test_writable_test_does_not_cover_a_different_base_file(self) -> None:
         tests = self.repo / "tests"
         tests.mkdir()
-        (tests / "test_keep.py").write_text(
-            "def test_keep():\n    assert True\n",
+        (tests / "conftest.py").write_text(
+            "def pytest_configure(config):\n    return None\n",
             encoding="utf-8",
         )
         (tests / "test_edit.py").write_text(
             "def test_edit():\n    assert True\n",
             encoding="utf-8",
         )
-        added = _git(self.repo, "add", "tests/test_keep.py", "tests/test_edit.py")
+        added = _git(self.repo, "add", "tests/conftest.py", "tests/test_edit.py")
         self.assertEqual(added.returncode, 0, added.stderr)
         committed = _git(self.repo, "commit", "-m", "tests")
         self.assertEqual(committed.returncode, 0, committed.stderr)
@@ -2928,7 +2972,7 @@ class CloudBuildGateReasonTests(unittest.TestCase):
             self.side / "grok.py",
             "#!/usr/bin/env python3\n"
             "from pathlib import Path\n"
-            "Path('tests/test_keep.py').write_text('def test_keep():\\n    assert False\\n', encoding='utf-8')\n"
+            "Path('tests/conftest.py').write_text('def pytest_configure(config):\\n    return False\\n', encoding='utf-8')\n"
             "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
             "raise SystemExit(0)\n",
         )

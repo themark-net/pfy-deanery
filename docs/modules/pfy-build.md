@@ -29,13 +29,15 @@ The runner does not read `auth.json`.
 | `--test-cmd CMD` | Gate. Default `python3 -m unittest discover -s tests -t .`. |
 | `--retries N` | Extra attempts. Default 2 (3 total). |
 | `--no-review` | One attempt, no review. Default is review on. |
-| `--writable-test PATH` | Existing test file the task may edit. Repeat the flag for each path. Other base tests stay hashed. Omit it when the task does not change tests. |
+| `--writable-test PATH` | Protected gate or eval path the task may edit. Repeat the flag for each path. Ordinary files under `tests/` may change without it. Deleting a base test is still `tests-tampered`. |
 | `--receipt-dir DIR` | Receipt directory. Default `pipelines/dogfood/build-cloud/<stamp>/`. |
 | `--dry-run` | Exit 0. No grok, no branch. Receipt `status` `DRY-RUN`, `commit` null. |
 | `--reap` | Exit 0. Receipt `status` `ABORTED` when the killed run wrote nothing. |
-| `--keep-worktree` | Keep `<repo>/tmp/cloud-build/<stamp>/`. |
+| `--keep-worktree` | Keep the short worktree (mode 0700). Default removes it when the run finishes. |
 | `--timeout SEC` | Exit 3 on expiry. |
 | `--review-file-cap N` | Max characters of one file's diff in review. Default 12000. Same knob as `PFY_REVIEW_FILE_CAP`. The flag wins when both are set. |
+
+Protected paths, which still need `--writable-test`, are the pregate gate-hash basenames (`conftest.py`, `pytest.ini`, `tox.ini`, `setup.cfg`, `pyproject.toml`, `sitecustomize.py`, `usercustomize.py`, `.gitignore`, `.gitattributes`, anywhere in the tree), plus `examples/eval-harness/`, `.github/workflows/`, `scripts/pregate.sh`, `scripts/pfy`, and `scripts/pfy_build_cloud.py`.
 
 ### Exit codes
 
@@ -87,7 +89,7 @@ The runner does not read `auth.json`. A rate limit does not auto-start `--local`
 - Entry: `scripts/pfy_build_cloud.py`, reached from `scripts/pfy` `cmd_build` when the argv is not `-p`, `--prompt`, `--prompt-file`, or `--local`. The cloud lane owns that dispatch. This module doc does not edit `scripts/pfy`.
 - `-p` entry: [scripts/pfy_build_p.py](../../scripts/pfy_build_p.py). Receipt `pipelines/dogfood/build/<stamp>/receipt.jsonl`. Do not change that contract.
 - `--local` entry: [scripts/pfy_build_local.py](../../scripts/pfy_build_local.py). Branch prefix stays `local/`. Not the default.
-- Invariants: review on unless `--no-review`; review is one file at a time and any reject rejects the build; a review that stops before the last file is a reject, so an unread file is not published; a file over the per-file cap fails as `review-file-too-large` with `phase` `precheck` before the post-change gate; the reviewer sees every line of a file it accepts (no truncated diff); `impact.source` is `codebase-memory-mcp`, `tree-sitter-analyzer`, or `git-grep`; a missing impact tool does not fail the build; the gate drops `GIT_CONFIG_COUNT` and `GIT_CONFIG_KEY_*` / `GIT_CONFIG_VALUE_*` together so a scrubbed key name does not leave git unable to parse its command-line config; `pushed` false; no read of `auth.json`; a `rate-limit` receipt does not start `--local`; commit set is the reviewed path list (`scope-commit-mismatch` on a mismatch); caller checkout is never the worktree; pid file `tmp/cloud-build.pids.json` only.
+- Invariants: review on unless `--no-review`; review is one file at a time and any reject rejects the build; a review that stops before the last file is a reject, so an unread file is not published; a file over the per-file cap fails as `review-file-too-large` with `phase` `precheck` before the post-change gate; the reviewer sees every line of a file it accepts (no truncated diff); `impact.source` is `codebase-memory-mcp`, `tree-sitter-analyzer`, or `git-grep`; a missing impact tool does not fail the build; the gate drops `GIT_CONFIG_COUNT` and `GIT_CONFIG_KEY_*` / `GIT_CONFIG_VALUE_*` together so a scrubbed key name does not leave git unable to parse its command-line config; `pushed` false; no read of `auth.json`; a `rate-limit` receipt does not start `--local`; commit set is the reviewed path list (`scope-commit-mismatch` on a mismatch); caller checkout is never the worktree; the worktree is `/var/tmp/pfyb-<stamp>-<pid>` or another short 0700 directory outside `/tmp` and `/run` (`PFY_BUILD_WORKTREE_ROOT` replaces the search), removed unless `--keep-worktree`; pid file `tmp/cloud-build.pids.json` only.
 - Schema: `pfy-cloud-build/1` at `pipelines/dogfood/build-cloud/<stamp>/receipt.json`.
 - ADR: [ADR-0002](../adr/0002-grok-cli-primary-interface.md) and [ADR-0011](../adr/0011-hybrid-operator-surfaces-grok-opencode-ollama.md) keep Grok as the daily path. [ADR-0014](../adr/0014-pluggable-local-inference-spine.md) is the inference spine, not the build default. Ops split: [local-cloud-split.md](../ops/local-cloud-split.md).
 - Do not: edit `docs/modules/README.md` from a docs lane (integration adds the row); link `scripts/pfy_build_cloud.py` (keep it inline code); auto-start a local model; push from the runner; open a PR from the runner.

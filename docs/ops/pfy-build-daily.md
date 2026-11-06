@@ -33,13 +33,15 @@ The runner does not read `auth.json`. Grok uses the operator login that already 
 | `--test-cmd CMD` | Gate command. Default `python3 -m unittest discover -s tests -t .`. |
 | `--retries N` | Extra attempts after the first. Default 2, so 3 attempts total. |
 | `--no-review` | One attempt, no review call. Default is review on. |
-| `--writable-test PATH` | Existing test file the task may edit. Repeat the flag for each path. Other base tests stay hashed. Omit it when the task does not change tests. |
+| `--writable-test PATH` | Protected gate or eval path the task may edit. Repeat the flag for each path. Ordinary files under `tests/` may change without it. Deleting a base test is still `tests-tampered`. |
 | `--receipt-dir DIR` | Where to write the receipt. Default is under `pipelines/dogfood/build-cloud/<stamp>/`. |
 | `--dry-run` | Plan only. Exit 0. No grok, no branch. |
 | `--reap` | Clean a cloud run that died before it could write a receipt. Exit 0. |
-| `--keep-worktree` | Leave `<repo>/tmp/cloud-build/<stamp>/` in place. Default removes it on PASS. |
+| `--keep-worktree` | Leave the short worktree in place (mode 0700). Default removes it when the run finishes. |
 | `--timeout SEC` | Bound the run. Exit 3 when it fires. |
 | `--review-file-cap N` | Max characters of one file's diff in a review prompt. Default 12000. `PFY_REVIEW_FILE_CAP` is the same knob. When both are set, the flag wins. A file over the cap is `review-file-too-large` before the post-change gate. |
+
+Protected paths, which still need `--writable-test`, are the pregate gate-hash basenames (`conftest.py`, `pytest.ini`, `tox.ini`, `setup.cfg`, `pyproject.toml`, `sitecustomize.py`, `usercustomize.py`, `.gitignore`, `.gitattributes`, anywhere in the tree), plus `examples/eval-harness/`, `.github/workflows/`, `scripts/pregate.sh`, `scripts/pfy`, and `scripts/pfy_build_cloud.py`.
 
 ## Exit codes
 
@@ -118,7 +120,7 @@ The runner does not read `auth.json`. A rate limit does not auto-start `--local`
 
 Receipt text is redacted (token, bearer, AKIA, private-key blocks). A short fixture assignment such as `user_key=list-user` stays readable. An uppercase name such as `API_TOKEN`, a name that contains password or secret, and a value that mixes letters and digits are still replaced with `[redacted]`. A receipt that still contains those raw forms is a failed run. Do not paste a receipt that holds a live token into chat or into git. The demo copy that integration keeps is `eval/mvp-1031/demo-receipt.json` on the integrate branch, not a default receipt under `pipelines/dogfood/build-cloud/`.
 
-Pid file: `<repo>/tmp/cloud-build.pids.json`. Worktree: `<repo>/tmp/cloud-build/<stamp>/`, removed on PASS unless `--keep-worktree`. Branch prefix: `cloud/`. The branch ref remains after the worktree is removed.
+Pid file: `<repo>/tmp/cloud-build.pids.json`. Worktree: `/var/tmp/pfyb-<stamp>-<pid>` (mode 0700), or `$XDG_RUNTIME_DIR/pfyb-<stamp>-<pid>` when that directory is outside `/tmp` and `/run` and the harness2 socket still fits in 107 bytes, otherwise `~/.cache/pfyb-<stamp>-<pid>`. `PFY_BUILD_WORKTREE_ROOT` replaces that search. Removed when the run finishes unless `--keep-worktree`. Branch prefix: `cloud/`. The branch ref remains after the worktree is removed. The lock stays `<repo>/tmp/cloud-build.lock`.
 
 Default protect globs include `auth.json`, `.env`, `*.pem`, and `pipelines/dogfood/**/grok-home/**`. Protect means those paths are not committed. It does not mean the runner opens `auth.json`.
 

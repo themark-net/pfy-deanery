@@ -121,14 +121,16 @@ class Cloud2SurvivorTests(unittest.TestCase):
         )
 
     def test_writable_glob_lets_the_matching_base_test_change(self) -> None:
-        # Fail: --writable-test tests/test_ed*.py is compared as literal text,
-        # so the allowed test_edit.py is tests-tampered and nothing lands.
+        # Fail: --writable-test examples/eval-harness/test_ed*.py is compared
+        # as literal text, so the allowed test_edit.py is tests-tampered and
+        # nothing lands. Ordinary tests/ files no longer need the flag, so
+        # this kill stays on a protected tree.
         # Recover: the glob matches test_edit.py, the edit commits, test_keep.py stays.
-        tests = self.repo / "tests"
-        tests.mkdir()
-        (tests / "test_keep.py").write_text("def test_keep():\n    assert True\n", encoding="utf-8")
-        (tests / "test_edit.py").write_text("def test_edit():\n    assert True\n", encoding="utf-8")
-        added = _git(self.repo, "add", "tests")
+        harness = self.repo / "examples" / "eval-harness"
+        harness.mkdir(parents=True)
+        (harness / "test_keep.py").write_text("def test_keep():\n    assert True\n", encoding="utf-8")
+        (harness / "test_edit.py").write_text("def test_edit():\n    assert True\n", encoding="utf-8")
+        added = _git(self.repo, "add", "examples")
         self.assertEqual(added.returncode, 0, added.stderr)
         committed = _git(self.repo, "commit", "-m", "tests")
         self.assertEqual(committed.returncode, 0, committed.stderr)
@@ -136,12 +138,13 @@ class Cloud2SurvivorTests(unittest.TestCase):
             self.side / "grok.py",
             "#!/usr/bin/env python3\n"
             "from pathlib import Path\n"
-            "Path('tests/test_edit.py').write_text('def test_edit():\\n    assert 1 == 1\\n', encoding='utf-8')\n"
+            "Path('examples/eval-harness/test_edit.py').write_text("
+            "'def test_edit():\\n    assert 1 == 1\\n', encoding='utf-8')\n"
             "raise SystemExit(0)\n",
         )
         proc = self._cloud(
             "edit the allowed test",
-            ["--writable-test", "tests/test_ed*.py"],
+            ["--writable-test", "examples/eval-harness/test_ed*.py"],
             grok,
             self._gate_ok(),
         )
@@ -151,9 +154,9 @@ class Cloud2SurvivorTests(unittest.TestCase):
         payload = self._receipt()
         self.assertEqual(payload["status"], "PASS", payload)
         self.assertIsNotNone(payload["commit"])
-        shown = _git(self.repo, "show", payload["commit"] + ":tests/test_edit.py")
+        shown = _git(self.repo, "show", payload["commit"] + ":examples/eval-harness/test_edit.py")
         self.assertEqual(shown.stdout, "def test_edit():\n    assert 1 == 1\n")
-        kept = _git(self.repo, "show", payload["commit"] + ":tests/test_keep.py")
+        kept = _git(self.repo, "show", payload["commit"] + ":examples/eval-harness/test_keep.py")
         self.assertEqual(kept.stdout, "def test_keep():\n    assert True\n")
 
     def test_literal_star_does_not_stage_a_sibling_pyc(self) -> None:

@@ -41,7 +41,7 @@ usage: ./pfy build "<task>"
 exit 2
 ```
 
-The daily command is `./pfy build "<task>"`. That starts cloud Grok. This card does not run it. A missing task exits 2 and prints the lines above. When an existing test file must change, add `--writable-test PATH` for that file. Other base tests stay hashed.
+The daily command is `./pfy build "<task>"`. That starts cloud Grok. This card does not run it. A missing task exits 2 and prints the lines above. An ordinary file under `tests/` may change with no flag. When a protected gate or eval file must change, add `--writable-test PATH` for that file. Deleting a base test is still `tests-tampered`.
 
 ```bash runnable exit=0
 ./pfy build --help
@@ -66,11 +66,13 @@ exit 0
 | `--repo DIR` | Git repo to build. Default is the repo that contains `./pfy`. The caller checkout is never the worktree. |
 | `--base REF` | Base ref. When HEAD matches `origin/main`, that is the default. When they differ, the run exits 2 until you pass `--base`. When `origin/main` is absent, the default is HEAD. |
 | `--test-cmd CMD` | Gate. Default `python3 -m unittest discover -s tests -t .`. |
-| `--writable-test PATH` | Existing test file the task may edit. Repeat the flag for each path. Other base tests stay hashed. |
+| `--writable-test PATH` | Protected gate or eval path the task may edit. Repeat the flag for each path. Ordinary files under `tests/` may change without it. Deleting a base test is still `tests-tampered`. |
 | `--receipt-dir DIR` | Directory for `receipt.json`. Default `<repo>/pipelines/dogfood/build-cloud/<stamp>/`. |
 | `--dry-run` | Write a receipt, start no grok, create no branch. Exit 0. |
 
 Also on the help line: `--retries` (default 2 extra, 3 total), `--no-review`, `--reap`, `--keep-worktree`, `--timeout`.
+
+Protected paths, which still need `--writable-test`, are the pregate gate-hash basenames (`conftest.py`, `pytest.ini`, `tox.ini`, `setup.cfg`, `pyproject.toml`, `sitecustomize.py`, `usercustomize.py`, `.gitignore`, `.gitattributes`, anywhere in the tree), plus `examples/eval-harness/`, `.github/workflows/`, `scripts/pregate.sh`, `scripts/pfy`, and `scripts/pfy_build_cloud.py`.
 
 ## Dry-run
 
@@ -123,10 +125,10 @@ The runner summary line on a PASS is `PASS ok branch=cloud/<slug>-<stamp> receip
 | Default receipt | `<repo>/pipelines/dogfood/build-cloud/<stamp>/receipt.json` |
 | Kept demo copy | `eval/mvp-1031/demo-receipt.json` |
 | Branch | `cloud/<slug>-<stamp>` in the `--repo` repo |
-| Worktree | `<repo>/tmp/cloud-build/<stamp>/`, removed on PASS unless `--keep-worktree` |
+| Worktree | `/var/tmp/pfyb-<stamp>-<pid>` (mode 0700), removed when the run finishes unless `--keep-worktree` |
 | Cloud pid file | `<repo>/tmp/cloud-build.pids.json` |
 
-The caller branch name does not change. The `cloud/` ref remains after the worktree is removed.
+The caller branch name does not change. The `cloud/` ref remains after the worktree is removed. The worktree is not under the caller repo. When `$XDG_RUNTIME_DIR` is outside `/tmp` and `/run` and the harness2 socket still fits in 107 bytes, that directory is the parent. Otherwise `/var/tmp`, then `~/.cache`. `PFY_BUILD_WORKTREE_ROOT` replaces the search.
 
 ## How to land a cloud/ branch
 

@@ -2,7 +2,8 @@
 """pfy build "<task>": daily cloud Grok build.
 
 The checkout this process was started from is never switched, reset, stashed,
-or committed. Work happens in a detached git worktree under <repo>/tmp/.
+or committed. Work happens in a detached git worktree at a short 0700
+path outside /tmp and /run. The default is /var/tmp/pfyb-<stamp>-<pid>.
 Nothing is pushed and no PR is opened. This runner does not read auth.json
 and does not start a local model.
 
@@ -365,6 +366,129 @@ def _is_test_path(rel: str) -> bool:
     return False
 
 
+# Pregate's gate-hash basenames. A file with one of these names is protected
+# wherever it sits, including under tests/.
+_GATE_BASENAMES = {
+    "conftest.py",
+    "pytest.ini",
+    "tox.ini",
+    "setup.cfg",
+    "pyproject.toml",
+    "sitecustomize.py",
+    "usercustomize.py",
+    ".gitignore",
+    ".gitattributes",
+}
+# The checker and the gate entry. An edit here can turn the check off next run.
+_TAMPER_GATE_FILES = {
+    "scripts/pfy",
+    "scripts/pfy_build_cloud.py",
+    "scripts/pregate.sh",
+}
+# Harness2's Box socket is <worktree>/tmp/s/<12>/h/wt/tmp/state/r/s (38 bytes
+# past the worktree). sun_path holds 107, so the worktree must stay shorter.
+_HARNESS2_SOCKET_TAIL = ("tmp", "s", "x" * 12, "h", "wt", "tmp", "state", "r", "s")
+_SUN_PATH_MAX = 107
+
+
+def _under_prefix(rel: str, prefix: str) -> bool:
+    return rel == prefix or rel.startswith(prefix + "/")
+
+
+def _protected_gate_path(rel: str) -> bool:
+    """Gate and eval files. Ordinary tests/ files are not in this set."""
+    rel = _norm_rel(rel)
+    if not rel or rel.startswith("../") or rel == ".." or "/../" in "/%s/" % rel:
+        return False
+    if Path(rel).name in _GATE_BASENAMES:
+        return True
+    if rel in _TAMPER_GATE_FILES:
+        return True
+    if _under_prefix(rel, "examples/eval-harness"):
+        return True
+    if _under_prefix(rel, ".github/workflows"):
+        return True
+    return False
+
+
+def _ordinary_test(rel: str) -> bool:
+    """A file under tests/ that is not a gate or eval file."""
+    rel = _norm_rel(rel)
+    if not rel.startswith("tests/"):
+        return False
+    return not _protected_gate_path(rel)
+
+
+def _under_hidden_root(path: Path) -> bool:
+    """True when the harness2 sandbox would hide this path.
+
+    host_main mounts a fresh tmpfs on /tmp and /run. A checkout there cannot
+    run the sandbox tests.
+    """
+    try:
+        text = os.path.realpath(path)
+    except OSError:
+        text = str(path)
+    for root in ("/tmp", "/run"):
+        if text == root or text.startswith(root + os.sep):
+            return True
+    return False
+
+
+def _abs_path(path: Path) -> Path:
+    try:
+        return Path(os.path.realpath(path))
+    except OSError:
+        return path.absolute()
+
+
+def _harness2_socket(worktree: Path) -> Path:
+    return worktree.joinpath(*_HARNESS2_SOCKET_TAIL)
+
+
+def _socket_fits(worktree: Path) -> bool:
+    """True when the harness2 relay socket fits in sun_path and is visible.
+
+    Length is the real absolute path, in bytes, so a relative override cannot
+    look short. /tmp and /run are hidden by the sandbox tmpfs.
+    """
+    root = _abs_path(worktree)
+    sock = str(_harness2_socket(root))
+    try:
+        nbytes = len(os.fsencode(sock))
+    except UnicodeEncodeError:
+        return False
+    if nbytes > _SUN_PATH_MAX or len(sock) > _SUN_PATH_MAX:
+        return False
+    return not _under_hidden_root(root)
+
+
+def short_worktree_path(stamp: str) -> Path:
+    """One build worktree. 0700, outside /tmp and /run, socket under 107 bytes.
+
+    The directory name includes the pid so two repos that start in the same
+    microsecond do not share /var/tmp. $XDG_RUNTIME_DIR is used only when it
+    is not under /tmp or /run and the socket path fits. Otherwise
+    /var/tmp/pfyb-<stamp>-<pid>, then ~/.cache.
+    PFY_BUILD_WORKTREE_ROOT, when set, is the parent and is not replaced.
+    """
+    name = "pfyb-%s-%s" % (stamp, os.getpid())
+    override = (os.environ.get("PFY_BUILD_WORKTREE_ROOT") or "").strip()
+    if override:
+        return _abs_path(Path(override).expanduser()) / name
+    candidates: list[Path] = []
+    xdg = (os.environ.get("XDG_RUNTIME_DIR") or "").strip()
+    if xdg:
+        candidates.append(_abs_path(Path(xdg).expanduser()) / name)
+    candidates.append(Path("/var/tmp") / name)
+    candidates.append(Path.home() / ".cache" / name)
+    for cand in candidates:
+        parent = cand.parent
+        if parent.is_dir() and os.access(str(parent), os.W_OK) and _socket_fits(cand):
+            return cand
+    return Path("/var/tmp") / name
+
+
 def _alive(pid: int) -> bool:
     if pid <= 0:
         return False
@@ -457,7 +581,10 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         "--writable-test",
         action="append",
         default=[],
-        help="test path the task may edit (repeatable). Other base tests stay hashed",
+        help=(
+            "protected gate or eval path the task may edit (repeatable). "
+            "Ordinary files under tests/ are already allowed"
+        ),
     )
     parser.add_argument("--receipt-dir", default=None, help="directory for receipt.json")
     parser.add_argument("--dry-run", action="store_true", help="write a receipt and start no grok")
@@ -561,6 +688,22 @@ def worktree_recovery(task: str, ref: str, detail: str) -> str:
             "The caller checkout was not changed."
             % (ref, quoted)
         )
+    if detail == "socket-path":
+        return (
+            "The build worktree would hide the harness2 socket or make it longer "
+            "than 107 bytes. Unset PFY_BUILD_WORKTREE_ROOT or point it at a short "
+            "directory outside /tmp and /run, then rerun ./pfy build %s. "
+            "The caller checkout was not changed."
+            % quoted
+        )
+    if detail == "short-root":
+        return (
+            "The short worktree directory could not be created for base %s. "
+            "Make /var/tmp writable, or set PFY_BUILD_WORKTREE_ROOT to a short "
+            "directory outside /tmp and /run, then rerun ./pfy build %s. "
+            "The caller checkout was not changed."
+            % (ref, quoted)
+        )
     return (
         "Git worktree add failed for base %s. "
         "Fix the worktree error, then rerun ./pfy build %s. "
@@ -641,7 +784,8 @@ def failure_recovery(reason: str, task: str, detail: str = "") -> str:
         ),
         "interrupted": "The build was interrupted. Rerun ./pfy build %s.",
         "tests-tampered": (
-            "A base test changed and was not named by --writable-test. "
+            "A protected gate or eval file changed, or a base test was deleted, "
+            "and that path was not named by --writable-test. "
             "Restore it or pass --writable-test for that file, then rerun ./pfy build %s."
         ),
         "no-change": (
@@ -1178,7 +1322,7 @@ def snapshot_tests(worktree: Path) -> dict[str, str]:
                 rel = _norm_rel(str(full.relative_to(worktree)))
             except ValueError:
                 continue
-            if not rel or not _is_test_path(rel):
+            if not rel or not (_is_test_path(rel) or _protected_gate_path(rel)):
                 continue
             try:
                 found[rel] = hashlib.sha256(full.read_bytes()).hexdigest()
@@ -1199,10 +1343,43 @@ def _writable_test(rel: str, patterns: list[str]) -> bool:
     return False
 
 
+def _new_protected(worktree: Path, snap: dict[str, str]) -> list[str]:
+    """Protected paths that were not in the base snapshot."""
+    found: list[str] = []
+    if not worktree.is_dir():
+        return found
+    for dirpath, dirnames, filenames in os.walk(worktree):
+        dirnames[:] = [name for name in dirnames if name not in {".git", "tmp", "__pycache__"}]
+        for name in filenames:
+            if name.endswith(".pyc"):
+                continue
+            full = Path(dirpath) / name
+            try:
+                rel = _norm_rel(str(full.relative_to(worktree)))
+            except ValueError:
+                continue
+            if not rel or rel in snap or not _protected_gate_path(rel):
+                continue
+            found.append(rel)
+    return found
+
+
 def tests_tampered(worktree: Path, snap: dict[str, str], writable: list[str] | None = None) -> list[str]:
+    """Changed protected files, deleted base tests, and new protected files.
+
+    A new or edited file under tests/ is allowed when it is not a gate file.
+    --writable-test still unlocks a protected file.
+    """
     allowed = list(writable or [])
     bad: list[str] = []
     for rel, digest in snap.items():
+        if _ordinary_test(rel):
+            # A content edit is allowed. A delete stays tests-tampered unless
+            # --writable-test names this file. Keep this call in the condition.
+            # The bare `if _writable_test: continue` below is the C17 anchor.
+            if not (worktree / rel).is_file() and not _writable_test(rel, allowed):
+                bad.append(rel)
+            continue
         if _writable_test(rel, allowed):
             continue
         path = worktree / rel
@@ -1213,6 +1390,11 @@ def tests_tampered(worktree: Path, snap: dict[str, str], writable: list[str] | N
             if hashlib.sha256(path.read_bytes()).hexdigest() != digest:
                 bad.append(rel)
         except OSError:
+            bad.append(rel)
+    for rel in _new_protected(worktree, snap):
+        if rel in bad:
+            continue
+        if not _writable_test(rel, allowed):
             bad.append(rel)
     return bad
 
@@ -1938,12 +2120,23 @@ class CloudBuild:
         return self.fail("FAIL", "gate-rewrote", EXIT_FAIL, "")
 
     def prepare_worktree(self) -> str | None:
-        dest = self.repo / "tmp" / "cloud-build" / self.stamp
+        dest = short_worktree_path(self.stamp)
+        if not _socket_fits(dest):
+            self.recovery_detail = "socket-path"
+            return "worktree-failed"
         try:
             dest.parent.mkdir(parents=True, exist_ok=True)
+            if dest.exists():
+                _git(self.repo, ["worktree", "remove", "--force", str(dest)])
+                if dest.exists():
+                    shutil.rmtree(dest, ignore_errors=True)
+            # Create the directory first so /var/tmp never holds a 0755 tree.
+            # git worktree add accepts an empty directory and keeps its mode.
+            dest.mkdir()
+            os.chmod(dest, 0o700)
             proc = _git(self.repo, ["worktree", "add", "--detach", str(dest), self.base_sha])
         except OSError:
-            self.recovery_detail = "unwritable"
+            self.recovery_detail = "short-root"
             if dest.exists():
                 shutil.rmtree(dest, ignore_errors=True)
             return "worktree-failed"
@@ -1954,9 +2147,10 @@ class CloudBuild:
             return "worktree-failed"
         self.worktree = dest
         try:
+            os.chmod(dest, 0o700)
             (dest / "tmp").mkdir(parents=True, exist_ok=True)
         except OSError:
-            self.recovery_detail = "unwritable"
+            self.recovery_detail = "short-root"
             return "worktree-failed"
         self.save_pid()
         return None
@@ -2009,6 +2203,7 @@ class CloudBuild:
                 ignore=shutil.ignore_patterns("tmp"),
             )
             self._isolate_gitdir(dest)
+            os.chmod(dest, 0o700)
         except OSError:
             shutil.rmtree(dest, ignore_errors=True)
             return None
