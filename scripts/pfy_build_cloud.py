@@ -77,6 +77,8 @@ DEFAULT_RETRIES = 2
 AUTHOR_NAME = "pfy-cloud-build"
 AUTHOR_EMAIL = "pfy-cloud-build@localhost"
 KILL_GRACE_SECONDS = 2.0
+# Default per-file review cap. A retry's previous-diff paste still stops here
+# and may end with "[diff truncated]". The review prompt itself is never cut.
 DIFF_CAP = 12000
 TAIL_CAP = 4000
 
@@ -463,6 +465,12 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--keep-worktree", action="store_true", help="keep the worktree after the run")
     parser.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT, help="seconds for one grok call")
     parser.add_argument(
+        "--review-file-cap",
+        type=int,
+        default=None,
+        help="max characters of one file diff in review (default 12000, or PFY_REVIEW_FILE_CAP)",
+    )
+    parser.add_argument(
         "--grok-cmd",
         default=None,
         help="grok binary (default: env PFY_BUILD_GROK, else grok on PATH)",
@@ -472,6 +480,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         raise UsageError("--retries must be >= 0")
     if args.timeout <= 0:
         raise UsageError("--timeout must be > 0")
+    if args.review_file_cap is not None and args.review_file_cap <= 0:
+        raise UsageError("--review-file-cap must be > 0")
     if len(args.task) > 1:
         raise UsageError('usage: ./pfy build "<task>"')
     args.task_text = args.task[0] if args.task else ""
@@ -521,6 +531,7 @@ TERMINAL_FAILURE_REASONS = (
     "no-receipt",
     "protected-path-changed",
     "rate-limit",
+    "review-file-too-large",
     "review-rejected",
     "runner-crash",
     "scope-commit-mismatch",
@@ -601,6 +612,13 @@ def failure_recovery(reason: str, task: str, detail: str = "") -> str:
             "The diff is too large for the review prompt (%d characters), so it was "
             "not reviewed or published. Split the task and rerun ./pfy build %s."
             % (DIFF_CAP, quoted)
+        )
+    if reason == "review-file-too-large":
+        shown = (detail or "").strip() or "a changed file"
+        return (
+            "File %s is too large for one review (%d characters), so it was "
+            "not reviewed or published. Split that file and rerun ./pfy build %s."
+            % (shown, DIFF_CAP, quoted)
         )
     if reason == "review-binary-change":
         return (
@@ -735,23 +753,268 @@ def implement_prompt(task: str, test_cmd: str, feedback: str, previous_diff: str
     )
 
 
-def review_refusal(diff_text: str) -> str | None:
-    """Refuse before the review when the prompt cannot show the whole commit.
+def review_file_cap(args) -> int:
+    """Per-file review cap. An explicit flag wins over PFY_REVIEW_FILE_CAP."""
+    flagged = getattr(args, "review_file_cap", None)
+    if flagged is not None:
+        return int(flagged)
+    raw = os.environ.get("PFY_REVIEW_FILE_CAP", "").strip()
+    if raw:
+        try:
+            value = int(raw)
+        except ValueError:
+            return DIFF_CAP
+        if value > 0:
+            return value
+    return DIFF_CAP
 
-    #308: a cut diff, or git's "Binary files ... differ" with no bytes,
-    would let an accept publish lines the reviewer never saw.
-    """
-    for line in (diff_text or "").splitlines():
+
+def file_cap_recovery(task: str, path: str, cap: int) -> str:
+    shown = (path or "").strip() or "a changed file"
+    return (
+        "File %s is too large for one review (%d characters), so it was "
+        "not reviewed or published. Split that file and rerun ./pfy build %s."
+        % (shown, cap, _quoted_task(task))
+    )
+
+
+def _binary_chunk(chunk: str) -> bool:
+    for line in (chunk or "").splitlines():
         if line.startswith("Binary files ") and line.endswith(" differ"):
-            return "review-binary-change"
-    if len(redact(diff_text or "")) > DIFF_CAP:
-        return "review-diff-too-large"
+            return True
+    return False
+
+
+def first_over_cap(pairs: list[tuple[str, str]], cap: int) -> str | None:
+    """Path of the first text file whose redacted hunk exceeds cap."""
+    for path, chunk in sorted(pairs, key=lambda item: item[0]):
+        if not chunk or _binary_chunk(chunk):
+            continue
+        if len(redact(chunk)) > cap:
+            return path
     return None
 
 
-def review_prompt(task: str, diff_text: str, gate_tail: str) -> str:
-    # The caller refuses a diff over DIFF_CAP (review_refusal). Never cut here.
+def review_refusal(diff_text: str) -> str | None:
+    """Refuse before the review when the prompt cannot show the bytes.
+
+    #308: git's "Binary files ... differ" with no bytes would let an accept
+    publish a change the reviewer never saw. A text file over the per-file
+    cap is refused earlier (review-file-too-large) and is not cut here.
+    """
+    if _binary_chunk(diff_text or ""):
+        return "review-binary-change"
+    return None
+
+
+_DEF_LINE = re.compile(r"^(?:async\s+def|def|class)\s+([A-Za-z_][A-Za-z0-9_]*)\b")
+
+
+def changed_symbols(diff_text: str) -> list[str]:
+    """def/class names touched by the diff, in first-seen order."""
+    found: list[str] = []
+    seen: set[str] = set()
+    for raw in (diff_text or "").splitlines():
+        if not raw or raw[:1] not in "+- ":
+            continue
+        if raw.startswith(("+++", "---")):
+            continue
+        match = _DEF_LINE.match(raw[1:].strip())
+        if not match:
+            continue
+        name = match.group(1)
+        if name in seen:
+            continue
+        seen.add(name)
+        found.append(name)
+        if len(found) >= 15:
+            break
+    return found
+
+
+def _tool_bin(env_name: str, program: str, fallbacks: list[Path]) -> Path | None:
+    """Resolve a cataloged impact binary.
+
+    A set env var is the only candidate, including when it names a missing
+    file, so a test can hide the host binary. Unset means PATH, then the
+    known install path.
+    """
+    if env_name in os.environ:
+        raw = os.environ[env_name].strip()
+        if not raw:
+            return None
+        path = Path(raw)
+        if path.is_file() and os.access(path, os.X_OK):
+            return path
+        return None
+    found = shutil.which(program)
+    if found:
+        return Path(found)
+    for path in fallbacks:
+        if path.is_file() and os.access(path, os.X_OK):
+            return path
+    return None
+
+
+def _run_tool(argv: list[str], cwd: Path, timeout: float = 12) -> tuple[int, str]:
+    try:
+        proc = subprocess.run(
+            argv,
+            cwd=str(cwd),
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return 1, ""
+    return proc.returncode, proc.stdout or ""
+
+
+def _usable_tool_text(text: str) -> str:
+    body = (text or "").strip()
+    if not body:
+        return ""
+    if body.startswith("{") and '"error"' in body[:400]:
+        return ""
+    return body
+
+
+def _cm_project(worktree: Path, stdout: str) -> str | None:
+    start = (stdout or "").find("{")
+    if start < 0:
+        return None
+    try:
+        data = json.loads(stdout[start:])
+    except json.JSONDecodeError:
+        return None
+    projects = data.get("projects") if isinstance(data, dict) else None
+    if not isinstance(projects, list):
+        return None
+    wanted = {str(worktree.resolve())}
+    top = _git(worktree, ["rev-parse", "--show-toplevel"])
+    if top.returncode == 0 and (top.stdout or "").strip():
+        try:
+            wanted.add(str(Path(top.stdout.strip()).resolve()))
+        except OSError:
+            pass
+    for proj in projects:
+        if not isinstance(proj, dict):
+            continue
+        name = str(proj.get("name") or "").strip()
+        root = str(proj.get("root_path") or "").strip()
+        if not name or not root:
+            continue
+        try:
+            if str(Path(root).resolve()) in wanted:
+                return name
+        except OSError:
+            continue
+    return None
+
+
+def _cm_map(worktree: Path, symbols: list[str]) -> str:
+    if not symbols:
+        return ""
+    binary = _tool_bin(
+        "PFY_CODEBASE_MEMORY",
+        "codebase-memory-mcp",
+        [Path("/home/mark/.local/bin/codebase-memory-mcp")],
+    )
+    if binary is None:
+        return ""
+    code, out = _run_tool([str(binary), "cli", "list_projects"], worktree)
+    if code != 0:
+        return ""
+    project = _cm_project(worktree, out)
+    if not project:
+        return ""
+    chunks: list[str] = []
+    for name in symbols:
+        code, traced = _run_tool(
+            [
+                str(binary),
+                "cli",
+                "trace_path",
+                "--function-name",
+                name,
+                "--project",
+                project,
+                "--direction",
+                "both",
+            ],
+            worktree,
+        )
+        usable = _usable_tool_text(traced)
+        if code != 0 or not usable:
+            continue
+        chunks.append(usable)
+    return "\n".join(chunks)
+
+
+def _tsa_map(worktree: Path, paths: list[str]) -> str:
+    binary = _tool_bin(
+        "PFY_TSA_BIN",
+        "tree-sitter-analyzer",
+        [Path.home() / "DEVELOP/pfy-mentat/tmp/tree-sitter-analyzer/.venv/bin/tree-sitter-analyzer"],
+    )
+    if binary is None:
+        return ""
+    argv = [str(binary), "--change-impact", "--format", "json", "--change-impact-no-tests"]
+    for path in paths[:20]:
+        argv.extend(["--change-impact-scope", path])
+    code, out = _run_tool(argv, worktree, timeout=20)
+    if code != 0:
+        return ""
+    return _usable_tool_text(out)
+
+
+def _git_grep_map(worktree: Path, symbols: list[str]) -> str:
+    if not symbols:
+        return "no changed symbols"
+    lines: list[str] = []
+    for name in symbols:
+        proc = _git(worktree, ["grep", "-n", "-I", "-F", "--untracked", "-e", name])
+        text = (proc.stdout or "").strip()
+        if not text:
+            continue
+        lines.append("symbol %s" % name)
+        lines.extend(text.splitlines()[:8])
+    if not lines:
+        return "no changed symbols"
+    return "\n".join(lines)
+
+
+def _bound_text(text: str, cap: int = TAIL_CAP) -> str:
+    if len(text) <= cap:
+        return text
+    return text[:cap] + "\n...[impact truncated]\n"
+
+
+def change_impact_map(worktree: Path, diff_text: str, paths: list[str]) -> tuple[str, str]:
+    """Callers and callees for one review. Never raises.
+
+    Prefer codebase-memory-mcp (cataloged CLI), then Tree-sitter Analyzer
+    --change-impact (catalog entry 121), then git grep of changed symbol
+    names. A missing or failing tool is not a build failure.
+    """
+    try:
+        symbols = changed_symbols(diff_text)
+        mapped = _cm_map(worktree, symbols)
+        if mapped:
+            return _bound_text(mapped), "codebase-memory-mcp"
+        mapped = _tsa_map(worktree, paths)
+        if mapped:
+            return _bound_text(mapped), "tree-sitter-analyzer"
+        return _bound_text(_git_grep_map(worktree, symbols)), "git-grep"
+    except Exception:
+        return "no changed symbols", "git-grep"
+
+
+def review_prompt(task: str, diff_text: str, gate_tail: str, impact_map: str = "") -> str:
+    # One file hunk. Never cut it: an accept must have seen every line (#308).
     shown = redact(diff_text or "")
+    impact = redact(impact_map or "no changed symbols")
     return (
         "%s\n"
         "Reply with a line `verdict: accept` or `verdict: reject`.\n"
@@ -761,8 +1024,8 @@ def review_prompt(task: str, diff_text: str, gate_tail: str) -> str:
         "deletes a test or an assertion, prints a token, key, secret, or password, "
         "replaces a content hash with a marker or drops a check that would hide an edit, "
         "adds a recursive delete, or writes a command aimed at the filesystem root.\n\n"
-        "Task:\n%s\n\nDiff:\n%s\n\nGate:\n%s\n"
-        % (REVIEW_MARKER, (task or "")[:4000], shown, redact(gate_tail or "")[:TAIL_CAP])
+        "Task:\n%s\n\nChange-impact map:\n%s\n\nDiff:\n%s\n\nGate:\n%s\n"
+        % (REVIEW_MARKER, (task or "")[:4000], impact, shown, redact(gate_tail or "")[:TAIL_CAP])
     )
 
 
@@ -984,22 +1247,15 @@ def _not_utf8_text(text: str) -> bool:
     return False
 
 
-def capture_diff(worktree: Path, paths: list[str]) -> str:
-    """Diff text for review, one path at a time.
-
-    _git decodes with surrogateescape, so non-UTF-8 bytes in a filename,
-    the old content, the new content, or a deleted file never crash the
-    runner. Any such path becomes git's "Binary files ... differ" line, so
-    review_refusal returns review-binary-change and the bytes stay out of
-    the prompt.
-    """
+def capture_diff_files(worktree: Path, paths: list[str]) -> list[tuple[str, str]]:
+    """One hunk per path. A non-UTF-8 path is git's binary marker, not bytes."""
     if not paths:
-        return ""
-    chunks: list[str] = []
+        return []
+    pairs: list[tuple[str, str]] = []
     for path in paths:
         marker = "Binary files a/%s and b/%s differ" % (path, path)
         if _not_utf8_text(path) or _non_utf8_file(worktree, path):
-            chunks.append(marker.encode("utf-8", "backslashreplace").decode("utf-8"))
+            pairs.append((path, marker.encode("utf-8", "backslashreplace").decode("utf-8")))
             continue
         proc = _git(worktree, ["status", "--porcelain", "--", path])
         line = (proc.stdout or "").splitlines()
@@ -1010,10 +1266,23 @@ def capture_diff(worktree: Path, paths: list[str]) -> str:
             proc = _git(worktree, ["diff", "--", path])
         out = proc.stdout or ""
         if _not_utf8_text(out):
-            chunks.append(marker)
+            pairs.append((path, marker))
             continue
-        chunks.append(out)
-    return "\n".join(chunk for chunk in chunks if chunk)
+        if out:
+            pairs.append((path, out))
+    return pairs
+
+
+def capture_diff(worktree: Path, paths: list[str]) -> str:
+    """Diff text for review, one path at a time.
+
+    _git decodes with surrogateescape, so non-UTF-8 bytes in a filename,
+    the old content, the new content, or a deleted file never crash the
+    runner. Any such path becomes git's "Binary files ... differ" line, so
+    review_refusal returns review-binary-change and the bytes stay out of
+    the prompt.
+    """
+    return "\n".join(chunk for _path, chunk in capture_diff_files(worktree, paths) if chunk)
 
 
 def run_command(
@@ -1122,6 +1391,10 @@ class CloudBuild:
         self.finished = False
         self.max_attempts = 1 if args.no_review else args.retries + 1
         self.recheck_tail = ""
+        self.precheck_phase = ""
+        self.impact_source = ""
+        self._attempt_phase = ""
+        self._attempt_file = ""
         self.phase_clock = phase_clock or PhaseClock()
         self._pid_lock = threading.Lock()
         self._lock_fd: int | None = None
@@ -1189,6 +1462,17 @@ class CloudBuild:
                 or upper == "KEY"
                 or upper.endswith("_KEY")
                 or "_KEY_" in upper
+            ):
+                env.pop(key, None)
+        # Git one-shot config is GIT_CONFIG_COUNT plus KEY_n and VALUE_n.
+        # The scrub above drops GIT_CONFIG_KEY_n because the name contains
+        # "_KEY_", and git then dies with "missing config key". Drop the
+        # whole triple so the gate uses the worktree config.
+        for key in list(env):
+            if (
+                key == "GIT_CONFIG_COUNT"
+                or key.startswith("GIT_CONFIG_KEY_")
+                or key.startswith("GIT_CONFIG_VALUE_")
             ):
                 env.pop(key, None)
         # Recheck runs with cwd set to the extract. A TMPDIR left on the
@@ -1328,6 +1612,10 @@ class CloudBuild:
                 "verdict": self.review.get("verdict"),
                 "reasons": list(self.review.get("reasons") or []),
             }
+        if self._attempt_phase:
+            row["phase"] = self._attempt_phase
+        if self._attempt_file:
+            row["file"] = self._attempt_file
         # The worktree is removed when the run fails. Keep the rejected patch
         # on the receipt so a later timeout does not leave prose tails only.
         if reason == "review-rejected" and self.worktree is not None:
@@ -1420,12 +1708,13 @@ class CloudBuild:
         self.commit = sha
         return None
 
-    def _overlap_review_recheck(self, sha: str, prompt: str):
-        """Run the review call and the clean-extract gate together.
+    def _overlap_review_recheck(self, sha: str, prompts: list[str]):
+        """Run each per-file review and the clean-extract gate together.
 
-        Returns (grok_call result, recheck_sha result). The phase wrapper
-        is suppressed for both. The caller adds each duration afterwards
-        so the receipt still shows review and gate.
+        Returns (list of grok_call results, recheck_sha result). The phase
+        wrapper is suppressed for both. The caller adds each duration
+        afterwards so the receipt still shows review and gate. A transport
+        failure stops the remaining file reviews.
         """
         box: dict = {}
         errors: list[BaseException] = []
@@ -1433,7 +1722,14 @@ class CloudBuild:
         def run_review() -> None:
             try:
                 started = time.monotonic()
-                box["review"] = self.grok_call(prompt)
+                rows = []
+                for prompt in prompts:
+                    row = self.grok_call(prompt)
+                    rows.append(row)
+                    status, code = row[0], row[1]
+                    if status != "done" or code != 0:
+                        break
+                box["review_rows"] = rows
                 box["review_s"] = time.monotonic() - started
             except BaseException as exc:
                 errors.append(exc)
@@ -1462,7 +1758,7 @@ class CloudBuild:
             raise errors[0]
         self.phase_clock.add("review", float(box.get("review_s") or 0.0))
         self.phase_clock.add("gate", float(box.get("recheck_s") or 0.0))
-        return box["review"], box["recheck"]
+        return box.get("review_rows") or [], box["recheck"]
 
     def commit_paths(self, paths: list[str]) -> str | None:
         sha, err = self._commit_index(paths)
@@ -1551,6 +1847,10 @@ class CloudBuild:
             "wall_seconds": self.phase_clock.wall_seconds(),
             "finished_at": _now(),
         }
+        if self.precheck_phase:
+            payload["phase"] = self.precheck_phase
+        if self.impact_source:
+            payload["impact"] = {"source": self.impact_source}
         try:
             write_receipt(self.receipt_path, payload)
         except OSError as exc:
@@ -1884,6 +2184,30 @@ class CloudBuild:
                 if number < self.max_attempts:
                     continue
                 return self.fail("FAIL", "tests-tampered", EXIT_FAIL, "")
+            # Size guard before the post-change gate. An oversize file used to
+            # wait out the full gate and then die as review-diff-too-large.
+            if changed and not self.args.no_review:
+                cap = review_file_cap(self.args)
+                over = first_over_cap(capture_diff_files(self.worktree, changed), cap)
+                if over:
+                    self.recovery_detail = over
+                    self.review = {
+                        "verdict": "refused",
+                        "reasons": ["review-file-too-large"],
+                        "truncated": False,
+                    }
+                    self.precheck_phase = "precheck"
+                    self._attempt_phase = "precheck"
+                    self._attempt_file = over
+                    self.record(number, "FAIL", "review-file-too-large", output)
+                    self._attempt_phase = ""
+                    self._attempt_file = ""
+                    return self.fail(
+                        "FAIL",
+                        "review-file-too-large",
+                        EXIT_FAIL,
+                        file_cap_recovery(self.args.task_text, over, cap),
+                    )
             # Overlap the post-change gate and the flake gate on the daily
             # default command. Both still run. A custom --test-cmd stays
             # serial: those gates share invocation order. PFY_BUILD_SERIAL_GATES=1,
@@ -1944,7 +2268,8 @@ class CloudBuild:
                 if number < self.max_attempts:
                     continue
                 return self.fail("FAIL", "tests-flaky", EXIT_FAIL, "")
-            diff_text = capture_diff(self.worktree, changed)
+            diff_pairs = capture_diff_files(self.worktree, changed)
+            diff_text = "\n".join(chunk for _path, chunk in diff_pairs if chunk)
             if not self.args.no_review:
                 # Out of budget before the commit. A retry that already rejected
                 # stays review-rejected. A first timeout stays TIMEOUT.
@@ -1965,8 +2290,15 @@ class CloudBuild:
                     self.record(number, "FAIL", refusal, output)
                     return self.fail("FAIL", refusal, EXIT_FAIL, "")
                 review_truncated = False
+                # Map while the tree is still dirty so Tree-sitter Analyzer
+                # and git grep see the uncommitted change. A tool failure
+                # leaves a git-grep map and does not fail the build.
+                text_paths = [
+                    path for path, chunk in diff_pairs if chunk and not _binary_chunk(chunk)
+                ]
+                impact_text, impact_source = change_impact_map(self.worktree, diff_text, text_paths)
                 # Commit first so the extract is of that commit, then overlap
-                # the review call with the extract gate. A reject undoes the
+                # the review calls with the extract gate. A reject undoes the
                 # commit and keeps the edits. A failed extract undoes the
                 # commit and drops the edits. When both fail, review wins.
                 with self.phase_clock.phase("commit"):
@@ -1981,39 +2313,65 @@ class CloudBuild:
                     self._undo_commit(keep_edits=True)
                     self.record(number, "FAIL", "interrupted", output)
                     return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
-                review_row, recheck_row = self._overlap_review_recheck(
-                    sha,
-                    review_prompt(self.args.task_text, diff_text, str(again.get("tail") or "")),
-                )
-                review_status, review_code, review_out, review_err = review_row
+                self.impact_source = impact_source
+                gate_tail = str(again.get("tail") or "")
+                prompts = [
+                    review_prompt(self.args.task_text, chunk, gate_tail, impact_text)
+                    for path, chunk in sorted(diff_pairs, key=lambda item: item[0])
+                    if chunk and not _binary_chunk(chunk)
+                ]
+                if not prompts:
+                    prompts = [review_prompt(self.args.task_text, diff_text, gate_tail, impact_text)]
+                review_rows, recheck_row = self._overlap_review_recheck(sha, prompts)
                 recheck_reason, recheck_tail = recheck_row
                 self.recheck_tail = recheck_tail
-                review_output = (review_out or "") + ("\n" + review_err if review_err else "")
-                output = output + "\n" + review_output
-                if review_status == "interrupted" or self.state.interrupted:
-                    self._undo_commit(keep_edits=True)
-                    self.record(number, "FAIL", "interrupted", output)
-                    return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
-                if review_status == "timeout":
-                    self._undo_commit(keep_edits=True)
-                    if last_reject is not None:
-                        return as_reject(number, output, True)
-                    self.record(number, "TIMEOUT", "timeout", output)
-                    return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")
-                if review_status == "missing":
-                    self._undo_commit(keep_edits=True)
-                    self.record(number, "FAIL", "unauthenticated", output)
-                    return self.fail("FAIL", "unauthenticated", EXIT_FAIL, auth_recovery(self.args.task_text))
-                review_kind = classify_runner_failure(review_code, review_out, review_err)
-                if review_kind == "rate-limit":
-                    self._undo_commit(keep_edits=True)
-                    self.record(number, "BLOCKED", "rate-limit", output)
-                    return self.fail("BLOCKED", "rate-limit", EXIT_BLOCKED, rate_recovery(self.args.task_text))
-                if review_kind == "unauthenticated":
-                    self._undo_commit(keep_edits=True)
-                    self.record(number, "FAIL", "unauthenticated", output)
-                    return self.fail("FAIL", "unauthenticated", EXIT_FAIL, auth_recovery(self.args.task_text))
-                verdict, reasons = parse_verdict(review_output)
+                verdicts: list[str] = []
+                reasons: list[str] = []
+                for review_status, review_code, review_out, review_err in review_rows:
+                    review_output = (review_out or "") + ("\n" + review_err if review_err else "")
+                    output = output + "\n" + review_output
+                    if review_status == "interrupted" or self.state.interrupted:
+                        self._undo_commit(keep_edits=True)
+                        self.record(number, "FAIL", "interrupted", output)
+                        return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
+                    if review_status == "timeout":
+                        self._undo_commit(keep_edits=True)
+                        if last_reject is not None:
+                            return as_reject(number, output, True)
+                        self.record(number, "TIMEOUT", "timeout", output)
+                        return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")
+                    if review_status == "missing":
+                        self._undo_commit(keep_edits=True)
+                        self.record(number, "FAIL", "unauthenticated", output)
+                        return self.fail(
+                            "FAIL", "unauthenticated", EXIT_FAIL, auth_recovery(self.args.task_text)
+                        )
+                    review_kind = classify_runner_failure(review_code, review_out, review_err)
+                    if review_kind == "rate-limit":
+                        self._undo_commit(keep_edits=True)
+                        self.record(number, "BLOCKED", "rate-limit", output)
+                        return self.fail("BLOCKED", "rate-limit", EXIT_BLOCKED, rate_recovery(self.args.task_text))
+                    if review_kind == "unauthenticated":
+                        self._undo_commit(keep_edits=True)
+                        self.record(number, "FAIL", "unauthenticated", output)
+                        return self.fail(
+                            "FAIL", "unauthenticated", EXIT_FAIL, auth_recovery(self.args.task_text)
+                        )
+                    one_verdict, one_reasons = parse_verdict(review_output)
+                    verdicts.append(one_verdict)
+                    reasons.extend(one_reasons)
+                # A non-zero review exit stops the remaining files. A short
+                # list must not count as every file accepted (#308).
+                if (
+                    len(review_rows) < len(prompts)
+                    or not verdicts
+                    or any(item != "accept" for item in verdicts)
+                ):
+                    verdict = "reject"
+                    if not reasons:
+                        reasons = ["review-rejected"]
+                else:
+                    verdict = "accept"
                 if verdict == "accept" and (
                     diff_aims_at_root(diff_text) or diff_drops_linked_content(diff_text)
                 ):

@@ -793,8 +793,10 @@ class CloudBuildRetryTests(unittest.TestCase):
         payload, review, head, text = self._review_cap_case(
             "long", "Path('wide.py').write_text('x' * 20000, encoding='utf-8')", "add a long marker file", 1
         )
-        self._assert_refused_unpublished(payload, review, head, text, "review-diff-too-large")
+        self._assert_refused_unpublished(payload, review, head, text, "review-file-too-large")
         self.assertIn("too large", payload["recovery"].lower())
+        self.assertIn("wide.py", payload["recovery"])
+        self.assertEqual(payload.get("phase"), "precheck")
 
     def test_new_binary_file_is_refused_and_not_published(self) -> None:
         payload, review, head, text = self._review_cap_case(
@@ -1398,6 +1400,67 @@ class CloudBuildNoChangeTests(unittest.TestCase):
         self.assertIn("kept.py", names)
         self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
         self.assertFalse(any(self.repo.joinpath("tmp").glob("recheck-*")))
+
+    def test_gate_git_survives_one_shot_config_env(self) -> None:
+        """A gate that runs git still works when one-shot git config is set.
+
+        Fail: the secret scrub drops GIT_CONFIG_KEY_0 and leaves
+        GIT_CONFIG_COUNT, so git exits before the gate can see the tree.
+        Recover: the gate exits 0, the run commits, and the tail does not
+        say the config key is missing.
+        """
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\n"
+            "import subprocess\n"
+            "top = subprocess.run(['git', 'rev-parse', '--is-inside-work-tree'], capture_output=True, text=True)\n"
+            "if top.returncode != 0:\n"
+            "    print(top.stderr)\n"
+            "    raise SystemExit(1)\n"
+            "print('GATE-OK')\n"
+            "raise SystemExit(0)\n",
+        )
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "from pathlib import Path\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n",
+        )
+        proc = _run(
+            [
+                sys.executable,
+                str(CLOUD),
+                "add kept value",
+                "--repo",
+                str(self.repo),
+                "--retries",
+                "0",
+                "--timeout",
+                "30",
+                "--no-review",
+                "--test-cmd",
+                "%s %s" % (sys.executable, gate),
+                "--grok-cmd",
+                str(grok),
+            ],
+            self.repo,
+            env={
+                "GIT_CONFIG_COUNT": "1",
+                "GIT_CONFIG_KEY_0": "user.name",
+                "GIT_CONFIG_VALUE_0": "gate",
+            },
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        self.assertNotIn("missing config key", text.lower())
+        receipts = sorted((self.repo / "pipelines" / "dogfood" / "build-cloud").glob("*/receipt.json"))
+        self.assertTrue(receipts, text)
+        payload = json.loads(receipts[-1].read_text(encoding="utf-8"))
+        tail = str((payload.get("gate") or {}).get("after", {}).get("tail") or "")
+        self.assertIn("GATE-OK", tail)
+        self.assertNotIn("missing config key", tail.lower())
+        self.assertIsNotNone(payload["commit"])
 
 
 def _dead(pid: int) -> bool:

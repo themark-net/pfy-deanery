@@ -394,18 +394,18 @@ CLOUD2_MUTANTS: list[dict[str, str]] = [
     {
         "id": "C39",
         "title": "review timeout is a review reject",
-        "old": '                if review_status == "timeout":\n'
-        "                    self._undo_commit(keep_edits=True)\n"
-        "                    if last_reject is not None:\n"
-        "                        return as_reject(number, output, True)\n"
-        '                    self.record(number, "TIMEOUT", "timeout", output)\n'
-        '                    return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")\n',
-        "new": '                if review_status == "timeout":\n'
-        "                    self._undo_commit(keep_edits=True)\n"
-        '                    self.record(number, "PASS-REJECTED", "review-rejected", output)\n'
-        "                    if number < self.max_attempts:\n"
-        "                        continue\n"
-        '                    return self.fail("FAIL", "review-rejected", EXIT_FAIL, "")\n',
+        "old": '                    if review_status == "timeout":\n'
+        "                        self._undo_commit(keep_edits=True)\n"
+        "                        if last_reject is not None:\n"
+        "                            return as_reject(number, output, True)\n"
+        '                        self.record(number, "TIMEOUT", "timeout", output)\n'
+        '                        return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")\n',
+        "new": '                    if review_status == "timeout":\n'
+        "                        self._undo_commit(keep_edits=True)\n"
+        '                        self.record(number, "PASS-REJECTED", "review-rejected", output)\n'
+        "                        if number < self.max_attempts:\n"
+        "                            continue\n"
+        '                        return self.fail("FAIL", "review-rejected", EXIT_FAIL, "")\n',
     },
     {
         "id": "C40",
