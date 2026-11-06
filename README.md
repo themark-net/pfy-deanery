@@ -18,7 +18,11 @@ Operator environment: local inference, then product stage (honest skip if a piec
 ./pfy start grok  # named harness after inference/stage (still execs that harness)
 ./pfy launch      # one command: fill missing lane local, toolsets bare, ready harness, then the TUI
 ./pfy models    # inspect-only: live GET /v1/models (and Ollama /api/tags); usage if exposed
+./pfy install   # PATH launchers mentat and pfy (default ~/.local/bin)
+mentat          # same as ./pfy, from any directory
 ```
+
+`./pfy install` writes two POSIX launchers, `mentat` and `pfy`, so `mentat` from any directory behaves like `./pfy`. The default directory is `$HOME/.local/bin`. Pass `--prefix` for another directory (for example `/opt/pfy-mentat/bin`). If that directory is not writable, the command prints `sudo ./pfy install --prefix ...` and does not run sudo. If the directory is not on PATH, it prints the exact line to add to `~/.bashrc` or `~/.profile`. For the default directory that line is `export PATH="$HOME/.local/bin:$PATH"`. It does not edit those files. Remove the launchers with `./pfy install --uninstall` or `./pfy uninstall --launchers`.
 
 Headless (no GUI): `./pfy launch --headless`, then `./pfy launch status` and `./pfy launch stop`. Commands and open items: [docs/HANDOFF-headless-1105.md](docs/HANDOFF-headless-1105.md).
 
@@ -185,6 +189,8 @@ One launcher. Inference first, then product stage, then the native operator wind
 git clone https://github.com/themark-net/pfy-mentat.git
 cd pfy-mentat
 ./pfy setup              # env + Grok skills if CLI present
+./pfy install            # mentat and pfy on PATH (default ~/.local/bin)
+mentat                   # same as ./pfy, from any directory
 ./pfy                    # env-stage → native window (engine starts only if opted in)
 ./pfy board              # same native window
 ./pfy models             # inspect-only; listing tags is not success

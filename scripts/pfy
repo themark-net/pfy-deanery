@@ -211,6 +211,13 @@ pfy — simple setup & launch for the pfy-mentat stack
   pfy setup --preset core --harness <id> [--yes|--dry-run]  catalog install (#290); flags select this path
   pfy doctor --json        read-only catalog alignment (bare doctor stays FreeToken health)
   pfy uninstall [--yes]    remove ledger-owned catalog writes only
+  pfy install [--prefix DIR] [--dry-run]
+                          write mentat and pfy launchers into DIR
+                          (default ~/.local/bin). Does not edit shell rc.
+  pfy install --uninstall [--prefix DIR]
+                          remove pfy-mentat launchers from DIR
+  pfy uninstall --launchers [--prefix DIR]
+                          same launcher removal; plain uninstall is unchanged
   pfy status              harness table + local usage block
   pfy usage               local usage only (engine/endpoint/models/tok_path/vram)
   pfy up                  same as bare pfy (native window; attach is in-window sidecar)
@@ -2273,9 +2280,22 @@ main() {
       fi
       cmd_doctor
       ;;
+    install)
+      bash "$ROOT/scripts/pfy-install.sh" "$@" || exit $?
+      ;;
     uninstall)
-      export PFY_ROOT="$ROOT"
-      exec python3 "$ROOT/pfylib/cli.py" uninstall "$@"
+      local _pfy_launchers=0 _a
+      for _a in "$@"; do
+        if [[ "$_a" == "--launchers" ]]; then
+          _pfy_launchers=1
+        fi
+      done
+      if [[ "$_pfy_launchers" -eq 1 ]]; then
+        bash "$ROOT/scripts/pfy-install.sh" --uninstall "$@" || exit $?
+      else
+        export PFY_ROOT="$ROOT"
+        exec python3 "$ROOT/pfylib/cli.py" uninstall "$@"
+      fi
       ;;
     smoke) cmd_smoke ;;
     context) cmd_context "$@" ;;

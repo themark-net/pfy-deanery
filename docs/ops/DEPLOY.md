@@ -21,6 +21,12 @@ git fetch origin && git checkout main && git pull
 ## 2. Environment
 
 ```bash
+./pfy install
+# launchers in ~/.local/bin (mentat and pfy). Pass --prefix for another directory.
+# If it is not on PATH, add the printed export PATH="$HOME/.local/bin:$PATH"
+# line to ~/.bashrc or ~/.profile. This command does not edit those files and does not run sudo.
+# Remove: ./pfy install --uninstall
+#     or: ./pfy uninstall --launchers
 make env-init
 # edit .env: DEPLOY_PROFILE=local-only|balanced|max-performance
 # Grok subscription: use host `grok login` (OIDC → ~/.grok/auth.json)

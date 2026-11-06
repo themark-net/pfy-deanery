@@ -1,2 +1,19 @@
 #!/usr/bin/env bash
-exec "$(cd "$(dirname "$0")" && pwd)/scripts/pfy" "$@"
+# Resolve symlinks so a linked ./pfy still runs this checkout.
+source=$0
+hops=0
+while [ -L "$source" ]; do
+  hops=$((hops + 1))
+  if [ "$hops" -gt 16 ]; then
+    printf 'error: too many symlinks: %s\n' "$0" >&2
+    exit 1
+  fi
+  dir=$(cd "$(dirname "$source")" && pwd)
+  target=$(readlink "$source")
+  case "$target" in
+    /*) source=$target ;;
+    *) source=$dir/$target ;;
+  esac
+done
+root=$(cd "$(dirname "$source")" && pwd -P)
+exec "$root/scripts/pfy" "$@"
