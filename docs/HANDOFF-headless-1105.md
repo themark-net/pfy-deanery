@@ -4,6 +4,8 @@ How a bot launches a pfy session with no display, checks it, stops it, and runs 
 
 Prior MVP note: [HANDOFF-mvp-1104.md](HANDOFF-mvp-1104.md).
 
+Build review after this note: [HANDOFF-build-review-1106.md](HANDOFF-build-review-1106.md).
+
 ## Commands a bot runs
 
 Launch, status, and stop talk to the session this launch recorded. They do not adopt or signal a process the launch did not start. Set `PFY_STATE_DIR` when the bot must not share the operator state. The default is `~/.pfy-mentat`.
