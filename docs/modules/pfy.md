@@ -22,6 +22,7 @@
 ./pfy catalog queue [name]  # REAL GitHub issue Design→DevBot (#214)
 ./pfy catalog status        # queued items + open/closed/PR
 ./pfy launch               # Loop wizard Launch session (#225/#224)
+./pfy launch --headless    # detached session; ./pfy launch status|stop. [HANDOFF-headless-1105.md](../HANDOFF-headless-1105.md)
 ./pfy launch compose       # honest lane + enabled-tool paint (#224)
 ./pfy decision smoke       # #230 CUA-S1-FORMS typed Choice (Mark-free)
 ./pfy launch brief         # write in-session AGENTS/prompt card (#224)

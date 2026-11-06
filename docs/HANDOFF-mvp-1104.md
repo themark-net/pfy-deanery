@@ -1,5 +1,7 @@
 # Handoff: pfy-mentat MVP (2026-11-04)
 
+Headless bot use after this note: [HANDOFF-headless-1105.md](HANDOFF-headless-1105.md).
+
 ## What the MVP is
 
 Sources: README "Simple path", Epic #53 success line, issue #307, docs/ops/simple-launch.md.
@@ -43,7 +45,9 @@ Choose another harness or model: `./pfy launch harness opencode`, `PFY_OLLAMA_MO
 
 ## Still open
 
-- A smoke failure after the terminal spawned leaves that terminal open (it is ours, so it is safe, but it is not reaped).
-- With no DISPLAY, `./pfy launch` FAILs "no DISPLAY" by design. A tmux fallback for SSH use is not built.
+The first two bullets are closed in [HANDOFF-headless-1105.md](HANDOFF-headless-1105.md). The list below is the 2026-11-04 record.
+
+- Closed in the headless handoff: a smoke failure after the terminal spawned leaves that terminal open (it is ours, so it is safe, but it is not reaped).
+- Closed in the headless handoff: with no DISPLAY, `./pfy launch` FAILs "no DISPLAY" by design. A tmux fallback for SSH use is not built.
 - The Tauri window is not built on nimo; the webkit or tk window is used. tk selftest passes.
 - #309 and #305 follow-ups are unchanged and not MVP blockers.

@@ -43,6 +43,8 @@ Install Ollama for the **adapter** path (not the spine): https://ollama.com
 
 Bare `./pfy`, `./pfy up`, `./pfy start` with no name, and `./pfy board` do not start FreeToken, llama-swap, llama-server, shimmy, or `ollama serve`. When the engine is down they print one line naming that engine and the start command, then open the window with the engine down. Opt in with `PFY_START_ENGINE=1`, `--start-engine`, or yes at the prompt `Start it now? [y/N]`. `./pfy start <harness>` and `./pfy env` still start the engine. `./pfy launch` with a fresh wizard fills lane `local`, toolsets `bare`, and a ready harness (active harness, else grok, else the first ready row) and names those fills in the output.
 
+Headless, for a bot with no GUI: `./pfy launch --headless`, then `./pfy launch status` and `./pfy launch stop`. See [HANDOFF-headless-1105.md](../HANDOFF-headless-1105.md).
+
 When the operator opts in, or runs named `./pfy start <harness>` or `./pfy env`, and the detector selects Ollama (or `PFY_LOCAL_RUNTIME=ollama`), pfy waits for real health (`GET /api/tags` or `/v1/models`), then pull/select `PFY_OLLAMA_MODEL` (else `LOCAL_CODER_MODEL`). Honest skip if no name and none installed. Status is **ready** only when the API responds (binary + API down = partial; no binary = missing). `./pfy models pull <name>` still `ollama pull` when Ollama is the live engine.
 
 `./pfy models pull <name>` routes to the live engine. FreeToken (or `ft`/`freetoken` on PATH with no live engine): record the name under `$PFY_STATE_DIR`; the next opted-in `./pfy` / `./pfy up`, or `./pfy env`, uses it for `ft serve --model` (load at serve; no `ft pull`). llama-swap / llama-server: honest skip, no GGUF download. Missing both: honest skip + one-liner, no crash.

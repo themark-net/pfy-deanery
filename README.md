@@ -20,6 +20,8 @@ Operator environment: local inference, then product stage (honest skip if a piec
 ./pfy models    # inspect-only: live GET /v1/models (and Ollama /api/tags); usage if exposed
 ```
 
+Headless (no GUI): `./pfy launch --headless`, then `./pfy launch status` and `./pfy launch stop`. Commands and open items: [docs/HANDOFF-headless-1105.md](docs/HANDOFF-headless-1105.md).
+
 Daily build: [docs/QUICKSTART-pfy-build.md](docs/QUICKSTART-pfy-build.md).
 DoD walkthrough: [docs/ops/MVP-DOD-WALKTHROUGH.md](docs/ops/MVP-DOD-WALKTHROUGH.md).
 
