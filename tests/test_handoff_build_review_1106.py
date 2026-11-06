@@ -4,10 +4,16 @@ How this fails: the note is missing, so a bot never learns
 PFY_REVIEW_FILE_CAP, or the note names a catalog tool as the source when
 the 2026-11-06 trial recorded git-grep. A cited SHA that is not the
 landed commit sends the bot to the wrong change. An em dash, or an empty
-Still open, hides the timed-out trial.
+Still open, hides the timed-out trial. The receipt stores wall_seconds
+10802.404 and worktree_removed false, and it does not store flags. A note
+that only says "longer than the default" sends the next run back through
+1200 or through the same 3600 that already fired (3600 times 3 attempts
+is 10800s). A note that omits --keep-worktree makes that leftover
+directory look like a removal failure.
 Recover: write docs/HANDOFF-build-review-1106.md from the receipt, cite
-the git SHAs, and point the headless note at it. ASCII hyphens only.
-A shallow checkout has no history, so the SHA check skips there.
+the git SHAs, name --timeout 3600 and --keep-worktree, and point the
+headless note at it. ASCII hyphens only. A shallow checkout has no
+history, so the SHA check skips there.
 """
 from __future__ import annotations
 
@@ -125,6 +131,25 @@ class BuildReviewHandoffTests(unittest.TestCase):
             )
             self.assertEqual(ancestor.returncode, 0, sha)
         self.assertEqual(missing, [], "handoff does not cite the landed SHA")
+
+    def test_trial_names_the_timeout_that_fired_and_why_the_worktree_remains(self):
+        # Receipt fields are wall and worktree_removed. The flags are not
+        # on the receipt. 3600 * 3 attempts = 10800, next to wall 10802.404.
+        self.assertTrue(HANDOFF.is_file(), "docs/HANDOFF-build-review-1106.md is missing")
+        note = _text(HANDOFF)
+        self.assertIn("--timeout 3600", note, "handoff hides the timeout the trial already used")
+        self.assertIn("10800", note, "handoff does not show 3600 times 3 attempts")
+        bullets = "\n".join(_still_open(note))
+        self.assertIn(
+            "greater than 3600",
+            bullets,
+            "Still open lets a rerun repeat the timeout that fired",
+        )
+        self.assertIn(
+            "--keep-worktree",
+            bullets,
+            "Still open treats the kept worktree as a removal failure",
+        )
 
 
 if __name__ == "__main__":
