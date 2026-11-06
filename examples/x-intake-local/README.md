@@ -76,7 +76,7 @@ not `os.system`, and not the older `run` helper (that one stays for Entries 095-
 environment and does not copy the parent process's variables. It sets `HOME` to the temp directory the caller
 passes. It starts the child in a new session and SIGKILLs the process group on timeout, so a grandchild the child
 forked dies too. Pass `kill_on_exit=True` to SIGKILL that process group after a normal return as well.
-Entries 157-161 do that, so a grandchild cannot outlive the smoke. Pass `bwrap_writable` (a list of directories
+Entries 157-164 do that, so a grandchild cannot outlive the smoke. Pass `bwrap_writable` (a list of directories
 to bind writable) to add a bubblewrap prefix when `bwrap` works; the prefix includes `--unshare-pid` when that
 flag works. Pass `None` to skip bubblewrap. `extra` is only for variables the smoke itself names. Do not pass
 the parent environment as `extra`.
@@ -273,7 +273,7 @@ and the routing/decision commands. Both fingerprint the real-HOME paths the tool
 
 Not wired into CI or Make.
 
-Entries 154-156 keep the self-contained runners in `smoke_154.py`, `smoke_155.py`, and `smoke_156.py` (renumbered from 150-152, then from 153-155). Entries 157-161 use `run_isolated` / `find_bin` / `pinned` / `timeout_reason` and pass `kill_on_exit=True`:
+Entries 154-156 keep the self-contained runners in `smoke_154.py`, `smoke_155.py`, and `smoke_156.py` (renumbered from 150-152, then from 153-155). Entries 157-164 use `run_isolated` / `find_bin` / `pinned` / `timeout_reason` and pass `kill_on_exit=True`:
 
 ```sh
 python3 examples/x-intake-local/smoke_154.py   # dsh-superagent: staged clone typecheck, vitest, build; else exit 2
@@ -284,8 +284,13 @@ python3 examples/x-intake-local/smoke_158.py   # Emdash: pinned Linux release me
 python3 examples/x-intake-local/smoke_159.py   # skills-manager-cli help + list; HOME and npm cache under tmp/
 python3 examples/x-intake-local/smoke_160.py   # agentplay: pinned venv, --help/--version, import one synthetic map; else exit 2
 python3 examples/x-intake-local/smoke_161.py   # agentgg: pinned npm --help/--version; local scan only if Ollama is already up; else exit 2
+python3 examples/x-intake-local/smoke_162.py   # Strata: pinned Linux AppImage metadata, then exit 2 (not launched)
+python3 examples/x-intake-local/smoke_163.py   # magpie: pinned CLI release metadata, then exit 2 (not run)
+python3 examples/x-intake-local/smoke_164.py   # Reasonix: pinned CLI tar metadata, then exit 2 (not run)
 ```
 
 SysKnife reads `$SYSKNIFE_BIN`, else `tmp/sysknife/sysknife`, else PATH. With no binary it builds only when `$CARGO_BIN` or `cargo` exists and `$SYSKNIFE_DIR` (else `tmp/sysknife`) is the pinned commit. The build's `CARGO_HOME` and target dir stay under this worktree's `tmp/`. `--dry-run` is the planner preview (`check disk usage`); the smoke never passes `--yes` or `--dangerously-skip-approval`. No bubblewrap means no dry-run (the planner would not be network-isolated). Emdash reads the pinned GitHub release JSON through `$EMDASH_FETCH_BIN` or a stdlib fetch. It does not download the AppImage. Skills Manager reads `$SKILLS_MANAGER_BIN` or installs `skills-manager-cli` at the pinned version with `npm` into a scratch prefix under `tmp/`, with `HOME` and the npm cache in that same tree. `list` may refuse with no skill home; the smoke does not bootstrap. `PFY_XINTAKE_TIMEOUT` overrides the per-command limit. A bad value exits 2.
 
 agentplay (160) installs pinned `agentplay==0.2.6` into a venv under this worktree's `tmp/xintake-160/`. Every child gets `AGENTPLAY_NO_NETWORK=1`, `DO_NOT_TRACK=1`, and a temp `HOME`. It runs `--help` and `--version`, then `import` of one synthetic `agentplay/v1` map and `list`. It never runs `view` (that opens a browser). It does not read `~/.grok`. Pip or network missing exits 2. agentgg (161) installs pinned `agentgg@0.1.29` with `HOME` and the npm cache under `tmp/xintake-161/`, then runs `--help` and `--version`. A scan runs only when Ollama is already answering on `127.0.0.1:11434` with a local model already installed. The smoke picks the smallest of those and skips `:cloud` and `remote_host` models. It does not pull one. If only an OpenAI-compatible server on `127.0.0.1:8080` answers, the smoke exits 2 and does not invent an API key. The scan is time-boxed, uses one local agent file, and does not pass `--live-validate`, a key, or the hosted app. No local endpoint exits 2 after help and version.
+
+Entries 162-164 (`smoke_162.py`, `smoke_163.py`, `smoke_164.py`) are release-metadata receipts in the Emdash (158) shape. Each reads the pinned GitHub release JSON through `$STRATA_FETCH_BIN` / `$MAGPIE_FETCH_BIN` / `$REASONIX_FETCH_BIN` or a stdlib fetch, checks name/size/digest/(commit when present), and exits 2 without downloading or running the asset. `PFY_XINTAKE_TIMEOUT` overrides the metadata timeout. A bad value exits 2.

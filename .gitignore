@@ -162,3 +162,7 @@ pipelines/smoke/skills-manager/
 # 160-161 receipts.
 pipelines/smoke/agentplay/
 pipelines/smoke/agentgg/
+# 162-164 receipts.
+pipelines/smoke/strata/
+pipelines/smoke/magpie/
+pipelines/smoke/reasonix/
