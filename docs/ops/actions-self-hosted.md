@@ -8,7 +8,7 @@
 | Workflow | Runner | Trigger | Purpose |
 |----------|--------|---------|---------|
 | `eval-structural` | ubuntu-24.04 (pinned) **and** self-hosted | push/PR/manual | G0 structural+golden; local also catalog receipts |
-| `local-lab` | self-hosted only | push (paths), nightly 06:15 UTC, manual modes | G1 deploy-ready, product levers, integration, eval-auto soft, inventory |
+| `local-lab` | self-hosted only | push (paths), nightly 04:15 UTC, manual modes | G1 deploy-ready, product levers, integration, eval-auto soft, inventory |
 | `nightly-models` | self-hosted only | 07:00 UTC + manual | Implement-lane matrix vs local Ollama (soft on schedule) |
 | `post-merge-brief` | self-hosted only | main push + manual | Operator brief + pool + dashboard artifacts |
 

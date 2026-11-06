@@ -22,7 +22,7 @@ GitHub-hosted runners cannot see your Ollama weights, mic, or cage. **nimo** is 
 | Workflow | Trigger | Role |
 |----------|---------|------|
 | **eval-structural** | push / PR | G0 dual: ubuntu + nimo (nimo soft if offline) |
-| **local-lab** | schedule `06:15 UTC` + **manual** slices | G1 deploy-ready, product, integration, eval-auto soft |
+| **local-lab** | schedule `04:15 UTC` + **manual** slices | G1 deploy-ready, product, integration, eval-auto soft |
 | **nightly-models** | schedule `07:00 UTC` + manual models list | Implement-lane matrix vs local Ollama |
 | **post-merge-brief** | push main | Monitor brief + pool + dashboard artifacts |
 
