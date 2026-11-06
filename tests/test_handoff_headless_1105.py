@@ -4,6 +4,8 @@ How this fails: the note is missing, a command is not the one `./pfy` help
 advertises, a cited SHA is not the commit with that subject, an em dash
 slips in, or Still open is empty. A bot then runs the wrong command or
 treats a closed gap as open.
+A shallow checkout (CI fetch-depth 1) has no history, so the SHA check
+skips there and runs in pregate on full history.
 Recover: put the four commands back, cite the git SHAs, and list what is
 still open in ASCII hyphens. Point the prior handoff, the pfy module map,
 and the README simple path at this note.
@@ -51,6 +53,17 @@ def _text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def _shallow() -> bool:
+    proc = subprocess.run(
+        ["git", "rev-parse", "--is-shallow-repository"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return proc.stdout.strip() == "true"
+
+
 def _commit(subject: str) -> str:
     log = subprocess.check_output(
         ["git", "log", "--format=%H%x09%s"],
@@ -93,6 +106,10 @@ class HeadlessHandoffTests(unittest.TestCase):
 
     def test_handoff_cites_the_landed_commits(self):
         self.assertTrue(HANDOFF.is_file(), "docs/HANDOFF-headless-1105.md is missing")
+        if _shallow():
+            # CI checks out fetch-depth 1, so the landed commits are not in
+            # the log there. Pregate runs this on full history.
+            self.skipTest("shallow checkout: landed commits not in git log")
         note = _text(HANDOFF)
         missing = []
         for subject in LANDED:
