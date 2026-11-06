@@ -19,7 +19,7 @@ on:
   # Push no longer auto-starts full lab (avoids serializing behind long eval-auto).
   # Use schedule + workflow_dispatch; dual G0 still runs on every push via eval-structural.
   schedule:
-    - cron: "15 6 * * *"
+    - cron: "15 4 * * *"
 
 concurrency:
   group: local-lab-${{ github.event_name }}-${{ github.event.inputs.mode || github.sha }}
@@ -29,7 +29,7 @@ jobs:
   lab:
     name: lab (${{ github.event.inputs.mode || 'auto' }})
     runs-on: [self-hosted, Linux, X64, pfy-mentat]
-    timeout-minutes: 90
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
 
@@ -44,6 +44,7 @@ jobs:
           df -h . | tail -1 || true
 
       - name: G0 structural
+        timeout-minutes: 30
         run: |
           python3 examples/eval-harness/run_structural.py --write-md pipelines/eval/structural.latest.md
           python3 examples/eval-harness/run_golden.py --write-md pipelines/eval/golden.latest.md
@@ -57,18 +58,21 @@ jobs:
 
       - name: G1 deploy-ready (soft smokes)
         if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.mode == 'full' || github.event.inputs.mode == 'g1-only' }}
+        timeout-minutes: 30
         run: |
           chmod +x scripts/eval-deploy-ready.sh
           ./scripts/eval-deploy-ready.sh
 
       - name: Product levers smoke
         if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.mode == 'full' || github.event.inputs.mode == 'product' }}
+        timeout-minutes: 30
         run: |
           chmod +x scripts/smoke-product-levers.sh
           ./scripts/smoke-product-levers.sh
 
       - name: smoke-integration umbrella
         if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.mode == 'full' || github.event.inputs.mode == 'integration' }}
+        timeout-minutes: 40
         run: |
           chmod +x scripts/smoke-integration.sh
           ./scripts/smoke-integration.sh
@@ -86,6 +90,7 @@ jobs:
       - name: eval-auto (Ollama when present)
         if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.mode == 'full' || github.event.inputs.mode == 'eval-auto' }}
         continue-on-error: true
+        timeout-minutes: 20
         env:
           EVAL_AUTO_REQUIRE_OLLAMA: "0"
           EVAL_GATE_CANDIDATES: "deepseek-coder:6.7b-instruct,deepseek-coder:6.7b,qwen2.5-coder:7b-instruct"

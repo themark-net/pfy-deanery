@@ -1,3 +1,26 @@
+## 2026-11-05: local-lab job wall (#310)
+
+Cause. After the MVP stack, the self-hosted nimo lab steps grew with the suite. nightly-models (`0 7 * * *`) can contend for that same runner. The 90 minute job wall is shorter than the grown suite's legitimate wall (about 100 minutes). Evidence from the runs:
+
+| Step | success 41473920946 (2a744823) | cancelled 41847288614 (8c9388c0) | cancelled 42045977193 (b9ed0c2) |
+|------|-------------------------------:|--------------------------------:|--------------------------------:|
+| G0 structural | ~11m | ~17m | ~18m |
+| G1 deploy-ready | ~12m | ~18m | ~19m |
+| Product levers | ~11m | ~17m | ~18m |
+| smoke-integration | ~22m | ~35m | ~35m then cancelled |
+| eval-auto | ~11m | ~3m then job cancelled | skipped (never reached) |
+| Job wall | ~67m success | ~90m cancelled | ~90m cancelled |
+
+Fix on `bot/headless-1105` in `.github/workflows/local-lab.yml`. Unmerged. Catalog HOLD. Not a Feature GO.
+
+- Per-step `timeout-minutes`: G0 structural 30, G1 deploy-ready 30, Product levers 30, smoke-integration 40, eval-auto 20. A hang fails on that named step.
+- Schedule cron `15 4 * * *` (04:15 UTC), so the lab tends to finish before nightly-models at 07:00 UTC.
+- Job `timeout-minutes` is 120 only because the timing table above already exceeds 90. The per-step caps still fail a hang inside that wall.
+- `actions/checkout` and `actions/upload-artifact` stay at v4. A Node 24 major pin is unconfirmed on the nimo runner.
+- Contract: `tests/test_local_lab_budget.py` parses the workflow. Removing a cap or the 04:15 cron fails that test. Recovery: restore the five caps, the cron, and the 120 minute job wall.
+
+`docs/ops/actions-self-hosted.md` and `docs/ops/self-hosted-runner-nimo.md` still say nightly 06:15 UTC. This slice leaves those files alone.
+
 ## 2026-11-02: mvp-land-1031 (#306)
 
 - Branch: `build/306-mvp-stack` (same tip pushed to `bot/mvp-land-1031` for CI). Not merged. No PR. Not a Feature GO. DevBot fast-forwards `main` after Tester+Reviewer PASS at the pinned SHA.
