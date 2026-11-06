@@ -2342,6 +2342,91 @@ class CloudBuildFailureTests(unittest.TestCase):
         self.assertNotIn("fixture-password", raw)
         self.assertEqual(saw.read_text(encoding="utf-8"), "GROK-SAW")
 
+    def test_gate_git_survives_inherited_config_slots(self) -> None:
+        # Fail: the secret scrub drops GIT_CONFIG_KEY_0 because the name
+        # contains _KEY_, leaves GIT_CONFIG_COUNT, and git exits 128 with
+        # "missing config key" so the build is FAIL tests.
+        # Recover: drop the inherited config family together. git rev-parse
+        # works, the slot values stay out of the gate, and a real secret
+        # name is still unset. Grok still sees that secret and the slots.
+        marker = "fixture-not-a-live-key"
+        slot_value = "blank-at-eol"
+        saw = self.side / "grok-saw.txt"
+        grok = _write_exe(
+            self.side / "grok.py",
+            "#!/usr/bin/env python3\n"
+            "import os\n"
+            "from pathlib import Path\n"
+            "key_ok = os.environ.get('GROK_API_KEY') == %r\n"
+            "count_ok = os.environ.get('GIT_CONFIG_COUNT') == '1'\n"
+            "value_ok = os.environ.get('GIT_CONFIG_VALUE_0') == %r\n"
+            "Path(%r).write_text(\n"
+            "    'GROK-SAW' if key_ok and count_ok and value_ok else 'GROK-MISSED',\n"
+            "    encoding='utf-8',\n"
+            ")\n"
+            "Path('kept.py').write_text('value = 1\\n', encoding='utf-8')\n"
+            "raise SystemExit(0)\n" % (marker, slot_value, str(saw)),
+        )
+        gate = _write_exe(
+            self.side / "gate.py",
+            "#!/usr/bin/env python3\n"
+            "import os, subprocess\n"
+            "names = (\n"
+            "    'GROK_API_KEY',\n"
+            "    'GIT_CONFIG_COUNT',\n"
+            "    'GIT_CONFIG_KEY_0',\n"
+            "    'GIT_CONFIG_VALUE_0',\n"
+            "    'GIT_CONFIG_PARAMETERS',\n"
+            ")\n"
+            "bad = False\n"
+            "for name in names:\n"
+            "    state = 'set' if os.environ.get(name) else 'unset'\n"
+            "    print('%s %s' % (name, state))\n"
+            "    if state == 'set':\n"
+            "        bad = True\n"
+            "proc = subprocess.run(\n"
+            "    ['git', 'rev-parse', '--is-inside-work-tree'],\n"
+            "    capture_output=True,\n"
+            "    text=True,\n"
+            ")\n"
+            "print('GIT %s' % proc.returncode)\n"
+            "if proc.returncode != 0 or bad:\n"
+            "    raise SystemExit(1)\n"
+            "print('GATE-OK')\n"
+            "raise SystemExit(0)\n",
+        )
+        proc = self._run_task(
+            grok,
+            gate,
+            "add kept",
+            extra=["--no-review", "--retries", "0"],
+            env={
+                "GROK_API_KEY": marker,
+                "GIT_CONFIG_COUNT": "1",
+                "GIT_CONFIG_KEY_0": "core.whitespace",
+                "GIT_CONFIG_VALUE_0": slot_value,
+                "GIT_CONFIG_PARAMETERS": "'core.whitespace=%s'" % slot_value,
+            },
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        raw = list((self.repo / "pipelines" / "dogfood" / "build-cloud").glob("*/receipt.json"))[0].read_text(
+            encoding="utf-8"
+        )
+        for name in (
+            "GROK_API_KEY",
+            "GIT_CONFIG_COUNT",
+            "GIT_CONFIG_KEY_0",
+            "GIT_CONFIG_VALUE_0",
+            "GIT_CONFIG_PARAMETERS",
+        ):
+            self.assertIn("%s unset" % name, raw)
+        self.assertIn("GIT 0", raw)
+        self.assertIn("GATE-OK", raw)
+        self.assertNotIn(marker, raw)
+        self.assertNotIn(slot_value, raw)
+        self.assertEqual(saw.read_text(encoding="utf-8"), "GROK-SAW")
+
     def test_missing_gate_binary_exits_2_before_grok(self) -> None:
         # Fail: a missing gate is a product FAIL and grok still runs.
         # Recover: exit 2, reason gate-missing, and no grok call.

@@ -1636,6 +1636,20 @@ class CloudBuild:
         before_tree = gate_tree_manifest(where)
         for key in list(env):
             upper = key.upper()
+            # GIT_CONFIG_KEY_<n> contains _KEY_, so the secret rule below
+            # deletes the key and leaves GIT_CONFIG_COUNT. Git then exits
+            # 128 with "missing config key" and every gate that runs git
+            # is red. Drop the inherited family together. The values can
+            # carry credentials, and a partial family is fatal. Grok still
+            # uses child_env(), which keeps the operator's git config.
+            if (
+                upper == "GIT_CONFIG_COUNT"
+                or upper == "GIT_CONFIG_PARAMETERS"
+                or upper.startswith("GIT_CONFIG_KEY_")
+                or upper.startswith("GIT_CONFIG_VALUE_")
+            ):
+                env.pop(key, None)
+                continue
             if (
                 any(
                     word in upper
