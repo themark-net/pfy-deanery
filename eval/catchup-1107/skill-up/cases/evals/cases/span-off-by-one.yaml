@@ -1,0 +1,15 @@
+id: span-off-by-one
+title: Fix an off-by-one in inclusive_count
+input:
+  prompt: |
+    Fix src/span.py. inclusive_count(start, end) must return how many integers
+    lie in the closed interval from start to end. inclusive_count(1, 3) is 3.
+    inclusive_count(5, 5) is 1. Edit only src/span.py.
+context:
+  repo_fixture: evals/fixtures/repos/span-off-by-one
+expect:
+  exit_code: 0
+judge:
+  type: script
+  script_path: evals/fixtures/scripts/check_span.py
+  timeout_seconds: 30

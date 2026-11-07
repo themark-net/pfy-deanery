@@ -1,0 +1,15 @@
+id: last-two
+title: Return the last two items
+input:
+  prompt: |
+    Fix src/seq.py. last_two(items) must return the last two items, or the
+    whole list when it has fewer than two. last_two([1, 2, 3, 4]) is [3, 4].
+    last_two([9]) is [9]. last_two([]) is []. Edit only src/seq.py.
+context:
+  repo_fixture: evals/fixtures/repos/last-two
+expect:
+  exit_code: 0
+judge:
+  type: script
+  script_path: evals/fixtures/scripts/check_last_two.py
+  timeout_seconds: 30

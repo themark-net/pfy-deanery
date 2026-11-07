@@ -1,0 +1,16 @@
+id: inclusive-range
+title: Make in_range include both ends
+input:
+  prompt: |
+    Fix src/range_check.py. in_range(n, low, high) must be true when n is
+    inside the closed interval from low to high, including the ends.
+    in_range(1, 1, 3) is true. in_range(3, 1, 3) is true. in_range(0, 1, 3)
+    is false. Edit only src/range_check.py.
+context:
+  repo_fixture: evals/fixtures/repos/inclusive-range
+expect:
+  exit_code: 0
+judge:
+  type: script
+  script_path: evals/fixtures/scripts/check_in_range.py
+  timeout_seconds: 30

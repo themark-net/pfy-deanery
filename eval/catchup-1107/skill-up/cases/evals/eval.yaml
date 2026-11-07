@@ -1,0 +1,38 @@
+schema_version: v1alpha1
+environment:
+  type: none
+mcp:
+  servers: []
+skills:
+  - source: local_path
+    path: ../../../../bootstrap/grok-cli/skills/karpathy-guidelines
+    include:
+      - SKILL.md
+engine:
+  name: pfy-local
+  custom:
+    transport: local
+    response_format: session_result
+    timeout_seconds: 170
+    local:
+      command: ${SKILLUP_PYTHON:-python3}
+      args:
+        - ${SKILLUP_ENGINE_BIN}
+        - ${input_file}
+        - --skills-dir
+        - ${SKILLUP_SKILL_DIR}
+cases:
+  files:
+    - evals/cases/span-off-by-one.yaml
+    - evals/cases/greet-arg-check.yaml
+    - evals/cases/clamp-hidden.yaml
+    - evals/cases/last-two.yaml
+    - evals/cases/inclusive-range.yaml
+  defaults:
+    timeout_seconds: 180
+    max_turns: 8
+  parallelism: 1
+benchmark:
+  enabled: true
+report:
+  formats: [json, junit]

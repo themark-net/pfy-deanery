@@ -1,0 +1,16 @@
+id: clamp-hidden
+title: Implement clamp to the written spec
+input:
+  prompt: |
+    Implement clamp in src/clamp.py. It takes value, low, and high and returns
+    value limited to the closed interval from low to high. If low is greater
+    than high, raise ValueError. Replace the NotImplementedError. Edit only
+    src/clamp.py.
+context:
+  repo_fixture: evals/fixtures/repos/clamp-hidden
+expect:
+  exit_code: 0
+judge:
+  type: script
+  script_path: evals/fixtures/scripts/check_clamp.py
+  timeout_seconds: 30

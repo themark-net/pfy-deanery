@@ -25,4 +25,4 @@
 | Real-HOME config | `~/.skill-up/credentials.yaml` or `~/.config/skill-up` read or written | Temp HOME and XDG_CONFIG_HOME; the smoke watches both real paths |
 | Young project | 0.x, weekly releases, schema `v1alpha1` | Binary sha pin; re-check the custom-engine contract on bump |
 
-- **Status**: Cataloged I0. Smoke PASS on the Grok Bot box and on nimo (staged under `tmp/skill-up`). **Eval-auto trial candidate**: the scoring harness for the pfy-mentat vs Grok Build trial (see the handoff); on hold behind the MVP and H1.
+- **Status**: Cataloged I3 (2026-11-07). Smoke PASS. nimo trial graded 5 cases with and without karpathy-guidelines, 2 iterations, on local qwen3.6:35b. Both arms 5/5, flake 0/10, delta 0. Receipt: `eval/catchup-1107/skill-up/REPORT.md`. Operator path: `make eval-skillup`. Not a Feature GO.
