@@ -1,0 +1,442 @@
+{
+  "ticket": "docs/ops/grill-samples/TICKET-pk2.md",
+  "needed": true,
+  "questions": [
+    {
+      "n": 1,
+      "question": "What stops two runs doing the same work: should an exclusive lock on the ticket plus a content hash in the grill sidecar make a second run of the same ticket bytes and the same path set launch no grok, while two overlapping runs launch grok only once?",
+      "recommended_answer": "Yes. Lock the ticket path for the duration of the grok calls, store a hash of the ticket bytes and the path set in the sidecar, and skip the model when that hash is unchanged.",
+      "behavior_change": true,
+      "assertion": "Two sequential runs with the same ticket bytes and paths record the same grok launch count, and two overlapping runs record exactly one launch.",
+      "test_path": "tests/test_grill_idempotency.py",
+      "test_content": "import os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\nSCRIPT = ROOT / \"scripts\" / \"grill_ticket.py\"\n\n\ndef _fake(path: Path) -> None:\n    path.write_text(\n        \"#!/bin/sh\\n\"\n        \"cat >/dev/null\\n\"\n        \"printf 'x\\\\n' >> \\\"$GRILL_COUNT_FILE\\\"\\n\"\n        \"sleep 1\\n\"\n        \"printf '%s\\\\n' '{\\\"questions\\\":[{\\\"n\\\":1,\\\"question\\\":\\\"q\\\",\\\"recommended_answer\\\":\\\"Yes\\\",\\\"behavior_change\\\":false}]}'\\n\"\n    )\n    path.chmod(0o755)\n\n\ndef _run(ticket: Path, env: dict) -> subprocess.CompletedProcess:\n    answers = ticket.parent / \"answers.json\"\n    answers.write_text('{\"1\":{\"answer\":\"Yes\",\"behavior_change\":false}}')\n    return subprocess.run(\n        [sys.executable, str(SCRIPT), str(ticket), \"--paths\", \"ci/pipeline.yml\", \"--answers\", str(answers)],\n        cwd=ROOT,\n        env=env,\n        capture_output=True,\n        text=True,\n    )\n\n\nclass GrillIdempotencyTest(unittest.TestCase):\n    def test_same_bytes_do_not_call_grok_again(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            fake = d / \"grok\"\n            _fake(fake)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"lane touches ci/pipeline.yml\\n\")\n            count = d / \"count\"\n            count.write_text(\"\")\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            env[\"GRILL_COUNT_FILE\"] = str(count)\n            first = _run(ticket, env)\n            self.assertEqual(first.returncode, 0, first.stderr)\n            n1 = count.read_text().count(\"x\")\n            self.assertEqual(n1, 1)\n            second = _run(ticket, env)\n            self.assertEqual(second.returncode, 0, second.stderr)\n            self.assertEqual(count.read_text().count(\"x\"), n1)\n\n    def test_overlapping_runs_launch_grok_once(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            fake = d / \"grok\"\n            _fake(fake)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"lane touches ci/pipeline.yml\\n\")\n            count = d / \"count\"\n            count.write_text(\"\")\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            env[\"GRILL_COUNT_FILE\"] = str(count)\n            answers = d / \"answers.json\"\n            answers.write_text('{\"1\":{\"answer\":\"Yes\",\"behavior_change\":false}}')\n            cmd = [sys.executable, str(SCRIPT), str(ticket), \"--paths\", \"ci/pipeline.yml\", \"--answers\", str(answers)]\n            a = subprocess.Popen(cmd, cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)\n            b = subprocess.Popen(cmd, cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)\n            a.wait(timeout=15)\n            b.wait(timeout=15)\n            self.assertEqual(a.returncode, 0, a.stderr.read() if a.stderr else \"\")\n            self.assertEqual(b.returncode, 0, b.stderr.read() if b.stderr else \"\")\n            self.assertEqual(count.read_text().count(\"x\"), 1)\n"
+    },
+    {
+      "n": 2,
+      "question": "Does this change obey the Modular CI rule: local grill only, no new serialized or long CI job, no call to the suite runner, and no step that repeats work another step already did?",
+      "recommended_answer": "Yes. grill_ticket.py is a local pre-cut command. It must not start GitHub Actions, scripts/run_tests.py, pytest, or make, and the sandcastle hook must not run the suite.",
+      "behavior_change": true,
+      "assertion": "scripts/grill_ticket.py contains no reference to run_tests.py, pytest, or a make test target, and the repo has no workflow file whose name contains grill.",
+      "test_path": "tests/test_grill_modular_ci.py",
+      "test_content": "import unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\n\n\nclass ModularCiObeyTest(unittest.TestCase):\n    def test_grill_script_does_not_run_the_suite_or_add_a_job(self):\n        text = (ROOT / \"scripts\" / \"grill_ticket.py\").read_text(encoding=\"utf-8\")\n        self.assertNotIn(\"run_tests.py\", text)\n        self.assertNotIn(\"pytest\", text)\n        self.assertNotIn(\"make test\", text)\n        workflows = ROOT / \".github\" / \"workflows\"\n        if workflows.exists():\n            named = [p.name for p in workflows.iterdir() if \"grill\" in p.name.lower()]\n            self.assertEqual(named, [])\n"
+    },
+    {
+      "n": 3,
+      "question": "Should every grok launch be refused unless argv contains the tools-off flags recorded in one map (no built-in tools, web search off, subagents off) plus --json-schema, with those exact spellings verified on nimo and stored in that map?",
+      "recommended_answer": "Yes. Keep the verified flag spellings in TOOLS_OFF_FLAGS keyed by no_builtin_tools, no_web_search, and no_subagents, and do not exec grok if any of them or --json-schema is absent.",
+      "behavior_change": true,
+      "assertion": "A successful grill argv includes --json-schema and every flag value in TOOLS_OFF_FLAGS for no_builtin_tools, no_web_search, and no_subagents.",
+      "test_path": "tests/test_grill_tools_off.py",
+      "test_content": "import importlib.util\nimport os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\n\n\ndef load():\n    path = ROOT / \"scripts\" / \"grill_ticket.py\"\n    spec = importlib.util.spec_from_file_location(\"grill_ticket\", path)\n    mod = importlib.util.module_from_spec(spec)\n    spec.loader.exec_module(mod)\n    return mod\n\n\nclass ToolsOffTest(unittest.TestCase):\n    def test_argv_has_schema_and_tools_off_flags(self):\n        mod = load()\n        self.assertEqual(\n            set(mod.TOOLS_OFF_FLAGS),\n            {\"no_builtin_tools\", \"no_web_search\", \"no_subagents\"},\n        )\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            argv_log = d / \"argv\"\n            fake = d / \"grok\"\n            fake.write_text(\n                \"#!/usr/bin/env python3\\n\"\n                \"import pathlib, sys, os\\n\"\n                \"pathlib.Path(os.environ['ARGV_LOG']).write_text('\\\\n'.join(sys.argv))\\n\"\n                \"sys.stdin.read()\\n\"\n                \"print('{\\\"questions\\\":[{\\\"n\\\":1,\\\"question\\\":\\\"q\\\",\\\"recommended_answer\\\":\\\"Yes\\\",\\\"behavior_change\\\":false}]}')\\n\"\n            )\n            fake.chmod(0o755)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"ci/pipeline.yml\\n\")\n            answers = d / \"a.json\"\n            answers.write_text('{\"1\":{\"answer\":\"Yes\",\"behavior_change\":false}}')\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            env[\"ARGV_LOG\"] = str(argv_log)\n            proc = subprocess.run(\n                [sys.executable, str(ROOT / \"scripts\" / \"grill_ticket.py\"), str(ticket), \"--paths\", \"ci/pipeline.yml\", \"--answers\", str(answers)],\n                cwd=ROOT,\n                env=env,\n                capture_output=True,\n                text=True,\n            )\n            self.assertEqual(proc.returncode, 0, proc.stderr)\n            text = argv_log.read_text(encoding=\"utf-8\")\n            self.assertIn(\"--json-schema\", text)\n            for flag in mod.TOOLS_OFF_FLAGS.values():\n                self.assertTrue(str(flag).startswith(\"--\"), flag)\n                self.assertIn(str(flag), text)\n"
+    },
+    {
+      "n": 4,
+      "question": "Should a requested max turn count above 12 exit non-zero before any grok launch, and should the two tools-off calls each receive --max-turns 6 so their sum stays within 12?",
+      "recommended_answer": "Yes. Reject --max-turns above 12 in the script before exec, and pass --max-turns 6 on each of the two calls.",
+      "behavior_change": true,
+      "assertion": "grill_ticket.py --max-turns 13 launches no grok and exits non-zero, and a normal run passes --max-turns 6.",
+      "test_path": "tests/test_grill_turn_cap.py",
+      "test_content": "import os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\nSCRIPT = ROOT / \"scripts\" / \"grill_ticket.py\"\n\n\nclass TurnCapTest(unittest.TestCase):\n    def test_rejects_above_12_without_launch(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            count = d / \"count\"\n            count.write_text(\"\")\n            fake = d / \"grok\"\n            fake.write_text(\"#!/bin/sh\\nprintf 'x\\\\n' >> \\\"$GRILL_COUNT_FILE\\\"\\ncat >/dev/null\\n\")\n            fake.chmod(0o755)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"ci/x\\n\")\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            env[\"GRILL_COUNT_FILE\"] = str(count)\n            proc = subprocess.run(\n                [sys.executable, str(SCRIPT), str(ticket), \"--paths\", \"ci/x.yml\", \"--max-turns\", \"13\"],\n                cwd=ROOT,\n                env=env,\n                capture_output=True,\n                text=True,\n            )\n            self.assertNotEqual(proc.returncode, 0)\n            self.assertEqual(count.read_text(), \"\")\n\n    def test_each_call_uses_max_turns_6(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            argv_log = d / \"argv\"\n            fake = d / \"grok\"\n            fake.write_text(\n                \"#!/usr/bin/env python3\\n\"\n                \"import os, pathlib, sys\\n\"\n                \"pathlib.Path(os.environ['ARGV_LOG']).open('a').write(' '.join(sys.argv)+'\\\\n')\\n\"\n                \"sys.stdin.read()\\n\"\n                \"print('{\\\"questions\\\":[{\\\"n\\\":1,\\\"question\\\":\\\"q\\\",\\\"recommended_answer\\\":\\\"Yes\\\",\\\"behavior_change\\\":false}]}')\\n\"\n            )\n            fake.chmod(0o755)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"ci/x\\n\")\n            answers = d / \"a.json\"\n            answers.write_text('{\"1\":{\"answer\":\"Yes\",\"behavior_change\":false}}')\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            env[\"ARGV_LOG\"] = str(argv_log)\n            proc = subprocess.run(\n                [sys.executable, str(SCRIPT), str(ticket), \"--paths\", \".github/workflows/ci.yml\", \"--answers\", str(answers)],\n                cwd=ROOT,\n                env=env,\n                capture_output=True,\n                text=True,\n            )\n            self.assertEqual(proc.returncode, 0, proc.stderr)\n            self.assertIn(\"--max-turns 6\", argv_log.read_text(encoding=\"utf-8\"))\n"
+    },
+    {
+      "n": 5,
+      "question": "Should --answers be a JSON object mapping question numbers to {answer, behavior_change} and skip the coordinator grok call entirely?",
+      "recommended_answer": "Yes. When --answers is present, launch only the question call, then apply that file. A string value is not accepted.",
+      "behavior_change": true,
+      "assertion": "With a valid --answers file, grok is launched once and the applied behavior_change is the one in the file.",
+      "test_path": "tests/test_grill_answers_file.py",
+      "test_content": "import json\nimport os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\nSCRIPT = ROOT / \"scripts\" / \"grill_ticket.py\"\n\n\nclass AnswersFileTest(unittest.TestCase):\n    def test_answers_file_skips_second_call_and_sets_behavior(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            count = d / \"count\"\n            count.write_text(\"\")\n            fake = d / \"grok\"\n            fake.write_text(\n                \"#!/bin/sh\\n\"\n                \"printf 'x\\\\n' >> \\\"$GRILL_COUNT_FILE\\\"\\n\"\n                \"cat >/dev/null\\n\"\n                \"printf '%s\\\\n' '{\\\"questions\\\":[{\\\"n\\\":1,\\\"question\\\":\\\"Ship a gate?\\\",\\\"recommended_answer\\\":\\\"Yes\\\",\\\"behavior_change\\\":false}]}'\\n\"\n            )\n            fake.chmod(0o755)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"touches scripts/pregate.sh\\n\")\n            answers = d / \"a.json\"\n            answers.write_text('{\"1\":{\"answer\":\"Yes, block on empty assertion\",\"behavior_change\":true}}')\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            env[\"GRILL_COUNT_FILE\"] = str(count)\n            proc = subprocess.run(\n                [sys.executable, str(SCRIPT), str(ticket), \"--paths\", \"scripts/pregate.sh\", \"--answers\", str(answers)],\n                cwd=ROOT,\n                env=env,\n                capture_output=True,\n                text=True,\n            )\n            self.assertEqual(proc.returncode, 0, proc.stderr)\n            self.assertEqual(count.read_text().count(\"x\"), 1)\n            record = json.loads(Path(str(ticket) + \".grill.json\").read_text(encoding=\"utf-8\"))\n            applied = record[\"questions\"][0]\n            self.assertTrue(applied[\"behavior_change\"])\n            self.assertEqual(applied[\"answer\"], \"Yes, block on empty assertion\")\n            body = ticket.read_text(encoding=\"utf-8\")\n            self.assertIn(\"Exit tests from grill\", body)\n"
+    },
+    {
+      "n": 6,
+      "question": "Should sandcastle JSON keep the existing single exitTest unchanged and runnable, and should grill only append cases to an exitTests list?",
+      "recommended_answer": "Yes. Preserve exitTest as-is and append grill cases to exitTests. A ticket with only exitTest remains valid.",
+      "behavior_change": true,
+      "assertion": "After grilling a JSON ticket, the original exitTest object is unchanged and each behavior-changing answer appears as an additional exitTests item.",
+      "test_path": "tests/test_grill_exit_tests_list.py",
+      "test_content": "import json\nimport os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\nSCRIPT = ROOT / \"scripts\" / \"grill_ticket.py\"\n\n\nclass ExitTestsListTest(unittest.TestCase):\n    def test_preserves_exit_test_and_appends_list(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            fake = d / \"grok\"\n            fake.write_text(\n                \"#!/bin/sh\\n\"\n                \"cat >/dev/null\\n\"\n                \"printf '%s\\\\n' '{\\\"questions\\\":[{\\\"n\\\":1,\\\"question\\\":\\\"q\\\",\\\"recommended_answer\\\":\\\"Yes\\\",\\\"behavior_change\\\":true,\\\"assertion\\\":\\\"gate rejects a dirty tree\\\"}]}'\\n\"\n            )\n            fake.chmod(0o755)\n            original = {\"path\": \"tests/test_existing.py\", \"content\": \"print('keep')\\n\"}\n            ticket = d / \"batch.json\"\n            ticket.write_text(json.dumps({\n                \"tickets\": [{\n                    \"id\": \"t1\",\n                    \"title\": \"gate\",\n                    \"body\": \"edit .github/workflows/ci.yml\",\n                    \"blockedBy\": [],\n                    \"exitTest\": original,\n                }]\n            }))\n            answers = d / \"a.json\"\n            answers.write_text('{\"1\":{\"answer\":\"Yes\",\"behavior_change\":true}}')\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            proc = subprocess.run(\n                [sys.executable, str(SCRIPT), str(ticket), \"--paths\", \".github/workflows/ci.yml\", \"--answers\", str(answers)],\n                cwd=ROOT,\n                env=env,\n                capture_output=True,\n                text=True,\n            )\n            self.assertEqual(proc.returncode, 0, proc.stderr)\n            data = json.loads(ticket.read_text(encoding=\"utf-8\"))\n            item = data[\"tickets\"][0]\n            self.assertEqual(item[\"exitTest\"], original)\n            self.assertGreaterEqual(len(item[\"exitTests\"]), 1)\n            self.assertIn(\"gate rejects a dirty tree\", json.dumps(item[\"exitTests\"]))\n"
+    },
+    {
+      "n": 7,
+      "question": "Should a grok failure, invalid JSON, or a behavior_change question with an empty assertion exit 3 with a one-line reason and still leave sibling tickets in the same batch processed?",
+      "recommended_answer": "Yes. Fail closed for the bad ticket only. Continue the rest of the batch, then exit 3 if any required ticket failed.",
+      "behavior_change": true,
+      "assertion": "A batch with one bad CI ticket and one good CI ticket exits 3, records a non-empty reason for the bad ticket, and still writes a sidecar for the good ticket.",
+      "test_path": "tests/test_grill_batch_failure.py",
+      "test_content": "import json\nimport os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\nSCRIPT = ROOT / \"scripts\" / \"grill_ticket.py\"\n\n\nclass BatchFailureTest(unittest.TestCase):\n    def test_one_bad_ticket_does_not_drop_the_other(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            fake = d / \"grok\"\n            fake.write_text(\n                \"#!/usr/bin/env python3\\n\"\n                \"import sys\\n\"\n                \"raw = sys.stdin.read()\\n\"\n                \"if 'BADTICKET' in raw:\\n\"\n                \"    print('not-json')\\n\"\n                \"    raise SystemExit(0)\\n\"\n                \"print('{\\\"questions\\\":[{\\\"n\\\":1,\\\"question\\\":\\\"q\\\",\\\"recommended_answer\\\":\\\"Yes\\\",\\\"behavior_change\\\":false}]}')\\n\"\n            )\n            fake.chmod(0o755)\n            batch = d / \"batch.json\"\n            batch.write_text(json.dumps({\"tickets\": [\n                {\"id\": \"bad\", \"title\": \"b\", \"body\": \"BADTICKET ci/a.yml\", \"blockedBy\": [], \"exitTest\": {\"path\": \"t.py\", \"content\": \"x\"}},\n                {\"id\": \"good\", \"title\": \"g\", \"body\": \"GOOD ci/b.yml\", \"blockedBy\": [], \"exitTest\": {\"path\": \"t.py\", \"content\": \"x\"}},\n            ]}))\n            answers = d / \"a.json\"\n            answers.write_text('{\"1\":{\"answer\":\"Yes\",\"behavior_change\":false}}')\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            proc = subprocess.run(\n                [sys.executable, str(SCRIPT), str(batch), \"--answers\", str(answers)],\n                cwd=ROOT,\n                env=env,\n                capture_output=True,\n                text=True,\n            )\n            self.assertEqual(proc.returncode, 3, proc.stderr)\n            reason = (proc.stderr + proc.stdout).strip()\n            self.assertIn(\"bad\", reason.lower() + reason)\n            self.assertTrue(reason)\n            self.assertTrue((d / \"batch.json.good.grill.json\").exists() or (d / \"good.grill.json\").exists())\n"
+    },
+    {
+      "n": 8,
+      "question": "Should the trigger globs live in one module-level tuple TRIGGER_GLOBS, and should a touched path of Makefile or scripts/run_tests.py be enough to grill without parsing file contents?",
+      "recommended_answer": "Yes. One tuple is the only trigger list, and those two paths trigger on name match alone.",
+      "behavior_change": true,
+      "assertion": "TRIGGER_GLOBS includes Makefile and scripts/run_tests.py, and a ticket that only touches Makefile does not print no grill needed.",
+      "test_path": "tests/test_grill_trigger_globs.py",
+      "test_content": "import importlib.util\nimport os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\n\n\ndef load():\n    path = ROOT / \"scripts\" / \"grill_ticket.py\"\n    spec = importlib.util.spec_from_file_location(\"grill_ticket\", path)\n    mod = importlib.util.module_from_spec(spec)\n    spec.loader.exec_module(mod)\n    return mod\n\n\nclass TriggerGlobTest(unittest.TestCase):\n    def test_tuple_and_makefile_triggers(self):\n        mod = load()\n        globs = list(mod.TRIGGER_GLOBS)\n        self.assertIn(\"Makefile\", globs)\n        self.assertIn(\"scripts/run_tests.py\", globs)\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            fake = d / \"grok\"\n            fake.write_text(\n                \"#!/bin/sh\\ncat >/dev/null\\n\"\n                \"printf '%s\\\\n' '{\\\"questions\\\":[{\\\"n\\\":1,\\\"question\\\":\\\"q\\\",\\\"recommended_answer\\\":\\\"Yes\\\",\\\"behavior_change\\\":false}]}'\\n\"\n            )\n            fake.chmod(0o755)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"docs only in the body\\n\")\n            answers = d / \"a.json\"\n            answers.write_text('{\"1\":{\"answer\":\"Yes\",\"behavior_change\":false}}')\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            proc = subprocess.run(\n                [sys.executable, str(ROOT / \"scripts\" / \"grill_ticket.py\"), str(ticket), \"--paths\", \"Makefile\", \"--answers\", str(answers)],\n                cwd=ROOT,\n                env=env,\n                capture_output=True,\n                text=True,\n            )\n            self.assertEqual(proc.returncode, 0, proc.stderr)\n            self.assertNotIn(\"no grill needed\", (proc.stdout + proc.stderr).lower())\n"
+    },
+    {
+      "n": 9,
+      "question": "Should grill.json record skill_source as vendored when the grilling SKILL.md is on disk and embedded when it is missing, and still return questions in both cases?",
+      "recommended_answer": "Yes. Record which text was used and continue with the embedded summary when the vendored file is absent.",
+      "behavior_change": true,
+      "assertion": "When the vendored skill path is missing, the sidecar skill_source is embedded and the run still exits 0.",
+      "test_path": "tests/test_grill_skill_source.py",
+      "test_content": "import json\nimport os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\nSCRIPT = ROOT / \"scripts\" / \"grill_ticket.py\"\n\n\nclass SkillSourceTest(unittest.TestCase):\n    def test_missing_skill_records_embedded(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            fake = d / \"grok\"\n            fake.write_text(\n                \"#!/bin/sh\\ncat >/dev/null\\n\"\n                \"printf '%s\\\\n' '{\\\"questions\\\":[{\\\"n\\\":1,\\\"question\\\":\\\"q\\\",\\\"recommended_answer\\\":\\\"Yes\\\",\\\"behavior_change\\\":false}]}'\\n\"\n            )\n            fake.chmod(0o755)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"ci/pipeline.yml\\n\")\n            answers = d / \"a.json\"\n            answers.write_text('{\"1\":{\"answer\":\"Yes\",\"behavior_change\":false}}')\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            env[\"GRILL_SKILL_PATH\"] = str(d / \"missing-SKILL.md\")\n            proc = subprocess.run(\n                [sys.executable, str(SCRIPT), str(ticket), \"--paths\", \"ci/pipeline.yml\", \"--answers\", str(answers)],\n                cwd=ROOT,\n                env=env,\n                capture_output=True,\n                text=True,\n            )\n            self.assertEqual(proc.returncode, 0, proc.stderr)\n            record = json.loads(Path(str(ticket) + \".grill.json\").read_text(encoding=\"utf-8\"))\n            self.assertEqual(record[\"skill_source\"], \"embedded\")\n"
+    },
+    {
+      "n": 10,
+      "question": "Should a grill succeed and store cost as null when the model report has no cost field?",
+      "recommended_answer": "Yes. Missing cost is not a failure. Write null and continue.",
+      "behavior_change": true,
+      "assertion": "A fake grok that prints questions and no cost field yields exit 0 and sidecar cost null.",
+      "test_path": "tests/test_grill_cost_null.py",
+      "test_content": "import json\nimport os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\n\n\nclass CostNullTest(unittest.TestCase):\n    def test_missing_cost_is_null(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            fake = d / \"grok\"\n            fake.write_text(\n                \"#!/bin/sh\\ncat >/dev/null\\n\"\n                \"printf '%s\\\\n' '{\\\"questions\\\":[{\\\"n\\\":1,\\\"question\\\":\\\"q\\\",\\\"recommended_answer\\\":\\\"Yes\\\",\\\"behavior_change\\\":false}]}'\\n\"\n            )\n            fake.chmod(0o755)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"pipelines/gate.yml\\n\")\n            answers = d / \"a.json\"\n            answers.write_text('{\"1\":{\"answer\":\"Yes\",\"behavior_change\":false}}')\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            proc = subprocess.run(\n                [sys.executable, str(ROOT / \"scripts\" / \"grill_ticket.py\"), str(ticket), \"--paths\", \"pipelines/gate.yml\", \"--answers\", str(answers)],\n                cwd=ROOT,\n                env=env,\n                capture_output=True,\n                text=True,\n            )\n            self.assertEqual(proc.returncode, 0, proc.stderr)\n            record = json.loads(Path(str(ticket) + \".grill.json\").read_text(encoding=\"utf-8\"))\n            self.assertIsNone(record[\"cost\"])\n"
+    },
+    {
+      "n": 11,
+      "question": "Should the coordinator call return JSON answers mapping each question number to {accept, answer, behavior_change}, and should a rejection that sets behavior_change false create no exit test even if the first call recommended one?",
+      "recommended_answer": "Yes. The applied coordinator answer decides the exit test. An override to behavior_change false adds no exit test. The coordinator prompt includes the Modular CI rule so it can reject a new full-suite job.",
+      "behavior_change": true,
+      "assertion": "When the first call recommends a behavior change and the coordinator call sets behavior_change false, the ticket file gains no Exit tests from grill section.",
+      "test_path": "tests/test_grill_coordinator_override.py",
+      "test_content": "import os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\n\n\nclass CoordinatorOverrideTest(unittest.TestCase):\n    def test_override_false_adds_no_exit_section(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            fake = d / \"grok\"\n            fake.write_text(\n                \"#!/usr/bin/env python3\\n\"\n                \"import sys\\n\"\n                \"raw = sys.stdin.read()\\n\"\n                \"if 'coordinator' in raw.lower():\\n\"\n                \"    print('{\\\"answers\\\":{\\\"1\\\":{\\\"accept\\\":false,\\\"answer\\\":\\\"No\\\",\\\"behavior_change\\\":false}}}')\\n\"\n                \"else:\\n\"\n                \"    print('{\\\"questions\\\":[{\\\"n\\\":1,\\\"question\\\":\\\"Add a full suite job?\\\",\\\"recommended_answer\\\":\\\"Yes\\\",\\\"behavior_change\\\":true,\\\"assertion\\\":\\\"Add a required full-suite CI job.\\\"}]}')\\n\"\n            )\n            fake.chmod(0o755)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"change ci/pipeline.yml\\n\")\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            proc = subprocess.run(\n                [sys.executable, str(ROOT / \"scripts\" / \"grill_ticket.py\"), str(ticket), \"--paths\", \"ci/pipeline.yml\"],\n                cwd=ROOT,\n                env=env,\n                capture_output=True,\n                text=True,\n            )\n            self.assertEqual(proc.returncode, 0, proc.stderr)\n            body = ticket.read_text(encoding=\"utf-8\")\n            self.assertNotIn(\"Exit tests from grill\", body)\n            self.assertNotIn(\"full-suite\", body)\n"
+    },
+    {
+      "n": 12,
+      "question": "Should the question-generation prompt include the exact seed 'What stops two runs doing the same work?' and the Modular CI standing-rule text from AGENTS.md, else docs/ops/MODULAR-CI.md, else the embedded copy?",
+      "recommended_answer": "Yes. Both seeds are always in the prompt, and the Modular CI text comes from that single fallback chain.",
+      "behavior_change": true,
+      "assertion": "The stdin of the question call contains 'What stops two runs doing the same work?' and the sentence 'run only the tests your change can affect'.",
+      "test_path": "tests/test_grill_prompt_seeds.py",
+      "test_content": "import os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\n\n\nclass PromptSeedTest(unittest.TestCase):\n    def test_prompt_contains_both_seeds(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            prompt = d / \"prompt\"\n            fake = d / \"grok\"\n            fake.write_text(\n                \"#!/usr/bin/env python3\\n\"\n                \"import os, pathlib, sys\\n\"\n                \"pathlib.Path(os.environ['PROMPT_LOG']).write_text(sys.stdin.read())\\n\"\n                \"print('{\\\"questions\\\":[{\\\"n\\\":1,\\\"question\\\":\\\"q\\\",\\\"recommended_answer\\\":\\\"Yes\\\",\\\"behavior_change\\\":false}]}')\\n\"\n            )\n            fake.chmod(0o755)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"ci/pipeline.yml\\n\")\n            answers = d / \"a.json\"\n            answers.write_text('{\"1\":{\"answer\":\"Yes\",\"behavior_change\":false}}')\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            env[\"PROMPT_LOG\"] = str(prompt)\n            proc = subprocess.run(\n                [sys.executable, str(ROOT / \"scripts\" / \"grill_ticket.py\"), str(ticket), \"--paths\", \"ci/pipeline.yml\", \"--answers\", str(answers)],\n                cwd=ROOT,\n                env=env,\n                capture_output=True,\n                text=True,\n            )\n            self.assertEqual(proc.returncode, 0, proc.stderr)\n            text = prompt.read_text(encoding=\"utf-8\")\n            self.assertIn(\"What stops two runs doing the same work?\", text)\n            self.assertIn(\"run only the tests your change can affect\", text)\n"
+    },
+    {
+      "n": 13,
+      "question": "Should a ticket that touches none of the trigger paths exit 0, print 'no grill needed', launch no grok, and write no sidecar?",
+      "recommended_answer": "Yes. Non-matching tickets are a clean no-op with that exact phrase and no sidecar.",
+      "behavior_change": true,
+      "assertion": "A markdown ticket with path README.md exits 0, stdout contains 'no grill needed', grok is not launched, and no .grill.json file is created.",
+      "test_path": "tests/test_grill_no_trigger.py",
+      "test_content": "import os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\n\n\nclass NoTriggerTest(unittest.TestCase):\n    def test_plain_ticket_skips(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            count = d / \"count\"\n            count.write_text(\"\")\n            fake = d / \"grok\"\n            fake.write_text(\"#!/bin/sh\\nprintf 'x\\\\n' >> \\\"$GRILL_COUNT_FILE\\\"\\ncat >/dev/null\\n\")\n            fake.chmod(0o755)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"update the readme only\\n\")\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            env[\"GRILL_COUNT_FILE\"] = str(count)\n            proc = subprocess.run(\n                [sys.executable, str(ROOT / \"scripts\" / \"grill_ticket.py\"), str(ticket), \"--paths\", \"README.md\"],\n                cwd=ROOT,\n                env=env,\n                capture_output=True,\n                text=True,\n            )\n            self.assertEqual(proc.returncode, 0, proc.stderr)\n            self.assertIn(\"no grill needed\", proc.stdout.lower())\n            self.assertEqual(count.read_text(), \"\")\n            self.assertFalse(Path(str(ticket) + \".grill.json\").exists())\n"
+    },
+    {
+      "n": 14,
+      "question": "Should a missing PFY_GROK_BIN on a ticket that needs a grill exit non-zero and create no sidecar, rather than skipping?",
+      "recommended_answer": "Yes. A required grill with no binary fails closed. The default binary path is ~/.local/bin/grok when the env var is unset and that file exists.",
+      "behavior_change": true,
+      "assertion": "When PFY_GROK_BIN points at a missing file and the path is ci/pipeline.yml, the process exits non-zero and writes no grill sidecar.",
+      "test_path": "tests/test_grill_missing_bin.py",
+      "test_content": "import os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\n\n\nclass MissingBinTest(unittest.TestCase):\n    def test_missing_binary_fails_closed(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"ci/pipeline.yml\\n\")\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(d / \"no-such-grok\")\n            proc = subprocess.run(\n                [sys.executable, str(ROOT / \"scripts\" / \"grill_ticket.py\"), str(ticket), \"--paths\", \"ci/pipeline.yml\"],\n                cwd=ROOT,\n                env=env,\n                capture_output=True,\n                text=True,\n            )\n            self.assertNotEqual(proc.returncode, 0)\n            self.assertFalse(Path(str(ticket) + \".grill.json\").exists())\n            self.assertNotIn(\"no grill needed\", (proc.stdout + proc.stderr).lower())\n"
+    },
+    {
+      "n": 15,
+      "question": "Should grill rewrite the ticket in place with an Exit tests from grill section (or JSON exitTests) and write only the sidecar, without creating files under tests/ from model output?",
+      "recommended_answer": "Yes. Attach assertions to the ticket the cutter commits. Do not write model-supplied paths into the tests tree.",
+      "behavior_change": true,
+      "assertion": "A behavior_change answer that names tests/from_model.py updates the ticket and sidecar and does not create tests/from_model.py.",
+      "test_path": "tests/test_grill_no_model_test_files.py",
+      "test_content": "import os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\n\n\nclass NoModelTestFilesTest(unittest.TestCase):\n    def test_model_test_path_is_not_written(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            fake = d / \"grok\"\n            fake.write_text(\n                \"#!/bin/sh\\ncat >/dev/null\\n\"\n                \"printf '%s\\\\n' '{\\\"questions\\\":[{\\\"n\\\":1,\\\"question\\\":\\\"q\\\",\\\"recommended_answer\\\":\\\"Yes\\\",\\\"behavior_change\\\":true,\\\"assertion\\\":\\\"the gate fails closed\\\",\\\"test_path\\\":\\\"tests/from_model.py\\\",\\\"test_content\\\":\\\"print(123)\\\\n\\\"}]}'\\n\"\n            )\n            fake.chmod(0o755)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"scripts/model_lock.sh\\n\")\n            answers = d / \"a.json\"\n            answers.write_text('{\"1\":{\"answer\":\"Yes\",\"behavior_change\":true}}')\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            proc = subprocess.run(\n                [sys.executable, str(ROOT / \"scripts\" / \"grill_ticket.py\"), str(ticket), \"--paths\", \"scripts/model_lock.sh\", \"--answers\", str(answers)],\n                cwd=ROOT,\n                env=env,\n                capture_output=True,\n                text=True,\n            )\n            self.assertEqual(proc.returncode, 0, proc.stderr)\n            self.assertIn(\"Exit tests from grill\", ticket.read_text(encoding=\"utf-8\"))\n            self.assertIn(\"the gate fails closed\", ticket.read_text(encoding=\"utf-8\"))\n            self.assertFalse((ROOT / \"tests\" / \"from_model.py\").exists())\n            self.assertTrue(Path(str(ticket) + \".grill.json\").exists())\n"
+    },
+    {
+      "n": 16,
+      "question": "Should grill_ticket.py omit --model unless PFY_GROK_MODEL is set, so the real nimo run uses the configured default model?",
+      "recommended_answer": "Yes. Pass --model only when PFY_GROK_MODEL is non-empty, and then pass that value.",
+      "behavior_change": true,
+      "assertion": "With PFY_GROK_MODEL unset, grok argv has no --model flag; with PFY_GROK_MODEL=dummy, argv contains --model dummy.",
+      "test_path": "tests/test_grill_model_flag.py",
+      "test_content": "import os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\nSCRIPT = ROOT / \"scripts\" / \"grill_ticket.py\"\n\n\ndef run(env, ticket, answers, argv_log):\n    env = env.copy()\n    env[\"ARGV_LOG\"] = str(argv_log)\n    return subprocess.run(\n        [sys.executable, str(SCRIPT), str(ticket), \"--paths\", \"docs/ops/PREGATE.md\", \"--answers\", str(answers)],\n        cwd=ROOT,\n        env=env,\n        capture_output=True,\n        text=True,\n    )\n\n\nclass ModelFlagTest(unittest.TestCase):\n    def test_model_flag_follows_env(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            fake = d / \"grok\"\n            fake.write_text(\n                \"#!/usr/bin/env python3\\n\"\n                \"import os, pathlib, sys\\n\"\n                \"pathlib.Path(os.environ['ARGV_LOG']).write_text(' '.join(sys.argv))\\n\"\n                \"sys.stdin.read()\\n\"\n                \"print('{\\\"questions\\\":[{\\\"n\\\":1,\\\"question\\\":\\\"q\\\",\\\"recommended_answer\\\":\\\"Yes\\\",\\\"behavior_change\\\":false}]}')\\n\"\n            )\n            fake.chmod(0o755)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"docs/ops/PREGATE.md\\n\")\n            answers = d / \"a.json\"\n            answers.write_text('{\"1\":{\"answer\":\"Yes\",\"behavior_change\":false}}')\n            argv_log = d / \"argv\"\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            env.pop(\"PFY_GROK_MODEL\", None)\n            first = run(env, ticket, answers, argv_log)\n            self.assertEqual(first.returncode, 0, first.stderr)\n            self.assertNotIn(\"--model\", argv_log.read_text(encoding=\"utf-8\"))\n            ticket.write_text(\"docs/ops/PREGATE.md changed\\n\")\n            sidecar = Path(str(ticket) + \".grill.json\")\n            if sidecar.exists():\n                sidecar.unlink()\n            env[\"PFY_GROK_MODEL\"] = \"dummy\"\n            second = run(env, ticket, answers, argv_log)\n            self.assertEqual(second.returncode, 0, second.stderr)\n            self.assertIn(\"--model dummy\", argv_log.read_text(encoding=\"utf-8\"))\n"
+    },
+    {
+      "n": 17,
+      "question": "Should writing the exit tests into the ticket before the agent starts be the only immutability control, with no new lock format for exit-test bytes?",
+      "recommended_answer": "Yes. Pre-cut ticket content is the control. Do not add a second immutability store.",
+      "behavior_change": false,
+      "assertion": "",
+      "test_path": "",
+      "test_content": ""
+    },
+    {
+      "n": 18,
+      "question": "Should this lane leave AGENTS.md, scripts/run_tests.py, scripts/test_select.py, scripts/test_cache.py, and data/tool_integration_stages.json unmodified?",
+      "recommended_answer": "Yes. Those files belong to the parallel lanes. Document the grill rule in docs/ops/GRILL-STEP.md and one existing ops doc that is not AGENTS.md.",
+      "behavior_change": false,
+      "assertion": "",
+      "test_path": "",
+      "test_content": ""
+    }
+  ],
+  "answers": [
+    {
+      "n": 1,
+      "decision": "accept",
+      "answer": "Yes. Lock the ticket path for the duration of the grok calls, store a hash of the ticket bytes and the path set in the sidecar, and skip the model when that hash is unchanged.",
+      "behavior_change": true,
+      "assertion": "Two sequential runs with the same ticket bytes and paths record the same grok launch count, and two overlapping runs record exactly one launch.",
+      "test_path": "tests/test_grill_idempotency.py",
+      "test_content": "import os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\nSCRIPT = ROOT / \"scripts\" / \"grill_ticket.py\"\n\n\ndef _fake(path: Path) -> None:\n    path.write_text(\n        \"#!/bin/sh\\n\"\n        \"cat >/dev/null\\n\"\n        \"printf 'x\\\\n' >> \\\"$GRILL_COUNT_FILE\\\"\\n\"\n        \"sleep 1\\n\"\n        \"printf '%s\\\\n' '{\\\"questions\\\":[{\\\"n\\\":1,\\\"question\\\":\\\"q\\\",\\\"recommended_answer\\\":\\\"Yes\\\",\\\"behavior_change\\\":false}]}'\\n\"\n    )\n    path.chmod(0o755)\n\n\ndef _run(ticket: Path, env: dict) -> subprocess.CompletedProcess:\n    answers = ticket.parent / \"answers.json\"\n    answers.write_text('{\"1\":{\"answer\":\"Yes\",\"behavior_change\":false}}')\n    return subprocess.run(\n        [sys.executable, str(SCRIPT), str(ticket), \"--paths\", \"ci/pipeline.yml\", \"--answers\", str(answers)],\n        cwd=ROOT,\n        env=env,\n        capture_output=True,\n        text=True,\n    )\n\n\nclass GrillIdempotencyTest(unittest.TestCase):\n    def test_same_bytes_do_not_call_grok_again(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            fake = d / \"grok\"\n            _fake(fake)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"lane touches ci/pipeline.yml\\n\")\n            count = d / \"count\"\n            count.write_text(\"\")\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            env[\"GRILL_COUNT_FILE\"] = str(count)\n            first = _run(ticket, env)\n            self.assertEqual(first.returncode, 0, first.stderr)\n            n1 = count.read_text().count(\"x\")\n            self.assertEqual(n1, 1)\n            second = _run(ticket, env)\n            self.assertEqual(second.returncode, 0, second.stderr)\n            self.assertEqual(count.read_text().count(\"x\"), n1)\n\n    def test_overlapping_runs_launch_grok_once(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            fake = d / \"grok\"\n            _fake(fake)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"lane touches ci/pipeline.yml\\n\")\n            count = d / \"count\"\n            count.write_text(\"\")\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            env[\"GRILL_COUNT_FILE\"] = str(count)\n            answers = d / \"answers.json\"\n            answers.write_text('{\"1\":{\"answer\":\"Yes\",\"behavior_change\":false}}')\n            cmd = [sys.executable, str(SCRIPT), str(ticket), \"--paths\", \"ci/pipeline.yml\", \"--answers\", str(answers)]\n            a = subprocess.Popen(cmd, cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)\n            b = subprocess.Popen(cmd, cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)\n            a.wait(timeout=15)\n            b.wait(timeout=15)\n            self.assertEqual(a.returncode, 0, a.stderr.read() if a.stderr else \"\")\n            self.assertEqual(b.returncode, 0, b.stderr.read() if b.stderr else \"\")\n            self.assertEqual(count.read_text().count(\"x\"), 1)\n"
+    },
+    {
+      "n": 2,
+      "decision": "accept",
+      "answer": "Yes. grill_ticket.py is a local pre-cut command. It must not start GitHub Actions, scripts/run_tests.py, pytest, or make, and the sandcastle hook must not run the suite.",
+      "behavior_change": true,
+      "assertion": "scripts/grill_ticket.py contains no reference to run_tests.py, pytest, or a make test target, and the repo has no workflow file whose name contains grill.",
+      "test_path": "tests/test_grill_modular_ci.py",
+      "test_content": "import unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\n\n\nclass ModularCiObeyTest(unittest.TestCase):\n    def test_grill_script_does_not_run_the_suite_or_add_a_job(self):\n        text = (ROOT / \"scripts\" / \"grill_ticket.py\").read_text(encoding=\"utf-8\")\n        self.assertNotIn(\"run_tests.py\", text)\n        self.assertNotIn(\"pytest\", text)\n        self.assertNotIn(\"make test\", text)\n        workflows = ROOT / \".github\" / \"workflows\"\n        if workflows.exists():\n            named = [p.name for p in workflows.iterdir() if \"grill\" in p.name.lower()]\n            self.assertEqual(named, [])\n"
+    },
+    {
+      "n": 3,
+      "decision": "accept",
+      "answer": "Yes. Keep the verified flag spellings in TOOLS_OFF_FLAGS keyed by no_builtin_tools, no_web_search, and no_subagents, and do not exec grok if any of them or --json-schema is absent.",
+      "behavior_change": true,
+      "assertion": "A successful grill argv includes --json-schema and every flag value in TOOLS_OFF_FLAGS for no_builtin_tools, no_web_search, and no_subagents.",
+      "test_path": "tests/test_grill_tools_off.py",
+      "test_content": "import importlib.util\nimport os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\n\n\ndef load():\n    path = ROOT / \"scripts\" / \"grill_ticket.py\"\n    spec = importlib.util.spec_from_file_location(\"grill_ticket\", path)\n    mod = importlib.util.module_from_spec(spec)\n    spec.loader.exec_module(mod)\n    return mod\n\n\nclass ToolsOffTest(unittest.TestCase):\n    def test_argv_has_schema_and_tools_off_flags(self):\n        mod = load()\n        self.assertEqual(\n            set(mod.TOOLS_OFF_FLAGS),\n            {\"no_builtin_tools\", \"no_web_search\", \"no_subagents\"},\n        )\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            argv_log = d / \"argv\"\n            fake = d / \"grok\"\n            fake.write_text(\n                \"#!/usr/bin/env python3\\n\"\n                \"import pathlib, sys, os\\n\"\n                \"pathlib.Path(os.environ['ARGV_LOG']).write_text('\\\\n'.join(sys.argv))\\n\"\n                \"sys.stdin.read()\\n\"\n                \"print('{\\\"questions\\\":[{\\\"n\\\":1,\\\"question\\\":\\\"q\\\",\\\"recommended_answer\\\":\\\"Yes\\\",\\\"behavior_change\\\":false}]}')\\n\"\n            )\n            fake.chmod(0o755)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"ci/pipeline.yml\\n\")\n            answers = d / \"a.json\"\n            answers.write_text('{\"1\":{\"answer\":\"Yes\",\"behavior_change\":false}}')\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            env[\"ARGV_LOG\"] = str(argv_log)\n            proc = subprocess.run(\n                [sys.executable, str(ROOT / \"scripts\" / \"grill_ticket.py\"), str(ticket), \"--paths\", \"ci/pipeline.yml\", \"--answers\", str(answers)],\n                cwd=ROOT,\n                env=env,\n                capture_output=True,\n                text=True,\n            )\n            self.assertEqual(proc.returncode, 0, proc.stderr)\n            text = argv_log.read_text(encoding=\"utf-8\")\n            self.assertIn(\"--json-schema\", text)\n            for flag in mod.TOOLS_OFF_FLAGS.values():\n                self.assertTrue(str(flag).startswith(\"--\"), flag)\n                self.assertIn(str(flag), text)\n"
+    },
+    {
+      "n": 4,
+      "decision": "accept",
+      "answer": "Yes. Reject --max-turns above 12 in the script before exec, and pass --max-turns 6 on each of the two calls.",
+      "behavior_change": true,
+      "assertion": "grill_ticket.py --max-turns 13 launches no grok and exits non-zero, and a normal run passes --max-turns 6.",
+      "test_path": "tests/test_grill_turn_cap.py",
+      "test_content": "import os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\nSCRIPT = ROOT / \"scripts\" / \"grill_ticket.py\"\n\n\nclass TurnCapTest(unittest.TestCase):\n    def test_rejects_above_12_without_launch(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            count = d / \"count\"\n            count.write_text(\"\")\n            fake = d / \"grok\"\n            fake.write_text(\"#!/bin/sh\\nprintf 'x\\\\n' >> \\\"$GRILL_COUNT_FILE\\\"\\ncat >/dev/null\\n\")\n            fake.chmod(0o755)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"ci/x\\n\")\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            env[\"GRILL_COUNT_FILE\"] = str(count)\n            proc = subprocess.run(\n                [sys.executable, str(SCRIPT), str(ticket), \"--paths\", \"ci/x.yml\", \"--max-turns\", \"13\"],\n                cwd=ROOT,\n                env=env,\n                capture_output=True,\n                text=True,\n            )\n            self.assertNotEqual(proc.returncode, 0)\n            self.assertEqual(count.read_text(), \"\")\n\n    def test_each_call_uses_max_turns_6(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            argv_log = d / \"argv\"\n            fake = d / \"grok\"\n            fake.write_text(\n                \"#!/usr/bin/env python3\\n\"\n                \"import os, pathlib, sys\\n\"\n                \"pathlib.Path(os.environ['ARGV_LOG']).open('a').write(' '.join(sys.argv)+'\\\\n')\\n\"\n                \"sys.stdin.read()\\n\"\n                \"print('{\\\"questions\\\":[{\\\"n\\\":1,\\\"question\\\":\\\"q\\\",\\\"recommended_answer\\\":\\\"Yes\\\",\\\"behavior_change\\\":false}]}')\\n\"\n            )\n            fake.chmod(0o755)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"ci/x\\n\")\n            answers = d / \"a.json\"\n            answers.write_text('{\"1\":{\"answer\":\"Yes\",\"behavior_change\":false}}')\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            env[\"ARGV_LOG\"] = str(argv_log)\n            proc = subprocess.run(\n                [sys.executable, str(SCRIPT), str(ticket), \"--paths\", \".github/workflows/ci.yml\", \"--answers\", str(answers)],\n                cwd=ROOT,\n                env=env,\n                capture_output=True,\n                text=True,\n            )\n            self.assertEqual(proc.returncode, 0, proc.stderr)\n            self.assertIn(\"--max-turns 6\", argv_log.read_text(encoding=\"utf-8\"))\n"
+    },
+    {
+      "n": 5,
+      "decision": "accept",
+      "answer": "Yes. When --answers is present, launch only the question call, then apply that file. A string value is not accepted.",
+      "behavior_change": true,
+      "assertion": "With a valid --answers file, grok is launched once and the applied behavior_change is the one in the file.",
+      "test_path": "tests/test_grill_answers_file.py",
+      "test_content": "import json\nimport os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\nSCRIPT = ROOT / \"scripts\" / \"grill_ticket.py\"\n\n\nclass AnswersFileTest(unittest.TestCase):\n    def test_answers_file_skips_second_call_and_sets_behavior(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            count = d / \"count\"\n            count.write_text(\"\")\n            fake = d / \"grok\"\n            fake.write_text(\n                \"#!/bin/sh\\n\"\n                \"printf 'x\\\\n' >> \\\"$GRILL_COUNT_FILE\\\"\\n\"\n                \"cat >/dev/null\\n\"\n                \"printf '%s\\\\n' '{\\\"questions\\\":[{\\\"n\\\":1,\\\"question\\\":\\\"Ship a gate?\\\",\\\"recommended_answer\\\":\\\"Yes\\\",\\\"behavior_change\\\":false}]}'\\n\"\n            )\n            fake.chmod(0o755)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"touches scripts/pregate.sh\\n\")\n            answers = d / \"a.json\"\n            answers.write_text('{\"1\":{\"answer\":\"Yes, block on empty assertion\",\"behavior_change\":true}}')\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            env[\"GRILL_COUNT_FILE\"] = str(count)\n            proc = subprocess.run(\n                [sys.executable, str(SCRIPT), str(ticket), \"--paths\", \"scripts/pregate.sh\", \"--answers\", str(answers)],\n                cwd=ROOT,\n                env=env,\n                capture_output=True,\n                text=True,\n            )\n            self.assertEqual(proc.returncode, 0, proc.stderr)\n            self.assertEqual(count.read_text().count(\"x\"), 1)\n            record = json.loads(Path(str(ticket) + \".grill.json\").read_text(encoding=\"utf-8\"))\n            applied = record[\"questions\"][0]\n            self.assertTrue(applied[\"behavior_change\"])\n            self.assertEqual(applied[\"answer\"], \"Yes, block on empty assertion\")\n            body = ticket.read_text(encoding=\"utf-8\")\n            self.assertIn(\"Exit tests from grill\", body)\n"
+    },
+    {
+      "n": 6,
+      "decision": "accept",
+      "answer": "Yes. Preserve exitTest as-is and append grill cases to exitTests. A ticket with only exitTest remains valid.",
+      "behavior_change": true,
+      "assertion": "After grilling a JSON ticket, the original exitTest object is unchanged and each behavior-changing answer appears as an additional exitTests item.",
+      "test_path": "tests/test_grill_exit_tests_list.py",
+      "test_content": "import json\nimport os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\nSCRIPT = ROOT / \"scripts\" / \"grill_ticket.py\"\n\n\nclass ExitTestsListTest(unittest.TestCase):\n    def test_preserves_exit_test_and_appends_list(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            fake = d / \"grok\"\n            fake.write_text(\n                \"#!/bin/sh\\n\"\n                \"cat >/dev/null\\n\"\n                \"printf '%s\\\\n' '{\\\"questions\\\":[{\\\"n\\\":1,\\\"question\\\":\\\"q\\\",\\\"recommended_answer\\\":\\\"Yes\\\",\\\"behavior_change\\\":true,\\\"assertion\\\":\\\"gate rejects a dirty tree\\\"}]}'\\n\"\n            )\n            fake.chmod(0o755)\n            original = {\"path\": \"tests/test_existing.py\", \"content\": \"print('keep')\\n\"}\n            ticket = d / \"batch.json\"\n            ticket.write_text(json.dumps({\n                \"tickets\": [{\n                    \"id\": \"t1\",\n                    \"title\": \"gate\",\n                    \"body\": \"edit .github/workflows/ci.yml\",\n                    \"blockedBy\": [],\n                    \"exitTest\": original,\n                }]\n            }))\n            answers = d / \"a.json\"\n            answers.write_text('{\"1\":{\"answer\":\"Yes\",\"behavior_change\":true}}')\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            proc = subprocess.run(\n                [sys.executable, str(SCRIPT), str(ticket), \"--paths\", \".github/workflows/ci.yml\", \"--answers\", str(answers)],\n                cwd=ROOT,\n                env=env,\n                capture_output=True,\n                text=True,\n            )\n            self.assertEqual(proc.returncode, 0, proc.stderr)\n            data = json.loads(ticket.read_text(encoding=\"utf-8\"))\n            item = data[\"tickets\"][0]\n            self.assertEqual(item[\"exitTest\"], original)\n            self.assertGreaterEqual(len(item[\"exitTests\"]), 1)\n            self.assertIn(\"gate rejects a dirty tree\", json.dumps(item[\"exitTests\"]))\n"
+    },
+    {
+      "n": 7,
+      "decision": "accept",
+      "answer": "Yes. Fail closed for the bad ticket only. Continue the rest of the batch, then exit 3 if any required ticket failed.",
+      "behavior_change": true,
+      "assertion": "A batch with one bad CI ticket and one good CI ticket exits 3, records a non-empty reason for the bad ticket, and still writes a sidecar for the good ticket.",
+      "test_path": "tests/test_grill_batch_failure.py",
+      "test_content": "import json\nimport os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\nSCRIPT = ROOT / \"scripts\" / \"grill_ticket.py\"\n\n\nclass BatchFailureTest(unittest.TestCase):\n    def test_one_bad_ticket_does_not_drop_the_other(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            fake = d / \"grok\"\n            fake.write_text(\n                \"#!/usr/bin/env python3\\n\"\n                \"import sys\\n\"\n                \"raw = sys.stdin.read()\\n\"\n                \"if 'BADTICKET' in raw:\\n\"\n                \"    print('not-json')\\n\"\n                \"    raise SystemExit(0)\\n\"\n                \"print('{\\\"questions\\\":[{\\\"n\\\":1,\\\"question\\\":\\\"q\\\",\\\"recommended_answer\\\":\\\"Yes\\\",\\\"behavior_change\\\":false}]}')\\n\"\n            )\n            fake.chmod(0o755)\n            batch = d / \"batch.json\"\n            batch.write_text(json.dumps({\"tickets\": [\n                {\"id\": \"bad\", \"title\": \"b\", \"body\": \"BADTICKET ci/a.yml\", \"blockedBy\": [], \"exitTest\": {\"path\": \"t.py\", \"content\": \"x\"}},\n                {\"id\": \"good\", \"title\": \"g\", \"body\": \"GOOD ci/b.yml\", \"blockedBy\": [], \"exitTest\": {\"path\": \"t.py\", \"content\": \"x\"}},\n            ]}))\n            answers = d / \"a.json\"\n            answers.write_text('{\"1\":{\"answer\":\"Yes\",\"behavior_change\":false}}')\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            proc = subprocess.run(\n                [sys.executable, str(SCRIPT), str(batch), \"--answers\", str(answers)],\n                cwd=ROOT,\n                env=env,\n                capture_output=True,\n                text=True,\n            )\n            self.assertEqual(proc.returncode, 3, proc.stderr)\n            reason = (proc.stderr + proc.stdout).strip()\n            self.assertIn(\"bad\", reason.lower() + reason)\n            self.assertTrue(reason)\n            self.assertTrue((d / \"batch.json.good.grill.json\").exists() or (d / \"good.grill.json\").exists())\n"
+    },
+    {
+      "n": 8,
+      "decision": "accept",
+      "answer": "Yes. One tuple is the only trigger list, and those two paths trigger on name match alone.",
+      "behavior_change": true,
+      "assertion": "TRIGGER_GLOBS includes Makefile and scripts/run_tests.py, and a ticket that only touches Makefile does not print no grill needed.",
+      "test_path": "tests/test_grill_trigger_globs.py",
+      "test_content": "import importlib.util\nimport os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\n\n\ndef load():\n    path = ROOT / \"scripts\" / \"grill_ticket.py\"\n    spec = importlib.util.spec_from_file_location(\"grill_ticket\", path)\n    mod = importlib.util.module_from_spec(spec)\n    spec.loader.exec_module(mod)\n    return mod\n\n\nclass TriggerGlobTest(unittest.TestCase):\n    def test_tuple_and_makefile_triggers(self):\n        mod = load()\n        globs = list(mod.TRIGGER_GLOBS)\n        self.assertIn(\"Makefile\", globs)\n        self.assertIn(\"scripts/run_tests.py\", globs)\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            fake = d / \"grok\"\n            fake.write_text(\n                \"#!/bin/sh\\ncat >/dev/null\\n\"\n                \"printf '%s\\\\n' '{\\\"questions\\\":[{\\\"n\\\":1,\\\"question\\\":\\\"q\\\",\\\"recommended_answer\\\":\\\"Yes\\\",\\\"behavior_change\\\":false}]}'\\n\"\n            )\n            fake.chmod(0o755)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"docs only in the body\\n\")\n            answers = d / \"a.json\"\n            answers.write_text('{\"1\":{\"answer\":\"Yes\",\"behavior_change\":false}}')\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            proc = subprocess.run(\n                [sys.executable, str(ROOT / \"scripts\" / \"grill_ticket.py\"), str(ticket), \"--paths\", \"Makefile\", \"--answers\", str(answers)],\n                cwd=ROOT,\n                env=env,\n                capture_output=True,\n                text=True,\n            )\n            self.assertEqual(proc.returncode, 0, proc.stderr)\n            self.assertNotIn(\"no grill needed\", (proc.stdout + proc.stderr).lower())\n"
+    },
+    {
+      "n": 9,
+      "decision": "accept",
+      "answer": "Yes. Record which text was used and continue with the embedded summary when the vendored file is absent.",
+      "behavior_change": true,
+      "assertion": "When the vendored skill path is missing, the sidecar skill_source is embedded and the run still exits 0.",
+      "test_path": "tests/test_grill_skill_source.py",
+      "test_content": "import json\nimport os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\nSCRIPT = ROOT / \"scripts\" / \"grill_ticket.py\"\n\n\nclass SkillSourceTest(unittest.TestCase):\n    def test_missing_skill_records_embedded(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            fake = d / \"grok\"\n            fake.write_text(\n                \"#!/bin/sh\\ncat >/dev/null\\n\"\n                \"printf '%s\\\\n' '{\\\"questions\\\":[{\\\"n\\\":1,\\\"question\\\":\\\"q\\\",\\\"recommended_answer\\\":\\\"Yes\\\",\\\"behavior_change\\\":false}]}'\\n\"\n            )\n            fake.chmod(0o755)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"ci/pipeline.yml\\n\")\n            answers = d / \"a.json\"\n            answers.write_text('{\"1\":{\"answer\":\"Yes\",\"behavior_change\":false}}')\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            env[\"GRILL_SKILL_PATH\"] = str(d / \"missing-SKILL.md\")\n            proc = subprocess.run(\n                [sys.executable, str(SCRIPT), str(ticket), \"--paths\", \"ci/pipeline.yml\", \"--answers\", str(answers)],\n                cwd=ROOT,\n                env=env,\n                capture_output=True,\n                text=True,\n            )\n            self.assertEqual(proc.returncode, 0, proc.stderr)\n            record = json.loads(Path(str(ticket) + \".grill.json\").read_text(encoding=\"utf-8\"))\n            self.assertEqual(record[\"skill_source\"], \"embedded\")\n"
+    },
+    {
+      "n": 10,
+      "decision": "accept",
+      "answer": "Yes. Missing cost is not a failure. Write null and continue.",
+      "behavior_change": true,
+      "assertion": "A fake grok that prints questions and no cost field yields exit 0 and sidecar cost null.",
+      "test_path": "tests/test_grill_cost_null.py",
+      "test_content": "import json\nimport os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\n\n\nclass CostNullTest(unittest.TestCase):\n    def test_missing_cost_is_null(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            fake = d / \"grok\"\n            fake.write_text(\n                \"#!/bin/sh\\ncat >/dev/null\\n\"\n                \"printf '%s\\\\n' '{\\\"questions\\\":[{\\\"n\\\":1,\\\"question\\\":\\\"q\\\",\\\"recommended_answer\\\":\\\"Yes\\\",\\\"behavior_change\\\":false}]}'\\n\"\n            )\n            fake.chmod(0o755)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"pipelines/gate.yml\\n\")\n            answers = d / \"a.json\"\n            answers.write_text('{\"1\":{\"answer\":\"Yes\",\"behavior_change\":false}}')\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            proc = subprocess.run(\n                [sys.executable, str(ROOT / \"scripts\" / \"grill_ticket.py\"), str(ticket), \"--paths\", \"pipelines/gate.yml\", \"--answers\", str(answers)],\n                cwd=ROOT,\n                env=env,\n                capture_output=True,\n                text=True,\n            )\n            self.assertEqual(proc.returncode, 0, proc.stderr)\n            record = json.loads(Path(str(ticket) + \".grill.json\").read_text(encoding=\"utf-8\"))\n            self.assertIsNone(record[\"cost\"])\n"
+    },
+    {
+      "n": 11,
+      "decision": "accept",
+      "answer": "Yes. The applied coordinator answer decides the exit test. An override to behavior_change false adds no exit test. The coordinator prompt includes the Modular CI rule so it can reject a new full-suite job.",
+      "behavior_change": true,
+      "assertion": "When the first call recommends a behavior change and the coordinator call sets behavior_change false, the ticket file gains no Exit tests from grill section.",
+      "test_path": "tests/test_grill_coordinator_override.py",
+      "test_content": "import os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\n\n\nclass CoordinatorOverrideTest(unittest.TestCase):\n    def test_override_false_adds_no_exit_section(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            fake = d / \"grok\"\n            fake.write_text(\n                \"#!/usr/bin/env python3\\n\"\n                \"import sys\\n\"\n                \"raw = sys.stdin.read()\\n\"\n                \"if 'coordinator' in raw.lower():\\n\"\n                \"    print('{\\\"answers\\\":{\\\"1\\\":{\\\"accept\\\":false,\\\"answer\\\":\\\"No\\\",\\\"behavior_change\\\":false}}}')\\n\"\n                \"else:\\n\"\n                \"    print('{\\\"questions\\\":[{\\\"n\\\":1,\\\"question\\\":\\\"Add a full suite job?\\\",\\\"recommended_answer\\\":\\\"Yes\\\",\\\"behavior_change\\\":true,\\\"assertion\\\":\\\"Add a required full-suite CI job.\\\"}]}')\\n\"\n            )\n            fake.chmod(0o755)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"change ci/pipeline.yml\\n\")\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            proc = subprocess.run(\n                [sys.executable, str(ROOT / \"scripts\" / \"grill_ticket.py\"), str(ticket), \"--paths\", \"ci/pipeline.yml\"],\n                cwd=ROOT,\n                env=env,\n                capture_output=True,\n                text=True,\n            )\n            self.assertEqual(proc.returncode, 0, proc.stderr)\n            body = ticket.read_text(encoding=\"utf-8\")\n            self.assertNotIn(\"Exit tests from grill\", body)\n            self.assertNotIn(\"full-suite\", body)\n"
+    },
+    {
+      "n": 12,
+      "decision": "accept",
+      "answer": "Yes. Both seeds are always in the prompt, and the Modular CI text comes from that single fallback chain.",
+      "behavior_change": true,
+      "assertion": "The stdin of the question call contains 'What stops two runs doing the same work?' and the sentence 'run only the tests your change can affect'.",
+      "test_path": "tests/test_grill_prompt_seeds.py",
+      "test_content": "import os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\n\n\nclass PromptSeedTest(unittest.TestCase):\n    def test_prompt_contains_both_seeds(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            prompt = d / \"prompt\"\n            fake = d / \"grok\"\n            fake.write_text(\n                \"#!/usr/bin/env python3\\n\"\n                \"import os, pathlib, sys\\n\"\n                \"pathlib.Path(os.environ['PROMPT_LOG']).write_text(sys.stdin.read())\\n\"\n                \"print('{\\\"questions\\\":[{\\\"n\\\":1,\\\"question\\\":\\\"q\\\",\\\"recommended_answer\\\":\\\"Yes\\\",\\\"behavior_change\\\":false}]}')\\n\"\n            )\n            fake.chmod(0o755)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"ci/pipeline.yml\\n\")\n            answers = d / \"a.json\"\n            answers.write_text('{\"1\":{\"answer\":\"Yes\",\"behavior_change\":false}}')\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            env[\"PROMPT_LOG\"] = str(prompt)\n            proc = subprocess.run(\n                [sys.executable, str(ROOT / \"scripts\" / \"grill_ticket.py\"), str(ticket), \"--paths\", \"ci/pipeline.yml\", \"--answers\", str(answers)],\n                cwd=ROOT,\n                env=env,\n                capture_output=True,\n                text=True,\n            )\n            self.assertEqual(proc.returncode, 0, proc.stderr)\n            text = prompt.read_text(encoding=\"utf-8\")\n            self.assertIn(\"What stops two runs doing the same work?\", text)\n            self.assertIn(\"run only the tests your change can affect\", text)\n"
+    },
+    {
+      "n": 13,
+      "decision": "accept",
+      "answer": "Yes. Non-matching tickets are a clean no-op with that exact phrase and no sidecar.",
+      "behavior_change": true,
+      "assertion": "A markdown ticket with path README.md exits 0, stdout contains 'no grill needed', grok is not launched, and no .grill.json file is created.",
+      "test_path": "tests/test_grill_no_trigger.py",
+      "test_content": "import os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\n\n\nclass NoTriggerTest(unittest.TestCase):\n    def test_plain_ticket_skips(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            count = d / \"count\"\n            count.write_text(\"\")\n            fake = d / \"grok\"\n            fake.write_text(\"#!/bin/sh\\nprintf 'x\\\\n' >> \\\"$GRILL_COUNT_FILE\\\"\\ncat >/dev/null\\n\")\n            fake.chmod(0o755)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"update the readme only\\n\")\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            env[\"GRILL_COUNT_FILE\"] = str(count)\n            proc = subprocess.run(\n                [sys.executable, str(ROOT / \"scripts\" / \"grill_ticket.py\"), str(ticket), \"--paths\", \"README.md\"],\n                cwd=ROOT,\n                env=env,\n                capture_output=True,\n                text=True,\n            )\n            self.assertEqual(proc.returncode, 0, proc.stderr)\n            self.assertIn(\"no grill needed\", proc.stdout.lower())\n            self.assertEqual(count.read_text(), \"\")\n            self.assertFalse(Path(str(ticket) + \".grill.json\").exists())\n"
+    },
+    {
+      "n": 14,
+      "decision": "accept",
+      "answer": "Yes. A required grill with no binary fails closed. The default binary path is ~/.local/bin/grok when the env var is unset and that file exists.",
+      "behavior_change": true,
+      "assertion": "When PFY_GROK_BIN points at a missing file and the path is ci/pipeline.yml, the process exits non-zero and writes no grill sidecar.",
+      "test_path": "tests/test_grill_missing_bin.py",
+      "test_content": "import os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\n\n\nclass MissingBinTest(unittest.TestCase):\n    def test_missing_binary_fails_closed(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"ci/pipeline.yml\\n\")\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(d / \"no-such-grok\")\n            proc = subprocess.run(\n                [sys.executable, str(ROOT / \"scripts\" / \"grill_ticket.py\"), str(ticket), \"--paths\", \"ci/pipeline.yml\"],\n                cwd=ROOT,\n                env=env,\n                capture_output=True,\n                text=True,\n            )\n            self.assertNotEqual(proc.returncode, 0)\n            self.assertFalse(Path(str(ticket) + \".grill.json\").exists())\n            self.assertNotIn(\"no grill needed\", (proc.stdout + proc.stderr).lower())\n"
+    },
+    {
+      "n": 15,
+      "decision": "accept",
+      "answer": "Yes. Attach assertions to the ticket the cutter commits. Do not write model-supplied paths into the tests tree.",
+      "behavior_change": true,
+      "assertion": "A behavior_change answer that names tests/from_model.py updates the ticket and sidecar and does not create tests/from_model.py.",
+      "test_path": "tests/test_grill_no_model_test_files.py",
+      "test_content": "import os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\n\n\nclass NoModelTestFilesTest(unittest.TestCase):\n    def test_model_test_path_is_not_written(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            fake = d / \"grok\"\n            fake.write_text(\n                \"#!/bin/sh\\ncat >/dev/null\\n\"\n                \"printf '%s\\\\n' '{\\\"questions\\\":[{\\\"n\\\":1,\\\"question\\\":\\\"q\\\",\\\"recommended_answer\\\":\\\"Yes\\\",\\\"behavior_change\\\":true,\\\"assertion\\\":\\\"the gate fails closed\\\",\\\"test_path\\\":\\\"tests/from_model.py\\\",\\\"test_content\\\":\\\"print(123)\\\\n\\\"}]}'\\n\"\n            )\n            fake.chmod(0o755)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"scripts/model_lock.sh\\n\")\n            answers = d / \"a.json\"\n            answers.write_text('{\"1\":{\"answer\":\"Yes\",\"behavior_change\":true}}')\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            proc = subprocess.run(\n                [sys.executable, str(ROOT / \"scripts\" / \"grill_ticket.py\"), str(ticket), \"--paths\", \"scripts/model_lock.sh\", \"--answers\", str(answers)],\n                cwd=ROOT,\n                env=env,\n                capture_output=True,\n                text=True,\n            )\n            self.assertEqual(proc.returncode, 0, proc.stderr)\n            self.assertIn(\"Exit tests from grill\", ticket.read_text(encoding=\"utf-8\"))\n            self.assertIn(\"the gate fails closed\", ticket.read_text(encoding=\"utf-8\"))\n            self.assertFalse((ROOT / \"tests\" / \"from_model.py\").exists())\n            self.assertTrue(Path(str(ticket) + \".grill.json\").exists())\n"
+    },
+    {
+      "n": 16,
+      "decision": "accept",
+      "answer": "Yes. Pass --model only when PFY_GROK_MODEL is non-empty, and then pass that value.",
+      "behavior_change": true,
+      "assertion": "With PFY_GROK_MODEL unset, grok argv has no --model flag; with PFY_GROK_MODEL=dummy, argv contains --model dummy.",
+      "test_path": "tests/test_grill_model_flag.py",
+      "test_content": "import os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\n\nROOT = Path(__file__).resolve().parents[1]\nSCRIPT = ROOT / \"scripts\" / \"grill_ticket.py\"\n\n\ndef run(env, ticket, answers, argv_log):\n    env = env.copy()\n    env[\"ARGV_LOG\"] = str(argv_log)\n    return subprocess.run(\n        [sys.executable, str(SCRIPT), str(ticket), \"--paths\", \"docs/ops/PREGATE.md\", \"--answers\", str(answers)],\n        cwd=ROOT,\n        env=env,\n        capture_output=True,\n        text=True,\n    )\n\n\nclass ModelFlagTest(unittest.TestCase):\n    def test_model_flag_follows_env(self):\n        with tempfile.TemporaryDirectory() as raw:\n            d = Path(raw)\n            fake = d / \"grok\"\n            fake.write_text(\n                \"#!/usr/bin/env python3\\n\"\n                \"import os, pathlib, sys\\n\"\n                \"pathlib.Path(os.environ['ARGV_LOG']).write_text(' '.join(sys.argv))\\n\"\n                \"sys.stdin.read()\\n\"\n                \"print('{\\\"questions\\\":[{\\\"n\\\":1,\\\"question\\\":\\\"q\\\",\\\"recommended_answer\\\":\\\"Yes\\\",\\\"behavior_change\\\":false}]}')\\n\"\n            )\n            fake.chmod(0o755)\n            ticket = d / \"t.md\"\n            ticket.write_text(\"docs/ops/PREGATE.md\\n\")\n            answers = d / \"a.json\"\n            answers.write_text('{\"1\":{\"answer\":\"Yes\",\"behavior_change\":false}}')\n            argv_log = d / \"argv\"\n            env = os.environ.copy()\n            env[\"PFY_GROK_BIN\"] = str(fake)\n            env.pop(\"PFY_GROK_MODEL\", None)\n            first = run(env, ticket, answers, argv_log)\n            self.assertEqual(first.returncode, 0, first.stderr)\n            self.assertNotIn(\"--model\", argv_log.read_text(encoding=\"utf-8\"))\n            ticket.write_text(\"docs/ops/PREGATE.md changed\\n\")\n            sidecar = Path(str(ticket) + \".grill.json\")\n            if sidecar.exists():\n                sidecar.unlink()\n            env[\"PFY_GROK_MODEL\"] = \"dummy\"\n            second = run(env, ticket, answers, argv_log)\n            self.assertEqual(second.returncode, 0, second.stderr)\n            self.assertIn(\"--model dummy\", argv_log.read_text(encoding=\"utf-8\"))\n"
+    },
+    {
+      "n": 17,
+      "decision": "accept",
+      "answer": "Yes. Pre-cut ticket content is the control. Do not add a second immutability store.",
+      "behavior_change": false,
+      "assertion": "",
+      "test_path": "",
+      "test_content": ""
+    },
+    {
+      "n": 18,
+      "decision": "accept",
+      "answer": "Yes. Those files belong to the parallel lanes. Document the grill rule in docs/ops/GRILL-STEP.md and one existing ops doc that is not AGENTS.md.",
+      "behavior_change": false,
+      "assertion": "",
+      "test_path": "",
+      "test_content": ""
+    }
+  ],
+  "exit_tests": [
+    {
+      "n": 1,
+      "assertion": "Two sequential runs with the same ticket bytes and paths record the same grok launch count, and two overlapping runs record exactly one launch.",
+      "test_path": "tests/test_grill_idempotency.py"
+    },
+    {
+      "n": 2,
+      "assertion": "scripts/grill_ticket.py contains no reference to run_tests.py, pytest, or a make test target, and the repo has no workflow file whose name contains grill.",
+      "test_path": "tests/test_grill_modular_ci.py"
+    },
+    {
+      "n": 3,
+      "assertion": "A successful grill argv includes --json-schema and every flag value in TOOLS_OFF_FLAGS for no_builtin_tools, no_web_search, and no_subagents.",
+      "test_path": "tests/test_grill_tools_off.py"
+    },
+    {
+      "n": 4,
+      "assertion": "grill_ticket.py --max-turns 13 launches no grok and exits non-zero, and a normal run passes --max-turns 6.",
+      "test_path": "tests/test_grill_turn_cap.py"
+    },
+    {
+      "n": 5,
+      "assertion": "With a valid --answers file, grok is launched once and the applied behavior_change is the one in the file.",
+      "test_path": "tests/test_grill_answers_file.py"
+    },
+    {
+      "n": 6,
+      "assertion": "After grilling a JSON ticket, the original exitTest object is unchanged and each behavior-changing answer appears as an additional exitTests item.",
+      "test_path": "tests/test_grill_exit_tests_list.py"
+    },
+    {
+      "n": 7,
+      "assertion": "A batch with one bad CI ticket and one good CI ticket exits 3, records a non-empty reason for the bad ticket, and still writes a sidecar for the good ticket.",
+      "test_path": "tests/test_grill_batch_failure.py"
+    },
+    {
+      "n": 8,
+      "assertion": "TRIGGER_GLOBS includes Makefile and scripts/run_tests.py, and a ticket that only touches Makefile does not print no grill needed.",
+      "test_path": "tests/test_grill_trigger_globs.py"
+    },
+    {
+      "n": 9,
+      "assertion": "When the vendored skill path is missing, the sidecar skill_source is embedded and the run still exits 0.",
+      "test_path": "tests/test_grill_skill_source.py"
+    },
+    {
+      "n": 10,
+      "assertion": "A fake grok that prints questions and no cost field yields exit 0 and sidecar cost null.",
+      "test_path": "tests/test_grill_cost_null.py"
+    },
+    {
+      "n": 11,
+      "assertion": "When the first call recommends a behavior change and the coordinator call sets behavior_change false, the ticket file gains no Exit tests from grill section.",
+      "test_path": "tests/test_grill_coordinator_override.py"
+    },
+    {
+      "n": 12,
+      "assertion": "The stdin of the question call contains 'What stops two runs doing the same work?' and the sentence 'run only the tests your change can affect'.",
+      "test_path": "tests/test_grill_prompt_seeds.py"
+    },
+    {
+      "n": 13,
+      "assertion": "A markdown ticket with path README.md exits 0, stdout contains 'no grill needed', grok is not launched, and no .grill.json file is created.",
+      "test_path": "tests/test_grill_no_trigger.py"
+    },
+    {
+      "n": 14,
+      "assertion": "When PFY_GROK_BIN points at a missing file and the path is ci/pipeline.yml, the process exits non-zero and writes no grill sidecar.",
+      "test_path": "tests/test_grill_missing_bin.py"
+    },
+    {
+      "n": 15,
+      "assertion": "A behavior_change answer that names tests/from_model.py updates the ticket and sidecar and does not create tests/from_model.py.",
+      "test_path": "tests/test_grill_no_model_test_files.py"
+    },
+    {
+      "n": 16,
+      "assertion": "With PFY_GROK_MODEL unset, grok argv has no --model flag; with PFY_GROK_MODEL=dummy, argv contains --model dummy.",
+      "test_path": "tests/test_grill_model_flag.py"
+    }
+  ],
+  "turns": 2,
+  "cost_usd": 0.08859176,
+  "calls": [
+    {
+      "role": "grill",
+      "turns": 1,
+      "cost_usd": 0.05037984,
+      "stop": "end_turn",
+      "model": "grok-4.7-build",
+      "max_turns": 11
+    },
+    {
+      "role": "coordinator",
+      "turns": 1,
+      "cost_usd": 0.03821192,
+      "stop": "end_turn",
+      "model": "grok-4.7-build",
+      "max_turns": 1
+    }
+  ],
+  "skill_source": "embedded",
+  "modular_ci_source": "embedded",
+  "flags": [
+    "--disable-web-search",
+    "--no-subagents",
+    "--no-plan",
+    "--disallowed-tools"
+  ]
+}

@@ -40,3 +40,5 @@ All numbers below are single runs measured on nimo tonight. No sudo was used.
 - Recommendation for sandcastle-grok: optional `grill` step before a batch is cut. The
   coordinator (not Mark) answers with the recommended answers or overrides, and any answer
   that changes behavior becomes an exit-test case. Run it with tools off and a hard turn cap.
+
+That step is now `scripts/grill_ticket.py`. How to run it: [GRILL-STEP.md](GRILL-STEP.md).

@@ -1,0 +1,327 @@
+{
+  "ticket": "docs/ops/grill-samples/TICKET-s3.md",
+  "needed": true,
+  "questions": [
+    {
+      "n": 1,
+      "question": "What stops two runs doing the same work: should a later nimo suite skip only after scripts/test_cache.py check reports a hit for that key, while two overlapping light pregates stay allowed to repeat cheap work, and only local-model runs wait on scripts/model_lock.sh?",
+      "recommended_answer": "Yes. PFY_TEST_CACHE_DIR isolates the cache. `record <key>` then `check <key>` exits 0 and, when GITHUB_OUTPUT is set, writes hit=true. `check` of an unknown key exits 0 and writes hit=false. A hit is the only suite dedup. Light pregates are not single-flighted. model_lock.sh is only the local-model wait.",
+      "behavior_change": true,
+      "assertion": "With PFY_TEST_CACHE_DIR set, scripts/test_cache.py record <key> then check <key> exits 0 and writes hit=true to GITHUB_OUTPUT, and check of an unknown key exits 0 and writes hit=false.",
+      "test_path": "tests/test_fastpipe_cache_dedup.py",
+      "test_content": "import os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\nROOT = Path(__file__).resolve().parents[1]\nSCRIPT = ROOT / \"scripts\" / \"test_cache.py\"\n\n\nclass TestCacheDedup(unittest.TestCase):\n    def test_check_exits_zero_and_reports_hit_or_miss(self):\n        with tempfile.TemporaryDirectory() as tmp:\n            cache = Path(tmp) / \"cache\"\n            out = Path(tmp) / \"github_output.txt\"\n            out.write_text(\"\")\n            env = os.environ.copy()\n            env[\"PFY_TEST_CACHE_DIR\"] = str(cache)\n            env[\"GITHUB_OUTPUT\"] = str(out)\n            recorded = subprocess.run(\n                [sys.executable, str(SCRIPT), \"record\", \"abc\"],\n                cwd=ROOT,\n                env=env,\n                text=True,\n            )\n            self.assertEqual(recorded.returncode, 0, recorded.stderr)\n            hit = subprocess.run(\n                [sys.executable, str(SCRIPT), \"check\", \"abc\"],\n                cwd=ROOT,\n                env=env,\n                text=True,\n            )\n            self.assertEqual(hit.returncode, 0, hit.stderr)\n            self.assertIn(\"hit=true\", out.read_text())\n            out.write_text(\"\")\n            miss = subprocess.run(\n                [sys.executable, str(SCRIPT), \"check\", \"missing-key\"],\n                cwd=ROOT,\n                env=env,\n                text=True,\n            )\n            self.assertEqual(miss.returncode, 0, miss.stderr)\n            self.assertIn(\"hit=false\", out.read_text())\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    {
+      "n": 2,
+      "question": "Does this change obey the Modular CI rule: light jobs stay concurrent, no new long serialized CI job is added, and the model lock is taken only by local-model token-bound work?",
+      "recommended_answer": "Yes. pregate and the GitHub-hosted ubuntu gate never call model_lock.sh, never use the pfy-local-model concurrency group, and never flock heavy-1030.lock or local-model.lock.",
+      "behavior_change": true,
+      "assertion": "scripts/pregate.sh and the ubuntu-latest job in .github/workflows/eval-structural.yml do not reference model_lock.sh, pfy-local-model, heavy-1030.lock, or local-model.lock.",
+      "test_path": "tests/test_fastpipe_modular_ci_rule.py",
+      "test_content": "import unittest\nfrom pathlib import Path\n\nROOT = Path(__file__).resolve().parents[1]\n\n\ndef jobs(text):\n    lines = text.splitlines()\n    start = None\n    for i, line in enumerate(lines):\n        if line.strip() == \"jobs:\":\n            start = i + 1\n            break\n    if start is None:\n        return {}\n    found = {}\n    current = None\n    buf = []\n    for line in lines[start:]:\n        if line.startswith(\"  \") and not line.startswith(\"   \") and line.rstrip().endswith(\":\"):\n            if current is not None:\n                found[current] = \"\\n\".join(buf)\n            current = line.strip()[:-1]\n            buf = [line]\n        elif current is not None:\n            if line and not line.startswith(\" \") and not line.startswith(\"#\"):\n                break\n            buf.append(line)\n    if current is not None:\n        found[current] = \"\\n\".join(buf)\n    return found\n\n\nclass TestModularCiRule(unittest.TestCase):\n    def test_light_paths_do_not_take_the_model_lock(self):\n        pregate = (ROOT / \"scripts\" / \"pregate.sh\").read_text()\n        for banned in (\"model_lock.sh\", \"pfy-local-model\", \"heavy-1030.lock\", \"local-model.lock\"):\n            self.assertNotIn(banned, pregate)\n        workflow = (ROOT / \".github\" / \"workflows\" / \"eval-structural.yml\").read_text()\n        ubuntu = [body for body in jobs(workflow).values() if \"ubuntu-latest\" in body]\n        self.assertTrue(ubuntu)\n        for body in ubuntu:\n            for banned in (\"model_lock.sh\", \"pfy-local-model\", \"heavy-1030.lock\", \"local-model.lock\"):\n                self.assertNotIn(banned, body)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    {
+      "n": 3,
+      "question": "Should concurrent pregate runs use PFY_PREGATE_RUNS, print distinct RUN_ROOT paths that contain their pid, pass together with --only lint,gate-hash, delete only dead run roots, and leave a sibling root with a live pid untouched?",
+      "recommended_answer": "Yes. Same commit twice is enough. A live root is one whose pid file names a process that is still alive. Prune deletes dead roots and nothing else.",
+      "behavior_change": true,
+      "assertion": "Two concurrent pregate.sh --only lint,gate-hash processes both exit 0, print distinct RUN_ROOT values under PFY_PREGATE_RUNS that contain their pids, remove a dead sibling root, and leave a sibling root with a live pid in place.",
+      "test_path": "tests/test_fastpipe_pregate_concurrency.py",
+      "test_content": "import os\nimport subprocess\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\nROOT = Path(__file__).resolve().parents[1]\nPREGATE = ROOT / \"scripts\" / \"pregate.sh\"\n\n\nclass TestPregateConcurrency(unittest.TestCase):\n    def test_two_runs_isolate_and_prune_only_dead_roots(self):\n        with tempfile.TemporaryDirectory() as tmp:\n            runs = Path(tmp) / \"runs\"\n            runs.mkdir()\n            sleeper = subprocess.Popen([\"sleep\", \"60\"])\n            live = runs / \"live-holder\"\n            live.mkdir()\n            (live / \"pid\").write_text(str(sleeper.pid))\n            (live / \"keep.txt\").write_text(\"keep\")\n            dead = runs / \"dead-holder\"\n            dead.mkdir()\n            (dead / \"pid\").write_text(\"999999\")\n            env = os.environ.copy()\n            env[\"PFY_PREGATE_RUNS\"] = str(runs)\n            cmd = [\"bash\", str(PREGATE), \"--only\", \"lint,gate-hash\"]\n            try:\n                first = subprocess.Popen(cmd, cwd=ROOT, env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)\n                second = subprocess.Popen(cmd, cwd=ROOT, env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)\n                out1, err1 = first.communicate(timeout=180)\n                out2, err2 = second.communicate(timeout=180)\n            finally:\n                sleeper.kill()\n                sleeper.wait(timeout=5)\n            self.assertEqual(first.returncode, 0, err1)\n            self.assertEqual(second.returncode, 0, err2)\n            roots = []\n            for pid, out in ((first.pid, out1), (second.pid, out2)):\n                found = [line.split(\"=\", 1)[1].strip() for line in out.splitlines() if line.startswith(\"RUN_ROOT=\")]\n                self.assertEqual(len(found), 1, out)\n                self.assertIn(str(pid), found[0])\n                self.assertTrue(found[0].startswith(str(runs) + os.sep))\n                roots.append(found[0])\n            self.assertNotEqual(roots[0], roots[1])\n            self.assertFalse(dead.exists())\n            self.assertTrue((live / \"keep.txt\").exists())\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    {
+      "n": 4,
+      "question": "Should scripts/model_lock.sh block on flock until the lock is free, then return the wrapped command exit code, using PFY_MODEL_LOCK or else $HOME/.cache/pfy/locks/local-model.lock, and create missing parent directories?",
+      "recommended_answer": "Yes. The wait is blocking, not flock -n, and a held lock delays the next command instead of failing it.",
+      "behavior_change": true,
+      "assertion": "scripts/model_lock.sh waits while the lock is held, returns the wrapped command status, honors PFY_MODEL_LOCK, and creates a missing lock parent directory.",
+      "test_path": "tests/test_fastpipe_model_lock.py",
+      "test_content": "import os\nimport subprocess\nimport tempfile\nimport time\nimport unittest\nfrom pathlib import Path\n\nROOT = Path(__file__).resolve().parents[1]\nSCRIPT = ROOT / \"scripts\" / \"model_lock.sh\"\n\n\nclass TestModelLock(unittest.TestCase):\n    def test_blocks_propagates_status_and_creates_parent(self):\n        text = SCRIPT.read_text()\n        self.assertIn(\"PFY_MODEL_LOCK\", text)\n        self.assertIn(\".cache/pfy/locks/local-model.lock\", text)\n        self.assertNotIn(\"flock -n\", text)\n        self.assertNotIn(\"nonblock\", text)\n        with tempfile.TemporaryDirectory() as tmp:\n            lock = str(Path(tmp) / \"nested\" / \"local-model.lock\")\n            env = os.environ.copy()\n            env[\"PFY_MODEL_LOCK\"] = lock\n            holder = subprocess.Popen([\"bash\", str(SCRIPT), \"sleep\", \"1\"], env=env)\n            time.sleep(0.2)\n            started = time.monotonic()\n            waited = subprocess.run(\n                [\"bash\", str(SCRIPT), \"python3\", \"-c\", \"import sys; sys.exit(3)\"],\n                env=env,\n            )\n            elapsed = time.monotonic() - started\n            holder.wait(timeout=5)\n            self.assertEqual(waited.returncode, 3)\n            self.assertGreaterEqual(elapsed, 0.5)\n            self.assertTrue(Path(lock).parent.is_dir())\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    {
+      "n": 5,
+      "question": "Should Makefile recipes that start Ollama, Strata, local-lab, nightly-models, benches, or smoke-litellm-ollama run under scripts/model_lock.sh, and should every other recipe leave that lock unused?",
+      "recommended_answer": "Yes. Match those names only. Lint, pregate, skill-scan, and ordinary test recipes must not call model_lock.sh.",
+      "behavior_change": true,
+      "assertion": "Each Makefile recipe whose body mentions ollama, strata, local-lab, nightly-models, benches, or smoke-litellm also mentions model_lock.sh, and recipes that mention none of those do not mention model_lock.sh.",
+      "test_path": "tests/test_fastpipe_make_model_lock.py",
+      "test_content": "import unittest\nfrom pathlib import Path\n\nROOT = Path(__file__).resolve().parents[1]\nTOKENS = (\"ollama\", \"strata\", \"local-lab\", \"nightly-models\", \"benches\", \"smoke-litellm\")\n\n\ndef recipes(text):\n    blocks = []\n    current = []\n    for line in text.splitlines():\n        if line and not line[0].isspace() and line.rstrip().endswith(\":\"):\n            if current:\n                blocks.append(current)\n            current = [line]\n        else:\n            if current:\n                current.append(line)\n    if current:\n        blocks.append(current)\n    return blocks\n\n\nclass TestMakeModelLock(unittest.TestCase):\n    def test_only_model_recipes_use_the_lock(self):\n        blocks = recipes((ROOT / \"Makefile\").read_text())\n        self.assertTrue(blocks)\n        for block in blocks:\n            body = \"\\n\".join(block[1:]).lower()\n            name = block[0].lower()\n            uses_model = any(token in body or token in name for token in TOKENS)\n            if uses_model:\n                self.assertIn(\"model_lock.sh\", body, block[0])\n            else:\n                self.assertNotIn(\"model_lock.sh\", body, block[0])\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    {
+      "n": 6,
+      "question": "Should local-lab.yml and nightly-models.yml share concurrency group pfy-local-model with cancel-in-progress false, set timeout-minutes 120, call scripts/model_lock.sh, and use cron 0 10 * * * and 0 12 * * * (02:00 and 04:00 America/Los_Angeles at UTC-8)?",
+      "recommended_answer": "Yes. Shared group serializes model jobs without canceling a running one. Stagger the two schedules by two hours. Document 10:00 UTC and 12:00 UTC as 02:00 and 04:00 PT while UTC-8.",
+      "behavior_change": true,
+      "assertion": "local-lab.yml contains cron 0 10 * * * and nightly-models.yml contains cron 0 12 * * *, and both contain concurrency group pfy-local-model, cancel-in-progress false, timeout-minutes 120, and scripts/model_lock.sh.",
+      "test_path": "tests/test_fastpipe_model_workflows.py",
+      "test_content": "import re\nimport unittest\nfrom pathlib import Path\n\nROOT = Path(__file__).resolve().parents[1]\nWORKFLOWS = ROOT / \".github\" / \"workflows\"\n\n\nclass TestModelWorkflows(unittest.TestCase):\n    def test_shared_group_timeout_lock_and_off_hours(self):\n        local_lab = (WORKFLOWS / \"local-lab.yml\").read_text()\n        nightly = (WORKFLOWS / \"nightly-models.yml\").read_text()\n        self.assertRegex(local_lab, r\"cron:\\s*['\\\"]0 10 \\* \\* \\*['\\\"]\")\n        self.assertRegex(nightly, r\"cron:\\s*['\\\"]0 12 \\* \\* \\*['\\\"]\")\n        for text in (local_lab, nightly):\n            self.assertIn(\"pfy-local-model\", text)\n            self.assertIn(\"cancel-in-progress: false\", text)\n            self.assertRegex(text, r\"timeout-minutes:\\s*120\\b\")\n            self.assertIn(\"scripts/model_lock.sh\", text)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    {
+      "n": 7,
+      "question": "Should the G0 self-hosted nimo job run only for push to main and schedule, stay off pull_request and workflow_dispatch, and skip scripts/run_tests.py unless the earlier test_cache.py check wrote a miss?",
+      "recommended_answer": "Yes. The ubuntu job remains the branch and pull_request gate. On a cache hit the nimo job stays green and does not rerun the suite.",
+      "behavior_change": true,
+      "assertion": "The G0 job if condition requires refs/heads/main or schedule and does not mention pull_request or workflow_dispatch, and its run_tests.py step comes after test_cache.py check and runs only when the cache hit output is not true.",
+      "test_path": "tests/test_fastpipe_g0_triggers.py",
+      "test_content": "import unittest\nfrom pathlib import Path\n\nROOT = Path(__file__).resolve().parents[1]\n\n\ndef jobs(text):\n    lines = text.splitlines()\n    start = None\n    for i, line in enumerate(lines):\n        if line.strip() == \"jobs:\":\n            start = i + 1\n            break\n    if start is None:\n        return {}\n    found = {}\n    current = None\n    buf = []\n    for line in lines[start:]:\n        if line.startswith(\"  \") and not line.startswith(\"   \") and line.rstrip().endswith(\":\"):\n            if current is not None:\n                found[current] = \"\\n\".join(buf)\n            current = line.strip()[:-1]\n            buf = [line]\n        elif current is not None:\n            if line and not line.startswith(\" \") and not line.startswith(\"#\"):\n                break\n            buf.append(line)\n    if current is not None:\n        found[current] = \"\\n\".join(buf)\n    return found\n\n\nclass TestG0Triggers(unittest.TestCase):\n    def test_nimo_job_is_main_or_schedule_and_skips_on_hit(self):\n        text = (ROOT / \".github\" / \"workflows\" / \"eval-structural.yml\").read_text()\n        matched = [body for body in jobs(text).values() if \"nimo\" in body or \"self-hosted\" in body]\n        self.assertEqual(len(matched), 1)\n        block = matched[0]\n        ifs = [line for line in block.splitlines() if \"if:\" in line]\n        self.assertTrue(any(\"refs/heads/main\" in line for line in ifs))\n        self.assertTrue(any(\"schedule\" in line for line in ifs))\n        self.assertFalse(any(\"pull_request\" in line for line in ifs))\n        self.assertFalse(any(\"workflow_dispatch\" in line for line in ifs))\n        self.assertLess(block.index(\"test_cache.py\"), block.index(\"run_tests.py\"))\n        run_at = block.index(\"run_tests.py\")\n        window = block[max(0, run_at - 400):run_at]\n        self.assertIn(\"hit\", window)\n        self.assertIn(\"if:\", window)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    {
+      "n": 8,
+      "question": "Should run_tests.py --shard i/n be 1-based, keep a path when sha256(path) modulo n equals i-1, keep trading/live, release/deploy, and secrets paths on every shard, --list without running tests, exit 0 for an empty ordinary shard, and reject an out-of-range index?",
+      "recommended_answer": "Yes. Importing the module must not start a suite. Risky paths stay on every shard so a single shard cannot drop them.",
+      "behavior_change": true,
+      "assertion": "shard_keeps uses sha256 modulo for ordinary paths, returns true for every index on trading/live, release/deploy, and secrets paths, --list --shard 99/99 exits 0, and --list --shard 0/2 exits non-zero.",
+      "test_path": "tests/test_fastpipe_shard.py",
+      "test_content": "import hashlib\nimport importlib.util\nimport subprocess\nimport sys\nimport unittest\nfrom pathlib import Path\n\nROOT = Path(__file__).resolve().parents[1]\nSCRIPT = ROOT / \"scripts\" / \"run_tests.py\"\n\n\ndef load_module():\n    spec = importlib.util.spec_from_file_location(\"run_tests_under_test\", SCRIPT)\n    module = importlib.util.module_from_spec(spec)\n    spec.loader.exec_module(module)\n    return module\n\n\nclass TestShard(unittest.TestCase):\n    def test_shard_keeps_and_cli(self):\n        module = load_module()\n        ordinary = \"scripts/test_cache.py\"\n        bucket = int(hashlib.sha256(ordinary.encode()).hexdigest(), 16) % 4\n        for index in range(1, 5):\n            self.assertEqual(module.shard_keeps(ordinary, index, 4), index - 1 == bucket)\n        for path in (\"trading/live/test_money.py\", \"release/deploy/test_ship.py\", \"pkg/secrets/test_scan.py\"):\n            for index in range(1, 5):\n                self.assertTrue(module.shard_keeps(path, index, 4))\n        empty = subprocess.run(\n            [sys.executable, str(SCRIPT), \"--list\", \"--shard\", \"99/99\"],\n            cwd=ROOT,\n            text=True,\n            capture_output=True,\n        )\n        self.assertEqual(empty.returncode, 0, empty.stderr)\n        invalid = subprocess.run(\n            [sys.executable, str(SCRIPT), \"--list\", \"--shard\", \"0/2\"],\n            cwd=ROOT,\n            text=True,\n            capture_output=True,\n        )\n        self.assertNotEqual(invalid.returncode, 0)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    {
+      "n": 9,
+      "question": "Should the ubuntu test job stay a single job with no shard matrix unless docs/ops/MODULAR-CI.md contains a line `measured suite minutes: N` with N greater than 5?",
+      "recommended_answer": "Yes. Add --shard now. Add the workflow matrix only after a measured suite time over five minutes is written on that line.",
+      "behavior_change": true,
+      "assertion": "The ubuntu-latest job in eval-structural.yml has no strategy.matrix unless docs/ops/MODULAR-CI.md contains `measured suite minutes:` with a value greater than 5.",
+      "test_path": "tests/test_fastpipe_shard_matrix_gate.py",
+      "test_content": "import re\nimport unittest\nfrom pathlib import Path\n\nROOT = Path(__file__).resolve().parents[1]\n\n\ndef jobs(text):\n    lines = text.splitlines()\n    start = None\n    for i, line in enumerate(lines):\n        if line.strip() == \"jobs:\":\n            start = i + 1\n            break\n    if start is None:\n        return {}\n    found = {}\n    current = None\n    buf = []\n    for line in lines[start:]:\n        if line.startswith(\"  \") and not line.startswith(\"   \") and line.rstrip().endswith(\":\"):\n            if current is not None:\n                found[current] = \"\\n\".join(buf)\n            current = line.strip()[:-1]\n            buf = [line]\n        elif current is not None:\n            if line and not line.startswith(\" \") and not line.startswith(\"#\"):\n                break\n            buf.append(line)\n    if current is not None:\n        found[current] = \"\\n\".join(buf)\n    return found\n\n\nclass TestShardMatrixGate(unittest.TestCase):\n    def test_matrix_requires_a_measured_slow_suite(self):\n        doc = (ROOT / \"docs\" / \"ops\" / \"MODULAR-CI.md\").read_text()\n        match = re.search(r\"measured suite minutes:\\s*(\\d+)\", doc)\n        over = bool(match) and int(match.group(1)) > 5\n        workflow = (ROOT / \".github\" / \"workflows\" / \"eval-structural.yml\").read_text()\n        ubuntu = [body for body in jobs(workflow).values() if \"ubuntu-latest\" in body]\n        self.assertTrue(ubuntu)\n        if not over:\n            for body in ubuntu:\n                self.assertNotIn(\"matrix:\", body)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    {
+      "n": 10,
+      "question": "Should scripts/tool_cache.sh check ~/.cache/pfy/{bin,tools,uv-cache} without creating or deleting them, and should resolve try the explicit env var, then PATH, then ~/.cache/pfy/bin for both skillspector (PFY_SKILLSPECTOR_BIN) and codebase-memory-mcp (PFY_CODEBASE_MEMORY_BIN)?",
+      "recommended_answer": "Yes. An empty explicit env var falls through. make skill-scan and any scripts that name those tools use that same order, with the explicit env var first.",
+      "behavior_change": true,
+      "assertion": "tool_cache.sh check fails when a cache dir is missing and passes without deleting a sentinel when all three exist; resolve returns PFY_SKILLSPECTOR_BIN or PFY_CODEBASE_MEMORY_BIN first, else PATH, else ~/.cache/pfy/bin.",
+      "test_path": "tests/test_fastpipe_tool_cache.py",
+      "test_content": "import os\nimport stat\nimport subprocess\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\nROOT = Path(__file__).resolve().parents[1]\nSCRIPT = ROOT / \"scripts\" / \"tool_cache.sh\"\n\n\ndef write_exec(path, label):\n    path.parent.mkdir(parents=True, exist_ok=True)\n    path.write_text(\"#!/bin/sh\\nprintf '%s\\\\n' \" + label + \"\\n\")\n    path.chmod(path.stat().st_mode | stat.S_IEXEC)\n\n\nclass TestToolCache(unittest.TestCase):\n    def test_check_and_resolve_order(self):\n        with tempfile.TemporaryDirectory() as tmp:\n            home = Path(tmp) / \"home\"\n            base = home / \".cache\" / \"pfy\"\n            env = {\"HOME\": str(home), \"PATH\": \"/usr/bin:/bin\", \"PFY_SKILLSPECTOR_BIN\": \"\", \"PFY_CODEBASE_MEMORY_BIN\": \"\"}\n            missing = subprocess.run([\"bash\", str(SCRIPT), \"check\"], env=env, text=True, capture_output=True)\n            self.assertNotEqual(missing.returncode, 0)\n            for name in (\"bin\", \"tools\", \"uv-cache\"):\n                (base / name).mkdir(parents=True)\n            sentinel = base / \"bin\" / \"sentinel.txt\"\n            sentinel.write_text(\"keep\")\n            ready = subprocess.run([\"bash\", str(SCRIPT), \"check\"], env=env, text=True, capture_output=True)\n            self.assertEqual(ready.returncode, 0, ready.stderr)\n            self.assertEqual(sentinel.read_text(), \"keep\")\n            path_dir = Path(tmp) / \"pathbin\"\n            cache_skill = base / \"bin\" / \"skillspector\"\n            path_skill = path_dir / \"skillspector\"\n            explicit_skill = Path(tmp) / \"explicit\" / \"skillspector\"\n            write_exec(cache_skill, \"cache\")\n            write_exec(path_skill, \"path\")\n            write_exec(explicit_skill, \"explicit\")\n            path_env = env.copy()\n            path_env[\"PATH\"] = str(path_dir) + \":/usr/bin:/bin\"\n            from_path = subprocess.run([\"bash\", str(SCRIPT), \"resolve\", \"skillspector\"], env=path_env, text=True, capture_output=True)\n            self.assertEqual(from_path.returncode, 0, from_path.stderr)\n            self.assertEqual(from_path.stdout.strip(), str(path_skill))\n            bare = env.copy()\n            from_cache = subprocess.run([\"bash\", str(SCRIPT), \"resolve\", \"skillspector\"], env=bare, text=True, capture_output=True)\n            self.assertEqual(from_cache.stdout.strip(), str(cache_skill))\n            forced = bare.copy()\n            forced[\"PFY_SKILLSPECTOR_BIN\"] = str(explicit_skill)\n            from_env = subprocess.run([\"bash\", str(SCRIPT), \"resolve\", \"skillspector\"], env=forced, text=True, capture_output=True)\n            self.assertEqual(from_env.stdout.strip(), str(explicit_skill))\n            cache_mem = base / \"bin\" / \"codebase-memory-mcp\"\n            explicit_mem = Path(tmp) / \"explicit\" / \"codebase-memory-mcp\"\n            write_exec(cache_mem, \"memcache\")\n            write_exec(explicit_mem, \"memexplicit\")\n            mem_cache = subprocess.run([\"bash\", str(SCRIPT), \"resolve\", \"codebase-memory-mcp\"], env=bare, text=True, capture_output=True)\n            self.assertEqual(mem_cache.stdout.strip(), str(cache_mem))\n            mem_env = bare.copy()\n            mem_env[\"PFY_CODEBASE_MEMORY_BIN\"] = str(explicit_mem)\n            mem_hit = subprocess.run([\"bash\", str(SCRIPT), \"resolve\", \"codebase-memory-mcp\"], env=mem_env, text=True, capture_output=True)\n            self.assertEqual(mem_hit.stdout.strip(), str(explicit_mem))\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    {
+      "n": 11,
+      "question": "Should make test-image and make test-in-container stay off the pregate path, build ci/test-image/Containerfile with rootless podman, mount the repo read-only, and use a private tmp volume so the host ~/.cache/pfy is not written?",
+      "recommended_answer": "Yes. The image is python 3.12 slim plus git, ripgrep, and bubblewrap, with no secrets. A podman failure exits non-zero. Landing and pregate do not depend on these targets.",
+      "behavior_change": true,
+      "assertion": "Containerfile names python 3.12, git, ripgrep, and bubblewrap and assigns no secrets; Makefile test-in-container uses podman with a read-only mount and a tmp volume; pregate.sh does not call that target.",
+      "test_path": "tests/test_fastpipe_container_optin.py",
+      "test_content": "import re\nimport unittest\nfrom pathlib import Path\n\nROOT = Path(__file__).resolve().parents[1]\n\n\ndef recipe(text, name):\n    lines = text.splitlines()\n    buf = []\n    capture = False\n    for line in lines:\n        if line.startswith(name + \":\"):\n            capture = True\n            buf = [line]\n            continue\n        if capture:\n            if line and not line[0].isspace():\n                break\n            buf.append(line)\n    return \"\\n\".join(buf)\n\n\nclass TestContainerOptIn(unittest.TestCase):\n    def test_container_target_is_opt_in_and_isolated(self):\n        container = (ROOT / \"ci\" / \"test-image\" / \"Containerfile\").read_text()\n        self.assertIn(\"3.12\", container)\n        lowered = container.lower()\n        self.assertIn(\"git\", lowered)\n        self.assertTrue(\"ripgrep\" in lowered or \"rg\" in lowered)\n        self.assertIn(\"bubblewrap\", lowered)\n        self.assertIsNone(re.search(r\"(?i)(api_key|token|password|secret)\\s*=\", container))\n        make = (ROOT / \"Makefile\").read_text()\n        body = recipe(make, \"test-in-container\")\n        self.assertIn(\"podman\", body)\n        self.assertIn(\":ro\", body)\n        self.assertIn(\"tmp\", body.lower())\n        self.assertNotIn(\".cache/pfy\", body)\n        pregate = (ROOT / \"scripts\" / \"pregate.sh\").read_text()\n        self.assertNotIn(\"test-in-container\", pregate)\n        self.assertNotIn(\"test-image\", pregate)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    {
+      "n": 12,
+      "question": "Should MODULAR-CI.md, PREGATE.md, and HANDOFF-fast-pipeline-1107.md be updated in this change to drop the one-pregate-per-host limit, state that landings never take the model lock, and mark slices 3 and 6 done plus slice 5 only for what was actually verified?",
+      "recommended_answer": "Yes. If rootless podman cannot run, quote the exact error in MODULAR-CI.md and leave the make targets documented without calling that run a success.",
+      "behavior_change": false,
+      "assertion": "",
+      "test_path": "",
+      "test_content": ""
+    },
+    {
+      "n": 13,
+      "question": "Should a rootless podman failure on this host be recorded verbatim in MODULAR-CI.md, with make test-in-container left failing closed, instead of skipping the target or stubbing a green result?",
+      "recommended_answer": "Yes. Record the exact podman error, keep the Containerfile and make targets, and do not report the container lane as verified.",
+      "behavior_change": false,
+      "assertion": "",
+      "test_path": "",
+      "test_content": ""
+    }
+  ],
+  "answers": [
+    {
+      "n": 1,
+      "decision": "accept",
+      "answer": "Yes. PFY_TEST_CACHE_DIR isolates the cache. `record <key>` then `check <key>` exits 0 and, when GITHUB_OUTPUT is set, writes hit=true. `check` of an unknown key exits 0 and writes hit=false. A hit is the only suite dedup. Light pregates are not single-flighted. model_lock.sh is only the local-model wait.",
+      "behavior_change": true,
+      "assertion": "With PFY_TEST_CACHE_DIR set, scripts/test_cache.py record <key> then check <key> exits 0 and writes hit=true to GITHUB_OUTPUT, and check of an unknown key exits 0 and writes hit=false.",
+      "test_path": "tests/test_fastpipe_cache_dedup.py",
+      "test_content": "import os\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\nROOT = Path(__file__).resolve().parents[1]\nSCRIPT = ROOT / \"scripts\" / \"test_cache.py\"\n\n\nclass TestCacheDedup(unittest.TestCase):\n    def test_check_exits_zero_and_reports_hit_or_miss(self):\n        with tempfile.TemporaryDirectory() as tmp:\n            cache = Path(tmp) / \"cache\"\n            out = Path(tmp) / \"github_output.txt\"\n            out.write_text(\"\")\n            env = os.environ.copy()\n            env[\"PFY_TEST_CACHE_DIR\"] = str(cache)\n            env[\"GITHUB_OUTPUT\"] = str(out)\n            recorded = subprocess.run(\n                [sys.executable, str(SCRIPT), \"record\", \"abc\"],\n                cwd=ROOT,\n                env=env,\n                text=True,\n            )\n            self.assertEqual(recorded.returncode, 0, recorded.stderr)\n            hit = subprocess.run(\n                [sys.executable, str(SCRIPT), \"check\", \"abc\"],\n                cwd=ROOT,\n                env=env,\n                text=True,\n            )\n            self.assertEqual(hit.returncode, 0, hit.stderr)\n            self.assertIn(\"hit=true\", out.read_text())\n            out.write_text(\"\")\n            miss = subprocess.run(\n                [sys.executable, str(SCRIPT), \"check\", \"missing-key\"],\n                cwd=ROOT,\n                env=env,\n                text=True,\n            )\n            self.assertEqual(miss.returncode, 0, miss.stderr)\n            self.assertIn(\"hit=false\", out.read_text())\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    {
+      "n": 2,
+      "decision": "accept",
+      "answer": "Yes. pregate and the GitHub-hosted ubuntu gate never call model_lock.sh, never use the pfy-local-model concurrency group, and never flock heavy-1030.lock or local-model.lock.",
+      "behavior_change": true,
+      "assertion": "scripts/pregate.sh and the ubuntu-latest job in .github/workflows/eval-structural.yml do not reference model_lock.sh, pfy-local-model, heavy-1030.lock, or local-model.lock.",
+      "test_path": "tests/test_fastpipe_modular_ci_rule.py",
+      "test_content": "import unittest\nfrom pathlib import Path\n\nROOT = Path(__file__).resolve().parents[1]\n\n\ndef jobs(text):\n    lines = text.splitlines()\n    start = None\n    for i, line in enumerate(lines):\n        if line.strip() == \"jobs:\":\n            start = i + 1\n            break\n    if start is None:\n        return {}\n    found = {}\n    current = None\n    buf = []\n    for line in lines[start:]:\n        if line.startswith(\"  \") and not line.startswith(\"   \") and line.rstrip().endswith(\":\"):\n            if current is not None:\n                found[current] = \"\\n\".join(buf)\n            current = line.strip()[:-1]\n            buf = [line]\n        elif current is not None:\n            if line and not line.startswith(\" \") and not line.startswith(\"#\"):\n                break\n            buf.append(line)\n    if current is not None:\n        found[current] = \"\\n\".join(buf)\n    return found\n\n\nclass TestModularCiRule(unittest.TestCase):\n    def test_light_paths_do_not_take_the_model_lock(self):\n        pregate = (ROOT / \"scripts\" / \"pregate.sh\").read_text()\n        for banned in (\"model_lock.sh\", \"pfy-local-model\", \"heavy-1030.lock\", \"local-model.lock\"):\n            self.assertNotIn(banned, pregate)\n        workflow = (ROOT / \".github\" / \"workflows\" / \"eval-structural.yml\").read_text()\n        ubuntu = [body for body in jobs(workflow).values() if \"ubuntu-latest\" in body]\n        self.assertTrue(ubuntu)\n        for body in ubuntu:\n            for banned in (\"model_lock.sh\", \"pfy-local-model\", \"heavy-1030.lock\", \"local-model.lock\"):\n                self.assertNotIn(banned, body)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    {
+      "n": 3,
+      "decision": "accept",
+      "answer": "Yes. Same commit twice is enough. A live root is one whose pid file names a process that is still alive. Prune deletes dead roots and nothing else.",
+      "behavior_change": true,
+      "assertion": "Two concurrent pregate.sh --only lint,gate-hash processes both exit 0, print distinct RUN_ROOT values under PFY_PREGATE_RUNS that contain their pids, remove a dead sibling root, and leave a sibling root with a live pid in place.",
+      "test_path": "tests/test_fastpipe_pregate_concurrency.py",
+      "test_content": "import os\nimport subprocess\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\nROOT = Path(__file__).resolve().parents[1]\nPREGATE = ROOT / \"scripts\" / \"pregate.sh\"\n\n\nclass TestPregateConcurrency(unittest.TestCase):\n    def test_two_runs_isolate_and_prune_only_dead_roots(self):\n        with tempfile.TemporaryDirectory() as tmp:\n            runs = Path(tmp) / \"runs\"\n            runs.mkdir()\n            sleeper = subprocess.Popen([\"sleep\", \"60\"])\n            live = runs / \"live-holder\"\n            live.mkdir()\n            (live / \"pid\").write_text(str(sleeper.pid))\n            (live / \"keep.txt\").write_text(\"keep\")\n            dead = runs / \"dead-holder\"\n            dead.mkdir()\n            (dead / \"pid\").write_text(\"999999\")\n            env = os.environ.copy()\n            env[\"PFY_PREGATE_RUNS\"] = str(runs)\n            cmd = [\"bash\", str(PREGATE), \"--only\", \"lint,gate-hash\"]\n            try:\n                first = subprocess.Popen(cmd, cwd=ROOT, env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)\n                second = subprocess.Popen(cmd, cwd=ROOT, env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)\n                out1, err1 = first.communicate(timeout=180)\n                out2, err2 = second.communicate(timeout=180)\n            finally:\n                sleeper.kill()\n                sleeper.wait(timeout=5)\n            self.assertEqual(first.returncode, 0, err1)\n            self.assertEqual(second.returncode, 0, err2)\n            roots = []\n            for pid, out in ((first.pid, out1), (second.pid, out2)):\n                found = [line.split(\"=\", 1)[1].strip() for line in out.splitlines() if line.startswith(\"RUN_ROOT=\")]\n                self.assertEqual(len(found), 1, out)\n                self.assertIn(str(pid), found[0])\n                self.assertTrue(found[0].startswith(str(runs) + os.sep))\n                roots.append(found[0])\n            self.assertNotEqual(roots[0], roots[1])\n            self.assertFalse(dead.exists())\n            self.assertTrue((live / \"keep.txt\").exists())\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    {
+      "n": 4,
+      "decision": "accept",
+      "answer": "Yes. The wait is blocking, not flock -n, and a held lock delays the next command instead of failing it.",
+      "behavior_change": true,
+      "assertion": "scripts/model_lock.sh waits while the lock is held, returns the wrapped command status, honors PFY_MODEL_LOCK, and creates a missing lock parent directory.",
+      "test_path": "tests/test_fastpipe_model_lock.py",
+      "test_content": "import os\nimport subprocess\nimport tempfile\nimport time\nimport unittest\nfrom pathlib import Path\n\nROOT = Path(__file__).resolve().parents[1]\nSCRIPT = ROOT / \"scripts\" / \"model_lock.sh\"\n\n\nclass TestModelLock(unittest.TestCase):\n    def test_blocks_propagates_status_and_creates_parent(self):\n        text = SCRIPT.read_text()\n        self.assertIn(\"PFY_MODEL_LOCK\", text)\n        self.assertIn(\".cache/pfy/locks/local-model.lock\", text)\n        self.assertNotIn(\"flock -n\", text)\n        self.assertNotIn(\"nonblock\", text)\n        with tempfile.TemporaryDirectory() as tmp:\n            lock = str(Path(tmp) / \"nested\" / \"local-model.lock\")\n            env = os.environ.copy()\n            env[\"PFY_MODEL_LOCK\"] = lock\n            holder = subprocess.Popen([\"bash\", str(SCRIPT), \"sleep\", \"1\"], env=env)\n            time.sleep(0.2)\n            started = time.monotonic()\n            waited = subprocess.run(\n                [\"bash\", str(SCRIPT), \"python3\", \"-c\", \"import sys; sys.exit(3)\"],\n                env=env,\n            )\n            elapsed = time.monotonic() - started\n            holder.wait(timeout=5)\n            self.assertEqual(waited.returncode, 3)\n            self.assertGreaterEqual(elapsed, 0.5)\n            self.assertTrue(Path(lock).parent.is_dir())\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    {
+      "n": 5,
+      "decision": "accept",
+      "answer": "Yes. Match those names only. Lint, pregate, skill-scan, and ordinary test recipes must not call model_lock.sh.",
+      "behavior_change": true,
+      "assertion": "Each Makefile recipe whose body mentions ollama, strata, local-lab, nightly-models, benches, or smoke-litellm also mentions model_lock.sh, and recipes that mention none of those do not mention model_lock.sh.",
+      "test_path": "tests/test_fastpipe_make_model_lock.py",
+      "test_content": "import unittest\nfrom pathlib import Path\n\nROOT = Path(__file__).resolve().parents[1]\nTOKENS = (\"ollama\", \"strata\", \"local-lab\", \"nightly-models\", \"benches\", \"smoke-litellm\")\n\n\ndef recipes(text):\n    blocks = []\n    current = []\n    for line in text.splitlines():\n        if line and not line[0].isspace() and line.rstrip().endswith(\":\"):\n            if current:\n                blocks.append(current)\n            current = [line]\n        else:\n            if current:\n                current.append(line)\n    if current:\n        blocks.append(current)\n    return blocks\n\n\nclass TestMakeModelLock(unittest.TestCase):\n    def test_only_model_recipes_use_the_lock(self):\n        blocks = recipes((ROOT / \"Makefile\").read_text())\n        self.assertTrue(blocks)\n        for block in blocks:\n            body = \"\\n\".join(block[1:]).lower()\n            name = block[0].lower()\n            uses_model = any(token in body or token in name for token in TOKENS)\n            if uses_model:\n                self.assertIn(\"model_lock.sh\", body, block[0])\n            else:\n                self.assertNotIn(\"model_lock.sh\", body, block[0])\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    {
+      "n": 6,
+      "decision": "accept",
+      "answer": "Yes. Shared group serializes model jobs without canceling a running one. Stagger the two schedules by two hours. Document 10:00 UTC and 12:00 UTC as 02:00 and 04:00 PT while UTC-8.",
+      "behavior_change": true,
+      "assertion": "local-lab.yml contains cron 0 10 * * * and nightly-models.yml contains cron 0 12 * * *, and both contain concurrency group pfy-local-model, cancel-in-progress false, timeout-minutes 120, and scripts/model_lock.sh.",
+      "test_path": "tests/test_fastpipe_model_workflows.py",
+      "test_content": "import re\nimport unittest\nfrom pathlib import Path\n\nROOT = Path(__file__).resolve().parents[1]\nWORKFLOWS = ROOT / \".github\" / \"workflows\"\n\n\nclass TestModelWorkflows(unittest.TestCase):\n    def test_shared_group_timeout_lock_and_off_hours(self):\n        local_lab = (WORKFLOWS / \"local-lab.yml\").read_text()\n        nightly = (WORKFLOWS / \"nightly-models.yml\").read_text()\n        self.assertRegex(local_lab, r\"cron:\\s*['\\\"]0 10 \\* \\* \\*['\\\"]\")\n        self.assertRegex(nightly, r\"cron:\\s*['\\\"]0 12 \\* \\* \\*['\\\"]\")\n        for text in (local_lab, nightly):\n            self.assertIn(\"pfy-local-model\", text)\n            self.assertIn(\"cancel-in-progress: false\", text)\n            self.assertRegex(text, r\"timeout-minutes:\\s*120\\b\")\n            self.assertIn(\"scripts/model_lock.sh\", text)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    {
+      "n": 7,
+      "decision": "accept",
+      "answer": "Yes. The ubuntu job remains the branch and pull_request gate. On a cache hit the nimo job stays green and does not rerun the suite.",
+      "behavior_change": true,
+      "assertion": "The G0 job if condition requires refs/heads/main or schedule and does not mention pull_request or workflow_dispatch, and its run_tests.py step comes after test_cache.py check and runs only when the cache hit output is not true.",
+      "test_path": "tests/test_fastpipe_g0_triggers.py",
+      "test_content": "import unittest\nfrom pathlib import Path\n\nROOT = Path(__file__).resolve().parents[1]\n\n\ndef jobs(text):\n    lines = text.splitlines()\n    start = None\n    for i, line in enumerate(lines):\n        if line.strip() == \"jobs:\":\n            start = i + 1\n            break\n    if start is None:\n        return {}\n    found = {}\n    current = None\n    buf = []\n    for line in lines[start:]:\n        if line.startswith(\"  \") and not line.startswith(\"   \") and line.rstrip().endswith(\":\"):\n            if current is not None:\n                found[current] = \"\\n\".join(buf)\n            current = line.strip()[:-1]\n            buf = [line]\n        elif current is not None:\n            if line and not line.startswith(\" \") and not line.startswith(\"#\"):\n                break\n            buf.append(line)\n    if current is not None:\n        found[current] = \"\\n\".join(buf)\n    return found\n\n\nclass TestG0Triggers(unittest.TestCase):\n    def test_nimo_job_is_main_or_schedule_and_skips_on_hit(self):\n        text = (ROOT / \".github\" / \"workflows\" / \"eval-structural.yml\").read_text()\n        matched = [body for body in jobs(text).values() if \"nimo\" in body or \"self-hosted\" in body]\n        self.assertEqual(len(matched), 1)\n        block = matched[0]\n        ifs = [line for line in block.splitlines() if \"if:\" in line]\n        self.assertTrue(any(\"refs/heads/main\" in line for line in ifs))\n        self.assertTrue(any(\"schedule\" in line for line in ifs))\n        self.assertFalse(any(\"pull_request\" in line for line in ifs))\n        self.assertFalse(any(\"workflow_dispatch\" in line for line in ifs))\n        self.assertLess(block.index(\"test_cache.py\"), block.index(\"run_tests.py\"))\n        run_at = block.index(\"run_tests.py\")\n        window = block[max(0, run_at - 400):run_at]\n        self.assertIn(\"hit\", window)\n        self.assertIn(\"if:\", window)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    {
+      "n": 8,
+      "decision": "accept",
+      "answer": "Yes. Importing the module must not start a suite. Risky paths stay on every shard so a single shard cannot drop them.",
+      "behavior_change": true,
+      "assertion": "shard_keeps uses sha256 modulo for ordinary paths, returns true for every index on trading/live, release/deploy, and secrets paths, --list --shard 99/99 exits 0, and --list --shard 0/2 exits non-zero.",
+      "test_path": "tests/test_fastpipe_shard.py",
+      "test_content": "import hashlib\nimport importlib.util\nimport subprocess\nimport sys\nimport unittest\nfrom pathlib import Path\n\nROOT = Path(__file__).resolve().parents[1]\nSCRIPT = ROOT / \"scripts\" / \"run_tests.py\"\n\n\ndef load_module():\n    spec = importlib.util.spec_from_file_location(\"run_tests_under_test\", SCRIPT)\n    module = importlib.util.module_from_spec(spec)\n    spec.loader.exec_module(module)\n    return module\n\n\nclass TestShard(unittest.TestCase):\n    def test_shard_keeps_and_cli(self):\n        module = load_module()\n        ordinary = \"scripts/test_cache.py\"\n        bucket = int(hashlib.sha256(ordinary.encode()).hexdigest(), 16) % 4\n        for index in range(1, 5):\n            self.assertEqual(module.shard_keeps(ordinary, index, 4), index - 1 == bucket)\n        for path in (\"trading/live/test_money.py\", \"release/deploy/test_ship.py\", \"pkg/secrets/test_scan.py\"):\n            for index in range(1, 5):\n                self.assertTrue(module.shard_keeps(path, index, 4))\n        empty = subprocess.run(\n            [sys.executable, str(SCRIPT), \"--list\", \"--shard\", \"99/99\"],\n            cwd=ROOT,\n            text=True,\n            capture_output=True,\n        )\n        self.assertEqual(empty.returncode, 0, empty.stderr)\n        invalid = subprocess.run(\n            [sys.executable, str(SCRIPT), \"--list\", \"--shard\", \"0/2\"],\n            cwd=ROOT,\n            text=True,\n            capture_output=True,\n        )\n        self.assertNotEqual(invalid.returncode, 0)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    {
+      "n": 9,
+      "decision": "accept",
+      "answer": "Yes. Add --shard now. Add the workflow matrix only after a measured suite time over five minutes is written on that line.",
+      "behavior_change": true,
+      "assertion": "The ubuntu-latest job in eval-structural.yml has no strategy.matrix unless docs/ops/MODULAR-CI.md contains `measured suite minutes:` with a value greater than 5.",
+      "test_path": "tests/test_fastpipe_shard_matrix_gate.py",
+      "test_content": "import re\nimport unittest\nfrom pathlib import Path\n\nROOT = Path(__file__).resolve().parents[1]\n\n\ndef jobs(text):\n    lines = text.splitlines()\n    start = None\n    for i, line in enumerate(lines):\n        if line.strip() == \"jobs:\":\n            start = i + 1\n            break\n    if start is None:\n        return {}\n    found = {}\n    current = None\n    buf = []\n    for line in lines[start:]:\n        if line.startswith(\"  \") and not line.startswith(\"   \") and line.rstrip().endswith(\":\"):\n            if current is not None:\n                found[current] = \"\\n\".join(buf)\n            current = line.strip()[:-1]\n            buf = [line]\n        elif current is not None:\n            if line and not line.startswith(\" \") and not line.startswith(\"#\"):\n                break\n            buf.append(line)\n    if current is not None:\n        found[current] = \"\\n\".join(buf)\n    return found\n\n\nclass TestShardMatrixGate(unittest.TestCase):\n    def test_matrix_requires_a_measured_slow_suite(self):\n        doc = (ROOT / \"docs\" / \"ops\" / \"MODULAR-CI.md\").read_text()\n        match = re.search(r\"measured suite minutes:\\s*(\\d+)\", doc)\n        over = bool(match) and int(match.group(1)) > 5\n        workflow = (ROOT / \".github\" / \"workflows\" / \"eval-structural.yml\").read_text()\n        ubuntu = [body for body in jobs(workflow).values() if \"ubuntu-latest\" in body]\n        self.assertTrue(ubuntu)\n        if not over:\n            for body in ubuntu:\n                self.assertNotIn(\"matrix:\", body)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    {
+      "n": 10,
+      "decision": "accept",
+      "answer": "Yes. An empty explicit env var falls through. make skill-scan and any scripts that name those tools use that same order, with the explicit env var first.",
+      "behavior_change": true,
+      "assertion": "tool_cache.sh check fails when a cache dir is missing and passes without deleting a sentinel when all three exist; resolve returns PFY_SKILLSPECTOR_BIN or PFY_CODEBASE_MEMORY_BIN first, else PATH, else ~/.cache/pfy/bin.",
+      "test_path": "tests/test_fastpipe_tool_cache.py",
+      "test_content": "import os\nimport stat\nimport subprocess\nimport tempfile\nimport unittest\nfrom pathlib import Path\n\nROOT = Path(__file__).resolve().parents[1]\nSCRIPT = ROOT / \"scripts\" / \"tool_cache.sh\"\n\n\ndef write_exec(path, label):\n    path.parent.mkdir(parents=True, exist_ok=True)\n    path.write_text(\"#!/bin/sh\\nprintf '%s\\\\n' \" + label + \"\\n\")\n    path.chmod(path.stat().st_mode | stat.S_IEXEC)\n\n\nclass TestToolCache(unittest.TestCase):\n    def test_check_and_resolve_order(self):\n        with tempfile.TemporaryDirectory() as tmp:\n            home = Path(tmp) / \"home\"\n            base = home / \".cache\" / \"pfy\"\n            env = {\"HOME\": str(home), \"PATH\": \"/usr/bin:/bin\", \"PFY_SKILLSPECTOR_BIN\": \"\", \"PFY_CODEBASE_MEMORY_BIN\": \"\"}\n            missing = subprocess.run([\"bash\", str(SCRIPT), \"check\"], env=env, text=True, capture_output=True)\n            self.assertNotEqual(missing.returncode, 0)\n            for name in (\"bin\", \"tools\", \"uv-cache\"):\n                (base / name).mkdir(parents=True)\n            sentinel = base / \"bin\" / \"sentinel.txt\"\n            sentinel.write_text(\"keep\")\n            ready = subprocess.run([\"bash\", str(SCRIPT), \"check\"], env=env, text=True, capture_output=True)\n            self.assertEqual(ready.returncode, 0, ready.stderr)\n            self.assertEqual(sentinel.read_text(), \"keep\")\n            path_dir = Path(tmp) / \"pathbin\"\n            cache_skill = base / \"bin\" / \"skillspector\"\n            path_skill = path_dir / \"skillspector\"\n            explicit_skill = Path(tmp) / \"explicit\" / \"skillspector\"\n            write_exec(cache_skill, \"cache\")\n            write_exec(path_skill, \"path\")\n            write_exec(explicit_skill, \"explicit\")\n            path_env = env.copy()\n            path_env[\"PATH\"] = str(path_dir) + \":/usr/bin:/bin\"\n            from_path = subprocess.run([\"bash\", str(SCRIPT), \"resolve\", \"skillspector\"], env=path_env, text=True, capture_output=True)\n            self.assertEqual(from_path.returncode, 0, from_path.stderr)\n            self.assertEqual(from_path.stdout.strip(), str(path_skill))\n            bare = env.copy()\n            from_cache = subprocess.run([\"bash\", str(SCRIPT), \"resolve\", \"skillspector\"], env=bare, text=True, capture_output=True)\n            self.assertEqual(from_cache.stdout.strip(), str(cache_skill))\n            forced = bare.copy()\n            forced[\"PFY_SKILLSPECTOR_BIN\"] = str(explicit_skill)\n            from_env = subprocess.run([\"bash\", str(SCRIPT), \"resolve\", \"skillspector\"], env=forced, text=True, capture_output=True)\n            self.assertEqual(from_env.stdout.strip(), str(explicit_skill))\n            cache_mem = base / \"bin\" / \"codebase-memory-mcp\"\n            explicit_mem = Path(tmp) / \"explicit\" / \"codebase-memory-mcp\"\n            write_exec(cache_mem, \"memcache\")\n            write_exec(explicit_mem, \"memexplicit\")\n            mem_cache = subprocess.run([\"bash\", str(SCRIPT), \"resolve\", \"codebase-memory-mcp\"], env=bare, text=True, capture_output=True)\n            self.assertEqual(mem_cache.stdout.strip(), str(cache_mem))\n            mem_env = bare.copy()\n            mem_env[\"PFY_CODEBASE_MEMORY_BIN\"] = str(explicit_mem)\n            mem_hit = subprocess.run([\"bash\", str(SCRIPT), \"resolve\", \"codebase-memory-mcp\"], env=mem_env, text=True, capture_output=True)\n            self.assertEqual(mem_hit.stdout.strip(), str(explicit_mem))\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    {
+      "n": 11,
+      "decision": "accept",
+      "answer": "Yes. The image is python 3.12 slim plus git, ripgrep, and bubblewrap, with no secrets. A podman failure exits non-zero. Landing and pregate do not depend on these targets.",
+      "behavior_change": true,
+      "assertion": "Containerfile names python 3.12, git, ripgrep, and bubblewrap and assigns no secrets; Makefile test-in-container uses podman with a read-only mount and a tmp volume; pregate.sh does not call that target.",
+      "test_path": "tests/test_fastpipe_container_optin.py",
+      "test_content": "import re\nimport unittest\nfrom pathlib import Path\n\nROOT = Path(__file__).resolve().parents[1]\n\n\ndef recipe(text, name):\n    lines = text.splitlines()\n    buf = []\n    capture = False\n    for line in lines:\n        if line.startswith(name + \":\"):\n            capture = True\n            buf = [line]\n            continue\n        if capture:\n            if line and not line[0].isspace():\n                break\n            buf.append(line)\n    return \"\\n\".join(buf)\n\n\nclass TestContainerOptIn(unittest.TestCase):\n    def test_container_target_is_opt_in_and_isolated(self):\n        container = (ROOT / \"ci\" / \"test-image\" / \"Containerfile\").read_text()\n        self.assertIn(\"3.12\", container)\n        lowered = container.lower()\n        self.assertIn(\"git\", lowered)\n        self.assertTrue(\"ripgrep\" in lowered or \"rg\" in lowered)\n        self.assertIn(\"bubblewrap\", lowered)\n        self.assertIsNone(re.search(r\"(?i)(api_key|token|password|secret)\\s*=\", container))\n        make = (ROOT / \"Makefile\").read_text()\n        body = recipe(make, \"test-in-container\")\n        self.assertIn(\"podman\", body)\n        self.assertIn(\":ro\", body)\n        self.assertIn(\"tmp\", body.lower())\n        self.assertNotIn(\".cache/pfy\", body)\n        pregate = (ROOT / \"scripts\" / \"pregate.sh\").read_text()\n        self.assertNotIn(\"test-in-container\", pregate)\n        self.assertNotIn(\"test-image\", pregate)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
+    },
+    {
+      "n": 12,
+      "decision": "accept",
+      "answer": "Yes. If rootless podman cannot run, quote the exact error in MODULAR-CI.md and leave the make targets documented without calling that run a success.",
+      "behavior_change": false,
+      "assertion": "",
+      "test_path": "",
+      "test_content": ""
+    },
+    {
+      "n": 13,
+      "decision": "accept",
+      "answer": "Yes. Record the exact podman error, keep the Containerfile and make targets, and do not report the container lane as verified.",
+      "behavior_change": false,
+      "assertion": "",
+      "test_path": "",
+      "test_content": ""
+    }
+  ],
+  "exit_tests": [
+    {
+      "n": 1,
+      "assertion": "With PFY_TEST_CACHE_DIR set, scripts/test_cache.py record <key> then check <key> exits 0 and writes hit=true to GITHUB_OUTPUT, and check of an unknown key exits 0 and writes hit=false.",
+      "test_path": "tests/test_fastpipe_cache_dedup.py"
+    },
+    {
+      "n": 2,
+      "assertion": "scripts/pregate.sh and the ubuntu-latest job in .github/workflows/eval-structural.yml do not reference model_lock.sh, pfy-local-model, heavy-1030.lock, or local-model.lock.",
+      "test_path": "tests/test_fastpipe_modular_ci_rule.py"
+    },
+    {
+      "n": 3,
+      "assertion": "Two concurrent pregate.sh --only lint,gate-hash processes both exit 0, print distinct RUN_ROOT values under PFY_PREGATE_RUNS that contain their pids, remove a dead sibling root, and leave a sibling root with a live pid in place.",
+      "test_path": "tests/test_fastpipe_pregate_concurrency.py"
+    },
+    {
+      "n": 4,
+      "assertion": "scripts/model_lock.sh waits while the lock is held, returns the wrapped command status, honors PFY_MODEL_LOCK, and creates a missing lock parent directory.",
+      "test_path": "tests/test_fastpipe_model_lock.py"
+    },
+    {
+      "n": 5,
+      "assertion": "Each Makefile recipe whose body mentions ollama, strata, local-lab, nightly-models, benches, or smoke-litellm also mentions model_lock.sh, and recipes that mention none of those do not mention model_lock.sh.",
+      "test_path": "tests/test_fastpipe_make_model_lock.py"
+    },
+    {
+      "n": 6,
+      "assertion": "local-lab.yml contains cron 0 10 * * * and nightly-models.yml contains cron 0 12 * * *, and both contain concurrency group pfy-local-model, cancel-in-progress false, timeout-minutes 120, and scripts/model_lock.sh.",
+      "test_path": "tests/test_fastpipe_model_workflows.py"
+    },
+    {
+      "n": 7,
+      "assertion": "The G0 job if condition requires refs/heads/main or schedule and does not mention pull_request or workflow_dispatch, and its run_tests.py step comes after test_cache.py check and runs only when the cache hit output is not true.",
+      "test_path": "tests/test_fastpipe_g0_triggers.py"
+    },
+    {
+      "n": 8,
+      "assertion": "shard_keeps uses sha256 modulo for ordinary paths, returns true for every index on trading/live, release/deploy, and secrets paths, --list --shard 99/99 exits 0, and --list --shard 0/2 exits non-zero.",
+      "test_path": "tests/test_fastpipe_shard.py"
+    },
+    {
+      "n": 9,
+      "assertion": "The ubuntu-latest job in eval-structural.yml has no strategy.matrix unless docs/ops/MODULAR-CI.md contains `measured suite minutes:` with a value greater than 5.",
+      "test_path": "tests/test_fastpipe_shard_matrix_gate.py"
+    },
+    {
+      "n": 10,
+      "assertion": "tool_cache.sh check fails when a cache dir is missing and passes without deleting a sentinel when all three exist; resolve returns PFY_SKILLSPECTOR_BIN or PFY_CODEBASE_MEMORY_BIN first, else PATH, else ~/.cache/pfy/bin.",
+      "test_path": "tests/test_fastpipe_tool_cache.py"
+    },
+    {
+      "n": 11,
+      "assertion": "Containerfile names python 3.12, git, ripgrep, and bubblewrap and assigns no secrets; Makefile test-in-container uses podman with a read-only mount and a tmp volume; pregate.sh does not call that target.",
+      "test_path": "tests/test_fastpipe_container_optin.py"
+    }
+  ],
+  "turns": 2,
+  "cost_usd": 0.09184556,
+  "calls": [
+    {
+      "role": "grill",
+      "turns": 1,
+      "cost_usd": 0.06030988,
+      "stop": "end_turn",
+      "model": "grok-4.7-build",
+      "max_turns": 11
+    },
+    {
+      "role": "coordinator",
+      "turns": 1,
+      "cost_usd": 0.03153568,
+      "stop": "end_turn",
+      "model": "grok-4.7-build",
+      "max_turns": 1
+    }
+  ],
+  "skill_source": "embedded",
+  "modular_ci_source": "embedded",
+  "flags": [
+    "--disable-web-search",
+    "--no-subagents",
+    "--no-plan",
+    "--disallowed-tools"
+  ]
+}

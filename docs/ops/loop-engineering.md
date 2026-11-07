@@ -9,6 +9,7 @@
 1. **Write exits before the loop** (Entry 068) — a loop with one exit hangs.  
 2. **No fix without root cause** when debugging (`/investigate`).  
 3. **DoD before unattended build** (`/one-shot`).
+4. **Grill before a CI, pipeline, or gate ticket is cut.** Tools off, turn cap 12, coordinator answers, behavior changes become exit tests. Command and the nimo flag check: [GRILL-STEP.md](GRILL-STEP.md).
 
 ## Which skill when
 
