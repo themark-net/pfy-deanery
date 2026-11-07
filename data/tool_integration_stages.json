@@ -1910,19 +1910,48 @@
       "handoff_by": "llm"
     },
     "skill-up": {
-      "integration_stage": "I0",
+      "integration_stage": "I3",
       "intent": "trial_1107",
       "entry": "sources/entries/146-skill-up.md",
       "github": "https://github.com/alibaba/skill-up",
-      "uses": "Declarative with/without evals; custom local-command engine can grade ./pfy or a plain Build run.",
+      "notes_doc": "docs/ops/skill-up-eval.md",
+      "uses": "Grade a with-skill run against a no-skill baseline. The same cases can score a pfy run against a plain Build run.",
+      "features": [
+        "custom local-command engine",
+        "with and without skill baseline",
+        "repeated iterations",
+        "script judges",
+        "json and junit reports"
+      ],
       "potential": "high",
-      "next_gate": "Catch-up trial 3 (2026-11-07): grade a pfy harness run on a small case set with a baseline.",
+      "next_gate": "Stay I3. This set was 5/5 on both arms (delta 0, flake 0/10), so it cannot show a skill gain. Next use is a harder set or the pfy vs plain Build comparison. Not a Feature GO.",
       "tier_ceiling": "I3",
       "non_goals": [
         "feature_go",
+        "built_in_engines",
+        "agent_judge",
+        "api_key",
+        "skill_upper",
+        "docker_or_opensandbox",
         "catalog_hold_70_75"
       ],
+      "catalog_tier": "B",
+      "catalog_overall": "76",
+      "catalog_tags": [
+        "#eval",
+        "#skills",
+        "#local-first",
+        "#opencode",
+        "#baseline",
+        "#I3"
+      ],
+      "catalog_github": "https://github.com/alibaba/skill-up",
+      "posture": [
+        "i3_onboard"
+      ],
       "evidence": [
+        "eval/catchup-1107/skill-up/summary.json",
+        "eval/catchup-1107/skill-up/REPORT.md",
         "entry:sources/entries/146-skill-up.md"
       ],
       "handoff_by": "llm"

@@ -23,6 +23,7 @@ LITELLM_EXAMPLE := examples/litellm-ollama
 	voice-agent-run voice-orchestrate \
 	worker-stage worker-env monitor-brief \
 	eval-tier0 eval-tier1 eval-mvp eval-suite eval-matrix eval-v02 eval-structural \
+	eval-skillup \
 	eval-select-models eval-select-tools-model eval-auto \
 	cage-grok cage-grok-shell cage-grok-run cage-grok-sessions cage-grok-resume \
 	cage-grok-sessions-import-host cage-grok-net-smoke cage-grok-skills-install \
@@ -104,6 +105,7 @@ help-platform:
 	@echo "  make smoke-voice-orchestrate # T-0096 dual-tier mock smoke (no cloud)"
 	@echo "  make worker-stage           # T-0085: smoke worker + write monitor brief / worker.env"
 	@echo "  make eval-structural           # design/coding gates, NO LLM (always run)"
+	@echo "  make eval-skillup              # Entry 146: contract tests, then the live case set"
 	@echo "  make eval-golden               # golden-task cards validate (no LLM)"
 	@echo "  make eval-unified-agents       # score claude-unified-agents pack"
 	@echo "  make eval-integration-change  # Exo-inspired ingest self-mod gates"
@@ -407,6 +409,11 @@ eval-v02:
 # Includes scripts/check_no_encoded_payloads.py (no base64/gzip payloads or runtime-assembled shards).
 eval-structural:
 	@python3 examples/eval-harness/run_structural.py --write-md pipelines/eval/structural.latest.md
+
+# Entry 146. Contract tests do not call a model. The runner does, on local Ollama.
+eval-skillup:
+	python3 tests/test_skillup_engine.py
+	python3 eval/catchup-1107/skill-up/run_eval.py
 
 # Kolibri-1 (Entry 085): operate-or-FAIL smoke; exit 2 = no backend (reason in receipt)
 smoke-kolibri1:

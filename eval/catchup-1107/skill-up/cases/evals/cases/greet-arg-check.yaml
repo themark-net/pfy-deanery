@@ -1,0 +1,15 @@
+id: greet-arg-check
+title: Reject an empty name in greet
+input:
+  prompt: |
+    Edit only src/greet.py. greet(name) must return "Hello, " plus the stripped
+    name. A missing, empty, or whitespace-only name must raise ValueError.
+    greet("Ada") must stay "Hello, Ada".
+context:
+  repo_fixture: evals/fixtures/repos/greet-arg-check
+expect:
+  exit_code: 0
+judge:
+  type: script
+  script_path: evals/fixtures/scripts/check_greet.py
+  timeout_seconds: 30
