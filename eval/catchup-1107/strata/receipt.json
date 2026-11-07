@@ -1,0 +1,84 @@
+{
+  "tool": "Strata",
+  "entry": "sources/entries/162-strata.md",
+  "date": "2026-11-07",
+  "host": "nimo",
+  "verdict": "STAY I2",
+  "reason": "median decode 51.86 tok/s is 0.840x Ollama 61.71 tok/s on the same prompts (bar 0.90x)",
+  "release": "v0.2.12",
+  "control": "0.1.58",
+  "engine": {
+    "version": "0.1.58",
+    "backend": "hip",
+    "archs": ["gfx1151"],
+    "build_id": "7be42963e6be+rocm",
+    "entrypoint_bytes": 52350928,
+    "entrypoint_sha256": "1f22831cc4b017d4fa8e4662537e54125387abd829cacd939f9a3796b6a88e05",
+    "tarball_sha256_listed": "1ce376c443ef662c72cd1fc4f828e093f78f83498c946837ca22cc250eda8861",
+    "tarball_rehashed": false
+  },
+  "install": {
+    "install_sh_sha256": "d47754af1f74c95bf763e0b8d484232443466decd1a22d0be3208760a2f53822",
+    "control_tarball_sha256": "fcce4c7b90f59c4f10f16181a7190b3abe79faadbc9eef38278fdc635e028817",
+    "control_tarball_bytes": 99974029,
+    "appimage": "not downloaded"
+  },
+  "model": {
+    "family": "qwen36",
+    "pack": "UD-Q4_K_XL",
+    "api_id": "qwen3.6-35b-a3b-ud-q4_k_xl",
+    "bytes": 22853663008,
+    "sha256": "55983c5a75a1ab969824077b3bb3de4146e82a9234072b48ad4e8f92ad3fe9f1",
+    "sha256_matches_done_sidecar": true,
+    "ollama_refused": true,
+    "ollama_blob": "sha256-d372de8e934898a59e6ccfabc3368474711384d8f1fd4d22d87a3f0a45400cdc",
+    "context": 8192,
+    "port": 18158,
+    "api_key": null
+  },
+  "bench": {
+    "harness": "eval/catchup-1107/strata/bench.py",
+    "runs_each": 3,
+    "temperature": 0,
+    "valid": "18/18",
+    "strata": {
+      "median_decode_tok_s": 51.86056934668894,
+      "median_prompt_tok_s": 211.85024309173508,
+      "median_ttft_s": 0.1514342080336064,
+      "median_wall_s": 2.599213644862175
+    },
+    "ollama": {
+      "model": "qwen3.6:35b",
+      "median_decode_tok_s": 61.70660442016066,
+      "median_prompt_tok_s": 92.83022077381904,
+      "median_ttft_s": 0.33424832252785563,
+      "median_wall_s": 2.43255805503577
+    },
+    "decode_ratio": 0.840437905050973,
+    "bar": 0.9,
+    "tool_call": {"name": "get_weather", "arguments": "{\"city\":\"Lisbon\"}", "valid": true}
+  },
+  "pfy_smoke": {
+    "ok": true,
+    "smoke_ok": true,
+    "smoke_field": "content",
+    "model": "qwen3.6-35b-a3b-ud-q4_k_xl",
+    "base_url": "http://127.0.0.1:18158/v1",
+    "how": "LOCAL_OPENAI_BASE_URL and PFY_LOCAL_RUNTIME=strata, fresh PFY_STATE_DIR, headless grok",
+    "session": "pfy-grok-cbe7a3",
+    "stopped": true,
+    "pfy_engine_path": false
+  },
+  "stopped": {
+    "command": "strata launch --stop",
+    "profile": "ud-q4_k_xl-8k",
+    "port_18158": "closed"
+  },
+  "qwen38_plan": {
+    "file": "eval/catchup-1107/strata/plan-qwen38-q2.json",
+    "download_gb": 68.5,
+    "downloaded": false,
+    "context": 131072
+  },
+  "step6": "skipped because decode missed the 0.90x bar"
+}
