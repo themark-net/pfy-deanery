@@ -1,6 +1,6 @@
 {
   "version": "1.3",
-  "last_updated": "2026-11-01",
+  "last_updated": "2026-11-07",
   "policy": "docs/ops/integration-stages.md",
   "default_stage": "I1",
   "tools": {
@@ -961,7 +961,7 @@
         "#stop-conditions",
         "#exits"
       ],
-      "catalog_github": "docs / X Entries 024 \u00b7 027 \u00b7 031 \u00b7 032 \u00b7 **068**",
+      "catalog_github": "docs / X Entries 024 · 027 · 031 · 032 · **068**",
       "posture": [],
       "evidence": [
         "path:bootstrap/grok-cli/skills/agent-loops",
@@ -1746,9 +1746,513 @@
       ],
       "potential": "low",
       "next_gate": "Stay I0. Reconsider only on a host whose RAM+VRAM exceeds the chosen quant file size plus 8 GiB, with at least 50 GB free disk after download, then one MVP-3 pass."
+    },
+    "neatroots": {
+      "integration_stage": "I0",
+      "intent": "awareness",
+      "entry": "sources/entries/137-neatroots.md",
+      "github": "https://github.com/neatlogs/neatroots",
+      "uses": "Offline trace rule checks (loops, repeated tool calls, error streaks) for eval runs.",
+      "potential": "medium",
+      "next_gate": "Needs a Grok Build or opencode trace export before it can check our runs. Trial after skill-up lands.",
+      "tier_ceiling": "I1",
+      "non_goals": [
+        "feature_go",
+        "catalog_hold_70_75"
+      ],
+      "evidence": [
+        "entry:sources/entries/137-neatroots.md"
+      ],
+      "handoff_by": "llm"
+    },
+    "Hermes Teammates": {
+      "integration_stage": "I0",
+      "intent": "blocked_on_hermes_wiring",
+      "entry": "sources/entries/138-hermes-teammates.md",
+      "github": "https://github.com/100yenadmin/hermes-teammates",
+      "uses": "Fixed tester/reviewer roster inside Hermes.",
+      "potential": "medium",
+      "next_gate": "Blocked until Hermes is wired as the pfy bot interface (hermes-wire).",
+      "tier_ceiling": "I1",
+      "non_goals": [
+        "feature_go",
+        "catalog_hold_70_75"
+      ],
+      "evidence": [
+        "entry:sources/entries/138-hermes-teammates.md"
+      ],
+      "handoff_by": "llm"
+    },
+    "OpenCode Skill Creator": {
+      "integration_stage": "I0",
+      "intent": "awareness",
+      "entry": "sources/entries/139-opencode-skill-creator.md",
+      "github": "https://github.com/antongulin/opencode-skill-creator",
+      "uses": "Trigger evals and frontmatter lint for our skills under OpenCode.",
+      "potential": "medium",
+      "next_gate": "Overlaps skill-up (146) for evals. Reconsider only skill_validate as a lint after skill-up.",
+      "tier_ceiling": "I1",
+      "non_goals": [
+        "feature_go",
+        "catalog_hold_70_75"
+      ],
+      "evidence": [
+        "entry:sources/entries/139-opencode-skill-creator.md"
+      ],
+      "handoff_by": "llm"
+    },
+    "Chiasmus": {
+      "integration_stage": "I0",
+      "intent": "awareness",
+      "entry": "sources/entries/140-chiasmus.md",
+      "github": "https://github.com/yogthos/chiasmus",
+      "uses": "Call-graph impact and Z3/Prolog checks over a diff; candidate impact source for ./pfy build per-file review.",
+      "potential": "medium",
+      "next_gate": "Overlaps codebase-memory-mcp (primary impact source). Trial only if CM impact output proves weak on pfy's own diffs.",
+      "tier_ceiling": "I1",
+      "non_goals": [
+        "feature_go",
+        "catalog_hold_70_75"
+      ],
+      "evidence": [
+        "entry:sources/entries/140-chiasmus.md"
+      ],
+      "handoff_by": "llm"
+    },
+    "Tracekit": {
+      "integration_stage": "I0",
+      "intent": "awareness",
+      "entry": "sources/entries/141-tracekit.md",
+      "github": "https://github.com/Cygnux-Labs/Tracekit",
+      "uses": "Signed, policy-gated tool call records.",
+      "potential": "low",
+      "next_gate": "Security posture change; needs Tester and Reviewer. Post-MVP.",
+      "tier_ceiling": "I1",
+      "non_goals": [
+        "feature_go",
+        "catalog_hold_70_75"
+      ],
+      "evidence": [
+        "entry:sources/entries/141-tracekit.md"
+      ],
+      "handoff_by": "llm"
+    },
+    "Charlotte": {
+      "integration_stage": "I0",
+      "intent": "awareness",
+      "entry": "sources/entries/142-charlotte.md",
+      "github": "https://github.com/TickTockBent/charlotte",
+      "uses": "Token-bounded browser pages for local models.",
+      "potential": "low",
+      "next_gate": "No MVP browsing path. Post-MVP.",
+      "tier_ceiling": "I1",
+      "non_goals": [
+        "feature_go",
+        "catalog_hold_70_75"
+      ],
+      "evidence": [
+        "entry:sources/entries/142-charlotte.md"
+      ],
+      "handoff_by": "llm"
+    },
+    "taste-skill": {
+      "integration_stage": "I0",
+      "intent": "awareness",
+      "entry": "sources/entries/143-taste-skill.md",
+      "github": "https://github.com/Leonxlnx/taste-skill",
+      "uses": "Design slop lint plus browser layout check.",
+      "potential": "low",
+      "next_gate": "Design gate for operator UI after the Tauri window is built.",
+      "tier_ceiling": "I1",
+      "non_goals": [
+        "feature_go",
+        "catalog_hold_70_75"
+      ],
+      "evidence": [
+        "entry:sources/entries/143-taste-skill.md"
+      ],
+      "handoff_by": "llm"
+    },
+    "gitai": {
+      "integration_stage": "I0",
+      "intent": "awareness",
+      "entry": "sources/entries/144-gitai.md",
+      "github": "https://github.com/feder-cr/git-ai",
+      "uses": "CAS lands for many agents on one branch.",
+      "potential": "medium",
+      "next_gate": "LATER per entry: scratch trial after the MVP lands. Our FF races (build-review park) are the use case.",
+      "tier_ceiling": "I1",
+      "non_goals": [
+        "feature_go",
+        "catalog_hold_70_75"
+      ],
+      "evidence": [
+        "entry:sources/entries/144-gitai.md"
+      ],
+      "handoff_by": "llm"
+    },
+    "Muxin": {
+      "integration_stage": "I0",
+      "intent": "awareness",
+      "entry": "sources/entries/145-muxin.md",
+      "github": "https://github.com/LumaryLabsLLC/muxin",
+      "uses": "Fleet view MCP for Sysadmin.",
+      "potential": "low",
+      "next_gate": "Not on the pfy MVP path.",
+      "tier_ceiling": "I1",
+      "non_goals": [
+        "feature_go",
+        "catalog_hold_70_75"
+      ],
+      "evidence": [
+        "entry:sources/entries/145-muxin.md"
+      ],
+      "handoff_by": "llm"
+    },
+    "skill-up": {
+      "integration_stage": "I0",
+      "intent": "trial_1107",
+      "entry": "sources/entries/146-skill-up.md",
+      "github": "https://github.com/alibaba/skill-up",
+      "uses": "Declarative with/without evals; custom local-command engine can grade ./pfy or a plain Build run.",
+      "potential": "high",
+      "next_gate": "Catch-up trial 3 (2026-11-07): grade a pfy harness run on a small case set with a baseline.",
+      "tier_ceiling": "I3",
+      "non_goals": [
+        "feature_go",
+        "catalog_hold_70_75"
+      ],
+      "evidence": [
+        "entry:sources/entries/146-skill-up.md"
+      ],
+      "handoff_by": "llm"
+    },
+    "HiRoute": {
+      "integration_stage": "I0",
+      "intent": "awareness",
+      "entry": "sources/entries/147-hiroute.md",
+      "github": "https://github.com/higress-group/HiRoute",
+      "uses": "Difficulty router: cheap turns to the local model.",
+      "potential": "medium",
+      "next_gate": "After the Strata trial picks the local engine; compare with magpie (163) and HarnessRouter (123).",
+      "tier_ceiling": "I1",
+      "non_goals": [
+        "feature_go",
+        "catalog_hold_70_75"
+      ],
+      "evidence": [
+        "entry:sources/entries/147-hiroute.md"
+      ],
+      "handoff_by": "llm"
+    },
+    "SkillSpector": {
+      "integration_stage": "I0",
+      "intent": "trial_1107",
+      "entry": "sources/entries/148-skillspector.md",
+      "github": "https://github.com/NVIDIA/SkillSpector",
+      "uses": "Offline static scan of a skill before it lands (H2 install gate).",
+      "potential": "high",
+      "next_gate": "Catch-up trial 2 (2026-11-07): scan --no-llm over bootstrap/grok-cli/skills and .grok/skills, build in an advisory scan command.",
+      "tier_ceiling": "I3",
+      "non_goals": [
+        "feature_go",
+        "catalog_hold_70_75"
+      ],
+      "evidence": [
+        "entry:sources/entries/148-skillspector.md"
+      ],
+      "handoff_by": "llm"
+    },
+    "MemPalace": {
+      "integration_stage": "I0",
+      "intent": "awareness",
+      "entry": "sources/entries/149-mempalace.md",
+      "github": "https://github.com/MemPalace/mempalace",
+      "uses": "Verbatim local memory with scoped search.",
+      "potential": "medium",
+      "next_gate": "Post-MVP memory slot bake-off against 108 and 132.",
+      "tier_ceiling": "I1",
+      "non_goals": [
+        "feature_go",
+        "catalog_hold_70_75"
+      ],
+      "evidence": [
+        "entry:sources/entries/149-mempalace.md"
+      ],
+      "handoff_by": "llm"
+    },
+    "freeapp": {
+      "integration_stage": "I0",
+      "intent": "ref_only",
+      "entry": "sources/entries/152-freeapp.md",
+      "github": "https://www.freeapp.ai/",
+      "uses": "Paid voice coding product; reference only.",
+      "potential": "low",
+      "next_gate": "Stage-0 FAIL. Stay I0.",
+      "tier_ceiling": "I1",
+      "non_goals": [
+        "feature_go",
+        "catalog_hold_70_75"
+      ],
+      "evidence": [
+        "entry:sources/entries/152-freeapp.md"
+      ],
+      "handoff_by": "llm"
+    },
+    "dsh-superagent": {
+      "integration_stage": "I0",
+      "intent": "design_reference",
+      "entry": "sources/entries/154-dsh-superagent.md",
+      "github": "https://github.com/deepseek-ai/dsh-superagent-prototype",
+      "uses": "Authorization and attention design docs.",
+      "potential": "low",
+      "next_gate": "ADR note only; no runtime trial.",
+      "tier_ceiling": "I1",
+      "non_goals": [
+        "feature_go",
+        "catalog_hold_70_75"
+      ],
+      "evidence": [
+        "entry:sources/entries/154-dsh-superagent.md"
+      ],
+      "handoff_by": "llm"
+    },
+    "RoBrain": {
+      "integration_stage": "I0",
+      "intent": "awareness",
+      "entry": "sources/entries/155-robrain.md",
+      "github": "https://github.com/adelinamart/robrain",
+      "uses": "Decision memory with vetoes.",
+      "potential": "medium",
+      "next_gate": "Post-MVP; needs Postgres + pgvector.",
+      "tier_ceiling": "I1",
+      "non_goals": [
+        "feature_go",
+        "catalog_hold_70_75"
+      ],
+      "evidence": [
+        "entry:sources/entries/155-robrain.md"
+      ],
+      "handoff_by": "llm"
+    },
+    "Kanzo": {
+      "integration_stage": "I0",
+      "intent": "awareness",
+      "entry": "sources/entries/156-kanzo.md",
+      "github": "https://github.com/emanuele-em/kanzo",
+      "uses": "Local kanban + MCP.",
+      "potential": "low",
+      "next_gate": "AGPL-3.0; run queue alternative post-MVP only.",
+      "tier_ceiling": "I1",
+      "non_goals": [
+        "feature_go",
+        "catalog_hold_70_75"
+      ],
+      "evidence": [
+        "entry:sources/entries/156-kanzo.md"
+      ],
+      "handoff_by": "llm"
+    },
+    "SysKnife": {
+      "integration_stage": "I0",
+      "intent": "awareness",
+      "entry": "sources/entries/157-sysknife.md",
+      "github": "https://github.com/lacs-project/sysknife",
+      "uses": "Typed approval-gated Linux admin.",
+      "potential": "low",
+      "next_gate": "No cargo on nimo; comparison only.",
+      "tier_ceiling": "I1",
+      "non_goals": [
+        "feature_go",
+        "catalog_hold_70_75"
+      ],
+      "evidence": [
+        "entry:sources/entries/157-sysknife.md"
+      ],
+      "handoff_by": "llm"
+    },
+    "Emdash": {
+      "integration_stage": "I0",
+      "intent": "awareness",
+      "entry": "sources/entries/158-emdash.md",
+      "github": "https://github.com/generalaction/emdash",
+      "uses": "Parallel agents GUI, one worktree each.",
+      "potential": "low",
+      "next_gate": "Comparison only.",
+      "tier_ceiling": "I1",
+      "non_goals": [
+        "feature_go",
+        "catalog_hold_70_75"
+      ],
+      "evidence": [
+        "entry:sources/entries/158-emdash.md"
+      ],
+      "handoff_by": "llm"
+    },
+    "Skills Manager": {
+      "integration_stage": "I0",
+      "intent": "awareness",
+      "entry": "sources/entries/159-skills-manager.md",
+      "github": "https://github.com/shenysun/skills-manager",
+      "uses": "Skill distribution CLI.",
+      "potential": "low",
+      "next_gate": "Comparison only; our tree stays the source.",
+      "tier_ceiling": "I1",
+      "non_goals": [
+        "feature_go",
+        "catalog_hold_70_75"
+      ],
+      "evidence": [
+        "entry:sources/entries/159-skills-manager.md"
+      ],
+      "handoff_by": "llm"
+    },
+    "agentplay": {
+      "integration_stage": "I0",
+      "intent": "awareness",
+      "entry": "sources/entries/160-agentplay.md",
+      "github": "https://github.com/Entelligence-AI/agentplay",
+      "uses": "Session replay map.",
+      "potential": "low",
+      "next_gate": "No Grok Build transcript reader.",
+      "tier_ceiling": "I1",
+      "non_goals": [
+        "feature_go",
+        "catalog_hold_70_75"
+      ],
+      "evidence": [
+        "entry:sources/entries/160-agentplay.md"
+      ],
+      "handoff_by": "llm"
+    },
+    "agentgg": {
+      "integration_stage": "I0",
+      "intent": "awareness",
+      "entry": "sources/entries/161-agentgg.md",
+      "github": "https://github.com/agentgg-dev/agentgg",
+      "uses": "Local agentic SAST for risky diffs.",
+      "potential": "medium",
+      "next_gate": "Candidate extra pass for trading/deploy/secret changes; needs Tester and Reviewer to wire.",
+      "tier_ceiling": "I1",
+      "non_goals": [
+        "feature_go",
+        "catalog_hold_70_75"
+      ],
+      "evidence": [
+        "entry:sources/entries/161-agentgg.md"
+      ],
+      "handoff_by": "llm"
+    },
+    "Strata": {
+      "integration_stage": "I0",
+      "intent": "trial_1107",
+      "entry": "sources/entries/162-strata.md",
+      "github": "https://github.com/Niko1221/Strata",
+      "uses": "Local inference engine (OpenAI/Anthropic API on localhost) with a gfx1151 HIP build; candidate second engine next to Ollama on the MVP local-model path.",
+      "potential": "high",
+      "next_gate": "Catch-up trial 1 (2026-11-07): same model, same prompts, Strata vs Ollama on nimo; promote if it serves pfy's smoke and is not slower.",
+      "tier_ceiling": "I3",
+      "non_goals": [
+        "feature_go",
+        "catalog_hold_70_75"
+      ],
+      "evidence": [
+        "entry:sources/entries/162-strata.md"
+      ],
+      "handoff_by": "llm"
+    },
+    "magpie": {
+      "integration_stage": "I0",
+      "intent": "awareness",
+      "entry": "sources/entries/163-magpie.md",
+      "github": "https://github.com/yetone/magpie",
+      "uses": "One gateway config for every agent.",
+      "potential": "low",
+      "next_gate": "Rewrites agent configs; needs Mark GO. After Strata.",
+      "tier_ceiling": "I1",
+      "non_goals": [
+        "feature_go",
+        "catalog_hold_70_75"
+      ],
+      "evidence": [
+        "entry:sources/entries/163-magpie.md"
+      ],
+      "handoff_by": "llm"
+    },
+    "Reasonix": {
+      "integration_stage": "I0",
+      "intent": "awareness",
+      "entry": "sources/entries/164-reasonix.md",
+      "github": "https://github.com/esengine/DeepSeek-Reasonix",
+      "uses": "DeepSeek-native coding agent.",
+      "potential": "low",
+      "next_gate": "Comparison only.",
+      "tier_ceiling": "I1",
+      "non_goals": [
+        "feature_go",
+        "catalog_hold_70_75"
+      ],
+      "evidence": [
+        "entry:sources/entries/164-reasonix.md"
+      ],
+      "handoff_by": "llm"
+    },
+    "Elephant-Goldfish Model": {
+      "integration_stage": "I0",
+      "intent": "awareness",
+      "entry": "sources/entries/165-egm.md",
+      "github": "https://github.com/google/elephant-goldfish-model",
+      "uses": "Fresh-eyes spec review before Build starts.",
+      "potential": "medium",
+      "next_gate": "Next pick after the three trials: run /egm-review on one Build drop-in in an isolated profile.",
+      "tier_ceiling": "I1",
+      "non_goals": [
+        "feature_go",
+        "catalog_hold_70_75"
+      ],
+      "evidence": [
+        "entry:sources/entries/165-egm.md"
+      ],
+      "handoff_by": "llm"
+    },
+    "odai": {
+      "integration_stage": "I0",
+      "intent": "awareness",
+      "entry": "sources/entries/166-odai.md",
+      "github": "https://github.com/orziz/odai",
+      "uses": "Evidence-before-done governance skill.",
+      "potential": "medium",
+      "next_gate": "Read against our gate doctrine; skill port only if it adds a check we lack.",
+      "tier_ceiling": "I1",
+      "non_goals": [
+        "feature_go",
+        "catalog_hold_70_75"
+      ],
+      "evidence": [
+        "entry:sources/entries/166-odai.md"
+      ],
+      "handoff_by": "llm"
+    },
+    "TeaQL Agent Kit": {
+      "integration_stage": "I0",
+      "intent": "awareness",
+      "entry": "sources/entries/167-teaql-agent-kit.md",
+      "github": "https://github.com/teaql/teaql-agent-kit",
+      "uses": "Agent context and verification policy patterns.",
+      "potential": "low",
+      "next_gate": "Pattern read only.",
+      "tier_ceiling": "I1",
+      "non_goals": [
+        "feature_go",
+        "catalog_hold_70_75"
+      ],
+      "evidence": [
+        "entry:sources/entries/167-teaql-agent-kit.md"
+      ],
+      "handoff_by": "llm"
     }
   },
   "probe_path": "tools/_probe/",
-  "coverage": "57 tools registered",
+  "coverage": "85 tools registered",
   "handoff": "data/catalog_stage_handoff.json"
 }
