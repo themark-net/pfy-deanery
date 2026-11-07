@@ -163,11 +163,55 @@ def sha_match(left: str, right: str) -> bool:
     return False
 
 
+_RUN_TESTS_VALUE_FLAGS = {"-j", "--jobs", "--root", "--receipt", "--run-dir"}
+
+
+def _run_tests_kind(code: str) -> str | None:
+    """full when scripts/run_tests.py has no module args. selected when it does.
+
+    A bare `python3 scripts/run_tests.py` is the nightly full suite. Flags such
+    as `--receipt` are not modules. A positional token is a module list.
+    """
+    saw_full = False
+    saw_selected = False
+    for raw in code.splitlines():
+        if "run_tests.py" not in raw:
+            continue
+        match = re.search(r"(?:^|\s)(\S*run_tests\.py)\b(.*)$", raw)
+        if not match:
+            continue
+        tokens = match.group(2).split()
+        index = 0
+        positional = False
+        while index < len(tokens):
+            token = tokens[index]
+            if token in _RUN_TESTS_VALUE_FLAGS:
+                index += 2
+                continue
+            if token.startswith("-"):
+                index += 1
+                continue
+            positional = True
+            break
+        if positional:
+            saw_selected = True
+        else:
+            saw_full = True
+    if saw_full:
+        return "full"
+    if saw_selected:
+        return "selected"
+    return None
+
+
 def classify_workflow_text(text: str) -> dict[str, str]:
     """Map a workflow's job display name to full, selected, or other.
 
-    full: the job script runs `unittest discover -s tests`.
-    selected: the job script runs unittest, but not that discover.
+    full: `unittest discover -s tests`, or `scripts/run_tests.py` with no
+    module arguments (the nightly backstop).
+    selected: `scripts/ci_selected_tests.sh`, a named `unittest` module list,
+    or `run_tests.py` with module arguments.
+    Comments are ignored. A job that does both is full.
     """
     lines = text.splitlines()
     start = None
@@ -200,9 +244,15 @@ def classify_workflow_text(text: str) -> dict[str, str]:
             continue
         name_m = re.search(r"^    name:\s*[\"']?(.+?)[\"']?\s*$", chunk, re.M)
         display = name_m.group(1).strip() if name_m else key_m.group(1)
-        if re.search(r"unittest\s+discover\s+-s\s+tests\b", chunk):
+        code = "\n".join(line.split("#", 1)[0] for line in chunk_lines)
+        run_kind = _run_tests_kind(code)
+        if re.search(r"unittest\s+discover\s+-s\s+tests\b", code) or run_kind == "full":
             kind = "full"
-        elif re.search(r"\bunittest\b", chunk):
+        elif (
+            run_kind == "selected"
+            or re.search(r"ci_selected_tests\.sh\b", code)
+            or re.search(r"\bunittest\b", code)
+        ):
             kind = "selected"
         else:
             kind = "other"

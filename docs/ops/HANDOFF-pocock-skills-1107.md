@@ -76,6 +76,8 @@ Nothing in the data stops two runs from doing the same work. The cut list is in 
 
 `python3 -m unittest tests.test_pipeline_retro` (7 tests). They parse fixtures and count. One flags a duplicated full-suite run on the same SHA. No network. A full `unittest discover -s tests` was not run: this change does not touch `scripts/run_tests.py`, pregate, or catalog check, and that discover is the repeated call the retro says to cut.
 
+Follow-up on the sanity check: current G0 steps call `scripts/ci_selected_tests.sh`. The ubuntu job also runs two named unittest modules. The classifier marks both G0 jobs selected. `Full suite backstop` runs `python3 scripts/run_tests.py` with no module arguments and is full. A job that still contains `unittest discover -s tests` stays full. The table above counted earlier G0 runs as full because those SHAs still ran discover. Replaying the script on this tree labels the same job names from the current workflow files, so those historical names count as selected.
+
 ## Left alone on purpose
 
 `install.sh` still logs the old three skill names. README and `AGENTS.md` were not edited. `AGENTS.md` is in the fastpipe lane.

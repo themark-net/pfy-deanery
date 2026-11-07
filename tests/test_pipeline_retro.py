@@ -214,10 +214,23 @@ class ParseAndCountTest(unittest.TestCase):
         self.assertTrue(over_minutes["over_baseline"])
         self.assertFalse(over_minutes["duplicated"])
 
-    def test_repo_g0_jobs_are_full_suite(self):
+    def test_repo_g0_jobs_are_selected_and_nightly_is_full(self):
         classes = retro.load_job_classes(ROOT / ".github" / "workflows")
-        self.assertEqual(classes.get("G0 (ubuntu-24.04)"), "full")
-        self.assertEqual(classes.get("G0 (self-hosted nimo)"), "full")
+        # Landing G0 calls scripts/ci_selected_tests.sh. The ubuntu job also
+        # runs two named unittest modules. Neither command is the full suite.
+        self.assertEqual(classes.get("G0 (ubuntu-24.04)"), "selected")
+        self.assertEqual(classes.get("G0 (self-hosted nimo)"), "selected")
+        # Nightly backstop is `python3 scripts/run_tests.py` with no modules.
+        self.assertEqual(classes.get("Full suite backstop"), "full")
+        legacy = (
+            "jobs:\n"
+            "  structural-github:\n"
+            "    name: G0 (ubuntu-24.04)\n"
+            "    runs-on: ubuntu-24.04\n"
+            "    steps:\n"
+            "      - run: python3 -m unittest discover -s tests -t .\n"
+        )
+        self.assertEqual(retro.classify_workflow_text(legacy).get("G0 (ubuntu-24.04)"), "full")
 
     def test_cancelled_and_schedule_do_not_inflate_the_landing(self):
         sha = "1" * 40
