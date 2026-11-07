@@ -16,7 +16,8 @@
   "posture": [],
   "evidence": [
     "make:smoke-codebase-memory",
-    "toolset"
+    "toolset",
+    "shadow:docs/ops/CBM-SHADOW-1107.md"
   ],
   "tier_ceiling": "I3",
   "uses": "Primary code-graph MCP and the code-graph toolset.",
@@ -29,5 +30,9 @@
   "handoff_by": "llm",
   "non_goals": [
     "second primary graph"
-  ]
+  ],
+  "self_pipeline": {
+    "status": "applied",
+    "evidence": "docs/ops/CBM-SHADOW-1107.md"
+  }
 }

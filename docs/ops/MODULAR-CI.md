@@ -123,6 +123,10 @@ The two green runs (496.98 s and 495.48 s, about 8.3 minutes) agreed: 171 module
 | Nimo job absent on a branch landing | a pull request looks green while no tests ran | the nimo `if` is explicit. The ubuntu job is the landing gate and still runs the selection, in four shards, including every non-test check. Trading, release, and secret paths stay `full` |
 | Retention deletes a live pregate | a second run removes the first run's folder while it is still working | the folder name ends with the pid. Retention skips it while `/proc/<pid>/cmdline` still contains `pregate.sh`. The concurrent test keeps that folder and deletes a dead one |
 
+## Shadow selection
+
+`scripts/cbm_shadow.py` is not a selector. Pregate still decides the suite with `test_select.py` (`source: ast`) and does not read the codebase-memory binary, so ubuntu and nimo still select the same modules. After the verdict, cleanup detaches one shadow process. That process compares the same base and head with `codebase-memory-mcp cli detect_changes --scope tests` and appends one JSONL line to `${PFY_CBM_SHADOW_LOG:-$HOME/.cache/pfy/cbm-shadow/selections.jsonl}`. A tool failure, a timeout, or a missing binary is a line in that log. The gate exit code does not change. `PFY_CBM_SHADOW=0` skips the launch. Numbers and the keep-or-drop recommendation are in [CBM-SHADOW-1107.md](CBM-SHADOW-1107.md).
+
 ## Next slices
 
 - Per-tool stage files `data/stages/<tool>.json`.

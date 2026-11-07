@@ -240,6 +240,25 @@ if [[ "$IN_PLACE" -eq 0 ]]; then
   CLEANUP_WORKTREE="$RUN_ROOT"
 fi
 
+# Report-only. Detached so a shadow failure cannot change the exit status
+# and the index does not sit on the pregate clock. PFY_CBM_SHADOW=0 skips.
+launch_cbm_shadow() {
+  if [[ "${PFY_CBM_SHADOW:-1}" == "0" ]]; then
+    return 0
+  fi
+  if [[ -z "${BASE_SHA:-}" || -z "${SHA:-}" ]]; then
+    return 0
+  fi
+  # Subshell cds to / so a removed run root cannot block exec. setsid leaves
+  # the orphan reaper's tree. The child writes the JSONL itself.
+  (
+    cd / || exit 0
+    exec setsid python3 "$SCRIPT_DIR/cbm_shadow.py" --base "$BASE_SHA" --head "$SHA"
+  ) </dev/null >/dev/null 2>&1 &
+  disown || true
+  return 0
+}
+
 reap_recorded_orphans() {
   [[ -z "${PS_BEFORE_FAILED:-}" && -n "${ORPHAN_SEEN:-}" && -s "$ORPHAN_SEEN" ]] || return 0
   local pids pid
@@ -262,6 +281,8 @@ cleanup() {
   # Normal exit (incl. --keep-worktree) drops the owner marker; only a run that
   # never reached cleanup (SIGKILL) leaves one for the next run to prune.
   if [[ -n "$OWNER_FILE" ]]; then rm -f "$OWNER_FILE"; fi
+  # After the reaper, so this child is not recorded and then killed.
+  launch_cbm_shadow || true
 }
 trap cleanup EXIT
 
