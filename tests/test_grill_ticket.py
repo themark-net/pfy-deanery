@@ -175,7 +175,16 @@ class GrillTicketTest(unittest.TestCase):
             cwd = Path(call["cwd"]).resolve()
             self.assertFalse(any((parent / "AGENTS.md").is_file() for parent in [cwd, *cwd.parents]))
         self.assertEqual(sum(turns), 4)
-        self.assertIn("embedded summary", seen[0]["prompt"])
+        # The prompt carries whichever skill text skill_text() would load from
+        # this checkout. Another lane already vendored the grilling skill, so
+        # the embedded summary is only present when that file is absent.
+        skill_file = REPO / "bootstrap/grok-cli/skills-external/mattpocock/grilling/SKILL.md"
+        prompt = seen[0]["prompt"]
+        if skill_file.is_file():
+            self.assertIn(skill_file.read_text(encoding="utf-8")[:80], prompt)
+            self.assertNotIn("embedded summary", prompt)
+        else:
+            self.assertIn("embedded summary", prompt)
 
     def test_answers_file_skips_coordinator_and_overrides(self):
         ticket = self.dir / "ci.md"
