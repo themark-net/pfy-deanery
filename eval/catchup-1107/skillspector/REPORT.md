@@ -49,7 +49,7 @@ H2 rule in that doc: a fetched skill may be copied into a skills dir only after 
 
 ## Tests
 
-`python3 -m unittest tests.test_pfy_skill_scan` (stub binaries only): missing binary, flagged JSON, garbage, nonzero exit with no JSON, `CAUTION`, default receipt path. Each failure path has a recovery run.
+`python3 -m unittest tests.test_pfy_skill_scan` (stub binaries only): missing binary, flagged JSON, garbage, nonzero exit with no JSON, `CAUTION`, default receipt path, and a receipt path that cannot be written. Each failure path has a recovery run. Raw scanner JSON is removed before return, including when the receipt write fails.
 
 `RED: treat CAUTION as safe (drop the allow_caution check in is_safe) -> tests.test_pfy_skill_scan.SkillScanTests.test_caution_is_not_safe_until_allow_caution`
 

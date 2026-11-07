@@ -215,21 +215,48 @@ def main(argv: list[str] | None = None) -> int:
         write_receipt(out_path, receipt)
         return 2
 
-    flagged = False
-    unreadable = False
-    scratch = out_path.parent / ".skill-scan-work"
+    scratch: Path | None = out_path.parent / ".skill-scan-work"
     try:
         scratch.mkdir(parents=True, exist_ok=True)
     except OSError as exc:
         print(f"Next: could not create a work directory next to the receipt ({exc}). Pass --out to a writable path.")
         return 2
 
-    for index, skill in enumerate(args.paths):
+    try:
+        return _scan_paths(binary, args.paths, args.allow_caution, out_path, scratch, receipt)
+    finally:
+        _clear_scratch(scratch)
+
+
+def _clear_scratch(scratch: Path | None) -> None:
+    """Drop raw scanner JSON. It can hold code snippets the receipt must not keep."""
+    if scratch is None or not scratch.is_dir():
+        return
+    for child in scratch.iterdir():
+        if child.is_file():
+            try:
+                child.unlink()
+            except OSError:
+                pass
+    try:
+        scratch.rmdir()
+    except OSError:
+        pass
+
+
+def _scan_paths(binary: Path, skills: list[str], allow_caution: bool, out_path: Path, scratch: Path, receipt: dict) -> int:
+    flagged = False
+    unreadable = False
+    for index, skill in enumerate(skills):
         report_path = scratch / f"report-{index}.json"
         if report_path.exists():
             report_path.unlink()
         code, err = run_scan(binary, skill, report_path)
         report = load_report(report_path)
+        try:
+            report_path.unlink()
+        except OSError:
+            pass
         if report is None:
             unreadable = True
             receipt["paths"].append(
@@ -254,7 +281,7 @@ def main(argv: list[str] | None = None) -> int:
         risk = report["risk_assessment"]
         recommendation = str(risk.get("recommendation")).strip()
         findings = findings_from(report)
-        safe = is_safe(recommendation, args.allow_caution)
+        safe = is_safe(recommendation, allow_caution)
         if not safe:
             flagged = True
             print_flagged(skill, recommendation, findings)
@@ -281,12 +308,6 @@ def main(argv: list[str] | None = None) -> int:
         status = 0
     if not write_receipt(out_path, receipt):
         return 2
-    try:
-        for child in scratch.iterdir():
-            child.unlink()
-        scratch.rmdir()
-    except OSError:
-        pass
     return status
 
 

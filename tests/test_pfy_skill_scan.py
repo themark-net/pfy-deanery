@@ -5,6 +5,7 @@ How it fails and how we recover:
 - garbage or a nonzero exit with no JSON exits 2; a SAFE stub then exits 0
 - DO_NOT_INSTALL exits 1 and names the path; a SAFE stub then exits 0
 - CAUTION is not safe; --allow-caution is the recovery
+- a receipt path that cannot be written exits 2 and still deletes the raw scanner JSON
 """
 from __future__ import annotations
 
@@ -223,6 +224,7 @@ class SkillScanTests(unittest.TestCase):
         self.assertNotIn(SECRET, flagged.stdout)
         raw = self.out.read_text(encoding="utf-8")
         self.assertNotIn(SECRET, raw)
+        self.assertFalse((self.out.parent / ".skill-scan-work").exists())
         receipt = json.loads(raw)
         self.assertEqual(receipt["verdict"], "FLAGGED")
         self.assertEqual(receipt["paths"][0]["findings"][0]["title"], "Instruction override")
@@ -246,6 +248,25 @@ class SkillScanTests(unittest.TestCase):
 
         recovered = self.run_scan(["--out", str(self.out), str(self.skill)], stub=SAFE_BODY)
         self.assertEqual(recovered.returncode, 0, recovered.stdout + recovered.stderr)
+
+    def test_unwritable_receipt_still_drops_raw_report(self):
+        """Fail: the receipt path is a directory, so the write fails (exit 2).
+        The raw scanner JSON, which holds the code snippet, is still removed.
+        Recovery: the same stub with a writable --out exits 1 and leaves no scratch dir.
+        """
+        blocked = self.td / "not-a-file"
+        blocked.mkdir()
+        result = self.run_scan(["--out", str(blocked), str(self.skill)], stub=FLAGGED_BODY)
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn("Next:", result.stdout)
+        self.assertNotIn(SECRET, result.stdout)
+        self.assertFalse((blocked.parent / ".skill-scan-work").exists())
+        self.assertEqual(list(self.td.rglob("report-*.json")), [])
+
+        recovered = self.run_scan(["--out", str(self.out), str(self.skill)], stub=FLAGGED_BODY)
+        self.assertEqual(recovered.returncode, 1, recovered.stdout + recovered.stderr)
+        self.assertFalse((self.out.parent / ".skill-scan-work").exists())
+        self.assertNotIn(SECRET, self.out.read_text(encoding="utf-8"))
 
     def test_caution_is_not_safe_until_allow_caution(self):
         """Fail: CAUTION exits 1 even when the scanner process exits 0.
