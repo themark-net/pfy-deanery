@@ -126,6 +126,20 @@ Prefer the Testing Trophy: mostly integration/E2E for product confidence. Unit t
 
 Skill and verbatim DoD paste line: **`prefer-behavior-and-fail-recover-tests`**.
 
+## Modular CI (standing rule)
+
+Landing work follows [docs/ops/MODULAR-CI.md](docs/ops/MODULAR-CI.md):
+
+- run only the tests a change can affect
+- run tests once per commit and cache the result
+- no global lock or single runner for light jobs
+- run non-GPU checks in parallel on hosted runners or containers
+- give each tool its own state file
+- cache tool and image layers
+- only jobs bound by local-model token speed get a long serialized lane
+- the full suite runs nightly as a backstop
+- trading, release and secret changes always get the full run
+
 ## Design-in-loop (UI is the app)
 
 Operator-facing UI follows **`ui-is-the-app-design-in-loop`**: design pack in `docs/design/` before product UI; never ask what we already know; levers stay on the current view. Lab bolts are allowed; product/dogfood UI needs a Design pass. Verbatim DoD paste line is in that skill. This slice adds no product UI. Ops: [docs/ops/port-bot-doctrine-to-pfy-sot.md](docs/ops/port-bot-doctrine-to-pfy-sot.md).

@@ -19,6 +19,7 @@ From any pfy-mentat worktree that has this script:
 ./scripts/pregate.sh --keep-worktree REF                   # keep the run worktree for debugging
 ./scripts/pregate.sh --in-place      # this checkout; HEAD must equal REF and the tree must be clean
 ./scripts/pregate.sh --force-suite REF                     # also run the standalone suite check
+./scripts/pregate.sh --full REF                            # ignore affected selection; run every tests/test_*.py
 ./scripts/pregate.sh --base origin/main REF                # base for the committed gate-file diff (default)
 ```
 
@@ -49,19 +50,21 @@ The work happens in a detached worktree at `~/DEVELOP/pfy-mentat/tmp/pg/<shortsh
 | lint | The CI lint surface (this repo has no ruff job): launcher mode 100755, `py_compile` of board/gui, `bash -n scripts/pfy`, `./pfy help`, `check_no_encoded_payloads`, `smoke_contract_lint`, `catalog_check`, and a workflow image pin (`scripts/check_workflow_image_pin.py`): GitHub-hosted `runs-on` must be `ubuntu-24.04` as a string, a list, or a matrix expression that resolves to that pin. Self-hosted label lists pass. Malformed YAML fails the check. A repeated mapping key fails the check, because the default loader would keep the last value and a later `ubuntu-24.04` could hide `ubuntu-latest`. A missing PyYAML fails the check. `eval-structural.yml` must install the ripgrep package in a run step (`apt-get` or `apt` `install`, package name `ripgrep` on that line) and invoke `rg` (`rg --version` or `command -v rg`). A comment, a step name, or `echo ripgrep` does not count |
 | ci-parity | bwrap hidden. A static pin that the two runtime-dir tests pass `auto_unsafe=False` (code only; comments do not count), plus a run of those two tests. Catches the 2fadea1 ubuntu failure in seconds. FAILs if the test file is missing |
 | gate-hash | `tests/` and gate files (`conftest.py`, `sitecustomize.py`, `pytest.ini`, ...) in the run tree match HEAD (catches modified, deleted, renamed, staged or untracked cheats with `--in-place`). Also FAILs on any committed add/modify/delete of a strict gate file vs the merge-base with `--base` (needs a reviewer waiver), and lists existing test files changed vs base as a NOTE for the reviewer |
-| ubuntu-parity | The full `python3 -m unittest discover -s tests -t .` with bwrap hidden: the caller's PATH mirrored minus `bwrap`, with `PFY_STATE_DIR` set as in the ubuntu job. This mirrors the pinned `ubuntu-24.04` image, where bwrap is unusable and bwrap-gated tests skip. If the G0 image changes, revisit this check. Any test that passes only when bwrap is present fails here, as it would on ubuntu CI |
-| eval-structural | The G0 ubuntu job's steps with the host PATH: structural (which runs the full discover, with sandbox tests where bwrap works, as on the nimo runner), golden, gab/jev/launch-wizard selftests, catalog_check, toolset matrix/plan, hedge decide, launcher exec, encoded payloads |
-| suite | Standalone discover with the host PATH. Skipped by default because the two checks above already run it. Use `--force-suite` or `--only suite` |
+| ubuntu-parity | The selected unittest modules, once, with bwrap hidden: the caller's PATH mirrored minus `bwrap`, with `PFY_STATE_DIR` set as in the ubuntu job. This mirrors the pinned `ubuntu-24.04` image, where bwrap is unusable and bwrap-gated tests skip. The selection comes from `scripts/test_select.py` against `--base` (default `origin/main`). Mode `structural` or `none` runs no unittest modules. `--full` forces every `tests/test_*.py`. If the G0 image changes, revisit this check. Any selected test that passes only when bwrap is present fails here, as it would on ubuntu CI |
+| eval-structural | The G0 ubuntu job's non-suite steps with the host PATH: `run_structural.py --skip-unittests` (the unittest row is printed `SKIP`, not a silent pass), golden, gab/jev/launch-wizard selftests, catalog_check, toolset matrix/plan, hedge decide, launcher exec, encoded payloads, and the structural checks for the selection. Modules whose source contains `bwrap` then run again with the host PATH, so sandbox tests still execute on nimo. That is a subset, not a second full suite |
+| suite | Same selected modules with the host PATH. Skipped by default because ubuntu-parity already ran that selection once. Use `--force-suite` or `--only suite` |
 | orphans | Runs last. Compares a process snapshot taken before the checks with one taken after. Any new live process of this user whose argv or cwd is under this run's root or scratch FAILs, as do `orphan*.pid` / heartbeat files. Fails closed if `ps` fails. Other worktrees' processes are never matched or signalled |
 
 Every check has a watchdog (`PREGATE_STEP_TIMEOUT`). A hung step, such as an orphan holding the output pipe, is killed and reported as FAIL with its log.
 
 Unittest skip counts depend on the host (bwrap, grok, Ollama, Python version), so compare them only between runs on the same host.
 
+The summary line `selection: mode=... modules=...` is the diff `ubuntu-parity` ran. On a clean PASS, pregate records that result in the test cache (`scripts/test_cache.py`) when the worktree is clean. `affected` and `full` are recorded only when the ubuntu-parity receipt exists and its `rc` is 0, so `--only lint` cannot cache a suite that did not run. A later nimo G0 job with the same tree, config, Python, and host class prints `cache hit <key> from pregate` and skips its suite step. Details and the measured times are in [MODULAR-CI.md](MODULAR-CI.md).
+
 ## Past failure types mapped to checks
 
 - Unsandboxed tests and the `--unsafe-no-sandbox` auto-add: ci-parity, ubuntu-parity
-- Red ubuntu CI because bwrap is missing: ubuntu-parity (full suite without bwrap) and ci-parity (fast pin). eval-structural alone does not cover this on a host with bwrap
+- Red ubuntu CI because bwrap is missing: ubuntu-parity (the selected suite without bwrap) and ci-parity (fast pin). eval-structural alone does not cover this on a host with bwrap. It re-runs only the modules whose source contains `bwrap`
 - Test-runner cheats (new conftest/sitecustomize, edited or deleted protected tests): gate-hash
 - Orphan processes and hangs: orphans, plus the per-check watchdog
 - Structural G0 drift: eval-structural, lint
@@ -74,6 +77,7 @@ Unittest skip counts depend on the host (bwrap, grok, Ollama, Python version), s
 
 ## See also
 
+- [MODULAR-CI.md](MODULAR-CI.md)
 - [HANDOFF-pregate.md](HANDOFF-pregate.md)
 - [GATE-NOTES-fix2.md](GATE-NOTES-fix2.md)
 - [HANDOFF-pfy-local-build-mvp.md](HANDOFF-pfy-local-build-mvp.md)
