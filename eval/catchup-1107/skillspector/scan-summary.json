@@ -1,0 +1,470 @@
+{
+  "tool": "SkillSpector",
+  "version": "SkillSpector v2.12.0",
+  "pin": "e7172462caf367736645f66c1aa154ca5f9c64dc",
+  "mode": "static",
+  "llm": false,
+  "offline": "bwrap --unshare-net",
+  "wall_clock_seconds": 38.44,
+  "skill_count": 57,
+  "trees": [
+    "bootstrap/grok-cli/skills",
+    "bootstrap/grok-cli/skills-external",
+    "bootstrap/project-process/skills",
+    ".grok/skills",
+    "examples/agentdescent-trial/skill"
+  ],
+  "trees_absent": [
+    ".opencode/skills"
+  ],
+  "counts": {
+    "CAUTION": 37,
+    "SAFE": 20
+  },
+  "skills": [
+    {
+      "path": ".grok/skills/adr",
+      "score": 0,
+      "recommendation": "CAUTION",
+      "findings": []
+    },
+    {
+      "path": ".grok/skills/agent-loops",
+      "score": 3,
+      "recommendation": "CAUTION",
+      "findings": [
+        {
+          "id": "EA3",
+          "category": "Excessive Agency",
+          "severity": "LOW",
+          "title": "expand scope"
+        }
+      ]
+    },
+    {
+      "path": ".grok/skills/best-effort-and-bot-budget-build-max",
+      "score": 0,
+      "recommendation": "CAUTION",
+      "findings": []
+    },
+    {
+      "path": ".grok/skills/catalog-docs",
+      "score": 0,
+      "recommendation": "CAUTION",
+      "findings": []
+    },
+    {
+      "path": ".grok/skills/docs",
+      "score": 0,
+      "recommendation": "CAUTION",
+      "findings": []
+    },
+    {
+      "path": ".grok/skills/hermes-feedback",
+      "score": 0,
+      "recommendation": "CAUTION",
+      "findings": []
+    },
+    {
+      "path": ".grok/skills/investigate",
+      "score": 0,
+      "recommendation": "CAUTION",
+      "findings": []
+    },
+    {
+      "path": ".grok/skills/jev-decision",
+      "score": 0,
+      "recommendation": "CAUTION",
+      "findings": []
+    },
+    {
+      "path": ".grok/skills/karpathy-guidelines",
+      "score": 0,
+      "recommendation": "SAFE",
+      "findings": []
+    },
+    {
+      "path": ".grok/skills/marketing-council",
+      "score": 3,
+      "recommendation": "CAUTION",
+      "findings": [
+        {
+          "id": "EA3",
+          "category": "Excessive Agency",
+          "severity": "LOW",
+          "title": "beyond documented"
+        }
+      ]
+    },
+    {
+      "path": ".grok/skills/one-shot",
+      "score": 0,
+      "recommendation": "CAUTION",
+      "findings": []
+    },
+    {
+      "path": ".grok/skills/open-questions",
+      "score": 20,
+      "recommendation": "CAUTION",
+      "findings": [
+        {
+          "id": "MP3",
+          "category": "Memory Poisoning",
+          "severity": "HIGH",
+          "title": "delete history"
+        }
+      ]
+    },
+    {
+      "path": ".grok/skills/prefer-behavior-and-fail-recover-tests",
+      "score": 0,
+      "recommendation": "SAFE",
+      "findings": []
+    },
+    {
+      "path": ".grok/skills/ui-is-the-app-design-in-loop",
+      "score": 8,
+      "recommendation": "SAFE",
+      "findings": [
+        {
+          "id": "EA2",
+          "category": "Excessive Agency",
+          "severity": "MEDIUM",
+          "title": "Never ask the user"
+        }
+      ]
+    },
+    {
+      "path": ".grok/skills/worker-monitor",
+      "score": 0,
+      "recommendation": "CAUTION",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/accessibility-auditor",
+      "score": 0,
+      "recommendation": "CAUTION",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/ai-engineer",
+      "score": 0,
+      "recommendation": "SAFE",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/api-designer",
+      "score": 0,
+      "recommendation": "CAUTION",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/backend-architect",
+      "score": 0,
+      "recommendation": "SAFE",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/code-reviewer",
+      "score": 0,
+      "recommendation": "SAFE",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/database-specialist",
+      "score": 0,
+      "recommendation": "SAFE",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/devops-engineer",
+      "score": 0,
+      "recommendation": "SAFE",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/e2e-test-specialist",
+      "score": 0,
+      "recommendation": "CAUTION",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/error-detective",
+      "score": 0,
+      "recommendation": "CAUTION",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/incident-responder",
+      "score": 30,
+      "recommendation": "CAUTION",
+      "findings": [
+        {
+          "id": "TM1",
+          "category": "Tool Misuse",
+          "severity": "HIGH",
+          "title": "subprocess.run(cmd, shell=True"
+        },
+        {
+          "id": "TM1",
+          "category": "Tool Misuse",
+          "severity": "HIGH",
+          "title": "subprocess.run([\"echo\", \"3\", \">\", \"/proc/sys/vm/drop_caches\"], shell=True"
+        }
+      ]
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/monitoring-specialist",
+      "score": 10,
+      "recommendation": "CAUTION",
+      "findings": [
+        {
+          "id": "E1",
+          "category": "Data Exfiltration",
+          "severity": "MEDIUM",
+          "title": "https://api.example.com/"
+        },
+        {
+          "id": "E1",
+          "category": "Data Exfiltration",
+          "severity": "MEDIUM",
+          "title": "https://api.external.com/"
+        },
+        {
+          "id": "E1",
+          "category": "Data Exfiltration",
+          "severity": "MEDIUM",
+          "title": "requests.post(url, json="
+        }
+      ]
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/orchestrator",
+      "score": 20,
+      "recommendation": "SAFE",
+      "findings": [
+        {
+          "id": "MP3",
+          "category": "Memory Poisoning",
+          "severity": "HIGH",
+          "title": "clear context"
+        }
+      ]
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/performance-engineer",
+      "score": 5,
+      "recommendation": "CAUTION",
+      "findings": [
+        {
+          "id": "E1",
+          "category": "Data Exfiltration",
+          "severity": "MEDIUM",
+          "title": "https://api.example.com/"
+        }
+      ]
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/prompt-engineer",
+      "score": 0,
+      "recommendation": "SAFE",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/security-auditor",
+      "score": 0,
+      "recommendation": "SAFE",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/ux-designer",
+      "score": 0,
+      "recommendation": "SAFE",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/mattpocock/code-review",
+      "score": 0,
+      "recommendation": "CAUTION",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/mattpocock/tdd",
+      "score": 0,
+      "recommendation": "CAUTION",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/mattpocock/to-spec",
+      "score": 0,
+      "recommendation": "SAFE",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/ponytail/ponytail",
+      "score": 0,
+      "recommendation": "SAFE",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/ponytail/ponytail-audit",
+      "score": 0,
+      "recommendation": "SAFE",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/ponytail/ponytail-debt",
+      "score": 0,
+      "recommendation": "CAUTION",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/ponytail/ponytail-gain",
+      "score": 0,
+      "recommendation": "SAFE",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/ponytail/ponytail-help",
+      "score": 0,
+      "recommendation": "SAFE",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/ponytail/ponytail-review",
+      "score": 0,
+      "recommendation": "SAFE",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/adr",
+      "score": 0,
+      "recommendation": "CAUTION",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/agent-loops",
+      "score": 3,
+      "recommendation": "CAUTION",
+      "findings": [
+        {
+          "id": "EA3",
+          "category": "Excessive Agency",
+          "severity": "LOW",
+          "title": "expand scope"
+        }
+      ]
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/best-effort-and-bot-budget-build-max",
+      "score": 0,
+      "recommendation": "CAUTION",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/catalog-docs",
+      "score": 0,
+      "recommendation": "CAUTION",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/docs",
+      "score": 0,
+      "recommendation": "CAUTION",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/hermes-feedback",
+      "score": 0,
+      "recommendation": "CAUTION",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/investigate",
+      "score": 0,
+      "recommendation": "CAUTION",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/jev-decision",
+      "score": 0,
+      "recommendation": "CAUTION",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/karpathy-guidelines",
+      "score": 0,
+      "recommendation": "SAFE",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/marketing-council",
+      "score": 3,
+      "recommendation": "CAUTION",
+      "findings": [
+        {
+          "id": "EA3",
+          "category": "Excessive Agency",
+          "severity": "LOW",
+          "title": "beyond documented"
+        }
+      ]
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/one-shot",
+      "score": 0,
+      "recommendation": "CAUTION",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/open-questions",
+      "score": 20,
+      "recommendation": "CAUTION",
+      "findings": [
+        {
+          "id": "MP3",
+          "category": "Memory Poisoning",
+          "severity": "HIGH",
+          "title": "delete history"
+        }
+      ]
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/prefer-behavior-and-fail-recover-tests",
+      "score": 0,
+      "recommendation": "CAUTION",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/ui-is-the-app-design-in-loop",
+      "score": 8,
+      "recommendation": "SAFE",
+      "findings": [
+        {
+          "id": "EA2",
+          "category": "Excessive Agency",
+          "severity": "MEDIUM",
+          "title": "Never ask the user"
+        }
+      ]
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/worker-monitor",
+      "score": 0,
+      "recommendation": "CAUTION",
+      "findings": []
+    },
+    {
+      "path": "bootstrap/project-process/skills/project-process",
+      "score": 0,
+      "recommendation": "CAUTION",
+      "findings": []
+    },
+    {
+      "path": "examples/agentdescent-trial/skill",
+      "score": 0,
+      "recommendation": "CAUTION",
+      "findings": []
+    }
+  ]
+}

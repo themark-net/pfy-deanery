@@ -638,5 +638,22 @@
       "touch_mark_ollama"
     ],
     "next_gate": "Stay I0. Reconsider only on a host whose RAM+VRAM exceeds the chosen quant file size plus 8 GiB, with at least 50 GB free disk after download, then one MVP-3 pass."
+  },
+  "SkillSpector": {
+    "potential": "high",
+    "uses": "Static scan of a skill directory before it is copied into a skills dir.",
+    "features": [
+      "static analysis",
+      "JSON receipt",
+      "no-llm"
+    ],
+    "non_goals": [
+      "LLM review",
+      "pregate or CI gate",
+      "MCP server",
+      "Pi or OpenCode extension",
+      "vendor the scanner into the tree"
+    ],
+    "next_gate": "Stay advisory. A blocking gate needs Tester and Reviewer, which is a separate step."
   }
 }

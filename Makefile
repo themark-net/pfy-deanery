@@ -17,6 +17,7 @@ LITELLM_EXAMPLE := examples/litellm-ollama
 	local-ollama-overlay-install local-ollama-up smoke-litellm-ollama \
 	smoke-codebase-memory smoke-repowise smoke-context-tools \
 	smoke-write-guard smoke-grok-skills smoke-opencode-ollama smoke-voice-stt smoke-voice-remote \
+	skill-scan \
 	smoke-voice-agent smoke-voice-orchestrate smoke-tools-model smoke-kolibri1 \
 	voice-stt-install voice-listen voice-stt-probe voice-remote voice-remote-serve \
 	voice-agent-run voice-orchestrate \
@@ -88,6 +89,7 @@ help-platform:
 	@echo "  make smoke-codebase-memory / smoke-repowise / smoke-context-tools"
 	@echo "  make smoke-write-guard      # T-0031 write-guard MCP policy smoke"
 	@echo "  make smoke-grok-skills      # first-party skill structure (manifest + SKILL.md)"
+	@echo "  make skill-scan             # advisory static scan of repo skill trees (not a CI gate)"
 	@echo "  make smoke-grok-skills INSTALLED=1  # also check ~/.grok/skills"
 	@echo "  make smoke-opencode-ollama  # T-0080 host: OpenCode adapter + Ollama worker (no cage)"
 	@echo "  make smoke-voice-stt        # T-0091 p1: wiring only (mock/text; no mic)"
@@ -264,6 +266,16 @@ smoke-write-guard:
 # INSTALLED=1 also checks $GROK_HOME/skills (default ~/.grok/skills)
 smoke-grok-skills:
 	@python3 bootstrap/grok-cli/scripts/verify_skills.py $(if $(filter 1,$(INSTALLED)),--installed,)
+
+# Advisory static scan of this repo's skill trees. Not a pregate or CI check.
+# .opencode/skills is included when that directory exists.
+skill-scan:
+	@set -e; \
+	trees="bootstrap/grok-cli/skills bootstrap/grok-cli/skills-external bootstrap/project-process/skills .grok/skills"; \
+	if [ -d .opencode/skills ]; then trees="$$trees .opencode/skills"; fi; \
+	dirs="$$(find $$trees -name SKILL.md -printf '%h\n' | sort -u)"; \
+	if [ -z "$$dirs" ]; then echo "Next: no SKILL.md under the repo skill trees"; exit 2; fi; \
+	python3 scripts/pfy_skill_scan.py $$dirs
 
 # T-0080: host OpenCode + Ollama worker path (skills SoT + completion; opencode CLI optional)
 smoke-opencode-ollama:

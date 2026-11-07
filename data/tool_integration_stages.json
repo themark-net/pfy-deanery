@@ -1946,20 +1946,47 @@
       "handoff_by": "llm"
     },
     "SkillSpector": {
-      "integration_stage": "I0",
-      "intent": "trial_1107",
+      "integration_stage": "I3",
+      "intent": "advisory_skill_scan",
       "entry": "sources/entries/148-skillspector.md",
       "github": "https://github.com/NVIDIA/SkillSpector",
-      "uses": "Offline static scan of a skill before it lands (H2 install gate).",
+      "notes_doc": "docs/ops/skill-scan.md",
+      "pin": "e7172462caf367736645f66c1aa154ca5f9c64dc",
+      "uses": "Static scan of a skill directory before it is copied into a skills dir.",
+      "features": [
+        "static analysis",
+        "JSON receipt",
+        "no-llm"
+      ],
       "potential": "high",
-      "next_gate": "Catch-up trial 2 (2026-11-07): scan --no-llm over bootstrap/grok-cli/skills and .grok/skills, build in an advisory scan command.",
+      "next_gate": "Stay advisory. A blocking gate needs Tester and Reviewer, which is a separate step.",
       "tier_ceiling": "I3",
       "non_goals": [
         "feature_go",
-        "catalog_hold_70_75"
+        "catalog_hold_70_75",
+        "LLM review",
+        "pregate or CI gate",
+        "MCP server",
+        "Pi or OpenCode extension",
+        "vendor the scanner into the tree"
       ],
+      "catalog_tier": "A",
+      "catalog_overall": "86",
+      "catalog_tags": [
+        "#security",
+        "#skills",
+        "#local-first",
+        "#static-analysis",
+        "#python"
+      ],
+      "catalog_github": "https://github.com/NVIDIA/SkillSpector",
+      "posture": [],
       "evidence": [
-        "entry:sources/entries/148-skillspector.md"
+        "entry:sources/entries/148-skillspector.md",
+        "notes_doc:docs/ops/skill-scan.md",
+        "pin:e7172462caf367736645f66c1aa154ca5f9c64dc",
+        "eval/catchup-1107/skillspector/scan-summary.json",
+        "eval/catchup-1107/skillspector/REPORT.md"
       ],
       "handoff_by": "llm"
     },
