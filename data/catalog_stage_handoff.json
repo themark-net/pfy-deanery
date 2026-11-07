@@ -622,6 +622,27 @@
     ],
     "next_gate": "Stay I1. I3 only after a proposal gate pass (gain at least 2 on the 16 held-out cases) and a human merge. This trial's gain was 0."
   },
+  "skill-up": {
+    "potential": "high",
+    "uses": "Grade a with-skill run against a no-skill baseline. The same cases can score a pfy run against a plain Build run.",
+    "features": [
+      "custom local-command engine",
+      "with and without skill baseline",
+      "repeated iterations",
+      "script judges",
+      "json and junit reports"
+    ],
+    "non_goals": [
+      "feature_go",
+      "built_in_engines",
+      "agent_judge",
+      "api_key",
+      "skill_upper",
+      "docker_or_opensandbox",
+      "catalog_hold_70_75"
+    ],
+    "next_gate": "Stay I3. This set was 5/5 on both arms (delta 0, flake 0/10), so it cannot show a skill gain. Next use is a harder set or the pfy vs plain Build comparison. Not a Feature GO."
+  },
   "DeepSeek-V4.1-Flash-1017 GGUF": {
     "potential": "low",
     "uses": "Awareness only. The Dynamic V3.1 GGUF does not fit nimo RAM+VRAM under the file-size plus 8 GiB rule.",
