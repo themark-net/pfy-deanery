@@ -1,0 +1,39 @@
+{
+  "comment": "risky_globs must never be removed without Tester+Reviewer. They force mode full for trading, live-money, release, deploy, publish, and secret paths (matched case-insensitively). core_globs force mode full because those files change how tests are chosen or run, or they are shared test helpers. structural_globs are docs and catalog intake data. A data file under sources/ or data/ that tests reference by string is mode affected, not structural. A module imported by more than fan_in_core_ratio of test modules is core even when its path is not listed. Unknown or unparseable files are mode full.",
+  "fan_in_core_ratio": 0.4,
+  "core_globs": [
+    ".github/**",
+    "scripts/pregate*.sh",
+    "scripts/run_tests.py",
+    "scripts/test_select.py",
+    "scripts/test_cache.py",
+    "scripts/ci_selected_tests.sh",
+    "config/test_select.json",
+    "tests/__init__.py",
+    "tests/support_*.py",
+    "Makefile",
+    "pfy",
+    "scripts/pfy"
+  ],
+  "risky_globs": [
+    "**/*kalshi*",
+    "**/*polymarket*",
+    "**/*trading*",
+    "**/*paper*",
+    "**/*LIVE_HARD_OFF*",
+    "**/*deploy*",
+    "**/*release*",
+    "**/*publish*",
+    "**/*wrangler*",
+    "**/*secret*",
+    "**/*token*",
+    "**/*.dev.vars",
+    "**/*auth*"
+  ],
+  "structural_globs": [
+    "docs/**",
+    "**/*.md",
+    "sources/**",
+    "data/**"
+  ]
+}
