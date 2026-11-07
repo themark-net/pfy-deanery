@@ -29,7 +29,7 @@ PROMOTE I3. skill-up ran the cases end to end, wrote a with/without baseline, an
 
 ## Risks
 
-The case set cannot show a skill gain until a task fails without the skill. `keep_alive: 2m` is sent only when `/api/ps` `expires_at` matches the marker from our last request, so a stale marker does not refresh someone else's copy. Judge scripts are copied under `/tmp/skill-up-judge-*` even when TMPDIR is set. They were removed when the run ended. Bash is allowed inside the case workspace, so a model can still read a parent file if it tries. This is not a Feature GO.
+The case set cannot show a skill gain until a task fails without the skill. `keep_alive: 2m` is sent only when `/api/ps` `expires_at` matches the marker from our last request, so a stale marker does not refresh someone else's copy. If `/api/ps` cannot be read on the real Ollama URL, the adapter does not call the model. Judge scripts are copied under `/tmp/skill-up-judge-*` even when TMPDIR is set. They were removed when the run ended. Bash is allowed inside the case workspace, so a model can still read a parent file if it tries. This is not a Feature GO.
 
 ## Next gate
 

@@ -83,6 +83,20 @@ def _ollama_base() -> str:
     return os.environ.get("SKILLUP_OLLAMA_URL", OLLAMA_DEFAULT).rstrip("/")
 
 
+def _ps_required() -> bool:
+    """Do not call the real Ollama when /api/ps cannot be read.
+
+    A missed ps check can load qwen3.6:35b with no keep_alive. Tests set
+    SKILLUP_REQUIRE_PS=0 and point at a stub. SKILLUP_REQUIRE_PS=1 forces the check.
+    """
+    flag = os.environ.get("SKILLUP_REQUIRE_PS", "").strip()
+    if flag == "0":
+        return False
+    if flag == "1":
+        return True
+    return _ollama_base() in ("http://127.0.0.1:11434", "http://localhost:11434")
+
+
 def _get_json(url: str, timeout: float = 5) -> dict | None:
     req = urllib.request.Request(url, method="GET")
     try:
@@ -536,6 +550,8 @@ def _chat_fallback(session: dict, own: bool, started: float, why: str) -> dict:
         with _opener().open(req, timeout=60) as resp:
             payload = json.loads(resp.read().decode("utf-8", errors="replace"))
     except (urllib.error.URLError, TimeoutError, OSError, json.JSONDecodeError) as exc:
+        if own:
+            _remember_resident(model)
         return _result(
             1,
             "direct chat-completions agent (" + why + ") failed: " + type(exc).__name__,
@@ -583,6 +599,8 @@ def run_session(session: dict, skills_dir: str) -> dict:
                 "HOST-BUSY MemAvailable %s KiB is below gate %s KiB. Model was not called." % (have, gate),
                 started,
             )
+    if _ps_required() and _model_row(model) is None:
+        return _result(1, "Ollama /api/ps failed. Model was not called.", started)
     own = _we_own_model(model)
     if shutil.which("opencode") is None:
         return _chat_fallback(session, own, started, "opencode is not on PATH")

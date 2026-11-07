@@ -244,6 +244,44 @@ class AdapterTests(unittest.TestCase):
         self.assertEqual(data["exit_code"], 1)
         self.assertFalse(any(p.startswith("/v1/") or p.startswith("/api/chat") for p in hits))
 
+    def test_ps_failure_does_not_call_the_model(self):
+        hits = []
+
+        class Handler(BaseHTTPRequestHandler):
+            def log_message(self, fmt, *args):
+                return
+
+            def do_GET(self):
+                hits.append("GET " + self.path)
+                self.send_response(500)
+                self.end_headers()
+
+            def do_POST(self):
+                hits.append("POST " + self.path)
+                self.send_response(200)
+                self.end_headers()
+
+        server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            port = server.server_address[1]
+            ws = self.root / "ps-down"
+            ws.mkdir()
+            env = self._env(
+                PATH="/usr/bin:/bin",
+                SKILLUP_MEM_GATE_KIB="0",
+                SKILLUP_REQUIRE_PS="1",
+                SKILLUP_OLLAMA_URL="http://127.0.0.1:%s" % port,
+            )
+            proc = self._adapt(self._session(ws, "without_skill"), env)
+            data = self._result(proc)
+        finally:
+            server.shutdown()
+        self.assertIn("/api/ps failed", data["final_message"])
+        self.assertEqual(data["exit_code"], 1)
+        self.assertFalse(any(h.startswith("POST") for h in hits))
+
     def test_loaded_model_skips_the_preload_gate(self):
         bodies = []
 
