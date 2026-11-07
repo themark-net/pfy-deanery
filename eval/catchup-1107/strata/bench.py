@@ -210,9 +210,11 @@ def run_once(base, model, item, timeout, keep_alive):
     if item["kind"] == "tool":
         ok, why = _tool_ok(calls)
     else:
-        ok = bool(text) or (isinstance(completion_tokens, int) and completion_tokens > 0 and not raw_error)
-        why = "" if ok else (raw_error or "empty completion")
-    if raw_error and item["kind"] == "tool":
+        # A usage count with no reply text is not a completed answer. Reasoning
+        # models often hit max_tokens inside the thinking trace.
+        ok = bool(text)
+        why = "" if ok else "empty completion"
+    if raw_error:
         ok = False
         why = raw_error
     return {
@@ -225,8 +227,8 @@ def run_once(base, model, item, timeout, keep_alive):
         "completion_tokens": completion_tokens,
         "prompt_tok_s": prompt_tok_s,
         "decode_tok_s": decode_tok_s,
-        "valid": bool(ok) and not raw_error,
-        "valid_reason": why if not ok else "",
+        "valid": bool(ok),
+        "valid_reason": "" if ok else why,
         "error": raw_error,
         "text_head": text[:180],
         "tool_calls": [{"name": c["name"], "arguments": c["arguments"][:300]} for c in calls],

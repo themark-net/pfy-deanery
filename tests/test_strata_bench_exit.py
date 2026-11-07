@@ -102,6 +102,23 @@ class StrataBenchExitTest(unittest.TestCase):
         self.assertEqual(saved["summary"]["runs"], 2)
         out.unlink(missing_ok=True)
 
+    def test_usage_without_text_exits_1(self):
+        # completion_tokens > 0 used to count as a valid empty reply.
+        empty = _sse(
+            [
+                {"choices": [{"delta": {}}]},
+                {"usage": {"prompt_tokens": 8, "completion_tokens": 4}},
+            ]
+        )
+        base = self._serve([empty])
+        out = Path("/tmp") / ("strata-bench-usage-%s.json" % threading.get_ident())
+        proc = self._run(base, out, 1)
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        saved = json.loads(out.read_text())
+        self.assertEqual(saved["summary"]["valid_runs"], 0)
+        self.assertEqual(saved["runs"][0]["valid_reason"], "empty completion")
+        out.unlink(missing_ok=True)
+
     def test_short_completion_exits_0(self):
         good = _sse(
             [
