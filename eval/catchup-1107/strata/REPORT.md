@@ -8,7 +8,9 @@ Strata terminal v0.2.12 installed under `tmp/strata/` with `STRATA_DATA_DIR`, `S
 
 Ollama's `qwen3.6:35b` blob (`sha256-d372de8e934898a59e6ccfabc3368474711384d8f1fd4d22d87a3f0a45400cdc`) was left read-only. Strata refused it. The raw blob plan said model import needs a GGUF file or directory. A symlink named `qwen3.6-35b-q4_k_m.gguf` was refused as a model type the engine does not support. The trial then used Unsloth `qwen36` / `UD-Q4_K_XL` (22.9 GB class, the closest documented 4-bit pack). The file is 22853663008 bytes. Its sha256 is `55983c5a75a1ab969824077b3bb3de4146e82a9234072b48ad4e8f92ad3fe9f1`, matching the `.done` sidecar.
 
-`eval/catchup-1107/strata/bench.py` sent the same six prompts, three runs each, temperature 0, streaming, to both OpenAI-compatible servers. Ollama ran first with `keep_alive` `2m` because that model was not already loaded. Strata then served on `127.0.0.1:18158` (`--access local`, context 8k, vision off, parallel 1, MTP on, tune skip). The two engines were not loaded together. Tool validity means the first tool call is `get_weather` and its arguments parse as a JSON object.
+`eval/catchup-1107/strata/bench.py` sent the same six prompts, three runs each, temperature 0, streaming, to both OpenAI-compatible servers. Ollama ran first with `keep_alive` `2m` because that model was not already loaded. Strata then served on `127.0.0.1:18158` (`--access local`, context 8k, vision off, parallel 1, MTP on, tune skip). The two engines were not loaded together. Tool validity means the first tool call is `get_weather` and its arguments parse as a JSON object. The tool request set `tool_choice` to `required`.
+
+`plan-qwen36-ud-q4.json` is the plan from before the gfx1151 engine was installed. That plan names port 8080 and `engine_missing` true. The benched server was `127.0.0.1:18158` after the engine and the GGUF were on disk. `models-list.json` is the local-run list from before the pack existed. Its `model_count` is 0. The bench used the GGUF under gitignored `tmp/strata/models`.
 
 `./pfy launch --headless` then smoked that server with a fresh `PFY_STATE_DIR` under `tmp/`, and with `HOME`, `GROK_HOME`, and `XDG_*` under `tmp/pfy-strata-home`. The pin was the existing `LOCAL_OPENAI_BASE_URL` plus `PFY_LOCAL_RUNTIME=strata`. There is no `PFY_ENGINE=strata` and no `PFY_STRATA_BASE`. The session was stopped with `./pfy launch stop` on that same state dir. Strata was then stopped with `strata launch --stop` under the same `STRATA_*` env. Port 18158 was closed afterward. `ollama ps` was empty.
 
@@ -28,6 +30,8 @@ Decode ratio 51.86056934668894 / 61.70660442016066 = 0.840. The promote bar is 0
 The tool prompt returned `get_weather` with arguments `{"city":"Lisbon"}` on all three runs of both engines. That prompt counted 290 tokens on Ollama and 282 on Strata. The user text and the tool schema were the same. Each server wraps them in its own chat template.
 
 Ollama's long-prompt median (4027 tokens, about 13699 tok/s, TTFT 0.294 s) is a warm prefix cache. Run 1 was 518 tok/s and TTFT 7.77 s. Runs 2 and 3 were about 13700 tok/s. Strata's three long runs stayed about 848 to 862 tok/s with TTFT about 4.7 s. Short-prompt Strata prompt speed and TTFT beat Ollama. The promote gate is decode only, and decode fails on the short prompts as well.
+
+Ollama's first request loaded the model. `code-1` run 1 had TTFT 21.98 s and prompt speed 1.36 tok/s. Decode on that run was 59.35 tok/s. The load sits outside the decode span. The published figures are medians, so that one load does not set the decode number.
 
 pfy launch JSON: `ok` true, `smoke_ok` true, `smoke_field` `content`, `models_ok` true, `usable` true, model `qwen3.6-35b-a3b-ud-q4_k_xl`, base `http://127.0.0.1:18158/v1`, session `pfy-grok-cbe7a3`, pid 110677. Stop JSON: `stopped` true, live `STOPPED`, same pid. That pid was the grok this launch spawned. Operator state under `/home/mark/.pfy-mentat` was not used.
 

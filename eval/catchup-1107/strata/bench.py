@@ -324,7 +324,9 @@ def main(argv):
             med["runs"],
         )
     )
-    return 0 if med["valid_runs"] else 1
+    if not med["runs"] or med["valid_runs"] != med["runs"]:
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
