@@ -1,0 +1,19 @@
+{
+  "name": "TeaQL Agent Kit",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/167-teaql-agent-kit.md",
+  "github": "https://github.com/teaql/teaql-agent-kit",
+  "uses": "Agent context and verification policy patterns.",
+  "potential": "low",
+  "next_gate": "Pattern read only.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75"
+  ],
+  "evidence": [
+    "entry:sources/entries/167-teaql-agent-kit.md"
+  ],
+  "handoff_by": "llm"
+}

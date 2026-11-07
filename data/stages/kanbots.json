@@ -1,0 +1,33 @@
+{
+  "name": "kanbots",
+  "integration_stage": "I1",
+  "intent": "catalog_default",
+  "github": "https://github.com/leodavinci1/kanbots",
+  "next_gate": "Stage 0 already passed via npx. Stay I1 beside our loops.",
+  "catalog_tier": "A",
+  "catalog_overall": "81",
+  "catalog_tags": [
+    "#multi-agent",
+    "#kanban",
+    "#worktree",
+    "#mcp-compatible",
+    "#parallel",
+    "#opencode",
+    "#local-first",
+    "#ui"
+  ],
+  "catalog_github": "https://github.com/leodavinci1/kanbots",
+  "posture": [],
+  "evidence": [],
+  "tier_ceiling": "I1",
+  "uses": "Kanban that fans out to many coding CLIs in worktrees.",
+  "features": [
+    "kanban",
+    "worktrees"
+  ],
+  "potential": "medium",
+  "handoff_by": "llm",
+  "non_goals": [
+    "primary dispatcher"
+  ]
+}

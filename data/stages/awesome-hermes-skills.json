@@ -1,0 +1,28 @@
+{
+  "name": "awesome-hermes-skills",
+  "integration_stage": "I1",
+  "intent": "catalog_default",
+  "tier": "A",
+  "auto": true,
+  "catalog_tier": "A",
+  "catalog_overall": "89",
+  "catalog_tags": [
+    "#skills",
+    "#curated",
+    "#prompt-pack"
+  ],
+  "catalog_github": "https://github.com/ZeroPointRepo/awesome-hermes-skills",
+  "posture": [],
+  "evidence": [],
+  "tier_ceiling": "I1",
+  "uses": "A list of other people's skills.",
+  "features": [
+    "skill index"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1. Pull a skill only when a gap is named.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "import the whole list"
+  ]
+}

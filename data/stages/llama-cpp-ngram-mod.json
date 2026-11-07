@@ -1,0 +1,28 @@
+{
+  "name": "llama.cpp ngram-mod",
+  "integration_stage": "I1",
+  "intent": "catalog_default",
+  "github": "https://github.com/ggerganov/llama.cpp",
+  "next_gate": "Stay I1. Use upstream llama-server unless a speed smoke needs the patch.",
+  "catalog_tier": "A",
+  "catalog_overall": "89",
+  "catalog_tags": [
+    "#high-perf",
+    "#speculative-decoding",
+    "#local-first",
+    "#gguf"
+  ],
+  "catalog_github": "https://github.com/ggerganov/llama.cpp",
+  "posture": [],
+  "evidence": [],
+  "tier_ceiling": "I1",
+  "uses": "Speculative-decoding patch on llama.cpp.",
+  "features": [
+    "ngram draft"
+  ],
+  "potential": "medium",
+  "handoff_by": "llm",
+  "non_goals": [
+    "fork llama.cpp into this repo"
+  ]
+}

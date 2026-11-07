@@ -1,0 +1,19 @@
+{
+  "name": "Tracekit",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/141-tracekit.md",
+  "github": "https://github.com/Cygnux-Labs/Tracekit",
+  "uses": "Signed, policy-gated tool call records.",
+  "potential": "low",
+  "next_gate": "Security posture change; needs Tester and Reviewer. Post-MVP.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75"
+  ],
+  "evidence": [
+    "entry:sources/entries/141-tracekit.md"
+  ],
+  "handoff_by": "llm"
+}

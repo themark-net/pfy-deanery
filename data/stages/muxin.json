@@ -1,0 +1,19 @@
+{
+  "name": "Muxin",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/145-muxin.md",
+  "github": "https://github.com/LumaryLabsLLC/muxin",
+  "uses": "Fleet view MCP for Sysadmin.",
+  "potential": "low",
+  "next_gate": "Not on the pfy MVP path.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75"
+  ],
+  "evidence": [
+    "entry:sources/entries/145-muxin.md"
+  ],
+  "handoff_by": "llm"
+}

@@ -1,0 +1,33 @@
+{
+  "name": "Auto-Company",
+  "integration_stage": "I1",
+  "intent": "catalog_default",
+  "tier": "S",
+  "auto": true,
+  "catalog_tier": "S",
+  "catalog_overall": "4.7",
+  "catalog_tags": [
+    "#ai-company",
+    "#multi-agent-org",
+    "#consensus-memory",
+    "#persona-roles",
+    "#cycle-autonomy",
+    "#local-first"
+  ],
+  "catalog_github": "https://github.com/MaxMiksa/Auto-Company",
+  "posture": [],
+  "evidence": [],
+  "tier_ceiling": "I3",
+  "uses": "Company-daemon patterns worth extracting. Not a runtime to adopt.",
+  "features": [
+    "personas",
+    "consensus baton",
+    "pre-mortem gate"
+  ],
+  "potential": "medium",
+  "next_gate": "Extract a pattern into a skill, or stay I1.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "company daemon as primary runtime"
+  ]
+}

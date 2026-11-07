@@ -1,0 +1,30 @@
+{
+  "name": "LangGraph (LangChain)",
+  "integration_stage": "I1",
+  "intent": "catalog_default",
+  "tier": "A",
+  "auto": true,
+  "catalog_tier": "A",
+  "catalog_overall": "82",
+  "catalog_tags": [
+    "#agentic",
+    "#graph",
+    "#orchestration",
+    "#tool-calling",
+    "#rag"
+  ],
+  "catalog_github": "https://github.com/langchain-ai/langgraph",
+  "posture": [],
+  "evidence": [],
+  "tier_ceiling": "I1",
+  "uses": "Graph orchestration. Our loops already cover the operator path.",
+  "features": [
+    "stateful graphs"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "orchestration runtime"
+  ]
+}

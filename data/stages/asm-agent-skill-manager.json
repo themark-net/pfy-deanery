@@ -1,0 +1,32 @@
+{
+  "name": "asm (agent-skill-manager)",
+  "integration_stage": "I1",
+  "intent": "smoke_when_node",
+  "issues": [
+    26
+  ],
+  "catalog_tier": "A",
+  "catalog_overall": "91",
+  "catalog_tags": [
+    "#skills",
+    "#cli",
+    "#cross-agent",
+    "#security-audit",
+    "#local-first",
+    "#npm"
+  ],
+  "catalog_github": "https://github.com/luongnv89/asm",
+  "posture": [],
+  "evidence": [],
+  "tier_ceiling": "I1",
+  "uses": "Cross-agent skill installer. We already install Grok skills ourselves.",
+  "features": [
+    "skill audit"
+  ],
+  "potential": "medium",
+  "next_gate": "Stay I1 unless skill distribution across CLIs becomes a real gap.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "replace the Grok skill installer"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "gitai",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/144-gitai.md",
+  "github": "https://github.com/feder-cr/git-ai",
+  "uses": "CAS lands for many agents on one branch.",
+  "potential": "medium",
+  "next_gate": "LATER per entry: scratch trial after the MVP lands. Our FF races (build-review park) are the use case.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75"
+  ],
+  "evidence": [
+    "entry:sources/entries/144-gitai.md"
+  ],
+  "handoff_by": "llm"
+}

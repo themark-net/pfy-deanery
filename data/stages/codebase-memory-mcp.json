@@ -1,0 +1,33 @@
+{
+  "name": "codebase-memory-mcp",
+  "integration_stage": "I2",
+  "intent": "smoke_path",
+  "tier": "S",
+  "auto": true,
+  "catalog_tier": "S",
+  "catalog_overall": "91",
+  "catalog_tags": [
+    "#mcp-compatible",
+    "#code-memory",
+    "#local-first",
+    "#rag"
+  ],
+  "catalog_github": "https://github.com/DeusData/codebase-memory-mcp",
+  "posture": [],
+  "evidence": [
+    "make:smoke-codebase-memory",
+    "toolset"
+  ],
+  "tier_ceiling": "I3",
+  "uses": "Primary code-graph MCP and the code-graph toolset.",
+  "features": [
+    "mcp",
+    "code graph"
+  ],
+  "potential": "high",
+  "next_gate": "Smoke is the probe. Promote the card to I3 only when that smoke is the operator path of record.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "second primary graph"
+  ]
+}

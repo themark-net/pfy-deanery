@@ -1,0 +1,19 @@
+{
+  "name": "neatroots",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/137-neatroots.md",
+  "github": "https://github.com/neatlogs/neatroots",
+  "uses": "Offline trace rule checks (loops, repeated tool calls, error streaks) for eval runs.",
+  "potential": "medium",
+  "next_gate": "Needs a Grok Build or opencode trace export before it can check our runs. Trial after skill-up lands.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75"
+  ],
+  "evidence": [
+    "entry:sources/entries/137-neatroots.md"
+  ],
+  "handoff_by": "llm"
+}

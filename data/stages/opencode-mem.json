@@ -1,0 +1,29 @@
+{
+  "name": "opencode-mem",
+  "integration_stage": "I1",
+  "intent": "catalog_default",
+  "tier": "A",
+  "auto": true,
+  "catalog_tier": "A",
+  "catalog_overall": "83",
+  "catalog_tags": [
+    "#memory",
+    "#vector",
+    "#coding-agent",
+    "#local-first"
+  ],
+  "catalog_github": "https://github.com/tickernelz/opencode-mem",
+  "posture": [],
+  "evidence": [],
+  "tier_ceiling": "I1",
+  "uses": "Memory plugin for the OpenCode worker.",
+  "features": [
+    "worker memory"
+  ],
+  "potential": "medium",
+  "next_gate": "Stay I1 unless the worker smoke shows a context hole.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "replace codebase-memory"
+  ]
+}

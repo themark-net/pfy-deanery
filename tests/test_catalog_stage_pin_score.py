@@ -12,6 +12,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PIN = "pin:543e778ed24fbf3fc903eb961feb627039019832"
+
+
+def _stage_snapshot() -> dict[str, bytes]:
+    base = ROOT / "data" / "stages"
+    return {p.name: p.read_bytes() for p in sorted(base.glob("*.json"))}
 SCORED = "scored:86d1b890"
 
 
@@ -33,9 +38,8 @@ class CatalogStagePinScoreTests(unittest.TestCase):
         """Fail: recompute drops pin:FULLSHA and scored:SHORT.
         Recovery: both stay on the ATG evidence list.
         A pin or scored token that is not hex is not kept.
-        The stage file on disk is not written."""
-        stages = ROOT / "data" / "tool_integration_stages.json"
-        before = stages.read_bytes()
+        The stage files on disk are not written."""
+        before = _stage_snapshot()
         by = {row["name"]: row for row in self.mod.evaluations()}
         evidence = by["Atomic Task Graph (ATG)"]["evidence"]
         self.assertIn(PIN, evidence)
@@ -53,7 +57,7 @@ class CatalogStagePinScoreTests(unittest.TestCase):
         self.assertIn(SCORED, found)
         self.assertNotIn("pin:not-a-sha", found)
         self.assertNotIn("scored:nope", found)
-        self.assertEqual(stages.read_bytes(), before)
+        self.assertEqual(_stage_snapshot(), before)
 
 
 if __name__ == "__main__":

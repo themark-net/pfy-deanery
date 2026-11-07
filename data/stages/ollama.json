@@ -1,0 +1,34 @@
+{
+  "name": "Ollama",
+  "integration_stage": "I2",
+  "intent": "host_runtime",
+  "tier": "S",
+  "auto": true,
+  "catalog_tier": "S",
+  "catalog_overall": "92",
+  "catalog_tags": [
+    "#local-first",
+    "#consumer-hw",
+    "#openai-shim",
+    "#tool-calling",
+    "#apple-silicon",
+    "#nvidia"
+  ],
+  "catalog_github": "https://github.com/ollama/ollama",
+  "posture": [],
+  "evidence": [
+    "make:smoke-litellm-ollama"
+  ],
+  "tier_ceiling": "I3",
+  "uses": "Local OpenAI-compatible server. Named pfy start ollama checks health and the default model.",
+  "features": [
+    "openai shim",
+    "tool calling"
+  ],
+  "potential": "high",
+  "next_gate": "Stay a probe until product stage requires the smoke.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "preferred over FreeToken"
+  ]
+}

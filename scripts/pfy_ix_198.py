@@ -28,7 +28,6 @@ NEEDLES = (
 PRODUCT_FILES = (
     "TOOLS.md",
     "data/tools.json",
-    "data/tool_integration_stages.json",
     "data/toolsets.json",
     "pfy",
     "Makefile",
@@ -84,6 +83,9 @@ def claims_stage0_pass(text: str) -> bool:
 
 def product_hits() -> list[str]:
     files = [ROOT / rel for rel in PRODUCT_FILES]
+    stages = ROOT / "data" / "stages"
+    if stages.is_dir():
+        files.extend(p for p in stages.glob("*.json") if p.is_file())
     for rel in PRODUCT_DIRS:
         base = ROOT / rel
         if base.is_dir():

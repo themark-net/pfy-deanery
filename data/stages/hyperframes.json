@@ -1,0 +1,30 @@
+{
+  "name": "Hyperframes",
+  "integration_stage": "I1",
+  "intent": "catalog_default",
+  "tier": "S",
+  "auto": true,
+  "catalog_tier": "S",
+  "catalog_overall": "90",
+  "catalog_tags": [
+    "#skills",
+    "#multimodal",
+    "#video",
+    "#agent-native",
+    "#html"
+  ],
+  "catalog_github": "https://github.com/heygen-com/hyperframes",
+  "posture": [],
+  "evidence": [],
+  "tier_ceiling": "I3",
+  "uses": "HTML-to-video for agents. Not a product surface here.",
+  "features": [
+    "html to mp4"
+  ],
+  "potential": "medium",
+  "next_gate": "Stay I1 unless a doc or demo needs rendered video.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "product video pipeline"
+  ]
+}

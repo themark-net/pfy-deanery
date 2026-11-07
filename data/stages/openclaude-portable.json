@@ -1,0 +1,28 @@
+{
+  "name": "OpenClaude-Portable",
+  "integration_stage": "I1",
+  "intent": "catalog_default",
+  "tier": "A",
+  "auto": true,
+  "catalog_tier": "A",
+  "catalog_overall": "85",
+  "catalog_tags": [
+    "#coding-agent",
+    "#portable",
+    "#folder-based"
+  ],
+  "catalog_github": "https://github.com/techjarves/OpenClaude-Portable",
+  "posture": [],
+  "evidence": [],
+  "tier_ceiling": "I1",
+  "uses": "A portable Claude folder. We already point at the official installer.",
+  "features": [
+    "portable folder"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "second Claude install path"
+  ]
+}

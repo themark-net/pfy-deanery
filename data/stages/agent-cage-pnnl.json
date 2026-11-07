@@ -1,0 +1,36 @@
+{
+  "name": "agent-cage (PNNL)",
+  "integration_stage": "I3",
+  "intent": "primary_harness",
+  "tier": "S",
+  "auto": true,
+  "catalog_tier": "S",
+  "catalog_overall": "92",
+  "catalog_tags": [
+    "#docker",
+    "#sandbox",
+    "#mcp-compatible",
+    "#harness",
+    "#pipeline",
+    "#local-first"
+  ],
+  "catalog_github": "https://github.com/pnnl/agent-cage",
+  "posture": [],
+  "evidence": [
+    "make:cage-grok",
+    "path:harness/agent-cage"
+  ],
+  "tier_ceiling": "I3",
+  "uses": "Isolated lab for Grok, filesystem MCP, and policy smokes.",
+  "features": [
+    "docker sandbox",
+    "filesystem MCP"
+  ],
+  "potential": "high",
+  "next_gate": "Keep cage-grok smokes. Host and cage stay two trees.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "product surface",
+    "sell the cage"
+  ]
+}

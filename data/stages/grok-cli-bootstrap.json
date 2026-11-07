@@ -1,0 +1,35 @@
+{
+  "name": "Grok CLI bootstrap",
+  "integration_stage": "I3",
+  "intent": "first_party",
+  "tier": "S",
+  "auto": true,
+  "catalog_tier": "S",
+  "catalog_overall": "94",
+  "catalog_tags": [
+    "#grok-cli",
+    "#mcp-compatible",
+    "#code-memory",
+    "#pipeline",
+    "#local-first"
+  ],
+  "catalog_github": "this repo (`bootstrap/grok-cli/`)",
+  "posture": [],
+  "evidence": [
+    "make:smoke-grok-skills",
+    "path:bootstrap/grok-cli"
+  ],
+  "tier_ceiling": "I3",
+  "uses": "Operator env, skills install, cage Grok sessions.",
+  "features": [
+    "skills",
+    "mcp",
+    "cage path"
+  ],
+  "potential": "high",
+  "next_gate": "Keep smoke-grok-skills and cage-grok green.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "replace with AgenC"
+  ]
+}

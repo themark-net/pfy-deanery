@@ -1,0 +1,39 @@
+{
+  "name": "MUE-X",
+  "integration_stage": "I1",
+  "intent": "pattern_only",
+  "notes_doc": "docs/ops/mue-x-patterns.md",
+  "issues": [
+    28
+  ],
+  "catalog_tier": "A",
+  "catalog_overall": "81",
+  "catalog_tags": [
+    "#agentic",
+    "#self-evolving",
+    "#ast-mutation",
+    "#autonomous",
+    "#memory",
+    "#mcp-compatible",
+    "#self-modifying",
+    "#local-first"
+  ],
+  "catalog_github": "https://github.com/KorroAi/mue-x",
+  "posture": [],
+  "evidence": [
+    "notes_doc:docs/ops/mue-x-patterns.md"
+  ],
+  "tier_ceiling": "I1",
+  "uses": "Self-rewriting agent. Interesting pattern, unsafe as a runtime.",
+  "features": [
+    "ast mutation",
+    "memory layers"
+  ],
+  "potential": "ambiguous",
+  "next_gate": "Stay I1 until a mutation-safety note exists. Do not pin for adoption yet.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "unattended self-modify",
+    "primary runtime"
+  ]
+}

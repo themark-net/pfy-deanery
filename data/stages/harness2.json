@@ -1,0 +1,43 @@
+{
+  "name": "harness2",
+  "integration_stage": "I1",
+  "intent": "staged_evaluation",
+  "github": "https://github.com/google-research/harness2",
+  "notes_doc": "examples/harness2-local/README.md",
+  "pinned_commit": "1cfe254e8d25b15f37048c3730134686abe60335",
+  "non_goals": [
+    "feature_go",
+    "I3",
+    "proposal_branch_on_a_failed_gate",
+    "vertex_or_paid_keys",
+    "catalog_hold_70_75"
+  ],
+  "catalog_tier": "C",
+  "catalog_overall": "59",
+  "catalog_tags": [
+    "#agentic",
+    "#local-first",
+    "#opencode",
+    "#sandbox",
+    "#paper-based",
+    "#I1"
+  ],
+  "catalog_github": "https://github.com/google-research/harness2",
+  "posture": [
+    "i1_staged"
+  ],
+  "evidence": [
+    "pipelines/dogfood/harness2-local/receipt.json",
+    "notes_doc:sources/entries/136-harness2.md"
+  ],
+  "tier_ceiling": "I1",
+  "uses": "Local harness edit trial on the 48-case decision set, sandboxed OpenCode, own llama-server.",
+  "features": [
+    "pinned stage",
+    "one-port sandbox",
+    "chain driver",
+    "proposal gate that does not merge"
+  ],
+  "potential": "medium",
+  "next_gate": "Stay I1. I3 only after a proposal gate pass (gain at least 2 on the 16 held-out cases) and a human merge. This trial's gain was 0."
+}

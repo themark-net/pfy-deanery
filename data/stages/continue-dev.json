@@ -1,0 +1,34 @@
+{
+  "name": "Continue.dev",
+  "integration_stage": "I1",
+  "intent": "catalog_default",
+  "tier": "S",
+  "auto": true,
+  "catalog_tier": "S",
+  "catalog_overall": "90",
+  "catalog_tags": [
+    "#ide-integration",
+    "#coding-agent",
+    "#local-first",
+    "#tool-calling",
+    "#vs"
+  ],
+  "catalog_github": "https://github.com/continuedev/continue",
+  "posture": [],
+  "evidence": [
+    "path:bootstrap/continue"
+  ],
+  "tier_ceiling": "I3",
+  "uses": "IDE recipe pointed at the local OpenAI base. Not a CLI we exec.",
+  "features": [
+    "ide",
+    "autocomplete"
+  ],
+  "potential": "medium",
+  "next_gate": "Operator copies the generated config. I3 only if someone actually uses it.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "exec the IDE",
+    "vendor Continue"
+  ]
+}

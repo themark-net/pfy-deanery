@@ -1,0 +1,33 @@
+{
+  "name": "gstack",
+  "integration_stage": "I1",
+  "intent": "catalog_default",
+  "tier": "A",
+  "auto": true,
+  "catalog_tier": "A",
+  "catalog_overall": "88",
+  "catalog_tags": [
+    "#skills",
+    "#multi-agent",
+    "#roles",
+    "#workflow"
+  ],
+  "catalog_github": "https://github.com/garrytan/gstack",
+  "posture": [
+    "docs_only",
+    "pattern_only"
+  ],
+  "evidence": [],
+  "tier_ceiling": "I1",
+  "uses": "Role patterns already ported in docs. Do not clone the repo.",
+  "features": [
+    "roles"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1, patterns only.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "clone garrytan/gstack",
+    "raw skill install"
+  ]
+}

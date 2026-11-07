@@ -1,0 +1,8 @@
+{
+  "version": "1.3",
+  "policy": "docs/ops/integration-stages.md",
+  "default_stage": "I1",
+  "probe_path": "tools/_probe/",
+  "coverage": "85 tools registered",
+  "handoff": "data/catalog_stage_handoff.json"
+}

@@ -1,0 +1,30 @@
+{
+  "name": "MLX + MLX-LM",
+  "integration_stage": "I1",
+  "intent": "catalog_default",
+  "tier": "A",
+  "auto": true,
+  "catalog_tier": "A",
+  "catalog_overall": "82",
+  "catalog_tags": [
+    "#apple-silicon",
+    "#high-perf",
+    "#quantized",
+    "#local-first"
+  ],
+  "catalog_github": "https://github.com/ml-explore/mlx (mlx-lm)",
+  "posture": [],
+  "evidence": [],
+  "tier_ceiling": "I1",
+  "uses": "Apple Silicon server. This lab is Linux.",
+  "features": [
+    "apple silicon",
+    "quantized"
+  ],
+  "potential": "medium",
+  "next_gate": "Stay I1 on this machine.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "linux default runtime"
+  ]
+}

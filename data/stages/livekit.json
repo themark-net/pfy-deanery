@@ -1,0 +1,10 @@
+{
+  "name": "LiveKit",
+  "integration_stage": "I0",
+  "intent": "ref_only",
+  "notes_doc": "docs/ops/voice-stack-stage0-ref.md",
+  "entry": "sources/entries/151-livekit.md",
+  "issues": [
+    10
+  ]
+}

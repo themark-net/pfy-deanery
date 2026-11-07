@@ -1,0 +1,31 @@
+{
+  "name": "repowise",
+  "integration_stage": "I2",
+  "intent": "smoke_path",
+  "tier": "A",
+  "auto": true,
+  "catalog_tier": "A",
+  "catalog_overall": "88",
+  "catalog_tags": [
+    "#context",
+    "#token-efficiency",
+    "#coding-agent",
+    "#local-first"
+  ],
+  "catalog_github": "https://github.com/repowise-dev/repowise",
+  "posture": [],
+  "evidence": [
+    "make:smoke-repowise"
+  ],
+  "tier_ceiling": "I1",
+  "uses": "Context packing probe. Overlaps codebase-memory.",
+  "features": [
+    "token context"
+  ],
+  "potential": "medium",
+  "next_gate": "Keep smoke-repowise as a probe.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "primary code memory"
+  ]
+}

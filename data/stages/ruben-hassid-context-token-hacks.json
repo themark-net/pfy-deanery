@@ -1,0 +1,28 @@
+{
+  "name": "Ruben Hassid context/token hacks",
+  "integration_stage": "I0",
+  "intent": "watch",
+  "tier": "B",
+  "auto": true,
+  "catalog_tier": "B",
+  "catalog_overall": "77",
+  "catalog_tags": [
+    "#token-efficiency",
+    "#prompt",
+    "#workflow"
+  ],
+  "catalog_github": "https://x.com/i/status/2075807299638014212",
+  "posture": [],
+  "evidence": [],
+  "tier_ceiling": "I1",
+  "uses": "Token-saving prompts. Not a tool we run.",
+  "features": [
+    "prompt notes"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I0.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "runtime dependency"
+  ]
+}

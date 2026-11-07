@@ -1,0 +1,31 @@
+{
+  "name": "Aider",
+  "integration_stage": "I1",
+  "intent": "catalog_default",
+  "tier": "A",
+  "auto": true,
+  "catalog_tier": "A",
+  "catalog_overall": "87",
+  "catalog_tags": [
+    "#terminal",
+    "#git-native",
+    "#coding-agent",
+    "#local-first",
+    "#headless"
+  ],
+  "catalog_github": "https://github.com/paul-gauthier/aider",
+  "posture": [],
+  "evidence": [],
+  "tier_ceiling": "I1",
+  "uses": "Git-native terminal editor. Overlaps OpenCode and Grok.",
+  "features": [
+    "git edits",
+    "headless"
+  ],
+  "potential": "medium",
+  "next_gate": "Stay I1 unless headless git edit is a gap the current CLIs miss.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "second primary coding CLI"
+  ]
+}

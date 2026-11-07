@@ -1,0 +1,19 @@
+{
+  "name": "Emdash",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/158-emdash.md",
+  "github": "https://github.com/generalaction/emdash",
+  "uses": "Parallel agents GUI, one worktree each.",
+  "potential": "low",
+  "next_gate": "Comparison only.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75"
+  ],
+  "evidence": [
+    "entry:sources/entries/158-emdash.md"
+  ],
+  "handoff_by": "llm"
+}

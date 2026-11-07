@@ -1,0 +1,19 @@
+{
+  "name": "Elephant-Goldfish Model",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/165-egm.md",
+  "github": "https://github.com/google/elephant-goldfish-model",
+  "uses": "Fresh-eyes spec review before Build starts.",
+  "potential": "medium",
+  "next_gate": "Next pick after the three trials: run /egm-review on one Build drop-in in an isolated profile.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75"
+  ],
+  "evidence": [
+    "entry:sources/entries/165-egm.md"
+  ],
+  "handoff_by": "llm"
+}

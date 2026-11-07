@@ -1,0 +1,19 @@
+{
+  "name": "RoBrain",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/155-robrain.md",
+  "github": "https://github.com/adelinamart/robrain",
+  "uses": "Decision memory with vetoes.",
+  "potential": "medium",
+  "next_gate": "Post-MVP; needs Postgres + pgvector.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75"
+  ],
+  "evidence": [
+    "entry:sources/entries/155-robrain.md"
+  ],
+  "handoff_by": "llm"
+}

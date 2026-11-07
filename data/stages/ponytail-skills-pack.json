@@ -1,0 +1,31 @@
+{
+  "name": "ponytail (skills pack)",
+  "integration_stage": "I1",
+  "intent": "catalog_default",
+  "tier": "A",
+  "auto": true,
+  "catalog_tier": "A",
+  "catalog_overall": "86",
+  "catalog_tags": [
+    "#terminal",
+    "#coding-agent",
+    "#local-first",
+    "#grok-cli"
+  ],
+  "catalog_github": "https://github.com/DietrichGebert/ponytail",
+  "posture": [],
+  "evidence": [
+    "path:bootstrap/grok-cli/skills-external/ponytail"
+  ],
+  "tier_ceiling": "I1",
+  "uses": "YAGNI skill pack already under skills-external.",
+  "features": [
+    "skills"
+  ],
+  "potential": "high",
+  "next_gate": "I3 only if smoke-grok-skills asserts this pack loads.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "product runtime"
+  ]
+}

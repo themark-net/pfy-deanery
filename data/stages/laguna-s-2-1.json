@@ -1,0 +1,39 @@
+{
+  "name": "Laguna S 2.1",
+  "integration_stage": "I1",
+  "intent": "eval_under_250gb_pool",
+  "notes_doc": "docs/ops/laguna-local-dod.md",
+  "issues": [
+    13,
+    25
+  ],
+  "catalog_tier": "S",
+  "catalog_overall": "91",
+  "catalog_tags": [
+    "#moe",
+    "#agentic-coding",
+    "#open-weights",
+    "#1m-context",
+    "#local-first",
+    "#gguf",
+    "#mlx"
+  ],
+  "catalog_github": "https://huggingface.co/poolside/Laguna-S-2.1",
+  "posture": [],
+  "evidence": [
+    "notes_doc:docs/ops/laguna-local-dod.md"
+  ],
+  "tier_ceiling": "I3",
+  "uses": "Large local coding weights, when a machine can hold them.",
+  "features": [
+    "moe",
+    "gguf"
+  ],
+  "potential": "medium",
+  "next_gate": "Stay I1 until one GGUF smoke runs on a real machine.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "weights in the repo",
+    "default model"
+  ]
+}

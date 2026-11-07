@@ -1,0 +1,19 @@
+{
+  "name": "Chiasmus",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/140-chiasmus.md",
+  "github": "https://github.com/yogthos/chiasmus",
+  "uses": "Call-graph impact and Z3/Prolog checks over a diff; candidate impact source for ./pfy build per-file review.",
+  "potential": "medium",
+  "next_gate": "Overlaps codebase-memory-mcp (primary impact source). Trial only if CM impact output proves weak on pfy's own diffs.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75"
+  ],
+  "evidence": [
+    "entry:sources/entries/140-chiasmus.md"
+  ],
+  "handoff_by": "llm"
+}

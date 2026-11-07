@@ -1,0 +1,30 @@
+{
+  "name": "Camofox Browser",
+  "integration_stage": "I1",
+  "intent": "catalog_default",
+  "tier": "A",
+  "auto": true,
+  "catalog_tier": "A",
+  "catalog_overall": "87",
+  "catalog_tags": [
+    "#browser",
+    "#anti-detection",
+    "#mcp-compatible",
+    "#agent-tool",
+    "#local-first"
+  ],
+  "catalog_github": "https://github.com/jo-inc/camofox-browser",
+  "posture": [],
+  "evidence": [],
+  "tier_ceiling": "I1",
+  "uses": "Stealth browser for agents. Browser automation is not core.",
+  "features": [
+    "fingerprint browser"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "browser-use as core"
+  ]
+}

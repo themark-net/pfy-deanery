@@ -21,6 +21,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from pfylib.stage_registry import load_stages, write_registry, write_tool  # noqa: E402
+
 def _catalog_check():
     spec = importlib.util.spec_from_file_location("catalog_check", ROOT / "scripts" / "catalog_check.py")
     mod = importlib.util.module_from_spec(spec)
@@ -31,7 +33,7 @@ _cc = _catalog_check()
 CARD = _cc.CARD
 tools_md_names = _cc.tools_md_names
 
-STAGES_PATH = ROOT / "data" / "tool_integration_stages.json"
+STAGES_ROOT = ROOT
 HANDOFF_PATH = ROOT / "data" / "catalog_stage_handoff.json"
 METHODS_PATH = ROOT / "data" / "catalog_stage_methods.json"
 TOOLS_MD = ROOT / "TOOLS.md"
@@ -233,7 +235,7 @@ def evidence_for(name: str, card: dict, makefile: str, toolset_names: set[str]) 
 
 
 def load() -> tuple[dict, dict, str]:
-    stages = json.loads(STAGES_PATH.read_text(encoding="utf-8"))
+    stages = load_stages(STAGES_ROOT)
     handoff = json.loads(HANDOFF_PATH.read_text(encoding="utf-8"))
     makefile = MAKEFILE.read_text(encoding="utf-8", errors="replace") if MAKEFILE.is_file() else ""
     return stages, handoff, makefile
@@ -279,6 +281,7 @@ def evaluations() -> list[dict]:
 def apply() -> int:
     stages, handoff, _makefile = load()
     cards = stages["tools"]
+    before = {name: json.dumps(card, sort_keys=True) for name, card in cards.items()}
     missing = []
     for ev in evaluations():
         name = ev["name"]
@@ -310,9 +313,12 @@ def apply() -> int:
     if missing:
         print("FAIL no stage card: %s" % missing)
         return 1
-    # Keep the stamp already on the file. Do not rewind last_updated.
+    # Keep the stamp already on the cards or in git. Do not rewind last_updated.
     stages["handoff"] = "data/catalog_stage_handoff.json"
-    STAGES_PATH.write_text(json.dumps(stages, indent=2) + "\n", encoding="utf-8")
+    for name, card in cards.items():
+        if json.dumps(card, sort_keys=True) != before.get(name):
+            write_tool(STAGES_ROOT, name, card)
+    write_registry(STAGES_ROOT, {k: v for k, v in stages.items() if k not in ("tools", "last_updated")})
     methods = {
         "deterministic": {
             "attributes": DETERMINISTIC,

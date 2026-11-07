@@ -1,0 +1,28 @@
+{
+  "name": "destructive_command_guard",
+  "integration_stage": "I1",
+  "intent": "catalog_default",
+  "tier": "A",
+  "auto": true,
+  "catalog_tier": "A",
+  "catalog_overall": "84",
+  "catalog_tags": [
+    "#security",
+    "#guardrail",
+    "#coding-agent"
+  ],
+  "catalog_github": "https://github.com/Dicklesworthstone/destructive_command_guard",
+  "posture": [],
+  "evidence": [],
+  "tier_ceiling": "I1",
+  "uses": "Blocks destructive shell commands. Overlaps write-guard.",
+  "features": [
+    "shell guard"
+  ],
+  "potential": "medium",
+  "next_gate": "Stay I1 unless write-guard's shell coverage is shown to be a hole.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "replace write-guard"
+  ]
+}

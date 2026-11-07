@@ -1,0 +1,19 @@
+{
+  "name": "Kanzo",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/156-kanzo.md",
+  "github": "https://github.com/emanuele-em/kanzo",
+  "uses": "Local kanban + MCP.",
+  "potential": "low",
+  "next_gate": "AGPL-3.0; run queue alternative post-MVP only.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75"
+  ],
+  "evidence": [
+    "entry:sources/entries/156-kanzo.md"
+  ],
+  "handoff_by": "llm"
+}

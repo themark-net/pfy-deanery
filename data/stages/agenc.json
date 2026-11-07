@@ -1,0 +1,38 @@
+{
+  "name": "AgenC",
+  "integration_stage": "I0",
+  "intent": "demoted_adr0010",
+  "notes_doc": "docs/ops/agenc-reeval-stance.md",
+  "issues": [
+    14
+  ],
+  "catalog_tier": "B",
+  "catalog_overall": "78",
+  "catalog_tags": [
+    "#coding-agent",
+    "#terminal",
+    "#daemon",
+    "#mcp-compatible",
+    "#watch"
+  ],
+  "catalog_github": "https://github.com/tetsuo-ai/agenc-core",
+  "posture": [
+    "reference_only"
+  ],
+  "evidence": [
+    "path:bootstrap/agenc",
+    "notes_doc:docs/ops/agenc-reeval-stance.md"
+  ],
+  "tier_ceiling": "I0",
+  "uses": "Watch a daemon coding agent. Do not run it as the operator.",
+  "features": [
+    "terminal daemon"
+  ],
+  "potential": "low",
+  "next_gate": "Re-open only if a scored gap beats Grok plus cage.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "primary runtime",
+    "default remote login"
+  ]
+}

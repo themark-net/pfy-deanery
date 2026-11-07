@@ -1,0 +1,19 @@
+{
+  "name": "HiRoute",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/147-hiroute.md",
+  "github": "https://github.com/higress-group/HiRoute",
+  "uses": "Difficulty router: cheap turns to the local model.",
+  "potential": "medium",
+  "next_gate": "After the Strata trial picks the local engine; compare with magpie (163) and HarnessRouter (123).",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75"
+  ],
+  "evidence": [
+    "entry:sources/entries/147-hiroute.md"
+  ],
+  "handoff_by": "llm"
+}

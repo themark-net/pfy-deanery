@@ -1,0 +1,35 @@
+{
+  "name": "Finn Loop / eval-loop / 8-exits patterns",
+  "integration_stage": "I1",
+  "intent": "catalog_default",
+  "tier": "A",
+  "auto": true,
+  "catalog_tier": "A",
+  "catalog_overall": "91",
+  "catalog_tags": [
+    "#agentic",
+    "#loops",
+    "#evaluation",
+    "#human-in-loop",
+    "#stop-conditions",
+    "#exits"
+  ],
+  "catalog_github": "docs / X Entries 024 · 027 · 031 · 032 · **068**",
+  "posture": [],
+  "evidence": [
+    "path:bootstrap/grok-cli/skills/agent-loops",
+    "toolset"
+  ],
+  "tier_ceiling": "I1",
+  "uses": "Exit cards and loop types, already the orchestration toolset.",
+  "features": [
+    "8 exits",
+    "agent-loops skill"
+  ],
+  "potential": "high",
+  "next_gate": "Card can move to I3 when the skill smoke is the record, not before.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "a second loop runtime"
+  ]
+}

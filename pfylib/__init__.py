@@ -6,6 +6,7 @@ Named ``pfylib`` because the repo root already has an executable file ``pfy``;
 
 Modules:
   registry  -- load data/harnesses.json + data/toolsets.json; validate shape
+  stage_registry -- one data/stages/<slug>.json per tool; load_stages() is the old document
   toolsets  -- matrix() / plan() / apply(); planners wrap scripts/pfy_*_NNN.py via _legacy (T-0121)
   hedge     -- deterministic local-first lane policy + ledger
   loop_paint -- Loop UI fragment: modules + local/cloud hedge (not a harness picker)

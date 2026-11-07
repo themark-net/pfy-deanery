@@ -1,0 +1,29 @@
+{
+  "name": "Jamon Holmgren agentic setup",
+  "integration_stage": "I1",
+  "intent": "catalog_default",
+  "tier": "A",
+  "auto": true,
+  "catalog_tier": "A",
+  "catalog_overall": "81",
+  "catalog_tags": [
+    "#workflow",
+    "#harness",
+    "#agents-md",
+    "#process"
+  ],
+  "catalog_github": "https://x.com/i/status/2076001786700394610",
+  "posture": [],
+  "evidence": [],
+  "tier_ceiling": "I1",
+  "uses": "One public workflow post. Process kit already covers AGENTS.md.",
+  "features": [
+    "workflow notes"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "copy the whole setup"
+  ]
+}

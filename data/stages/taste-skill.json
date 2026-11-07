@@ -1,0 +1,19 @@
+{
+  "name": "taste-skill",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/143-taste-skill.md",
+  "github": "https://github.com/Leonxlnx/taste-skill",
+  "uses": "Design slop lint plus browser layout check.",
+  "potential": "low",
+  "next_gate": "Design gate for operator UI after the Tauri window is built.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75"
+  ],
+  "evidence": [
+    "entry:sources/entries/143-taste-skill.md"
+  ],
+  "handoff_by": "llm"
+}

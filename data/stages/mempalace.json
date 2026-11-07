@@ -1,0 +1,19 @@
+{
+  "name": "MemPalace",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/149-mempalace.md",
+  "github": "https://github.com/MemPalace/mempalace",
+  "uses": "Verbatim local memory with scoped search.",
+  "potential": "medium",
+  "next_gate": "Post-MVP memory slot bake-off against 108 and 132.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75"
+  ],
+  "evidence": [
+    "entry:sources/entries/149-mempalace.md"
+  ],
+  "handoff_by": "llm"
+}

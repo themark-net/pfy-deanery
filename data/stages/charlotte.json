@@ -1,0 +1,19 @@
+{
+  "name": "Charlotte",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/142-charlotte.md",
+  "github": "https://github.com/TickTockBent/charlotte",
+  "uses": "Token-bounded browser pages for local models.",
+  "potential": "low",
+  "next_gate": "No MVP browsing path. Post-MVP.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75"
+  ],
+  "evidence": [
+    "entry:sources/entries/142-charlotte.md"
+  ],
+  "handoff_by": "llm"
+}

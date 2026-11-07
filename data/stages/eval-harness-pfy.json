@@ -1,0 +1,33 @@
+{
+  "name": "eval-harness (pfy)",
+  "integration_stage": "I1",
+  "intent": "catalog_default",
+  "tier": "A",
+  "auto": true,
+  "catalog_tier": "A",
+  "catalog_overall": "89",
+  "catalog_tags": [
+    "#evaluation",
+    "#pipeline",
+    "#local-first",
+    "#litellm-ready"
+  ],
+  "catalog_github": "this repo (`examples/eval-harness/`)",
+  "posture": [],
+  "evidence": [
+    "make:eval-structural",
+    "path:examples/eval-harness"
+  ],
+  "tier_ceiling": "I1",
+  "uses": "First-party structural and integration ladder.",
+  "features": [
+    "eval",
+    "scorers"
+  ],
+  "potential": "high",
+  "next_gate": "Keep make eval-structural green.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "a second eval framework"
+  ]
+}

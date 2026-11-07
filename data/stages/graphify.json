@@ -1,0 +1,34 @@
+{
+  "name": "Graphify",
+  "integration_stage": "I0",
+  "intent": "watch",
+  "tier": "B",
+  "auto": true,
+  "catalog_tier": "B",
+  "catalog_overall": "80",
+  "catalog_tags": [
+    "#code-memory",
+    "#graph",
+    "#tree-sitter",
+    "#mcp-compatible",
+    "#local-first"
+  ],
+  "catalog_github": "https://github.com/Graphify-Labs/graphify",
+  "posture": [
+    "not_integrated",
+    "reference_only"
+  ],
+  "evidence": [],
+  "tier_ceiling": "I0",
+  "uses": "Reference tree-sitter graph. Not the code memory we run.",
+  "features": [
+    "tree-sitter edges"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I0 unless a cage smoke beats codebase-memory.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "primary code graph",
+    "install by default"
+  ]
+}

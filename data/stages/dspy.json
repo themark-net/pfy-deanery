@@ -1,0 +1,31 @@
+{
+  "name": "DSPy",
+  "integration_stage": "I1",
+  "intent": "catalog_default",
+  "tier": "A",
+  "auto": true,
+  "catalog_tier": "A",
+  "catalog_overall": "85",
+  "catalog_tags": [
+    "#agentic",
+    "#optimizer",
+    "#pipeline",
+    "#litellm-ready",
+    "#reasoning"
+  ],
+  "catalog_github": "https://github.com/stanfordnlp/dspy",
+  "posture": [],
+  "evidence": [],
+  "tier_ceiling": "I1",
+  "uses": "Optimize prompts when an eval shows a reliability hole.",
+  "features": [
+    "optimizers",
+    "pipelines"
+  ],
+  "potential": "medium",
+  "next_gate": "One eval task, or stay I1.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "product runtime"
+  ]
+}

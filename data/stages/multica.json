@@ -1,0 +1,32 @@
+{
+  "name": "Multica",
+  "integration_stage": "I1",
+  "intent": "catalog_default",
+  "tier": "A",
+  "auto": true,
+  "catalog_tier": "A",
+  "catalog_overall": "88",
+  "catalog_tags": [
+    "#multi-agent",
+    "#orchestration",
+    "#workflow",
+    "#skills",
+    "#self-host",
+    "#docker"
+  ],
+  "catalog_github": "https://github.com/multica-ai/multica",
+  "posture": [],
+  "evidence": [],
+  "tier_ceiling": "I1",
+  "uses": "Multi-agent board. Not our orchestrator.",
+  "features": [
+    "board",
+    "docker"
+  ],
+  "potential": "medium",
+  "next_gate": "Stay I1. Compare patterns only.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "primary orchestrator"
+  ]
+}

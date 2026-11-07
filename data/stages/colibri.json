@@ -1,0 +1,39 @@
+{
+  "name": "colibri",
+  "integration_stage": "I1",
+  "intent": "eval_under_250gb_pool",
+  "notes_doc": "docs/ops/local-model-storage-and-eval.md",
+  "issues": [
+    24
+  ],
+  "non_goals": [
+    "weights in git",
+    "weights in the repo"
+  ],
+  "catalog_tier": "A",
+  "catalog_overall": "86",
+  "catalog_tags": [
+    "#inference-engine",
+    "#moe",
+    "#cpu-only",
+    "#low-ram",
+    "#openai-shim",
+    "#local-first"
+  ],
+  "catalog_github": "https://github.com/JustVugg/colibri",
+  "posture": [
+    "no_weights"
+  ],
+  "evidence": [
+    "notes_doc:docs/ops/local-model-storage-and-eval.md"
+  ],
+  "tier_ceiling": "I1",
+  "uses": "Low-RAM MoE server to try later inside the cage.",
+  "features": [
+    "cpu moe",
+    "openai shim"
+  ],
+  "potential": "medium",
+  "next_gate": "T-0016: serve plus LiteLLM in the cage, or stay I1.",
+  "handoff_by": "llm"
+}

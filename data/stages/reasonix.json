@@ -1,0 +1,19 @@
+{
+  "name": "Reasonix",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/164-reasonix.md",
+  "github": "https://github.com/esengine/DeepSeek-Reasonix",
+  "uses": "DeepSeek-native coding agent.",
+  "potential": "low",
+  "next_gate": "Comparison only.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75"
+  ],
+  "evidence": [
+    "entry:sources/entries/164-reasonix.md"
+  ],
+  "handoff_by": "llm"
+}

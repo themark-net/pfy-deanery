@@ -1,0 +1,33 @@
+{
+  "name": "LiteLLM",
+  "integration_stage": "I2",
+  "intent": "smoke_path",
+  "tier": "S",
+  "auto": true,
+  "catalog_tier": "S",
+  "catalog_overall": "93",
+  "catalog_tags": [
+    "#litellm-ready",
+    "#openai-shim",
+    "#grok-cli",
+    "#multi-llm",
+    "#proxy"
+  ],
+  "catalog_github": "https://github.com/BerriAI/litellm",
+  "posture": [],
+  "evidence": [
+    "make:smoke-litellm-ollama"
+  ],
+  "tier_ceiling": "I3",
+  "uses": "One OpenAI-compatible proxy for Grok and local models.",
+  "features": [
+    "proxy",
+    "fallbacks"
+  ],
+  "potential": "high",
+  "next_gate": "Keep smoke-litellm-ollama as a probe, not a required product lever.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "vendor the server into the repo"
+  ]
+}

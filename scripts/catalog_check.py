@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ADR-0015: tools.json is a slim machine subset of TOOLS.md.
 ADR-0017: catalog <-> implementation link between tools.json and data/toolsets.json.
-T-0005: every TOOLS.md row has a stage card in data/tool_integration_stages.json.
+T-0005: every TOOLS.md row has a stage card under data/stages/<slug>.json.
 
 Exit 0 if
   1. every JSON tool name appears in TOOLS.md (does not require row counts to match);
@@ -24,8 +24,9 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from pfylib import registry  # noqa: E402
+from pfylib.stage_registry import VALID_STAGES, load_stages, validate_stage_files  # noqa: E402
 
-STAGES = ("I0", "I1", "I2", "I3", "I4")
+STAGES = VALID_STAGES
 CARD = ("uses", "features", "potential", "non_goals", "next_gate")
 ROW_RE = re.compile(r"^\| \*\*([^*]+)\*\*([^|]*)\|", re.M)
 ENTRY_NUM_RE = re.compile(r"^(\d{3})-.+\.md$")
@@ -85,12 +86,20 @@ def main(argv: list[str] | None = None) -> int:
     entries_dir = Path(raw_entries).expanduser() if raw_entries else None
 
     tools = json.loads((ROOT / "data/tools.json").read_text())
-    stages_doc = json.loads((ROOT / "data/tool_integration_stages.json").read_text())
+    stage_problems = validate_stage_files(ROOT)
+    problems: list[str] = entry_number_collisions(entries_dir)
+    problems.extend(stage_problems)
+    try:
+        stages_doc = load_stages(ROOT)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        stages_doc = {"tools": {}}
+        text = str(exc)
+        if not any(text in item or item in text for item in stage_problems):
+            problems.append("stage registry: %s" % text)
     stage_rows = stages_doc.get("tools") or {}
     md = (ROOT / "TOOLS.md").read_text(encoding="utf-8", errors="replace")
     catalog_names = tools_md_names(md, set(stage_rows))
     rows = tools.get("tools") or []
-    problems: list[str] = entry_number_collisions(entries_dir)
 
     missing_stage = [n for n in catalog_names if n not in stage_rows]
     if missing_stage:

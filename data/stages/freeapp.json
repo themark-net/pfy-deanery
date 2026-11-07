@@ -1,0 +1,19 @@
+{
+  "name": "freeapp",
+  "integration_stage": "I0",
+  "intent": "ref_only",
+  "entry": "sources/entries/152-freeapp.md",
+  "github": "https://www.freeapp.ai/",
+  "uses": "Paid voice coding product; reference only.",
+  "potential": "low",
+  "next_gate": "Stage-0 FAIL. Stay I0.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75"
+  ],
+  "evidence": [
+    "entry:sources/entries/152-freeapp.md"
+  ],
+  "handoff_by": "llm"
+}

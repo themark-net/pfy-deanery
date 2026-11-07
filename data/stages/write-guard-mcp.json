@@ -1,0 +1,35 @@
+{
+  "name": "write-guard-mcp",
+  "integration_stage": "I3",
+  "intent": "first_party",
+  "tier": "S",
+  "auto": true,
+  "catalog_tier": "S",
+  "catalog_overall": "90",
+  "catalog_tags": [
+    "#mcp-compatible",
+    "#security",
+    "#filesystem",
+    "#audit",
+    "#local-first"
+  ],
+  "catalog_github": "this repo (`harness/write-guard-mcp/`)",
+  "posture": [],
+  "evidence": [
+    "make:smoke-write-guard",
+    "path:harness/write-guard-mcp"
+  ],
+  "tier_ceiling": "I3",
+  "uses": "First-party write mediation above the cage mount.",
+  "features": [
+    "audit",
+    "enforce"
+  ],
+  "potential": "high",
+  "next_gate": "Keep smoke-write-guard. mcp-host wiring stays parked.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "replace cage mounts",
+    "mcp-host wiring in this pass"
+  ]
+}

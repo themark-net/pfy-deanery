@@ -1,0 +1,9 @@
+{
+  "name": "claude-code-unified-agents",
+  "integration_stage": "I1",
+  "intent": "curated_paths_pack",
+  "pin": "b026de60c0fc5438f53faffb5cd7f43f84ed3267",
+  "notes_doc": "docs/ops/unified-agents-recipes.md",
+  "eval_receipt": "pipelines/eval/unified-agents-eval.latest.md",
+  "skills": 16
+}

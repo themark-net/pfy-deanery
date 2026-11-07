@@ -1,0 +1,29 @@
+{
+  "name": "LEANN",
+  "integration_stage": "I1",
+  "intent": "catalog_default",
+  "tier": "A",
+  "auto": true,
+  "catalog_tier": "A",
+  "catalog_overall": "87",
+  "catalog_tags": [
+    "#rag",
+    "#compression",
+    "#local-first",
+    "#embeddings"
+  ],
+  "catalog_github": "https://github.com/StarTrail-org/LEANN",
+  "posture": [],
+  "evidence": [],
+  "tier_ceiling": "I1",
+  "uses": "Compressed RAG. Not our code memory.",
+  "features": [
+    "compressed embeddings"
+  ],
+  "potential": "medium",
+  "next_gate": "Stay I1 until a measured gap versus codebase-memory.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "replace codebase-memory"
+  ]
+}

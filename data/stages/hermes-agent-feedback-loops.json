@@ -1,0 +1,34 @@
+{
+  "name": "Hermes Agent (feedback loops)",
+  "integration_stage": "I1",
+  "intent": "catalog_default",
+  "tier": "A",
+  "auto": true,
+  "catalog_tier": "A",
+  "catalog_overall": "89",
+  "catalog_tags": [
+    "#agentic",
+    "#self-healing",
+    "#skills",
+    "#memory",
+    "#feedback-loop"
+  ],
+  "catalog_github": "https://github.com/NousResearch/hermes-agent",
+  "posture": [
+    "pattern_only"
+  ],
+  "evidence": [
+    "path:bootstrap/grok-cli/skills/hermes-feedback"
+  ],
+  "tier_ceiling": "I1",
+  "uses": "Feedback-loop pattern ported as a skill. Not the Hermes runtime.",
+  "features": [
+    "skill pattern"
+  ],
+  "potential": "medium",
+  "next_gate": "Stay the skill. Do not install the daemon for this card.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "Hermes as primary runtime"
+  ]
+}

@@ -12,6 +12,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ENTRY = "notes_doc:sources/entries/136-harness2.md"
+
+
+def _stage_snapshot() -> dict[str, bytes]:
+    base = ROOT / "data" / "stages"
+    return {p.name: p.read_bytes() for p in sorted(base.glob("*.json"))}
 FIELD = "notes_doc:examples/harness2-local/README.md"
 RECEIPT = "pipelines/dogfood/harness2-local/receipt.json"
 
@@ -35,9 +40,8 @@ class CatalogStageNotesDocTests(unittest.TestCase):
         Recovery: keep a notes_doc evidence path whose file is under the repo.
         A missing file and an absolute path are not kept.
         The field notes_doc and the live receipt stay.
-        The stage file on disk is not written."""
-        stages = ROOT / "data" / "tool_integration_stages.json"
-        before = stages.read_bytes()
+        The stage files on disk are not written."""
+        before = _stage_snapshot()
         self.assertTrue((ROOT / "sources" / "entries" / "136-harness2.md").is_file())
         self.assertTrue((ROOT / "examples" / "harness2-local" / "README.md").is_file())
         by = {row["name"]: row for row in self.mod.evaluations()}
@@ -58,7 +62,7 @@ class CatalogStageNotesDocTests(unittest.TestCase):
         self.assertIn(FIELD, found)
         self.assertNotIn("notes_doc:does-not-exist.md", found)
         self.assertNotIn("notes_doc:/etc/passwd", found)
-        self.assertEqual(stages.read_bytes(), before)
+        self.assertEqual(_stage_snapshot(), before)
 
 
 if __name__ == "__main__":

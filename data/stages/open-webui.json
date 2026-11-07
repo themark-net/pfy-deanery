@@ -1,0 +1,31 @@
+{
+  "name": "Open WebUI",
+  "integration_stage": "I1",
+  "intent": "catalog_default",
+  "tier": "A",
+  "auto": true,
+  "catalog_tier": "A",
+  "catalog_overall": "82",
+  "catalog_tags": [
+    "#ui",
+    "#chat",
+    "#local-first",
+    "#docker",
+    "#multi-model"
+  ],
+  "catalog_github": "https://github.com/open-webui/open-webui",
+  "posture": [],
+  "evidence": [],
+  "tier_ceiling": "I1",
+  "uses": "Chat UI for local models. The operator window is the product UI.",
+  "features": [
+    "chat ui",
+    "docker"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "product UI"
+  ]
+}

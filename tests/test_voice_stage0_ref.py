@@ -5,6 +5,8 @@ import json
 import unittest
 from pathlib import Path
 
+from pfylib.stage_registry import load_stages
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -14,7 +16,7 @@ def _read(rel: str) -> str:
 
 class VoiceStage0RefTests(unittest.TestCase):
     def test_stage_cards_stay_i0_and_catalog_rows_stay_absent(self):
-        stages = json.loads(_read("data/tool_integration_stages.json"))
+        stages = load_stages(ROOT)
         tools = json.loads(_read("data/tools.json"))
         names = {row.get("name") for row in tools.get("tools") or []}
         for card_name, entry in (

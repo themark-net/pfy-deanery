@@ -1,0 +1,19 @@
+{
+  "name": "Hermes Teammates",
+  "integration_stage": "I0",
+  "intent": "blocked_on_hermes_wiring",
+  "entry": "sources/entries/138-hermes-teammates.md",
+  "github": "https://github.com/100yenadmin/hermes-teammates",
+  "uses": "Fixed tester/reviewer roster inside Hermes.",
+  "potential": "medium",
+  "next_gate": "Blocked until Hermes is wired as the pfy bot interface (hermes-wire).",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75"
+  ],
+  "evidence": [
+    "entry:sources/entries/138-hermes-teammates.md"
+  ],
+  "handoff_by": "llm"
+}

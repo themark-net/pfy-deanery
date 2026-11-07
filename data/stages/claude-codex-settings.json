@@ -1,0 +1,36 @@
+{
+  "name": "claude-codex-settings",
+  "integration_stage": "I1",
+  "intent": "pattern_only",
+  "notes_doc": "docs/ops/claude-codex-quality-hooks.md",
+  "issues": [
+    27
+  ],
+  "catalog_tier": "A",
+  "catalog_overall": "88",
+  "catalog_tags": [
+    "#configs",
+    "#hooks",
+    "#plugins",
+    "#claude-code",
+    "#codex",
+    "#cursor",
+    "#quality"
+  ],
+  "catalog_github": "https://github.com/fcakyon/claude-codex-settings",
+  "posture": [],
+  "evidence": [
+    "notes_doc:docs/ops/claude-codex-quality-hooks.md"
+  ],
+  "tier_ceiling": "I1",
+  "uses": "Hook and plugin pack for other CLIs.",
+  "features": [
+    "hooks"
+  ],
+  "potential": "low",
+  "next_gate": "Extract a hook only when a Grok policy needs it.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "vendor the pack"
+  ]
+}

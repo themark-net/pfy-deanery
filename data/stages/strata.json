@@ -1,0 +1,35 @@
+{
+  "name": "Strata",
+  "integration_stage": "I2",
+  "intent": "local_probe_stayed_i2",
+  "entry": "sources/entries/162-strata.md",
+  "github": "https://github.com/Niko1221/Strata",
+  "notes_doc": "eval/catchup-1107/strata/REPORT.md",
+  "uses": "Local inference engine (OpenAI/Anthropic API on localhost) with a gfx1151 HIP build; candidate second engine next to Ollama on the MVP local-model path. The 2026-11-07 trial served Qwen3.6 UD-Q4_K_XL on gfx1151 and stayed slower than Ollama.",
+  "features": [
+    "openai-compatible /v1",
+    "terminal launch, plan, status, and stop",
+    "gfx1151 HIP engine 0.1.58"
+  ],
+  "potential": "high",
+  "next_gate": "Stay I2 until a later same-prompt trial reaches at least 0.9x Ollama decode on this host. Then add an opt-in that detects a server the operator already started (PFY_STRATA_BASE and optional strata --status). pfy must not start, stop, download, or update Strata. Ollama stays the default.",
+  "tier_ceiling": "I3",
+  "non_goals": [
+    "appimage",
+    "deepseek_on_strix_halo_linux",
+    "default_engine_change",
+    "weights_in_git",
+    "pfy_starts_stops_downloads_or_updates_strata",
+    "feature_go",
+    "catalog_hold_70_75",
+    "tools_md_row"
+  ],
+  "evidence": [
+    "entry:sources/entries/162-strata.md",
+    "eval/catchup-1107/strata/receipt.json",
+    "eval/catchup-1107/strata/strata-bench.json",
+    "eval/catchup-1107/strata/ollama-bench.json",
+    "median decode 51.86 tok/s vs Ollama 61.71 tok/s (0.84x, bar 0.90x), 18/18 valid"
+  ],
+  "handoff_by": "llm"
+}

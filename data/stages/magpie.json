@@ -1,0 +1,19 @@
+{
+  "name": "magpie",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/163-magpie.md",
+  "github": "https://github.com/yetone/magpie",
+  "uses": "One gateway config for every agent.",
+  "potential": "low",
+  "next_gate": "Rewrites agent configs; needs Mark GO. After Strata.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75"
+  ],
+  "evidence": [
+    "entry:sources/entries/163-magpie.md"
+  ],
+  "handoff_by": "llm"
+}

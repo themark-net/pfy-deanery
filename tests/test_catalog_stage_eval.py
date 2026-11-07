@@ -8,7 +8,14 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from pfylib.stage_registry import load_stages, write_registry, write_tool
+
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def _stage_snapshot() -> dict[str, bytes]:
+    base = ROOT / "data" / "stages"
+    return {p.name: p.read_bytes() for p in sorted(base.glob("*.json"))}
 
 
 def _load():
@@ -43,7 +50,7 @@ class CatalogStageEvalTests(unittest.TestCase):
         self.assertIn("make:smoke-codebase-memory", by["codebase-memory-mcp"]["evidence"])
 
     def test_kolibri_facts_match_the_catalog_and_stage_stays_i0(self):
-        stages = json.loads((ROOT / "data" / "tool_integration_stages.json").read_text(encoding="utf-8"))
+        stages = load_stages(ROOT)
         card = stages["tools"]["Kolibri-1"]
         ev = {r["name"]: r for r in self.mod.evaluations()}["Kolibri-1"]
         self.assertEqual(card["integration_stage"], "I0")
@@ -63,11 +70,10 @@ class CatalogStageEvalTests(unittest.TestCase):
         Recovery: keep file-backed receipt evidence, keep the existing stamp,
         do not lower tier_ceiling, and do not replace a potential the card
         already has. A receipt path whose file is missing is not kept.
-        The real stage file on disk must be unchanged."""
+        The real stage files on disk must be unchanged."""
         mod = self.mod
-        stages_file = ROOT / "data" / "tool_integration_stages.json"
-        real_bytes = stages_file.read_bytes()
-        stages = json.loads(real_bytes)
+        real_files = _stage_snapshot()
+        stages = load_stages(ROOT)
         atg_receipt = "receipt:pipelines/dogfood/atg-compile/receipt-live-qwen36-35b.json"
         harness_receipt = "pipelines/dogfood/harness2-local/receipt.json"
         missing = "receipt:pipelines/dogfood/atg-compile/does-not-exist.json"
@@ -77,27 +83,34 @@ class CatalogStageEvalTests(unittest.TestCase):
         stages["tools"]["Atomic Task Graph (ATG)"]["evidence"].append(missing)
         before_stamp = stages["last_updated"]
         self.assertNotEqual(before_stamp, "2026-09-25")
-        saved = (mod.STAGES_PATH, mod.HANDOFF_PATH, mod.METHODS_PATH)
+        for card in stages["tools"].values():
+            card["last_updated"] = before_stamp
+        saved = (mod.STAGES_ROOT, mod.HANDOFF_PATH, mod.METHODS_PATH)
         try:
             with tempfile.TemporaryDirectory(prefix="stage-apply-") as td:
                 tdir = Path(td)
-                stage_path = tdir / "stages.json"
                 handoff_path = tdir / "handoff.json"
                 methods_path = tdir / "methods.json"
-                stage_path.write_text(json.dumps(stages) + "\n", encoding="utf-8")
+                write_registry(tdir, {k: v for k, v in stages.items() if k not in ("tools", "last_updated")})
+                for name, card in stages["tools"].items():
+                    write_tool(tdir, name, card)
                 shutil.copy(ROOT / "data" / "catalog_stage_handoff.json", handoff_path)
                 methods_src = ROOT / "data" / "catalog_stage_methods.json"
                 if methods_src.is_file():
                     shutil.copy(methods_src, methods_path)
                 else:
                     methods_path.write_text("{}\n", encoding="utf-8")
-                mod.STAGES_PATH = stage_path
+                mod.STAGES_ROOT = tdir
                 mod.HANDOFF_PATH = handoff_path
                 mod.METHODS_PATH = methods_path
                 self.assertEqual(mod.apply(), 0)
-                got = json.loads(stage_path.read_text(encoding="utf-8"))
+                got = load_stages(tdir)
+                registry = json.loads((tdir / "data" / "stages" / "_registry.json").read_text(encoding="utf-8"))
+                self.assertNotIn("last_updated", registry)
+                for path in (tdir / "data" / "stages").glob("*.json"):
+                    self.assertNotIn("2026-09-25", path.read_text(encoding="utf-8"))
         finally:
-            mod.STAGES_PATH, mod.HANDOFF_PATH, mod.METHODS_PATH = saved
+            mod.STAGES_ROOT, mod.HANDOFF_PATH, mod.METHODS_PATH = saved
         atg = got["tools"]["Atomic Task Graph (ATG)"]
         harness = got["tools"]["harness2"]
         self.assertIn(atg_receipt, atg["evidence"])
@@ -111,7 +124,7 @@ class CatalogStageEvalTests(unittest.TestCase):
         by = {row["name"]: row for row in mod.evaluations()}
         self.assertIn(atg_receipt, by["Atomic Task Graph (ATG)"]["evidence"])
         self.assertIn(harness_receipt, by["harness2"]["evidence"])
-        self.assertEqual(stages_file.read_bytes(), real_bytes)
+        self.assertEqual(_stage_snapshot(), real_files)
 
 
 if __name__ == "__main__":

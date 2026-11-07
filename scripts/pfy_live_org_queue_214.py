@@ -788,18 +788,18 @@ def cmd_selftest():
             ),
             encoding="utf-8",
         )
-        (root / "data" / "tool_integration_stages.json").write_text(
-            json.dumps(
-                {
-                    "tools": {
-                        "repowise": {
-                            "integration_stage": "I1",
-                            "github": "https://github.com/repowise-dev/repowise",
-                        }
-                    }
-                }
-            ),
-            encoding="utf-8",
+        repo = str(Path(__file__).resolve().parents[1])
+        if repo not in sys.path:
+            sys.path.insert(0, repo)
+        from pfylib.stage_registry import write_tool
+
+        write_tool(
+            root,
+            "repowise",
+            {
+                "integration_stage": "I1",
+                "github": "https://github.com/repowise-dev/repowise",
+            },
         )
 
         hold_q = queue_org(

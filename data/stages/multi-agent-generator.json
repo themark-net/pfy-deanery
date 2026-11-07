@@ -1,0 +1,37 @@
+{
+  "name": "multi-agent-generator",
+  "integration_stage": "I0",
+  "intent": "watch",
+  "github": "https://github.com/aakriti1318/multi-agent-generator",
+  "notes_doc": "sources/entries/079-multi-agent-generator.md",
+  "non_goals": [
+    "pipeline hard dependency",
+    "pipeline dependency"
+  ],
+  "next_gate": "Stay I0.",
+  "catalog_tier": "B",
+  "catalog_overall": "79",
+  "catalog_tags": [
+    "#agentic",
+    "#orchestration",
+    "#litellm-ready",
+    "#codegen",
+    "#crewai",
+    "#langgraph",
+    "#local-first"
+  ],
+  "catalog_github": "https://github.com/aakriti1318/multi-agent-generator",
+  "posture": [
+    "i0_explicit"
+  ],
+  "evidence": [
+    "notes_doc:sources/entries/079-multi-agent-generator.md"
+  ],
+  "tier_ceiling": "I0",
+  "uses": "Scaffolds CrewAI or LangGraph teams. The note already says I0.",
+  "features": [
+    "team scaffold"
+  ],
+  "potential": "low",
+  "handoff_by": "llm"
+}

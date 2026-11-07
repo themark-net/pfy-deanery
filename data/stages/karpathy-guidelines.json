@@ -1,0 +1,30 @@
+{
+  "name": "karpathy-guidelines",
+  "integration_stage": "I1",
+  "intent": "catalog_default",
+  "tier": "A",
+  "auto": true,
+  "catalog_tier": "A",
+  "catalog_overall": "84",
+  "catalog_tags": [
+    "#coding-agent",
+    "#grok-cli",
+    "#local-first"
+  ],
+  "catalog_github": "https://github.com/forrestchang/andrej-karpathy-skills",
+  "posture": [],
+  "evidence": [
+    "path:bootstrap/grok-cli/skills/karpathy-guidelines"
+  ],
+  "tier_ceiling": "I1",
+  "uses": "Single coding-behavior skill already in the skill tree.",
+  "features": [
+    "skills"
+  ],
+  "potential": "high",
+  "next_gate": "Same smoke gate as the other first-party skills.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "product runtime"
+  ]
+}

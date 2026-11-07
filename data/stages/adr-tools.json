@@ -1,0 +1,32 @@
+{
+  "name": "adr-tools",
+  "integration_stage": "I1",
+  "intent": "optional_pin",
+  "notes_doc": "docs/ops/adr-tools-companion.md",
+  "issues": [
+    15
+  ],
+  "non_goals": [
+    "bootstrap hard dependency"
+  ],
+  "catalog_tier": "B",
+  "catalog_overall": "78",
+  "catalog_tags": [
+    "#pipeline",
+    "#local-first",
+    "#I1"
+  ],
+  "catalog_github": "https://github.com/npryce/adr-tools",
+  "posture": [],
+  "evidence": [
+    "notes_doc:docs/ops/adr-tools-companion.md"
+  ],
+  "tier_ceiling": "I1",
+  "uses": "Optional CLI beside the ADR skill.",
+  "features": [
+    "adr files"
+  ],
+  "potential": "low",
+  "next_gate": "Stay on the companion doc unless the skill stops being enough.",
+  "handoff_by": "llm"
+}

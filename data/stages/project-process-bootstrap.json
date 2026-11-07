@@ -1,0 +1,33 @@
+{
+  "name": "project-process bootstrap",
+  "integration_stage": "I3",
+  "intent": "first_party",
+  "tier": "S",
+  "auto": true,
+  "catalog_tier": "S",
+  "catalog_overall": "92",
+  "catalog_tags": [
+    "#grok-cli",
+    "#pipeline",
+    "#local-first",
+    "#agentic"
+  ],
+  "catalog_github": "this repo (`bootstrap/project-process/`)",
+  "posture": [],
+  "evidence": [
+    "path:bootstrap/project-process"
+  ],
+  "tier_ceiling": "I3",
+  "uses": "Scaffold DESIGN, ADR, TODO, open questions, AGENTS into another repo.",
+  "features": [
+    "init.sh",
+    "process docs"
+  ],
+  "potential": "high",
+  "next_gate": "Keep init.sh as the process kit.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "heavy SaaS",
+    "adr-tools as a hard dependency"
+  ]
+}

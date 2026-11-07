@@ -1,0 +1,29 @@
+{
+  "name": "Memvid",
+  "integration_stage": "I1",
+  "intent": "catalog_default",
+  "tier": "A",
+  "auto": true,
+  "catalog_tier": "A",
+  "catalog_overall": "86",
+  "catalog_tags": [
+    "#memory",
+    "#versioning",
+    "#local-first",
+    "#rag"
+  ],
+  "catalog_github": "https://github.com/memvid/memvid",
+  "posture": [],
+  "evidence": [],
+  "tier_ceiling": "I1",
+  "uses": "Video-backed memory. No job in the current operator path.",
+  "features": [
+    "versioned memory"
+  ],
+  "potential": "ambiguous",
+  "next_gate": "Stay I1 until a concrete use is named.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "primary memory"
+  ]
+}

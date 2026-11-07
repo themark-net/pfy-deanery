@@ -1,0 +1,31 @@
+{
+  "name": "marketing-skills (marketing-council)",
+  "integration_stage": "I1",
+  "intent": "catalog_default",
+  "tier": "A",
+  "auto": true,
+  "catalog_tier": "A",
+  "catalog_overall": "85",
+  "catalog_tags": [
+    "#skills",
+    "#multi-agent",
+    "#council",
+    "#prompt-pack"
+  ],
+  "catalog_github": "https://github.com/coreyhaines31/marketingskills",
+  "posture": [],
+  "evidence": [
+    "path:bootstrap/grok-cli/skills/marketing-council"
+  ],
+  "tier_ceiling": "I1",
+  "uses": "First-party marketing council skill.",
+  "features": [
+    "council prompts"
+  ],
+  "potential": "medium",
+  "next_gate": "Stay a skill.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "product runtime"
+  ]
+}

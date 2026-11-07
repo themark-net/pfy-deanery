@@ -1,0 +1,63 @@
+{
+  "name": "Atomic Task Graph (ATG)",
+  "integration_stage": "I2",
+  "intent": "submodule_later",
+  "github": "https://github.com/themark-net/atg-framework",
+  "notes_doc": "docs/ops/atg-coupling.md",
+  "issues": [
+    22,
+    30
+  ],
+  "non_goals": [
+    "pipeline hard dependency",
+    "symbolic submodule now",
+    "subtree now",
+    "pipeline dependency",
+    "eval-harness wiring",
+    "I3 before the value gates",
+    "self-promote past I2"
+  ],
+  "catalog_tier": "A",
+  "catalog_overall": "82",
+  "catalog_tags": [
+    "#agentic",
+    "#graph",
+    "#dag",
+    "#planning",
+    "#parallelism",
+    "#failure-repair",
+    "#paper-based",
+    "#prototype",
+    "#I2"
+  ],
+  "catalog_github": "Prototype: https://github.com/themark-net/atg-framework (paper: https://arxiv.org/abs/2607.01942)",
+  "posture": [
+    "i2_probe"
+  ],
+  "evidence": [
+    "notes_doc:docs/ops/atg-coupling.md",
+    "pin:543e778ed24fbf3fc903eb961feb627039019832",
+    "scored:86d1b890",
+    "receipt:pipelines/dogfood/atg-compile/receipt-live-qwen36-35b.json"
+  ],
+  "tier_ceiling": "I2",
+  "pin": "543e778ed24fbf3fc903eb961feb627039019832",
+  "atg_sha": "543e778ed24fbf3fc903eb961feb627039019832",
+  "atg_branch": "main",
+  "atg_repo": "ATG_REPO or --atg-repo; no default path",
+  "gates": {
+    "gap_fill": "partial — compile, parallel waves, freeze, and localized repair are not a first-party pfy skill; LangGraph overlaps run-a-DAG",
+    "operator_leverage": "no — the live probe does not shorten the default pipeline",
+    "evidence": "2026-10-06 live atg-compile on Ollama qwen3.6:35b exited 0: 2/10 valid DAGs, 2/10 sink-correct, repairs 0, wall 478s. The I2 score (2/10 valid, 2/10 sink-correct) was taken at 86d1b890 on build/atg-finish and has not been re-run at the main pin 543e778. Offline pytest 40 passed, 1 deselected. coder-next not loaded (memory gate).",
+    "blast_radius": "yes, while it stays off primary orchestration, the cage, and eval-harness"
+  },
+  "uses": "Callable compile, parallel tool waves, freeze, and localized repair via a pinned checkout. Independent reimplementation of Zhang et al. (2026), arXiv:2607.01942. Not official ATG code.",
+  "features": [
+    "dag",
+    "repair",
+    "openai-compat-client"
+  ],
+  "potential": "measured-probe",
+  "next_gate": "Stay I2. I3 needs the value gates and is not authorized by this probe. coder-next live remains blocked until MemAvailable covers the 48.19 GiB blob plus 25 GiB.",
+  "handoff_by": "llm"
+}

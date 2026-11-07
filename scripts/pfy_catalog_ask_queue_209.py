@@ -295,13 +295,21 @@ def load_tools_json(ROOT):
     return out
 
 
+def _stage_registry():
+    repo = str(Path(__file__).resolve().parents[1])
+    if repo not in sys.path:
+        sys.path.insert(0, repo)
+    from pfylib import stage_registry
+    return stage_registry
+
+
 def load_integration_stages(ROOT):
-    path = Path(ROOT) / "data" / "tool_integration_stages.json"
-    if not path.is_file():
+    root = Path(ROOT)
+    if not (root / "data" / "stages").is_dir():
         return {}
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+        data = _stage_registry().load_stages(root)
+    except (OSError, ValueError, json.JSONDecodeError):
         return {}
     tools = data.get("tools") or {}
     out = {}
@@ -1159,18 +1167,13 @@ def cmd_selftest():
             ),
             encoding="utf-8",
         )
-        (root / "data" / "tool_integration_stages.json").write_text(
-            json.dumps(
-                {
-                    "tools": {
-                        "repowise": {
-                            "integration_stage": "I1",
-                            "github": "https://github.com/repowise-dev/repowise",
-                        }
-                    }
-                }
-            ),
-            encoding="utf-8",
+        _stage_registry().write_tool(
+            root,
+            "repowise",
+            {
+                "integration_stage": "I1",
+                "github": "https://github.com/repowise-dev/repowise",
+            },
         )
 
         rec = browse(root, state)

@@ -1,0 +1,19 @@
+{
+  "name": "agentgg",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/161-agentgg.md",
+  "github": "https://github.com/agentgg-dev/agentgg",
+  "uses": "Local agentic SAST for risky diffs.",
+  "potential": "medium",
+  "next_gate": "Candidate extra pass for trading/deploy/secret changes; needs Tester and Reviewer to wire.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75"
+  ],
+  "evidence": [
+    "entry:sources/entries/161-agentgg.md"
+  ],
+  "handoff_by": "llm"
+}

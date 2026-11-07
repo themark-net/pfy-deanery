@@ -139,6 +139,25 @@ python3 scripts/catalog_check.py               # every TOOLS.md row still has a 
 
 `potential`, `uses`, `features`, `non_goals`, and `next_gate` come from the handoff file. Tier, scores, posture phrases, Makefile/path evidence, and the tier ceiling are computed from `TOOLS.md` and the repo. The ceiling is a cap, not a promotion. Edit the handoff and apply again to change a judgment. Do not flip `integration_stage` just because the ceiling allows it.
 
+## Stage files
+
+Each tool has its own card at `data/stages/<slug>.json`. Shared fields (`version`, `policy`, `default_stage`, `probe_path`, `coverage`, `handoff`) live in `data/stages/_registry.json`. Do not recreate `data/tool_integration_stages.json`. That single file made every parallel lane conflict on the same lines. `scripts/catalog_check.py` fails if the monolith is added back, and it checks every card: the file parses, `name` is set, the filename is the slug, and `integration_stage` is I0, I1, I2, I3, or I4.
+
+`last_updated` is not stored. `pfylib.stage_registry.load_stages` fills it with the latest per-tool `last_updated` or date field. When no card has one, it uses the git commit date of `data/stages` (`git log -1 --format=%cs -- data/stages`).
+
+Slug: lowercase the tool name, turn each run of non-alphanumeric characters into one `-`, and strip the ends. `name` in the file is the exact tool name. Two names that slug the same are an error; the message names both tools.
+
+Add a tool by writing only its file. Leave every other card alone:
+
+```json
+{
+  "name": "Example Tool",
+  "integration_stage": "I1"
+}
+```
+
+`write_tool(root, name, card)` in `pfylib.stage_registry` writes that file atomically (indent 2, original key order, trailing newline). Then run `python3 scripts/catalog_check.py`. `make stages-json` (or `python3 -m pfylib.stage_registry --dump`) prints the assembled document in the old shape. `--apply` rewrites only the cards whose facts changed.
+
 ## Agent rules
 
 1. New X/catalog entries start at **I1** (or I0 if Stage 0 fails).

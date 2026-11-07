@@ -1,0 +1,40 @@
+{
+  "name": "Kolibri-1",
+  "integration_stage": "I0",
+  "intent": "local_smoke_patched_llamacpp_gguf",
+  "github": "https://huggingface.co/Aleph-Alpha/Kolibri-1",
+  "notes_doc": "examples/kolibri1-llamacpp/README.md",
+  "non_goals": [
+    "official_fp8_on_nimo",
+    "78gb_weight_download",
+    "feature_go"
+  ],
+  "catalog_tier": "B",
+  "catalog_overall": "72",
+  "catalog_tags": [
+    "#moe",
+    "#reasoning",
+    "#tool-calling",
+    "#german",
+    "#open-weights",
+    "#1m-context",
+    "#vllm"
+  ],
+  "catalog_github": "https://huggingface.co/Aleph-Alpha/Kolibri-1",
+  "posture": [
+    "i0_explicit"
+  ],
+  "evidence": [
+    "make:smoke-kolibri1",
+    "notes_doc:examples/kolibri1-llamacpp/README.md"
+  ],
+  "tier_ceiling": "I0",
+  "uses": "Optional local DE/EN reasoning MoE via patched llama.cpp GGUF smoke (I0 lab).",
+  "features": [
+    "patched llama.cpp kolibri1 runtime",
+    "make smoke-kolibri1",
+    "GGUF Q3_K_S path on nimo"
+  ],
+  "potential": "medium",
+  "next_gate": "PASS make smoke-kolibri1 with verified GGUF, then consider I1; Vulkan/GPU needs Mark approval."
+}

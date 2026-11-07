@@ -1,0 +1,31 @@
+{
+  "name": "llama.cpp (server mode)",
+  "integration_stage": "I1",
+  "intent": "catalog_default",
+  "tier": "A",
+  "auto": true,
+  "catalog_tier": "A",
+  "catalog_overall": "88",
+  "catalog_tags": [
+    "#high-perf",
+    "#quantized",
+    "#gguf",
+    "#openai-shim",
+    "#cpu-gpu"
+  ],
+  "catalog_github": "https://github.com/ggerganov/llama.cpp",
+  "posture": [],
+  "evidence": [],
+  "tier_ceiling": "I1",
+  "uses": "GGUF server already in the pfy up order, after llama-swap and before Ollama.",
+  "features": [
+    "gguf",
+    "openai shim"
+  ],
+  "potential": "high",
+  "next_gate": "Card stays a record of that bring-up. Do not fork the tree.",
+  "handoff_by": "llm",
+  "non_goals": [
+    "preferred over FreeToken"
+  ]
+}

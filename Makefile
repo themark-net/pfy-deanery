@@ -10,7 +10,7 @@ HARNESS := harness/agent-cage
 LITELLM_EXAMPLE := examples/litellm-ollama
 
 .PHONY: help help-platform cage-doctor cage-setup cage-init cage-up cage-up-mcp cage-down \
-	cage-shell cage-status cage-test cage-logs cage-smoke-host catalog-json \
+	cage-shell cage-status cage-test cage-logs cage-smoke-host catalog-json stages-json \
 	env-init env-check cage-grok-install cage-grok-build cage-grok-up \
 	cage-grok-smoke cage-grok-ready cage-grok-uninstall cage-grok-auth-import \
 	cage-workspace-sync cage-grok-mcp-preset \
@@ -121,6 +121,7 @@ help-platform:
 	@echo ""
 	@echo "Catalog:"
 	@echo "  make catalog-json     Validate data/tools.json parses"
+	@echo "  make stages-json      Print the assembled stage cards"
 	@echo "  # Self-hosted lab (nimo): docs/ops/self-hosted-runner-nimo.md"
 	@echo "  make catalog-check    S-tier names in TOOLS.md (GAP-03)"
 	@echo "  make catalog-dashboard  scoring dashboard MD (GAP-04)"
@@ -168,6 +169,9 @@ cage-smoke-host:
 
 catalog-json:
 	@python3 -c "import json; json.load(open('data/tools.json')); print('data/tools.json: OK')"
+
+stages-json:
+	@python3 -m pfylib.stage_registry --dump
 
 cage-grok-install:
 	@$(MAKE) -C $(HARNESS) grok-overlay-install

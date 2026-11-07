@@ -1,0 +1,19 @@
+{
+  "name": "dsh-superagent",
+  "integration_stage": "I0",
+  "intent": "design_reference",
+  "entry": "sources/entries/154-dsh-superagent.md",
+  "github": "https://github.com/deepseek-ai/dsh-superagent-prototype",
+  "uses": "Authorization and attention design docs.",
+  "potential": "low",
+  "next_gate": "ADR note only; no runtime trial.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75"
+  ],
+  "evidence": [
+    "entry:sources/entries/154-dsh-superagent.md"
+  ],
+  "handoff_by": "llm"
+}

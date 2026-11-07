@@ -1,0 +1,13 @@
+{
+  "name": "Exo (exoharness)",
+  "integration_stage": "I1",
+  "intent": "pattern_extract_self_mod",
+  "pin": "372602d1b553af06e9843e19f31fa8a7f749ab6e",
+  "github": "https://github.com/exoharness/exo",
+  "notes_doc": "docs/ops/exo-self-mod-patterns.md",
+  "non_goals": [
+    "primary_runtime",
+    "unattended_full_RSI",
+    "subtree_embed"
+  ]
+}

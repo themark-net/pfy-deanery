@@ -1,0 +1,41 @@
+{
+  "name": "Antigravity-Manager",
+  "integration_stage": "I1",
+  "intent": "skip_install",
+  "priority": "low",
+  "github": "https://github.com/lbjlaq/Antigravity-Manager",
+  "notes_doc": "docs/ops/antigravity-catalog-posture.md",
+  "issues": [
+    23
+  ],
+  "non_goals": [
+    "default install",
+    "make smoke requiring Tauri",
+    "Tauri smoke"
+  ],
+  "catalog_tier": "A",
+  "catalog_overall": "86",
+  "catalog_tags": [
+    "#proxy",
+    "#account-pool",
+    "#tauri",
+    "#openai-shim",
+    "#I1",
+    "#low-pri"
+  ],
+  "catalog_github": "https://github.com/lbjlaq/Antigravity-Manager",
+  "posture": [
+    "skip_install"
+  ],
+  "evidence": [
+    "notes_doc:docs/ops/antigravity-catalog-posture.md"
+  ],
+  "tier_ceiling": "I0",
+  "uses": "Account-pool proxy. LiteLLM plus keys is the default.",
+  "features": [
+    "account pool"
+  ],
+  "potential": "low",
+  "next_gate": "Stay skip-install.",
+  "handoff_by": "llm"
+}
