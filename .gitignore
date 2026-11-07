@@ -166,3 +166,8 @@ pipelines/smoke/agentgg/
 pipelines/smoke/strata/
 pipelines/smoke/magpie/
 pipelines/smoke/reasonix/
+
+# 165-167 receipts.
+pipelines/smoke/egm/
+pipelines/smoke/odai/
+pipelines/smoke/teaql-agent-kit/
