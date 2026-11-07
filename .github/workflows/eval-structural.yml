@@ -7,6 +7,11 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Cancel a superseded run on a branch or PR. Do not cancel main or master.
+concurrency:
+  group: eval-structural-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master' }}
+
 jobs:
   structural-github:
     # The image is pinned: ubuntu-latest moved to 26.04 (run 41000777422 on
@@ -48,7 +53,7 @@ jobs:
           rg --version | head -1
       - name: Structural + golden
         run: |
-          python3 examples/eval-harness/run_structural.py --write-md pipelines/eval/structural.latest.md
+          python3 examples/eval-harness/run_structural.py --skip-unittests --write-md pipelines/eval/structural.latest.md
           python3 examples/eval-harness/run_golden.py --write-md pipelines/eval/golden.latest.md
       - name: Gab #228 offline selftest
         if: always() && !cancelled()
@@ -66,11 +71,21 @@ jobs:
         run: |
           set -euo pipefail
           export PFY_STATE_DIR="$RUNNER_TEMP/pfy-state"
-          python3 -m unittest discover -s tests -t .
           python3 scripts/catalog_check.py
           ./pfy toolset matrix
           ./pfy toolset plan jev --harness opencode
           ./pfy hedge decide --task bulk --local ready --budget 0
+      - name: Tests (selected)
+        if: always() && !cancelled()
+        run: |
+          set -euo pipefail
+          # push to main uses github.event.before. PR and workflow_dispatch
+          # use the merge-base with origin/main. The script fetches that history.
+          PFY_CI_EVENT="${{ github.event_name }}" \
+          PFY_CI_REF="${{ github.ref }}" \
+          PFY_CI_BEFORE="${{ github.event.before }}" \
+          PFY_CI_USE_CACHE=0 \
+          bash scripts/ci_selected_tests.sh
       - name: Launcher must exec
         if: always() && !cancelled()
         run: |
@@ -91,10 +106,12 @@ jobs:
         if: always() && !cancelled()
         run: |
           set -euo pipefail
-          # The checkout is fetch-depth 1, so the discover above skips the
-          # dogfood2 real-tree audit and never lists the reworded commits.
-          # Unshallow here, last, so the earlier steps are unchanged.
-          git fetch --no-tags --quiet --unshallow origin
+          # Checkout is fetch-depth 1. The selected suite may not include
+          # these two modules, and a shallow clone skips the real-tree audit.
+          # Unshallow here when an earlier step has not already done it.
+          if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+            git fetch --no-tags --quiet --unshallow origin
+          fi
           test "$(git rev-parse --is-shallow-repository)" = false
           log="$RUNNER_TEMP/real-tree-audits.log"
           python3 -m unittest -v tests.test_dogfood2_1031_report tests.test_selfhost_1031_log 2>&1 | tee "$log"
@@ -124,7 +141,7 @@ jobs:
       - name: Structural + golden
         run: |
           set -euo pipefail
-          python3 examples/eval-harness/run_structural.py --write-md pipelines/eval/structural.latest.md
+          python3 examples/eval-harness/run_structural.py --skip-unittests --write-md pipelines/eval/structural.latest.md
           python3 examples/eval-harness/run_golden.py --write-md pipelines/eval/golden.latest.md
       - name: Launcher must exec
         if: always() && !cancelled()
@@ -151,7 +168,16 @@ jobs:
           python3 scripts/catalog_dashboard.py
           python3 scripts/catalog_check.py
           python3 scripts/smoke_contract_lint.py
-          PFY_STATE_DIR="$RUNNER_TEMP/pfy-state" python3 -m unittest discover -s tests -t .
+      - name: Tests (selected)
+        if: always() && !cancelled()
+        run: |
+          set -euo pipefail
+          # Same selection as the ubuntu job. A pregate PASS for this tree is a hit.
+          PFY_CI_EVENT="${{ github.event_name }}" \
+          PFY_CI_REF="${{ github.ref }}" \
+          PFY_CI_BEFORE="${{ github.event.before }}" \
+          PFY_CI_USE_CACHE=1 \
+          bash scripts/ci_selected_tests.sh
       - name: Upload local receipts
         if: always()
         uses: actions/upload-artifact@v4

@@ -1,0 +1,36 @@
+# Nightly backstop: the full unittest suite, once. Landing jobs run only
+# the tests a change can affect. This job is the run that still sees every
+# tests/test_*.py. Off-hours UTC so it stays off the landing lane.
+name: full-suite-nightly
+
+on:
+  schedule:
+    - cron: "17 9 * * *"
+  workflow_dispatch:
+
+jobs:
+  full-suite:
+    name: Full suite backstop
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install PyYAML
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check -q pyyaml
+      - name: Install ripgrep (harness2 sandbox tests need rg)
+        run: |
+          set -euo pipefail
+          if ! command -v rg >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq ripgrep
+          fi
+          rg --version | head -1
+      - name: Full suite
+        run: |
+          set -euo pipefail
+          export PFY_STATE_DIR="${RUNNER_TEMP}/pfy-state"
+          python3 scripts/run_tests.py

@@ -8,6 +8,7 @@
 # Options:
 #   --only a,b        run only these checks (comma list); unknown names exit 2
 #   --force-suite     also run the standalone suite check (normally skipped)
+#   --full            force the full unittest suite (ignore affected selection)
 #   --base REF        base for the committed gate-file diff (default: origin/main)
 #   --in-place        run in this checkout (HEAD must equal REF; must be clean)
 #   --allow-dirty     with --in-place, allow a dirty tree (dev only)
@@ -31,6 +32,7 @@ IN_PLACE=0
 ALLOW_DIRTY=0
 KEEP_WORKTREE=0
 FORCE_SUITE=0
+FORCE_FULL=0
 ONLY=""
 REF_SET=0
 STEP_TIMEOUT="${PREGATE_STEP_TIMEOUT:-2400}"
@@ -48,6 +50,7 @@ while [[ $# -gt 0 ]]; do
     --allow-dirty) ALLOW_DIRTY=1; shift ;;
     --keep-worktree) KEEP_WORKTREE=1; shift ;;
     --force-suite) FORCE_SUITE=1; shift ;;
+    --full) FORCE_FULL=1; shift ;;
     --only|--base)
       if [[ $# -lt 2 || -z "$2" || "$2" == -* ]]; then die2 "$1 needs a value"; fi
       if [[ "$1" == "--only" ]]; then ONLY="$2"; else BASE_REF="$2"; fi
@@ -272,6 +275,7 @@ write_summary() {
     echo "- started (local): $(date -d "@$START_EPOCH" '+%Y-%m-%d %H:%M %Z')"
     echo "- wall seconds: $wall"
     echo "- counts: pass=$PASS_COUNT fail=$FAIL_COUNT skip=$SKIP_COUNT"
+    echo "- selection: mode=${SEL_MODE:-unknown} modules=${SEL_COUNT:-0} ${SEL_REASON:-}"
     echo "- run id: \`$RUN_ID\`"
     echo "- logs: \`$LOG_DIR/\` (persist after the run)"
     echo
@@ -462,21 +466,39 @@ PY
 }
 
 check_ubuntu_parity() {
+  # One suite run for this commit. bwrap is hidden so this matches the pinned
+  # ubuntu-24.04 image. eval-structural does not run the suite again. It
+  # re-runs only the bwrap-sensitive modules with the host PATH, so sandbox
+  # tests still execute on nimo. A docs-only or empty selection runs nothing.
+  echo "selection mode=$SEL_MODE modules=$SEL_COUNT reason=$SEL_REASON"
+  if [[ "$SEL_MODE" == "error" ]]; then
+    echo "selection failed"
+    return 1
+  fi
+  if [[ "$SEL_MODE" == "none" || "$SEL_MODE" == "structural" || "${SEL_COUNT:-0}" -eq 0 ]]; then
+    echo "no unittest modules (mode=$SEL_MODE)"
+    return 0
+  fi
   nobwrap_env
   export PFY_STATE_DIR="$SCRATCH/state-ubuntu"; mkdir -p "$PFY_STATE_DIR"
-  python3 -m unittest discover -s tests -t .
+  python3 scripts/run_tests.py --receipt "$RECEIPTS/ubuntu-tests.json" "${SEL_MODULES[@]}"
 }
 
 check_eval_structural() {
-  # Same commands as the G0 ubuntu job; receipts go to the run folder so the
-  # tracked pipelines/eval/*.latest.md files are never rewritten (--in-place).
-  python3 examples/eval-harness/run_structural.py --write-md "$RECEIPTS/structural.latest.md"
+  # Same non-suite commands as the G0 ubuntu job. Receipts go to the run folder
+  # so the tracked pipelines/eval/*.latest.md files are never rewritten (--in-place).
+  # Unittests are SKIP here. ubuntu-parity already ran the selected suite once
+  # with bwrap hidden. Modules whose source mentions bwrap run again with the
+  # host PATH so the sandbox cases are not only skipped.
+  if [[ "$SEL_MODE" == "error" ]]; then
+    echo "selection failed"
+    return 1
+  fi
+  python3 examples/eval-harness/run_structural.py --skip-unittests --write-md "$RECEIPTS/structural.latest.md"
   python3 examples/eval-harness/run_golden.py --write-md "$RECEIPTS/golden.latest.md"
   PFY_GAB_OFFLINE=1 python3 scripts/pfy_gab_228.py --selftest
   PFY_JEV_OFFLINE=1 python3 scripts/pfy_jev_230.py --selftest
   python3 scripts/pfy_launch_wizard_225.py --selftest
-  # run_structural above already ran the full unittest discover (host PATH,
-  # bwrap present on nimo); ubuntu-parity runs it again without bwrap.
   python3 scripts/catalog_check.py
   ./pfy toolset matrix
   ./pfy toolset plan jev --harness opencode
@@ -488,11 +510,30 @@ check_eval_structural() {
   ./pfy help >/dev/null
   python3 scripts/check_no_encoded_payloads.py --selftest
   python3 scripts/check_no_encoded_payloads.py
+  if [[ -f "$SEL_JSON" ]]; then
+    python3 scripts/test_select.py --structural-checks --selection "$SEL_JSON"
+  fi
+  if [[ "$SEL_MODE" == "none" || "$SEL_MODE" == "structural" || "${SEL_COUNT:-0}" -eq 0 ]]; then
+    echo "no bwrap re-run (mode=$SEL_MODE)"
+    return 0
+  fi
+  mapfile -t BWRAP_MODS < <(python3 scripts/run_tests.py --print-bwrap "${SEL_MODULES[@]}")
+  if [[ ${#BWRAP_MODS[@]} -eq 0 ]]; then
+    echo "no bwrap-sensitive modules in the selection"
+    return 0
+  fi
+  echo "bwrap-sensitive re-run: ${#BWRAP_MODS[@]} module(s) with host PATH"
+  export PFY_STATE_DIR="$SCRATCH/state-bwrap"; mkdir -p "$PFY_STATE_DIR"
+  python3 scripts/run_tests.py --receipt "$RECEIPTS/bwrap-host.json" "${BWRAP_MODS[@]}"
 }
 
 check_suite() {
   export PFY_STATE_DIR="$SCRATCH/state-suite"; mkdir -p "$PFY_STATE_DIR"
-  python3 -m unittest discover -s tests -t .
+  if [[ "${SEL_COUNT:-0}" -eq 0 ]]; then
+    echo "selection mode=$SEL_MODE has no modules"
+    return 0
+  fi
+  python3 scripts/run_tests.py "${SEL_MODULES[@]}"
 }
 
 check_orphans() {
@@ -576,20 +617,84 @@ print("PASS gate-hash")
 PY
 }
 
-# Order: fast checks first, then the two full discovers, then the after-scan.
+# Selection is one diff. ubuntu-parity runs that list once (bwrap hidden).
+# eval-structural skips the suite inside run_structural and re-runs only
+# bwrap-sensitive modules with the host PATH.
+SEL_JSON="$LOG_DIR/selection.json"
+SEL_MODE="error"
+SEL_COUNT=0
+SEL_REASON=""
+SEL_MODULES=()
+compute_selection() {
+  if [[ "$FORCE_FULL" -eq 1 ]]; then
+    mapfile -t SEL_MODULES < <(python3 scripts/run_tests.py --list)
+    SEL_MODE="full"
+    SEL_REASON="pregate --full"
+    SEL_COUNT="${#SEL_MODULES[@]}"
+    MODE="$SEL_MODE" REASON="$SEL_REASON" OUT="$SEL_JSON" python3 - "${SEL_MODULES[@]}" <<'PY'
+import json, os, sys
+json.dump(
+    {
+        "mode": os.environ["MODE"],
+        "reason": os.environ["REASON"],
+        "modules": sys.argv[1:],
+        "changed": [],
+        "source": "ast",
+    },
+    open(os.environ["OUT"], "w", encoding="utf-8"),
+    indent=2,
+)
+PY
+    return 0
+  fi
+  if ! python3 scripts/test_select.py --base "$BASE_SHA" --head HEAD >"$SEL_JSON"; then
+    return 1
+  fi
+  SEL_MODE="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["mode"])' "$SEL_JSON")"
+  SEL_REASON="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["reason"])' "$SEL_JSON")"
+  mapfile -t SEL_MODULES < <(python3 -c 'import json,sys; print("\n".join(json.load(open(sys.argv[1]))["modules"]))' "$SEL_JSON")
+  SEL_COUNT="${#SEL_MODULES[@]}"
+}
+if compute_selection; then
+  echo "selection mode=$SEL_MODE modules=$SEL_COUNT"
+else
+  record FAIL selection "test_select failed"
+  SEL_MODE="error"
+fi
+
+# Order: fast checks first, then the one selected suite, then the after-scan.
 should_run lint && run_check lint "filemode, launchers, encoded payloads, smoke_contract, catalog, workflow image pin" check_lint
 should_run ci-parity && run_check ci-parity "bwrap hidden; runtime-dir tests pin auto_unsafe=False and pass" check_ci_parity
 should_run gate-hash && run_check gate-hash "tests/ and gate files match HEAD; no committed gate-file change vs base" check_gate_hash
-should_run ubuntu-parity && run_check ubuntu-parity "full unittest discover with bwrap hidden (mirrors the pinned ubuntu-24.04 G0 job)" check_ubuntu_parity
-should_run eval-structural && run_check eval-structural "G0 ubuntu job steps incl. full discover with host PATH" check_eval_structural
+should_run ubuntu-parity && run_check ubuntu-parity "selected suite once with bwrap hidden (mode=${SEL_MODE} modules=${SEL_COUNT})" check_ubuntu_parity
+should_run eval-structural && run_check eval-structural "G0 steps with unittests skipped; bwrap-sensitive modules again on host PATH (mode=${SEL_MODE})" check_eval_structural
 if should_run suite; then
   if [[ "$FORCE_SUITE" -eq 1 || ",$ONLY," == *",suite,"* ]]; then
-    run_check suite "standalone unittest discover, host PATH" check_suite
+    run_check suite "extra host-PATH run of the selection; use --force-suite" check_suite
   else
-    record SKIP suite "eval-structural and ubuntu-parity already run the discover; use --force-suite"
+    record SKIP suite "ubuntu-parity already ran the selected suite once; use --force-suite"
   fi
 fi
 should_run orphans && run_check orphans "no new live processes under the run root or scratch" check_orphans
+
+if [[ "$FAIL_COUNT" -eq 0 && "$PASS_COUNT" -gt 0 && "$SEL_MODE" != "error" && -f "$SEL_JSON" ]]; then
+  if [[ -n "$(git status --porcelain 2>/dev/null || true)" ]]; then
+    echo "test cache not recorded: dirty worktree"
+  elif [[ "$SEL_MODE" == "affected" || "$SEL_MODE" == "full" ]] && [[ ! -f "$RECEIPTS/ubuntu-tests.json" ]]; then
+    # --only lint (or a skipped ubuntu-parity) must not cache a suite PASS.
+    echo "test cache not recorded: no suite receipt for mode=$SEL_MODE"
+  else
+    receipt_args=()
+    if [[ -f "$RECEIPTS/ubuntu-tests.json" ]]; then
+      receipt_args=(--receipt "$RECEIPTS/ubuntu-tests.json")
+    fi
+    if python3 scripts/test_cache.py record --selection "$SEL_JSON" "${receipt_args[@]}"; then
+      record PASS test-cache "recorded mode=$SEL_MODE modules=$SEL_COUNT"
+    else
+      record FAIL test-cache "record failed"
+    fi
+  fi
+fi
 
 # Notes from gate-hash (e.g. modified tests vs base) go into the summary detail.
 if [[ -f "$LOG_DIR/gate-hash.log" ]] && grep -q '^NOTE REVIEW' "$LOG_DIR/gate-hash.log"; then

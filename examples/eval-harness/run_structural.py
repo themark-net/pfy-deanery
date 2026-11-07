@@ -12,7 +12,8 @@ Checks:
   6. pfy and scripts/pfy are git 100755, +x, and ./pfy help execs
   7. No encoded payloads / runtime-assembled shards under scripts/, pfy, gui/
      (scripts/check_no_encoded_payloads.py)
-  8. pfylib unit tests: python3 -m unittest discover -s tests (ADR-0017; offline)
+  8. pfylib unit tests: python3 -m unittest discover -s tests (ADR-0017; offline).
+     --skip-unittests or PFY_SKIP_UNITTESTS=1 reports this check as SKIP.
   9. Catalog <-> implementation link (scripts/catalog_check.py; ADR-0015/0017)
   10. Catalog item v2 (scripts/catalog_item_validate.py)
 
@@ -248,8 +249,20 @@ def check_no_encoded_payloads() -> tuple[bool, str]:
     return False, f"{len(offenders)} offender(s): " + "; ".join(offenders[:4])
 
 
-def check_pfylib_unittests() -> tuple[bool, str]:
-    """ADR-0017: tests/ (stdlib unittest) must pass offline; isolated state dir so nothing touches ~/.pfy-mentat."""
+def _skip_unittests() -> bool:
+    if os.environ.get("PFY_STRUCTURAL_SKIP_UNITTESTS", "").strip() in {"1", "true", "TRUE", "yes"}:
+        return True
+    return os.environ.get("PFY_SKIP_UNITTESTS", "").strip() in {"1", "true", "TRUE", "yes"}
+
+
+def check_pfylib_unittests() -> tuple[bool, str] | tuple[str, str]:
+    """ADR-0017: tests/ (stdlib unittest) must pass offline; isolated state dir so nothing touches ~/.pfy-mentat.
+
+    SKIP is named. Callers that run the suite themselves pass --skip-unittests
+    or PFY_SKIP_UNITTESTS=1. A skipped check is not a pass of the suite.
+    """
+    if _skip_unittests():
+        return "SKIP", "named skip: caller runs the suite separately (--skip-unittests or PFY_SKIP_UNITTESTS=1)"
     tests_dir = ROOT / "tests"
     if not tests_dir.is_dir():
         return False, "tests/ missing"
@@ -297,7 +310,14 @@ def check_catalog_link() -> tuple[bool, str]:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--write-md", type=Path, default=None)
+    ap.add_argument(
+        "--skip-unittests",
+        action="store_true",
+        help="report pfylib_unittests as SKIP; the caller runs the suite",
+    )
     args = ap.parse_args()
+    if args.skip_unittests:
+        os.environ["PFY_STRUCTURAL_SKIP_UNITTESTS"] = "1"
 
     checks = [
         ("skills_manifest", check_skills),
@@ -314,14 +334,17 @@ def main() -> int:
         ("catalog_implementation_link", check_catalog_link),
         ("catalog_item_v2", check_catalog_item_v2),
     ]
-    rows: list[tuple[str, bool, str]] = []
+    rows: list[tuple[str, str, str]] = []
     for name, fn in checks:
-        ok, detail = fn()
-        rows.append((name, ok, detail))
-        status = "PASS" if ok else "FAIL"
+        raw, detail = fn()
+        if raw == "SKIP":
+            status = "SKIP"
+        else:
+            status = "PASS" if raw else "FAIL"
+        rows.append((name, status, detail))
         print(f"{status}  {name}: {detail}", flush=True)
 
-    all_ok = all(ok for _, ok, _ in rows)
+    all_ok = all(status != "FAIL" for _, status, _ in rows)
     print(f"\nSTRUCTURAL EVAL: {'PASS' if all_ok else 'FAIL'}", flush=True)
 
     if args.write_md:
@@ -332,8 +355,8 @@ def main() -> int:
             "| Check | Result | Detail |",
             "|-------|--------|--------|",
         ]
-        for name, ok, detail in rows:
-            lines.append(f"| `{name}` | {'PASS' if ok else 'FAIL'} | {detail.replace('|', '/')} |")
+        for name, status, detail in rows:
+            lines.append(f"| `{name}` | {status} | {detail.replace('|', '/')} |")
         lines.append("")
         lines.append(f"**Overall:** {'PASS' if all_ok else 'FAIL'} (no LLM required)")
         lines.append("")
