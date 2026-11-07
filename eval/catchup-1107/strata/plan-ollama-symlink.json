@@ -1,0 +1,1 @@
+{"schema_version": 1, "ok": false, "error": {"code": 5, "message": "These files cannot be used as they are (qwen3.6-35b-q4_k_m.gguf: this model type is not supported by the Strata engine (add it as a Custom model API with llama-server instead); this is not a model size Strata knows). Choose the matching model in the list, or check that every shard is in the folder."}}

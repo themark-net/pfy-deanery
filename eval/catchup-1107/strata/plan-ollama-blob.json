@@ -1,0 +1,1 @@
+{"schema_version": 1, "ok": false, "error": {"code": 5, "message": "These model files cannot be used: model import needs a GGUF file or directory. Pick the folder with every shard of one model, or a .gguf file of it."}}
