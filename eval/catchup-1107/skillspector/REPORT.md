@@ -57,7 +57,7 @@ The mutant was restored. The test passes again. The mutant is not committed.
 
 ## Catalog
 
-Entry 148 status is I3. The stage card and the `TOOLS.md` row are `SkillSpector`. Scores are the weighted rubric truncated, same way harness2 recorded 59.5 as 59: `0.35*86 + 0.25*92 + 0.25*84 + 0.15*82 = 86.4`, recorded 86, tier A. `tier_ceiling` stays `I1` because that is the A-tier cap in `catalog_stage_eval.py`. `integration_stage` is I3 because this trial's promote rule was met. `catalog_stage_eval.py --apply` does not rewrite `integration_stage`.
+Entry 148 status is I3. The stage card and the `TOOLS.md` row are `SkillSpector`. Scores are the weighted rubric truncated, same way harness2 recorded 59.5 as 59: `0.35*86 + 0.25*92 + 0.25*84 + 0.15*82 = 86.4`, recorded 86, tier A. `integration_stage` is I3 because this trial's promote rule was met. `tier_ceiling` stays `I3`. The 2026-11-07 re-rank on main set that ceiling for this trial, and `catalog_stage_eval.py` does not lower an existing ceiling. The A-tier formula alone would say `I1`. `--apply` does not rewrite `integration_stage`. The card also keeps the re-rank `entry` path and the `feature_go` and `catalog_hold_70_75` non-goals. Other tools' cards are unchanged. Coverage stays `85 tools registered`.
 
 ## Risks
 
