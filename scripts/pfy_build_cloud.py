@@ -1060,10 +1060,15 @@ def _cm_project(worktree: Path, stdout: str) -> str | None:
 def _cm_map(worktree: Path, symbols: list[str]) -> str:
     if not symbols:
         return ""
+    home = os.environ.get("HOME") or str(Path.home())
+    cache_root = os.environ.get("PFY_TOOL_CACHE") or str(Path(home) / ".cache" / "pfy")
     binary = _tool_bin(
         "PFY_CODEBASE_MEMORY",
         "codebase-memory-mcp",
-        [Path("/home/mark/.local/bin/codebase-memory-mcp")],
+        [
+            Path(cache_root) / "bin" / "codebase-memory-mcp",
+            Path("/home/mark/.local/bin/codebase-memory-mcp"),
+        ],
     )
     if binary is None:
         return ""

@@ -14,13 +14,16 @@
 #   --allow-dirty     with --in-place, allow a dirty tree (dev only)
 #   --keep-worktree   keep the run worktree and scratch for debugging
 #
-# One pregate per host at a time is the supported mode. Repo paths with
-# whitespace are refused (exit 2). An unresolvable --base exits 2.
+# Several pregates may run on one host. Each run has its own worktree, scratch,
+# and log folder. Those names include the pid. Repo paths with whitespace are
+# refused (exit 2). An unresolvable --base exits 2.
 #
 # Checks: lint ci-parity ubuntu-parity eval-structural suite orphans gate-hash
-# Logs and summary persist in ~/DEVELOP/pfy-mentat/tmp/pregate-runs/<run-id>/.
+# Logs and summary persist in <state>/pregate-runs/<run-id>/.
+# State defaults to <git-common-parent>/tmp. Set PREGATE_STATE_ROOT to move it.
 # Exit: 0 PASS, 1 FAIL (or no check passed), 2 usage/setup error, 130/143 signal.
-# Keeps the newest PREGATE_KEEP_RUNS (default 20) run folders.
+# Keeps the newest PREGATE_KEEP_RUNS (default 20) run folders, and never
+# deletes a folder whose pregate pid is still live.
 set -euo pipefail
 
 ALL_CHECKS="lint ci-parity ubuntu-parity eval-structural suite orphans gate-hash"
@@ -84,20 +87,27 @@ export BASE_SHA
 GIT_COMMON="$(git rev-parse --path-format=absolute --git-common-dir)"
 MAIN_ROOT="$(dirname "$GIT_COMMON")"
 HOST="$(hostname -s 2>/dev/null || hostname)"
+STATE_ROOT="${PREGATE_STATE_ROOT:-$MAIN_ROOT/tmp}"
 
-case "$MAIN_ROOT$REPO_ROOT" in
+case "$MAIN_ROOT$REPO_ROOT$STATE_ROOT" in
   *[[:space:]]*) die2 "repo path contains whitespace; not supported: $MAIN_ROOT" ;;
 esac
 
 RUN_TS="$(date -u +%Y%m%dT%H%M%SZ)"
 HHMMSS="${RUN_TS:9:6}"
+# Persist id keeps the full UTC stamp and the raw pid. Worktree and scratch
+# stay short so harness2 sockets fit sun_path. Their pid is zero-padded to 7
+# digits so the path length does not change between runs (the length guard
+# compares with `>`).
+RUN_PID="$(printf '%07d' "$$")"
+RUN_TAG="${SHORT}-${HHMMSS}-${RUN_PID}"
 RUN_ID="${SHORT}-${RUN_TS}-$$"
-PERSIST="$MAIN_ROOT/tmp/pregate-runs/$RUN_ID"
+PERSIST="$STATE_ROOT/pregate-runs/$RUN_ID"
 LOG_DIR="$PERSIST/logs"
 RECEIPTS="$PERSIST/receipts"
 SUMMARY="$PERSIST/pregate-summary.md"
-PG_DIR="$MAIN_ROOT/tmp/pg"
-SCRATCH="$MAIN_ROOT/tmp/pgs/${SHORT}-${HHMMSS}"
+PG_DIR="$STATE_ROOT/pg"
+SCRATCH="$STATE_ROOT/pgs/$RUN_TAG"
 
 if [[ "$IN_PLACE" -eq 1 ]]; then
   RUN_ROOT="$REPO_ROOT"
@@ -106,7 +116,7 @@ if [[ "$IN_PLACE" -eq 1 ]]; then
   fi
   [[ "$(git rev-parse HEAD)" == "$SHA" ]] || die2 "--in-place HEAD != $SHA; check out the REF or omit --in-place"
 else
-  RUN_ROOT="$PG_DIR/${SHORT}-${HHMMSS}"
+  RUN_ROOT="$PG_DIR/$RUN_TAG"
 fi
 
 # Unix socket paths (sun_path, 108 bytes) used by harness2 sandbox tests are
@@ -116,7 +126,7 @@ for p in "$RUN_ROOT" "$SCRATCH"; do
     die2 "path too long (${#p} > $MAX_ROOT_LEN chars): $p. Use a checkout whose git common dir is short (e.g. ~/DEVELOP/pfy-mentat) or set PREGATE_MAX_ROOT_LEN."
   fi
 done
-[[ "$IN_PLACE" -eq 1 || ! -e "$RUN_ROOT" ]] || die2 "run root already exists (concurrent run this second?): $RUN_ROOT"
+[[ "$IN_PLACE" -eq 1 || ! -e "$RUN_ROOT" ]] || die2 "run root already exists: $RUN_ROOT"
 
 # --- process helpers: only ever touch this script's own descendants ---------
 descendants() {
@@ -149,6 +159,22 @@ kill_tree() {
 is_live_pregate() {
   [[ -n "${1:-}" && -r "/proc/$1/cmdline" ]] && tr '\0' ' ' <"/proc/$1/cmdline" | grep -q 'pregate\.sh'
 }
+run_pid_from_name() {
+  local base="${1##*/}"
+  if [[ "$base" =~ -([0-9]+)$ ]]; then
+    echo "${BASH_REMATCH[1]}"
+  fi
+}
+# A run folder is live when its trailing pid is still a pregate, or any of
+# this user's processes still has that folder as cwd or argv.
+run_dir_is_live() {
+  local dir="$1" pid
+  pid="$(run_pid_from_name "$dir")"
+  if is_live_pregate "$pid"; then
+    return 0
+  fi
+  [[ -n "$(procs_under "$dir")" ]]
+}
 
 # PIDs of this user's processes whose cwd or argv is under any of the given dirs.
 procs_under() {
@@ -168,7 +194,7 @@ mkdir -p "$PG_DIR"
 for owner in "$PG_DIR"/.owner-*; do
   [[ -e "$owner" ]] || continue
   name="${owner##*/.owner-}"
-  if [[ ! "$name" =~ ^[0-9a-f]{7}-[0-9]{6}$ ]]; then
+  if [[ ! "$name" =~ ^[0-9a-f]{7}-[0-9]{6}(-[0-9]+)?$ ]]; then
     echo "pregate: ignoring owner file with unexpected name: $owner" >&2
     continue
   fi
@@ -179,30 +205,37 @@ for owner in "$PG_DIR"/.owner-*; do
   else
     why="owner pid ${opid:-?} is gone"
   fi
-  busy="$(procs_under "$PG_DIR/$name" "$MAIN_ROOT/tmp/pgs/$name")"
+  busy="$(procs_under "$PG_DIR/$name" "$STATE_ROOT/pgs/$name")"
   if [[ -n "$busy" ]]; then
     echo "pregate: stale run $PG_DIR/$name still has live processes (pids:$busy); not pruning, not signalling" >&2
     continue
   fi
   echo "pregate: pruning stale run $PG_DIR/$name ($why)"
-  git -C "$MAIN_ROOT" worktree remove --force "$PG_DIR/$name" >/dev/null 2>&1 || rm -rf "${PG_DIR:?}/$name"
-  rm -rf "$MAIN_ROOT/tmp/pgs/$name"
+  git -C "$REPO_ROOT" worktree remove --force "$PG_DIR/$name" >/dev/null 2>&1 || rm -rf "${PG_DIR:?}/$name"
+  rm -rf "$STATE_ROOT/pgs/$name"
   rm -f "$owner"
 done
 
 mkdir -p "$LOG_DIR" "$RECEIPTS"
 # Retention: keep the newest KEEP_RUNS run folders (this one included). Only
 # names matching the run-id pattern inside tmp/pregate-runs are ever removed.
-RUNS_DIR="$MAIN_ROOT/tmp/pregate-runs"
+RUNS_DIR="$STATE_ROOT/pregate-runs"
 mapfile -t _old_runs < <(find "$RUNS_DIR" -mindepth 1 -maxdepth 1 -type d -regextype posix-extended \
   -regex '.*/[0-9a-f]{7}-[0-9]{8}T[0-9]{6}Z-[0-9]+' -printf '%T@ %p\n' | sort -rn | tail -n +"$((KEEP_RUNS + 1))" | cut -d' ' -f2-)
 for d in "${_old_runs[@]}"; do
-  if [[ -n "$d" && "$d" != "$PERSIST" && "$d" == "$RUNS_DIR/"* ]]; then rm -rf -- "$d"; fi
+  if [[ -z "$d" || "$d" == "$PERSIST" || "$d" != "$RUNS_DIR/"* ]]; then
+    continue
+  fi
+  if run_dir_is_live "$d"; then
+    echo "pregate: keeping live run $d" >&2
+    continue
+  fi
+  rm -rf -- "$d"
 done
 CLEANUP_WORKTREE=""
 OWNER_FILE=""
 if [[ "$IN_PLACE" -eq 0 ]]; then
-  OWNER_FILE="$PG_DIR/.owner-${SHORT}-${HHMMSS}"
+  OWNER_FILE="$PG_DIR/.owner-$RUN_TAG"
   echo "$$" >"$OWNER_FILE"
   CLEANUP_WORKTREE="$RUN_ROOT"
 fi
@@ -223,7 +256,7 @@ cleanup() {
   rm -f "$LOG_DIR/.orphan-sample"; if [[ -n "${SAMPLER_PID:-}" ]]; then kill "$SAMPLER_PID" 2>/dev/null || true; wait "$SAMPLER_PID" 2>/dev/null || true; fi
   reap_recorded_orphans
   if [[ -n "$CLEANUP_WORKTREE" && "$KEEP_WORKTREE" -eq 0 ]]; then
-    git -C "$MAIN_ROOT" worktree remove --force "$CLEANUP_WORKTREE" >/dev/null 2>&1 || rm -rf "$CLEANUP_WORKTREE"
+    git -C "$REPO_ROOT" worktree remove --force "$CLEANUP_WORKTREE" >/dev/null 2>&1 || rm -rf "$CLEANUP_WORKTREE"
   fi
   if [[ "$KEEP_WORKTREE" -eq 0 ]]; then rm -rf "$SCRATCH"; fi
   # Normal exit (incl. --keep-worktree) drops the owner marker; only a run that
@@ -290,7 +323,6 @@ write_summary() {
     echo
     echo "Attach this file to any Tester/Reviewer gate request. See docs/ops/PREGATE.md."
   } >"$SUMMARY"
-  cp "$SUMMARY" "$MAIN_ROOT/tmp/pregate-latest-summary.md" 2>/dev/null || true
   echo
   echo "Summary: $SUMMARY"
   echo "OVERALL=$overall wall=${wall}s pass=$PASS_COUNT fail=$FAIL_COUNT skip=$SKIP_COUNT"

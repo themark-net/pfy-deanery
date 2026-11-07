@@ -16,14 +16,19 @@ on:
           - inventory
           - product
           - integration
-  # Push no longer auto-starts full lab (avoids serializing behind long eval-auto).
-  # Use schedule + workflow_dispatch; dual G0 still runs on every push via eval-structural.
+  # Push does not start the lab. Branch landings do not use this runner.
+  # 02:15 America/Los_Angeles (UTC-8) = 10:15 UTC. The 120 minute job wall
+  # ends at 12:15 UTC, before nightly-models at 12:30 UTC (04:30 PT).
   schedule:
-    - cron: "15 4 * * *"
+    - cron: "15 10 * * *"
 
+# One lab run at a time. cancel-in-progress is false so a second run waits
+# instead of killing a model load. The same group name is on nightly-models.
+# scripts/model_lock.sh is the host lock that serializes the model step
+# across workflows and Make targets.
 concurrency:
-  group: local-lab-${{ github.event_name }}-${{ github.event.inputs.mode || github.sha }}
-  cancel-in-progress: ${{ github.event_name == 'push' }}
+  group: pfy-local-model
+  cancel-in-progress: false
 
 jobs:
   lab:
@@ -95,9 +100,9 @@ jobs:
           EVAL_AUTO_REQUIRE_OLLAMA: "0"
           EVAL_GATE_CANDIDATES: "deepseek-coder:6.7b-instruct,deepseek-coder:6.7b,qwen2.5-coder:7b-instruct"
         run: |
-          chmod +x scripts/eval-auto.sh
+          chmod +x scripts/eval-auto.sh scripts/model_lock.sh
           set +e
-          ./scripts/eval-auto.sh
+          ./scripts/model_lock.sh ./scripts/eval-auto.sh
           rc=$?
           set -e
           mkdir -p pipelines/eval

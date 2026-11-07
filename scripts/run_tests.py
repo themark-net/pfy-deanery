@@ -7,6 +7,7 @@ run directory. -j 1 runs those subprocesses one at a time, in sorted order.
 
   python3 scripts/run_tests.py
   python3 scripts/run_tests.py -j 16 tests.test_hedge tests.test_cli
+  python3 scripts/run_tests.py --shard 0/4
   PFY_TEST_JOBS=4 python3 scripts/run_tests.py
 
 Exit 0 when every module passes. Exit 1 when any module fails. The failing
@@ -16,6 +17,7 @@ and the skip count parsed from unittest output.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -110,6 +112,33 @@ def mentions_bwrap(root: Path, module: str) -> bool:
     except OSError:
         return False
     return "bwrap" in text
+
+
+def parse_shard(text: str) -> tuple[int, int]:
+    """i/n with 0 <= i < n. Anything else is a usage error (exit 2)."""
+    parts = text.split("/")
+    index = count = 0
+    ok = len(parts) == 2 and parts[0].isdigit() and parts[1].isdigit()
+    if ok:
+        index, count = int(parts[0]), int(parts[1])
+        ok = count >= 1 and 0 <= index < count
+    if not ok:
+        print(f"shard must be i/n with 0 <= i < n, got {text}", file=sys.stderr)
+        raise SystemExit(2)
+    return index, count
+
+
+def shard_slot(name: str, count: int) -> int:
+    """Stable slot. Python's hash() is salted per process, so this uses sha256."""
+    digest = hashlib.sha256(name.encode("utf-8")).digest()
+    return int.from_bytes(digest[:8], "big") % count
+
+
+def apply_shard(modules: list[str], shard: tuple[int, int] | None) -> list[str]:
+    if shard is None:
+        return list(modules)
+    index, count = shard
+    return [name for name in modules if shard_slot(name, count) == index]
 
 
 def resolve_jobs(cli: int | None) -> int:
@@ -233,6 +262,7 @@ def execute(root: Path, modules: list[str], jobs: int, run_dir: Path) -> dict:
         "skips": sum(row["skips"] for row in ordered),
         "jobs": jobs,
         "serial": [name for name, _reason in SERIAL if name in serial_set and name in modules],
+        "shard": None,
         "results": public,
     }
     return receipt
@@ -257,20 +287,22 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--receipt", type=Path, default=None)
     ap.add_argument("--list", action="store_true", help="print the default module list and exit")
     ap.add_argument("--print-bwrap", action="store_true", help="print modules whose source mentions bwrap, then exit")
+    ap.add_argument("--shard", default=None, help="run shard i/n (0 <= i < n) by stable module-name hash")
     ap.add_argument("--run-dir", type=Path, default=None)
     args = ap.parse_args(argv)
     root = (args.root or Path.cwd()).resolve()
+    shard = parse_shard(args.shard) if args.shard else None
     if args.list and not args.modules:
-        for name in default_modules(root):
+        for name in apply_shard(default_modules(root), shard):
             print(name)
         return 0
     modules = list(args.modules) or default_modules(root)
     if args.list:
-        for name in modules:
+        for name in apply_shard(modules, shard):
             print(name)
         return 0
     if args.print_bwrap:
-        chosen = modules or default_modules(root)
+        chosen = apply_shard(modules or default_modules(root), shard)
         for name in chosen:
             if mentions_bwrap(root, name):
                 print(name)
@@ -279,6 +311,33 @@ def main(argv: list[str] | None = None) -> int:
         print("no test modules", file=sys.stderr)
         return 2
     jobs = resolve_jobs(args.jobs)
+    shard_label = f"{shard[0]}/{shard[1]}" if shard else None
+    modules = apply_shard(modules, shard)
+    if shard and not modules:
+        receipt = {
+            "modules": [],
+            "rc": 0,
+            "seconds": 0,
+            "skips": 0,
+            "jobs": jobs,
+            "serial": [],
+            "shard": shard_label,
+            "results": [],
+        }
+        parent_tmp = os.environ.get("TMPDIR") or tempfile.gettempdir()
+        if args.run_dir:
+            run_dir = args.run_dir
+            run_dir.mkdir(parents=True, exist_ok=True)
+        else:
+            run_dir = Path(tempfile.mkdtemp(prefix="pfy-tests-", dir=parent_tmp))
+        receipt_path = args.receipt or (run_dir / "receipt.json")
+        write_receipt(receipt_path, receipt)
+        print(
+            f"modules=0 failed=0 skips=0 seconds=0.00 jobs={jobs} shard={shard_label}",
+            flush=True,
+        )
+        print(f"receipt: {receipt_path}", flush=True)
+        return 0
     parent_tmp = os.environ.get("TMPDIR") or tempfile.gettempdir()
     if args.run_dir:
         run_dir = args.run_dir
@@ -286,12 +345,14 @@ def main(argv: list[str] | None = None) -> int:
     else:
         run_dir = Path(tempfile.mkdtemp(prefix="pfy-tests-", dir=parent_tmp))
     receipt = execute(root, modules, jobs, run_dir)
+    receipt["shard"] = shard_label
     receipt_path = args.receipt or (run_dir / "receipt.json")
     write_receipt(receipt_path, receipt)
     failed = receipt["rc"] != 0
     print(
         f"modules={len(modules)} failed={sum(1 for row in receipt['results'] if row['status'] != 'PASS')} "
-        f"skips={receipt['skips']} seconds={receipt['seconds']:.2f} jobs={jobs}",
+        f"skips={receipt['skips']} seconds={receipt['seconds']:.2f} jobs={jobs}"
+        + (f" shard={shard_label}" if shard_label else ""),
         flush=True,
     )
     print(f"receipt: {receipt_path}", flush=True)

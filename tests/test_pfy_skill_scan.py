@@ -191,6 +191,30 @@ class SkillScanTests(unittest.TestCase):
         self.assertIn("--no-llm", recorded["argv"])
         self.assertIsNone(recorded["provider"])
 
+    def test_cache_bin_runs_when_env_and_path_miss(self):
+        """Fail: no binary on PATH and no PFY_SKILLSPECTOR_BIN exits 2.
+        Recovery: an executable at $HOME/.cache/pfy/bin/skillspector exits 0 SAFE.
+        A set but missing PFY_SKILLSPECTOR_BIN still does not use that file.
+        """
+        missing = self.run_scan(["--out", str(self.out), str(self.skill)])
+        self.assertEqual(missing.returncode, 2, missing.stdout + missing.stderr)
+
+        cache_bin = self.home / ".cache" / "pfy" / "bin"
+        cache_bin.mkdir(parents=True)
+        stub = cache_bin / "skillspector"
+        stub.write_text(f"#!{sys.executable}\n{SAFE_BODY}", encoding="utf-8")
+        stub.chmod(stub.stat().st_mode | stat.S_IEXEC)
+        recovered = self.run_scan(["--out", str(self.out), str(self.skill)])
+        self.assertEqual(recovered.returncode, 0, recovered.stdout + recovered.stderr)
+        receipt = json.loads(self.out.read_text(encoding="utf-8"))
+        self.assertEqual(receipt["verdict"], "SAFE")
+
+        pinned = self.run_scan(
+            ["--out", str(self.out), str(self.skill)],
+            extra_env={"PFY_SKILLSPECTOR_BIN": str(self.td / "missing-bin")},
+        )
+        self.assertEqual(pinned.returncode, 2, pinned.stdout + pinned.stderr)
+
     def test_garbage_and_nonzero_recover_to_safe(self):
         """Fail: garbage JSON and a nonzero exit with no report are unreadable (exit 2).
         Recovery: a SAFE stub on the same path exits 0.

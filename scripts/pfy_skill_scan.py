@@ -5,7 +5,8 @@ Exit 0 when every path is SAFE. CAUTION is not safe unless --allow-caution.
 Exit 1 when any path is flagged. Prints the path, the recommendation, and the top findings.
 Exit 2 when the binary is missing or the scanner output is unreadable, with a next step.
 
-Never requests LLM analysis. Binary lookup: PFY_SKILLSPECTOR_BIN, then PATH.
+Never requests LLM analysis. Binary lookup: PFY_SKILLSPECTOR_BIN, then PATH,
+then ~/.cache/pfy/bin/skillspector. A set PFY_SKILLSPECTOR_BIN does not fall through.
 """
 from __future__ import annotations
 
@@ -39,8 +40,18 @@ def state_dir() -> Path:
     return Path(os.environ.get("PFY_STATE_DIR") or (Path.home() / ".pfy-mentat"))
 
 
+def cache_executable(name: str) -> Path | None:
+    """~/.cache/pfy/bin/<name> when it is an executable file. HOME wins over the passwd home."""
+    home = os.environ.get("HOME") or str(Path.home())
+    root = os.environ.get("PFY_TOOL_CACHE") or str(Path(home) / ".cache" / "pfy")
+    path = Path(root) / "bin" / name
+    if path.is_file() and os.access(path, os.X_OK):
+        return path
+    return None
+
+
 def find_binary() -> Path | None:
-    """PFY_SKILLSPECTOR_BIN wins. A set but unusable value does not fall through to PATH."""
+    """PFY_SKILLSPECTOR_BIN wins. A set but unusable value does not fall through."""
     chosen = os.environ.get("PFY_SKILLSPECTOR_BIN")
     if chosen:
         path = Path(chosen)
@@ -50,7 +61,7 @@ def find_binary() -> Path | None:
     found = shutil.which("skillspector")
     if found:
         return Path(found)
-    return None
+    return cache_executable("skillspector")
 
 
 def short_title(issue: dict) -> str:
@@ -210,7 +221,8 @@ def main(argv: list[str] | None = None) -> int:
         receipt["reason"] = "binary missing"
         print(
             "Next: install SkillSpector and set PFY_SKILLSPECTOR_BIN to the executable, "
-            "or put skillspector on PATH. See docs/ops/skill-scan.md."
+            "or put skillspector on PATH, or install the wrapper at ~/.cache/pfy/bin/skillspector. "
+            "See docs/ops/skill-scan.md."
         )
         write_receipt(out_path, receipt)
         return 2

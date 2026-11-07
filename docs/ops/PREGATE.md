@@ -5,7 +5,7 @@ Run this before any Tester or Reviewer gate request and attach its summary. It c
 ## Rule
 
 1. Run pregate on the exact SHA you will gate (full run, no `--only`).
-2. Attach `~/DEVELOP/pfy-mentat/tmp/pregate-runs/<run-id>/pregate-summary.md` to the gate request. The path is printed on the last lines of the run.
+2. Attach the summary the run prints (`Summary:`). The default folder is `~/DEVELOP/pfy-mentat/tmp/pregate-runs/<run-id>/pregate-summary.md`. `PREGATE_STATE_ROOT` moves that folder.
 3. Do not spend Tester/Reviewer turns until overall is PASS, unless you have an explicit waiver for a documented known gap.
 
 ## How to run (nimo)
@@ -23,25 +23,25 @@ From any pfy-mentat worktree that has this script:
 ./scripts/pregate.sh --base origin/main REF                # base for the committed gate-file diff (default)
 ```
 
-Environment knobs: `PREGATE_STEP_TIMEOUT` (seconds per check, default 2400), `PREGATE_MAX_ROOT_LEN` (default 60) and `PREGATE_KEEP_RUNS` (default 20).
+Environment knobs: `PREGATE_STEP_TIMEOUT` (seconds per check, default 2400), `PREGATE_MAX_ROOT_LEN` (default 60), `PREGATE_KEEP_RUNS` (default 20), and `PREGATE_STATE_ROOT` (default `<git-common-parent>/tmp`).
 
 Limits:
 
-- One pregate per host at a time. Concurrent runs are not coordinated: they share `tmp/pregate-latest-summary.md`, compete for CPU (which can trip timing-sensitive tests), and two runs of the same SHA in the same second exit 2.
+- Several pregates may run on one host. Each run has its own worktree, scratch, owner file, and summary. Names include the pid, so two runs of the same SHA in the same second do not share a path.
 - A repo path containing whitespace is refused (exit 2).
 - `--base` must resolve (default `origin/main`). An unknown base exits 2 instead of skipping the committed gate-file diff.
 
 ## Output
 
-- Run folder (kept after the run): `~/DEVELOP/pfy-mentat/tmp/pregate-runs/<shortsha>-<UTC stamp>-<pid>/`
-  - `pregate-summary.md`: the file to attach
+- Run folder (kept after the run): `<state>/pregate-runs/<shortsha>-<UTC stamp>-<pid>/`
+  - `pregate-summary.md`: the file to attach. The path is printed as `Summary:` on the last lines of the run
   - `logs/<check>.log`: one log per check; every FAIL line names its log here
   - `receipts/structural.latest.md`, `receipts/golden.latest.md`: G0 receipts (tracked files are never rewritten)
-- Convenience pointer: `~/DEVELOP/pfy-mentat/tmp/pregate-latest-summary.md` (overwritten by whichever run finishes last; attach the run-folder copy instead)
+- There is no shared latest-summary pointer. Attach the run-folder copy.
 - Exit codes: 0 PASS; 1 FAIL, or no check passed; 2 usage or setup error (unknown check, missing `--only` value, bad ref, unknown `--base`, more than one REF, path too long, whitespace in path, dirty `--in-place`); 130/143 when interrupted by SIGINT/SIGTERM
-- Retention: each run keeps the newest 20 run folders (`PREGATE_KEEP_RUNS`) and deletes older ones. Only folders in `tmp/pregate-runs/` whose name matches the run-id pattern are ever removed. Copy a summary elsewhere if it must outlive that.
+- Retention: each run keeps the newest 20 run folders (`PREGATE_KEEP_RUNS`) and deletes older ones. Only folders in `<state>/pregate-runs/` whose name matches the run-id pattern are ever removed. A folder whose trailing pid is still a live `pregate.sh`, or that still has a process under it, is kept. Copy a summary elsewhere if it must outlive that.
 
-The work happens in a detached worktree at `~/DEVELOP/pfy-mentat/tmp/pg/<shortsha>-<HHMMSS>` with scratch, `PFY_STATE_DIR` and `TMPDIR` under `~/DEVELOP/pfy-mentat/tmp/pgs/`. Both are removed on exit unless `--keep-worktree`. Paths stay short because harness2 sandbox sockets must fit sun_path (108 bytes). Pregate refuses to start (exit 2) if either path is over 60 characters. On SIGINT/SIGTERM it stops only its own child processes, writes a FAIL summary and cleans up. A run killed with SIGKILL leaves a stale worktree, and the next run prunes it once no live process uses it. The per-check watchdog only signals a process that is still a direct child of its pregate, so it never hits a reused PID or a child reparented after a SIGKILL.
+The work happens in a detached worktree at `<state>/pg/<shortsha>-<HHMMSS>-<7 digit pid>` with scratch, `PFY_STATE_DIR` and `TMPDIR` under `<state>/pgs/` using the same tag. The pid is zero-padded to 7 digits so the path length stays stable. Both are removed on exit unless `--keep-worktree`. Paths stay short because harness2 sandbox sockets must fit sun_path (108 bytes). Pregate refuses to start (exit 2) if either path is over 60 characters (`>`: a path of exactly 60 is allowed). On this host the default scratch path is 60 characters. On SIGINT/SIGTERM it stops only its own child processes, writes a FAIL summary and cleans up. A run killed with SIGKILL leaves a stale worktree, and the next run prunes it once no live process uses it. The per-check watchdog only signals a process that is still a direct child of its pregate, so it never hits a reused PID or a child reparented after a SIGKILL. The orphan check compares processes under this run's root and scratch only.
 
 ## Checks
 

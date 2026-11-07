@@ -34,6 +34,7 @@ POLICY ?= default
 
 LOCAL_OLLAMA_OVERLAY := $(ROOT)/overlays/local-ollama
 LITELLM_EXAMPLE := $(CATALOG_ROOT)/examples/litellm-ollama
+MODEL_LOCK := $(CATALOG_ROOT)/scripts/model_lock.sh
 LITELLM_SMOKE_MODEL ?= deepseek-coder:latest
 CM_EXAMPLE := $(CATALOG_ROOT)/examples/codebase-memory-mcp
 RW_EXAMPLE := $(CATALOG_ROOT)/examples/repowise
@@ -690,6 +691,9 @@ local-ollama-overlay-install: ensure-project
 	@echo "      make local-ollama-up && make smoke-litellm-ollama"
 
 local-ollama-up: ensure-project
+	@$(MODEL_LOCK) $(MAKE) local-ollama-up-body
+
+local-ollama-up-body: ensure-project
 	@test -f "$(COMPOSE_DIR)/docker-compose.local-ollama.yaml" \
 	  || (echo "error: run make local-ollama-overlay-install first"; exit 1)
 	@test -f "$(AGENTCAGE_DIR)/policies/coding-agent-local.yaml" \
@@ -720,6 +724,9 @@ docker exec agent-cage-agent python3 -c "import re,subprocess,ipaddress;\
 endef
 
 smoke-litellm-ollama: ensure-project
+	@$(MODEL_LOCK) $(MAKE) smoke-litellm-ollama-body
+
+smoke-litellm-ollama-body: ensure-project
 	@test -f "$(LITELLM_EXAMPLE)/run-in-cage.sh" \
 	  || (echo "error: missing $(LITELLM_EXAMPLE)/run-in-cage.sh"; exit 1)
 	@# Always (re)apply local-ollama compose + policy (whitelist host.docker.internal).
@@ -877,6 +884,9 @@ eval-tier0: smoke-litellm-ollama
 	@echo "eval-tier0: PASS (smoke-litellm-ollama)"
 
 eval-tier1: ensure-project
+	@$(MODEL_LOCK) $(MAKE) eval-tier1-body
+
+eval-tier1-body: ensure-project
 	$(call eval-in-cage,single)
 	@echo "eval-tier1: PASS"
 	@printf '| %s | 1 | PASS | %s | model=%s single task |\n' \
@@ -885,6 +895,9 @@ eval-tier1: ensure-project
 
 # v0.2: all implement tasks with gate model
 eval-suite: ensure-project
+	@$(MODEL_LOCK) $(MAKE) eval-suite-body
+
+eval-suite-body: ensure-project
 	$(call eval-in-cage,suite)
 	@echo "eval-suite: PASS"
 	@printf '| %s | suite | PASS | all tasks | gate=%s |\n' \
@@ -896,6 +909,9 @@ eval-suite: ensure-project
 
 # v0.2: tasks × models matrix (gate model must pass all tasks)
 eval-matrix: ensure-project
+	@$(MODEL_LOCK) $(MAKE) eval-matrix-body
+
+eval-matrix-body: ensure-project
 	$(call eval-in-cage,matrix)
 	@echo "eval-matrix: PASS (gate $(EVAL_GATE_MODEL))"
 	@printf '| %s | matrix | PASS | tasks×models | gate=%s models=%s |\n' \

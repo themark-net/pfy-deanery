@@ -17,6 +17,13 @@ ensure_binary() {
     codebase-memory-mcp --version
     return 0
   fi
+  cache_bin="${PFY_TOOL_CACHE:-$HOME/.cache/pfy}/bin/codebase-memory-mcp"
+  if [[ -x "$cache_bin" ]]; then
+    export PATH="$(dirname "$cache_bin"):${PATH}"
+    echo "  binary: $cache_bin"
+    codebase-memory-mcp --version
+    return 0
+  fi
   echo "  binary missing — installing via official install.sh --skip-config"
   curl -fsSL https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/main/install.sh \
     | bash -s -- --skip-config

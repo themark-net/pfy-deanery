@@ -21,7 +21,7 @@ soft() {
   else echo "    SOFT $name" | tee -a "$OUT"; fi
 }
 
-soft tools-model ./examples/eval-harness/smoke_tools_model.sh
+soft tools-model ./scripts/model_lock.sh ./examples/eval-harness/smoke_tools_model.sh
 soft opencode-cage ./examples/opencode-cage/smoke.sh
 soft voice-stt ./examples/voice-stt-edge/smoke.sh
 soft product-levers ./scripts/smoke-product-levers.sh

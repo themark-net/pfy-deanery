@@ -16,7 +16,7 @@ Landing a change runs the tests that change can affect, once, and caches a PASS 
 
 ## This slice
 
-Done on `bot/fastpipe-1107`:
+Done on `bot/fastpipe-1107` (slice 1):
 
 - `scripts/run_tests.py` runs one unittest module per subprocess.
 - `scripts/test_select.py` maps a diff to `none`, `structural`, `affected`, or `full`. The source recorded in the JSON is `ast`. The codebase-memory binary is not consulted, so ubuntu and nimo select the same modules.
@@ -24,11 +24,20 @@ Done on `bot/fastpipe-1107`:
 - Pregate runs the selected suite once. G0 ubuntu and G0 nimo each run it once. Nimo reuses the pregate cache when the key matches.
 - `.github/workflows/full-suite-nightly.yml` runs the full list on `ubuntu-24.04` at 09:17 UTC, and on `workflow_dispatch`.
 
+Done on `bot/fastpipe-par-1107` (slices 3, 5, and 6):
+
+- Slice 3. Several pregates may run on one host. Each worktree, scratch, and owner file is `<short>-<HHMMSS>-<pid>` with the pid zero-padded to 7 digits. The persist folder stays `<short>-<UTC stamp>-<raw pid>`. `PREGATE_STATE_ROOT` moves that state (default `<git-common-parent>/tmp`). Retention never deletes a folder whose trailing pid is still a pregate, and there is no shared `pregate-latest-summary.md`. Verified: `tests/test_pregate_concurrent.py` started two `--only lint,gate-hash` runs. Both printed `OVERALL=PASS`, with different pids and different summary paths, in the same unittest run (4 tests, 23.6 s, including the path-length guard). A second case kept a live run folder and deleted a dead one past `PREGATE_KEEP_RUNS`.
+- Slice 6. `scripts/model_lock.sh` flocks `${PFY_MODEL_LOCK:-$HOME/.cache/pfy/locks/local-model.lock}` for commands that load a local model (Ollama Make targets, harness eval tiers, `make local-bench`, the local-lab eval-auto step, the nightly-models suite). Landings do not call it. Pregate, `scripts/ci_selected_tests.sh`, `scripts/run_tests.py`, and `make eval-structural` do not take this lock and do not wait on `Runner.Worker`. The old `~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock` convention is retired for light jobs. Historical drop-ins that name that file are left as they were.
+- `local-lab.yml` cron is `15 10 * * *`: 02:15 America/Los_Angeles. DST has ended, so that zone is UTC-8, which is 10:15 UTC. The 120 minute job wall ends at 12:15 UTC. `nightly-models.yml` cron is `30 12 * * *`: 04:30 PT, 12:30 UTC. Its 120 minute wall ends at 14:30 UTC (06:30 PT). `eval-structural.yml` adds a schedule at `0 15 * * *`: 07:00 PT, 15:00 UTC, after that model window. Step caps stay G0 30, G1 30, Product levers 30, smoke-integration 40, eval-auto 20. Both model workflows use concurrency group `pfy-local-model` with `cancel-in-progress: false`. A GitHub concurrency group does not by itself lock a different workflow. `scripts/model_lock.sh` is the host lock that serializes the model command across workflows, Make, and a shell. Branch landings do not use the nimo runner, so local-lab cannot block them.
+- The ubuntu G0 job is a 4-way matrix. `scripts/run_tests.py --shard i/4` keeps the module when `sha256(name)[:8]` as an integer, mod 4, equals `i`. The slice 1 full suite was about 496 s, over 5 minutes, so the landing job is sharded. Every non-test check still runs on every shard. The upload name includes the shard because `actions/upload-artifact` v4 rejects a repeated name. The nimo job runs only on schedule, or on push when the ref is `main` or `master`. Pull requests and `workflow_dispatch` do not start it. On push to main, nimo runs `scripts/test_cache.py check` before the suite and prints `cache hit` on a hit. A sharded run does not record the cache. The nightly workflow is still one `python3 scripts/run_tests.py` with no module arguments and no `--shard`.
+- Slice 5. `scripts/tool_cache.sh check` creates `${PFY_TOOL_CACHE:-$HOME/.cache/pfy}/{bin,tools,uv-cache}` and exits 1 when one of those paths exists and is not a directory. `make skill-scan` resolves SkillSpector from `PFY_SKILLSPECTOR_BIN`, then PATH, then `~/.cache/pfy/bin/skillspector`. A set `PFY_SKILLSPECTOR_BIN` does not fall through. `codebase-memory-mcp` uses the same cache bin after PATH misses (and after `PFY_CODEBASE_MEMORY` where that variable already wins). `ci/test-image/Containerfile` pins `python:3.12-slim@sha256:05a994d2344eb364cc186910f4fc8786a38215f39f00d0acc25bff33a08f4177` plus git, ripgrep, and bubblewrap. No secrets and no repo copy. `make test-image` and `make test-in-container` use rootless `/usr/bin/podman`, mount the repo read-only, and put scratch on a tmpfs. Verified on nimo: the image built, and `make test-in-container` ran `tests.test_run_tests`. Result: `PASS tests.test_run_tests 2.10s skips=0`, `modules=1 failed=0`.
+
 Still in place, on purpose:
 
-- The heavy lock `~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock` and the one-pregate-at-a-time limit. The next slice takes light jobs off that lock.
 - `make eval-structural` still calls `run_structural.py` without `--skip-unittests`, so that Make target still runs a full discover.
 - `pfy build` still defaults to `python3 -m unittest discover -s tests -t .`.
+- Per-tool stage files `data/stages/<tool>.json` are a different slice.
+- No Make target starts Strata. Wrap a manual strata run in `scripts/model_lock.sh`. `make local-bench` already wraps `examples/local-bench/bench.py`.
 
 ## How a landing run is chosen
 
@@ -61,10 +70,10 @@ On a clean PASS, pregate records the cache. `affected` and `full` are recorded o
 
 - Push to `main`: the base is `github.event.before` (a zero SHA falls back to the merge-base with `origin/main`).
 - Pull request and `workflow_dispatch`: the base is the merge-base with `origin/main`. The script fetches that history.
-- Ubuntu sets `PFY_CI_USE_CACHE=0` and always runs the selection.
-- Nimo sets `PFY_CI_USE_CACHE=1`. A hit prints `cache hit <key> from pregate` and skips the suite. A miss runs the selection and records on PASS.
-- `structural` and `none` run the structural checks and no unittest modules.
-- An empty module list for `affected` or `full` exits 1. An empty argument list would otherwise make `run_tests.py` run every module.
+- Ubuntu sets `PFY_CI_USE_CACHE=0` and always runs the selection. The workflow passes `--shard i/4`. An empty shard of a non-empty list exits 0 and writes a PASS receipt with `modules` empty. That receipt is not recorded as a tree PASS.
+- Nimo sets `PFY_CI_USE_CACHE=1` and does not set a shard. A hit prints `cache hit <key> from pregate` and skips the suite. A miss runs the selection and records on PASS. The nimo job does not start for a pull request or for `workflow_dispatch`.
+- `structural` and `none` run the structural checks on shard 0 (and when no shard is set) and no unittest modules. Other shards print a line and exit 0. The workflow's other steps still run those non-test checks on every shard.
+- An empty module list for `affected` or `full` exits 1. An empty argument list would otherwise make `run_tests.py` run every module. A bad `--shard` (not `i/n` with `0 <= i < n`) exits 2.
 
 `eval-structural.yml` cancels a superseded run on the same branch. It does not cancel `main` or `master`.
 
@@ -110,13 +119,13 @@ The two green runs (496.98 s and 495.48 s, about 8.3 minutes) agreed: 171 module
 | Named skip treated as a green suite | G0 structural prints PASS while no tests ran | `check_pfylib_unittests` prints `SKIP` and the reason; the next step must call `scripts/ci_selected_tests.sh`. The cover test fails if `--skip-unittests` or `scripts/run_tests.py` disappears from the job |
 | Leading-dot path stripped | `.github/workflows/ci.yml` misses the core glob and is explained as "no test reference" | `glob_match` and `--paths` strip a literal `./` prefix only. `tests/test_test_select.py` covers `--paths .github/workflows/ci.yml` |
 | Sandbox test that never says `bwrap` | the host-PATH re-run skips it, and ubuntu-parity only sees the hidden-PATH result | put the word `bwrap` in the module, or add the module to the re-run. Nightly on ubuntu-24.04 is the hidden-PATH backstop |
+| Shard recorded as a full PASS | nimo skips the suite after one quarter of the modules passed | a run with `PFY_CI_SHARD` set does not call `test_cache.py record`. Nimo does not set the shard. Ubuntu does not read the cache |
+| Nimo job absent on a branch landing | a pull request looks green while no tests ran | the nimo `if` is explicit. The ubuntu job is the landing gate and still runs the selection, in four shards, including every non-test check. Trading, release, and secret paths stay `full` |
+| Retention deletes a live pregate | a second run removes the first run's folder while it is still working | the folder name ends with the pid. Retention skips it while `/proc/<pid>/cmdline` still contains `pregate.sh`. The concurrent test keeps that folder and deletes a dead one |
 
 ## Next slices
 
-- Light jobs without the global heavy lock.
 - Per-tool stage files `data/stages/<tool>.json`.
-- Persistent tool cache `~/.cache/pfy/{tools,bin}`. SkillSpector v2.12.0 now lives at `~/.cache/pfy/bin/skillspector`.
-- Local-lab off the landing lane.
 
 ## Scripts
 

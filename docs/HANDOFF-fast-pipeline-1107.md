@@ -1,6 +1,6 @@
-# Handoff: fast pipeline slice 1 (2026-11-07)
+# Handoff: fast pipeline (2026-11-07)
 
-Branch `bot/fastpipe-1107`. Not pushed. The landing path selects tests from the diff, runs that list once in parallel, and caches a PASS for the git tree. The full suite remains the nightly backstop.
+Slice 1 landed on `bot/fastpipe-1107`. Slices 3, 5, and 6 are on `bot/fastpipe-par-1107`. Not pushed. The landing path selects tests from the diff, runs that list once in parallel, and caches a PASS for the git tree. The full suite remains the nightly backstop. Light jobs do not take a host lock. Only commands that load a local model take `scripts/model_lock.sh`.
 
 Contract and risk table: [ops/MODULAR-CI.md](ops/MODULAR-CI.md). Pregate flags: [ops/PREGATE.md](ops/PREGATE.md).
 
@@ -16,7 +16,18 @@ Contract and risk table: [ops/MODULAR-CI.md](ops/MODULAR-CI.md). Pregate flags: 
 - `.github/workflows/full-suite-nightly.yml`: hosted `ubuntu-24.04`, cron `17 9 * * *`, plus `workflow_dispatch`. The command is `python3 scripts/run_tests.py` with no module arguments.
 - `scripts/pregate.sh`: `--full`, one bwrap-hidden pass of the selection, then only bwrap-sensitive modules again on the host PATH. The summary prints the selection mode and the module count.
 
-`make eval-structural` and the default `pfy build` test command still run a full discover. The heavy lock is unchanged.
+`make eval-structural` and the default `pfy build` test command still run a full discover. Light jobs do not flock `~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock`. That convention is retired for landings and other light jobs. Model loads use `scripts/model_lock.sh` on `${PFY_MODEL_LOCK:-$HOME/.cache/pfy/locks/local-model.lock}`. Landings never take that lock and never wait on `Runner.Worker`.
+
+## Slices 3, 5, and 6
+
+Branch `bot/fastpipe-par-1107`.
+
+- Pregate runs may overlap. Worktree and scratch names include a 7-digit pid. `PREGATE_STATE_ROOT` relocates state. Retention skips a live pregate. Two `--only lint,gate-hash` runs both printed `OVERALL=PASS` on separate summary paths (`tests/test_pregate_concurrent.py`).
+- Ubuntu G0 is four shards (`run_tests.py --shard i/4`). The nimo G0 job runs on push to `main` or `master`, and on the `0 15 * * *` schedule (07:00 PT, 15:00 UTC). Branch landings use the ubuntu job plus the pregate cache. Nimo checks the cache before the suite.
+- `local-lab.yml` is `15 10 * * *` (02:15 PT, 10:15 UTC, wall ends 12:15 UTC). `nightly-models.yml` is `30 12 * * *` (04:30 PT, 12:30 UTC). America/Los_Angeles is UTC-8. Both use group `pfy-local-model`, `cancel-in-progress: false`, and wrap the model step in `scripts/model_lock.sh`. Job wall stays 120. Step caps stay 30/30/30/40/20. Local-lab cannot block a branch landing, because that landing does not use the nimo runner.
+- `scripts/tool_cache.sh` checks `~/.cache/pfy/{bin,tools,uv-cache}`. SkillSpector and `codebase-memory-mcp` lookups fall back to `~/.cache/pfy/bin` only when the env pin and PATH miss.
+- Rootless podman on nimo built `ci/test-image/Containerfile` (`python:3.12-slim@sha256:05a994d2344eb364cc186910f4fc8786a38215f39f00d0acc25bff33a08f4177`). `make test-in-container` ran `tests.test_run_tests` read-only: `PASS tests.test_run_tests 2.10s`, `modules=1 failed=0`.
+- No Make target starts Strata. Wrap a manual strata run in `scripts/model_lock.sh`. `make local-bench` wraps the local bench.
 
 ## How to use the scripts
 
@@ -31,6 +42,7 @@ python3 scripts/run_tests.py -j 1
 python3 scripts/run_tests.py tests.test_catalog_entry_numbers
 python3 scripts/run_tests.py --list
 python3 scripts/run_tests.py --print-bwrap
+python3 scripts/run_tests.py --shard 0/4
 python3 scripts/run_tests.py --receipt /tmp/pfy-tests-receipt.json
 PFY_TEST_JOBS=4 python3 scripts/run_tests.py
 ```
@@ -39,7 +51,7 @@ Each child is `python3 -m unittest -q <module>`. The child gets its own `TMPDIR`
 
 Stdout is one line per module: `PASS|FAIL <module> <seconds>s skips=<n>`. A failure also prints the last 40 lines of that module. The last lines are the totals and `receipt: <path>`.
 
-Exit 0 when every module passes. Exit 1 when any module fails. Exit 2 when the list is empty or `-j` is not a positive integer.
+Exit 0 when every module passes. Exit 1 when any module fails. Exit 2 when the list is empty, `-j` is not a positive integer, or `--shard` is not `i/n` with `0 <= i < n`. An empty shard of a non-empty list exits 0.
 
 The receipt JSON has `modules`, `rc`, `seconds`, `skips`, `jobs`, `serial`, and `results` (no captured output). Skip count is the last `skipped=N` in the unittest output.
 
@@ -106,7 +118,4 @@ The same table is in [ops/MODULAR-CI.md](ops/MODULAR-CI.md). Short form:
 
 ## Next slices
 
-- Light jobs without the global heavy lock.
 - Per-tool stage files `data/stages/<tool>.json`.
-- Persistent tool cache `~/.cache/pfy/{tools,bin}`. SkillSpector v2.12.0 now lives at `~/.cache/pfy/bin/skillspector`.
-- Local-lab off the landing lane.

@@ -1,4 +1,7 @@
-# G0 gates — no LLM required. Runs on GitHub-hosted AND self-hosted (nimo) when online.
+# G0 gates — no LLM required.
+# Branch landings and workflow_dispatch use the GitHub-hosted ubuntu job only.
+# The self-hosted nimo job runs on push to main or master, and on the schedule.
+# Nimo evidence for a branch landing is the pregate cache, not this runner.
 name: eval-structural
 
 on:
@@ -6,6 +9,10 @@ on:
     branches: [main, master]
   pull_request:
   workflow_dispatch:
+  schedule:
+    # 07:00 America/Los_Angeles (UTC-8). After nightly-models' 120 minute wall,
+    # which starts at 04:30 PT (12:30 UTC) and ends by 06:30 PT.
+    - cron: "0 15 * * *"
 
 # Cancel a superseded run on a branch or PR. Do not cancel main or master.
 concurrency:
@@ -20,6 +27,12 @@ jobs:
     # follows the image.
     name: G0 (ubuntu-24.04)
     runs-on: ubuntu-24.04
+    # Full suite on this image is over 5 minutes. Four shards by module hash
+    # run the same non-test checks and a quarter of the selected modules.
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ["0", "1", "2", "3"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -81,9 +94,12 @@ jobs:
           set -euo pipefail
           # push to main uses github.event.before. PR and workflow_dispatch
           # use the merge-base with origin/main. The script fetches that history.
+          # Ubuntu never reads the pregate cache. Each matrix cell is one shard.
           PFY_CI_EVENT="${{ github.event_name }}" \
           PFY_CI_REF="${{ github.ref }}" \
           PFY_CI_BEFORE="${{ github.event.before }}" \
+          PFY_CI_SHARD="${{ matrix.shard }}" \
+          PFY_CI_SHARDS=4 \
           PFY_CI_USE_CACHE=0 \
           bash scripts/ci_selected_tests.sh
       - name: Launcher must exec
@@ -125,7 +141,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: g0-github-${{ github.run_id }}
+          name: g0-github-${{ github.run_id }}-shard-${{ matrix.shard }}
           path: |
             pipelines/eval/structural.latest.md
             pipelines/eval/golden.latest.md
@@ -133,8 +149,11 @@ jobs:
 
   structural-local:
     name: G0 (self-hosted nimo)
+    # Not a landing gate. Branch pull requests and workflow_dispatch stay on
+    # the ubuntu job. A pregate cache hit is the nimo evidence for those.
+    if: github.event_name == 'schedule' || (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'))
     runs-on: [self-hosted, Linux, X64, pfy-mentat]
-    # Don't block PR merge if lab machine is offline
+    # Don't block main if the lab machine is offline
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
@@ -172,7 +191,8 @@ jobs:
         if: always() && !cancelled()
         run: |
           set -euo pipefail
-          # Same selection as the ubuntu job. A pregate PASS for this tree is a hit.
+          # Same selection as the ubuntu job. scripts/test_cache.py check runs
+          # before the suite. A pregate PASS for this tree skips the suite.
           PFY_CI_EVENT="${{ github.event_name }}" \
           PFY_CI_REF="${{ github.ref }}" \
           PFY_CI_BEFORE="${{ github.event.before }}" \

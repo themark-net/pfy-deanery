@@ -63,6 +63,7 @@ The trial on nimo (2026-11-07) used that pin. `skillspector --version` printed `
 |------|--------|---------|
 | `PFY_SKILLSPECTOR_BIN` | env | Executable to run. If set, PATH is not used, even when the path is missing. |
 | `PATH` | env | Lookup for `skillspector` when `PFY_SKILLSPECTOR_BIN` is unset. |
+| `~/.cache/pfy/bin/skillspector` | file | Third lookup, after PATH misses. `PFY_TOOL_CACHE` replaces `~/.cache/pfy`. A set `PFY_SKILLSPECTOR_BIN` does not fall through to this file. |
 | `PFY_STATE_DIR` | env | Default receipt directory. File: `$PFY_STATE_DIR/skill-scan.json`. Unset uses `~/.pfy-mentat`. |
 | `--out` | flag | Receipt path. Overrides the state dir. |
 | `--allow-caution` | flag | Treat `CAUTION` as safe. Default is off. |

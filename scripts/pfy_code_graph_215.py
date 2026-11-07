@@ -60,6 +60,12 @@ def which_bin(*names):
         found = shutil.which(n)
         if found:
             return found
+        if n == "codebase-memory-mcp":
+            home = os.environ.get("HOME") or str(Path.home())
+            root = os.environ.get("PFY_TOOL_CACHE") or str(Path(home) / ".cache" / "pfy")
+            cached = Path(root) / "bin" / n
+            if cached.is_file() and os.access(cached, os.X_OK):
+                return str(cached)
     return ""
 
 

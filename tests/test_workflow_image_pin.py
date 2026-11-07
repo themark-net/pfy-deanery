@@ -58,8 +58,8 @@ def _image_pin_step_command(steps: object) -> str | None:
 def in_place_root_limit() -> int:
     """Longer of the two paths pregate measures for --in-place.
 
-    Scratch is <git common parent>/tmp/pgs/<7 sha chars>-<6 clock chars>.
-    The clock digits do not change the length.
+    Scratch is <git common parent>/tmp/pgs/<7 sha chars>-<6 clock chars>-<7 digit pid>.
+    The clock digits do not change the length. The pid is zero-padded to 7.
     """
     common = subprocess.check_output(
         ["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
@@ -68,7 +68,7 @@ def in_place_root_limit() -> int:
     ).strip()
     main_root = str(Path(common).parent)
     sha = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
-    scratch = f"{main_root}/tmp/pgs/{sha[:7]}-000000"
+    scratch = f"{main_root}/tmp/pgs/{sha[:7]}-000000-0000000"
     return max(len(str(ROOT)), len(scratch))
 
 

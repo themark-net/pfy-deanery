@@ -2,17 +2,18 @@
 """local-lab.yml must cap each long step and start before nightly-models.
 
 How this fails: a step hang has no timeout-minutes, so the run dies at the
-job wall with no named step (#310). The cron stays at 06:15 UTC and overlaps
-nightly-models at 07:00 UTC. The job wall stays at 90 while the measured
-suite is already about 100 minutes. A comment or an echo of the numbers
-would hide the miss if the check grepped the file.
+job wall with no named step (#310). A comment or an echo of the numbers
+would hide the miss if the check grepped the file. The job wall stays at 90
+while the measured suite is already about 100 minutes.
 
 How we recover: put the caps back on the five named steps (G0 30, G1 30,
 Product levers 30, smoke-integration 40, eval-auto 20), set the only
-schedule cron to 15 4 * * *, and set job lab timeout-minutes to 120. A hang
-then fails that step. The earlier cron leaves room before nightly-models.
-The 120 minute job wall covers the grown suite. Per-step caps still stop a
-hang inside that wall.
+schedule cron to 15 10 * * * (02:15 America/Los_Angeles, UTC-8), and set
+job lab timeout-minutes to 120. A hang then fails that step. That wall ends
+at 12:15 UTC, before nightly-models at 30 12 * * * (04:30 PT, 12:30 UTC).
+Both workflows share concurrency group pfy-local-model with
+cancel-in-progress false. The 120 minute job wall covers the grown suite.
+Per-step caps still stop a hang inside that wall.
 """
 from __future__ import annotations
 
@@ -24,7 +25,9 @@ ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW = ROOT / ".github" / "workflows" / "local-lab.yml"
 
 # Spec from #310. The workflow file is the other side. Drift fails the test.
-CRON = "15 4 * * *"
+CRON = "15 10 * * *"
+NIGHTLY_CRON = "30 12 * * *"
+MODEL_GROUP = "pfy-local-model"
 JOB_TIMEOUT = 120
 REQUIRED_STEPS = {
     "G0 structural": 30,
@@ -87,7 +90,7 @@ def budget_problems(doc: object) -> list[str]:
         crons = _crons(triggers)
         if crons != [CRON]:
             problems.append(
-                "schedule cron is %r, need %r so local-lab finishes before nightly-models at 07:00 UTC"
+                "schedule cron is %r, need %r so local-lab's 120 minute wall ends before nightly-models at 12:30 UTC"
                 % (crons, CRON)
             )
     jobs = doc.get("jobs")
@@ -144,7 +147,7 @@ def _named(doc: dict, name: str) -> dict:
 
 
 _COMMENTS_DO_NOT_COUNT = """\
-# cron: "15 4 * * *"
+# cron: "15 10 * * *"
 # timeout-minutes: 120
 name: local-lab
 on:
@@ -216,6 +219,26 @@ class LocalLabBudgetTests(unittest.TestCase):
         self.assertTrue(any("G0 structural" in item for item in problems), problems)
         self.assertTrue(any("15 6 * * *" in item for item in problems), problems)
         self.assertTrue(any("90" in item for item in problems), problems)
+
+    def test_nightly_models_follows_the_lab_wall_and_shares_its_group(self) -> None:
+        """Fail: nightly starts during the lab wall, or either workflow cancels the other.
+        Recovery: nightly cron is 30 12 * * * and both groups are pfy-local-model
+        with cancel-in-progress false. Step caps on local-lab stay in the other test.
+        """
+        require_yaml(self)
+        nightly_path = ROOT / ".github" / "workflows" / "nightly-models.yml"
+        nightly = yaml.safe_load(nightly_path.read_text(encoding="utf-8"))
+        triggers = _triggers(nightly)
+        self.assertIsNotNone(triggers)
+        self.assertEqual(_crons(triggers), [NIGHTLY_CRON])
+        lab = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
+        for doc in (lab, nightly):
+            group = doc.get("concurrency")
+            self.assertIsInstance(group, dict, doc.get("name"))
+            self.assertEqual(group.get("group"), MODEL_GROUP)
+            self.assertIs(group.get("cancel-in-progress"), False)
+        self.assertEqual(lab["jobs"]["lab"]["timeout-minutes"], JOB_TIMEOUT)
+        self.assertEqual(nightly["jobs"]["matrix"]["timeout-minutes"], JOB_TIMEOUT)
 
 
 if __name__ == "__main__":

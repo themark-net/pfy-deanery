@@ -377,7 +377,7 @@ AUDIT = (
     "tests.test_dogfood2_1031_report",
     "tests.test_selfhost_1031_log",
 )
-_TAKES_VALUE = {"-j", "--jobs", "--root", "--receipt", "--run-dir"}
+_TAKES_VALUE = {"-j", "--jobs", "--root", "--receipt", "--run-dir", "--shard"}
 
 
 def job_text(job: dict) -> str:

@@ -9,7 +9,14 @@ on:
         required: false
         default: ""
   schedule:
-    - cron: "0 7 * * *"
+    # 04:30 America/Los_Angeles (UTC-8) = 12:30 UTC. local-lab starts at
+    # 10:15 UTC and its 120 minute wall ends at 12:15 UTC.
+    - cron: "30 12 * * *"
+
+# One model-bound run of this workflow at a time. See local-lab.yml.
+concurrency:
+  group: pfy-local-model
+  cancel-in-progress: false
 
 jobs:
   matrix:
@@ -55,6 +62,10 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p pipelines/eval
+          chmod +x scripts/model_lock.sh
+          # One lock covers the pick, the gateway, and the suite.
+          ./scripts/model_lock.sh bash -s <<'EOF'
+          set -euo pipefail
           MODELS=$(python3 scripts/nightly_pick_models.py)
           if [[ -z "$MODELS" ]]; then
             echo "no models picked" > pipelines/eval/nightly-models.latest.md
@@ -75,6 +86,7 @@ jobs:
           echo "" >> pipelines/eval/nightly-models.latest.md
           echo "suite_exit=$rc event=${GITHUB_EVENT_NAME} models=$MODELS" >> pipelines/eval/nightly-models.latest.md
           exit 0
+          EOF
 
       - name: Upload matrix
         if: always()

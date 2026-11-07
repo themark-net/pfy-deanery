@@ -186,10 +186,13 @@ install_mattpocock_path() {
 install_codebase_memory() {
   if [[ "$WITH_CODEBASE_MEMORY" -ne 1 ]]; then
     log "Skipping codebase-memory binary install (pass --with-codebase-memory to fetch)"
-    if ! command -v codebase-memory-mcp >/dev/null 2>&1; then
-      warn "codebase-memory-mcp not on PATH; MCP entry will be configured but inactive until installed"
-    else
+    cache_cm="${PFY_TOOL_CACHE:-$HOME/.cache/pfy}/bin/codebase-memory-mcp"
+    if command -v codebase-memory-mcp >/dev/null 2>&1; then
       log "Found existing: $(command -v codebase-memory-mcp)"
+    elif [[ -x "$cache_cm" ]]; then
+      log "Found existing: $cache_cm"
+    else
+      warn "codebase-memory-mcp not on PATH or in ~/.cache/pfy/bin; MCP entry will be configured but inactive until installed"
     fi
     return 0
   fi
@@ -200,8 +203,10 @@ install_codebase_memory() {
   fi
   curl -fsSL https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/main/install.sh \
     | bash -s -- --skip-config
-  command -v codebase-memory-mcp >/dev/null 2>&1 \
-    || warn "install finished but codebase-memory-mcp not on PATH (check ~/.local/bin)"
+  cache_cm="${PFY_TOOL_CACHE:-$HOME/.cache/pfy}/bin/codebase-memory-mcp"
+  if ! command -v codebase-memory-mcp >/dev/null 2>&1 && [[ ! -x "$cache_cm" ]]; then
+    warn "install finished but codebase-memory-mcp not on PATH or in ~/.cache/pfy/bin (check ~/.local/bin)"
+  fi
 }
 
 merge_config() {
@@ -284,10 +289,13 @@ for s in m.get("first_party_skills",{}).get("skills",[]):
   else
     warn "grok not on PATH — install from https://x.ai/cli/install.sh"
   fi
+  cache_cm="${PFY_TOOL_CACHE:-$HOME/.cache/pfy}/bin/codebase-memory-mcp"
   if command -v codebase-memory-mcp >/dev/null 2>&1; then
     echo "  OK codebase-memory-mcp on PATH"
+  elif [[ -x "$cache_cm" ]]; then
+    echo "  OK codebase-memory-mcp at $cache_cm"
   else
-    echo "  note: codebase-memory-mcp not on PATH (use --with-codebase-memory)"
+    echo "  note: codebase-memory-mcp not on PATH or in ~/.cache/pfy/bin (use --with-codebase-memory)"
   fi
   [[ "$ok" -eq 1 ]] || die "verification failed"
   log "Verification passed"

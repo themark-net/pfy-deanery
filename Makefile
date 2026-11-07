@@ -8,6 +8,8 @@ SHELL := /bin/bash
 .DEFAULT_GOAL := help
 HARNESS := harness/agent-cage
 LITELLM_EXAMPLE := examples/litellm-ollama
+# Local-model jobs only. Landings do not take this lock.
+MODEL_LOCK := ./scripts/model_lock.sh
 
 .PHONY: help help-platform cage-doctor cage-setup cage-init cage-up cage-up-mcp cage-down \
 	cage-shell cage-status cage-test cage-logs cage-smoke-host catalog-json stages-json \
@@ -90,7 +92,9 @@ help-platform:
 	@echo "  make smoke-codebase-memory / smoke-repowise / smoke-context-tools"
 	@echo "  make smoke-write-guard      # T-0031 write-guard MCP policy smoke"
 	@echo "  make smoke-grok-skills      # first-party skill structure (manifest + SKILL.md)"
-	@echo "  make skill-scan             # advisory static scan of repo skill trees (not a CI gate)"
+	@echo "  make skill-scan             # advisory static scan; also looks in ~/.cache/pfy/bin"
+	@echo "  make test-image            # rootless podman image (python 3.12, git, rg, bwrap)"
+	@echo "  make test-in-container     # run_tests.py in that image, repo read-only"
 	@echo "  make smoke-grok-skills INSTALLED=1  # also check ~/.grok/skills"
 	@echo "  make smoke-opencode-ollama  # T-0080 host: OpenCode adapter + Ollama worker (no cage)"
 	@echo "  make smoke-voice-stt        # T-0091 p1: wiring only (mock/text; no mic)"
@@ -251,10 +255,10 @@ local-ollama-overlay-install:
 	@$(MAKE) -C $(HARNESS) local-ollama-overlay-install
 
 local-ollama-up:
-	@$(MAKE) -C $(HARNESS) local-ollama-up
+	@$(MODEL_LOCK) $(MAKE) -C $(HARNESS) local-ollama-up
 
 smoke-litellm-ollama:
-	@$(MAKE) -C $(HARNESS) smoke-litellm-ollama
+	@$(MODEL_LOCK) $(MAKE) -C $(HARNESS) smoke-litellm-ollama
 
 smoke-codebase-memory:
 	@$(MAKE) -C $(HARNESS) smoke-codebase-memory
@@ -285,6 +289,9 @@ skill-scan:
 
 # T-0080: host OpenCode + Ollama worker path (skills SoT + completion; opencode CLI optional)
 smoke-opencode-ollama:
+	@$(MODEL_LOCK) $(MAKE) smoke-opencode-ollama-body
+
+smoke-opencode-ollama-body:
 	@chmod +x examples/opencode-ollama/smoke.sh
 	@LOCAL_CODER_MODEL=$${LOCAL_CODER_MODEL:-deepseek-coder:6.7b} \
 	  LITELLM_SMOKE_MODEL=$${LITELLM_SMOKE_MODEL:-deepseek-coder:latest} \
@@ -366,14 +373,20 @@ smoke-voice-orchestrate:
 
 # T-0093: select/probe tools-capable Ollama model (writes tools-model.env)
 eval-select-tools-model:
-	@python3 examples/eval-harness/select_tools_model.py
+	@$(MODEL_LOCK) python3 examples/eval-harness/select_tools_model.py
 
 smoke-tools-model:
+	@$(MODEL_LOCK) $(MAKE) smoke-tools-model-body
+
+smoke-tools-model-body:
 	@chmod +x examples/eval-harness/smoke_tools_model.sh
 	@./examples/eval-harness/smoke_tools_model.sh
 
 # T-0085: stage local worker + Grok monitor brief
 worker-stage:
+	@$(MODEL_LOCK) $(MAKE) worker-stage-body
+
+worker-stage-body:
 	@chmod +x examples/opencode-ollama/worker-stage.sh
 	@LOCAL_CODER_MODEL=$${LOCAL_CODER_MODEL:-deepseek-coder:6.7b} \
 	  LITELLM_SMOKE_MODEL=$${LITELLM_SMOKE_MODEL:-deepseek-coder:latest} \
@@ -392,22 +405,22 @@ monitor-brief:
 	@head -40 examples/opencode-ollama/.generated/monitor-brief.md
 
 eval-tier0:
-	@$(MAKE) -C $(HARNESS) eval-tier0
+	@$(MODEL_LOCK) $(MAKE) -C $(HARNESS) eval-tier0
 
 eval-tier1:
-	@$(MAKE) -C $(HARNESS) eval-tier1
+	@$(MODEL_LOCK) $(MAKE) -C $(HARNESS) eval-tier1
 
 eval-mvp:
-	@$(MAKE) -C $(HARNESS) eval-mvp
+	@$(MODEL_LOCK) $(MAKE) -C $(HARNESS) eval-mvp
 
 eval-suite:
-	@$(MAKE) -C $(HARNESS) eval-suite
+	@$(MODEL_LOCK) $(MAKE) -C $(HARNESS) eval-suite
 
 eval-matrix:
-	@$(MAKE) -C $(HARNESS) eval-matrix
+	@$(MODEL_LOCK) $(MAKE) -C $(HARNESS) eval-matrix
 
 eval-v02:
-	@$(MAKE) -C $(HARNESS) eval-v02
+	@$(MODEL_LOCK) $(MAKE) -C $(HARNESS) eval-v02
 
 # Design/coding structural gates (skills, tools.json, text scorers, launcher, no encoded payloads) — no LLM/Ollama
 # Includes scripts/check_no_encoded_payloads.py (no base64/gzip payloads or runtime-assembled shards).
@@ -416,12 +429,15 @@ eval-structural:
 
 # Entry 146. Contract tests do not call a model. The runner does, on local Ollama.
 eval-skillup:
+	@$(MODEL_LOCK) $(MAKE) eval-skillup-body
+
+eval-skillup-body:
 	python3 tests/test_skillup_engine.py
 	python3 eval/catchup-1107/skill-up/run_eval.py
 
 # Kolibri-1 (Entry 085): operate-or-FAIL smoke; exit 2 = no backend (reason in receipt)
 smoke-kolibri1:
-	@python3 examples/kolibri1-llamacpp/smoke.py
+	@$(MODEL_LOCK) python3 examples/kolibri1-llamacpp/smoke.py
 
 # Golden-task cards (deterministic; OQ-0008 / #31) — no LLM
 eval-golden:
@@ -435,6 +451,9 @@ eval-deploy-ready:
 # Hardware-fit model pick (not limited to already-pulled). Host: ollama tags on :11434.
 # EVAL_PULL_GATE=0 to only list; default pulls gate if missing and ollama CLI present.
 eval-select-models:
+	@$(MODEL_LOCK) $(MAKE) eval-select-models-body
+
+eval-select-models-body:
 	@python3 examples/eval-harness/select_ollama_models.py \
 	  $(if $(filter 0,$(EVAL_PULL_GATE)),,--pull-gate)
 	@python3 examples/eval-harness/select_ollama_models.py --exports 2>/dev/null \
@@ -448,6 +467,9 @@ eval-select-models:
 # Tries EVAL_GATE_CANDIDATES in order until suite passes (chat/instruct before base FIM).
 # Select fit models then full v0.2 ladder (T-0074). Soft-SKIP if Ollama down unless EVAL_AUTO_REQUIRE_OLLAMA=1.
 eval-auto:
+	@$(MODEL_LOCK) $(MAKE) eval-auto-body
+
+eval-auto-body:
 	@chmod +x scripts/eval-auto.sh
 	@./scripts/eval-auto.sh
 
@@ -513,8 +535,33 @@ worker-brief-refresh:
 	@python3 scripts/worker_brief_refresh.py
 
 smoke-integration:
-	@chmod +x scripts/smoke-integration.sh
+	@chmod +x scripts/smoke-integration.sh scripts/model_lock.sh
 	@./scripts/smoke-integration.sh
+
+# Loads local Ollama models. Holds scripts/model_lock.sh for the whole bench.
+local-bench:
+	@$(MODEL_LOCK) python3 examples/local-bench/bench.py $(ARGS)
+
+# Rootless podman. The repo is mounted read-only. Scratch is a container tmpfs.
+# TEST_MODULES defaults to a small selected subset. Override to run more.
+PODMAN ?= /usr/bin/podman
+TEST_IMAGE ?= pfy-test:3.12
+TEST_MODULES ?= tests.test_run_tests
+
+.PHONY: test-image test-in-container local-bench
+test-image:
+	$(PODMAN) build --file ci/test-image/Containerfile --tag $(TEST_IMAGE) ci/test-image
+
+test-in-container: test-image
+	$(PODMAN) run --rm \
+	  --mount type=bind,src=$(CURDIR),dst=/src,ro \
+	  --tmpfs /tmp:rw,exec,nosuid,nodev \
+	  -w /src \
+	  -e HOME=/tmp/home \
+	  -e TMPDIR=/tmp \
+	  -e PYTHONDONTWRITEBYTECODE=1 \
+	  $(TEST_IMAGE) \
+	  sh -c 'mkdir -p /tmp/home && exec python3 scripts/run_tests.py $(TEST_MODULES)'
 
 eval-unified-agents:
 	@python3 scripts/eval_unified_agents_pack.py
