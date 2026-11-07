@@ -131,13 +131,18 @@
       "install_mode": "skills.paths (extra scan dir, not copied into ~/.grok/skills)",
       "vendored_snapshot": "bootstrap/grok-cli/skills-external/mattpocock/",
       "upstream": "https://github.com/mattpocock/skills.git",
-      "pinned_commit": "391a2701dd94",
+      "pinned_commit": "4ae2317ddb22b046e26455e4f9c9b3aaaf62212d",
       "skills": [
         "tdd",
         "code-review",
-        "to-spec"
+        "to-spec",
+        "implement",
+        "retro",
+        "grilling",
+        "grill-me",
+        "software-factory"
       ],
-      "notes": "Curated engineering subset only (plan/spec, review, TDD). Opt-out: --no-mattpocock. See PORT.md. T-0011 / ADR-0009."
+      "notes": "Curated subset at the pin above. agents/openai.yaml is not vendored. software-factory is SKILL.md, EXAMPLE-TASKS.md, RUNNERS.md only. Opt-out: --no-mattpocock. See PORT.md. T-0011 / ADR-0009."
     }
   },
   "mcp": {
