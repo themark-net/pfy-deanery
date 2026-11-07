@@ -10,7 +10,11 @@ Exit 0 if
      `catalog_tool` is this row's name, with a stage in I0-I4;
   4. every toolset with a non-null `catalog_tool` has exactly that reverse link;
   5. no two sources/entries/NNN-*.md files share an NNN prefix
-     (--entries-dir overrides only that scan; default is sources/entries).
+     (--entries-dir overrides only that scan; default is sources/entries);
+  6. every I3 or I4 tool whose uses, features, or tags cover CI, testing, or
+     review has self_pipeline applied (with evidence) or not_applicable (with
+     a reason). pending is allowed only with grace true. See
+     pipeline_role_hits and docs/ops/integration-stages.md.
 """
 from __future__ import annotations
 
@@ -30,6 +34,43 @@ STAGES = VALID_STAGES
 CARD = ("uses", "features", "potential", "non_goals", "next_gate")
 ROW_RE = re.compile(r"^\| \*\*([^*]+)\*\*([^|]*)\|", re.M)
 ENTRY_NUM_RE = re.compile(r"^(\d{3})-.+\.md$")
+TOKEN_RE = re.compile(r"[a-z0-9]+")
+# Explicit role labels. A tag token, or a feature whose whole text is one
+# token, wins over the prose scan. `eval` is a label only: the word inside a
+# sentence is not enough (`#pipeline` and `#evaluation` are not role tags).
+ROLE_TAGS = frozenset({
+    "ci",
+    "testing",
+    "test",
+    "tests",
+    "review",
+    "reviews",
+    "reviewer",
+    "qa",
+    "tdd",
+    "junit",
+    "pytest",
+    "lint",
+    "linter",
+    "eval",
+})
+# Prose fallback, whole words in uses and features. No bare `eval`.
+ROLE_WORDS = frozenset({
+    "ci",
+    "testing",
+    "test",
+    "tests",
+    "review",
+    "reviews",
+    "reviewer",
+    "qa",
+    "tdd",
+    "junit",
+    "pytest",
+    "lint",
+    "linter",
+})
+SELF_PIPELINE_STAGES = frozenset({"I3", "I4"})
 
 
 def entry_number_collisions(entries_dir: Path | None = None) -> list[str]:
@@ -74,6 +115,111 @@ def card_open(row: dict) -> bool:
     return any(not row.get(k) for k in CARD)
 
 
+def _string_list(value: object) -> list[str]:
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, list):
+        return [item for item in value if isinstance(item, str)]
+    return []
+
+
+def _tokens(text: str) -> list[str]:
+    return TOKEN_RE.findall(text.lower())
+
+
+def _unique(items: list[str]) -> list[str]:
+    out: list[str] = []
+    for item in items:
+        if item not in out:
+            out.append(item)
+    return out
+
+
+def pipeline_role_hits(row: dict) -> list[str]:
+    """Why a card covers CI, testing, or review.
+
+    Prefer an explicit role tag on `tags` or `catalog_tags`. If none, a
+    feature whose entire text is one role token counts (the catalog stored
+    the role as a label). Otherwise whole words in uses and features.
+    Empty means the self-pipeline rule does not apply.
+    """
+    if not isinstance(row, dict):
+        return []
+    tag_hits: list[str] = []
+    for raw in _string_list(row.get("tags")) + _string_list(row.get("catalog_tags")):
+        for token in _tokens(raw):
+            if token in ROLE_TAGS:
+                tag_hits.append(token)
+    tag_hits = _unique(tag_hits)
+    if tag_hits:
+        return ["tag:%s" % token for token in tag_hits]
+    feature_hits: list[str] = []
+    for raw in _string_list(row.get("features")):
+        tokens = _tokens(raw)
+        if len(tokens) == 1 and tokens[0] in ROLE_TAGS:
+            feature_hits.append(tokens[0])
+    feature_hits = _unique(feature_hits)
+    if feature_hits:
+        return ["feature:%s" % token for token in feature_hits]
+    words: list[str] = []
+    blob = " ".join(_string_list(row.get("uses")) + _string_list(row.get("features")))
+    for token in _tokens(blob):
+        if token in ROLE_WORDS:
+            words.append(token)
+    return ["word:%s" % token for token in _unique(words)]
+
+
+def _plain(value: object) -> str:
+    if not isinstance(value, str):
+        return ""
+    return value.strip()
+
+
+def self_pipeline_problems(name: str, row: dict) -> list[str]:
+    """Problems for one stage card. Empty when the rule does not apply or the card passes.
+
+    Fail closed at I3 and I4: missing field, applied without evidence,
+    not_applicable without a reason, or pending without grace. pending with
+    grace true is a listed exception and does not demote the card.
+    """
+    if not isinstance(row, dict) or not pipeline_role_hits(row):
+        return []
+    stage = row.get("integration_stage")
+    if stage not in SELF_PIPELINE_STAGES:
+        return []
+    field = row.get("self_pipeline")
+    if not isinstance(field, dict):
+        return [
+            "%s: %s tool covers CI, testing, or review but self_pipeline is missing "
+            "(applied with evidence, or not_applicable with a reason)"
+            % (name, stage)
+        ]
+    status = field.get("status")
+    if status == "applied":
+        if not _plain(field.get("evidence")):
+            return [
+                "%s: self_pipeline status applied needs evidence (a commit or a doc path)"
+                % name
+            ]
+        return []
+    if status == "not_applicable":
+        if not _plain(field.get("reason")):
+            return ["%s: self_pipeline status not_applicable needs a reason" % name]
+        return []
+    if status == "pending":
+        if field.get("grace") is True:
+            return []
+        return [
+            "%s: self_pipeline pending at %s needs grace true, or applied evidence, "
+            "or a not_applicable reason"
+            % (name, stage)
+        ]
+    return [
+        "%s: self_pipeline status %r is not applied, not_applicable, or pending"
+        % (name, status)
+    ]
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Catalog subset check and duplicate entry-number guard.")
     ap.add_argument(
@@ -113,6 +259,10 @@ def main(argv: list[str] | None = None) -> int:
         problems.append("stage card not I0-I4: %s" % bad_stage)
     open_cards = [n for n in catalog_names if n in stage_rows and card_open(stage_rows[n])]
     stage_only = sorted(set(stage_rows) - set(catalog_names))
+    for name in sorted(stage_rows):
+        row = stage_rows[name]
+        if isinstance(row, dict):
+            problems.extend(self_pipeline_problems(name, row))
 
     missing = [t["name"] for t in rows if t.get("name") and t["name"] not in md]
     if missing:

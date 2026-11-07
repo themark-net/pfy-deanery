@@ -56,6 +56,15 @@ def _legacy_monolith() -> dict | None:
     return None
 
 
+def _without_self_pipeline(tools: dict) -> dict:
+    out = {}
+    for name, card in tools.items():
+        if isinstance(card, dict) and "self_pipeline" in card:
+            card = {key: value for key, value in card.items() if key != "self_pipeline"}
+        out[name] = card
+    return out
+
+
 def _git_env() -> dict[str, str]:
     env = os.environ.copy()
     env["GIT_AUTHOR_NAME"] = "stage-test"
@@ -90,7 +99,8 @@ class StageRegistryTests(unittest.TestCase):
             self.assertEqual(got["tools"]["Pipecat"]["integration_stage"], "I0")
             self.assertIn("last_updated", got)
             return
-        self.assertEqual(got["tools"], expected["tools"])
+        # self_pipeline is a later card field. The split snapshot does not have it.
+        self.assertEqual(_without_self_pipeline(got["tools"]), expected["tools"])
         rest_got = {key: value for key, value in got.items() if key != "tools"}
         rest_expected = {key: value for key, value in expected.items() if key != "tools"}
         self.assertEqual(rest_got, rest_expected)

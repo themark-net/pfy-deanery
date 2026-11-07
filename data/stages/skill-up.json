@@ -44,5 +44,9 @@
     "eval/catchup-1107/skill-up/REPORT.md",
     "entry:sources/entries/146-skill-up.md"
   ],
-  "handoff_by": "llm"
+  "handoff_by": "llm",
+  "self_pipeline": {
+    "status": "applied",
+    "evidence": "docs/ops/skill-up-eval.md"
+  }
 }

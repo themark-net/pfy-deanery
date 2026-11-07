@@ -158,6 +158,33 @@ Add a tool by writing only its file. Leave every other card alone:
 
 `write_tool(root, name, card)` in `pfylib.stage_registry` writes that file atomically (indent 2, original key order, trailing newline). Then run `python3 scripts/catalog_check.py`. `make stages-json` (or `python3 -m pfylib.stage_registry --dump`) prints the assembled document in the old shape. `--apply` rewrites only the cards whose facts changed.
 
+## Self-pipeline rule (CI, testing, review)
+
+I0 to I4 measure how far a tool is built into the product. They do not ask whether we use the tool on ourselves. A tool whose uses, features, or tags cover CI, testing, or review cannot reach I3 until it has been applied to pfy-mentat's own pipeline, or a recorded reason says why not.
+
+The field lives on the per-tool card `data/stages/<slug>.json`. `scripts/catalog_check.py` reads it through `pfylib.stage_registry.load_stages`. Do not put the field back into `data/tool_integration_stages.json`.
+
+```json
+"self_pipeline": {
+  "status": "applied",
+  "evidence": "docs/ops/skill-up-eval.md"
+}
+```
+
+| status | extra | meaning |
+|--------|-------|---------|
+| `applied` | `evidence`: a commit or a doc path | Used on this repo's own pipeline |
+| `not_applicable` | `reason`: why not | The tool covers the job, and a real reason says not to apply it here |
+| `pending` | `grace`: `true` to stay at I3 or I4 | Not applied yet. Without grace, `catalog_check.py` fails. Grace is a listed exception, not a promotion. Do not drop the card to I2 unless a person decides to |
+
+Classification order in `scripts/catalog_check.py` (`pipeline_role_hits`):
+
+1. Explicit role tag on `tags` or `catalog_tags`. The token, with a leading `#` removed, is one of: `ci`, `testing`, `test`, `tests`, `review`, `reviews`, `reviewer`, `qa`, `tdd`, `junit`, `pytest`, `lint`, `linter`, `eval`. A tag hit wins. The prose scan is not required.
+2. A feature whose whole text is one of those tokens (for example the feature `eval`).
+3. Otherwise, whole words in `uses` and `features`: `ci`, `testing`, `test`, `tests`, `review`, `reviews`, `reviewer`, `qa`, `tdd`, `junit`, `pytest`, `lint`, `linter`. The word `eval` inside a sentence is not in this list.
+
+`#pipeline` and `#evaluation` are not role tags. The check fails when a classified tool is at I3 or I4 and `self_pipeline` is missing, `applied` has no evidence, `not_applicable` has no reason, `pending` has no grace, or the status is something else. A classified tool below I3 does not fail for a missing field.
+
 ## Agent rules
 
 1. New X/catalog entries start at **I1** (or I0 if Stage 0 fails).
@@ -165,6 +192,7 @@ Add a tool by writing only its file. Leave every other card alone:
 3. Ambiguous potential + <50 MB → may open I2 probe; record exit criteria.
 4. I3 requires value + modularity gates; open ADR only for primary-runtime or architecture shifts.
 5. I4 requires explicit checklist in PR (SUBTREES.md).
+6. Do not mark a CI, testing, or review tool I3 or I4 without `self_pipeline` (applied with evidence, not_applicable with a reason, or pending with grace).
 
 ## Resolution source
 

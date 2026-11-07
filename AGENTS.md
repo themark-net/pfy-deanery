@@ -140,6 +140,18 @@ Landing work follows [docs/ops/MODULAR-CI.md](docs/ops/MODULAR-CI.md):
 - the full suite runs nightly as a backstop
 - trading, release and secret changes always get the full run
 
+## Pipeline changes check the catalog first
+
+Before building any new or changed pipeline, CI, or gate step, check the cataloged tools that cover the job: [docs/eval/TOOLSET-RANKING.md](docs/eval/TOOLSET-RANKING.md) and the `uses`, `features`, and `tags` on `data/stages/<slug>.json`. Then answer software-factory's five questions. They are copied from mattpocock/skills at commit `4ae2317`, file `skills/in-progress/software-factory/SKILL.md` (https://github.com/mattpocock/skills). That skill is not vendored in this repo.
+
+1. What triggers it?
+2. What does it do, and which services does it read and write?
+3. What does it trigger next?
+4. Where does a human re-enter?
+5. What stops two runs doing the same work?
+
+A tool whose uses cover CI, testing, or review cannot reach I3 until it has been applied to this repo's own pipeline, or a recorded reason says why not. The field is `self_pipeline` on the stage card. The check is `scripts/catalog_check.py`. Scheme: [docs/ops/integration-stages.md](docs/ops/integration-stages.md).
+
 ## Design-in-loop (UI is the app)
 
 Operator-facing UI follows **`ui-is-the-app-design-in-loop`**: design pack in `docs/design/` before product UI; never ask what we already know; levers stay on the current view. Lab bolts are allowed; product/dogfood UI needs a Design pass. Verbatim DoD paste line is in that skill. This slice adds no product UI. Ops: [docs/ops/port-bot-doctrine-to-pfy-sot.md](docs/ops/port-bot-doctrine-to-pfy-sot.md).

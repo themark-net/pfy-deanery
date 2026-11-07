@@ -18,6 +18,8 @@ Instructions for coding agents working in this repository.
 | Implementation work item | Update **TODO** row; link OQs when blocked |
 | Non-trivial module change | Operator + agent docs (`/docs`) |
 
+Before a new or changed pipeline, CI, or gate step, check the catalog for a tool that already covers the job, then answer the five software-factory questions: trigger, what it reads and writes, what it triggers next, where a human re-enters, and what stops two runs doing the same work.
+
 ## Do not
 
 - Re-propose designs rejected in ADRs without a superseding ADR and new context
