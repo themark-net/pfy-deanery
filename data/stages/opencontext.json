@@ -1,0 +1,41 @@
+{
+  "name": "OpenContext",
+  "integration_stage": "I1",
+  "intent": "staged_evaluation",
+  "entry": "sources/entries/080-opencontext.md",
+  "github": "https://github.com/0xranx/OpenContext",
+  "pin": "0649e7134346f6f5038a9b29cc5c824ae6a54f3f",
+  "npm_version": "0.2.2",
+  "npm_git_head": "9c26c0ba35249b26b5325abcd9c79703a220536f",
+  "tarball_sha256": "56bc8d3b60fc62df2a2b22fc95a177471aa09f3fabc1efe4d619e98e2116f15a",
+  "tarball_sha1": "518bf681bdd1565225723b81305b499776a7effb",
+  "uses": "Personal context store and oc CLI. The 2026-11-07 probe recalled 8 of 8 copied notes and 0 of 8 facts already in this repo, and it scored 0 with/without harness cases.",
+  "features": [
+    "local folder and doc store",
+    "json manifest",
+    "keyword search requires an embedding key"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1. On 2026-11-07 the manifest returned 8 of 8 copied notes (128.3 ms, again 133.7 ms) and 0 of 8 facts already in this repo. A file walk saw 0 of 8 until the bodies were written, then 8 of 8 in a second process (agreement 8 of 8). rg found the 8 repo facts in 167.4 ms. oc search --mode keyword exited 1 in 125.7 ms with no key. Graded with/without cases: 0. skill-up already grades that gap. Do not wire a gate.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "oc ui",
+    "oc init in this repo",
+    "paid embeddings",
+    "gate wiring",
+    "feature_go",
+    "catalog_hold_70_75",
+    "replace codebase-memory",
+    "harness scorer"
+  ],
+  "evidence": [
+    "entry:sources/entries/080-opencontext.md",
+    "eval/evq1107/opencontext/REPORT.md",
+    "eval/evq1107/opencontext/VERDICT",
+    "eval/evq1107/opencontext/results.json",
+    "pin 0649e7134346f6f5038a9b29cc5c824ae6a54f3f",
+    "npm @aicontextlab/cli@0.2.2",
+    "tarball_sha256:56bc8d3b60fc62df2a2b22fc95a177471aa09f3fabc1efe4d619e98e2116f15a"
+  ],
+  "handoff_by": "llm"
+}

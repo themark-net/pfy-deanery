@@ -1,0 +1,384 @@
+{
+  "gap": "H1",
+  "pins": {
+    "entry_pin": "0649e7134346f6f5038a9b29cc5c824ae6a54f3f",
+    "checkout_head": "0649e7134346f6f5038a9b29cc5c824ae6a54f3f",
+    "checkout_matches_entry_pin": true,
+    "checkout_package_version": "0.1.0",
+    "checkout_license_field": "Apache-2.0",
+    "npm_version": "0.2.2",
+    "npm_license_field": "Apache-2.0",
+    "npm_git_head_on_registry": "9c26c0ba35249b26b5325abcd9c79703a220536f",
+    "npm_git_head_equals_entry_pin": false,
+    "core_native_version": "0.2.1",
+    "tarball_sha256": "56bc8d3b60fc62df2a2b22fc95a177471aa09f3fabc1efe4d619e98e2116f15a",
+    "tarball_sha1": "518bf681bdd1565225723b81305b499776a7effb",
+    "tarball_sha1_matches_registry": true,
+    "pin_oc_sha256": "019712c6e312d8954ebf508ff86b29b5dbb24cb1f41b60388483c0dcabd30d7a",
+    "npm_oc_sha256": "019712c6e312d8954ebf508ff86b29b5dbb24cb1f41b60388483c0dcabd30d7a",
+    "pin_vs_npm_bytes": [
+      {
+        "path": "bin/oc.js",
+        "same": true
+      },
+      {
+        "path": "src/core/search/index.js",
+        "same": true
+      },
+      {
+        "path": "src/core/search/native-adapter.js",
+        "same": true
+      },
+      {
+        "path": "src/core/store/index.js",
+        "same": true
+      },
+      {
+        "path": "src/core/native.js",
+        "same": true
+      },
+      {
+        "path": "package.json",
+        "same": false
+      }
+    ],
+    "pin_cli_start": {
+      "exit": 1,
+      "ms": 22.0,
+      "stderr_tail": "Error: Cannot find module 'commander'"
+    }
+  },
+  "repo_scan_ms": 167.4,
+  "repo_novel_hits": 0,
+  "repo_known_hits": 8,
+  "repo_novel_files": {
+    "OC1107_NOVEL_01": 0,
+    "OC1107_NOVEL_02": 0,
+    "OC1107_NOVEL_03": 0,
+    "OC1107_NOVEL_04": 0,
+    "OC1107_NOVEL_05": 0,
+    "OC1107_NOVEL_06": 0,
+    "OC1107_NOVEL_07": 0,
+    "OC1107_NOVEL_08": 0
+  },
+  "repo_known_files": {
+    "PFY_OPENCONTEXT_205_HELLO": 3,
+    "OPENCONTEXT_CONTEXTS_ROOT": 11,
+    "0649e7134346f6f5038a9b29cc5c824ae6a54f3f": 1,
+    "@aicontextlab/cli": 10,
+    "pfy-205-hello": 3,
+    "Catalog HOLD this round": 2,
+    "smoke-codebase-memory": 19,
+    "opencontext.db": 7
+  },
+  "folder_create_exit": 0,
+  "doc_create_exits": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "doc_create_ok": 8,
+  "capture_ms": 1328.9,
+  "bodies_written": 8,
+  "file_walk_before_body_novel": 0,
+  "file_walk_before_body_repo": 0,
+  "file_walk_after_body_novel": 8,
+  "file_walk_after_body_repo": 0,
+  "second_process_exit": 0,
+  "second_process_novel": 8,
+  "second_process_repo": 0,
+  "second_process_ms": 24.4,
+  "novel_walk_agreement": 8,
+  "novel_asked": 8,
+  "repo_asked": 8,
+  "manifest_after_create": {
+    "exit": 0,
+    "ms": 128.3,
+    "parse_ok": true,
+    "doc_count": 8,
+    "novel_hits": 8,
+    "repo_hits": 0
+  },
+  "manifest_second": {
+    "exit": 0,
+    "ms": 133.7,
+    "parse_ok": true,
+    "doc_count": 8,
+    "novel_hits": 8,
+    "repo_hits": 0
+  },
+  "search_keyword": {
+    "exit": 1,
+    "ms": 125.7,
+    "skipped_api_key": true,
+    "stdout_has_novel": false
+  },
+  "h1_graded_cases": 0,
+  "h1_score_delta": null,
+  "skill_up": {
+    "present": true,
+    "case_count": 5,
+    "delta_pass_rate": "+0.00",
+    "with_mean": 1,
+    "without_mean": 1
+  },
+  "overlap": [
+    {
+      "file": "agent-beacon.json",
+      "name": "Agent Beacon",
+      "stage": "I0",
+      "uses": "Copy a committed Grok session into a local JSONL, then store a lesson a person types. Scoring one trace calls hosted TypeSafe Jev.",
+      "words": [
+        "memory"
+      ],
+      "h1_named": false
+    },
+    {
+      "file": "auto-company.json",
+      "name": "Auto-Company",
+      "stage": "I1",
+      "uses": "Company-daemon patterns worth extracting. Not a runtime to adopt.",
+      "words": [
+        "memory"
+      ],
+      "h1_named": false
+    },
+    {
+      "file": "chroma-or-lancedb.json",
+      "name": "Chroma (or LanceDB)",
+      "stage": "I0",
+      "uses": "Vector store. Code memory is already chosen.",
+      "words": [
+        "memory",
+        "rag"
+      ],
+      "h1_named": false
+    },
+    {
+      "file": "codebase-memory-mcp.json",
+      "name": "codebase-memory-mcp",
+      "stage": "I2",
+      "uses": "Primary code-graph MCP and the code-graph toolset.",
+      "words": [
+        "memory",
+        "rag"
+      ],
+      "h1_named": false
+    },
+    {
+      "file": "eval-harness-pfy.json",
+      "name": "eval-harness (pfy)",
+      "stage": "I1",
+      "uses": "First-party structural and integration ladder.",
+      "words": [],
+      "h1_named": true
+    },
+    {
+      "file": "graphify.json",
+      "name": "Graphify",
+      "stage": "I0",
+      "uses": "Reference tree-sitter graph. Not the code memory we run.",
+      "words": [
+        "memory"
+      ],
+      "h1_named": false
+    },
+    {
+      "file": "grok-cli-bootstrap.json",
+      "name": "Grok CLI bootstrap",
+      "stage": "I3",
+      "uses": "Operator env, skills install, cage Grok sessions.",
+      "words": [
+        "memory"
+      ],
+      "h1_named": false
+    },
+    {
+      "file": "harness-score.json",
+      "name": "Harness Score",
+      "stage": "I0",
+      "uses": "Offline L0-L4 grade of repo harness files: context, skills, hooks, sensors, CI, and hygiene.",
+      "words": [
+        "context"
+      ],
+      "h1_named": true
+    },
+    {
+      "file": "harness2.json",
+      "name": "harness2",
+      "stage": "I1",
+      "uses": "Local harness edit trial on the 48-case decision set, sandboxed OpenCode, own llama-server.",
+      "words": [],
+      "h1_named": true
+    },
+    {
+      "file": "hermes-agent-feedback-loops.json",
+      "name": "Hermes Agent (feedback loops)",
+      "stage": "I1",
+      "uses": "Feedback-loop pattern ported as a skill. Not the Hermes runtime.",
+      "words": [
+        "memory"
+      ],
+      "h1_named": false
+    },
+    {
+      "file": "imcodes.json",
+      "name": "imcodes",
+      "stage": "I0",
+      "uses": "Reference for a supervised review loop and final-answer memory. Not an install.",
+      "words": [
+        "memory"
+      ],
+      "h1_named": false
+    },
+    {
+      "file": "kolibri-1.json",
+      "name": "Kolibri-1",
+      "stage": "I0",
+      "uses": "Optional local DE/EN reasoning MoE via patched llama.cpp GGUF smoke (I0 lab).",
+      "words": [
+        "context"
+      ],
+      "h1_named": false
+    },
+    {
+      "file": "laguna-s-2-1.json",
+      "name": "Laguna S 2.1",
+      "stage": "I1",
+      "uses": "Large local coding weights, when a machine can hold them.",
+      "words": [
+        "context"
+      ],
+      "h1_named": false
+    },
+    {
+      "file": "langgraph-langchain.json",
+      "name": "LangGraph (LangChain)",
+      "stage": "I1",
+      "uses": "Graph orchestration. Our loops already cover the operator path.",
+      "words": [
+        "rag"
+      ],
+      "h1_named": false
+    },
+    {
+      "file": "leann.json",
+      "name": "LEANN",
+      "stage": "I1",
+      "uses": "Compressed RAG. Not our code memory.",
+      "words": [
+        "memory",
+        "rag"
+      ],
+      "h1_named": false
+    },
+    {
+      "file": "mempalace.json",
+      "name": "MemPalace",
+      "stage": "I0",
+      "uses": "Verbatim local memory with scoped search.",
+      "words": [
+        "memory"
+      ],
+      "h1_named": false
+    },
+    {
+      "file": "memvid.json",
+      "name": "Memvid",
+      "stage": "I1",
+      "uses": "Video-backed memory. No job in the current operator path.",
+      "words": [
+        "memory",
+        "rag"
+      ],
+      "h1_named": false
+    },
+    {
+      "file": "mue-x.json",
+      "name": "MUE-X",
+      "stage": "I1",
+      "uses": "Self-rewriting agent. Interesting pattern, unsafe as a runtime.",
+      "words": [
+        "memory"
+      ],
+      "h1_named": false
+    },
+    {
+      "file": "neatroots.json",
+      "name": "neatroots",
+      "stage": "I2",
+      "uses": "Offline rule checks for loops, repeated tool calls, and error streaks on saved agent traces.",
+      "words": [],
+      "h1_named": true
+    },
+    {
+      "file": "opencode-mem.json",
+      "name": "opencode-mem",
+      "stage": "I1",
+      "uses": "Memory plugin for the OpenCode worker.",
+      "words": [
+        "memory"
+      ],
+      "h1_named": false
+    },
+    {
+      "file": "repowise.json",
+      "name": "repowise",
+      "stage": "I2",
+      "uses": "Context packing probe. Overlaps codebase-memory.",
+      "words": [
+        "memory",
+        "context"
+      ],
+      "h1_named": false
+    },
+    {
+      "file": "robrain.json",
+      "name": "RoBrain",
+      "stage": "I0",
+      "uses": "Decision memory with vetoes.",
+      "words": [
+        "memory"
+      ],
+      "h1_named": false
+    },
+    {
+      "file": "ruben-hassid-context-token-hacks.json",
+      "name": "Ruben Hassid context/token hacks",
+      "stage": "I0",
+      "uses": "Token-saving prompts. Not a tool we run.",
+      "words": [
+        "context"
+      ],
+      "h1_named": false
+    },
+    {
+      "file": "skill-up.json",
+      "name": "skill-up",
+      "stage": "I3",
+      "uses": "Grade a with-skill run against a no-skill baseline. The same cases can score a pfy run against a plain Build run.",
+      "words": [],
+      "h1_named": true
+    },
+    {
+      "file": "teaql-agent-kit.json",
+      "name": "TeaQL Agent Kit",
+      "stage": "I0",
+      "uses": "Agent context and verification policy patterns.",
+      "words": [
+        "context"
+      ],
+      "h1_named": false
+    }
+  ],
+  "real_opencontext_unchanged": true,
+  "oc_init_ran": false,
+  "oc_ui_ran": false,
+  "oc_index_build_ran": false,
+  "model_lock_taken": false
+}
