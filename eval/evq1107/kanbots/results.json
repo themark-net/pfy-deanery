@@ -1,0 +1,217 @@
+{
+  "pin": "7b256a024e65268d359ab3286e6c5d2c3d63a072",
+  "tag": "v1.2.0",
+  "tag_commit": "80a978c590b5cb13fdb5c8aa0ec15479e8a422cc",
+  "dispatcher_vs_tag": "same",
+  "appimage_sha256": "e7466c7ca3bc02a2e04ea664c194121104ea8bdfc134a5e6078c48bddc917b6a",
+  "appimage": {
+    "present": true,
+    "bytes": 113054166,
+    "sha256_match": true
+  },
+  "source_bytes_without_git": 5052032,
+  "baseline_git_worktree": {
+    "ok": 1,
+    "add_s": 0.0041,
+    "remove_s": 0.001,
+    "total_s": 0.0051
+  },
+  "kanbots": {
+    "branch": "kanbots/issue-78-1",
+    "worktree_path_basename": "issue-78-1",
+    "create_ms": 10.2,
+    "stamp_ms": 8.6,
+    "remove_ms": 2.9,
+    "create_stamp_remove_ms": 21.7,
+    "hook_installed_by_create": true,
+    "hook_in_common_dir": true,
+    "pre_push_bytes": 643,
+    "stamp": {
+      "userName": "kanbots agent (run #1)",
+      "userEmail": "agent+1@kanbots.local",
+      "hookInstalled": true,
+      "hookSkippedReason": null
+    },
+    "hooks_path_set": true,
+    "push_explicit_before_stamp": {
+      "code": 1,
+      "blocked": true,
+      "status": "rejected by pre-push"
+    },
+    "push_head_before_stamp": {
+      "code": 0,
+      "blocked": false,
+      "status": "new branch"
+    },
+    "push_explicit_after_stamp": {
+      "code": 0,
+      "blocked": false,
+      "status": "new branch"
+    },
+    "commit_code": 0,
+    "commit_add_code": 0,
+    "trailer_run": true,
+    "trailer_issue": true,
+    "author": "kanbots agent (run #1) <agent+1@kanbots.local>",
+    "containment": [
+      {
+        "id": "write-inside",
+        "name": "Write",
+        "outside": false,
+        "kind": "ok",
+        "blocked": false,
+        "heuristic": false
+      },
+      {
+        "id": "write-abs-outside",
+        "name": "Write",
+        "outside": true,
+        "kind": "escape",
+        "blocked": true,
+        "heuristic": false
+      },
+      {
+        "id": "edit-parent",
+        "name": "Edit",
+        "outside": true,
+        "kind": "escape",
+        "blocked": true,
+        "heuristic": false
+      },
+      {
+        "id": "bash-redirect",
+        "name": "Bash",
+        "outside": true,
+        "kind": "escape",
+        "blocked": true,
+        "heuristic": true
+      },
+      {
+        "id": "bash-relative",
+        "name": "Bash",
+        "outside": false,
+        "kind": "ok",
+        "blocked": false,
+        "heuristic": false
+      },
+      {
+        "id": "bash-url",
+        "name": "Bash",
+        "outside": false,
+        "kind": "escape",
+        "blocked": true,
+        "heuristic": true
+      },
+      {
+        "id": "read-outside",
+        "name": "Read",
+        "outside": true,
+        "kind": "ok",
+        "blocked": false,
+        "heuristic": false
+      }
+    ],
+    "outside_blocked": 3,
+    "outside_total": 4,
+    "check_pass": {
+      "status": "pass",
+      "duration_ms": 1,
+      "summary": "exit 0"
+    },
+    "check_timeout": {
+      "status": "fail",
+      "duration_ms": 404,
+      "summary": "timed out"
+    }
+  },
+  "clis_present": 3,
+  "clis_absent": 8,
+  "clis_dispatched": 0,
+  "cli_rows": [
+    {
+      "provider": "claude-code",
+      "binary": "claude",
+      "present": true
+    },
+    {
+      "provider": "codex",
+      "binary": "codex",
+      "present": true
+    },
+    {
+      "provider": "opencode",
+      "binary": "opencode",
+      "present": true
+    },
+    {
+      "provider": "gemini",
+      "binary": "gemini",
+      "present": false
+    },
+    {
+      "provider": "cursor",
+      "binary": "cursor-agent",
+      "present": false
+    },
+    {
+      "provider": "copilot",
+      "binary": "gh-copilot",
+      "present": false
+    },
+    {
+      "provider": "amp",
+      "binary": "amp",
+      "present": false
+    },
+    {
+      "provider": "droid",
+      "binary": "droid",
+      "present": false
+    },
+    {
+      "provider": "ccr",
+      "binary": "ccr",
+      "present": false
+    },
+    {
+      "provider": "qwen",
+      "binary": "qwen",
+      "present": false
+    },
+    {
+      "provider": "acp",
+      "binary": null,
+      "present": false
+    }
+  ],
+  "live_dispatch": "SKIPPED each CLI reuses its own sign-in; this lane does not call them",
+  "gui": "SKIPPED Electron binary can open a cloud login; not started",
+  "npm_package": {
+    "code": 1,
+    "not_found": true
+  },
+  "cli": {
+    "code": 0,
+    "commands_registered_in_source": 0,
+    "help_mentions_subcommand": false,
+    "help_head": "Usage: kanbots [options]\n\nOptions:\n  -V, --version  output the version number\n  -h, --help     display help for command"
+  },
+  "source_markers": {
+    "qa_throws_not_implemented": true,
+    "feature_dev_loops_until_abort": true,
+    "feature_dev_has_turn_cap_symbol": false,
+    "session_budget_error": true,
+    "check_default_timeout_5_min": true,
+    "cli_registers_no_command_call": true,
+    "supervisor_stamps_after_create": true
+  },
+  "build_timeout_hours_removed": 0,
+  "home_markers_before": {
+    ".kanbots": false,
+    ".config/kanbots": false
+  },
+  "home_markers_after": {
+    ".kanbots": false,
+    ".config/kanbots": false
+  }
+}

@@ -3,7 +3,7 @@
   "integration_stage": "I1",
   "intent": "catalog_default",
   "github": "https://github.com/leodavinci1/kanbots",
-  "next_gate": "Stage 0 already passed via npx. Stay I1 beside our loops.",
+  "next_gate": "Stay I1. On 2026-11-07 create plus stamp plus remove took 21.7 ms against a git worktree baseline of 5.1 ms. The explicit ref was rejected before the identity stamp and accepted after it. A HEAD refspec was accepted before the stamp. 0 of 11 CLIs were dispatched. The npm package kanbots returned 404. The 3 hour build timeout was unchanged. Do not wire a gate.",
   "catalog_tier": "A",
   "catalog_overall": "81",
   "catalog_tags": [
@@ -18,16 +18,27 @@
   ],
   "catalog_github": "https://github.com/leodavinci1/kanbots",
   "posture": [],
-  "evidence": [],
+  "evidence": [
+    "entry:sources/entries/078-kanbots.md",
+    "eval/evq1107/kanbots/REPORT.md",
+    "eval/evq1107/kanbots/VERDICT",
+    "eval/evq1107/kanbots/results.json",
+    "pin main 7b256a024e65268d359ab3286e6c5d2c3d63a072",
+    "tag v1.2.0 commit 80a978c590b5cb13fdb5c8aa0ec15479e8a422cc",
+    "AppImage sha256 e7466c7ca3bc02a2e04ea664c194121104ea8bdfc134a5e6078c48bddc917b6a"
+  ],
   "tier_ceiling": "I1",
-  "uses": "Kanban that fans out to many coding CLIs in worktrees.",
+  "uses": "Kanban GUI that fans coding CLIs into git worktrees. The 2026-11-07 probe did not move the pfy build timeout.",
   "features": [
     "kanban",
     "worktrees"
   ],
-  "potential": "medium",
+  "potential": "low",
   "handoff_by": "llm",
   "non_goals": [
-    "primary dispatcher"
+    "primary dispatcher",
+    "gate wiring",
+    "electron runtime",
+    "cloud login"
   ]
 }
