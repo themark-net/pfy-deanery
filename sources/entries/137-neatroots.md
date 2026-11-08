@@ -14,7 +14,7 @@
   - The secret finding reports a span id and a count, not the matched text. That is right for logs, but you need the trace to see what leaked.
   - `install.sh` writes `~/.neatroots`, `~/.local/bin/neatroots`, can edit shell profiles and offers to connect every coding agent it finds. Don't use it on nimo.
 - **Extracted Repos / Tools**: https://github.com/neatlogs/neatroots · https://github.com/neatlogs/neatroots/releases/tag/v0.2.9 · https://github.com/neatlogs/neatlogs (SDKs) · https://huggingface.co/convaiinnovations/laya
-- **TOOLS.md Link**: None yet. I0 awareness. No TOOLS.md row, no `data/tools.json` row.
+- **TOOLS.md Link**: None yet. No TOOLS.md row, no `data/tools.json` row.
 - **Smoke**: `python3 examples/x-intake-local/smoke_137_139.py --entry neatroots`. Looks up `$NEATROOTS_APP`, then `tmp/neatroots/app`; Node from `$NEATROOTS_NODE`, then `tmp/neatroots/node/bin/node`, then PATH. Version pinned to 0.2.9 (`$NEATROOTS_VERSION`). Only `check`, on temp fixtures. Receipt: `pipelines/smoke/neatroots/latest.json`.
 - **Non-goals**: No `neatroots start`, `connect`, `init`, steering, Laya download, hosted LLM, Jev cloud or Neatlogs Cloud. No `install.sh`.
 - **How this fails / how we recover**:

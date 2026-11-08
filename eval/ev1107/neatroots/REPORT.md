@@ -93,6 +93,8 @@ Modularity (all 4, for a local probe):
 
 I3 is not the verdict. The value gate is met on paper, and we still stay at I2. The repeat rule false-positives on omitted tool bodies, soft-tool-failure is noisy on successful reads, and this lane does not wire a gate. An I3 card would also need `self_pipeline` once the uses text is classified as CI or review. It is not classified today (no `ci`, `test`, or `review` word on the card).
 
+`tier_ceiling` is I2. It was I1 before this probe, the cap while no local check existed. The stage and the cap now match. A later catalog apply does not lower an existing ceiling.
+
 ## Risks
 
 | Risk | How it fails | Recovery |
