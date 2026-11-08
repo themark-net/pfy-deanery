@@ -32,7 +32,7 @@
     "model roles"
   ],
   "potential": "low",
-  "next_gate": "Stay I1 reference. I3 only if an operator uses the generated config on a real edit. This lane did not install or exec the IDE. The README at 5522c6f says the repo is no longer maintained. Worktree is 283463694 bytes, over the 50 MB copy bar. It does not serve a model, so gap L stays open. No gate wiring. Not a Feature GO.",
+  "next_gate": "Stay I1 reference. I3 only if an operator uses the generated config on a real edit. This lane did not install or exec the IDE. The README at 5522c6f says the repo is no longer maintained. Upstream cache worktree is 283463694 bytes, over the 50 MB copy bar. It does not serve a model, so gap L stays open. No gate wiring. Not a Feature GO.",
   "handoff_by": "llm",
   "non_goals": [
     "exec the IDE",

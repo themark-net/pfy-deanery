@@ -18,7 +18,7 @@ Continue (continuedev/continue) is a coding agent shipped as a VS Code extension
 | Size | worktree `du -sb --exclude=.git` 283463694 bytes. `.git` 189709184. cache src `du -sb` 473172878. |
 | Cache | `~/.cache/pfy/tools/continue-dev/src`. Not committed. |
 
-`HOME`, `XDG_CONFIG_HOME`, `XDG_CACHE_HOME`, and `TMPDIR` were under that cache. `GIT_CONFIG_GLOBAL` and `GIT_CONFIG_SYSTEM` were `/dev/null`. In `$CACHE/src`: `git init && git remote add origin https://github.com/continuedev/continue.git && git fetch --depth 1 --filter=blob:none origin 5522c6f44ca0ac3528b37244818fbfa39b5af470 && git checkout --detach FETCH_HEAD`.
+`HOME`, `XDG_CONFIG_HOME`, `XDG_CACHE_HOME`, and `TMPDIR` were under that cache. `GIT_CONFIG_GLOBAL` and `GIT_CONFIG_SYSTEM` were `/dev/null`. In `~/.cache/pfy/tools/continue-dev/src`: `git init && git remote add origin https://github.com/continuedev/continue.git && git fetch --depth 1 --filter=blob:none origin 5522c6f44ca0ac3528b37244818fbfa39b5af470 && git checkout --detach FETCH_HEAD`.
 
 No `sources/entries` file (the ticket entry was `-`). Status is the card.
 
@@ -45,7 +45,7 @@ Same job: an editor or chat surface on a local OpenAI base. Gap L in `docs/eval/
 | codebase-memory-mcp | I2 | Primary code graph. | The embed role overlaps it. Grok already uses the MCP. |
 | AgenC | I0 | Daemon agent. Not the operator. | Another coding surface. ADR-0010 rejects it. |
 
-`SUBTREES.md` already excludes full IDE agents. T-0108 (the Continue recipe) is done. `./pfy start continue` is STUB exit 2 and writes `$PFY_STATE_DIR/continue-config.json` from `LOCAL_OPENAI_BASE_URL`. It does not exec the IDE.
+`SUBTREES.md` already excludes full IDE agents. The local worker is OpenCode through `./pfy build --local`, not this IDE. T-0108 (the Continue recipe) is done. `./pfy start continue` is STUB exit 2 and writes `$PFY_STATE_DIR/continue-config.json` from `LOCAL_OPENAI_BASE_URL`. It does not exec the IDE.
 
 ## Gates
 
