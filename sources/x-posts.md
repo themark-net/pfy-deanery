@@ -885,7 +885,7 @@ When adding new X-sourced tools or papers:
 - **Eval:** extensive pack loop `scripts/eval_unified_agents_pack.py` — **PASS** (98% gate, mean 4.06).
 - **Decision:** Curated I1 paths pack (16 skills); docs_map overlaps to first-party; no Claude primary.
 - **Pin:** b026de60c0fc5438f53faffb5cd7f43f84ed3267
-- **Status:** Integrated 2026-07-31
+- **Status:** STAY I1 reference (read 2026-11-07). Pin `b026de60c0fc5438f53faffb5cd7f43f84ed3267` is upstream HEAD (commit 2025-08-03). MIT. Curated 16 paths already in tree. Gap B stays the pfy build timeout. Receipt: `eval/evq1107/claude-code-unified-agents/REPORT.md`. No Feature GO.
 
 ---
 

@@ -3,7 +3,37 @@
   "integration_stage": "I1",
   "intent": "curated_paths_pack",
   "pin": "b026de60c0fc5438f53faffb5cd7f43f84ed3267",
+  "license": "MIT",
   "notes_doc": "docs/ops/unified-agents-recipes.md",
   "eval_receipt": "pipelines/eval/unified-agents-eval.latest.md",
-  "skills": 16
+  "skills": 16,
+  "posture": [
+    "paths_snapshot",
+    "reference_only"
+  ],
+  "evidence": [
+    "pin:b026de60c0fc5438f53faffb5cd7f43f84ed3267",
+    "eval/evq1107/claude-code-unified-agents/REPORT.md",
+    "eval/evq1107/claude-code-unified-agents/VERDICT",
+    "docs/ops/unified-agents-recipes.md",
+    "pipelines/eval/unified-agents-eval.latest.md"
+  ],
+  "uses": "Curated specialist posture pack already on skills.paths. Reference read only. Gap B stays the pfy build timeout.",
+  "features": [
+    "frontmatter name description and tool list",
+    "category folders",
+    "overlap map to first-party skills"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1 reference. Re-open only if a later ticket shows this pin is no longer upstream HEAD or docs/ops/unified-agents-recipes.md no longer matches the 16 files, and that ticket still does not run install.sh and adds no gate. Gap B stays the pfy build timeout. Not a Feature GO.",
+  "non_goals": [
+    "claude code primary",
+    "full pack first-party",
+    "install.sh",
+    "curl pipe bash",
+    "domain dumps",
+    "gate wiring",
+    "feature_go"
+  ],
+  "handoff_by": "llm"
 }
