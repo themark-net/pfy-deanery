@@ -16,6 +16,10 @@ class TestLitellmReadonlyProbe(unittest.TestCase):
             self.assertNotIn(banned, lowered)
         self.assertIn("scripts/model_lock.sh", text)
         self.assertIn("completion", lowered)
+        self.assertNotIn("127.0.0.1:11434", text)
+        self.assertNotIn("import litellm", text)
+        self.assertIn("127.0.0.1:11435", text)
+        self.assertIn("127.0.0.1:4000", text)
 
 
 if __name__ == "__main__":

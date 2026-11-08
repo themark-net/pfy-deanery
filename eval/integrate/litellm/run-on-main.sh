@@ -19,6 +19,9 @@
 # A timeout is not a pass. A missing binary, a proxy error, or a timeout
 # exits nonzero and does not create or update the receipt.
 #
+# Ports: 127.0.0.1:11435 (wired gateway) and 127.0.0.1:4000 (proxy default).
+# Connect only when ss shows that port is already listening. No other port.
+#
 # Usage: eval/integrate/litellm/run-on-main.sh RECEIPT_PATH
 
 set -euo pipefail
@@ -28,7 +31,8 @@ MARKER=${PFY_LITELLM_LANE_MARKER:-/home/mark/DEVELOP/pfy-mentat/tmp/integrate2/l
 marker_pid_is_ancestor() {
   local file=$1
   local target cur guard ppid
-  target=$(sed -n 's/^pid \([0-9][0-9]*\)[[:space:]]*$/\1/p' "$file" 2>/dev/null | head -n 1 || true)
+  target=$(sed -n 's/^pid \([0-9][0-9]*\)[[:space:]]*$/\1/p' "$file" 2>/dev/null || true)
+  target=${target%%$'\n'*}
   if [ -z "$target" ]; then
     return 1
   fi
@@ -64,6 +68,12 @@ if [ "$#" -ne 1 ] || [ -z "${1:-}" ]; then
 fi
 
 receipt=$1
+# Resolve before cd. A relative path is the caller's path, not the repo root.
+case "$receipt" in
+  /*) ;;
+  *) receipt=$PWD/$receipt ;;
+esac
+
 root=$(git rev-parse --show-toplevel)
 cd "$root"
 
@@ -82,7 +92,7 @@ if [[ ! "$sha" =~ ^[0-9a-f]{40}$ ]]; then
 fi
 
 # Write receipt.json only after the ancestor check and a successful probe.
-for bin in curl timeout python3; do
+for bin in curl timeout python3 ss; do
   if ! command -v "$bin" >/dev/null 2>&1; then
     printf '%s\n' "missing binary: $bin" >&2
     exit 1
@@ -101,15 +111,19 @@ cleanup() {
 }
 trap cleanup EXIT
 
+port_listening() {
+  local port=$1
+  ss -ltnH "sport = :${port}" 2>/dev/null | grep -q .
+}
+
 saw_timeout=0
 probe_models() {
-  local base url code rc count
-  base=${1%/}
-  base=${base%/v1}
-  url=$base/v1/models
+  local port=$1
+  local url code rc count
+  url=http://127.0.0.1:${port}/v1/models
   body=$(mktemp)
   set +e
-  code=$(timeout 10 curl -s --noproxy '*' --max-time 5 -o "$body" -w '%{http_code}' "$url")
+  code=$(timeout 10 curl -q -s --noproxy '*' --connect-timeout 2 --max-time 5 -o "$body" -w '%{http_code}' "$url")
   rc=$?
   set -e
   if [ "$rc" -ne 0 ]; then
@@ -155,6 +169,9 @@ PY
   if [ "$rc" -ne 0 ]; then
     return 1
   fi
+  case "$count" in
+    ''|*[!0-9]*) return 1 ;;
+  esac
   PROBE_URL=$url
   PROBE_COUNT=$count
   return 0
@@ -163,50 +180,49 @@ PY
 started=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 PROBE_URL=
 PROBE_COUNT=
-if [ -n "${PFY_LITELLM_BASE:-}" ]; then
-  if ! probe_models "$PFY_LITELLM_BASE"; then
-    if [ "$saw_timeout" -eq 1 ]; then
-      printf '%s\n' "proxy timeout" >&2
-      exit 124
-    fi
-    printf '%s\n' "proxy probe failed" >&2
-    exit 1
+probed=0
+tried=0
+for port in 11435 4000; do
+  if ! port_listening "$port"; then
+    continue
   fi
-else
-  probed=0
-  for base in http://127.0.0.1:4000 http://127.0.0.1:11435 http://127.0.0.1:11434; do
-    if probe_models "$base"; then
-      probed=1
-      break
-    fi
-  done
-  if [ "$probed" -ne 1 ]; then
-    if [ "$saw_timeout" -eq 1 ]; then
-      printf '%s\n' "proxy timeout" >&2
-      exit 124
-    fi
+  tried=1
+  if probe_models "$port"; then
+    probed=1
+    break
+  fi
+done
+if [ "$probed" -ne 1 ]; then
+  if [ "$saw_timeout" -eq 1 ]; then
+    printf '%s\n' "proxy timeout" >&2
+    exit 124
+  fi
+  if [ "$tried" -eq 0 ]; then
     printf '%s\n' "proxy missing" >&2
     exit 1
   fi
+  printf '%s\n' "proxy probe failed" >&2
+  exit 1
 fi
 finished=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
+# Package metadata only. Do not import the library. A lookup miss keeps the
+# fallback and still records the probe that already succeeded.
 tool_version=openai-compat
 set +e
-imported=$(timeout 10 python3 -c 'import litellm; print(getattr(litellm, "__version__", "") or "")' 2>/dev/null)
-vrc=$?
+meta=$(timeout 5 python3 -c 'import importlib.metadata as m
+try:
+    v = m.version("litellm")
+except Exception:
+    v = ""
+print(v, end="")' 2>/dev/null)
 set -e
-if [ "$vrc" -eq 124 ]; then
-  printf '%s\n' "version timeout" >&2
-  exit 124
-fi
-if [ "$vrc" -eq 0 ]; then
-  imported=${imported%%$'\n'*}
-  imported=${imported//$'\r'/}
-  if [ -n "$imported" ]; then
-    tool_version=$imported
-  fi
-fi
+meta=${meta//$'\r'/}
+meta=${meta%%$'\n'*}
+case "$meta" in
+  ""|*[!0-9A-Za-z._+-]*) ;;
+  *) tool_version=$meta ;;
+esac
 
 dest_dir=$(dirname -- "$receipt")
 mkdir -p "$dest_dir"
