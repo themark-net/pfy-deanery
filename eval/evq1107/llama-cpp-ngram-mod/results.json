@@ -1,0 +1,386 @@
+{
+  "tool": "llama.cpp ngram-mod",
+  "pin_commit": "6f3a9f3dee3c27545371044a3a38005721ac8a8e",
+  "model_name": "qwen2.5-coder:7b-instruct",
+  "model_path": "/usr/share/ollama/.ollama/models/blobs/sha256-60e05f2100071479f596b964f89f510f057ce397ea22f2833a0cfe029bfc2463",
+  "server": "/usr/local/lib/ollama/llama-server",
+  "status": "ok",
+  "help_exit": 0,
+  "version_line": "version: 1 (6f3a9f3de) built with GNU 11.2.1 for Linux x86_64",
+  "model_bytes": 4683074048,
+  "model_sha256": "60e05f2100071479f596b964f89f510f057ce397ea22f2833a0cfe029bfc2463",
+  "libllama_server_impl_sha256": "9cd25af56b2ecc46ed412261229ae4c7c2bda19b99da7430be496e81c23e1784",
+  "libllama_sha256": "35917ae8f9566b7a198c900a928c73dc08dc9806187b89913504c71b92da1088",
+  "server_sha256": "dbfeea380cdc1de9bbfe32399befbcd8381a3c5ac83e573d79d0fa41bdc40037",
+  "host": {
+    "mem_available": 81596522496,
+    "need": 31526619648,
+    "ps_error": "",
+    "ps_count": 0,
+    "busy": false
+  },
+  "modes": [
+    {
+      "spec": "none",
+      "status": "ok",
+      "attempt": 1,
+      "port": 18151,
+      "command": [
+        "/usr/local/lib/ollama/llama-server",
+        "--model",
+        "/usr/share/ollama/.ollama/models/blobs/sha256-60e05f2100071479f596b964f89f510f057ce397ea22f2833a0cfe029bfc2463",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "18151",
+        "--no-mmap",
+        "-ngl",
+        "999",
+        "-c",
+        "2048",
+        "-np",
+        "1",
+        "-fa",
+        "on",
+        "--no-webui",
+        "--log-colors",
+        "off",
+        "--spec-type",
+        "none"
+      ],
+      "wall_s": 21.161,
+      "rows": [
+        {
+          "id": "repeat-load-rows",
+          "kind": "repeat",
+          "content": "handle = open(path, \"r\", encoding=\"utf-8\")\n    try:\n        for line in handle:\n            text = line.rstrip(\"\\n\")\n            if not text or text.startswith(\"#\"):\n                continue\n            parts = text.split(\",\")\n            rows.append([part.strip() for part in parts])\n            if len(rows) >= limit:\n                break\n    finally:\n        handle.close()\n    if not rows:\n        return []\n    width = max(len(row) for row in rows)\n    clean = []\n    for row in rows:\n        if len(row) < width:\n            row = row + [\"\"] * (width - len(row))\n        clean.append(row)\n    return clean",
+          "exact_off_later": false,
+          "expected_match": true,
+          "tok_s": 38.98408031920056,
+          "predicted_n": 143,
+          "prompt_n": 184
+        },
+        {
+          "id": "repeat-clamp-scores",
+          "kind": "repeat",
+          "content": "for name, score in pairs:\n        if name is None or name == \"\":\n            continue\n        try:\n            value = float(score)\n        except (TypeError, ValueError):\n            continue\n        if value < low:\n            value = low\n        elif value > high:\n            value = high\n        kept.append((name.strip(), round(value, 4)))\n    kept.sort(key=lambda item: (-item[1], item[0]))\n    seen = set()\n    unique = []\n    for name, value in kept:\n        if name in seen:\n            continue\n        seen.add(name)\n        unique.append({\"name\": name, \"score\": value})\n    return unique",
+          "exact_off_later": false,
+          "expected_match": true,
+          "tok_s": 41.65093600065928,
+          "predicted_n": 140,
+          "prompt_n": 187
+        },
+        {
+          "id": "repeat-merge-maps",
+          "kind": "repeat",
+          "content": "for key, value in base.items():\n        if not isinstance(key, str):\n            continue\n        if isinstance(value, dict):\n            out[key] = dict(value)\n        elif isinstance(value, list):\n            out[key] = list(value)\n        else:\n            out[key] = value\n    for key, value in extra.items():\n        if not isinstance(key, str):\n            continue\n        current = out.get(key)\n        if isinstance(current, dict) and isinstance(value, dict):\n            merged = dict(current)\n            merged.update(value)\n            out[key] = merged\n        elif isinstance(current, list) and isinstance(value, list):\n            out[key] = current + [item for item in value if item not in current]\n        else:\n            out[key] = value\n    return out",
+          "exact_off_later": false,
+          "expected_match": true,
+          "tok_s": 35.64209666566039,
+          "predicted_n": 166,
+          "prompt_n": 207
+        },
+        {
+          "id": "edit-retry-delay",
+          "kind": "edit",
+          "content": "time.sleep(4)  # Use 4 instead of 3\n    notes = []\n    notes.append(\"tries=%s\" % tries)\n    notes.append(\"last=%r\" % (last,))\n    text = \"; \".join(notes)\n    detail = {\n        \"tries\": tries,\n        \"attempt\": attempt if last is not None else 0,\n        \"message\": text,\n    }\n    if last is None:\n        return {\"ok\": True, \"detail\": detail}\n    err = TimeoutError(text)\n    err.__cause__ = last\n    err.detail = detail\n    raise err",
+          "exact_off_later": false,
+          "expected_match": false,
+          "tok_s": 39.783295148565934,
+          "predicted_n": 129,
+          "prompt_n": 251
+        },
+        {
+          "id": "edit-row-label",
+          "kind": "edit",
+          "content": "label = \"new\"\n    if len(cells) < width:\n        cells = cells + [\"\"] * (width - len(cells))\n    elif len(cells) > width:\n        cells = cells[:width]\n    body = \" | \".join(cells)\n    line = \"%s: %s\" % (label, body)\n    if len(line) > 120:\n        line = line[:117] + \"...\"\n    if not line:\n        line = label + \":\"\n    parts = line.split(\":\", 1)\n    head = parts[0].strip() or label\n    tail = parts[1].strip() if len(parts) > 1 else \"\"\n    padded = tail.ljust(width)\n    shown = padded[:80]\n    return \"%s: %s\" % (head, shown)",
+          "exact_off_later": false,
+          "expected_match": true,
+          "tok_s": 39.36673849965214,
+          "predicted_n": 174,
+          "prompt_n": 265
+        }
+      ],
+      "acceptance": {
+        "summary_lines": [],
+        "step_lines": []
+      },
+      "log_excerpt": [
+        "0.00.347.529 I device_info:",
+        "0.00.349.517 I common_init_result: fitting params to device memory ...",
+        "0.19.342.674 W common_speculative_init: no implementations specified for speculative decoding"
+      ]
+    },
+    {
+      "spec": "ngram-mod",
+      "status": "ok",
+      "attempt": 1,
+      "port": 18151,
+      "command": [
+        "/usr/local/lib/ollama/llama-server",
+        "--model",
+        "/usr/share/ollama/.ollama/models/blobs/sha256-60e05f2100071479f596b964f89f510f057ce397ea22f2833a0cfe029bfc2463",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "18151",
+        "--no-mmap",
+        "-ngl",
+        "999",
+        "-c",
+        "2048",
+        "-np",
+        "1",
+        "-fa",
+        "on",
+        "--no-webui",
+        "--log-colors",
+        "off",
+        "--spec-type",
+        "ngram-mod"
+      ],
+      "wall_s": 6.049,
+      "rows": [
+        {
+          "id": "repeat-load-rows",
+          "kind": "repeat",
+          "content": "handle = open(path, \"r\", encoding=\"utf-8\")\n    try:\n        for line in handle:\n            text = line.rstrip(\"\\n\")\n            if not text or text.startswith(\"#\"):\n                continue\n            parts = text.split(\",\")\n            rows.append([part.strip() for part in parts])\n            if len(rows) >= limit:\n                break\n    finally:\n        handle.close()\n    if not rows:\n        return []\n    width = max(len(row) for row in rows)\n    clean = []\n    for row in rows:\n        if len(row) < width:\n            row = row + [\"\"] * (width - len(row))\n        clean.append(row)\n    return clean",
+          "exact_off_later": false,
+          "expected_match": true,
+          "tok_s": 147.12252013675192,
+          "predicted_n": 143,
+          "prompt_n": 184
+        },
+        {
+          "id": "repeat-clamp-scores",
+          "kind": "repeat",
+          "content": "for name, score in pairs:\n        if name is None or name == \"\":\n            continue\n        try:\n            value = float(score)\n        except (TypeError, ValueError):\n            continue\n        if value < low:\n            value = low\n        elif value > high:\n            value = high\n        kept.append((name.strip(), round(value, 4)))\n    kept.sort(key=lambda item: (-item[1], item[0]))\n    seen = set()\n    unique = []\n    for name, value in kept:\n        if name in seen:\n            continue\n        seen.add(name)\n        unique.append({\"name\": name, \"score\": value})\n    return unique",
+          "exact_off_later": false,
+          "expected_match": true,
+          "tok_s": 349.8495646871845,
+          "predicted_n": 140,
+          "prompt_n": 187
+        },
+        {
+          "id": "repeat-merge-maps",
+          "kind": "repeat",
+          "content": "for key, value in base.items():\n        if not isinstance(key, str):\n            continue\n        if isinstance(value, dict):\n            out[key] = dict(value)\n        elif isinstance(value, list):\n            out[key] = list(value)\n        else:\n            out[key] = value\n    for key, value in extra.items():\n        if not isinstance(key, str):\n            continue\n        current = out.get(key)\n        if isinstance(current, dict) and isinstance(value, dict):\n            merged = dict(current)\n            merged.update(value)\n            out[key] = merged\n        elif isinstance(current, list) and isinstance(value, list):\n            out[key] = current + [item for item in value if item not in current]\n        else:\n            out[key] = value\n    return out",
+          "exact_off_later": false,
+          "expected_match": true,
+          "tok_s": 296.36665196735686,
+          "predicted_n": 166,
+          "prompt_n": 207
+        },
+        {
+          "id": "edit-retry-delay",
+          "kind": "edit",
+          "content": "time.sleep(4)  # Use 4 instead of 3\n    notes = []\n    notes.append(\"tries=%s\" % tries)\n    notes.append(\"last=%r\" % (last,))\n    text = \"; \".join(notes)\n    detail = {\n        \"tries\": tries,\n        \"attempt\": attempt if last is not None else 0,\n        \"message\": text,\n    }\n    if last is None:\n        return {\"ok\": True, \"detail\": detail}\n    err = TimeoutError(text)\n    err.__cause__ = last\n    err.detail = detail\n    raise err",
+          "exact_off_later": false,
+          "expected_match": false,
+          "tok_s": 116.01147164598694,
+          "predicted_n": 129,
+          "prompt_n": 251
+        },
+        {
+          "id": "edit-row-label",
+          "kind": "edit",
+          "content": "label = \"new\"\n    if len(cells) < width:\n        cells = cells + [\"\"] * (width - len(cells))\n    elif len(cells) > width:\n        cells = cells[:width]\n    body = \" | \".join(cells)\n    line = \"%s: %s\" % (label, body)\n    if len(line) > 120:\n        line = line[:117] + \"...\"\n    if not line:\n        line = label + \":\"\n    parts = line.split(\":\", 1)\n    head = parts[0].strip() or label\n    tail = parts[1].strip() if len(parts) > 1 else \"\"\n    padded = tail.ljust(width)\n    shown = padded[:80]\n    return \"%s: %s\" % (head, shown)",
+          "exact_off_later": false,
+          "expected_match": true,
+          "tok_s": 185.58950800648068,
+          "predicted_n": 174,
+          "prompt_n": 265
+        }
+      ],
+      "acceptance": {
+        "summary_lines": [
+          {
+            "rate": 1.0,
+            "accepted": 128,
+            "generated": 128
+          },
+          {
+            "rate": 1.0,
+            "accepted": 128,
+            "generated": 128
+          },
+          {
+            "rate": 0.78646,
+            "accepted": 151,
+            "generated": 192
+          },
+          {
+            "rate": 0.47396,
+            "accepted": 91,
+            "generated": 192
+          },
+          {
+            "rate": 0.57031,
+            "accepted": 146,
+            "generated": 256
+          }
+        ],
+        "step_lines": []
+      },
+      "log_excerpt": [
+        "0.00.194.313 I device_info:",
+        "0.00.195.726 I common_init_result: fitting params to device memory ...",
+        "0.16.055.003 I common_speculative_impl_ngram_mod: adding speculative implementation 'ngram-mod'",
+        "0.16.055.007 I common_speculative_impl_ngram_mod: - n_match=24, n_max=64, n_min=48",
+        "0.16.055.025 I common_speculative_impl_ngram_mod: - mod size=4194304 (16.000 MB)",
+        "0.16.055.053 I srv    load_model: speculative decoding context initialized",
+        "0.16.339.240 I begin: ngram_mod occupancy = 160/4194304 (0.00)",
+        "0.17.311.799 I slot print_timing: id  0 | task 0 | draft acceptance = 1.00000 (  128 accepted /   128 generated)",
+        "0.17.311.829 I statistics        ngram-mod: #calls(b,g,a) =    1     14      2, #gen drafts =      2, #acc drafts =     2, #gen tokens =    128, #acc tokens =   128, dur(b,g,a) = 0.048, 0.062, 0.001 ms",
+        "0.17.482.983 I begin: ngram_mod occupancy = 336/4194304 (0.00)",
+        "0.17.883.447 I slot print_timing: id  0 | task 16 | draft acceptance = 1.00000 (  128 accepted /   128 generated)",
+        "0.17.883.468 I statistics        ngram-mod: #calls(b,g,a) =    2     25      4, #gen drafts =      4, #acc drafts =     4, #gen tokens =    256, #acc tokens =   256, dur(b,g,a) = 0.091, 0.123, 0.003 ms",
+        "0.18.071.435 I begin: ngram_mod occupancy = 529/4194304 (0.00)",
+        "0.18.631.830 I slot print_timing: id  0 | task 29 | draft acceptance = 0.78646 (  151 accepted /   192 generated)",
+        "0.18.631.877 I statistics        ngram-mod: #calls(b,g,a) =    3     40      7, #gen drafts =      7, #acc drafts =     7, #gen tokens =    448, #acc tokens =   407, dur(b,g,a) = 0.135, 0.218, 0.006 ms",
+        "0.18.917.697 I begin: ngram_mod occupancy = 742/4194304 (0.00)",
+        "0.20.029.938 I slot print_timing: id  0 | task 46 | draft acceptance = 0.47396 (   91 accepted /   192 generated)",
+        "0.20.029.957 I statistics        ngram-mod: #calls(b,g,a) =    4     78     10, #gen drafts =     10, #acc drafts =    10, #gen tokens =    640, #acc tokens =   498, dur(b,g,a) = 0.185, 0.313, 0.009 ms",
+        "0.21.272.797 I begin: ngram_mod occupancy = 1011/4194304 (0.00)",
+        "0.22.210.667 I slot print_timing: id  0 | task 86 | draft acceptance = 0.57031 (  146 accepted /   256 generated)",
+        "0.22.210.687 I statistics        ngram-mod: #calls(b,g,a) =    5    106     14, #gen drafts =     14, #acc drafts =    14, #gen tokens =    896, #acc tokens =   644, dur(b,g,a) = 0.240, 0.422, 0.010 ms"
+      ]
+    }
+  ],
+  "ollama_ps_before": {
+    "error": "",
+    "loaded": false,
+    "count": 0
+  },
+  "ollama": {
+    "status": "ok",
+    "keep_alive": "2m",
+    "wall_s": 26.577,
+    "rows": [
+      {
+        "id": "repeat-load-rows",
+        "kind": "repeat",
+        "content": "handle = open(path, \"r\", encoding=\"utf-8\")\n    try:\n        for line in handle:\n            text = line.rstrip(\"\\n\")\n            if not text or text.startswith(\"#\"):\n                continue\n            parts = text.split(\",\")\n            rows.append([part.strip() for part in parts])\n            if len(rows) >= limit:\n                break\n    finally:\n        handle.close()\n    if not rows:\n        return []\n    width = max(len(row) for row in rows)\n    clean = []\n    for row in rows:\n        if len(row) < width:\n            row = row + [\"\"] * (width - len(row))\n        clean.append(row)\n    return clean",
+        "expected_match": true,
+        "tok_s": 39.05618409610334,
+        "eval_count": 143
+      },
+      {
+        "id": "repeat-clamp-scores",
+        "kind": "repeat",
+        "content": "for name, score in pairs:\n        if name is None or name == \"\":\n            continue\n        try:\n            value = float(score)\n        except (TypeError, ValueError):\n            continue\n        if value < low:\n            value = low\n        elif value > high:\n            value = high\n        kept.append((name.strip(), round(value, 4)))\n    kept.sort(key=lambda item: (-item[1], item[0]))\n    seen = set()\n    unique = []\n    for name, value in kept:\n        if name in seen:\n            continue\n        seen.add(name)\n        unique.append({\"name\": name, \"score\": value})\n    return unique",
+        "expected_match": true,
+        "tok_s": 40.92192418395106,
+        "eval_count": 140
+      },
+      {
+        "id": "repeat-merge-maps",
+        "kind": "repeat",
+        "content": "for key, value in base.items():\n        if not isinstance(key, str):\n            continue\n        if isinstance(value, dict):\n            out[key] = dict(value)\n        elif isinstance(value, list):\n            out[key] = list(value)\n        else:\n            out[key] = value\n    for key, value in extra.items():\n        if not isinstance(key, str):\n            continue\n        current = out.get(key)\n        if isinstance(current, dict) and isinstance(value, dict):\n            merged = dict(current)\n            merged.update(value)\n            out[key] = merged\n        elif isinstance(current, list) and isinstance(value, list):\n            out[key] = current + [item for item in value if item not in current]\n        else:\n            out[key] = value\n    return out",
+        "expected_match": true,
+        "tok_s": 40.596564063334554,
+        "eval_count": 166
+      },
+      {
+        "id": "edit-retry-delay",
+        "kind": "edit",
+        "content": "time.sleep(4)  # Use 4 instead of 3\n    notes = []\n    notes.append(\"tries=%s\" % tries)\n    notes.append(\"last=%r\" % (last,))\n    text = \"; \".join(notes)\n    detail = {\n        \"tries\": tries,\n        \"attempt\": attempt if last is not None else 0,\n        \"message\": text,\n    }\n    if last is None:\n        return {\"ok\": True, \"detail\": detail}\n    err = TimeoutError(text)\n    err.__cause__ = last\n    err.detail = detail\n    raise err",
+        "expected_match": false,
+        "tok_s": 41.13742098984288,
+        "eval_count": 129
+      },
+      {
+        "id": "edit-row-label",
+        "kind": "edit",
+        "content": "label = \"new\"\n    if len(cells) < width:\n        cells = cells + [\"\"] * (width - len(cells))\n    elif len(cells) > width:\n        cells = cells[:width]\n    body = \" | \".join(cells)\n    line = \"%s: %s\" % (label, body)\n    if len(line) > 120:\n        line = line[:117] + \"...\"\n    if not line:\n        line = label + \":\"\n    parts = line.split(\":\", 1)\n    head = parts[0].strip() or label\n    tail = parts[1].strip() if len(parts) > 1 else \"\"\n    padded = tail.ljust(width)\n    shown = padded[:80]\n    return \"%s: %s\" % (head, shown)",
+        "expected_match": true,
+        "tok_s": 41.1685138474082,
+        "eval_count": 174
+      }
+    ]
+  },
+  "summary": {
+    "off_median_tok_s": 39.3667,
+    "on_median_tok_s": 185.5895,
+    "ratio_on_over_off": 4.7144,
+    "identical": 5,
+    "compared": 5,
+    "ollama_median_tok_s": 40.9219,
+    "bar_ratio": 1.15,
+    "bar_identical": 5,
+    "prompts": [
+      {
+        "id": "repeat-load-rows",
+        "kind": "repeat",
+        "off_tok_s": 38.98408031920056,
+        "on_tok_s": 147.12252013675192,
+        "identical": true,
+        "on_expected": true,
+        "off_expected": true,
+        "on_prompt_n": 184
+      },
+      {
+        "id": "repeat-clamp-scores",
+        "kind": "repeat",
+        "off_tok_s": 41.65093600065928,
+        "on_tok_s": 349.8495646871845,
+        "identical": true,
+        "on_expected": true,
+        "off_expected": true,
+        "on_prompt_n": 187
+      },
+      {
+        "id": "repeat-merge-maps",
+        "kind": "repeat",
+        "off_tok_s": 35.64209666566039,
+        "on_tok_s": 296.36665196735686,
+        "identical": true,
+        "on_expected": true,
+        "off_expected": true,
+        "on_prompt_n": 207
+      },
+      {
+        "id": "edit-retry-delay",
+        "kind": "edit",
+        "off_tok_s": 39.783295148565934,
+        "on_tok_s": 116.01147164598694,
+        "identical": true,
+        "on_expected": false,
+        "off_expected": false,
+        "on_prompt_n": 251
+      },
+      {
+        "id": "edit-row-label",
+        "kind": "edit",
+        "off_tok_s": 39.36673849965214,
+        "on_tok_s": 185.58950800648068,
+        "identical": true,
+        "on_expected": true,
+        "off_expected": true,
+        "on_prompt_n": 265
+      }
+    ]
+  },
+  "reason": "",
+  "pin": {
+    "commit": "6f3a9f3dee3c27545371044a3a38005721ac8a8e",
+    "commit_subject": "server: avoid unnecessary checkpoint restore when new tokens are present (#24110)",
+    "commit_date": "2026-06-04T13:09:01Z",
+    "version_line": "version: 1 (6f3a9f3de) built with GNU 11.2.1 for Linux x86_64",
+    "server": "/usr/local/lib/ollama/llama-server",
+    "server_sha256": "dbfeea380cdc1de9bbfe32399befbcd8381a3c5ac83e573d79d0fa41bdc40037",
+    "libllama_server_impl_sha256": "9cd25af56b2ecc46ed412261229ae4c7c2bda19b99da7430be496e81c23e1784",
+    "libllama_sha256": "35917ae8f9566b7a198c900a928c73dc08dc9806187b89913504c71b92da1088",
+    "model_name": "qwen2.5-coder:7b-instruct",
+    "model_path": "/usr/share/ollama/.ollama/models/blobs/sha256-60e05f2100071479f596b964f89f510f057ce397ea22f2833a0cfe029bfc2463",
+    "model_sha256": "60e05f2100071479f596b964f89f510f057ce397ea22f2833a0cfe029bfc2463",
+    "ollama": "0.30.8",
+    "debian_cpu_package_not_used": "llama.cpp-tools 8681+dfsg-1",
+    "spec_type": "ngram-mod",
+    "spec_ngram_mod_defaults": {
+      "n_min": 48,
+      "n_max": 64,
+      "n_match": 24
+    }
+  }
+}

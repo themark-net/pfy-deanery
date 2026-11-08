@@ -1,9 +1,10 @@
 {
   "name": "llama.cpp ngram-mod",
-  "integration_stage": "I1",
-  "intent": "catalog_default",
+  "integration_stage": "I2",
+  "intent": "speed_probe",
   "github": "https://github.com/ggerganov/llama.cpp",
-  "next_gate": "Stay I1. Use upstream llama-server unless a speed smoke needs the patch.",
+  "notes_doc": "eval/evq1107/llama-cpp-ngram-mod/REPORT.md",
+  "next_gate": "Stay I2. Leave the flag off the product llama-server path until a mixed prompt set, not only in-context copies, still clears 1.15x with identical greedy outputs. No gate wiring in this lane.",
   "catalog_tier": "A",
   "catalog_overall": "89",
   "catalog_tags": [
@@ -14,15 +15,24 @@
   ],
   "catalog_github": "https://github.com/ggerganov/llama.cpp",
   "posture": [],
-  "evidence": [],
-  "tier_ceiling": "I1",
-  "uses": "Speculative-decoding patch on llama.cpp.",
-  "features": [
-    "ngram draft"
+  "evidence": [
+    "eval/evq1107/llama-cpp-ngram-mod/REPORT.md",
+    "eval/evq1107/llama-cpp-ngram-mod/VERDICT",
+    "eval/evq1107/llama-cpp-ngram-mod/results.json",
+    "median decode 185.59 tok/s vs 39.37 tok/s with the flag off (4.71x), 5/5 identical"
   ],
-  "potential": "medium",
+  "tier_ceiling": "I1",
+  "uses": "Zero-weight n-gram draft on llama-server when the next tokens are already in the prompt.",
+  "features": [
+    "ngram-mod",
+    "no draft model"
+  ],
+  "potential": "high",
   "handoff_by": "llm",
   "non_goals": [
-    "fork llama.cpp into this repo"
+    "fork llama.cpp into this repo",
+    "default engine change",
+    "gate wiring",
+    "weights in git"
   ]
 }
