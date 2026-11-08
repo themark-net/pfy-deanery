@@ -1,0 +1,42 @@
+{
+  "name": "smolvm",
+  "integration_stage": "I1",
+  "intent": "staged_eval",
+  "entry": "sources/entries/109-smolvm.md",
+  "github": "https://github.com/smol-machines/smolvm",
+  "notes_doc": "eval/evq1107/smolvm/REPORT.md",
+  "pin": "093852e8f527ce7db5f96195b909de15fef82251",
+  "release": "v1.26.1",
+  "tarball_sha256": "bcae519f7dad3cead2deaa0362a42a1ad7bffce73ea7a28161dea6822c559654",
+  "binary_sha256": "62ed0353d664c2d6d78bd87ecf3213c64464003f51cb58506b87b187b1a6494a",
+  "uses": "Run one command in a KVM microVM so an unmounted host file stays unread. The 2026-11-07 probe blocked 3 of 3 filesystem escapes in 3.0446 s. Sandlock already confines an install faster and lighter.",
+  "features": [
+    "kvm microvm",
+    "separate guest kernel",
+    "egress off unless --net",
+    "host oci cache"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1. 3 of 3 host filesystem escapes were blocked and the guest kernel was 6.12.95 against host 7.0.0-38-generic. Allocated cache was 203328512 bytes, over the 50 MB I2 bar, and Sandlock already blocked install escapes in 2.8 ms. No gate wiring.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "replace SkillSpector",
+    "replace Sandlock",
+    "replace agent-cage",
+    "pregate or CI gate",
+    "curl installer",
+    "smol cloud",
+    "checkpoint or branch in this lane",
+    "feature_go",
+    "catalog_hold_70_75"
+  ],
+  "evidence": [
+    "entry:sources/entries/109-smolvm.md",
+    "pin:093852e8f527ce7db5f96195b909de15fef82251",
+    "release:v1.26.1",
+    "eval/evq1107/smolvm/REPORT.md",
+    "eval/evq1107/smolvm/VERDICT",
+    "eval/evq1107/smolvm/results.json"
+  ],
+  "handoff_by": "llm"
+}

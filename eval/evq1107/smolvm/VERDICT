@@ -1,0 +1,1 @@
+STAY I1 3/3 host filesystem escapes blocked in 3.0446s, guest kernel 6.12.95 vs host 7.0.0-38-generic; allocated cache 203328512 bytes misses the 50 MB I2 bar, and Sandlock already blocks install escapes in 2.8ms
