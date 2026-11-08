@@ -4,16 +4,31 @@
   "intent": "awareness",
   "entry": "sources/entries/139-opencode-skill-creator.md",
   "github": "https://github.com/antongulin/opencode-skill-creator",
-  "uses": "Trigger evals and frontmatter lint for our skills under OpenCode.",
-  "potential": "medium",
-  "next_gate": "Overlaps skill-up (146) for evals. Reconsider only skill_validate as a lint after skill-up.",
+  "pin": "opencode-skill-creator@0.3.6",
+  "tarball_sha256": "eef1b5e9f9b9a77d744c39eade57a11a8233062ab50e812824c094fb8f627deb",
+  "uses": "Frontmatter lint via skill_validate. Not a security scan and not a trigger eval.",
+  "features": [
+    "frontmatter schema check",
+    "kebab-case name check",
+    "no model"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I0. Reconsider only if upstream allows argument-hint and disable-model-invocation, or this repo drops those keys. Trigger evals stay with skill-up. No gate wiring from this lane.",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",
-    "catalog_hold_70_75"
+    "catalog_hold_70_75",
+    "skill_eval or skill_optimize_loop",
+    "pregate or CI gate",
+    "writing ~/.config/opencode"
   ],
   "evidence": [
-    "entry:sources/entries/139-opencode-skill-creator.md"
+    "entry:sources/entries/139-opencode-skill-creator.md",
+    "pin:opencode-skill-creator@0.3.6",
+    "tarball_sha256:eef1b5e9f9b9a77d744c39eade57a11a8233062ab50e812824c094fb8f627deb",
+    "peer:@opencode-ai/plugin@1.19.5",
+    "eval/ev1107/osc/REPORT.md",
+    "eval/ev1107/osc/results.json"
   ],
   "handoff_by": "llm"
 }

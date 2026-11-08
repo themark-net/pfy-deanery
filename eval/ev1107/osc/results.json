@@ -1,0 +1,520 @@
+{
+  "tool": "opencode-skill-creator",
+  "version": "0.3.6",
+  "tarball_sha256": "eef1b5e9f9b9a77d744c39eade57a11a8233062ab50e812824c094fb8f627deb",
+  "peer": "@opencode-ai/plugin@1.19.5",
+  "node": "v22.23.0",
+  "mode": "skill_validate",
+  "called": [
+    "skill_validate"
+  ],
+  "not_called": [
+    "install",
+    "skill_eval",
+    "skill_optimize_loop"
+  ],
+  "offline": "bwrap --unshare-net --unshare-pid",
+  "auto_update": "0",
+  "wall_clock_seconds": 0.085,
+  "skill_count": 68,
+  "pass": 35,
+  "fail": 33,
+  "trees_absent": [
+    ".opencode/skills"
+  ],
+  "failing_key_counts": {
+    "argument-hint": 26,
+    "description": 2,
+    "disable-model-invocation": 4
+  },
+  "tools_registered": [
+    "skill_add_gold_standard",
+    "skill_aggregate_benchmark",
+    "skill_eval",
+    "skill_export_static_review",
+    "skill_generate_report",
+    "skill_get_gold_advice",
+    "skill_improve_description",
+    "skill_list_gold_standards",
+    "skill_optimize_loop",
+    "skill_parse",
+    "skill_remove_gold_standard",
+    "skill_serve_review",
+    "skill_stop_review",
+    "skill_validate"
+  ],
+  "skills": [
+    {
+      "path": ".grok/skills/adr",
+      "pass": false,
+      "failing_keys": [
+        "argument-hint"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: argument-hint. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": ".grok/skills/agent-loops",
+      "pass": false,
+      "failing_keys": [
+        "argument-hint"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: argument-hint. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": ".grok/skills/best-effort-and-bot-budget-build-max",
+      "pass": false,
+      "failing_keys": [
+        "argument-hint"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: argument-hint. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": ".grok/skills/catalog-docs",
+      "pass": false,
+      "failing_keys": [
+        "argument-hint"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: argument-hint. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": ".grok/skills/docs",
+      "pass": false,
+      "failing_keys": [
+        "argument-hint"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: argument-hint. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": ".grok/skills/grill-me",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": ".grok/skills/hermes-feedback",
+      "pass": false,
+      "failing_keys": [
+        "argument-hint"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: argument-hint. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": ".grok/skills/implement",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": ".grok/skills/investigate",
+      "pass": false,
+      "failing_keys": [
+        "argument-hint"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: argument-hint. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": ".grok/skills/jev-decision",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": ".grok/skills/karpathy-guidelines",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": ".grok/skills/marketing-council",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": ".grok/skills/one-shot",
+      "pass": false,
+      "failing_keys": [
+        "argument-hint"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: argument-hint. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": ".grok/skills/open-questions",
+      "pass": false,
+      "failing_keys": [
+        "argument-hint"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: argument-hint. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": ".grok/skills/pipeline-retro",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": ".grok/skills/prefer-behavior-and-fail-recover-tests",
+      "pass": false,
+      "failing_keys": [
+        "argument-hint"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: argument-hint. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": ".grok/skills/retro",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": ".grok/skills/software-factory",
+      "pass": false,
+      "failing_keys": [
+        "description"
+      ],
+      "message": "Invalid frontmatter value for 'description' on line 3: unquoted values containing ': ' or ending with ':' are invalid YAML and the runtime will drop this skill. Hint: quote the value (e.g. description: \"your text here\")."
+    },
+    {
+      "path": ".grok/skills/ui-is-the-app-design-in-loop",
+      "pass": false,
+      "failing_keys": [
+        "argument-hint"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: argument-hint. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": ".grok/skills/worker-monitor",
+      "pass": false,
+      "failing_keys": [
+        "argument-hint"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: argument-hint. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/accessibility-auditor",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/ai-engineer",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/api-designer",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/backend-architect",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/code-reviewer",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/database-specialist",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/devops-engineer",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/e2e-test-specialist",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/error-detective",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/incident-responder",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/monitoring-specialist",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/orchestrator",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/performance-engineer",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/prompt-engineer",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/security-auditor",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/claude-unified-agents/ux-designer",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/mattpocock/code-review",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/mattpocock/grill-me",
+      "pass": false,
+      "failing_keys": [
+        "disable-model-invocation"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: disable-model-invocation. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/mattpocock/grilling",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/mattpocock/implement",
+      "pass": false,
+      "failing_keys": [
+        "disable-model-invocation"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: disable-model-invocation. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/mattpocock/retro",
+      "pass": false,
+      "failing_keys": [
+        "disable-model-invocation"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: disable-model-invocation. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/mattpocock/software-factory",
+      "pass": false,
+      "failing_keys": [
+        "description"
+      ],
+      "message": "Invalid frontmatter value for 'description' on line 3: unquoted values containing ': ' or ending with ':' are invalid YAML and the runtime will drop this skill. Hint: quote the value (e.g. description: \"your text here\")."
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/mattpocock/tdd",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/mattpocock/to-spec",
+      "pass": false,
+      "failing_keys": [
+        "disable-model-invocation"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: disable-model-invocation. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/ponytail/ponytail",
+      "pass": false,
+      "failing_keys": [
+        "argument-hint"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: argument-hint. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/ponytail/ponytail-audit",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/ponytail/ponytail-debt",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/ponytail/ponytail-gain",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/ponytail/ponytail-help",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills-external/ponytail/ponytail-review",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/adr",
+      "pass": false,
+      "failing_keys": [
+        "argument-hint"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: argument-hint. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/agent-loops",
+      "pass": false,
+      "failing_keys": [
+        "argument-hint"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: argument-hint. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/best-effort-and-bot-budget-build-max",
+      "pass": false,
+      "failing_keys": [
+        "argument-hint"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: argument-hint. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/catalog-docs",
+      "pass": false,
+      "failing_keys": [
+        "argument-hint"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: argument-hint. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/docs",
+      "pass": false,
+      "failing_keys": [
+        "argument-hint"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: argument-hint. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/hermes-feedback",
+      "pass": false,
+      "failing_keys": [
+        "argument-hint"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: argument-hint. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/investigate",
+      "pass": false,
+      "failing_keys": [
+        "argument-hint"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: argument-hint. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/jev-decision",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/karpathy-guidelines",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/marketing-council",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/one-shot",
+      "pass": false,
+      "failing_keys": [
+        "argument-hint"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: argument-hint. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/open-questions",
+      "pass": false,
+      "failing_keys": [
+        "argument-hint"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: argument-hint. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/prefer-behavior-and-fail-recover-tests",
+      "pass": false,
+      "failing_keys": [
+        "argument-hint"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: argument-hint. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/ui-is-the-app-design-in-loop",
+      "pass": false,
+      "failing_keys": [
+        "argument-hint"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: argument-hint. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": "bootstrap/grok-cli/skills/worker-monitor",
+      "pass": false,
+      "failing_keys": [
+        "argument-hint"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: argument-hint. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": "bootstrap/project-process/skills/project-process",
+      "pass": false,
+      "failing_keys": [
+        "argument-hint"
+      ],
+      "message": "Unexpected key(s) in SKILL.md frontmatter: argument-hint. Allowed properties are: allowed-tools, compatibility, description, license, metadata, name"
+    },
+    {
+      "path": "eval/catchup-1107/skill-up/cases",
+      "pass": true,
+      "failing_keys": [],
+      "message": "Skill is valid!"
+    },
+    {
+      "path": "examples/agentdescent-trial/skill",
+      "pass": false,
+      "failing_keys": [],
+      "message": "No YAML frontmatter found"
+    }
+  ]
+}

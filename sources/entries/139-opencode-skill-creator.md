@@ -11,6 +11,7 @@
   - **Plugin start-up writes and phones home**: every load copies its bundled skill into the user-level OpenCode skills dir (`$XDG_CONFIG_HOME` or `~/.config/opencode/skills/opencode-skill-creator/`), even with `install --project`. Unless `OPENCODE_SKILL_CREATOR_AUTO_UPDATE=0` it also fetches `registry.npmjs.org/opencode-skill-creator/latest` once a day, writes `opencode-skill-creator-update-check.json` and can schedule removal of OpenCode's cached `opencode-skill-creator@latest` package. For a pinned local setup set that variable and point `XDG_CONFIG_HOME` at the worktree.
   - `install --project` only edits `./opencode.json(c)`: it added the plugin to an existing `plugins` array and kept the other entry and comments. Its message says the skill goes to `~/.config/opencode/skills` on first start.
   - The validator allows only `name`, `description`, `license`, `allowed-tools`, `metadata`, `compatibility` in frontmatter. pfy-mentat skills with other keys would fail `skill_validate`; check before using it as a lint.
+  - **Nimo, 2026-11-07 (eval/ev1107/osc)**: `skill_validate` on 68 `SKILL.md` directories, offline, 0.085s. 35 pass, 33 fail. 26 fails are `argument-hint`, 4 are `disable-model-invocation`, 2 are an unquoted colon in `description` (both software-factory copies), 1 is `examples/agentdescent-trial/skill` with no frontmatter. The incident-responder `shell=True` example passes. STAY I0. No `install`, no `skill_eval`.
 - **Extracted Repos / Tools**: https://github.com/antongulin/opencode-skill-creator · https://www.npmjs.com/package/opencode-skill-creator · https://github.com/anthropics/skills/tree/main/skills/skill-creator
 - **TOOLS.md Link**: None yet. I0 awareness. Cross-reference Entry 074 (skill-creator as advice). No TOOLS.md row, no `data/tools.json` row.
 - **Smoke**: `python3 examples/x-intake-local/smoke_137_139.py --entry skillcreator`. Looks up `$OSC_DIR`, then `tmp/opencode-skill-creator`; Node from `$OSC_NODE`, then `tmp/opencode-skill-creator/node/bin/node`, then PATH. Version pinned to 0.3.6 (`$OSC_VERSION`). Receipt: `pipelines/smoke/skillcreator/latest.json`.
@@ -24,4 +25,4 @@
 | Trigger eval over-read | A high trigger rate is taken as a good skill | Upstream says it measures selection only; pair it with graded outputs |
 | Frontmatter rules differ | Our skills fail validation on extra keys | Run it read-only first and decide per key |
 
-- **Status**: Cataloged I0. Smoke PASS on the Grok Bot box (validate/parse and start-up side effects only); not staged on nimo.
+- **Status**: Cataloged I0. STAY I0 after the 2026-11-07 nimo eval (`skill_validate` only, 68 skills, 35 pass / 33 fail). See eval/ev1107/osc/REPORT.md. The Grok Bot box smoke still stands for validate/parse and start-up side effects.
