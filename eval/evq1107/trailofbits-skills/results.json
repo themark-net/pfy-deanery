@@ -1,0 +1,160 @@
+{
+  "slug": "trailofbits-skills",
+  "verdict": "STAY I0",
+  "pin": {
+    "commit": "5c99c03fb8a9ea568432ecbcba5d86e9f4ac2bf0",
+    "short": "5c99c03fb8a9",
+    "tree": "0d0c608ca7c7fe1c174c72f200c95c454fd24f83",
+    "committed_at": "2026-10-15T18:16:40Z",
+    "subject": "fix(devcontainer-setup): pin fnm instead of installing its latest release (#346)",
+    "license": "CC-BY-SA-4.0",
+    "plugins": 44,
+    "skill_md": 85,
+    "worktree_bytes": 8882282,
+    "seven_skill_dir_bytes": 341841
+  },
+  "scanner": {
+    "name": "SkillSpector",
+    "version": "2.12.0",
+    "pin": "e7172462caf367736645f66c1aa154ca5f9c64dc",
+    "mode": "static",
+    "wrapper_llm_field": false,
+    "raw_llm_requested_checked_for": ["differential-review"],
+    "raw_llm_requested": false,
+    "offline": "bwrap --unshare-net",
+    "wrapper": "scripts/pfy_skill_scan.py"
+  },
+  "install_gate": {
+    "candidates": 7,
+    "wall_seconds": 30.088,
+    "exit": 1,
+    "verdict": "FLAGGED",
+    "safe": 3,
+    "caution": 3,
+    "do_not_install": 1,
+    "blocked": 4,
+    "scratch_left": false,
+    "allow_caution": {
+      "wall_seconds": 29.508,
+      "exit": 1,
+      "verdict": "FLAGGED",
+      "still_blocked": ["sharp-edges"]
+    },
+    "skills": [
+      {
+        "name": "property-based-testing",
+        "recommendation": "SAFE",
+        "score": 0,
+        "severity": "LOW",
+        "findings": 0,
+        "frontmatter_name_matches_folder": true,
+        "description_chars": 845,
+        "body_bytes": 3395
+      },
+      {
+        "name": "semgrep-rule-creator",
+        "recommendation": "CAUTION",
+        "score": 38,
+        "severity": "MEDIUM",
+        "findings": 2,
+        "high_ids": ["YR2", "AR3"],
+        "triage": "example rule fixture and a pitfall phrase",
+        "frontmatter_name_matches_folder": true,
+        "description_chars": 179,
+        "body_bytes": 7038
+      },
+      {
+        "name": "variant-analysis",
+        "recommendation": "SAFE",
+        "score": 0,
+        "severity": "LOW",
+        "findings": 0,
+        "frontmatter_name_matches_folder": true,
+        "description_chars": 566,
+        "body_bytes": 3291
+      },
+      {
+        "name": "sharp-edges",
+        "recommendation": "DO_NOT_INSTALL",
+        "score": 100,
+        "severity": "CRITICAL",
+        "findings": 46,
+        "finding_severity": {"HIGH": 34, "MEDIUM": 10, "CRITICAL": 1, "LOW": 1},
+        "triage": "fenced footgun examples and detection phrases, plus partial language-note links",
+        "frontmatter_name_matches_folder": true,
+        "description_chars": 376,
+        "body_bytes": 11367
+      },
+      {
+        "name": "differential-review",
+        "recommendation": "SAFE",
+        "score": 7,
+        "severity": "LOW",
+        "findings": 1,
+        "finding_ids": ["EA2"],
+        "triage": "pattern heading about unchecked calls, recommendation stayed SAFE",
+        "frontmatter_name_matches_folder": true,
+        "description_chars": 477,
+        "body_bytes": 6872
+      },
+      {
+        "name": "fp-check",
+        "recommendation": "CAUTION",
+        "score": 13,
+        "severity": "LOW",
+        "findings": 4,
+        "finding_ids": ["EA2"],
+        "triage": "when-not-to-use line and a list of false-positive mistakes",
+        "frontmatter_name_matches_folder": true,
+        "description_chars": 343,
+        "body_bytes": 6254
+      },
+      {
+        "name": "atheris",
+        "recommendation": "CAUTION",
+        "score": 28,
+        "severity": "MEDIUM",
+        "findings": 8,
+        "high_ids": ["YR1"],
+        "triage": "dockerfile how-to: sanitizer preload, apt cleanup, docker run",
+        "frontmatter_name_matches_folder": true,
+        "description_chars": 372,
+        "body_bytes": 14310
+      }
+    ]
+  },
+  "diff_review": {
+    "skill": "differential-review",
+    "commit": "a81ffba49a85d6c42b431106007a9668f55d7766",
+    "subject": "skillspector: delete raw scanner JSON when the receipt write fails",
+    "py_files_at_commit": 434,
+    "codebase_class": "LARGE",
+    "strategy": "SURGICAL",
+    "files": 4,
+    "high_files": 1,
+    "added_lines": 58,
+    "removed_lines": 14,
+    "analysis_seconds": 0.371,
+    "red_flags_fired": 0,
+    "red_flags_checked": 5,
+    "removed_require_assert_revert": 0,
+    "new_external_calls": 0,
+    "access_modifier_lines": 0,
+    "arithmetic_grep_lines": 20,
+    "arithmetic_grep_real": 0,
+    "clear_scratch_callers": 1,
+    "scan_paths_callers": 1,
+    "caller_band": "LOW",
+    "introducing_commit": "3ba4dec5935e700833b98fbd1b31032d6a274248",
+    "new_behavior_tests": 1,
+    "private_name_grep_in_tests": 0,
+    "new_defects": 0
+  },
+  "gates": {
+    "value_yes": 2,
+    "value_of": 4,
+    "modularity_yes": 3,
+    "modularity_of": 4,
+    "beats_catalog": false
+  }
+}

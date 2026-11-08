@@ -33,4 +33,4 @@
 | Claude-only assumptions | Skill tells the agent to use Task or a plugin command | A separate pfy-authored PORT.md maps Task to `/agent-loops` (no edits inside ToB files) |
 | Upstream churn | Skills renamed or reshaped | Pin the commit; refresh deliberately |
 
-- **Status**: Cataloged I0. Read and checked on the Grok Bot box; not installed on nimo.
+- **Status**: STAY I0 after the 2026-11-07 evq probe on nimo. Pin `5c99c03fb8a9ea568432ecbcba5d86e9f4ac2bf0` is in the cache only. The install check on the 7 port candidates exited 1 (3 SAFE, 3 CAUTION, 1 DO_NOT_INSTALL). differential-review on commit a81ffba found 0 new defects. Not copied into skills.paths. Report: `eval/evq1107/trailofbits-skills/REPORT.md`.

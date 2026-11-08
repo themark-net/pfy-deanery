@@ -1,0 +1,39 @@
+{
+  "name": "trailofbits-skills",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/125-trailofbits-skills.md",
+  "github": "https://github.com/trailofbits/skills",
+  "notes_doc": "eval/evq1107/trailofbits-skills/REPORT.md",
+  "pin": "5c99c03fb8a9ea568432ecbcba5d86e9f4ac2bf0",
+  "uses": "Security review checklists an agent can read. This probe scanned the pack before any copy and tried one checklist on a risky diff. Not an install gate.",
+  "features": [
+    "markdown checklists",
+    "diff blast-radius notes",
+    "no install gate"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I0. A later slice may copy one SAFE skill only (property-based-testing, variant-analysis, or differential-review) after the install check exits 0 on that directory alone, with the license, credit, URL, and this pin, byte-identical, plus a separate PORT.md. It still has to find a defect on a pfy diff that the review skill and the existing tests miss. No gate wiring and no Feature GO from this lane.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "pregate or CI gate",
+    "claude plugin marketplace add",
+    "copying skill text into first-party skills",
+    "mewt or muton install"
+  ],
+  "evidence": [
+    "entry:sources/entries/125-trailofbits-skills.md",
+    "pin:5c99c03fb8a9ea568432ecbcba5d86e9f4ac2bf0",
+    "tree:0d0c608ca7c7fe1c174c72f200c95c454fd24f83",
+    "eval/evq1107/trailofbits-skills/REPORT.md",
+    "eval/evq1107/trailofbits-skills/VERDICT",
+    "eval/evq1107/trailofbits-skills/results.json"
+  ],
+  "handoff_by": "llm",
+  "self_pipeline": {
+    "status": "not_applicable",
+    "reason": "Advisory probe only in eval/evq1107/trailofbits-skills/REPORT.md. The pack is not on pregate or CI. SkillSpector remains the install check."
+  }
+}
