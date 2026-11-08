@@ -13,17 +13,30 @@
     "#rag"
   ],
   "catalog_github": "https://github.com/memvid/memvid",
+  "pin": "e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813",
+  "license": "Apache-2.0",
+  "version": "2.0.140",
   "posture": [],
-  "evidence": [],
-  "tier_ceiling": "I1",
-  "uses": "Video-backed memory. No job in the current operator path.",
-  "features": [
-    "versioned memory"
+  "evidence": [
+    "eval/evq1107/memvid/REPORT.md",
+    "eval/evq1107/memvid/VERDICT",
+    "pin:e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813"
   ],
-  "potential": "ambiguous",
-  "next_gate": "Stay I1 until a concrete use is named.",
+  "tier_ceiling": "I1",
+  "uses": "Single-file .mv2 memory (memvid-core 2.0.140). Changelog 2.0.0 removed QR-code video encoding. No named operator job, and it does not score gap H1.",
+  "features": [
+    "single-file .mv2 with an embedded WAL",
+    "time index and a replay feature flag",
+    "optional HNSW via ONNX or OpenAI"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1 reference. Re-open only if a later ticket names a retrieval job that codebase-memory-mcp, LEANN, opencode-mem, and git do not cover, and that ticket grills a copy first. The vec path wants an ONNX file of about 120 MB, and api_embed wants an OpenAI key. Do not wire a gate. Not a Feature GO.",
   "handoff_by": "llm",
   "non_goals": [
-    "primary memory"
+    "primary memory",
+    "install",
+    "openai embeddings",
+    "gate wiring",
+    "replace codebase-memory"
   ]
 }
