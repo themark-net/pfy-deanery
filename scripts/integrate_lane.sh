@@ -140,13 +140,17 @@ fi
 mkdir -p "$MARK_DIR/wt"
 run_checked git -C "$ROOT" worktree add -b "$BRANCH" "$WT" origin/main >&2 || park_exit "worktree add failed"
 progress "$SLUG worktree $BRANCH"
-skill_rel="bootstrap/grok-cli/skills/catalog-integrate-lane/SKILL.md"
-if [ -f "$WT/$skill_rel" ]; then
-  skill_sha=$(git -C "$WT" hash-object "$skill_rel")
-else
-  skill_sha="missing"
-fi
-progress "skill=catalog-integrate-lane sha=${skill_sha}"
+skill_reads=""
+for skill_name in catalog-intake-dedupe catalog-eval-lane catalog-integrate-lane catalog-apply-and-ceiling catalog-loop-operator; do
+  skill_rel="bootstrap/grok-cli/skills/${skill_name}/SKILL.md"
+  if [ -f "$WT/$skill_rel" ]; then
+    skill_sha=$(git -C "$WT" hash-object "$skill_rel")
+  else
+    skill_sha="missing"
+  fi
+  progress "skill=${skill_name} sha=${skill_sha}"
+  skill_reads="${skill_reads}Read ${skill_rel}."$'\n'
+done
 
 (
   cd "$WT"
@@ -168,7 +172,7 @@ run_grok() {
   while [ "$try" -le 3 ]; do
     if (
       cd "$WT"
-      run_checked grok --always-approve --output-format plain --prompt-file "$prompt"
+      run_checked bash "$SCRIPT_DIR/model_lock.sh" "${PFY_GROK_BIN:-grok}" --always-approve --output-format plain --prompt-file "$prompt"
     ) >"$log" 2>&1; then
       progress "$SLUG grok $label ok"
       return 0
@@ -183,14 +187,16 @@ run_grok() {
 impl="$MARK_DIR/${SLUG}-implement.prompt"
 review="$MARK_DIR/${SLUG}-review.prompt"
 {
-  printf '%s\n' "Follow skill catalog-integrate-lane: read bootstrap/grok-cli/skills/catalog-integrate-lane/SKILL.md, then tmp/TICKET-${SLUG}.md"
+  printf '%s\n' "$skill_reads"
+  printf '%s\n' "Follow those skills, then tmp/TICKET-${SLUG}.md."
   printf '%s\n' "Ticket path: $ticket"
   printf '\n'
   cat "$ticket"
 } > "$impl"
 {
   printf '%s\n' "Self-review the integration diff. Fix correctness, scope, secrets, and tests. Do not push."
-  printf '%s\n' "Follow skill catalog-integrate-lane: read bootstrap/grok-cli/skills/catalog-integrate-lane/SKILL.md, then tmp/TICKET-${SLUG}.md"
+  printf '%s\n' "$skill_reads"
+  printf '%s\n' "Follow those skills, then tmp/TICKET-${SLUG}.md."
   printf '%s\n' "Ticket path: $ticket"
 } > "$review"
 

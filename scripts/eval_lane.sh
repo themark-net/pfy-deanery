@@ -144,13 +144,17 @@ fi
 mkdir -p "$MARK_DIR/wt"
 run_checked git -C "$ROOT" worktree add -b "$BRANCH" "$WT" origin/main >&2 || park_exit "worktree add failed"
 progress "$SLUG worktree $BRANCH"
-skill_rel="bootstrap/grok-cli/skills/catalog-eval-lane/SKILL.md"
-if [ -f "$WT/$skill_rel" ]; then
-  skill_sha=$(git -C "$WT" hash-object "$skill_rel")
-else
-  skill_sha="missing"
-fi
-progress "skill=catalog-eval-lane sha=${skill_sha}"
+skill_reads=""
+for skill_name in catalog-intake-dedupe catalog-eval-lane catalog-integrate-lane catalog-apply-and-ceiling catalog-loop-operator; do
+  skill_rel="bootstrap/grok-cli/skills/${skill_name}/SKILL.md"
+  if [ -f "$WT/$skill_rel" ]; then
+    skill_sha=$(git -C "$WT" hash-object "$skill_rel")
+  else
+    skill_sha="missing"
+  fi
+  progress "skill=${skill_name} sha=${skill_sha}"
+  skill_reads="${skill_reads}Read ${skill_rel}."$'\n'
+done
 
 mkdir -p "$WT/tmp"
 if [ -n "$TICKET" ] && [ -f "$TICKET" ]; then
@@ -166,7 +170,7 @@ else
 Write eval/evals/${SLUG}/VERDICT.json that matches docs/ops/VERDICT.schema.json.
 Write eval/evals/${SLUG}/REPORT.md.
 Do not hand-edit integration_stage or tier_ceiling.
-Follow skill catalog-eval-lane: read bootstrap/grok-cli/skills/catalog-eval-lane/SKILL.md, then tmp/TICKET-${SLUG}.md.
+${skill_reads}Follow those skills, then tmp/TICKET-${SLUG}.md.
 EOF
 fi
 ticket="$WT/tmp/TICKET-${SLUG}.md"
@@ -231,10 +235,12 @@ run_grok() {
 impl="$MARK_DIR/${SLUG}-implement.prompt"
 review="$MARK_DIR/${SLUG}-review.prompt"
 {
-  printf '%s\n' "Follow skill catalog-eval-lane: read bootstrap/grok-cli/skills/catalog-eval-lane/SKILL.md, then tmp/TICKET-${SLUG}.md"
+  printf '%s\n' "$skill_reads"
+  printf '%s\n' "Follow those skills, then tmp/TICKET-${SLUG}.md."
 } > "$impl"
 {
-  printf '%s\n' "Follow skill catalog-eval-lane: read bootstrap/grok-cli/skills/catalog-eval-lane/SKILL.md, then tmp/TICKET-${SLUG}.md"
+  printf '%s\n' "$skill_reads"
+  printf '%s\n' "Follow those skills, then tmp/TICKET-${SLUG}.md."
   printf '%s\n' "Self-review the diff. Fix correctness, scope, secrets, and tests. Do not push."
 } > "$review"
 

@@ -55,3 +55,5 @@ Any restore of `tier_ceiling` or `integration_stage` compares to current `origin
 ```bash
 scripts/integrate_lane.sh --slug <slug> [--date MMDD] [--ticket FILE]
 ```
+
+The driver prompt names all five catalog skills: `catalog-intake-dedupe`, `catalog-eval-lane`, `catalog-integrate-lane`, `catalog-apply-and-ceiling`, and `catalog-loop-operator`. Read each `bootstrap/grok-cli/skills/<name>/SKILL.md`. Grok is wrapped in `scripts/model_lock.sh` so the lane holds `~/.cache/pfy/locks/local-model.lock`.

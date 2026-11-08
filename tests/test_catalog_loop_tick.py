@@ -21,6 +21,7 @@ LOOP = ROOT / "scripts" / "catalog_loop.sh"
 COPY_REL = (
     "scripts/catalog_loop.sh",
     "scripts/supersede_check.py",
+    "scripts/supersede_recheck_lane.sh",
     "data/supersede-watchlist.json",
     "scripts/catalog_counts.py",
     "scripts/catalog_eval_queue.py",
@@ -90,6 +91,7 @@ def build_repo(td: Path, cards: dict[str, dict]) -> Path:
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(ROOT / rel, dest)
     os.chmod(seed / "scripts" / "catalog_loop.sh", 0o755)
+    os.chmod(seed / "scripts" / "supersede_recheck_lane.sh", 0o755)
     stages = seed / "data" / "stages"
     stages.mkdir(parents=True)
     (stages / "_registry.json").write_text('{"version": "1"}\n', encoding="utf-8")
@@ -372,3 +374,45 @@ class CatalogLoopTickTest(unittest.TestCase):
             self.assertEqual(status["apply_refused"], ["aa-dup", "aa-both"])
             self.assertIn("aa-both", status["auto_raised"])
             self.assertNotIn("aa-dup", status["auto_raised"])
+
+    def test_integrate2_dispatched_skips_eval_slug(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            td = Path(tmp)
+            clone = build_repo(td, {"zz-open": card("zz-open")})
+            (td / "integrate2").mkdir()
+            (td / "integrate2" / "zz-open.dispatched").write_text("pid 1\n", encoding="utf-8")
+            proc, state, _wt, log = run_tick(td, clone)
+            self.assertEqual(proc.returncode, 0, (proc.stdout + proc.stderr)[-4000:])
+            status = json.loads((state / "loop.latest.json").read_text(encoding="utf-8"))
+            self.assertNotIn("zz-open", status["launched"])
+            self.assertIn("zz-open", status["skipped_taken"])
+            text = log.read_text(encoding="utf-8") if log.exists() else ""
+            self.assertNotIn("pfy-lane-eval-zz-open", text)
+
+    def test_stale_watchlist_queues_one_recheck_per_day(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            td = Path(tmp)
+            clone = build_repo(td, {"zz-open": card("zz-open")})
+            wl_path = clone / "data" / "supersede-watchlist.json"
+            doc = json.loads(wl_path.read_text(encoding="utf-8"))
+            for proj in doc["projects"]:
+                proj["last_checked"] = "2020-01-01"
+            wl_path.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
+            git(clone, "add", "data/supersede-watchlist.json")
+            git(clone, "commit", "-m", "stale watchlist")
+            git(clone, "push", "origin", "main")
+            proc, state, _wt, log = run_tick(td, clone)
+            self.assertEqual(proc.returncode, 0, (proc.stdout + proc.stderr)[-4000:])
+            status = json.loads((state / "loop.latest.json").read_text(encoding="utf-8"))
+            self.assertEqual(status["status"], "ok", (proc.stdout + proc.stderr)[-2000:])
+            self.assertTrue(status["supersede_stale"])
+            self.assertEqual(status["launched"][0], "supersede-recheck")
+            self.assertIn("zz-open", status["launched"])
+            text = log.read_text(encoding="utf-8")
+            self.assertEqual(text.count("supersede_recheck_lane.sh"), 1)
+            log.write_text("", encoding="utf-8")
+            again, state2, _wt2, log2 = run_tick(td, clone)
+            self.assertEqual(again.returncode, 0, (again.stdout + again.stderr)[-4000:])
+            status2 = json.loads((state2 / "loop.latest.json").read_text(encoding="utf-8"))
+            self.assertEqual(status2["launched"], [])
+            self.assertNotIn("supersede_recheck_lane.sh", log2.read_text(encoding="utf-8") if log2.exists() else "")

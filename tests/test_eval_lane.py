@@ -167,6 +167,10 @@ class EvalLaneTest(unittest.TestCase):
             self.assertIn("landed", progress)
             prompt = (state / "widget-implement.prompt").read_text(encoding="utf-8")
             self.assertIn("bootstrap/grok-cli/skills/catalog-eval-lane/SKILL.md", prompt)
+            self.assertIn("bootstrap/grok-cli/skills/catalog-intake-dedupe/SKILL.md", prompt)
+            self.assertIn("bootstrap/grok-cli/skills/catalog-integrate-lane/SKILL.md", prompt)
+            self.assertIn("bootstrap/grok-cli/skills/catalog-apply-and-ceiling/SKILL.md", prompt)
+            self.assertIn("bootstrap/grok-cli/skills/catalog-loop-operator/SKILL.md", prompt)
             self.assertIn("tmp/TICKET-widget.md", prompt)
 
     def test_guard_keeps_another_lanes_card_after_rebase(self):

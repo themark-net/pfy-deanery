@@ -680,10 +680,8 @@ is_taken() {
   local slug="$1"
   local kind="$2"
   local dir
-  local dirs=("$STATE/eval" "$STATE/integrate" "$INTEGRATE_ROOT")
-  if [ "$kind" = "integrate" ]; then
-    dirs+=("$INTEGRATE2_ROOT")
-  else
+  local dirs=("$STATE/eval" "$STATE/integrate" "$INTEGRATE_ROOT" "$INTEGRATE2_ROOT")
+  if [ "$kind" != "integrate" ]; then
     dirs+=("$EVQ_ROOT")
   fi
   for dir in "${dirs[@]}"; do
@@ -734,15 +732,71 @@ lines = [
     f"- next_gate: {card.get('next_gate', '')}",
     "",
     "Do not raise tier_ceiling. Do not edit integration_stage by hand.",
-    "Follow skill catalog-integrate-lane: read bootstrap/grok-cli/skills/catalog-integrate-lane/SKILL.md, then this ticket.",
+    "Read bootstrap/grok-cli/skills/catalog-intake-dedupe/SKILL.md.",
+    "Read bootstrap/grok-cli/skills/catalog-eval-lane/SKILL.md.",
+    "Read bootstrap/grok-cli/skills/catalog-integrate-lane/SKILL.md.",
+    "Read bootstrap/grok-cli/skills/catalog-apply-and-ceiling/SKILL.md.",
+    "Read bootstrap/grok-cli/skills/catalog-loop-operator/SKILL.md.",
+    "Follow those skills, then this ticket.",
     "",
 ]
 Path(dest).write_text(body + "\n".join(lines), encoding="utf-8")
 PY
 }
 
+lock_env=()
+if [ -n "${PFY_MODEL_LOCK:-}" ]; then
+  lock_env=(--setenv=PFY_MODEL_LOCK="$PFY_MODEL_LOCK")
+fi
+
+queue_supersede_recheck() {
+  local nnames stamp
+  [ "$DRY" -eq 0 ] || return 0
+  [ "$SUPERSEDE_ACTION" = "continue" ] || return 0
+  [ "$slots" -gt 0 ] || return 0
+  nnames=$(python3 -c 'import json,os; print(len(json.loads(os.environ.get("PFY_SUPERSEDE_STALE") or "[]")))')
+  [ "$nnames" -gt 0 ] || return 0
+  mkdir -p "$STATE/supersede"
+  stamp="$STATE/supersede/tried-$(TZ=America/Los_Angeles date +%Y%m%d)"
+  [ -f "$stamp" ] && return 0
+  [ -f "$STATE/supersede/recheck.dispatched" ] && return 0
+  [ -f "$STATE/supersede/recheck.parked" ] && return 0
+  python3 - "$STATE/supersede/stale.txt" <<'PY'
+import json, os, sys
+from pathlib import Path
+names = []
+for line in json.loads(os.environ.get("PFY_SUPERSEDE_STALE") or "[]"):
+    text = line.split(":", 1)[1].strip() if line.startswith("stale:") else line.strip()
+    if text:
+        names.append(text)
+Path(sys.argv[1]).write_text("".join(name + "\n" for name in names), encoding="utf-8")
+PY
+  if ! (set -o noclobber; printf '%s\n' "loop-parent $(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$STATE/supersede/recheck.dispatched") 2>/dev/null; then
+    return 0
+  fi
+  printf '%s\n' "queued" > "$stamp"
+  if ! "$SYSTEMD_RUN" --user --collect --unit="pfy-lane-supersede-recheck" --property=Nice=10 \
+    --setenv=PFY_LANE_FROM_LOOP=1 \
+    --setenv=PFY_LOOP_STATE="$STATE" \
+    --setenv=PFY_LOOP_REPO="$REPO" \
+    --setenv=PFY_GROK_BIN="${PFY_GROK_BIN:-grok}" \
+    "${lock_env[@]+"${lock_env[@]}"}" \
+    "$WT/scripts/supersede_recheck_lane.sh"; then
+    fail "systemd-run failed for supersede recheck"
+  fi
+  launched+=("supersede-recheck")
+  started=$((started + 1))
+  printf '%s\n' "$started" > "$counter"
+  if [ "$started" -ge 20 ]; then
+    printf '%s\n' "daily cap 20" > "$STATE/QUOTA_STOP.auto"
+    status_name=quota
+    slots=0
+  fi
+}
+
 launched=()
 skipped=()
+queue_supersede_recheck
 if [ "$SUPERSEDE_ACTION" = "continue" ] && [ "$DRY" -eq 0 ] && [ -f eval/catalog-queue/queue.tsv ]; then
   while IFS=$'\t' read -r n slug mode gap entry card why; do
     [ "${n:-}" = "n" ] && continue
@@ -782,6 +836,7 @@ if [ "$SUPERSEDE_ACTION" = "continue" ] && [ "$DRY" -eq 0 ] && [ -f eval/catalog
       --setenv=PFY_LOOP_STATE="$STATE" \
       --setenv=PFY_LOOP_REPO="$REPO" \
       --setenv=PFY_GROK_BIN="${PFY_GROK_BIN:-grok}" \
+      "${lock_env[@]+"${lock_env[@]}"}" \
       "${launch_cmd[@]}"; then
       fail "systemd-run failed for $slug"
     fi

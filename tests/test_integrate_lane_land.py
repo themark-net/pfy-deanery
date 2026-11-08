@@ -84,6 +84,10 @@ def write_grok(bindir: Path, log: Path) -> None:
     path.write_text(textwrap.dedent(f"""\
         #!/bin/sh
         set -e
+        if [ "${{PFY_MODEL_LOCK_HELD:-}}" != "1" ]; then
+          echo "model lock not held" >&2
+          exit 1
+        fi
         printf '%s\\n' "$*" >> {log}
         prompt=""
         prev=""
@@ -123,6 +127,7 @@ class LaneLandTest(unittest.TestCase):
             write_grok(bindir, log)
             env = os.environ.copy()
             env["PATH"] = str(bindir) + os.pathsep + env.get("PATH", "")
+            env["PFY_MODEL_LOCK"] = str(td / "model.lock")
             before = subprocess.check_output(
                 ["git", "--git-dir", str(bare), "rev-parse", "main"], text=True
             ).strip()
@@ -142,6 +147,10 @@ class LaneLandTest(unittest.TestCase):
             self.assertFalse((clone / "tmp" / "integrate" / "LANDED_badtool").exists())
             impl = (clone / "tmp" / "integrate" / "badtool-implement.prompt").read_text()
             self.assertIn("bootstrap/grok-cli/skills/catalog-integrate-lane/SKILL.md", impl)
+            self.assertIn("bootstrap/grok-cli/skills/catalog-intake-dedupe/SKILL.md", impl)
+            self.assertIn("bootstrap/grok-cli/skills/catalog-eval-lane/SKILL.md", impl)
+            self.assertIn("bootstrap/grok-cli/skills/catalog-apply-and-ceiling/SKILL.md", impl)
+            self.assertIn("bootstrap/grok-cli/skills/catalog-loop-operator/SKILL.md", impl)
             self.assertIn("tmp/TICKET-badtool.md", impl)
             review = (clone / "tmp" / "integrate" / "badtool-review.prompt").read_text()
             self.assertIn("Self-review", review)
@@ -230,6 +239,10 @@ class LaneLandTest(unittest.TestCase):
             grok.write_text(textwrap.dedent("""\
                 #!/bin/sh
                 set -e
+                if [ "${PFY_MODEL_LOCK_HELD:-}" != "1" ]; then
+                  echo "model lock not held" >&2
+                  exit 1
+                fi
                 prompt=""
                 prev=""
                 for arg in "$@"; do
@@ -248,6 +261,7 @@ class LaneLandTest(unittest.TestCase):
             grok.chmod(grok.stat().st_mode | stat.S_IEXEC)
             env = os.environ.copy()
             env["PATH"] = str(bindir) + os.pathsep + env.get("PATH", "")
+            env["PFY_MODEL_LOCK"] = str(td / "model.lock")
             before = subprocess.check_output(
                 ["git", "--git-dir", str(bare), "rev-parse", "main"], text=True
             ).strip()

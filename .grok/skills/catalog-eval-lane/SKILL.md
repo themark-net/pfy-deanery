@@ -57,3 +57,5 @@ scripts/eval_lane.sh --slug <slug> [--date MMDD]
 ```
 
 The Build writes the verdict and the report. It does not hand-edit `integration_stage` or `tier_ceiling`.
+
+The driver prompt names all five catalog skills: `catalog-intake-dedupe`, `catalog-eval-lane`, `catalog-integrate-lane`, `catalog-apply-and-ceiling`, and `catalog-loop-operator`. Read each `bootstrap/grok-cli/skills/<name>/SKILL.md`. Grok is wrapped in `scripts/model_lock.sh`.

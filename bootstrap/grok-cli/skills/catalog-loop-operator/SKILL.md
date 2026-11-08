@@ -43,7 +43,7 @@ The loop skips every slug in that file. Do not launch them by hand from the loop
 Taken, so the tick will not launch the slug:
 
 - `.dispatched`, live `.pid`, `LANDED_<slug>`, `.done`, `.parked`
-- Look in `$PFY_LOOP_STATE/eval`, `$PFY_LOOP_STATE/integrate`, `$PFY_INTEGRATE_ROOT`, `$PFY_INTEGRATE2_ROOT` for integrate, and `$PFY_EVQ_ROOT` for eval.
+- Look in `$PFY_LOOP_STATE/eval`, `$PFY_LOOP_STATE/integrate`, `$PFY_INTEGRATE_ROOT`, and `$PFY_INTEGRATE2_ROOT` for every kind. `$PFY_EVQ_ROOT` is also checked for eval. An integrate2 marker skips that slug.
 
 `integrate2` is another worker. Read its marker files only. Do not edit that directory and do not signal its processes. A pid file there counts toward the 4 running lanes only when `<slug>.dispatched` is beside it and the pid is alive. The same pid counts once. `scheduler.pid` and `scheduler.launch.pid` do not count.
 
@@ -67,8 +67,8 @@ Taken, so the tick will not launch the slug:
 
 The tick runs `python3 scripts/supersede_check.py` in the loop worktree after regeneration and before launch. The limit is 60 seconds. Tests set `PFY_SUPERSEDE_CHECK` to a stub executable. The checker reads the local watchlist only. It has no network mode and no offline flag. Do not invent one. An unknown flag makes it exit 2, and the tick then records status `error` and launches nothing.
 
-- Exit 0: launch continues. Lines that start with `stale:` are copied in order to `loop.latest.json` field `supersede_stale`. They do not add a needs-mark row.
-- Exit 1: no-reinvention STOP. Append one `needs-mark.tsv` row with kind `supersede-stop`. The slug is the project id named in the checker output, or `supersede-watch` when it names none. Set `supersede` to `stop` and `status` to `stopped`. Launch nothing this tick. A later tick that still exits 1 does not append a second row for the same slug.
+- Exit 0: launch continues. Lines that start with `stale:` are copied in order to `loop.latest.json` field `supersede_stale`. They do not add a needs-mark row. When that list is non-empty and a slot is free, the tick starts one `scripts/supersede_recheck_lane.sh` unit that PT day (`pfy-lane-supersede-recheck`). It counts toward the 4 and the 20. It reads the five catalog skills, holds `scripts/model_lock.sh`, and may change only `data/supersede-watchlist.json` from public web, GitHub, and X reads. No installs, no GPU, no pulls. `STATE/supersede/tried-YYYYMMDD`, `recheck.dispatched`, or `recheck.parked` means that tick does not start another. To retry after a park, read `recheck.parked`, then remove `recheck.parked` and `recheck.dispatched`. The tried stamp still blocks that PT day.
+- Exit 1: no-reinvention STOP. Append one `needs-mark.tsv` row with kind `supersede-stop`. The slug is the project id named in the checker output, or `supersede-watch` when it names none. Set `supersede` to `stop` and `status` to `stopped`. Launch nothing this tick, including the recheck. A later tick that still exits 1 does not append a second row for the same slug.
 - Any other exit, including 124: `status` is `error`. Launch nothing. Do not write a supersede-stop row. The tick exits 0. Regeneration failures and a failed `systemd-run` still exit nonzero.
 
 ### How Mark clears it
