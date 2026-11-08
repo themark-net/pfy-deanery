@@ -36,14 +36,25 @@ mkdir -p "$CACHE/src/package"
 tar -xzf "$CACHE/src/harness-score-1.8.2.tgz" -C "$CACHE/src/package" --strip-components=1
 NODE=/usr/bin/node
 CLI="$CACHE/src/package/dist/cli.js"
+WT=/home/mark/DEVELOP/pfy-mentat/tmp/evq/wt/harness-score
 "$NODE" "$CLI" --json "$WT"
 "$NODE" "$CLI" --json "$WT"
 "$NODE" "$CLI" --min-level 2 --quiet "$WT"
+rm -rf "$CACHE/tmp/probe"
+mkdir -p "$CACHE/tmp/probe/with" "$CACHE/tmp/probe/without"
+git -C "$WT" archive --format=tar HEAD | tar -x -C "$CACHE/tmp/probe/with"
+cp -a "$CACHE/tmp/probe/with/." "$CACHE/tmp/probe/without/"
+rm -rf "$CACHE/tmp/probe/without/AGENTS.md" \
+  "$CACHE/tmp/probe/without/.grok" \
+  "$CACHE/tmp/probe/without/bootstrap/grok-cli/skills" \
+  "$CACHE/tmp/probe/without/bootstrap/grok-cli/skills-external" \
+  "$CACHE/tmp/probe/without/bootstrap/opencode"
+"$NODE" "$CLI" --json "$CACHE/tmp/probe/without"
 ```
 
-The with/without pair used a `git archive HEAD` of this worktree (tracked files only, no `.git`). The stripped copy deleted `AGENTS.md`, `.grok`, `bootstrap/grok-cli/skills`, `bootstrap/grok-cli/skills-external`, and `bootstrap/opencode`. `.claude`, `.cursor`, `.cursorrules`, `CLAUDE.md`, and `GEMINI.md` were already absent. Tests, `Makefile`, and `.github` stayed.
+`.claude`, `.cursor`, `.cursorrules`, `CLAUDE.md`, and `GEMINI.md` were already absent. Tests, `Makefile`, and `.github` stayed.
 
-The live worktree was clean (`git status`). Its pass map matched the archive. Ignored paths were `pfylib/__pycache__/` and `tmp/`. Counts below are the live worktree for "with" and the stripped archive for "without". Per-check rows are in `summary.json`.
+The live worktree was clean (`git status`). Ignored paths were `pfylib/__pycache__/` and `tmp/`. The "with" row is that worktree. The "without" row is the stripped archive. `summary.json` records two flips, CTX-01 and CTX-02.
 
 ## Numbers
 
@@ -70,11 +81,11 @@ What the worktree scan actually saw:
 
 - CTX-01 and CTX-02 pass. `AGENTS.md` is at the root, 136 non-empty lines, 32 headings. The bar is 20 lines and 2 headings.
 - CTX-03 passes on one codex rule: `bootstrap/project-process/templates/AGENTS.md`. That hit remains after the real `AGENTS.md` is deleted. `detectedHarnesses` is `["codex"]` on both trees.
-- SKL-01 fails. Evidence lists `.cursor/skills/`, `.claude/skills/`, `.devin/skills/`, `.agents/skills/`, and a plugin `skills/` directory. Of the 68 `SKILL.md` files, 20 are under `.grok/skills`, 15 under `bootstrap/grok-cli/skills`, and 30 under `bootstrap/grok-cli/skills-external`. None of those paths are in the check.
+- SKL-01 fails. Evidence lists `.cursor/skills/`, `.claude/skills/`, `.devin/skills/`, `.agents/skills/`, and a plugin `skills/` directory. 65 of the 68 `SKILL.md` files sit outside those paths: 20 under `.grok/skills`, 15 under `bootstrap/grok-cli/skills`, and 30 under `bootstrap/grok-cli/skills-external`. The other 3 are named below. None of the 68 are on a path the check accepts.
 - HKS-01 fails. No `.cursor/hooks.json`, `.claude/settings.json` hooks key, or Devin hooks file.
 - SNS-01 fails. It found 258 test files and no test runner. SNS-05 passes on those same files (2 points). That is the whole sensors score.
 - CI-01 and CI-02 pass. CI-02 evidence is that CI invokes tests (`pytest`). CI-03 fails (no lint or type check seen). CI-04 fails (no pre-commit).
-- HYG-01, HYG-02, HYG-03, HYG-04, HYG-06, HYG-07 pass. HYG-03 found no real `.env`. HYG-06 scanned 3 harness files on the worktree and 2 on the stripped tree, and found no credential signatures. HYG-05 fails (no root `LICENSE`). HYG-08 is not applicable (no MCP config) and is outside the 105 point max.
+- HYG-01, HYG-02, HYG-03, HYG-04, and HYG-06 pass. HYG-03 found no real `.env`. HYG-06 scanned 3 harness files on the worktree and 2 on the stripped tree, and found no credential signatures. HYG-05 fails (no root `LICENSE`). HYG-07 also passes, and it earns 3 points, with evidence "No dependency manifest detected (nothing to lock)." The check looks up the exact paths `package.json`, `pyproject.toml`, and `Cargo.toml`. A root `package.json` with no lockfile fails it. A `package.json` in a subdirectory still gets the pass. This repo has `gui/operator/package.json`, `harness/write-guard-mcp/pyproject.toml`, and `gui/operator/src-tauri/Cargo.toml`. HYG-08 is not applicable (no MCP config) and is outside the 105 point max.
 
 The three `SKILL.md` files that remained in the stripped tree are `examples/agentdescent-trial/skill/SKILL.md`, `bootstrap/project-process/skills/project-process/SKILL.md`, and `eval/catchup-1107/skill-up/cases/SKILL.md`. Skills stayed 0/17 with those files present too.
 
@@ -125,7 +136,8 @@ Unpacked size is 117153 bytes, under the 50 MB lightweight limit. Size is not th
 | Risk | How it fails | How we recover |
 | --- | --- | --- |
 | Score chasing | A repo adds Cursor-shaped files so the total rises | Do not gate on the total. This lane wires no gate. |
-| Path bias | `.grok/skills` and `bootstrap/grok-cli/skills` score 0. Level stays L1 after they are deleted | Stay I0 until a pinned version scores those paths and the level moves when they are removed |
+| Path bias | `.grok/skills` (20), `bootstrap/grok-cli/skills` (15), and `bootstrap/grok-cli/skills-external` (30) score 0. Level stays L1 after they are deleted | Stay I0 until a pinned version scores those paths and the level moves when they are removed |
+| Nested manifests | HYG-07 awards 3 points when `package.json` is not at the repo root | Read the evidence string. A root manifest with no lockfile is the fail. Nested manifests in this repo still pass |
 | Level hides the harness | L1 with `AGENTS.md` and L1 without it | Read CTX and SKL rows. The entry already said a short `AGENTS.md` stays L0 and the level is the wrong threshold |
 | Template counted as a rule | CTX-03 passes on `bootstrap/project-process/templates/AGENTS.md`, and `detectedHarnesses` is `codex` | Treat that path as a scaffold template. It is not the live Grok skill tree |
 | Sensor miss | 258 test files and SNS-01 still fails, while CI-02 passes because a workflow says pytest | Keep `make eval-structural` as the structural check |
