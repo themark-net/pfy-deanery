@@ -3,6 +3,10 @@
   "integration_stage": "I1",
   "intent": "pattern_only",
   "notes_doc": "docs/ops/mue-x-patterns.md",
+  "entry": "sources/entries/067-mue-x.md",
+  "github": "https://github.com/KorroAi/mue-x",
+  "pin": "c7038448abb340b23d03af0fd095cefbfbbcadd9",
+  "license": "MIT",
   "issues": [
     28
   ],
@@ -21,19 +25,27 @@
   "catalog_github": "https://github.com/KorroAi/mue-x",
   "posture": [],
   "evidence": [
-    "notes_doc:docs/ops/mue-x-patterns.md"
+    "notes_doc:docs/ops/mue-x-patterns.md",
+    "entry:sources/entries/067-mue-x.md",
+    "eval/evq1107/mue-x/REPORT.md",
+    "eval/evq1107/mue-x/VERDICT",
+    "pin:c7038448abb340b23d03af0fd095cefbfbbcadd9"
   ],
   "tier_ceiling": "I1",
-  "uses": "Self-rewriting agent. Interesting pattern, unsafe as a runtime.",
+  "uses": "Reference read of a self-rewriting Python agent. The mutation-safety note is eval/evq1107/mue-x/REPORT.md. Unsafe as a runtime.",
   "features": [
     "ast mutation",
-    "memory layers"
+    "memory layers",
+    "kernel hash seal",
+    "llm rewrite pipeline"
   ],
-  "potential": "ambiguous",
-  "next_gate": "Stay I1 until a mutation-safety note exists. Do not pin for adoption yet.",
+  "potential": "low",
+  "next_gate": "Stay I1. The mutation-safety note is eval/evq1107/mue-x/REPORT.md. Do not run evolve. A later smoke needs an operator GO and must not rewrite this repo. No gate wiring.",
   "handoff_by": "llm",
   "non_goals": [
     "unattended self-modify",
-    "primary runtime"
+    "primary runtime",
+    "github clone absorption",
+    "gate wiring"
   ]
 }
