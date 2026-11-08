@@ -1,0 +1,41 @@
+{
+  "name": "Agent Beacon",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/088-agent-beacon.md",
+  "github": "https://github.com/asymptote-labs/agent-beacon",
+  "notes_doc": "eval/evq1107/agent-beacon/REPORT.md",
+  "pin": "f796c550f2be738fc210828826a653ef5ee8cffc",
+  "uses": "Copy a committed Grok session into a local JSONL, then store a lesson a person types. Scoring one trace calls hosted TypeSafe Jev.",
+  "features": [
+    "user-mode tarball",
+    "grok session sync",
+    "local jsonl log",
+    "typed memory row",
+    "hosted jev default"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I0. Re-open only if a later ticket points memory evaluations at an already running local System One and allows the model lock. No cloud sign-in, no skills install, no Grok hooks in the real home, no gate, and no Feature GO.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "beacon_cloud",
+    "sign_in",
+    "sudo_package_install",
+    "skills_in_the_real_home",
+    "grok_hooks_in_the_real_home",
+    "hosted_jev",
+    "gate_wiring"
+  ],
+  "evidence": [
+    "entry:sources/entries/088-agent-beacon.md",
+    "pin:f796c550f2be738fc210828826a653ef5ee8cffc",
+    "release:v1.3.59",
+    "sha256:eaf586d3b842c0a7437258a44efa6f813744feb8951616d52e4dcb1405cc74c3",
+    "eval/evq1107/agent-beacon/REPORT.md",
+    "eval/evq1107/agent-beacon/VERDICT",
+    "eval/evq1107/agent-beacon/results.json"
+  ],
+  "handoff_by": "llm"
+}

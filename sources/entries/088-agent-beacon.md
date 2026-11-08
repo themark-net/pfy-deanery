@@ -19,4 +19,4 @@
 | Writes outside DEVELOP | Wizard installs skills into `~/.agents/skills` / `~/.claude/skills` | Turn that off at install; undo with `beacon skills uninstall` |
 | Smoke over-claims | `--version` passing gets read as "Beacon works" | The receipt says install-only. Capture and learning need their own trial slice |
 
-- **Status**: Cataloged I0. Not installed on nimo.
+- **Status**: STAY I0 after the 2026-11-07 evq probe on nimo. Pin v1.3.59 commit `f796c550f2be738fc210828826a653ef5ee8cffc` is in the cache only (tarball sha256 `eaf586d3b842c0a7437258a44efa6f813744feb8951616d52e4dcb1405cc74c3`). One planted session synced 9 events in 0.016s (4 of 4 markers). Scoring that trace calls hosted TypeSafe Jev and scored 0 traces here. Not installed into the real home. Report: `eval/evq1107/agent-beacon/REPORT.md`.
