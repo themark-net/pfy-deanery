@@ -1,0 +1,11 @@
+{
+  "slug": "repowise",
+  "run_kind": "pipeline",
+  "main_sha": "786e989f418128ea5d70ed7e576bd37cada0f995",
+  "run_id": "repowise-786e989f4181-20261108T203940Z",
+  "started": "2026-11-08T20:39:40Z",
+  "finished": "2026-11-08T20:39:51Z",
+  "outcome": "ok",
+  "tool_version": "repowise==0.30.0",
+  "did": "Ran make smoke-repowise (pip pin and zero-LLM health). The smoke exited 0."
+}
