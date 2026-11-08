@@ -1,0 +1,11 @@
+{
+  "slug": "codebase-memory-mcp",
+  "run_kind": "pipeline",
+  "main_sha": "985aedc0c46cf61ddea847e033d595a51338e8be",
+  "run_id": "codebase-memory-mcp-985aedc0c46c-2026-11-08T18:47:20Z",
+  "started": "2026-11-08T18:47:20Z",
+  "finished": "2026-11-08T18:47:21Z",
+  "outcome": "ok",
+  "tool_version": "codebase-memory-mcp 0.9.0",
+  "did": "Indexed examples/codebase-memory-mcp/fixture as pfy-mentat-cm-smoke and search_code found greet. Smoke exited 0."
+}

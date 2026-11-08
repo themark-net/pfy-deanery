@@ -1,6 +1,6 @@
 {
   "name": "codebase-memory-mcp",
-  "integration_stage": "I2",
+  "integration_stage": "I3",
   "intent": "smoke_path",
   "tier": "S",
   "auto": true,
