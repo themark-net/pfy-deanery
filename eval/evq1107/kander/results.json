@@ -1,0 +1,390 @@
+{
+  "pin": {
+    "version": "0.9.5",
+    "binary_sha256": "3a5f8979f94fc1325dbcf9aa30e73831d1db907302c13b5273362313c327e254",
+    "sha_matches_entry": true,
+    "commit": "590f1ced69af6e144bf78f43eee01fa050734b3c",
+    "tarball_sha256": "f8e08b0f3d07f00bf47f7c3416586d7d06a309fde6e2713a0880de5e464fc7e6",
+    "binary_bytes": 21881016
+  },
+  "config_agents": {
+    "kanban_agent": "codex",
+    "reviewers": {
+      "large": {
+        "PMQA": "codex",
+        "Security": "codex"
+      },
+      "small": {
+        "PMQA": "codex",
+        "Security": "codex"
+      }
+    }
+  },
+  "tmux_on_path_usr_bin": false,
+  "fixture": "/home/mark/.cache/pfy/tools/kander/tmp/probe-20261108T032545Z/repo",
+  "refs": {
+    "base": "1a00846e4df8591f02f29d9b422161826ac9c577",
+    "lane_entry": "0918b6f00209b606c7d5b91f7806ef7432556eb2",
+    "lane_card": "79e89d9d795ad30a38850befa9a2515784989eea",
+    "lane_both": "9ec9082e009e97d23bab62297902e7af0f35b1fa",
+    "lane_rename": "07f01f61d3d80b3c52cde44b42a104c72cbddfb2"
+  },
+  "pairs": [
+    {
+      "label": "disjoint",
+      "source": "0918b6f00209b606c7d5b91f7806ef7432556eb2",
+      "head": "79e89d9d795ad30a38850befa9a2515784989eea",
+      "merge_base": "1a00846e4df8591f02f29d9b422161826ac9c577",
+      "kander_rc": 0,
+      "kander_status": "pass",
+      "kander_paths": [],
+      "git_rename_aware": [],
+      "git_destination_only": [],
+      "agree_rename_aware": true,
+      "agree_destination_only": true,
+      "kander_s": 0.0291,
+      "git_s": 0.0034,
+      "stderr": ""
+    },
+    {
+      "label": "entry_overlap",
+      "source": "0918b6f00209b606c7d5b91f7806ef7432556eb2",
+      "head": "9ec9082e009e97d23bab62297902e7af0f35b1fa",
+      "merge_base": "1a00846e4df8591f02f29d9b422161826ac9c577",
+      "kander_rc": 1,
+      "kander_status": "action-required",
+      "kander_paths": [
+        "sources/entries/117-kander.md"
+      ],
+      "git_rename_aware": [
+        "sources/entries/117-kander.md"
+      ],
+      "git_destination_only": [
+        "sources/entries/117-kander.md"
+      ],
+      "agree_rename_aware": true,
+      "agree_destination_only": true,
+      "kander_s": 0.0266,
+      "git_s": 0.0036,
+      "stderr": ""
+    },
+    {
+      "label": "card_overlap",
+      "source": "79e89d9d795ad30a38850befa9a2515784989eea",
+      "head": "9ec9082e009e97d23bab62297902e7af0f35b1fa",
+      "merge_base": "1a00846e4df8591f02f29d9b422161826ac9c577",
+      "kander_rc": 1,
+      "kander_status": "action-required",
+      "kander_paths": [
+        "data/stages/festival.json"
+      ],
+      "git_rename_aware": [
+        "data/stages/festival.json"
+      ],
+      "git_destination_only": [
+        "data/stages/festival.json"
+      ],
+      "agree_rename_aware": true,
+      "agree_destination_only": true,
+      "kander_s": 0.0256,
+      "git_s": 0.0034,
+      "stderr": ""
+    },
+    {
+      "label": "rename_overlap",
+      "source": "0918b6f00209b606c7d5b91f7806ef7432556eb2",
+      "head": "07f01f61d3d80b3c52cde44b42a104c72cbddfb2",
+      "merge_base": "1a00846e4df8591f02f29d9b422161826ac9c577",
+      "kander_rc": 1,
+      "kander_status": "action-required",
+      "kander_paths": [
+        "sources/entries/117-kander.md"
+      ],
+      "git_rename_aware": [
+        "sources/entries/117-kander.md"
+      ],
+      "git_destination_only": [],
+      "agree_rename_aware": true,
+      "agree_destination_only": false,
+      "kander_s": 0.0291,
+      "git_s": 0.0038,
+      "stderr": ""
+    }
+  ],
+  "pair_agree_rename_aware": "4/4",
+  "kander_overlap_s": 0.1104,
+  "git_overlap_s": 0.0142,
+  "this_repo_merge": {
+    "label": "this_repo_merge",
+    "source": "e5133c743f1fbdddef9a9500c07e9742cd739373",
+    "head": "529be53655383858b81bd778604601b01b358e51",
+    "merge_base": "2a744823e05588e8d6331d511e2ec7fb77ec0ecb",
+    "kander_rc": 1,
+    "kander_status": "action-required",
+    "kander_paths": [
+      ".gitignore",
+      "examples/x-intake-local/smoke.py"
+    ],
+    "git_rename_aware": [
+      ".gitignore",
+      "examples/x-intake-local/smoke.py"
+    ],
+    "git_destination_only": [
+      ".gitignore",
+      "examples/x-intake-local/smoke.py"
+    ],
+    "agree_rename_aware": true,
+    "agree_destination_only": true,
+    "kander_s": 0.1618,
+    "git_s": 0.0126,
+    "stderr": "",
+    "merge": "0bbfecf753a3b4fb554590b6aadfa0ecb89efede",
+    "subject": "Merge remote-tracking branch 'origin/main' into catalog/x-intake-154-161"
+  },
+  "blocked": [
+    {
+      "label": "backlog_to_done",
+      "task": "20261107-early-card-task",
+      "blocked": true,
+      "rc": 1,
+      "first": "kander: Move not allowed: backlog -> done"
+    },
+    {
+      "label": "todo_to_done",
+      "task": "20261107-early-card-task",
+      "blocked": true,
+      "rc": 1,
+      "first": "kander: Move not allowed: todo -> done"
+    },
+    {
+      "label": "empty_summary",
+      "task": "20261107-empty-card-task",
+      "blocked": true,
+      "rc": 1,
+      "first": "kander: Complete the summary before moving a small task to done"
+    },
+    {
+      "label": "no_plan",
+      "task": "20261107-block-card-task",
+      "blocked": true,
+      "rc": 1,
+      "first": "kander: Invalid review evidence: review plan required for execution cycle"
+    },
+    {
+      "label": "required_unclosed",
+      "task": "20261107-block-card-task",
+      "blocked": true,
+      "rc": 1,
+      "first": "kander: Invalid review evidence: unclosed review batches: blockcard-batch-required"
+    }
+  ],
+  "blocked_count": "5/5",
+  "required_both": {
+    "plan_rc": 0,
+    "close_rc": 2,
+    "close_first": "Error: Invalid review evidence: required successful role conclusion: PMQA",
+    "runs_in_view": 0
+  },
+  "one_role_required": {
+    "plan_rc": 0,
+    "close_rc": 2,
+    "close_first": "Error: Invalid review evidence: required successful role conclusion: PMQA",
+    "runs_in_view": 0
+  },
+  "both_na": {
+    "plan_rc": 0,
+    "close_rc": 0,
+    "close_first": "",
+    "runs_in_view": 0
+  },
+  "waive_done_rc": 0,
+  "waive_reached_done": true,
+  "reviewer_processes": 0,
+  "worktrees_before": 1,
+  "worktrees_after": 1,
+  "fixture_kanban": true,
+  "product_kanban": false,
+  "product_exclude_unchanged": true,
+  "product_status_before": [
+    "?? eval/evq1107/kander/"
+  ],
+  "real_home_sentinels_before": {
+    "agents_kander": false,
+    "config_kander": false
+  },
+  "real_home_sentinels_after": {
+    "agents_kander": false,
+    "config_kander": false
+  },
+  "catalog_hits": [
+    {
+      "slug": "atomic-task-graph-atg",
+      "name": "Atomic Task Graph (ATG)",
+      "integration_stage": "I2",
+      "uses": "Callable compile, parallel tool waves, freeze, and localized repair via a pinned checkout. Independent reimplementation of Zhang et al. (2026), arXiv:2607.01942. Not official ATG code.",
+      "matched": [
+        "parallel"
+      ]
+    },
+    {
+      "slug": "chiasmus",
+      "name": "Chiasmus",
+      "integration_stage": "I1",
+      "uses": "Call-graph impact for per-file review. Trialed on pfy diffs. Not a test selector.",
+      "matched": [
+        "review"
+      ]
+    },
+    {
+      "slug": "elephant-goldfish-model",
+      "name": "Elephant-Goldfish Model",
+      "integration_stage": "I1",
+      "uses": "Fresh-eyes spec review before Build starts.",
+      "matched": [
+        "review"
+      ]
+    },
+    {
+      "slug": "emdash",
+      "name": "Emdash",
+      "integration_stage": "I0",
+      "uses": "Parallel agents GUI, one worktree each.",
+      "matched": [
+        "worktree",
+        "parallel"
+      ]
+    },
+    {
+      "slug": "finn-loop-eval-loop-8-exits-patterns",
+      "name": "Finn Loop / eval-loop / 8-exits patterns",
+      "integration_stage": "I1",
+      "uses": "Exit cards and loop types, already the orchestration toolset.",
+      "matched": [
+        "orchestrat"
+      ]
+    },
+    {
+      "slug": "foremerge",
+      "name": "Foremerge",
+      "integration_stage": "I1",
+      "uses": "Pre-edit intent ledger for parallel agents on one machine.",
+      "matched": [
+        "parallel"
+      ]
+    },
+    {
+      "slug": "har",
+      "name": "HAR",
+      "integration_stage": "I0",
+      "uses": "Per-slot git worktree plus a verify receipt keyed by the worktree tree.",
+      "matched": [
+        "worktree"
+      ]
+    },
+    {
+      "slug": "hermes-teammates",
+      "name": "Hermes Teammates",
+      "integration_stage": "I0",
+      "uses": "Fixed tester/reviewer roster inside Hermes.",
+      "matched": [
+        "review",
+        "reviewer"
+      ]
+    },
+    {
+      "slug": "imcodes",
+      "name": "imcodes",
+      "integration_stage": "I0",
+      "uses": "Reference for a supervised review loop and final-answer memory. Not an install.",
+      "matched": [
+        "review"
+      ]
+    },
+    {
+      "slug": "kanbots",
+      "name": "kanbots",
+      "integration_stage": "I1",
+      "uses": "Kanban that fans out to many coding CLIs in worktrees.",
+      "matched": [
+        "worktree",
+        "kanban",
+        "parallel"
+      ]
+    },
+    {
+      "slug": "kanzo",
+      "name": "Kanzo",
+      "integration_stage": "I0",
+      "uses": "Local kanban + MCP.",
+      "matched": [
+        "kanban"
+      ]
+    },
+    {
+      "slug": "langgraph-langchain",
+      "name": "LangGraph (LangChain)",
+      "integration_stage": "I1",
+      "uses": "Graph orchestration. Our loops already cover the operator path.",
+      "matched": [
+        "orchestrat"
+      ]
+    },
+    {
+      "slug": "mattpocock-skills",
+      "name": "mattpocock/skills",
+      "integration_stage": "I1",
+      "uses": "Planning and review skills already on the skill path.",
+      "matched": [
+        "review"
+      ]
+    },
+    {
+      "slug": "multi-agent-generator",
+      "name": "multi-agent-generator",
+      "integration_stage": "I0",
+      "uses": "Scaffolds CrewAI or LangGraph teams. The note already says I0.",
+      "matched": [
+        "orchestrat"
+      ]
+    },
+    {
+      "slug": "multica",
+      "name": "Multica",
+      "integration_stage": "I1",
+      "uses": "Multi-agent board. Not our orchestrator.",
+      "matched": [
+        "orchestrat"
+      ]
+    },
+    {
+      "slug": "openqodex",
+      "name": "OpenQodex",
+      "integration_stage": "I1",
+      "uses": "Scanner candidates on changed lines, then a model-free check that a raised finding cites a real scanner token. Not the review gate.",
+      "matched": [
+        "review"
+      ]
+    },
+    {
+      "slug": "pi-harness",
+      "name": "Pi-Harness",
+      "integration_stage": "I0",
+      "uses": "Desktop control plane around Pi Coding Agent: runs, trace, replay, and recovery. Reference read only.",
+      "matched": [
+        "worktree",
+        "review"
+      ]
+    },
+    {
+      "slug": "tree-sitter-analyzer",
+      "name": "Tree-sitter Analyzer",
+      "integration_stage": "I1",
+      "uses": "Local change-impact map for a per-file review. Trialed on pfy diffs. Not a test selector.",
+      "matched": [
+        "review"
+      ]
+    }
+  ],
+  "live_agents": "SKIPPED",
+  "live_agents_reason": "offline lane; start, pick, orchestrate, and review-agent were not run"
+}

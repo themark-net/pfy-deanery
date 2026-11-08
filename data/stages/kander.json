@@ -1,0 +1,34 @@
+{
+  "name": "Kander",
+  "integration_stage": "I1",
+  "intent": "staged_evaluation",
+  "entry": "sources/entries/117-kander.md",
+  "github": "https://github.com/dualface/kander",
+  "uses": "Branch overlap check and a two-role reviewer done gate. The 2026-11-07 probe started no agent.",
+  "features": [
+    "check overlap",
+    "PMQA and Security gate"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1. Do not wire a gate. Overlap tied a rename-aware git intersection and was slower. Both reviewer roles set to N/A reached done with 0 reviewer runs. Reopen only if a later ticket runs PMQA and Security as separate read-only agents and shows must-fix findings our review bots miss, and that ticket grills wiring first. Live start stays skipped until tmux or herdr exists and the executor is not the doctor default (codex).",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "gate_wiring",
+    "agent_start",
+    "github_issue_import",
+    "product_repo_init"
+  ],
+  "evidence": [
+    "entry:sources/entries/117-kander.md",
+    "eval/evq1107/kander/REPORT.md",
+    "eval/evq1107/kander/VERDICT",
+    "eval/evq1107/kander/results.json",
+    "pin kander 0.9.5 binary sha256 3a5f8979f94fc1325dbcf9aa30e73831d1db907302c13b5273362313c327e254 commit 590f1ced69af6e144bf78f43eee01fa050734b3c"
+  ],
+  "handoff_by": "llm",
+  "self_pipeline": {
+    "status": "not_applicable",
+    "reason": "Read-only overlap on one merge and a throwaway board. Not applied to this repo's pipeline. The done gate is not a CI check. Not a gate."
+  }
+}
