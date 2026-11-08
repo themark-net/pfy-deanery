@@ -36,6 +36,8 @@ Factory questions:
 4. Where does a human re-enter? Before a GPU model load for the 20-prompt agreement, before any ceiling or stage edit, and before wiring HiRoute into `./pfy`.
 5. What stops two runs doing the same work? A foreign `PFY_HIROUTE_LANE_MARKER` (default `tmp/integrate2/hiroute.dispatched`) exits 2. An ancestor pid is the admitted lane.
 
+Receipt on `d6088a477cf79b27c681c358ff0812d91e93c87f`: outcome ok. One plan, alias `hiroute-eval-difficulty-route`. `model_call never`. Apply refused: `above-ceiling: proposed I3 is above allowed I1 (evidence I1: entry, report; tier_ceiling I3 does not raise it)`. Card bytes unchanged. This is a local-control receipt, not an I3 integration. The 20-prompt agreement was not re-run. The stale `tmp/integrate2/hiroute.dispatched` (dead pid 3485105) was moved into `tmp/integrate2/archive/` before the run. One attempt.
+
 ## LiteLLM
 
 ## LiteLLM

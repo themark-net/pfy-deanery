@@ -1,0 +1,11 @@
+{
+  "slug": "hiroute",
+  "run_kind": "pipeline",
+  "main_sha": "d6088a477cf79b27c681c358ff0812d91e93c87f",
+  "run_id": "hiroute-d6088a477cf7-20261108T213246Z",
+  "started": "2026-11-08T21:32:46Z",
+  "finished": "2026-11-08T21:32:46Z",
+  "outcome": "ok",
+  "tool_version": "hiroute",
+  "did": "routing list on the local-control socket returned 1 plans. alias hiroute-eval-difficulty-route. model_call never. Did not score routing_agreement_of_20."
+}
