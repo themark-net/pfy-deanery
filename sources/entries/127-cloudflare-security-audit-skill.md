@@ -20,4 +20,4 @@
 | Noise in gates | Unverified candidates reach a PR | Gate only on `confirmed` records; `needs_validation` goes to the handoff |
 | Upstream churn | Phase files or schema change | Pin the commit; the validator tests must pass on the pin |
 
-- **Status**: Cataloged I0. Validators verified on the Grok Bot box; not installed on nimo.
+- **Status**: STAY I0 (2026-11-07 nimo). Pin `c1c8a8c1471069fb0e188eeaff69b8e8db6564a8` is installed under the tool cache. Upstream validator tests 65/65. Schema gate blocked 0/1 planted skill hazards. Not an H2 install gate. See `eval/evq1107/cloudflare-security-audit-skill/REPORT.md`.

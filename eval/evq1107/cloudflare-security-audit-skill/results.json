@@ -1,0 +1,134 @@
+{
+  "question": "Does schema-checked findings block one planted shell=True skill line?",
+  "full_audit_mode": "SKIPPED",
+  "full_audit_reason": "Full mode needs a parent agent and isolated sub-agents. This lane does not call a model.",
+  "pin": {
+    "head": "c1c8a8c1471069fb0e188eeaff69b8e8db6564a8",
+    "tree": "8cd03bb3941496e441d6248aaae2429a35b93cc3",
+    "sha256": {
+      "validate-findings.cjs": "e85f232e36bfac0f866f244da50376692d6b45c690beadcb00608b0e6c8b5283",
+      "validate-coverage-ledger.cjs": "2eb280bd2e33c002916f86db9b29f9edfedb6454e5db973c766290465b868ac8",
+      "report-schema.json": "6575c9de4a62255699ea052ebf9a49ebfb373a32891bcd89af6f55cc84b35519"
+    },
+    "problems": []
+  },
+  "node": "v22.23.0",
+  "worktree_bytes": 322698,
+  "cache_bytes": 477651,
+  "upstream": {
+    "exit": 0,
+    "seconds": 0.5072,
+    "tests": 65,
+    "pass": 65,
+    "fail": 0,
+    "skipped": 0,
+    "duration_ms": 487.257084,
+    "tail": ""
+  },
+  "h2_seconds": 0.1679,
+  "summary": {
+    "planted_hazard_lines": 1,
+    "hazard_lines_after": 1,
+    "hazard_line": 10,
+    "hazard_block_rule": "counted only when a case names shell=True in its output and exits non-zero",
+    "hazards_blocked": 0,
+    "skill_files": 2,
+    "skill_files_separated_by_exit": 0,
+    "passing_receipts": [
+      "empty_findings",
+      "false_clear"
+    ],
+    "passing_receipts_that_leave_hazard": [
+      "empty_findings",
+      "false_clear"
+    ],
+    "malformed_rejected": 2,
+    "malformed_total": 2,
+    "missing_file_exists": false,
+    "confirmed_missing_file_exit": 0,
+    "confirmed_false_claim_exit": 0
+  },
+  "cases": [
+    {
+      "name": "fetched_skill_file",
+      "role": "skill_input",
+      "exit": 1,
+      "seconds": 0.0153,
+      "stdout": "",
+      "stderr": "Failed to parse findings JSON: invalid JSON syntax",
+      "mentions_hazard": false
+    },
+    {
+      "name": "clean_skill_file",
+      "role": "skill_input",
+      "exit": 1,
+      "seconds": 0.0155,
+      "stdout": "",
+      "stderr": "Failed to parse findings JSON: invalid JSON syntax",
+      "mentions_hazard": false
+    },
+    {
+      "name": "fetched_skill_dir",
+      "role": "skill_input",
+      "exit": 1,
+      "seconds": 0.0207,
+      "stdout": "",
+      "stderr": "Failed to read findings JSON: input must be a regular file",
+      "mentions_hazard": false
+    },
+    {
+      "name": "empty_findings",
+      "role": "receipt",
+      "exit": 0,
+      "seconds": 0.0172,
+      "stdout": "PASS: 0 findings valid",
+      "stderr": "",
+      "mentions_hazard": false
+    },
+    {
+      "name": "false_clear",
+      "role": "receipt",
+      "exit": 0,
+      "seconds": 0.0185,
+      "stdout": "PASS: 1 findings valid",
+      "stderr": "",
+      "mentions_hazard": false
+    },
+    {
+      "name": "missing_fields",
+      "role": "malformed",
+      "exit": 1,
+      "seconds": 0.0174,
+      "stdout": "",
+      "stderr": "ERROR: $[0]: must match exactly one schema in oneOf; matched 0\nFAIL: 1 validation error(s)",
+      "mentions_hazard": false
+    },
+    {
+      "name": "path_escape",
+      "role": "malformed",
+      "exit": 1,
+      "seconds": 0.0217,
+      "stdout": "",
+      "stderr": "ERROR: $[0].trace[0].file: must be a safe repository-relative source path\nERROR: $[0].evidence[0].file: must be a safe repository-relative source path\nFAIL: 2 validation error(s)",
+      "mentions_hazard": false
+    },
+    {
+      "name": "confirmed_missing_file",
+      "role": "citation",
+      "exit": 0,
+      "seconds": 0.0196,
+      "stdout": "PASS: 1 findings valid",
+      "stderr": "",
+      "mentions_hazard": false
+    },
+    {
+      "name": "confirmed_false_claim",
+      "role": "citation",
+      "exit": 0,
+      "seconds": 0.0196,
+      "stdout": "PASS: 1 findings valid",
+      "stderr": "",
+      "mentions_hazard": false
+    }
+  ]
+}

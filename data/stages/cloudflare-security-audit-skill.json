@@ -1,0 +1,35 @@
+{
+  "name": "Cloudflare security-audit skill",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/127-cloudflare-security-audit-skill.md",
+  "github": "https://github.com/cloudflare/security-audit-skill",
+  "notes_doc": "eval/evq1107/cloudflare-security-audit-skill/REPORT.md",
+  "pin": "c1c8a8c1471069fb0e188eeaff69b8e8db6564a8",
+  "uses": "Schema check for findings.json in a six-phase source audit. The 2026-11-07 probe blocked 0 of 1 planted skill lines.",
+  "features": [
+    "findings schema",
+    "coverage ledger schema",
+    "safe relative paths",
+    "no model"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I0. A later probe has to reject a findings file that denies a planted skill hazard, or open the cited path and fail when the file is missing. Full audit mode still needs isolated sub-agents and is not the install gate. No gate wiring in this lane.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "pregate or CI gate",
+    "npx skills add",
+    "replace SkillSpector",
+    "full multi-agent audit in this lane"
+  ],
+  "evidence": [
+    "entry:sources/entries/127-cloudflare-security-audit-skill.md",
+    "pin:c1c8a8c1471069fb0e188eeaff69b8e8db6564a8",
+    "eval/evq1107/cloudflare-security-audit-skill/REPORT.md",
+    "eval/evq1107/cloudflare-security-audit-skill/VERDICT",
+    "eval/evq1107/cloudflare-security-audit-skill/results.json"
+  ],
+  "handoff_by": "llm"
+}
