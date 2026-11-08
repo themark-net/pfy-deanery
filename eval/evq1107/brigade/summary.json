@@ -4,50 +4,50 @@
     "version_rc": 0,
     "wheel_sha256": "ac63094d379459338adde3be6dc49d54d928d5a06663342dec71eee975fed8c1"
   },
-  "tasks": 92,
+  "tasks": 94,
   "workers": 8,
   "git_init_rc": 0,
   "git_empty_rc": 0,
   "init_rc": 0,
-  "add_wall_s": 29.732,
+  "add_wall_s": 29.6643,
   "add_errors": 0,
   "brigade": {
-    "claim_rows": 92,
-    "unique": 92,
+    "claim_rows": 94,
+    "unique": 94,
     "duplicate_ids": 0,
     "extra_claims": 0,
-    "wall_s": 4.8816,
-    "ready_before": 92,
+    "wall_s": 4.9699,
+    "ready_before": 94,
     "error_rows": 0,
     "no_ready_rows": 8,
     "ledger_by_status": {
-      "in_progress": 92
+      "in_progress": 94
     },
     "assignees": {
-      "c5": 12,
       "c2": 12,
+      "c7": 11,
+      "c5": 12,
+      "c0": 12,
+      "c3": 12,
       "c4": 12,
-      "c0": 11,
-      "c3": 11,
-      "c7": 12,
-      "c6": 11,
-      "c1": 11
+      "c1": 12,
+      "c6": 11
     }
   },
   "markers": {
-    "claim_rows": 92,
-    "unique": 92,
+    "claim_rows": 94,
+    "unique": 94,
     "duplicate_ids": 0,
     "extra_claims": 0,
-    "wall_s": 0.0108,
+    "wall_s": 0.004,
     "left": 0
   },
   "naive": {
-    "claim_rows": 736,
-    "unique": 92,
-    "duplicate_ids": 92,
-    "extra_claims": 644,
-    "wall_s": 4.6473,
+    "claim_rows": 752,
+    "unique": 94,
+    "duplicate_ids": 94,
+    "extra_claims": 658,
+    "wall_s": 4.7401,
     "left_in_file": 0,
     "window_s": 5.0,
     "sleep_s": 0.05
@@ -69,5 +69,5 @@
     "/home/mark/.local/state/brigade": 0
   },
   "update_notify_in_cache_home": false,
-  "throwaway": "/home/mark/.cache/pfy/tools/brigade/tmp/probe-20261108T024656Z/repo"
+  "throwaway": "/home/mark/.cache/pfy/tools/brigade/tmp/probe-20261108T025244Z/repo"
 }

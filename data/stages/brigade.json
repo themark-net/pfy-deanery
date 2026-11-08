@@ -10,7 +10,7 @@
     "exclusive-claim"
   ],
   "potential": "low",
-  "next_gate": "Stay I0. On 2026-11-07 the claim probe recorded 0 duplicate ids out of 92 stage slugs with 8 workers (4.8816s). Exclusive marker files recorded the same 0 in 0.0108s. Do not wire a gate.",
+  "next_gate": "Stay I0. On 2026-11-07 the claim probe recorded 0 duplicate ids out of 94 stage slugs with 8 workers (4.9699s). Exclusive marker files recorded the same 0 in 0.004s. Do not wire a gate.",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",

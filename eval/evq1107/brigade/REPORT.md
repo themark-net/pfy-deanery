@@ -1,6 +1,6 @@
 # Brigade evq1107
 
-STAY I0. Eight workers claimed 92 tasks with 0 duplicate ids. Exclusive marker files did the same in 0.0108s. Brigade's claim burst took 4.8816s, after 29.732s to add the tasks. Nothing was wired into a gate.
+STAY I0. Eight workers claimed 94 tasks with 0 duplicate ids. Exclusive marker files did the same in 0.004s. Brigade's claim burst took 4.9699s, after 29.6643s to add the tasks. Nothing was wired into a gate.
 
 ## Pins
 
@@ -79,21 +79,21 @@ export BRIGADE_NO_UPDATE_CHECK=1
 python3 eval/evq1107/brigade/probe.py
 ```
 
-The probe reads every `data/stages/*.json` stem except `_registry` and adds one task per stem. This run saw 92 stems, including `brigade`.
+The probe reads every `data/stages/*.json` stem except `_registry` and adds one task per stem. This run saw 94 stems, including `brigade`. That is the worktree at probe start (2026-11-07 18:52 PT), after rebasing onto the cedr card. A stage file that lands after that is not in the 94.
 
 ## Numbers
 
-Throwaway: `/home/mark/.cache/pfy/tools/brigade/tmp/probe-20261108T024656Z/repo` (2026-11-07 18:46 PT). `init` exit 0. Add errors 0. Ready count before the burst: 92. Product worktree `.brigade` was absent before and after. These real-home paths contained 0 files before and after: `~/.brigade`, `~/.config/brigade`, `~/.cache/brigade`, `~/.local/share/brigade`, `~/.local/state/brigade`. No `update-notify` file appeared under the cache home.
+Throwaway: `/home/mark/.cache/pfy/tools/brigade/tmp/probe-20261108T025244Z/repo` (2026-11-07 18:52 PT). `init` exit 0. Add errors 0. Ready count before the burst: 94. Product worktree `.brigade` was absent before and after. These real-home paths contained 0 files before and after: `~/.brigade`, `~/.config/brigade`, `~/.cache/brigade`, `~/.local/share/brigade`, `~/.local/state/brigade`. No `update-notify` file appeared under the cache home.
 
 | Method | Claim rows | Unique ids | Duplicate ids | Extra claims | Wall |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| `brigade work claim --next` | 92 | 92 | 0 | 0 | 4.8816s |
-| `O_EXCL` marker file per slug | 92 | 92 | 0 | 0 | 0.0108s |
-| Unlocked JSON pop, 8 writers | 736 | 92 | 92 | 644 | 4.6473s |
+| `brigade work claim --next` | 94 | 94 | 0 | 0 | 4.9699s |
+| `O_EXCL` marker file per slug | 94 | 94 | 0 | 0 | 0.004s |
+| Unlocked JSON pop, 8 writers | 752 | 94 | 94 | 658 | 4.7401s |
 
-Adding the 92 tasks took 29.732s. That cost sits in front of the claim burst.
+Adding the 94 tasks took 29.6643s. That cost sits in front of the claim burst.
 
-Brigade details: 0 error rows, 8 `no_ready` rows (one per worker after the ready set was empty), ledger status `in_progress` 92. In actor order `c0` to `c7` the counts are 11, 11, 12, 11, 12, 12, 11, 12. The sum is 92.
+Brigade details: 0 error rows, 8 `no_ready` rows (one per worker after the ready set was empty), ledger status `in_progress` 94. In actor order `c0` to `c7` the counts are 12, 12, 12, 12, 12, 12, 11, 11. The sum is 94.
 
 The unlocked control is not a catalog tool. Eight processes pop the head of one JSON list, sleep 0.05s, and write the tail back, for a 5.0s window. Every id was taken more than once. That shows the probe counts a real race. The marker control is `open` with `O_CREAT|O_EXCL`, the safe form of "create a marker or lose." All three methods use the same 8-process start barrier.
 
@@ -106,7 +106,7 @@ Value gate (3 of 4 needed for I3):
 | Check | Result |
 | --- | --- |
 | Gap fill | No. Markers, per-slug worktrees, the model lock, and fast-forward land already stop two runs. Brigade ties markers at 0 duplicate ids and is slower. |
-| Operator leverage | No. The claim CLI does not make `./pfy build` finish. Loading 92 tasks took 29.732s. |
+| Operator leverage | No. The claim CLI does not make `./pfy build` finish. Loading 94 tasks took 29.6643s. |
 | Evidence | Yes. This probe runs offline with no key. |
 | Blast radius | Yes, while it stays a cache venv and a throwaway target. MIT, no weights, wheel 3.3 MB, venv 32 MB. `init` writes `.brigade/` into whatever directory it is pointed at. |
 
@@ -143,4 +143,4 @@ Stay I0. Do not wire Brigade into pregate, CI, or `./pfy`. A later ticket has to
 2. What does it do, and which services does it read and write? It reads and writes `.brigade/` in the target repo (the task ledger). With `BRIGADE_NO_UPDATE_CHECK=1` the probe did not run `update`, `setup`, or fleet, and no `update-notify` file appeared. No hosted model and no account.
 3. What does it trigger next? Nothing. The next step is another explicit command. It does not enqueue `./pfy build`.
 4. Where does a human re-enter? A lock timeout, a receipt mismatch, a product-checkout `init`, or any proposal to wire a gate. Gate wiring is a separate ticket.
-5. What stops two runs doing the same work? The task-ledger lock around claim. Measured here: 0 duplicate task ids out of 92, 8 workers, 4.8816s. The same stop is already an exclusive marker per slug: 0 duplicate ids in 0.0108s, plus one worktree per slug and `scripts/model_lock.sh` for live model steps.
+5. What stops two runs doing the same work? The task-ledger lock around claim. Measured here: 0 duplicate task ids out of 94, 8 workers, 4.9699s. The same stop is already an exclusive marker per slug: 0 duplicate ids in 0.004s, plus one worktree per slug and `scripts/model_lock.sh` for live model steps.
