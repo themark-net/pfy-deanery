@@ -68,7 +68,7 @@ STATE/integrate/LANDED_<slug>
 
 The loop worktree is `$PFY_LOOP_WT` (default `$HOME/DEVELOP/pfy-mentat/tmp/loop/wt`). `scripts/loop_worktree.sh` fetches and resets that worktree to `origin/main` on each tick.
 
-`loop.latest.json` fields: `tick_started`, `tick_finished` (each `{"utc","pt"}`), `origin_main`, `status` (`ok`, `stopped`, `busy`, `quota`, `error`), `stop_files`, `running` (`slug`, `kind`, `unit`, `pid`, `source`, plus `pid_age_s` and `hang_same_tail` when set), `started_today`, `cap` (`{"running":4,"daily":20}`), `slots`, `launched`, `skipped_taken`, `needs_mark_count`, `needs_mark_changed`, `applied`, `auto_raised`, `refused`, `parked`, `errors`, `supersede` (`stop` or empty), `supersede_stale` (list of `stale:` lines).
+`loop.latest.json` fields: `tick_started`, `tick_finished` (each `{"utc","pt"}`), `origin_main`, `status` (`ok`, `stopped`, `busy`, `quota`, `error`), `stop_files`, `running` (`slug`, `kind`, `unit`, `pid`, `source`, plus `pid_age_s` and `hang_same_tail` when set), `started_today`, `cap` (`{"running":4,"daily":20}`), `slots`, `launched`, `skipped_taken`, `needs_mark_count`, `needs_mark_changed`, `applied`, `auto_raised`, `refused`, `apply_refused`, `parked`, `errors`, `supersede` (`stop` or empty), `supersede_stale` (list of `stale:` lines).
 
 `status` is `quota` when the daily cap blocks launches. It is `ok` when the running cap is the only reason `slots` is 0. A busy lock exits 0 with `busy` and launches nothing.
 
@@ -91,7 +91,7 @@ Retry: read `<dir>/<slug>.parked`, then remove `.dispatched`. A leftover `.parke
 
 ## integrate2
 
-`tmp/integrate2` is a live batch. This loop reads its marker files and counts pid files whose `/proc` entry exists. Those live pids count toward the cap of 4. The loop does not edit that directory and does not signal its processes.
+`tmp/integrate2` is a live batch. This loop reads its marker files. It does not edit that directory and it does not signal its processes. A pid file counts toward the cap of 4 only when `<slug>.dispatched` is in the same directory and `/proc/<pid>` exists. The same pid counts once. `scheduler.pid` and `scheduler.launch.pid` have no `.dispatched` sibling, so they do not take a slot. `is_taken` still treats a live `.pid` as taken for that slug.
 
 ## needs-mark.tsv
 
@@ -104,6 +104,8 @@ Sources: `scripts/integrate_intake.py` flags, `eval/catalog-queue/exclusions.tsv
 The loop does not launch a slug that appears in this file.
 
 `needs-mark.tsv` is written after auto-raise in the same tick. A ceiling that this tick raised to I3 is not listed as below I3, so the slug can still launch. Auto-raise refusals are still rows, because those cards are unchanged.
+
+`refused` in `loop.latest.json` lists each slug once. A slug this tick auto-raised is left out of `refused`. An apply failure for that slug is listed in `apply_refused` instead. `apply_refused` also lists every other apply failure from this tick, once each.
 
 ## Auto-raise rule and word lists
 

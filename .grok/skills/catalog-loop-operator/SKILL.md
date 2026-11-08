@@ -45,7 +45,9 @@ Taken, so the tick will not launch the slug:
 - `.dispatched`, live `.pid`, `LANDED_<slug>`, `.done`, `.parked`
 - Look in `$PFY_LOOP_STATE/eval`, `$PFY_LOOP_STATE/integrate`, `$PFY_INTEGRATE_ROOT`, `$PFY_INTEGRATE2_ROOT` for integrate, and `$PFY_EVQ_ROOT` for eval.
 
-`integrate2` is another worker. Read its marker files only. Do not edit that directory and do not signal its processes. A live pid there counts toward the 4 running lanes.
+`integrate2` is another worker. Read its marker files only. Do not edit that directory and do not signal its processes. A pid file there counts toward the 4 running lanes only when `<slug>.dispatched` is beside it and the pid is alive. The same pid counts once. `scheduler.pid` and `scheduler.launch.pid` do not count.
+
+`refused` lists each slug once. A slug this tick auto-raised is not in `refused`. That apply failure is in `apply_refused`.
 
 ## Duplicate-run guard
 

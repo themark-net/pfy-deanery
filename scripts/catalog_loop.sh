@@ -85,6 +85,7 @@ export PFY_NEEDS_CHANGED=0
 export PFY_APPLIED="[]"
 export PFY_RAISED="[]"
 export PFY_REFUSED="[]"
+export PFY_APPLY_REFUSED="[]"
 export PFY_PARKED="[]"
 export PFY_ERRORS="[]"
 export PFY_SUPERSEDE=""
@@ -127,6 +128,7 @@ doc = {
     "applied": grab("PFY_APPLIED", []),
     "auto_raised": grab("PFY_RAISED", []),
     "refused": grab("PFY_REFUSED", []),
+    "apply_refused": grab("PFY_APPLY_REFUSED", []),
     "parked": grab("PFY_PARKED", []),
     "errors": grab("PFY_ERRORS", []),
     "supersede": os.environ.get("PFY_SUPERSEDE", ""),
@@ -384,6 +386,7 @@ export PFY_ORIGIN_MAIN="$origin_main"
 
 applied=()
 refused=()
+apply_refused=()
 raised=()
 SUPERSEDE_ACTION=continue
 if [ "$OFFLINE" -eq 1 ]; then
@@ -396,6 +399,7 @@ python3 scripts/catalog_apply_verdict.py --scan || fail "ceiling scan failed"
 
 applied=()
 refused=()
+apply_refused=()
 apply_verdict() {
   local slug="$1"
   local verdict="$2"
@@ -407,6 +411,7 @@ apply_verdict() {
     applied+=("$slug")
   else
     refused+=("$slug")
+    apply_refused+=("$slug")
   fi
 }
 
@@ -591,6 +596,9 @@ for root, kind, source in roots:
         continue
     for path in sorted(root.glob("*.pid")):
         slug = path.name[:-4]
+        # scheduler.pid has no sibling .dispatched, so it is not a lane.
+        if not (root / f"{slug}.dispatched").is_file():
+            continue
         try:
             text = path.read_text(encoding="utf-8", errors="replace").strip().split()
         except OSError:
@@ -623,6 +631,14 @@ for root, kind, source in roots:
         if tail and prev.get(key) == tail:
             row["hang_same_tail"] = True
         rows.append(row)
+seen_pids = set()
+unique = []
+for row in rows:
+    if row["pid"] in seen_pids:
+        continue
+    seen_pids.add(row["pid"])
+    unique.append(row)
+rows = unique
 tails_path.write_text(json.dumps(new_tails, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 print(json.dumps(rows))
 PY
@@ -801,11 +817,34 @@ else
   PFY_RAISED="[]"
 fi
 if [ "${#refused[@]}" -gt 0 ]; then
-  PFY_REFUSED=$(json_list "${refused[@]}")
+  refused_json=$(json_list "${refused[@]}")
 else
-  PFY_REFUSED="[]"
+  refused_json="[]"
 fi
-export PFY_LAUNCHED PFY_SKIPPED PFY_APPLIED PFY_RAISED PFY_REFUSED
+if [ "${#apply_refused[@]}" -gt 0 ]; then
+  apply_json=$(json_list "${apply_refused[@]}")
+else
+  apply_json="[]"
+fi
+# Drop a slug this tick auto-raised. Keep each remaining slug once.
+# apply_refused keeps every apply failure, including one that was raised.
+filtered=$(python3 -c '
+import json, sys
+raised = set(json.loads(sys.argv[1]))
+seen = []
+for slug in json.loads(sys.argv[2]):
+    if slug in raised or slug in seen:
+        continue
+    seen.append(slug)
+apply_seen = []
+for slug in json.loads(sys.argv[3]):
+    if slug not in apply_seen:
+        apply_seen.append(slug)
+sys.stdout.write(json.dumps(seen) + "\n" + json.dumps(apply_seen) + "\n")
+' "$PFY_RAISED" "$refused_json" "$apply_json")
+PFY_REFUSED=$(printf '%s\n' "$filtered" | awk 'NR==1')
+PFY_APPLY_REFUSED=$(printf '%s\n' "$filtered" | awk 'NR==2')
+export PFY_LAUNCHED PFY_SKIPPED PFY_APPLIED PFY_RAISED PFY_REFUSED PFY_APPLY_REFUSED
 export PFY_STARTED_TODAY="$started"
 export PFY_SLOTS="$slots"
 export PFY_ORIGIN_MAIN

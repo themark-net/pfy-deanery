@@ -299,6 +299,7 @@ class CatalogLoopTickTest(unittest.TestCase):
                     proc = subprocess.Popen(["sleep", "60"])
                     procs.append(proc)
                     (integrate2 / f"{name}.pid").write_text(f"{proc.pid} lane\n", encoding="utf-8")
+                    (integrate2 / f"{name}.dispatched").write_text("lane\n", encoding="utf-8")
                 tick, state, _wt, log = run_tick(td, clone)
             finally:
                 for proc in procs:
@@ -328,3 +329,46 @@ class CatalogLoopTickTest(unittest.TestCase):
             self.assertTrue((state / "eval" / "aa-first.dispatched").is_file())
             self.assertFalse((state / "eval" / "zz-second.dispatched").exists())
             self.assertEqual(log.read_text(encoding="utf-8").count("--unit="), 1)
+
+    def test_refused_is_unique_and_a_raised_slug_is_apply_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            td = Path(tmp)
+            passing = {
+                "metric": "probe_score",
+                "threshold": 1,
+                "value_gate": "pass",
+                "modularity_gate": "pass",
+                "proposed_stage": "I2",
+            }
+            clone = build_repo(td, {
+                "aa-both": card("aa-both"),
+                "aa-dup": card("aa-dup", risk_class="security"),
+            })
+            both = clone / "eval" / "evals" / "aa-both" / "VERDICT.json"
+            both.parent.mkdir(parents=True, exist_ok=True)
+            both.write_text(json.dumps(passing, indent=2) + "\n", encoding="utf-8")
+            dup_dir = clone / "eval" / "integrate" / "aa-dup"
+            dup_dir.mkdir(parents=True)
+            (dup_dir / "receipt.json").write_text("{}\n", encoding="utf-8")
+            (dup_dir / "VERDICT.json").write_text(
+                json.dumps(passing, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            git(clone, "add", ".")
+            git(clone, "commit", "-m", "verdicts")
+            git(clone, "push", "origin", "main")
+            state = td / "state"
+            (state / "eval").mkdir(parents=True)
+            (state / "eval" / "LANDED_aa-both").write_text("landed\n", encoding="utf-8")
+            (td / "integrate").mkdir()
+            (td / "integrate2").mkdir()
+            (td / "integrate" / "LANDED_aa-dup").write_text("landed\n", encoding="utf-8")
+            (td / "integrate2" / "LANDED_aa-dup").write_text("landed\n", encoding="utf-8")
+            proc, state, _wt, _log = run_tick(td, clone)
+            self.assertEqual(proc.returncode, 0, (proc.stdout + proc.stderr)[-4000:])
+            status = json.loads((state / "loop.latest.json").read_text(encoding="utf-8"))
+            self.assertEqual(status["refused"], ["aa-dup"])
+            self.assertNotIn("aa-both", status["refused"])
+            self.assertEqual(status["apply_refused"], ["aa-dup", "aa-both"])
+            self.assertIn("aa-both", status["auto_raised"])
+            self.assertNotIn("aa-dup", status["auto_raised"])
