@@ -4,10 +4,10 @@ STAY I0 reference: research prototype; runtime needs DSH, a dedicated GitHub acc
 
 ## What it is
 
-dsh-superagent (https://github.com/deepseek-ai/dsh-superagent-prototype, MIT, copyright 2026 DeepSeek Harness Team) is a research prototype, not an official DeepSeek product. Package `dsh-superagent` 0.1.0. `engines.node` is `^22.19.0 || >=24`. `engines.dsh` is `^0.2.1-alpha.2`. It is a DeepSeek Harness bundle for one GitHub repository. It listens to that account's notifications, and optionally Feishu. When an allowed person addresses it, the agent opens a Ticket with its own DSH Session and directory, and the reply goes back on the original thread. The panel listens on 127.0.0.1 port 3082 (`examples/profile.cordis.patch.yml`). Accept mode defaults to `observe`: a positive inferred assessment is stored as ignore marked "would accept", and nothing is accepted. Explicit requests are admitted in every mode. Presets `dsh-superagent-worker` and `dsh-superagent-router` use `danger-full-access` as the operator's OS user. Upstream says a worker can execute a program by path and read the operator's home. A GitHub App cannot be the agent, because the host reads the account's notifications. Install is `npm install -g @deepseek-ai/dsh@0.2.1-rc.3` plus a separate `superagent` profile that changes process-wide PATH. The README says this tree differs from the internal version and from the article *Exploring Super-agent Design*.
+dsh-superagent (https://github.com/deepseek-ai/dsh-superagent-prototype, MIT, copyright 2026 DeepSeek Harness Team) is a research prototype, not an official DeepSeek product. Package `dsh-superagent` 0.1.0. `engines.node` is `^22.19.0 || >=24.0.0`. `engines.dsh` is `^0.2.1-alpha.2`. It is a DeepSeek Harness bundle for one GitHub repository. It listens to that account's notifications, and optionally Feishu. When an allowed person addresses it, the agent opens a Ticket with its own DSH Session and directory, and the reply goes back on the original thread. The panel listens on 127.0.0.1 port 3082 (`examples/profile.cordis.patch.yml`). Accept mode defaults to `observe`: a positive inferred assessment is stored as ignore marked "would accept", and nothing is accepted. Explicit requests are admitted in every mode. Presets `dsh-superagent-worker` and `dsh-superagent-router` use `danger-full-access` as the operator's OS user. Upstream says a worker can execute a program by path and read the operator's home. A GitHub App cannot be the agent, because the host reads the account's notifications. Install is `npm install -g @deepseek-ai/dsh@0.2.1-rc.3` plus a separate `superagent` profile that changes process-wide PATH. The README says this tree differs from the internal version and from the article *Exploring Super-agent Design*.
 
 ## Pin and commands
-Cache `~/.cache/pfy/tools/dsh-superagent/src`, not committed. Pin `6337fc823ce20251c8de8085948165c81aaa701e` (2026-10-31 20:05:39 +0800). Work tree 216 files, 2601300 bytes. `.git` 871550 bytes. No `node_modules`. No script ran. No model lock.
+Cache `~/.cache/pfy/tools/dsh-superagent/src`, not committed. Pin `6337fc823ce20251c8de8085948165c81aaa701e` (2026-10-31 20:05:39 +0800). Work tree 216 files, 2601300 bytes. `.git` is 871550 bytes. No `node_modules`. No script ran. No model lock. Clone duration was not recorded.
 
 ```bash
 CACHE=~/.cache/pfy/tools/dsh-superagent
@@ -66,7 +66,7 @@ Modularity, all 4 for a local copy: local code was not needed (the numbered docs
 
 ## Next gate
 
-Stay I0 reference. The file mapping is this report. Re-open only if Mark asks for an ADR that cites `docs/000-philosophy.md` and `docs/002-authorization.md` at this pin. No DSH install, no agent GitHub account, no Feishu bot, no runtime trial. Not a Feature GO.
+Stay I0 reference. The file mapping is this report. Re-open only if Mark asks for an ADR that cites upstream `docs/000-philosophy.md` and `docs/002-authorization.md` at this pin. No DSH install, no agent GitHub account, no Feishu bot, no runtime trial. Not a Feature GO.
 
 ## Pipeline questions
 

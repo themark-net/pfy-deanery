@@ -17,7 +17,7 @@
     "panel lists what needs a person"
   ],
   "potential": "low",
-  "next_gate": "Stay I0 reference. The file mapping is eval/evq1107/dsh-superagent/REPORT.md. Re-open only if Mark asks for an ADR that cites docs/000-philosophy.md and docs/002-authorization.md at pin 6337fc823ce20251c8de8085948165c81aaa701e. No DSH install, no agent GitHub account, no Feishu bot, no runtime trial. Gap B stays the pfy build timeout. Not a Feature GO.",
+  "next_gate": "Stay I0 reference. The file mapping is eval/evq1107/dsh-superagent/REPORT.md. Re-open only if Mark asks for an ADR that cites upstream docs/000-philosophy.md and docs/002-authorization.md at pin 6337fc823ce20251c8de8085948165c81aaa701e. No DSH install, no agent GitHub account, no Feishu bot, no runtime trial. Gap B stays the pfy build timeout. Not a Feature GO.",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",
