@@ -1,0 +1,39 @@
+{
+  "name": "Sponsio",
+  "integration_stage": "I2",
+  "intent": "adhoc_probe",
+  "entry": "sources/entries/098-sponsio.md",
+  "github": "https://github.com/SponsioLabs/Sponsio",
+  "pin": "957cb5264f156b98208e48c17700addf3aa7c64e",
+  "release": "v0.2.0a17",
+  "wheel_sha256": "0e755cf9027da62051d3b05ec92a3557f34ec97aac142bc47704be16d86f0809",
+  "uses": "Pre-call check of one agent tool call. An ordering rule can block a later call until an earlier call has happened. Offline. No account.",
+  "features": [
+    "ordering rule",
+    "shell text block",
+    "workspace path scope",
+    "offline"
+  ],
+  "potential": "medium",
+  "next_gate": "Stay I2. Ordering beat a one-call text check (2/2 vs 0/2). In-repo skill writes were not blocked (0/2). A later ticket can grill observe mode on a real tool loop. No gate wiring. The I1 ceiling stays until a TOOLS.md row exists.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "pregate or CI gate",
+    "hosted console",
+    "sponsio push",
+    "skill byte scan",
+    "replace SkillSpector",
+    "replace Sandlock"
+  ],
+  "evidence": [
+    "entry:sources/entries/098-sponsio.md",
+    "pin:957cb5264f156b98208e48c17700addf3aa7c64e",
+    "release:v0.2.0a17",
+    "eval/evq1107/sponsio/REPORT.md",
+    "eval/evq1107/sponsio/VERDICT",
+    "eval/evq1107/sponsio/results.json"
+  ],
+  "handoff_by": "llm"
+}

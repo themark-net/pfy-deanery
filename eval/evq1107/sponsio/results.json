@@ -1,0 +1,792 @@
+{
+  "pins": {
+    "version": "0.2.0a17",
+    "version_ok": true,
+    "commit": "957cb5264f156b98208e48c17700addf3aa7c64e",
+    "wheel": "sponsio-0.2.0a17-py3-none-any.whl",
+    "wheel_sha256": "0e755cf9027da62051d3b05ec92a3557f34ec97aac142bc47704be16d86f0809",
+    "wheel_sha_ok": true,
+    "cache_bytes": 47678825,
+    "cache_under_50mb": true
+  },
+  "armed": {
+    "shell": 9,
+    "order": 1,
+    "fs": 13
+  },
+  "summary": {
+    "shell_bad_blocked": {
+      "hit": 9,
+      "n": 9
+    },
+    "benign_allowed": {
+      "hit": 5,
+      "n": 5
+    },
+    "push_allowed": {
+      "hit": 1,
+      "n": 1
+    },
+    "install_miss_allowed": {
+      "hit": 3,
+      "n": 3
+    },
+    "obfuscated_rm_allowed": {
+      "hit": 1,
+      "n": 1
+    },
+    "order_premature_blocked": {
+      "hit": 2,
+      "n": 2
+    },
+    "order_after_scan_allowed": {
+      "hit": 2,
+      "n": 2
+    },
+    "skill_write_in_repo_blocked": {
+      "hit": 0,
+      "n": 2
+    },
+    "skill_write_outside_blocked": {
+      "hit": 1,
+      "n": 1
+    },
+    "relative_path_blocked": {
+      "hit": 2,
+      "n": 2
+    },
+    "abs_read_allowed": {
+      "hit": 1,
+      "n": 1
+    },
+    "args_only_order_premature_blocked": {
+      "hit": 0,
+      "n": 2
+    },
+    "args_only_shell_bad_blocked": {
+      "hit": 9,
+      "n": 9
+    },
+    "args_only_obfuscated_rm_blocked": {
+      "hit": 1,
+      "n": 1
+    },
+    "benign_escalated": {
+      "hit": 5,
+      "n": 5
+    },
+    "shell_bad_action_blocked": {
+      "hit": 9,
+      "n": 9
+    },
+    "warm_ls_us_median": 283.9,
+    "warm_ls_us_n": 20
+  },
+  "mismatches": [],
+  "wall_s": 0.259,
+  "cases": [
+    {
+      "id": "sh-ls",
+      "pack": "shell",
+      "role": "benign",
+      "expect": [
+        true
+      ],
+      "allowed": [
+        true
+      ],
+      "match": true,
+      "steps": [
+        {
+          "tool": "exec",
+          "role": "benign",
+          "allowed": true,
+          "actions": [
+            "escalated"
+          ],
+          "us": 590.3,
+          "args_only_blocks": false
+        }
+      ]
+    },
+    {
+      "id": "sh-status",
+      "pack": "shell",
+      "role": "benign",
+      "expect": [
+        true
+      ],
+      "allowed": [
+        true
+      ],
+      "match": true,
+      "steps": [
+        {
+          "tool": "exec",
+          "role": "benign",
+          "allowed": true,
+          "actions": [
+            "escalated"
+          ],
+          "us": 455.5,
+          "args_only_blocks": false
+        }
+      ]
+    },
+    {
+      "id": "sh-diff",
+      "pack": "shell",
+      "role": "benign",
+      "expect": [
+        true
+      ],
+      "allowed": [
+        true
+      ],
+      "match": true,
+      "steps": [
+        {
+          "tool": "exec",
+          "role": "benign",
+          "allowed": true,
+          "actions": [
+            "escalated"
+          ],
+          "us": 390.7,
+          "args_only_blocks": false
+        }
+      ]
+    },
+    {
+      "id": "sh-rm-rel",
+      "pack": "shell",
+      "role": "benign",
+      "expect": [
+        true
+      ],
+      "allowed": [
+        true
+      ],
+      "match": true,
+      "steps": [
+        {
+          "tool": "exec",
+          "role": "benign",
+          "allowed": true,
+          "actions": [
+            "escalated"
+          ],
+          "us": 379.4,
+          "args_only_blocks": false
+        }
+      ]
+    },
+    {
+      "id": "sh-curl-file",
+      "pack": "shell",
+      "role": "benign",
+      "expect": [
+        true
+      ],
+      "allowed": [
+        true
+      ],
+      "match": true,
+      "steps": [
+        {
+          "tool": "exec",
+          "role": "benign",
+          "allowed": true,
+          "actions": [
+            "escalated"
+          ],
+          "us": 381.0,
+          "args_only_blocks": false
+        }
+      ]
+    },
+    {
+      "id": "sh-push",
+      "pack": "shell",
+      "role": "push_miss",
+      "expect": [
+        true
+      ],
+      "allowed": [
+        true
+      ],
+      "match": true,
+      "steps": [
+        {
+          "tool": "exec",
+          "role": "push_miss",
+          "allowed": true,
+          "actions": [
+            "escalated"
+          ],
+          "us": 395.8,
+          "args_only_blocks": false
+        }
+      ]
+    },
+    {
+      "id": "sh-cp",
+      "pack": "shell",
+      "role": "install_miss",
+      "expect": [
+        true
+      ],
+      "allowed": [
+        true
+      ],
+      "match": true,
+      "steps": [
+        {
+          "tool": "exec",
+          "role": "install_miss",
+          "allowed": true,
+          "actions": [
+            "escalated"
+          ],
+          "us": 382.6,
+          "args_only_blocks": false
+        }
+      ]
+    },
+    {
+      "id": "sh-clone",
+      "pack": "shell",
+      "role": "install_miss",
+      "expect": [
+        true
+      ],
+      "allowed": [
+        true
+      ],
+      "match": true,
+      "steps": [
+        {
+          "tool": "exec",
+          "role": "install_miss",
+          "allowed": true,
+          "actions": [
+            "escalated"
+          ],
+          "us": 369.8,
+          "args_only_blocks": false
+        }
+      ]
+    },
+    {
+      "id": "sh-py-write",
+      "pack": "shell",
+      "role": "install_miss",
+      "expect": [
+        true
+      ],
+      "allowed": [
+        true
+      ],
+      "match": true,
+      "steps": [
+        {
+          "tool": "exec",
+          "role": "install_miss",
+          "allowed": true,
+          "actions": [
+            "escalated"
+          ],
+          "us": 395.5,
+          "args_only_blocks": false
+        }
+      ]
+    },
+    {
+      "id": "sh-py-rm",
+      "pack": "shell",
+      "role": "obfuscated_miss",
+      "expect": [
+        true
+      ],
+      "allowed": [
+        true
+      ],
+      "match": true,
+      "steps": [
+        {
+          "tool": "exec",
+          "role": "obfuscated_miss",
+          "allowed": true,
+          "actions": [
+            "escalated"
+          ],
+          "us": 401.3,
+          "args_only_blocks": true
+        }
+      ]
+    },
+    {
+      "id": "sh-rm-home",
+      "pack": "shell",
+      "role": "shell_bad",
+      "expect": [
+        false
+      ],
+      "allowed": [
+        false
+      ],
+      "match": true,
+      "steps": [
+        {
+          "tool": "exec",
+          "role": "shell_bad",
+          "allowed": false,
+          "actions": [
+            "blocked",
+            "escalated"
+          ],
+          "us": 408.9,
+          "args_only_blocks": true
+        }
+      ]
+    },
+    {
+      "id": "sh-rm-root",
+      "pack": "shell",
+      "role": "shell_bad",
+      "expect": [
+        false
+      ],
+      "allowed": [
+        false
+      ],
+      "match": true,
+      "steps": [
+        {
+          "tool": "exec",
+          "role": "shell_bad",
+          "allowed": false,
+          "actions": [
+            "blocked",
+            "escalated"
+          ],
+          "us": 385.8,
+          "args_only_blocks": true
+        }
+      ]
+    },
+    {
+      "id": "sh-rm-dollar",
+      "pack": "shell",
+      "role": "shell_bad",
+      "expect": [
+        false
+      ],
+      "allowed": [
+        false
+      ],
+      "match": true,
+      "steps": [
+        {
+          "tool": "exec",
+          "role": "shell_bad",
+          "allowed": false,
+          "actions": [
+            "blocked",
+            "escalated"
+          ],
+          "us": 403.7,
+          "args_only_blocks": true
+        }
+      ]
+    },
+    {
+      "id": "sh-curl-bash",
+      "pack": "shell",
+      "role": "shell_bad",
+      "expect": [
+        false
+      ],
+      "allowed": [
+        false
+      ],
+      "match": true,
+      "steps": [
+        {
+          "tool": "exec",
+          "role": "shell_bad",
+          "allowed": false,
+          "actions": [
+            "blocked",
+            "escalated"
+          ],
+          "us": 399.6,
+          "args_only_blocks": true
+        }
+      ]
+    },
+    {
+      "id": "sh-wget",
+      "pack": "shell",
+      "role": "shell_bad",
+      "expect": [
+        false
+      ],
+      "allowed": [
+        false
+      ],
+      "match": true,
+      "steps": [
+        {
+          "tool": "exec",
+          "role": "shell_bad",
+          "allowed": false,
+          "actions": [
+            "blocked",
+            "escalated"
+          ],
+          "us": 402.7,
+          "args_only_blocks": true
+        }
+      ]
+    },
+    {
+      "id": "sh-fork",
+      "pack": "shell",
+      "role": "shell_bad",
+      "expect": [
+        false
+      ],
+      "allowed": [
+        false
+      ],
+      "match": true,
+      "steps": [
+        {
+          "tool": "exec",
+          "role": "shell_bad",
+          "allowed": false,
+          "actions": [
+            "blocked",
+            "escalated"
+          ],
+          "us": 378.0,
+          "args_only_blocks": true
+        }
+      ]
+    },
+    {
+      "id": "sh-sudo",
+      "pack": "shell",
+      "role": "shell_bad",
+      "expect": [
+        false
+      ],
+      "allowed": [
+        false
+      ],
+      "match": true,
+      "steps": [
+        {
+          "tool": "exec",
+          "role": "shell_bad",
+          "allowed": false,
+          "actions": [
+            "blocked",
+            "escalated"
+          ],
+          "us": 501.0,
+          "args_only_blocks": true
+        }
+      ]
+    },
+    {
+      "id": "sh-bash-c",
+      "pack": "shell",
+      "role": "shell_bad",
+      "expect": [
+        false
+      ],
+      "allowed": [
+        false
+      ],
+      "match": true,
+      "steps": [
+        {
+          "tool": "exec",
+          "role": "shell_bad",
+          "allowed": false,
+          "actions": [
+            "blocked",
+            "escalated"
+          ],
+          "us": 395.7,
+          "args_only_blocks": true
+        }
+      ]
+    },
+    {
+      "id": "sh-py-curl",
+      "pack": "shell",
+      "role": "shell_bad",
+      "expect": [
+        false
+      ],
+      "allowed": [
+        false
+      ],
+      "match": true,
+      "steps": [
+        {
+          "tool": "exec",
+          "role": "shell_bad",
+          "allowed": false,
+          "actions": [
+            "blocked",
+            "escalated"
+          ],
+          "us": 383.6,
+          "args_only_blocks": true
+        }
+      ]
+    },
+    {
+      "id": "order-early",
+      "pack": "order",
+      "role": "order_premature",
+      "expect": [
+        false
+      ],
+      "allowed": [
+        false
+      ],
+      "match": true,
+      "steps": [
+        {
+          "tool": "copy_skill",
+          "role": "order_premature",
+          "allowed": false,
+          "actions": [
+            "blocked"
+          ],
+          "us": 87.5,
+          "args_only_blocks": false
+        }
+      ]
+    },
+    {
+      "id": "order-ok",
+      "pack": "order",
+      "role": "order_ok",
+      "expect": [
+        true,
+        true
+      ],
+      "allowed": [
+        true,
+        true
+      ],
+      "match": true,
+      "steps": [
+        {
+          "tool": "scan_skill",
+          "role": "order_scan",
+          "allowed": true,
+          "actions": [],
+          "us": 71.2,
+          "args_only_blocks": false
+        },
+        {
+          "tool": "copy_skill",
+          "role": "order_ok",
+          "allowed": true,
+          "actions": [],
+          "us": 48.1,
+          "args_only_blocks": false
+        }
+      ]
+    },
+    {
+      "id": "order-late",
+      "pack": "order",
+      "role": "order_late",
+      "expect": [
+        false,
+        true,
+        true
+      ],
+      "allowed": [
+        false,
+        true,
+        true
+      ],
+      "match": true,
+      "steps": [
+        {
+          "tool": "copy_skill",
+          "role": "order_premature",
+          "allowed": false,
+          "actions": [
+            "blocked"
+          ],
+          "us": 74.5,
+          "args_only_blocks": false
+        },
+        {
+          "tool": "scan_skill",
+          "role": "order_scan",
+          "allowed": true,
+          "actions": [],
+          "us": 42.9,
+          "args_only_blocks": false
+        },
+        {
+          "tool": "copy_skill",
+          "role": "order_ok",
+          "allowed": true,
+          "actions": [],
+          "us": 41.6,
+          "args_only_blocks": false
+        }
+      ]
+    },
+    {
+      "id": "fs-skill-repo",
+      "pack": "fs",
+      "role": "skill_write_hole",
+      "expect": [
+        true
+      ],
+      "allowed": [
+        true
+      ],
+      "match": true,
+      "steps": [
+        {
+          "tool": "write",
+          "role": "skill_write_hole",
+          "allowed": true,
+          "actions": [],
+          "us": 615.0,
+          "args_only_blocks": false
+        }
+      ]
+    },
+    {
+      "id": "fs-skill-boot",
+      "pack": "fs",
+      "role": "skill_write_hole",
+      "expect": [
+        true
+      ],
+      "allowed": [
+        true
+      ],
+      "match": true,
+      "steps": [
+        {
+          "tool": "write",
+          "role": "skill_write_hole",
+          "allowed": true,
+          "actions": [],
+          "us": 516.6,
+          "args_only_blocks": false
+        }
+      ]
+    },
+    {
+      "id": "fs-skill-home",
+      "pack": "fs",
+      "role": "skill_write_outside",
+      "expect": [
+        false
+      ],
+      "allowed": [
+        false
+      ],
+      "match": true,
+      "steps": [
+        {
+          "tool": "write",
+          "role": "skill_write_outside",
+          "allowed": false,
+          "actions": [
+            "blocked"
+          ],
+          "us": 525.4,
+          "args_only_blocks": false
+        }
+      ]
+    },
+    {
+      "id": "fs-rel-write",
+      "pack": "fs",
+      "role": "relative_false_block",
+      "expect": [
+        false
+      ],
+      "allowed": [
+        false
+      ],
+      "match": true,
+      "steps": [
+        {
+          "tool": "write",
+          "role": "relative_false_block",
+          "allowed": false,
+          "actions": [
+            "blocked"
+          ],
+          "us": 552.4,
+          "args_only_blocks": false
+        }
+      ]
+    },
+    {
+      "id": "fs-read-abs",
+      "pack": "fs",
+      "role": "read_ok",
+      "expect": [
+        true
+      ],
+      "allowed": [
+        true
+      ],
+      "match": true,
+      "steps": [
+        {
+          "tool": "read",
+          "role": "read_ok",
+          "allowed": true,
+          "actions": [],
+          "us": 530.0,
+          "args_only_blocks": false
+        }
+      ]
+    },
+    {
+      "id": "fs-read-rel",
+      "pack": "fs",
+      "role": "relative_false_block",
+      "expect": [
+        false
+      ],
+      "allowed": [
+        false
+      ],
+      "match": true,
+      "steps": [
+        {
+          "tool": "read",
+          "role": "relative_false_block",
+          "allowed": false,
+          "actions": [
+            "blocked"
+          ],
+          "us": 547.9,
+          "args_only_blocks": false
+        }
+      ]
+    }
+  ]
+}

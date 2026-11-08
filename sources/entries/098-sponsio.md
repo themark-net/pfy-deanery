@@ -20,4 +20,4 @@
 | Over-blocking | Contracts block legitimate Build or ROCm commands (for example `sudo`-style patterns escalate) | Start in observe mode, read the violations, then flip to enforce per contract |
 | False confidence | Regex-level shell rules miss an obfuscated command | Treat as one layer next to Sandlock confinement, not a replacement for it |
 
-- **Status**: Cataloged I0. Verified on the Grok Bot box; not installed on nimo.
+- **Status**: I2 probe on nimo (2026-11-07). Pinned PyPI sponsio 0.2.0a17, git 957cb5264f156b98208e48c17700addf3aa7c64e, under ~/.cache/pfy/tools/sponsio/. See eval/evq1107/sponsio/REPORT.md. Not a gate.
