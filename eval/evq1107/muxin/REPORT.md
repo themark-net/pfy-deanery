@@ -15,7 +15,7 @@ Muxin (Lumary Labs LLC) is a GPUI desktop app, a headless CLI, and an MCP server
 | Commit | 2026-10-20 14:47:48 -0500, `Muxin 0.6.0` |
 | Fetch | 1 s. `git init`, `git fetch --depth 1 origin d45f3e480e6523febe81ed51061261b92714b3c9`, detach checkout. No script, no binary, no `install.sh`. |
 | Bytes | total 19702186, worktree 12328970, `.git` 7373216 |
-| Tools | `src/mcp.rs` `tools()`: 89 names, 40 with `readOnlyHint`, 17 with `destructiveHint` |
+| Tools | `src/mcp.rs` `tools()`: 89 names. All set both hints. 40 have `readOnlyHint` true. 17 have `destructiveHint` true. |
 
 Cache: `~/.cache/pfy/tools/muxin/src`, not committed. `HOME`, `XDG_CONFIG_HOME`, `XDG_CACHE_HOME`, `TMPDIR`, and `npm_config_cache` were under `~/.cache/pfy/tools/muxin`. `GIT_CONFIG_GLOBAL` and `GIT_CONFIG_SYSTEM` were `/dev/null`.
 
