@@ -40,14 +40,46 @@ class CatalogStageEvalTests(unittest.TestCase):
         self.assertIn("Kolibri-1", names)
 
     def test_posture_and_ceiling_are_not_promotions(self):
+        """Fail: evaluations() or --apply copies tier_ceiling onto integration_stage.
+        A live promotion of codebase-memory-mcp must not be the proof, and a
+        frozen stage literal is not the proof either.
+        Recovery: a fixture card stays at I2 while its ceiling stays I3.
+        apply() does not write integration_stage. The real stage files stay."""
         by = {r["name"]: r for r in self.mod.evaluations()}
         self.assertIn("not_integrated", by["Graphify"]["posture"])
         self.assertEqual(by["Graphify"]["tier_ceiling"], "I0")
         self.assertEqual(by["Graphify"]["integration_stage"], "I0")
         self.assertEqual(by["AgenC"]["tier_ceiling"], "I0")
+        live = load_stages(ROOT)["tools"]["codebase-memory-mcp"]
         self.assertEqual(by["codebase-memory-mcp"]["tier_ceiling"], "I3")
-        self.assertEqual(by["codebase-memory-mcp"]["integration_stage"], "I2")
+        self.assertEqual(by["codebase-memory-mcp"]["integration_stage"], live["integration_stage"])
         self.assertIn("make:smoke-codebase-memory", by["codebase-memory-mcp"]["evidence"])
+        mod = self.mod
+        real_files = _stage_snapshot()
+        stages = load_stages(ROOT)
+        stages["tools"]["codebase-memory-mcp"]["integration_stage"] = "I2"
+        self.assertEqual(stages["tools"]["codebase-memory-mcp"]["tier_ceiling"], "I3")
+        saved = (mod.STAGES_ROOT, mod.METHODS_PATH)
+        try:
+            with tempfile.TemporaryDirectory(prefix="stage-ceiling-") as td:
+                tdir = Path(td)
+                methods_path = tdir / "methods.json"
+                methods_path.write_text("{}\n", encoding="utf-8")
+                write_registry(tdir, {k: v for k, v in stages.items() if k not in ("tools", "last_updated")})
+                for name, card in stages["tools"].items():
+                    write_tool(tdir, name, card)
+                mod.STAGES_ROOT = tdir
+                mod.METHODS_PATH = methods_path
+                ev = {r["name"]: r for r in mod.evaluations()}["codebase-memory-mcp"]
+                self.assertEqual(ev["tier_ceiling"], "I3")
+                self.assertEqual(ev["integration_stage"], "I2")
+                self.assertEqual(mod.apply(), 0)
+                got = load_stages(tdir)["tools"]["codebase-memory-mcp"]
+                self.assertEqual(got["integration_stage"], "I2")
+                self.assertEqual(got["tier_ceiling"], "I3")
+        finally:
+            mod.STAGES_ROOT, mod.METHODS_PATH = saved
+        self.assertEqual(_stage_snapshot(), real_files)
 
     def test_kolibri_facts_match_the_catalog_and_stage_stays_i0(self):
         stages = load_stages(ROOT)
