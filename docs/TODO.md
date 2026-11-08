@@ -1,7 +1,7 @@
 # TODO — next steps
 
 **Purpose:** Single ordered work queue for humans and agents.  
-**Design:** [DESIGN.md](DESIGN.md) · **ADRs:** [adr/](adr/README.md) · **Open questions:** [OPEN_QUESTIONS.md](OPEN_QUESTIONS.md)
+**Design:** [DESIGN.md](DESIGN.md) · **ADRs:** [adr/](adr/README.md) · **Open questions:** [OPEN_QUESTIONS.md](OPEN_QUESTIONS.md) · **Parked (naming, repo split):** [plans/PARKED-naming-and-split.md](plans/PARKED-naming-and-split.md)
 
 ## Harness² local (H1, 2026-10-20)
 
