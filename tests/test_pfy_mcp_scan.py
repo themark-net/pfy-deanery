@@ -23,6 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "pfy_mcp_scan.py"
 
 TOKEN = "FAKE_TOKEN_PLACEHOLDER"
+SHORT = "abc123"
 GIT_ARG = "github:evil-example/mcp-server"
 
 CLEAN_BODY = r"""
@@ -56,7 +57,7 @@ out.write_text(json.dumps({
     "severity": "critical",
     "catalog_id": "socket-test-node-ipc",
     "evidence": "leaked %s" % "FAKE_TOKEN_PLACEHOLDER",
-    "source_file": "bad-app/FAKE_TOKEN_PLACEHOLDER/package-lock.json",
+    "source_file": "bad-app/FAKE_TOKEN_PLACEHOLDER/abc123/package-lock.json",
 }) + "\n")
 """
 
@@ -177,15 +178,15 @@ class McpScanTests(unittest.TestCase):
         self.assertEqual(receipt["findings"], [])
 
     def test_scanner_leak_is_redacted_and_finding_exits_1(self):
-        """Fail: a package finding exits 1 and the echoed config value is absent from stdout and the receipt.
-        Recovery: a clean stub on a config with no secret-like key exits 0.
+        """Fail: a package finding exits 1 and echoed config values are absent from stdout and the receipt.
+        A 6-character value is redacted too. Recovery: a clean stub on a config with no secret-like key exits 0.
         """
         self.write_mcp(self.fixture / ".config" / "Claude" / "claude_desktop_config.json", {
             "mcpServers": {
                 "paid-tool": {
                     "command": "npx",
                     "args": ["-y", "@example/mcp-server"],
-                    "env": {"API_TOKEN": TOKEN},
+                    "env": {"API_TOKEN": TOKEN, "PASSWORD": SHORT},
                 },
             },
         })
@@ -196,8 +197,11 @@ class McpScanTests(unittest.TestCase):
         self.assertEqual(flagged.returncode, 1, flagged.stdout + flagged.stderr)
         self.assertNotIn(TOKEN, flagged.stdout)
         self.assertNotIn(TOKEN, flagged.stderr)
+        self.assertNotIn(SHORT, flagged.stdout)
+        self.assertNotIn(SHORT, flagged.stderr)
         raw = self.out.read_text(encoding="utf-8")
         self.assertNotIn(TOKEN, raw)
+        self.assertNotIn(SHORT, raw)
         self.assertIn("node-ipc", raw)
         self.assertIn("10.1.1", raw)
         receipt = json.loads(raw)

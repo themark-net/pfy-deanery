@@ -198,7 +198,9 @@ def local_advisories(root: Path) -> tuple[list[dict], list[str], str | None]:
                     "key": key,
                     "source": source,
                 })
-                if len(value) >= 8:
+                # 1-3 character values are named by key and not substituted.
+                # Replacing them would blank ordinary text.
+                if len(value) >= 4:
                     secrets.append(value)
     return findings, secrets, errors[0] if errors else None
 
@@ -233,7 +235,8 @@ def parse_ndjson(text: str) -> list[dict]:
 
 
 def redact(text: str, secrets: list[str]) -> str:
-    for secret in sorted({item for item in secrets if len(item) >= 8}, key=len, reverse=True):
+    """Replace collected config values. Values under 4 characters are left as-is."""
+    for secret in sorted({item for item in secrets if len(item) >= 4}, key=len, reverse=True):
         text = text.replace(secret, "[redacted]")
     return text
 

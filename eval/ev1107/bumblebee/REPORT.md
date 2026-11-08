@@ -77,7 +77,7 @@ MCP records, all confidence low:
 | Server | package_name recorded | Finding |
 |--------|----------------------|---------|
 | `local-notes` | `local-notes` (the server id, not `node`) | no |
-| `git-tool` | `git-tool` (the server id; the `github:` selector was not kept) | no |
+| `git-tool` | `git-tool` (the server id). The record has no `requested_spec` field, so the `github:` selector is gone | no |
 | `paid-tool` | `@example/mcp-server` | no |
 
 The placeholder string and the key `API_TOKEN` were absent from the fixture NDJSON, stdout, and stderr. Bumblebee does not flag the token because it does not emit env values. That is the right leak behavior and a miss for an install check.
@@ -135,7 +135,7 @@ Value (3 of 4 required for I3):
 
 4 of 4. Modularity (all 4 required):
 
-1. Local code needed: yes. The README says env values are not emitted. The run showed a `github:` npx arg is dropped, not stored as `requested_spec`, and not a finding.
+1. Local code needed: yes. The README says env values are not emitted. The run showed a `github:` npx arg produces a record with no `requested_spec` field and no finding.
 2. Bounded surface: yes. `scan`, `roots`, `selftest`, `version`.
 3. Isolatable: yes. Cache path, not the product runtime.
 4. Reversible: yes. Delete `~/.cache/pfy/tools/bumblebee/`. The pin and the entry remain.

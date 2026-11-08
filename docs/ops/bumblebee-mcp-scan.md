@@ -26,7 +26,7 @@ Exit codes:
 | 1 | At least one advisory. The command prints the kind, the server or package, and the file. |
 | 2 | The root was refused, an MCP file was not readable JSON, the binary is missing, or the scanner output was not NDJSON. The command prints a next step. |
 
-A git selector (`github:`, `gitlab:`, `git+`, `git@`, `git://`) in an MCP command or arg is an advisory. A non-empty env value whose key looks like a token, secret, password, or credential is an advisory. The command prints the key name and never the value. If the scanner echoes a value seen in one of those keys, the receipt replaces it with `[redacted]`.
+A git selector (`github:`, `gitlab:`, `git+`, `git@`, `git://`) in an MCP command or arg is an advisory. A non-empty env value whose key looks like a token, secret, password, or credential is an advisory. The command prints the key name and never the value. If the scanner echoes a value seen in one of those keys, and the value is at least 4 characters, the receipt replaces it with `[redacted]`. Shorter values are not substituted, so a one-character replace cannot blank ordinary text. The key is still named.
 
 Bumblebee itself matches an exposure catalog by exact ecosystem, name, and version. A clean version of a bad package name is not a finding. A bare `package.json` or `pyproject.toml` is not a lockfile, and v0.1.2 does not inventory it.
 
