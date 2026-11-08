@@ -4,16 +4,34 @@
   "intent": "awareness",
   "entry": "sources/entries/164-reasonix.md",
   "github": "https://github.com/esengine/DeepSeek-Reasonix",
-  "uses": "DeepSeek-native coding agent.",
+  "pin": "737a181c49367a7a153c71889c168638fcfc0ba3",
+  "license": "MIT",
+  "uses": "Reference read of a DeepSeek-native terminal coding agent. Install stays out. The local engine path stays Ollama, llama-server, LiteLLM, and Strata.",
+  "features": [
+    "cache-stable prompt prefix",
+    "planner session when the provider differs",
+    "edit-tool file snapshots",
+    "ask, auto, and yolo tool modes",
+    "openai-compatible provider entry"
+  ],
   "potential": "low",
-  "next_gate": "Comparison only.",
+  "next_gate": "Stay I0 reference. Re-open only if a later ticket copies one rule (stable prefix, or edit snapshots that skip the shell) into an existing pfy doc, and that ticket grills the copy first. No install, no provider key, no gate. Gap L stays the local engine. Not a Feature GO.",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",
-    "catalog_hold_70_75"
+    "catalog_hold_70_75",
+    "install",
+    "code_copy",
+    "gate_wiring",
+    "hosted_key",
+    "studio_gui",
+    "apk"
   ],
   "evidence": [
-    "entry:sources/entries/164-reasonix.md"
+    "entry:sources/entries/164-reasonix.md",
+    "pin:737a181c49367a7a153c71889c168638fcfc0ba3",
+    "eval/evq1107/reasonix/REPORT.md",
+    "eval/evq1107/reasonix/VERDICT"
   ],
   "handoff_by": "llm"
 }
