@@ -14,7 +14,7 @@
   - Screenshots go to `$TMPDIR/charlotte-screenshots` by default.
   - The smoke turns Chrome's sandbox off (`--no-sandbox`) because bwrap is the sandbox there and only a local page loads. On nimo with real sites, keep Chrome's sandbox on.
 - **Extracted Repos / Tools**: https://github.com/TickTockBent/charlotte · https://www.npmjs.com/package/@ticktockbent/charlotte · https://pptr.dev/ (puppeteer) · https://github.com/puppeteer/puppeteer/tree/main/packages/browsers
-- **TOOLS.md Link**: None yet. I0 awareness. No TOOLS.md row, no `data/tools.json` row.
+- **TOOLS.md Link**: None. STAY I1. No TOOLS.md row, no `data/tools.json` row.
 - **Smoke**: `python3 examples/x-intake-local/smoke_140_142.py --entry charlotte`. Looks up `$CHARLOTTE_DIR`, then `tmp/charlotte`; Node 20+ from `$CHARLOTTE_NODE`, then `tmp/charlotte/node/bin/node`, then PATH; Chrome from `$CHARLOTTE_CHROME`, then `tmp/charlotte/chrome/chrome`, then `chromium`, `chromium-browser`, `google-chrome`, `google-chrome-stable`. A `$CHARLOTTE_NODE` or `$CHARLOTTE_CHROME` that is not an executable file exits 2 (no fallback). Version pinned to 0.8.0 (`$CHARLOTTE_VERSION`). Receipt: `pipelines/smoke/charlotte/latest.json`.
 - **Non-goals**: No `npm install -g`, no client config edits, no HTTP mode, no Docker image, no live site, no `dev_serve` (it starts a server), no puppeteer download into `~/.cache`.
 - **How this fails / how we recover**:
@@ -26,4 +26,4 @@
 | Version gap | `main` is 111 commits past the `v0.8.0` tag (107 past the published commit); behaviour differs from the README | Pin the npm version; re-read the changelog before an upgrade |
 | Chrome mismatch | A system Chrome far from puppeteer's 148 breaks CDP calls | Use Chrome for Testing at puppeteer's pin under `tmp/` |
 
-- **Status**: Cataloged I0. Smoke PASS on the Grok Bot box; not staged on nimo. Possible eval-auto trial for local-model browsing (see the handoff).
+- **Status**: STAY I1 after the 2026-11-07 nimo probe. Pin npm @ticktockbent/charlotte@0.8.0, tarball sha256 b6a94defc8ea1d42cf5e89110cf32d77c22cd5fa7fb992db23621e04ec333eec, sha1 0e91783ac0496ca9ebac60eb2e573189c1af349d, gitHead 208f6727467993d857ff1e527a470b6877b3ff97. Core profile, 7 tools, Chrome sandbox on, Google Chrome 157.0.8103.38. Static operator frontend: 12 of 12 visible buttons, 0 hidden leaks, summary 2346 bytes, accessibility tree 91975 bytes, Tauri binaries 0. Prefix du -sb 68106118, over the 50 MB I2 copy limit. Not a gate. No Feature GO. Report eval/evq1107/charlotte/REPORT.md.
