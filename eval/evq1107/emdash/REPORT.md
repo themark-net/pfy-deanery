@@ -14,7 +14,7 @@ Emdash (generalaction/emdash) is an Electron desktop app. The desktop coordinate
 | Tag | `v1.2.10` matches the pin. `v1.2.10-canary.102` is `85dfa910ac92e69b09ed5df70ea60ee625a83f07` |
 | Commit | 2026-10-30 12:22:18 +0100, Merge pull request #3389 from generalaction/v1.2.10 |
 | Packages | `@emdash/emdash-desktop` 1.2.10. `@emdash/workspace-server` 0.1.13 |
-| Node | engines `>=24.0.0`, devEngine 24.14.0 with `onFail: download`. This host is Node v22.23.0 |
+| Node | engines `>=24.0.0`, `devEngines.runtime` 24.14.0 with `onFail: download`. This host is Node v22.23.0 |
 | Fetch | In `~/.cache/pfy/tools/emdash/src`: `git init`, `git remote add origin https://github.com/generalaction/emdash.git`, `git fetch --depth 1 --filter=blob:none origin ab766e8fbb436584dcf0f299740e79d559b8ed31`, `git checkout --detach FETCH_HEAD`. Wall time 5s. `HOME`, `XDG_CONFIG_HOME`, `XDG_CACHE_HOME`, `npm_config_cache`, and `TMPDIR` were under that cache. `GIT_CONFIG_GLOBAL` and `GIT_CONFIG_SYSTEM` were `/dev/null` |
 | Bytes | clone 51548638, worktree 38852258, `.git` 12696380 |
 | AppImage | not downloaded. Entry pin size 233276140 |
@@ -39,7 +39,7 @@ Same job, already covered: kanbots I1 (tags `#worktree` `#multi-agent` `#ui`; th
 
 ## Gates
 
-Value (3 of 4 for I3): gap fill no. Operator leverage no (no install; hooks would write `~/.grok`; source Node is 24 and this host is 22). Evidence no (entry 158 smoke exits 2 because the GUI was not launched; this lane only read docs). Blast radius no (those hooks write the operator home, and the desktop plus workspace-server would be a second runtime). Apache-2.0 is fine. Score 0 of 4.
+Value (3 of 4 for I3): gap fill no. Operator leverage no (no install; hooks would write `~/.grok`; source Node is 24 and this host is 22). Evidence no (entry 158 smoke exits 2 because the GUI was not launched; this lane only read docs). Blast radius no: license is Apache-2.0 and the tree has no multi-GB weights, but hook installs write the operator home and the desktop plus workspace-server would be a second runtime. Score 0 of 4.
 
 Modularity for I2, all 4 required: isolatable and reversible pass (cache copy; the pin stays if the copy is deleted). Docs were enough, and the unit is a monorepo (desktop, workspace-server, core, plugins, wire), so 2 of 4. The shallow clone is 51548638 bytes and the worktree is 38852258 (under 50 MB). Potential is low, so the I2 fork does not apply.
 
