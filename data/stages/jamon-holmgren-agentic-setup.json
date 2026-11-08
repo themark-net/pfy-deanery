@@ -2,6 +2,10 @@
   "name": "Jamon Holmgren agentic setup",
   "integration_stage": "I1",
   "intent": "catalog_default",
+  "entry": "sources/x-posts.md",
+  "post": "https://x.com/i/status/2076001786700394610",
+  "post_id": "2076001786700394610",
+  "license": "no SPDX; public post, cite only",
   "tier": "A",
   "auto": true,
   "catalog_tier": "A",
@@ -13,17 +17,34 @@
     "#process"
   ],
   "catalog_github": "https://x.com/i/status/2076001786700394610",
-  "posture": [],
-  "evidence": [],
-  "tier_ceiling": "I1",
-  "uses": "One public workflow post. Process kit already covers AGENTS.md.",
+  "posture": [
+    "reference_only"
+  ],
+  "notes_doc": "eval/evq1107/jamon-holmgren-agentic-setup/REPORT.md",
+  "uses": "One public setup checklist. Reference read only. The process kit and AGENTS.md already hold the patterns. Gap B stays the pfy build timeout.",
   "features": [
-    "workflow notes"
+    "AGENTS.md router note",
+    "self-healing docs note",
+    "session worksheet note",
+    "night-shift loop note"
   ],
   "potential": "low",
-  "next_gate": "Stay I1.",
-  "handoff_by": "llm",
+  "next_gate": "Stay I1 reference. Re-open only if a later ticket names a gap this post fills that AGENTS.md, the process kit, mattpocock, gstack recipes, hermes-feedback, and agent-loops do not, and that ticket still adds no gate. No clone. Gap B stays the pfy build timeout. Not a Feature GO.",
+  "tier_ceiling": "I1",
   "non_goals": [
-    "copy the whole setup"
-  ]
+    "copy the whole setup",
+    "feature_go",
+    "second_workflow_file",
+    "paid_precommit_model",
+    "screenshot_diff_product",
+    "code_copy",
+    "gate_wiring"
+  ],
+  "evidence": [
+    "entry:sources/x-posts.md",
+    "post:2076001786700394610",
+    "eval/evq1107/jamon-holmgren-agentic-setup/REPORT.md",
+    "eval/evq1107/jamon-holmgren-agentic-setup/VERDICT"
+  ],
+  "handoff_by": "llm"
 }
