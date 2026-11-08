@@ -1,0 +1,62 @@
+{
+  "pin": {
+    "npm": "@osfactory/har@1.16.0",
+    "gitHead": "874e9a1127e00d8d07524aca6b3c52cc62270111",
+    "tarball": "https://registry.npmjs.org/@osfactory/har/-/har-1.16.0.tgz",
+    "bytes": 829841,
+    "sha256": "634c992c0d510dc235cad9928104319633ad078c10dd6f06a026992e54c6203f",
+    "sha1": "830d1be850a7731d059c9f4838aedc424dfc6a06",
+    "integrity_match": true,
+    "version_printed": "1.16.0",
+    "prefix": "47M",
+    "npm_cache": "35M",
+    "node": "v22.23.0",
+    "npm_cli": "11.12.1"
+  },
+  "snapshot": {
+    "product_head": "db42453b822ea19b46617668fcad05cd5bf1c126",
+    "product_tree": "e7264dbe7e5daf85304faeb22d7211f4ad25fa9e",
+    "blobs_matched": 2491,
+    "omitted_because_gitignore": [
+      "pipelines/dogfood/local-bench-4/receipt-coder-next-nommap.json",
+      "pipelines/dogfood/local-bench-4/receipt-glm45air-nommap.json",
+      "pipelines/dogfood/local-bench-4/receipt-gpt-oss-nommap.json"
+    ]
+  },
+  "baseline_git_worktree": {
+    "add_s": 0.125,
+    "check_s": 0.045,
+    "remove_s": 0.05,
+    "total_s": 0.222,
+    "check_rc": 0
+  },
+  "har_slot": {
+    "telemetry_off_s": 0.11,
+    "init_s": 0.302,
+    "launch_s": 0.28,
+    "verify_green_s": 0.384,
+    "verify_green_rc": 0,
+    "verify_green_stage_ms": 43,
+    "verify_fail_s": 0.343,
+    "verify_fail_rc": 1,
+    "verify_fail_stage_ms": 47,
+    "teardown_s": 0.173,
+    "launch_verify_teardown_s": 0.837
+  },
+  "agreement": {
+    "clean_tree": "b794e2bc1e77f8bc2e5bec967512c01f472f80b9",
+    "clean_head": "1d7630a62680032acf279a811efa5f8fbdb78558",
+    "clean_match": 1,
+    "dirty_tree": "b6534619bbca84825544b5c7ba4aa4f3bd56771a",
+    "dirty_head_same": 1,
+    "dirty_match": 1,
+    "commit_sha_in_receipt": false,
+    "primary_porcelain": 0,
+    "primary_head_unchanged": 1,
+    "primary_validation_files": 2,
+    "worktree_removed": 1,
+    "branch_kept": 1,
+    "login_home_unchanged": 1,
+    "cache_otel_exporter_enabled": false
+  }
+}

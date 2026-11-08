@@ -1,0 +1,31 @@
+{
+  "name": "HAR",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/107-har.md",
+  "github": "https://github.com/os-factory/har",
+  "uses": "Per-slot git worktree plus a verify receipt keyed by the worktree tree.",
+  "features": [
+    "worktree slot",
+    "tree-hash receipt",
+    "telemetry off switch"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I0. A later probe can argue I2 only if a slot receipt beats a git worktree plus catalog_check on a real pfy build run. This probe was 0.837s against 0.222s, and gap B is still the 3h timeout. No gate wiring in this lane.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "har hq",
+    "telemetry on",
+    "init in a product checkout",
+    "mission control"
+  ],
+  "evidence": [
+    "entry:sources/entries/107-har.md",
+    "eval/evq1107/har/REPORT.md",
+    "eval/evq1107/har/VERDICT",
+    "eval/evq1107/har/numbers.json"
+  ],
+  "handoff_by": "llm"
+}
