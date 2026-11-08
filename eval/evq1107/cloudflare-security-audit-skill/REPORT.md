@@ -7,6 +7,7 @@ The job is gap H2 from the 2026-11-07 ranking: skill and tool discovery has no i
 | Tool | Stage | What that card covers | How this skill compares |
 |------|-------|----------------------|-------------------------|
 | SkillSpector | I3 | Static scan before a skill directory is copied. Catch-up: 57 directories in 38.44 s, one real `shell=True` hit. `scripts/pfy_skill_scan.py` is the advisory wrapper. | Reads the skill text. This probe fed the same token. Both skill files failed as invalid JSON, and two findings receipts still passed. |
+| trailofbits-skills | I0 | Security review checklists. `scripts/pfy_skill_scan.py` blocked 4 of 7 candidate skills in 30.088 s. One checklist found 0 new defects on a risky diff. The card says it is not an install gate. | The pack is content the existing check can refuse. This schema gate is not that check. |
 | Sandlock | I2 | Rootless confinement of one fetched-skill install command. Probe: 4/4 escapes blocked, stage write landed. | Confines the process. This validator never wraps an installer. |
 | cedr | I1 | Pin skill directories, then fail when those files change. Trial: 43 skills, one-line edit caught. The report says that lint is not the H2 gate. | Hashes skill bytes. Passed a `SKILL.md`, this validator stops at invalid JSON and does not hash the skill text. |
 | runx | I0 | Seals a receipt for one skill run. Install-gate refuses were 0/4. | A receipt can seal a bad skill. An empty `findings.json` here also passes. |
