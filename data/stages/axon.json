@@ -1,0 +1,37 @@
+{
+  "name": "Axon",
+  "integration_stage": "I1",
+  "intent": "staged_evaluation",
+  "entry": "sources/entries/082-axon.md",
+  "github": "https://github.com/harshkedia177/axon",
+  "pin": "2b386fb38a468201ab2ec825ddea5ebf4c33f513 axoniq==1.0.1 mcp==1.30.0",
+  "uses": "Local call-graph impact for a per-file review. Trialed on pfy diffs. Not a test selector.",
+  "features": [
+    "tree-sitter knowledge graph",
+    "impact analysis",
+    "file-qualified callers"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1. Bare axon impact and file-qualified callers both agree with test_select on 4/10. codebase-memory and tree-sitter-analyzer agree on 5/10. A later pin has to qualify Python names by file, stay under 50 MB, and beat 5/10, or name tests/test_catalog_entry_numbers.py on 79c083e9e53a without adding the 10 extra tests on 56f6df154eee. mcp must stay below 2 until upstream imports streamable_http_client. No gate wiring. No Feature GO. The venv is 218 MB, so a win still is not an in-tree I2 probe.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "gate_wiring",
+    "replace codebase-memory",
+    "axon ui",
+    "embeddings"
+  ],
+  "evidence": [
+    "entry:sources/entries/082-axon.md",
+    "eval/evq1107/axon/REPORT.md",
+    "eval/evq1107/axon/VERDICT",
+    "eval/evq1107/axon/results.json",
+    "pin git 2b386fb38a468201ab2ec825ddea5ebf4c33f513 PyPI axoniq==1.0.1 wheel sha256 4632b2f6d11a7c365ade3a307d3d49b7f4e0010ef338ee2531a12caf57260a60 mcp==1.30.0"
+  ],
+  "handoff_by": "llm",
+  "self_pipeline": {
+    "status": "not_applicable",
+    "reason": "Report-only comparison in eval/evq1107/axon/REPORT.md. Bare impact and file-qualified callers each agree with test_select on 4/10 commits. codebase-memory agrees on 5/10. Not wired into a gate."
+  }
+}
