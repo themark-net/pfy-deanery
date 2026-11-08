@@ -60,6 +60,7 @@ Modularity (all 4 for I2): local code was not required. One crate is a bounded s
 | OpenAI key | `api_embed` reads `OPENAI_API_KEY` | Do not enable it. No key on this lane. |
 | Second store | Catalog truth splits away from codebase-memory-mcp | The decision note stays. Stay I1. |
 | Home write | The README mkdir targets `~/.cache/memvid` | This lane set HOME under `~/.cache/pfy/tools/memvid` and did not curl models. |
+| Stage apply | `catalog_stage_eval.py --apply` copies uses, features, and next_gate from `data/catalog_stage_handoff.json`, which still says video-backed memory | The report, VERDICT, and `pin:` evidence stay on the card. Treat this report as newer than that restored uses line. |
 
 ## Next gate
 

@@ -27,7 +27,7 @@
   "features": [
     "single-file .mv2 with an embedded WAL",
     "time index and a replay feature flag",
-    "optional HNSW via ONNX or OpenAI"
+    "optional ONNX HNSW or OpenAI embeddings"
   ],
   "potential": "low",
   "next_gate": "Stay I1 reference. Re-open only if a later ticket names a retrieval job that codebase-memory-mcp, LEANN, opencode-mem, and git do not cover, and that ticket grills a copy first. The vec path wants an ONNX file of about 120 MB, and api_embed wants an OpenAI key. Do not wire a gate. Not a Feature GO.",
