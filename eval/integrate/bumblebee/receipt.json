@@ -1,0 +1,11 @@
+{
+  "slug": "bumblebee",
+  "run_kind": "pipeline",
+  "main_sha": "6f5591a50fb09f80876299af97d9d5f98d9ff9b5",
+  "run_id": "bumblebee-6f5591a50fb0-20261108T212254Z",
+  "started": "2026-11-08T21:22:54Z",
+  "finished": "2026-11-08T21:22:54Z",
+  "outcome": "ok",
+  "tool_version": "bumblebee v0.1.2",
+  "did": "Scanned tmp/bumblebee-fixture with scripts/pfy_mcp_scan.py. Verdict CLEAN. Findings 0."
+}
