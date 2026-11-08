@@ -16,23 +16,34 @@
     "#watch"
   ],
   "catalog_github": "https://github.com/tetsuo-ai/agenc-core",
+  "pin": "126ee5b793a6aaa8edbbd9c0cbdbead5bcb938f1",
+  "license": "MIT",
+  "package": "@tetsuo-ai/agenc 0.19.32",
   "posture": [
     "reference_only"
   ],
   "evidence": [
     "path:bootstrap/agenc",
-    "notes_doc:docs/ops/agenc-reeval-stance.md"
+    "notes_doc:docs/ops/agenc-reeval-stance.md",
+    "eval/evq1107/agenc/REPORT.md",
+    "eval/evq1107/agenc/VERDICT",
+    "pin:126ee5b793a6aaa8edbbd9c0cbdbead5bcb938f1"
   ],
   "tier_ceiling": "I0",
-  "uses": "Watch a daemon coding agent. Do not run it as the operator.",
+  "uses": "Watch a daemon coding agent. Keep it off the operator seat. The 2026-11-07 read of 0.19.32 found no gap that beats Grok plus cage.",
   "features": [
-    "terminal daemon"
+    "terminal daemon",
+    "headless print",
+    "verified-change spine"
   ],
   "potential": "low",
-  "next_gate": "Re-open only if a scored gap beats Grok plus cage.",
+  "next_gate": "Stay I0 reference. Re-open only if a scored gap beats Grok plus cage. This read did not. Gap B stays the pfy build timeout. No install, no daemon, no gate wiring. Not a Feature GO.",
   "handoff_by": "llm",
   "non_goals": [
     "primary runtime",
-    "default remote login"
+    "default remote login",
+    "daemon_install",
+    "gate_wiring",
+    "feature_go"
   ]
 }
