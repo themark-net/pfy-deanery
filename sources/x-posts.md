@@ -813,7 +813,7 @@ When adding new X-sourced tools or papers:
 - **Extracted Repos / Tools**: Primary: https://github.com/ZeroPointRepo/awesome-hermes-skills — Large curated skill library for Hermes Agent.
 - **TOOLS.md Link**: New row under Skills & Prompt Engineering (high-signal curated skill library).
 - **Notes**: **High relevance for skills ecosystem.** Directly complements our recent Hermes Agent entry (048) and ongoing skills development work. Provides a ready-to-use, well-organized library of hundreds of skills with clear install paths. Excellent for rapidly expanding agent capabilities and studying curation patterns at scale. High fit for evaluation criteria: Very High Relevance (large curated skill library), High Integration Ease (install commands provided), High Reproducibility (open source), Low Redundancy. Recommend: (1) Catalog as major curated skill library. (2) Strong candidate for exploring and integrating useful skills into our own packs. (3) Excellent reference for large-scale skill organization and discovery.
-- **Status**: Processed and cataloged (added as high-value curated skill library; priority for skills category)
+- **Status**: STAY I1 reference (read 2026-11-07). Pin `9fb166c3548ca7befb579c525991255bb6daac83` (2026-11-02). Root LICENSE is MIT; the list text is CC BY 4.0. One README, 0 SKILL.md files, Hermes v0.20.6 badge (82 built-in, 117 optional, 169 community). Curated, not audited. No install, no code copy. H2 stays SkillSpector. Receipt: `eval/evq1107/awesome-hermes-skills/REPORT.md`. No Feature GO.
 
 ## Future Entries Format
 

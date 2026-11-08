@@ -12,17 +12,27 @@
     "#prompt-pack"
   ],
   "catalog_github": "https://github.com/ZeroPointRepo/awesome-hermes-skills",
-  "posture": [],
-  "evidence": [],
+  "posture": [
+    "docs_only"
+  ],
+  "evidence": [
+    "eval/evq1107/awesome-hermes-skills/REPORT.md",
+    "eval/evq1107/awesome-hermes-skills/VERDICT",
+    "pin:9fb166c3548ca7befb579c525991255bb6daac83"
+  ],
   "tier_ceiling": "I1",
-  "uses": "A list of other people's skills.",
+  "uses": "Hermes skill index in one README. Reference read only. H2 stays the skill scan.",
   "features": [
-    "skill index"
+    "skill index",
+    "immutable GitHub repo id",
+    "weekly canonical-name rewrite"
   ],
   "potential": "low",
-  "next_gate": "Stay I1. Pull a skill only when a gap is named.",
+  "next_gate": "Stay I1 reference. One README of Hermes install lines. H2 stays scripts/pfy_skill_scan.py. Do not bulk-import. Re-open only to record immutable GitHub repo ids beside catalog_github. No install and no gate. Not a Feature GO.",
   "handoff_by": "llm",
   "non_goals": [
-    "import the whole list"
+    "import the whole list",
+    "hermes skills install",
+    "gate wiring"
   ]
 }
