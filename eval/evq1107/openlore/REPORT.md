@@ -116,7 +116,7 @@ Set equality holds on this one file. It is not a 10-commit score, and it does no
 
 ### Historical window
 
-Same 10 first-parent commits as the chiasmus trial. Ast ground truth found 0 module-level signature breaks (no removed public name, no new required parameter, no parameter removed). A scan of 60 newer first-parent commits found no extra break to add, so the real-history catch count is 0/0. Strict means exit 0 and overall `breaking` or `non-breaking`, with `breaking` exactly when ast says so. `potentially-breaking` would not count as strict. Every row here is strict.
+Same 10 first-parent commits as the chiasmus trial. Ast ground truth found 0 module-level signature breaks (no removed public name, no new required parameter, no parameter removed). A pass over the 60 most recent first-parent commits, skipping these 10, found no further ast break, so the real-history catch count is 0/0. Strict means exit 0 and overall `breaking` or `non-breaking`, with `breaking` exactly when ast says so. `potentially-breaking` does not count as strict. Every row here is strict.
 
 | sha | py files (tests omitted) | ast break | overall | non-breaking count | seconds |
 |-----|--------------------------|-----------|---------|-------------------:|--------:|
