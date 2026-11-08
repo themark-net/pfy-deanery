@@ -21,7 +21,7 @@
     "pin:9fb166c3548ca7befb579c525991255bb6daac83"
   ],
   "tier_ceiling": "I1",
-  "uses": "Hermes skill index in one README. Reference read only. H2 stays the skill scan.",
+  "uses": "Hermes skill index in one README. Reference read only. The H2 scan stays scripts/pfy_skill_scan.py.",
   "features": [
     "skill index",
     "immutable GitHub repo id",
