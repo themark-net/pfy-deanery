@@ -1,0 +1,78 @@
+{
+  "asm_bin": "/home/mark/.cache/pfy/tools/asm-agent-skill-manager/prefix/node_modules/.bin/asm",
+  "tarball_sha256_ok": true,
+  "binary_version": "2.23.0",
+  "tarball_sha256": "78fde253af3e216098a6d471dd90341d4aace1bc839816d1080a6fc1432661dd",
+  "binary_version_raw": "asm v2.23.0 (6cb9272)",
+  "version_wall_s": 0.0355,
+  "version_exit": 0,
+  "binary_commit": "6cb9272",
+  "local_audit_before_copy": {
+    "exit": 1,
+    "wall_s": 0.035,
+    "scanned": false,
+    "stderr_tail": "Error: Skill \"/home/mark/DEVELOP/pfy-mentat/tmp/evq/wt/asm-agent-skill-manager/eval/evq1107/asm-agent-skill-manager/fixtures/planted\" not found. Use \"asm list\" to see installed skills.",
+    "stdout_tail": ""
+  },
+  "planted_install": {
+    "exit": 0,
+    "wall_s": 0.0613,
+    "success": true,
+    "path": "/home/mark/.cache/pfy/tools/asm-agent-skill-manager/tmp/asm-probe/planted-proj/.grok/skills/planted",
+    "landed": true,
+    "risk": "high",
+    "categories": [
+      "Shell commands",
+      "Credentials",
+      "External URLs"
+    ],
+    "resolution_source": "github",
+    "provider": "Grok CLI",
+    "planted_tokens_present": {
+      "bash -c": true,
+      "child_process": true,
+      "API_KEY=": true,
+      "https://example.invalid": true
+    },
+    "blocked": false
+  },
+  "audit_after_install": {
+    "exit": 0,
+    "wall_s": 0.042,
+    "verdict": "safe",
+    "total_files": 0,
+    "total_lines": 0,
+    "verdict_reason": "No suspicious patterns detected.",
+    "tokens_named": []
+  },
+  "clean_installs": {
+    "grok": {
+      "exit": 0,
+      "wall_s": 0.0516,
+      "success": true,
+      "path": "/home/mark/.cache/pfy/tools/asm-agent-skill-manager/tmp/asm-probe/clean-proj/.grok/skills/clean",
+      "landed": true,
+      "risk": "safe",
+      "categories": [],
+      "resolution_source": "github",
+      "provider": "Grok CLI"
+    },
+    "opencode": {
+      "exit": 0,
+      "wall_s": 0.052,
+      "success": true,
+      "path": "/home/mark/.cache/pfy/tools/asm-agent-skill-manager/tmp/asm-probe/clean-proj/.opencode/skills/clean",
+      "landed": true,
+      "risk": "safe",
+      "categories": [],
+      "resolution_source": "github",
+      "provider": "OpenCode"
+    }
+  },
+  "providers_landed": "2/2",
+  "clean_safe": "2/2",
+  "preview_categories": "3/3",
+  "high_risk_blocked": "0/1",
+  "audit_tokens": "0/4",
+  "real_homes_unchanged": true
+}

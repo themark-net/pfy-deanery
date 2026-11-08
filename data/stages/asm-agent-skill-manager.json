@@ -1,10 +1,11 @@
 {
   "name": "asm (agent-skill-manager)",
   "integration_stage": "I1",
-  "intent": "smoke_when_node",
+  "intent": "evq1107_probe",
   "issues": [
     26
   ],
+  "entry": "sources/entries/075-asm-agent-skill-manager.md",
   "catalog_tier": "A",
   "catalog_overall": "91",
   "catalog_tags": [
@@ -16,17 +17,36 @@
     "#npm"
   ],
   "catalog_github": "https://github.com/luongnv89/asm",
+  "pin": "agent-skill-manager@2.24.0",
+  "tarball_sha256": "78fde253af3e216098a6d471dd90341d4aace1bc839816d1080a6fc1432661dd",
+  "git_head": "10d9bac8ce34e4b2f4ea55c81166bb2777edb2a9",
+  "binary": "asm v2.23.0 (6cb9272)",
+  "notes_doc": "eval/evq1107/asm-agent-skill-manager/REPORT.md",
   "posture": [],
-  "evidence": [],
-  "tier_ceiling": "I1",
-  "uses": "Cross-agent skill installer. We already install Grok skills ourselves.",
-  "features": [
-    "skill audit"
+  "evidence": [
+    "entry:sources/entries/075-asm-agent-skill-manager.md",
+    "pin:agent-skill-manager@2.24.0",
+    "tarball_sha256:78fde253af3e216098a6d471dd90341d4aace1bc839816d1080a6fc1432661dd",
+    "git_head:10d9bac8ce34e4b2f4ea55c81166bb2777edb2a9",
+    "binary:asm v2.23.0 (6cb9272)",
+    "eval/evq1107/asm-agent-skill-manager/REPORT.md",
+    "eval/evq1107/asm-agent-skill-manager/VERDICT",
+    "eval/evq1107/asm-agent-skill-manager/results.json"
   ],
-  "potential": "medium",
-  "next_gate": "Stay I1 unless skill distribution across CLIs becomes a real gap.",
+  "tier_ceiling": "I1",
+  "uses": "Copy a local skill into a project provider directory. The 2026-11-07 probe labeled a planted SKILL.md high risk and still copied it (0/1 blocked). audit security on that copy read 0 files and returned safe.",
+  "features": [
+    "project copy to grok and opencode",
+    "install-time pattern label",
+    "markdown skipped by audit security"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1. The runnable prefix is 58,625,143 logical bytes, over the 50 MB I2 copy limit. Reopen only if a later pin makes install --yes refuse a high-risk SKILL.md before the copy, and audit security reads that file. It still has to beat SkillSpector on a planted skill. No gate wiring and no Feature GO from this lane.",
   "handoff_by": "llm",
   "non_goals": [
-    "replace the Grok skill installer"
+    "replace the Grok skill installer",
+    "pregate or CI gate",
+    "feature_go",
+    "vendor the CLI"
   ]
 }
