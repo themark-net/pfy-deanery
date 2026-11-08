@@ -1,0 +1,10 @@
+# User timer. No sudo. Does not start a bot or a model.
+[Unit]
+Description=Nightly catalog counts from stage cards
+
+[Timer]
+OnCalendar=*-*-* 04:17:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

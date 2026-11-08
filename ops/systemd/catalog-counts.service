@@ -1,0 +1,9 @@
+# User unit. No sudo. Does not start a bot or a model.
+[Unit]
+Description=Regenerate catalog counts from stage cards
+
+[Service]
+Type=oneshot
+Nice=10
+WorkingDirectory=%h/DEVELOP/pfy-mentat
+ExecStart=/usr/bin/python3 %h/DEVELOP/pfy-mentat/scripts/catalog_counts.py

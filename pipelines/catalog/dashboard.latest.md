@@ -1,89 +1,198 @@
-# Catalog scoring dashboard
+# Catalog counts
 
-Generated: 2026-07-30 · tools.json v0.4.10 · n=48
+Stage cards are the source of truth.
 
-## Tier counts
+Coverage: 129 tools registered.
 
-| Tier | Count |
-|------|------:|
-| A | 32 |
-| B | 5 |
-| S | 11 |
+Cards: 129. I2+: 22.
 
-## Integration stages
+## Stage counts
 
 | Stage | Count |
 |-------|------:|
-| I0 | 4 |
-| I1 | 36 |
-| I2 | 4 |
-| I3 | 4 |
+| I0 | 47 |
+| I1 | 60 |
+| I2 | 16 |
+| I3 | 6 |
 
-## S-tier (must-act / core)
+## Intent counts
 
-| Name | Overall | Stage | Category |
-|------|--------:|-------|----------|
-| Grok CLI bootstrap | 94 | I3 | Pipeline & CI/CD Components |
-| LiteLLM | 93 | I2 | Proxy & Routing |
-| project-process bootstrap | 92 | I3 | Pipeline & CI/CD Components |
-| agent-cage (PNNL) | 92 | I3 | Pipeline & CI/CD Components |
-| Ollama | 92 | I2 | Inference & Serving |
-| codebase-memory-mcp | 91 | I2 | Memory & RAG Systems |
-| Laguna S 2.1 | 91 | I1 | Inference & Serving |
-| write-guard-mcp | 90 | I3 | Tool Calling & Function Infrastructure |
-| Continue.dev | 90 | I1 | Coding & Dev Agents |
-| Hyperframes | 90 | I1 | Agent Frameworks & Orchestration |
-| Auto-Company | 83 | I1 | Autonomous AI Companies |
+| Intent | Count |
+|--------|------:|
+| ad_hoc_probe | 4 |
+| adhoc_probe | 4 |
+| advisory_skill_scan | 1 |
+| awareness | 33 |
+| awareness_fit_gate_failed | 1 |
+| blocked_on_hermes_wiring | 1 |
+| catalog_default | 24 |
+| curated_paths_pack | 1 |
+| demoted_adr0010 | 1 |
+| design_reference | 4 |
+| eval_under_250gb_pool | 1 |
+| evq1107_probe | 1 |
+| first_party | 3 |
+| host_runtime | 1 |
+| local_probe_stayed_i1 | 1 |
+| local_probe_stayed_i2 | 1 |
+| local_smoke_patched_llamacpp_gguf | 1 |
+| optional_pin | 1 |
+| pattern_extract_self_mod | 1 |
+| pattern_only | 2 |
+| primary_harness | 1 |
+| ref_only | 3 |
+| reference | 2 |
+| skip_install | 1 |
+| smoke_path | 3 |
+| speed_probe | 1 |
+| staged_eval | 7 |
+| staged_evaluation | 19 |
+| submodule_later | 1 |
+| trial_1107 | 1 |
+| watch | 3 |
 
-## All tools (compact)
+## Missing fields
 
-| Name | Tier | Stage | Overall |
-|------|------|-------|--------:|
-| Finn Loop / eval-loop / 8-exits patterns | A | I1 | 91 |
-| asm (agent-skill-manager) | A | I1 | 91 |
-| Hermes Agent (feedback loops) | A | I1 | 89 |
-| llama.cpp (server mode) | A | I1 | 89 |
-| eval-harness (pfy) | A | I1 | 89 |
-| awesome-hermes-skills | A | I1 | 89 |
-| Bumblebee | A | I1 | 89 |
-| Multica | A | I1 | 88 |
-| gstack | A | I1 | 88 |
-| repowise | A | I2 | 88 |
-| llama.cpp (server mode) | A | I1 | 88 |
-| claude-codex-settings | A | I1 | 88 |
-| LEANN | A | I1 | 87 |
-| Aider | A | I1 | 87 |
-| mattpocock/skills | A | I1 | 87 |
-| Camofox Browser | A | I1 | 87 |
-| colibri | A | I1 | 86 |
-| Memvid | A | I1 | 86 |
-| ponytail (skills pack) | A | I1 | 86 |
-| Antigravity-Manager | A | I1 | 86 |
-| OpenClaude-Portable | A | I1 | 85 |
-| DSPy | A | I1 | 85 |
-| marketing-skills (marketing-council) | A | I1 | 85 |
-| destructive_command_guard | A | I1 | 84 |
-| karpathy-guidelines | A | I1 | 84 |
-| opencode-mem | A | I1 | 83 |
-| MLX + MLX-LM | A | I1 | 82 |
-| LangGraph (LangChain) | A | I1 | 82 |
-| Open WebUI | A | I1 | 82 |
-| Atomic Task Graph (ATG) | A | I1 | 82 |
-| MUE-X | A | I1 | 81 |
-| Jamon Holmgren agentic setup | A | I1 | 81 |
-| Graphify | B | I0 | 80 |
-| AgenC | B | I0 | 78 |
-| adr-tools | B | I1 | 78 |
-| Chroma (or LanceDB) | B | I0 | 78 |
-| Ruben Hassid context/token hacks | B | I0 | 77 |
-| Grok CLI bootstrap | S | I3 | 94 |
-| LiteLLM | S | I2 | 93 |
-| project-process bootstrap | S | I3 | 92 |
-| agent-cage (PNNL) | S | I3 | 92 |
-| Ollama | S | I2 | 92 |
-| codebase-memory-mcp | S | I2 | 91 |
-| Laguna S 2.1 | S | I1 | 91 |
-| write-guard-mcp | S | I3 | 90 |
-| Continue.dev | S | I1 | 90 |
-| Hyperframes | S | I1 | 90 |
-| Auto-Company | S | I1 | 83 |
+| Field | Cards missing it |
+|-------|-----------------:|
+| uses | 2 |
+| features | 5 |
+| potential | 2 |
+| non_goals | 2 |
+| next_gate | 2 |
+| evidence | 3 |
+| tier_ceiling | 5 |
+
+## Tools
+
+| Id | Stage | Intent |
+|----|-------|--------|
+| adr-tools | I1 | optional_pin |
+| AgenC | I0 | demoted_adr0010 |
+| Agent Beacon | I0 | awareness |
+| Agent Substrate | I0 | awareness |
+| agent-cage (PNNL) | I3 | primary_harness |
+| agentgg | I0 | awareness |
+| agentplay | I0 | design_reference |
+| ai-memory | I1 | staged_evaluation |
+| Aider | I1 | catalog_default |
+| anti-slop | I0 | awareness |
+| Antigravity-Manager | I1 | skip_install |
+| asm (agent-skill-manager) | I1 | evq1107_probe |
+| assay | I1 | staged_evaluation |
+| Atomic Task Graph (ATG) | I2 | submodule_later |
+| Auto-Company | I1 | catalog_default |
+| awesome-hermes-skills | I1 | catalog_default |
+| Axon | I1 | staged_evaluation |
+| Brigade | I0 | awareness |
+| BugPatrol | I1 | staged_evaluation |
+| Bumblebee | I2 | catalog_default |
+| Camofox Browser | I1 | catalog_default |
+| cass-memory | I0 | awareness |
+| cedr | I1 | staged_eval |
+| Charlotte | I1 | staged_evaluation |
+| Chiasmus | I1 | staged_evaluation |
+| Chroma (or LanceDB) | I0 | watch |
+| claude-code-unified-agents | I1 | curated_paths_pack |
+| claude-codex-settings | I1 | pattern_only |
+| Cloudflare security-audit skill | I0 | awareness |
+| codebase-memory-mcp | I2 | smoke_path |
+| CodeGuard | I0 | awareness |
+| colibri | I1 | local_probe_stayed_i1 |
+| Continue.dev | I1 | catalog_default |
+| DeepSeek-V4.1-Flash-1017 GGUF | I0 | awareness_fit_gate_failed |
+| destructive_command_guard | I2 | adhoc_probe |
+| dsh-superagent | I0 | design_reference |
+| DSPy | I1 | catalog_default |
+| Elephant-Goldfish Model | I1 | staged_eval |
+| Emdash | I0 | awareness |
+| eval-harness (pfy) | I1 | catalog_default |
+| Exo (exoharness) | I1 | pattern_extract_self_mod |
+| Festival | I1 | staged_evaluation |
+| Finn Loop / eval-loop / 8-exits patterns | I1 | catalog_default |
+| Foremerge | I1 | staged_eval |
+| freeapp | I0 | ref_only |
+| gitai | I1 | staged_eval |
+| Graphify | I0 | watch |
+| GraphJin | I0 | watch |
+| Grok CLI bootstrap | I3 | first_party |
+| gstack | I1 | catalog_default |
+| hal0 | I0 | awareness |
+| HAR | I0 | awareness |
+| Harness Score | I0 | awareness |
+| harness2 | I1 | staged_evaluation |
+| HarnessRouter | I0 | awareness |
+| headson | I2 | ad_hoc_probe |
+| Hermes Agent (feedback loops) | I1 | catalog_default |
+| Hermes Teammates | I0 | blocked_on_hermes_wiring |
+| HiRoute | I2 | adhoc_probe |
+| Hyperframes | I1 | catalog_default |
+| imcodes | I0 | awareness |
+| Jamon Holmgren agentic setup | I1 | catalog_default |
+| JevAgentHarness | I1 | staged_evaluation |
+| kanbots | I1 | catalog_default |
+| Kander | I1 | staged_evaluation |
+| Kanzo | I0 | awareness |
+| karpathy-guidelines | I1 | catalog_default |
+| Kenfold | I1 | staged_evaluation |
+| Kolibri-1 | I0 | local_smoke_patched_llamacpp_gguf |
+| Laguna S 2.1 | I1 | eval_under_250gb_pool |
+| LangGraph (LangChain) | I1 | catalog_default |
+| LEANN | I1 | catalog_default |
+| LiteLLM | I2 | smoke_path |
+| LiveKit | I0 | ref_only |
+| llama.cpp (server mode) | I1 | catalog_default |
+| llama.cpp ngram-mod | I2 | speed_probe |
+| llm-router | I0 | awareness |
+| magpie | I0 | awareness |
+| marketing-skills (marketing-council) | I1 | catalog_default |
+| mattpocock/skills | I1 | catalog_default |
+| MCO | I1 | staged_evaluation |
+| MemPalace | I1 | staged_evaluation |
+| Memvid | I1 | catalog_default |
+| MLX + MLX-LM | I1 | catalog_default |
+| Moira | I1 | staged_evaluation |
+| MUE-X | I1 | pattern_only |
+| multi-agent-generator | I0 | design_reference |
+| Multica | I1 | reference |
+| Muxin | I0 | awareness |
+| neatroots | I2 | ad_hoc_probe |
+| odai | I0 | design_reference |
+| Ollama | I2 | host_runtime |
+| Open Steps | I0 | awareness |
+| Open WebUI | I1 | catalog_default |
+| OpenClaude-Portable | I0 | awareness |
+| OpenCode Skill Creator | I0 | awareness |
+| opencode-mem | I2 | ad_hoc_probe |
+| OpenContext | I1 | staged_evaluation |
+| OpenLore | I1 | staged_evaluation |
+| OpenQodex | I1 | staged_eval |
+| Overtime | I0 | awareness |
+| Pi-Harness | I0 | awareness |
+| Pipecat | I0 | ref_only |
+| ponytail (skills pack) | I1 | catalog_default |
+| project-process bootstrap | I3 | first_party |
+| Reasonix | I0 | awareness |
+| repository-harness | I0 | awareness |
+| repowise | I2 | smoke_path |
+| RoBrain | I0 | awareness |
+| Ruben Hassid context/token hacks | I0 | awareness |
+| Rulora | I1 | staged_eval |
+| runx | I0 | awareness |
+| Sandlock | I2 | adhoc_probe |
+| skill-up | I3 | trial_1107 |
+| Skills Manager | I0 | awareness |
+| SkillSpector | I3 | advisory_skill_scan |
+| Sloptrim | I1 | staged_evaluation |
+| smolvm | I1 | staged_eval |
+| SmythOS Studio | I1 | reference |
+| Sponsio | I2 | adhoc_probe |
+| Squadra | I1 | staged_evaluation |
+| Strata | I2 | local_probe_stayed_i2 |
+| SysKnife | I0 | awareness |
+| taste-skill | I2 | ad_hoc_probe |
+| TeaQL Agent Kit | I0 | awareness |
+| Tracekit | I0 | awareness |
+| trailofbits-skills | I0 | awareness |
+| Tree-sitter Analyzer | I1 | staged_evaluation |
+| write-guard-mcp | I3 | first_party |
