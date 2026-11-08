@@ -1,6 +1,6 @@
 {
   "name": "destructive_command_guard",
-  "integration_stage": "I2",
+  "integration_stage": "I3",
   "intent": "adhoc_probe",
   "tier": "A",
   "auto": true,
@@ -19,9 +19,12 @@
     "release:v0.16.0",
     "eval/evq1107/destructive-command-guard/REPORT.md",
     "eval/evq1107/destructive-command-guard/VERDICT",
-    "eval/evq1107/destructive-command-guard/results.json"
+    "eval/evq1107/destructive-command-guard/results.json",
+    "receipt:eval/integrate/destructive-command-guard/receipt.json"
   ],
-  "tier_ceiling": "I1",
+  "tier_ceiling": "I3",
+  "rationale": "Mark approval 2026-11-08 10:03am PT. Raise tier_ceiling only. Catalog tier A still computes I1. catalog_stage_eval.py keeps a higher existing ceiling.",
+  "provenance": "Mark approval 2026-11-08 10:03am PT",
   "uses": "Classifies one shell command and denies destructive git, filesystem, and disk commands. write-guard does not see the command.",
   "features": [
     "posix command classify",

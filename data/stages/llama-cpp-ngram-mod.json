@@ -1,6 +1,6 @@
 {
   "name": "llama.cpp ngram-mod",
-  "integration_stage": "I2",
+  "integration_stage": "I3",
   "intent": "speed_probe",
   "github": "https://github.com/ggerganov/llama.cpp",
   "notes_doc": "eval/evq1107/llama-cpp-ngram-mod/REPORT.md",
@@ -19,9 +19,12 @@
     "eval/evq1107/llama-cpp-ngram-mod/REPORT.md",
     "eval/evq1107/llama-cpp-ngram-mod/VERDICT",
     "eval/evq1107/llama-cpp-ngram-mod/results.json",
-    "median decode 185.59 tok/s vs 39.37 tok/s with the flag off (4.71x), 5/5 identical"
+    "median decode 185.59 tok/s vs 39.37 tok/s with the flag off (4.71x), 5/5 identical",
+    "receipt:eval/integrate/llama-cpp-ngram-mod/receipt.json"
   ],
-  "tier_ceiling": "I1",
+  "tier_ceiling": "I3",
+  "rationale": "Mark approval 2026-11-08 10:03am PT. Raise tier_ceiling only. Catalog tier A still computes I1. catalog_stage_eval.py keeps a higher existing ceiling.",
+  "provenance": "Mark approval 2026-11-08 10:03am PT",
   "uses": "Zero-weight n-gram draft on llama-server when the next tokens are already in the prompt.",
   "features": [
     "ngram-mod",

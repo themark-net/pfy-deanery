@@ -1,0 +1,12 @@
+{
+  "slug": "sandlock",
+  "run_kind": "pipeline",
+  "main_sha": "679d4ffd32005e67dc1d0dde75aaddca9ac50970",
+  "run_id": "sandlock-679d4ffd3200-2026-11-08T09:52:30Z",
+  "started": "2026-11-08T09:52:30Z",
+  "finished": "2026-11-08T09:52:31Z",
+  "outcome": "ok",
+  "tool_version": "sandlock 0.8.9",
+  "did": "Sandboxed one local fixture install and one fixture tool run. Both commands exited 0.",
+  "log_path": "eval/integrate/sandlock/notes.md"
+}

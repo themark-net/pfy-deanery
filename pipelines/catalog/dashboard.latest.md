@@ -12,8 +12,8 @@ Cards: 129. I2+: 22.
 |-------|------:|
 | I0 | 47 |
 | I1 | 60 |
-| I2 | 16 |
-| I3 | 6 |
+| I2 | 13 |
+| I3 | 9 |
 
 ## Intent counts
 
@@ -101,7 +101,7 @@ Cards: 129. I2+: 22.
 | colibri | I1 | local_probe_stayed_i1 |
 | Continue.dev | I1 | catalog_default |
 | DeepSeek-V4.1-Flash-1017 GGUF | I0 | awareness_fit_gate_failed |
-| destructive_command_guard | I2 | adhoc_probe |
+| destructive_command_guard | I3 | adhoc_probe |
 | dsh-superagent | I0 | design_reference |
 | DSPy | I1 | catalog_default |
 | Elephant-Goldfish Model | I1 | staged_eval |
@@ -142,7 +142,7 @@ Cards: 129. I2+: 22.
 | LiteLLM | I2 | smoke_path |
 | LiveKit | I0 | ref_only |
 | llama.cpp (server mode) | I1 | catalog_default |
-| llama.cpp ngram-mod | I2 | speed_probe |
+| llama.cpp ngram-mod | I3 | speed_probe |
 | llm-router | I0 | awareness |
 | magpie | I0 | awareness |
 | marketing-skills (marketing-council) | I1 | catalog_default |
@@ -179,7 +179,7 @@ Cards: 129. I2+: 22.
 | Ruben Hassid context/token hacks | I0 | awareness |
 | Rulora | I1 | staged_eval |
 | runx | I0 | awareness |
-| Sandlock | I2 | adhoc_probe |
+| Sandlock | I3 | adhoc_probe |
 | skill-up | I3 | trial_1107 |
 | Skills Manager | I0 | awareness |
 | SkillSpector | I3 | advisory_skill_scan |

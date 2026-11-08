@@ -1,0 +1,11 @@
+{
+  "slug": "destructive-command-guard",
+  "run_kind": "gate",
+  "main_sha": "c883782dfcc86bd7b070e6bd62e0e3cdc3fe7233",
+  "run_id": "dcg-c883782dfcc8-20261108T094213Z",
+  "started": "2026-11-08T09:42:13Z",
+  "finished": "2026-11-08T09:42:13Z",
+  "outcome": "ok",
+  "tool_version": "0.16.0",
+  "did": "Classified argv rm -rf / with scripts/integrations/dcg/guard.sh. Exit 126. The command was not executed."
+}
