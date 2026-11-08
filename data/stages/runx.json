@@ -1,0 +1,41 @@
+{
+  "name": "runx",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/111-runx.md",
+  "github": "https://github.com/runxhq/runx",
+  "notes_doc": "eval/evq1107/runx/REPORT.md",
+  "pin": "4576f08185dbf1f9b76dadfad39ca5cc92e8a142",
+  "release": "cli-v0.9.1",
+  "tarball_sha256": "59eee2af81d24d0f8ba2416e2bac55d147ed93693e6a41ffe7c2cfd5cba98cc7",
+  "binary_sha256": "e0c0627882c2ce7a4e8cfb20cf4896a4aa371db0e13c95c8b86fa31276388b60",
+  "uses": "Seal a local receipt for one skill workflow run. A fetched skill runs when its directory is named.",
+  "features": [
+    "Ed25519 sealed receipt",
+    "fail-closed verify",
+    "optional package digest",
+    "trusted host process"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I0. Receipt checks were 3/3 and install-gate refuses were 0/4. The boundary was trusted_host_process with 0 grants. A later note can copy the receipt shape. This runtime stays out. No gate wiring in this lane.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "pregate or CI gate",
+    "second skill runtime",
+    "runx login publish or connect",
+    "hosted registry",
+    "curl installer or npm global install",
+    "allow-local-development-signatures as evidence"
+  ],
+  "evidence": [
+    "entry:sources/entries/111-runx.md",
+    "pin:4576f08185dbf1f9b76dadfad39ca5cc92e8a142",
+    "release:cli-v0.9.1",
+    "eval/evq1107/runx/REPORT.md",
+    "eval/evq1107/runx/VERDICT",
+    "eval/evq1107/runx/results.json"
+  ],
+  "handoff_by": "llm"
+}

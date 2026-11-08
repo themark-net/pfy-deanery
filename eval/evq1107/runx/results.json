@@ -1,0 +1,110 @@
+{
+  "pin": "4576f08185dbf1f9b76dadfad39ca5cc92e8a142",
+  "release": "cli-v0.9.1",
+  "version": "runx-cli 0.9.1",
+  "binary_sha256": "e0c0627882c2ce7a4e8cfb20cf4896a4aa371db0e13c95c8b86fa31276388b60",
+  "tarball_sha256": "59eee2af81d24d0f8ba2416e2bac55d147ed93693e6a41ffe7c2cfd5cba98cc7",
+  "worker_sha256": "49230c5fb9fbb9f436b30c3c57bcc5300d54f83318815625811c6bae113ca635",
+  "node": "v22.23.0",
+  "install_gate_refused": "0/4",
+  "install_gate": {
+    "content_refused": false,
+    "content_status": "sealed",
+    "content_outcome": "completed",
+    "content_wall_s": 0.0246,
+    "escape_sealed": true,
+    "escape_wall_s": 0.0248,
+    "write_blocked": false,
+    "read_blocked": false,
+    "delete_blocked": false
+  },
+  "digest_pin": {
+    "package_digest": "sha256:a380aceb3b5f8049b12d36ed74a5c7d3668cdda88a606f4cdc0317c9a0d591d1",
+    "closure_digest": "sha256:90eb9c31bdc4281c9ca64bf1e8a76ab5a5b3f8a97ee191e2bfb1a6d9e3dd54e9",
+    "matched_sealed": true,
+    "wrong_refused_before_write": true,
+    "wrong_code": "skill package digest mismatch",
+    "edited_refused_before_write": true,
+    "omitted_still_ran": true
+  },
+  "add_local": {
+    "rc": 1,
+    "status": "failure",
+    "code": "registry_error",
+    "message": "Expected '<owner>/<name>'.",
+    "wall_s": 0.0008
+  },
+  "receipt": {
+    "schema": "runx.receipt.v1",
+    "issuer_type": "ci",
+    "issuer_kid": "pfy-runx-probe",
+    "grant_refs": 0,
+    "scope_refs": 0,
+    "execution_boundary": "trusted_host_process",
+    "decision_choice": "open"
+  },
+  "integrity_passed": "3/3",
+  "integrity": {
+    "production_valid": true,
+    "other_key_invalid": true,
+    "tamper_invalid": true
+  },
+  "integrity_detail": {
+    "production_rc": 0,
+    "production_mode": "production",
+    "other_rc": 3,
+    "other_findings": [
+      "SignatureKeyHashMismatch"
+    ],
+    "tamper_rc": 3,
+    "tamper_findings": [
+      "SealDigestMismatch",
+      "SignatureInvalid"
+    ]
+  },
+  "placeholder": {
+    "status": "sealed",
+    "bare_rc": 1,
+    "bare_status": "failure",
+    "allow_valid": true,
+    "allow_mode": "local-development",
+    "counted_as_evidence": false
+  },
+  "echo_wall_s": [
+    0.0297,
+    0.0256,
+    0.0221,
+    0.0249,
+    0.0226
+  ],
+  "echo_median_s": 0.0249,
+  "real_home_unchanged": true,
+  "real_home": {
+    "before": {
+      ".runx": {
+        "exists": false
+      },
+      ".config/runx": {
+        "exists": false
+      },
+      ".cache/runx": {
+        "exists": false
+      }
+    },
+    "after": {
+      ".runx": {
+        "exists": false
+      },
+      ".config/runx": {
+        "exists": false
+      },
+      ".cache/runx": {
+        "exists": false
+      }
+    }
+  },
+  "binary_bytes": 30488704,
+  "worker_bytes": 7287824,
+  "unpack_bytes": 37787834,
+  "tarball_bytes": 15958297
+}

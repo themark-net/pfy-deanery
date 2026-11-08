@@ -22,4 +22,4 @@
 | Format churn | `X.yaml` (v0.9.1) vs `run.yaml` (main) | Binary sha and example tag pinned together; smoke exits 2 on a main clone |
 | Receipts in the repo | `.runx/receipts` lands in the working dir | Smoke passes `-R` to the scratch dir |
 
-- **Status**: Cataloged I0. Verified on the Grok Bot box offline; not installed on nimo.
+- **Status**: Trialed 2026-11-07 on nimo. STAY I0. Receipt checks 3/3 in production mode. Install-gate refuses 0/4. Boundary trusted_host_process with 0 grants. Cache install only. Not an H2 install gate. No Feature GO.
