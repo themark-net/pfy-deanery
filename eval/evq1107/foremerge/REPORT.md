@@ -76,11 +76,11 @@ Worktree pair, no database override: init 18.73 ms, check 11.69 ms, one HIGH `de
 
 Git baseline on a copy of `pfylib/stage_registry.py`:
 
-| Edit | git merge | foremerge `file:pfylib/stage_registry.py=modify` both sides |
+| Edit | git merge | foremerge on the same path |
 | --- | --- | --- |
-| Both sides change the `load_stages` line | conflict, return code 1, 3.52 ms | not run on the git repo; the declaration check is below |
+| Both sides change the `load_stages` line | conflict, return code 1, 3.52 ms | |
 | One side changes that line, the other appends a tail note | clean, return code 0, 5.3 ms | |
-| Declaration only, before either edit | | blocking false, MEDIUM FM-C003, 7.04 ms |
+| `file:pfylib/stage_registry.py=modify` on both sides, before either edit | | blocking false, MEDIUM FM-C003, 7.04 ms |
 
 The merge command is already a few milliseconds. The park cost is the lane that already edited, not the merge. Foremerge is early, and on `modify` it does not say whether the later merge will conflict.
 
