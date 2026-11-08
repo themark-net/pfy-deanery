@@ -120,17 +120,17 @@
     }
   ],
   "timings_ms": {
-    "init_ms": 7.2,
-    "health_ms": 108.0,
-    "write_ms": 106.8,
-    "search_novel_ms": 86.5,
-    "search_miss_ms": 80.3,
-    "search_repo_ms": 83.4,
-    "rg_ms": 159.0,
-    "send_ms": 145.1,
-    "pop_ms": 87.5,
-    "restart_health_ms": 51.1,
-    "total_ms": 1199.6
+    "init_ms": 6.2,
+    "health_ms": 107.0,
+    "write_ms": 106.4,
+    "search_novel_ms": 82.1,
+    "search_miss_ms": 82.8,
+    "search_repo_ms": 77.7,
+    "rg_ms": 161.0,
+    "send_ms": 148.8,
+    "pop_ms": 91.1,
+    "restart_health_ms": 51.0,
+    "total_ms": 1194.9
   },
   "novel_hits": 8,
   "novel_n": 8,
@@ -197,6 +197,16 @@
         "file": "agent-beacon.json",
         "words": [
           "memory"
+        ]
+      },
+      {
+        "name": "ai-memory",
+        "stage": "I1",
+        "file": "ai-memory.json",
+        "words": [
+          "handoffs",
+          "wiki",
+          "claim"
         ]
       },
       {
@@ -308,7 +318,7 @@
       },
       {
         "name": "MemPalace",
-        "stage": "I0",
+        "stage": "I1",
         "file": "mempalace.json",
         "words": [
           "memory"
@@ -333,7 +343,7 @@
       },
       {
         "name": "opencode-mem",
-        "stage": "I1",
+        "stage": "I2",
         "file": "opencode-mem.json",
         "words": [
           "memory"
@@ -420,15 +430,15 @@
         "file": "opencode-mem.json",
         "present": true,
         "name": "opencode-mem",
-        "stage": "I1",
-        "uses": "Memory plugin for the OpenCode worker."
+        "stage": "I2",
+        "uses": "Memory plugin for the OpenCode worker. A new process searched 8 of 8 stored salts that rg does not find in this repo."
       },
       {
         "file": "mempalace.json",
         "present": true,
         "name": "MemPalace",
-        "stage": "I0",
-        "uses": "Verbatim local memory with scoped search."
+        "stage": "I1",
+        "uses": "Verbatim local memory with a wing filter. The 2026-11-07 probe ranked the right excerpt first on 8 of 8 questions (word-overlap walk 6 of 8, wing leaks 0 of 8, agreement 8 of 8). It graded 0 with/without harness cases. The checkout without git is 68560448 bytes and the MiniLM onnx file is 90387606 bytes."
       },
       {
         "file": "memvid.json",
@@ -494,9 +504,9 @@
         "uses": "Vector store. Code memory is already chosen."
       }
     ],
-    "cass_memory_card": false,
+    "cass_memory_card": true,
     "cass_memory_entry": true
   },
   "models_files": 0,
-  "data_bytes": 1158637
+  "data_bytes": 1158670
 }

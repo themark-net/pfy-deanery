@@ -15,7 +15,7 @@
     "git checkpoints in the data dir"
   ],
   "potential": "low",
-  "next_gate": "Stay I1. On 2026-11-07 pasted search was 8/8, facts already in this repo were 0/8 (rg 8/8), claim-once was 8/8 with the 9th pop empty, and graded with/without cases were 0. Reopen only if a later bake-off beats rg on repo facts and Brigade's exclusive claim without setup. Do not wire a gate.",
+  "next_gate": "Stay I1. On 2026-11-07 pasted search was 8/8, facts already in this repo were 0/8 (rg 8/8), claim-once was 8/8 with the 9th pop empty, and graded with/without cases were 0. opencode-mem is I2 on stored notes rg does not find, and a notes file matched that in 11.6 ms. MemPalace stayed I1 on excerpt rank and is over 50 MB. cass-memory stayed I0 with 0 rules and 0 of 8 repo facts. Reopen only if a later bake-off beats rg on repo facts and Brigade's exclusive claim without setup. Do not wire a gate.",
   "tier_ceiling": "I1",
   "non_goals": [
     "setup",

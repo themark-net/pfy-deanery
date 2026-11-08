@@ -2,7 +2,7 @@
 
 Verdict: STAY I1. Pasted-note search returned 8 of 8. Facts already in this repo returned 0 of 8. Claim-once took 8 of 8 messages, and the 9th pop was empty. Graded with/without harness cases: 0. Nothing was wired into a gate.
 
-It does not beat skill-up on gap H1, rg on text already in this repo, or Brigade on exclusive claim. It does beat the OpenContext probe on offline search of pasted notes: that probe's keyword search exited 1 with no key, and this search ran with embeddings off.
+It does not beat skill-up on gap H1, rg on text already in this repo, Brigade on exclusive claim, or opencode-mem on notes that are not in the repo. A notes file found those 8 salts in 11.6 ms. MemPalace ranked the right excerpt first on 8 of 8 and stayed I1 with a work tree of 68560448 bytes and a MiniLM file of 90387606 bytes. cass-memory extracted 0 rules and also missed 8 of 8 repo facts. This search ran with embeddings off. OpenContext's keyword search exited 1 with no key. That still leaves 0 graded cases.
 
 The stage card did not exist. The entry was I0. This probe records staged evaluation at I1. It does not earn I2 or I3. No TOOLS.md row.
 
@@ -10,9 +10,9 @@ The stage card did not exist. The entry was I0. This probe records staged evalua
 
 The job is shared memory and a claim-once handoff, inside gap H1 (a repeatable with/without score, plus memory and context). H1 is that harness2 showed no gain and there is no score to re-measure it, or to compare pfy with a plain Build run. The 2026-11-07 ranking gives that score to skill-up, not to a wiki. Memory in that ranking is a post-MVP slot (MemPalace, RoBrain). Entry 132 is older than that table.
 
-`eval/ev1107/` (agentgg, bumblebee, chiasmus, dspy, egm, hiroute, neatroots, osc) has no shared mailbox. neatroots is the H1-evals neighbor: PROMOTE I2 for an offline trace check, not a store. `eval/catchup-1107/skill-up/VERDICT` is PROMOTE I3, both arms 5/5, delta 0. `eval/evq1107/opencontext/VERDICT` is STAY I1, the same 8/8 pasted and 0/8 repo shape. `eval/evq1107/brigade/VERDICT` is STAY I0, 0 duplicate claims of 94, and exclusive marker files did the same in 0.004 s.
+`eval/ev1107/` (agentgg, bumblebee, chiasmus, dspy, egm, hiroute, neatroots, osc) has no shared mailbox. neatroots is the H1-evals neighbor: PROMOTE I2 for an offline trace check, not a store. `eval/catchup-1107/skill-up/VERDICT` is PROMOTE I3, both arms 5/5, delta 0. `eval/evq1107/opencontext/VERDICT` is STAY I1, the same 8/8 pasted and 0/8 repo shape. `eval/evq1107/brigade/VERDICT` is STAY I0, 0 duplicate claims of 94, and exclusive marker files did the same in 0.004 s. `eval/evq1107/opencode-mem/VERDICT` is PROMOTE I2: restart search recalled 8 of 8 stored salts, rg found 0 of 8, and a notes file found 8 of 8 in 11.6 ms. `eval/evq1107/cass-memory/VERDICT` is STAY I0: 0 rules from one session, playbook top-1 7/8 against token overlap 8/8, repo facts 0/8. `eval/evq1107/mempalace/VERDICT` is STAY I1: top-1 8/8 against a word walk of 6/8, wing leaks 0/8, work tree 68560448 bytes, MiniLM onnx 90387606 bytes.
 
-The probe scanned `uses`, `features`, `tags`, and `catalog_tags` for the whole words memory, handoff, handoffs, context, wiki, claim, and rag. 22 other cards matched. skill-up, harness2, neatroots, and eval-harness (pfy) do not use those words. They are listed because they are the H1 neighbors. cass-memory is entry 108 and has no stage card.
+The probe scanned `uses`, `features`, `tags`, and `catalog_tags` for the whole words memory, handoff, handoffs, context, wiki, claim, and rag. 23 cards matched, including this card. skill-up, harness2, neatroots, and eval-harness (pfy) do not use those words. They are listed because they are the H1 neighbors. cass-memory is I0. Its uses line is a procedural playbook, so the scan did not list it. The card and entry 108 are both present.
 
 | Card | Stage | What it already covers | How ai-memory compares |
 | --- | --- | --- | --- |
@@ -21,17 +21,17 @@ The probe scanned `uses`, `features`, `tags`, and `catalog_tags` for the whole w
 | Harness Score | I0 | Offline grade of harness files, including context files. | A scorer, not a mailbox. Word match: context. |
 | eval-harness (pfy) | I1 | First-party structural ladder. | Already the structural score. This probe adds 0 cases. |
 | neatroots | I2 | Offline rules on saved traces. | Not a store. This probe fed it no trace. |
-| Brigade | I0 | Exclusive task claim. 0 duplicate ids of 94. Marker files: the same 0 in 0.004 s. | Same job class. This mailbox was 0 duplicates of 8, with a server, in a 145.1 ms send phase and 87.5 ms for 9 pops. It does not beat the marker file. |
+| Brigade | I0 | Exclusive task claim. 0 duplicate ids of 94. Marker files: the same 0 in 0.004 s. | Same job class. This mailbox was 0 duplicates of 8, with a server, in a 148.8 ms send phase and 91.1 ms for 9 pops. It does not beat the marker file. |
 | codebase-memory-mcp | I2 | Primary code-graph MCP. | This search saw 0 of 8 repo facts. It does not replace the graph. |
 | repowise | I2 | Context packing. Overlaps codebase-memory. | Packs the repo. This store does not read it until a page is written. |
-| opencode-mem | I1 | Memory plugin for the OpenCode worker. | Same job class, different surface. Not a claim-once mailbox. |
+| opencode-mem | I2 | Memory plugin. Restart search recalled 8 of 8 stored salts (rg 0 of 8). A notes file found 8 of 8 in 11.6 ms. A damaged shard did not rebuild. | Same pasted-note shape. This store was 8/8 on tokens it was given and 0/8 on repo facts. It does not beat the notes file. |
 | OpenContext | I1 | Personal context store. 8/8 copied notes, 0/8 repo facts, keyword search skipped with no key. | Same recall shape. This search ran offline. Still 0 graded cases. |
 | LEANN | I1 | Compressed RAG. Not our code memory. | A passage index. This probe did not embed. |
 | Memvid | I1 | Video-backed memory. No current job. | Different store. Not run here. |
-| MemPalace | I0 | Verbatim local memory. Post-MVP bake-off against 108 and 132. | Not run here. This probe does not replace that bake-off. |
+| MemPalace | I1 | Verbatim local memory. Top-1 8/8, word walk 6/8, wing leaks 0/8, graded cases 0. Work tree 68560448 bytes. MiniLM onnx 90387606 bytes. | Different question. This probe did not run those eight questions, so the bake-off that card leaves open against entries 108 and 132 is still open. |
 | RoBrain | I0 | Decision memory with vetoes. | Different question (what we rejected). Not run here. |
 | Hermes Agent (feedback loops) | I1 | Feedback pattern already a skill. | The pattern is in-tree. This binary is not that skill. |
-| cass-memory | no card (entry 108) | Scored playbook from session history. | The entry names it as the rule learner. This tool is the store and the mailbox. Not run in this lane. |
+| cass-memory | I0 | Procedural playbook. 0 rules from one session. Playbook top-1 7/8, token overlap 8/8, repo facts 0/8. Linux binary 124601824 bytes. | Both miss repo facts. This probe measured a store and a mailbox. |
 | Agent Beacon | I0 | Copy a session, store a typed lesson. Scoring calls hosted Jev. | This probe used no hosted scorer. |
 | Graphify | I0 | Reference graph. Not the code memory we run. | Not a mailbox. |
 | Chroma (or LanceDB) | I0 | Vector store. Code memory is already chosen. | This run stored no embeddings. models/ has 0 files. |
@@ -42,7 +42,7 @@ The probe scanned `uses`, `features`, `tags`, and `catalog_tags` for the whole w
 | MUE-X | I1 | Unsafe runtime. The word memory matched. | Not a store we would turn on. |
 | LangGraph (LangChain) | I1 | Graph orchestration. The word rag matched. | Not a mailbox. |
 | Kolibri-1, Laguna S 2.1 | I0, I1 | Local weights. The word context matched. | A context window, not a store. |
-| rg on this worktree | in this repo | Finds the 8 known facts with no store. | 8/8 in 159.0 ms. This store: 0/8. |
+| rg on this worktree | in this repo | Finds the 8 known facts with no store. | 8/8 in 161.0 ms. This store: 0/8. |
 
 ## Pins
 
@@ -60,7 +60,7 @@ The probe scanned `uses`, `features`, `tags`, and `catalog_tags` for the whole w
 | License | MIT (release LICENSE starts with MIT) |
 | Install | `~/.cache/pfy/tools/ai-memory/bin/ai-memory` |
 | Embeddings | `AI_MEMORY_EMBEDDING_PROVIDER=none`. `models/` has 0 files. |
-| Data dir after the probe | 1158637 bytes, under the cache, not in git |
+| Data dir after the probe | 1158670 bytes, under the cache, not in git |
 
 `HOME`, `XDG_CONFIG_HOME`, `XDG_CACHE_HOME`, `XDG_DATA_HOME`, and `TMPDIR` for the child pointed under `~/.cache/pfy/tools/ai-memory/`. The real `~/.local/share/ai-memory`, `~/.config/ai-memory`, and `~/.local/bin/ai-memory` were absent before and after. `setup`, `run`, hook install, MCP install, and `install.sh` were not called. The probe does not read `auth-token`, `auth-header`, or `auth-tokens/default`. Those names are listed in `results.json`. Wiki git tracks 13 files and 0 paths with those names.
 
@@ -89,30 +89,30 @@ The probe writes `eval/evq1107/ai-memory/results.json`. It runs `init`, loopback
 
 | Check | Result |
 | --- | --- |
-| init | exit 0, 7.2 ms |
-| healthz | up, 108.0 ms |
-| 8 page writes | 8 exits 0, 106.8 ms |
-| search, 8 pasted tokens | 8/8, 86.5 ms |
-| search, 8 nonsense tokens | 8/8 empty, 80.3 ms, 0 parse errors |
-| search, 8 facts already in this repo | 0/8, 83.4 ms |
-| rg, those 8 facts | 8/8, part of 159.0 ms |
+| init | exit 0, 6.2 ms |
+| healthz | up, 107.0 ms |
+| 8 page writes | 8 exits 0, 106.4 ms |
+| search, 8 pasted tokens | 8/8, 82.1 ms |
+| search, 8 nonsense tokens | 8/8 empty, 82.8 ms, 0 parse errors |
+| search, 8 facts already in this repo | 0/8, 77.7 ms |
+| rg, those 8 facts | 8/8, part of 161.0 ms |
 | rg, 8 pasted tokens | 0/8 |
 | read-back of the first page | ok |
 | send before the target project has a page | exit 1, output contained 404 |
 | seed page, then 8 sends | recovered, 8 exits 0 |
-| mailbox phase (404, seed, 8 sends) | 145.1 ms |
-| pops | 8 claimed, 8 unique, 0 duplicates, 9th message null, 87.5 ms |
+| mailbox phase (404, seed, 8 sends) | 148.8 ms |
+| pops | 8 claimed, 8 unique, 0 duplicates, 9th message null, 91.1 ms |
 | untrusted notice | 8/8, each text contains "untrusted" |
 | search from the other project | 0/8 scoped, 8/8 with `--global` |
 | wiki markdown files holding a pasted token | 8 |
 | wiki git | 10 commits, 13 tracked paths, 0 sensitive names |
 | `commit` | exit 0 |
-| restart, then the 8 searches | server healthy in 51.1 ms, agreement 8/8 |
+| restart, then the 8 searches | server healthy in 51.0 ms, agreement 8/8 |
 | graded with/without cases | 0 |
 | score delta | none |
 | models files | 0 |
 | real home dirs changed | no |
-| wall clock | 1199.6 ms |
+| wall clock | 1194.9 ms |
 
 Search does not see this repo. A page has to be written first. A message to a project that has no page fails, then succeeds after one seed page. After eight claims the next pop was empty. Restarting the server keeps the eight pages. Checkpoints land in `wiki/.git` by themselves. The token files stay outside that git tree.
 
@@ -120,7 +120,7 @@ Search does not see this repo. A page has to be written first. A message to a pr
 
 Value (3 of 4 needed for I3):
 
-1. Gap fill: no. H1 needs a with/without score. skill-up already emits one (5/5 both arms, delta 0). This run emitted 0 graded cases. Facts already in the repo: rg 8/8, this store 0/8. Claim-once is real and is the same job class as Brigade, which already recorded 0 duplicate claims of 94, with marker files at the same 0 in 0.004 s.
+1. Gap fill: no. H1 needs a with/without score. skill-up already emits one (5/5 both arms, delta 0). This run emitted 0 graded cases. Facts already in the repo: rg 8/8, this store 0/8. opencode-mem already recalled 8 of 8 stored salts (rg 0 of 8), and a notes file did the same in 11.6 ms. MemPalace top-1 was 8 of 8 with 0 graded cases, and the work tree is over 50 MB. cass-memory extracted 0 rules and found 0 of 8 repo facts. Claim-once is real and is the same job class as Brigade, which already recorded 0 duplicate claims of 94, with marker files at the same 0 in 0.004 s.
 2. Operator leverage: no. The CLI needs a running loopback server. `setup` would rewrite harness configs, and this lane did not run it. Standing the daemon up is a Mark decision, not a day of glue on the score gap.
 3. Evidence: yes. The pin matches the entry and the release `.sha256`. The loopback probe wrote `results.json`. Stub tests cover a dead server, a double claim, a search false hit, a missing notice, and a token file.
 4. Blast radius: yes, while it stays in the cache. MIT. No model weights. No account. The binary is 47832680 bytes and is not in the repo. Wiki git does not track the token files. The watched real-home dirs stayed absent.
@@ -150,7 +150,7 @@ The unpacked tarball is 48284491 bytes, under 50 MB, with no weights, so the I2 
 
 ## Next gate
 
-Stay I1. Do not wire a gate. Not a Feature GO. Reopen only if a later bake-off beats rg on facts already in the repo and beats Brigade's exclusive claim on a real two-bot handoff, without `setup`.
+Stay I1. Do not wire a gate. Not a Feature GO. Reopen only if a later bake-off beats rg on facts already in the repo and beats Brigade's exclusive claim on a real two-bot handoff, without `setup`. opencode-mem already recalls stored notes. MemPalace's card still wants a same-question run against this tool. This probe did not run those eight questions.
 
 ## How this tool would run here
 
