@@ -21,7 +21,7 @@
 |------|----------------|----------|
 | Smoke treated as a pass | Commit match becomes exit 0 | Keep exit 2 while skills were not installed |
 | DSH/plugin sprawl | `build:dsh` / plugin install mutates runtime | Stay at I0; no DSH install from smoke |
-| Overlap with 154 | Both speak authorization/verification | Compare doctrines before any trial; do not double-wire |
+| Overlap with 154 | Both speak authorization/verification | Compared in `eval/evq1107/odai/REPORT.md`. Stay I0. Do not double-wire |
 | Pin drift | commit moves | Smoke checks this SHA |
 
 - **Status**: STAY I0 reference (read 2026-11-07). Pin `ce7a999843ca42ecd84778561cb0ac7642c5648e`, skillVersion `0.7.1`, MIT. Not a drop-in next to Entry 154: the doctrine overlaps the 8 exits, one-shot, and the testing standing rule. Skills stay uninstalled (smoke still exits 2). No DSH, no hooks. Gap B stays the pfy build timeout. Receipt: `eval/evq1107/odai/REPORT.md`. No Feature GO.

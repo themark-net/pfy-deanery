@@ -1,6 +1,6 @@
 # odai evq1107
 
-STAY I0 reference: MIT governance skill restates checks pfy already holds, and it does not move the pfy build timeout.
+STAY I0 reference: MIT governance skill restates checks pfy already holds and does not move the pfy build timeout.
 
 ## What it is
 
@@ -36,7 +36,7 @@ Gap B in `docs/eval/TOOLSET-RANKING.md` (2026-11-07) is the 3 hour `./pfy build`
 
 Same job, already covered: Finn Loop / eval-loop / 8-exits patterns I1 (exit cards), mattpocock/skills I1 (plan and review skills, tag `#review`), Hermes Agent (feedback loops) I1, karpathy-guidelines I1, gstack I1 (role recipes in docs), eval-harness (pfy) I1. project-process bootstrap is I3. Write mediation is write-guard-mcp I3. Isolation is agent-cage (PNNL) I3. Shell deny is destructive_command_guard I2. Skill import scan is SkillSpector I3.
 
-Same job, still outside the product path: dsh-superagent I0 (entry 154 authorization docs; odai's DSH packages are 0.3.3 and this lane installs neither), Festival I1 (plan files; the probe left the timeout open), Squadra I1 (ack and a close check), Kander I1 (two-role done gate; N/A roles still reached done), Rulora I1 (loop counters; the host still stops Build), Open Steps I0 (stop nag on a git fingerprint), Sponsio I2 (call order), TeaQL Agent Kit I0, imcodes I0, Elephant-Goldfish I1 (fresh-eyes spec read; indirect on B), Foremerge I1 (pre-edit ledger). Odai is prompt doctrine on top of that set. It adds no check those cards lack, and it does not time out or restart `./pfy build`.
+Same job, still outside the product path: dsh-superagent I0 (entry 154 authorization docs; odai's DSH packages are 0.3.3 and this lane installs neither), Festival I1 (plan files; the probe left the timeout open), Squadra I1 (ack and a close check), Kander I1 (two-role done gate; N/A roles still reached done), Rulora I1 (loop counters; the host still stops Build), Open Steps I0 (stop nag on a git fingerprint), Sponsio I2 (call order), TeaQL Agent Kit I0, imcodes I0, Elephant-Goldfish I1 (fresh-eyes spec read; indirect on B), Foremerge I1 (pre-edit ledger). Odai is prompt doctrine on top of that set. It adds no mechanical check those cards lack, and the 3 hour build timeout stays put.
 
 ## Gates
 
