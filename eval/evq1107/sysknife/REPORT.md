@@ -4,11 +4,12 @@ STAY I0 reference: no cargo on nimo, and H2 stays with SkillSpector. This lane d
 
 ## What it is
 
-SysKnife (https://github.com/lacs-project/sysknife, MIT, copyright 2026 Vladimir Rotariu) is a Linux sysadmin MCP server and CLI. The model names a typed action. A privileged daemon builds the command, requires a one-time approval receipt from a terminal, and appends an Ed25519 audit row. The README line is "Plan. Approve. Audit." Crate `sysknife-cli` is 0.30.0 and the binary is `sysknife`. `--dry-run` prints a plan or an approval preview and does not execute or issue a receipt. An intent dry-run still calls the planner. The README says some actions still run through a shell fragment that SysKnife builds. The docs claim 190 or more actions. This lane did not count them. `npx sysknife-setup` stays out.
+SysKnife (https://github.com/lacs-project/sysknife, MIT, copyright 2026 Vladimir Rotariu) is a Linux sysadmin MCP server and CLI. The model names a typed action. A privileged daemon builds the command and appends an Ed25519 audit row. Mutating steps need an approval receipt. On the MCP path that receipt comes from `sysknife approve` in a terminal. CLI `--yes` auto-approves low-risk intent steps, and medium if `--max-risk medium` is set. High-risk still asks a person unless `--dangerously-skip-approval` is combined with `SYSKNIFE_I_ACCEPT_UNATTENDED_ROOT`. The README line is "Plan. Approve. Audit." Crate `sysknife-cli` is 0.30.0 and the binary is `sysknife`. `--dry-run` prints a plan or an approval preview and does not execute or issue a receipt. An intent dry-run still calls the planner. The README says some actions still run through a shell fragment that SysKnife builds. The docs claim 190 or more actions. This lane did not count them. `npx sysknife-setup` stays out.
 
 ## Pin and commands
 
 Cache `~/.cache/pfy/tools/sysknife/src`, not committed. Tag `v0.30.0` peels to `1b3aab98b878128a267368cd47b51c921cd31219`. Clone and checkout took 2 s. Work tree 16736821 bytes, 1415 files. With `.git`, 29777154 bytes. `command -v cargo` and `command -v rustc` printed nothing. No script ran. No model lock.
+
 ```bash
 CACHE=~/.cache/pfy/tools/sysknife
 mkdir -p "$CACHE"/{home,xdg/config,xdg/cache,tmp}
@@ -19,9 +20,9 @@ git -C "$CACHE/src" fetch --depth 1 origin 1b3aab98b878128a267368cd47b51c921cd31
 
 ## Ideas, and the pfy file each would touch
 
-1. The host builds argv from a fixed action name. A note would sit beside enforce in `harness/write-guard-mcp/README.md`. The live check is destructive_command_guard (Entry 041, I2), which classifies the shell string the model already wrote.
-2. A human mints the receipt on a channel the model does not sit on. Touch `docs/ops/human-decision-inventory.md`. The eight exits in `docs/ops/loop-engineering.md` already stop for a person.
-3. Sign the authorization decision and leave later status unsigned. runx (I0) and tracekit (I0) already record that shape and stay out.
+1. The host builds argv from a fixed action name. A later note would extend `data/stages/destructive-command-guard.json`. That check still classifies a shell string. `harness/write-guard-mcp/README.md` mediates writes and does not see the command.
+2. On the MCP path, a human mints the receipt on a channel the model does not sit on. CLI `--yes` can skip that prompt for low-risk intent steps. Touch `docs/ops/human-decision-inventory.md`. The eight exits in `docs/ops/loop-engineering.md` already stop for a person.
+3. Sign the authorization decision at insert time. The mutable status column sits outside that signature, and separate signed status events cover execution. runx (I0) and tracekit (I0) already keep a signed receipt and stay out.
 4. Leave the daemon, the sudoers helpers, the system service, and `npx sysknife-setup` unused.
 
 ## Catalog comparison
@@ -43,10 +44,9 @@ The job is gap H2 in `docs/eval/TOOLSET-RANKING.md` (2026-11-07): a check before
 | Moira | I1 | JSON Schema on one directive. |
 | cedr | I1 | Content pin of skill directories. |
 | asm (agent-skill-manager) | I1 | Probe copied a planted skill (0/1 blocked). |
-| Muxin | I0 | Sysadmin fleet MCP. Also off the MVP path. |
 | CodeGuard, trailofbits-skills, Skills Manager | I0 | Rule text, checklists, and a home skill hub. |
 
-H2 stays with SkillSpector and Sandlock. The typed-action split is a design note. This host cannot build it.
+H2 stays with SkillSpector and Sandlock. Muxin is a sysadmin fleet MCP and stays off the MVP path. The typed-action split is a design note. This host cannot build it.
 
 ## Gates
 
@@ -74,6 +74,6 @@ This lane writes the card, the entry Status line, and this directory. It does no
 
 1. Trigger, if a later ticket adopted it: a person runs the CLI, or an MCP client calls `sysknife_plan`. The evq scheduler is not that trigger.
 2. It would read host state and write a SQLite audit log. Mutating actions would change the host. This lane called no model and used no account.
-3. Next would be a person running `sysknife approve`. The model does not mint the receipt.
+3. Next would be a person running `sysknife approve`. CLI `--yes` can mint a low-risk intent receipt without that prompt. The model still does not mint the MCP receipt.
 4. A human re-enters before any install, any daemon, any `--yes`, and any high-risk step (the docs require typing the action name).
 5. One worktree per slug already stops two lanes editing this card. Two daemons on one socket would collide. This lane started none.
