@@ -1,0 +1,29 @@
+{
+  "name": "llm-router",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/122-llm-router.md",
+  "github": "https://github.com/ypollak2/llm-router",
+  "uses": "Free-first prompt router. On the HiRoute prompt set the offline complexity label matched 14 of 20. The hook chain still named Ollama first on all 20.",
+  "features": [
+    "classify-signals",
+    "ollama-first-chain"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I0. Do not wire into ./pfy. The heuristic matched 14 of 20 labels and the draft chain still led with Ollama, so it does not beat the HiRoute I2 result (20 of 20, decision median 746 ms). Reopen only if a later ticket shows a labeled local-versus-escalate set at that bar without a model call, and that ticket grills wiring first. The cache install is 437 MiB, so this is not an in-repo copy.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "gate_wiring",
+    "host_install",
+    "direct_execution"
+  ],
+  "evidence": [
+    "entry:sources/entries/122-llm-router.md",
+    "eval/evq1107/llm-router/REPORT.md",
+    "eval/evq1107/llm-router/VERDICT",
+    "eval/evq1107/llm-router/results.json"
+  ],
+  "handoff_by": "llm"
+}

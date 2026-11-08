@@ -1,0 +1,20 @@
+{"id":"t01","kind":"trivial","hedge_task":"bulk","expect_route":"economy","expect_token":"4","prompt":"Reply with the single digit 4 and nothing else."}
+{"id":"t02","kind":"trivial","hedge_task":"bulk","expect_route":"economy","expect_token":"4","prompt":"What is 2+2? Reply with the single digit only."}
+{"id":"t03","kind":"trivial","hedge_task":"bulk","expect_route":"economy","expect_token":"yes","prompt":"Reply with the single word yes and nothing else."}
+{"id":"t04","kind":"trivial","hedge_task":"bulk","expect_route":"economy","expect_token":"blue","prompt":"Reply with the single word blue and nothing else."}
+{"id":"t05","kind":"trivial","hedge_task":"bulk","expect_route":"economy","expect_token":"Paris","prompt":"What is the capital of France? Reply with the single word only."}
+{"id":"t06","kind":"trivial","hedge_task":"bulk","expect_route":"economy","expect_token":"7","prompt":"Reply with the single digit 7 and nothing else."}
+{"id":"t07","kind":"trivial","hedge_task":"bulk","expect_route":"economy","expect_token":"7","prompt":"How many days are in a week? Reply with the single digit only."}
+{"id":"t08","kind":"trivial","hedge_task":"bulk","expect_route":"economy","expect_token":"pong","prompt":"Reply with the single word pong and nothing else."}
+{"id":"t09","kind":"trivial","hedge_task":"bulk","expect_route":"economy","expect_token":"B","prompt":"What is the letter after A? Reply with the single letter only."}
+{"id":"t10","kind":"trivial","hedge_task":"bulk","expect_route":"economy","expect_token":"ok","prompt":"Reply with the single word ok and nothing else."}
+{"id":"h01","kind":"hard","hedge_task":"hard","expect_route":"primary","expect_token":"STUB_PREMIUM","prompt":"Design a lock-free concurrent hash map and state the linearizability argument for its insert path."}
+{"id":"h02","kind":"hard","hedge_task":"hard","expect_route":"primary","expect_token":"STUB_PREMIUM","prompt":"Write the outline of a compiler pass that destructs SSA form into a register machine, including the critical-edge split."}
+{"id":"h03","kind":"hard","hedge_task":"hard","expect_route":"primary","expect_token":"STUB_PREMIUM","prompt":"Implement a generational garbage collector with a write barrier and explain how the remembered set is scanned."}
+{"id":"h04","kind":"hard","hedge_task":"hard","expect_route":"primary","expect_token":"STUB_PREMIUM","prompt":"Design a Byzantine fault tolerant consensus protocol and name the quorum condition you rely on."}
+{"id":"h05","kind":"hard","hedge_task":"hard","expect_route":"primary","expect_token":"STUB_PREMIUM","prompt":"Explain how to implement a user-space TCP stack, including congestion control and retransmission."}
+{"id":"h06","kind":"hard","hedge_task":"hard","expect_route":"primary","expect_token":"STUB_PREMIUM","prompt":"Design a multi-version concurrency control database engine and how a snapshot read picks a version."}
+{"id":"h07","kind":"hard","hedge_task":"hard","expect_route":"primary","expect_token":"STUB_PREMIUM","prompt":"Write a borrow checker for a small language with lifetimes and explain the outlives constraint."}
+{"id":"h08","kind":"hard","hedge_task":"hard","expect_route":"primary","expect_token":"STUB_PREMIUM","prompt":"Design a lock-free work-stealing scheduler and how a thief finds a victim deque."}
+{"id":"h09","kind":"hard","hedge_task":"hard","expect_route":"primary","expect_token":"STUB_PREMIUM","prompt":"Implement an optimizing JIT with inline caches and explain what invalidates a cache entry."}
+{"id":"h10","kind":"hard","hedge_task":"hard","expect_route":"primary","expect_token":"STUB_PREMIUM","prompt":"Design a CRDT for a collaborative text editor and how two concurrent inserts commute."}

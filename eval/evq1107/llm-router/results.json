@@ -1,0 +1,637 @@
+{
+  "summary": {
+    "version": "15.4.0",
+    "wheel_sha256": "72938a98e11bb75311b741afc6a1337f38ef712b891dba319160be1712cf6a41",
+    "wheel_bytes": 3016977,
+    "cache_bytes": 458427046,
+    "prompts": 20,
+    "route_ok": 14,
+    "hedge_agree": 14,
+    "ollama_first": 20,
+    "policy_agree": 20,
+    "secret_ok": 4,
+    "secret_rows": 4,
+    "real_state_absent": true,
+    "provider_keys_dropped": 0,
+    "direct_execution_env": "false",
+    "warmup_ms": 58.7,
+    "classify_median_ms": 0.194,
+    "classify_sum_ms": 3.716,
+    "classify_max_ms": 0.276,
+    "low_signal_on_timed_pass": 11,
+    "counter_low_signal": 22,
+    "counter_total": 40,
+    "demo": {
+      "exit": 0,
+      "ms": 58.9,
+      "prints_table": true,
+      "tail": [
+        "",
+        "  Next steps:",
+        "    \u2192 Run llm-router install to enable automatic routing",
+        "    \u2192 Set LLM_ROUTER_CLAUDE_SUBSCRIPTION=true to use subscription models",
+        "  \u2192 Check savings: llm-router gain",
+        "  \u2192 View dashboard: llm-router dashboard"
+      ]
+    }
+  },
+  "rows": [
+    {
+      "id": "t01",
+      "kind": "trivial",
+      "expect_route": "economy",
+      "hedge_task": "bulk",
+      "task_type": "query",
+      "complexity": "simple",
+      "confident": false,
+      "score": 0,
+      "hook_live_complexity": "simple",
+      "policy_agree": true,
+      "route": "economy",
+      "route_ok": true,
+      "classify_ms": 0.185,
+      "chain": [
+        "ollama/qwen2.5-coder:7b-instruct"
+      ],
+      "chain_first": "ollama/qwen2.5-coder:7b-instruct",
+      "chain_leads_ollama": true,
+      "hedge_lane": "local",
+      "hedge_ok": true,
+      "hedge_agree": true
+    },
+    {
+      "id": "t02",
+      "kind": "trivial",
+      "expect_route": "economy",
+      "hedge_task": "bulk",
+      "task_type": "query",
+      "complexity": "simple",
+      "confident": true,
+      "score": 3,
+      "hook_live_complexity": "simple",
+      "policy_agree": true,
+      "route": "economy",
+      "route_ok": true,
+      "classify_ms": 0.175,
+      "chain": [
+        "ollama/qwen2.5-coder:7b-instruct"
+      ],
+      "chain_first": "ollama/qwen2.5-coder:7b-instruct",
+      "chain_leads_ollama": true,
+      "hedge_lane": "local",
+      "hedge_ok": true,
+      "hedge_agree": true
+    },
+    {
+      "id": "t03",
+      "kind": "trivial",
+      "expect_route": "economy",
+      "hedge_task": "bulk",
+      "task_type": "query",
+      "complexity": "simple",
+      "confident": false,
+      "score": 0,
+      "hook_live_complexity": "simple",
+      "policy_agree": true,
+      "route": "economy",
+      "route_ok": true,
+      "classify_ms": 0.135,
+      "chain": [
+        "ollama/qwen2.5-coder:7b-instruct"
+      ],
+      "chain_first": "ollama/qwen2.5-coder:7b-instruct",
+      "chain_leads_ollama": true,
+      "hedge_lane": "local",
+      "hedge_ok": true,
+      "hedge_agree": true
+    },
+    {
+      "id": "t04",
+      "kind": "trivial",
+      "expect_route": "economy",
+      "hedge_task": "bulk",
+      "task_type": "query",
+      "complexity": "simple",
+      "confident": false,
+      "score": 0,
+      "hook_live_complexity": "simple",
+      "policy_agree": true,
+      "route": "economy",
+      "route_ok": true,
+      "classify_ms": 0.127,
+      "chain": [
+        "ollama/qwen2.5-coder:7b-instruct"
+      ],
+      "chain_first": "ollama/qwen2.5-coder:7b-instruct",
+      "chain_leads_ollama": true,
+      "hedge_lane": "local",
+      "hedge_ok": true,
+      "hedge_agree": true
+    },
+    {
+      "id": "t05",
+      "kind": "trivial",
+      "expect_route": "economy",
+      "hedge_task": "bulk",
+      "task_type": "query",
+      "complexity": "simple",
+      "confident": true,
+      "score": 3,
+      "hook_live_complexity": "simple",
+      "policy_agree": true,
+      "route": "economy",
+      "route_ok": true,
+      "classify_ms": 0.169,
+      "chain": [
+        "ollama/qwen2.5-coder:7b-instruct"
+      ],
+      "chain_first": "ollama/qwen2.5-coder:7b-instruct",
+      "chain_leads_ollama": true,
+      "hedge_lane": "local",
+      "hedge_ok": true,
+      "hedge_agree": true
+    },
+    {
+      "id": "t06",
+      "kind": "trivial",
+      "expect_route": "economy",
+      "hedge_task": "bulk",
+      "task_type": "query",
+      "complexity": "simple",
+      "confident": false,
+      "score": 0,
+      "hook_live_complexity": "simple",
+      "policy_agree": true,
+      "route": "economy",
+      "route_ok": true,
+      "classify_ms": 0.127,
+      "chain": [
+        "ollama/qwen2.5-coder:7b-instruct"
+      ],
+      "chain_first": "ollama/qwen2.5-coder:7b-instruct",
+      "chain_leads_ollama": true,
+      "hedge_lane": "local",
+      "hedge_ok": true,
+      "hedge_agree": true
+    },
+    {
+      "id": "t07",
+      "kind": "trivial",
+      "expect_route": "economy",
+      "hedge_task": "bulk",
+      "task_type": "query",
+      "complexity": "simple",
+      "confident": false,
+      "score": 0,
+      "hook_live_complexity": "simple",
+      "policy_agree": true,
+      "route": "economy",
+      "route_ok": true,
+      "classify_ms": 0.174,
+      "chain": [
+        "ollama/qwen2.5-coder:7b-instruct"
+      ],
+      "chain_first": "ollama/qwen2.5-coder:7b-instruct",
+      "chain_leads_ollama": true,
+      "hedge_lane": "local",
+      "hedge_ok": true,
+      "hedge_agree": true
+    },
+    {
+      "id": "t08",
+      "kind": "trivial",
+      "expect_route": "economy",
+      "hedge_task": "bulk",
+      "task_type": "query",
+      "complexity": "simple",
+      "confident": false,
+      "score": 0,
+      "hook_live_complexity": "simple",
+      "policy_agree": true,
+      "route": "economy",
+      "route_ok": true,
+      "classify_ms": 0.127,
+      "chain": [
+        "ollama/qwen2.5-coder:7b-instruct"
+      ],
+      "chain_first": "ollama/qwen2.5-coder:7b-instruct",
+      "chain_leads_ollama": true,
+      "hedge_lane": "local",
+      "hedge_ok": true,
+      "hedge_agree": true
+    },
+    {
+      "id": "t09",
+      "kind": "trivial",
+      "expect_route": "economy",
+      "hedge_task": "bulk",
+      "task_type": "query",
+      "complexity": "simple",
+      "confident": true,
+      "score": 3,
+      "hook_live_complexity": "simple",
+      "policy_agree": true,
+      "route": "economy",
+      "route_ok": true,
+      "classify_ms": 0.164,
+      "chain": [
+        "ollama/qwen2.5-coder:7b-instruct"
+      ],
+      "chain_first": "ollama/qwen2.5-coder:7b-instruct",
+      "chain_leads_ollama": true,
+      "hedge_lane": "local",
+      "hedge_ok": true,
+      "hedge_agree": true
+    },
+    {
+      "id": "t10",
+      "kind": "trivial",
+      "expect_route": "economy",
+      "hedge_task": "bulk",
+      "task_type": "query",
+      "complexity": "simple",
+      "confident": false,
+      "score": 0,
+      "hook_live_complexity": "simple",
+      "policy_agree": true,
+      "route": "economy",
+      "route_ok": true,
+      "classify_ms": 0.125,
+      "chain": [
+        "ollama/qwen2.5-coder:7b-instruct"
+      ],
+      "chain_first": "ollama/qwen2.5-coder:7b-instruct",
+      "chain_leads_ollama": true,
+      "hedge_lane": "local",
+      "hedge_ok": true,
+      "hedge_agree": true
+    },
+    {
+      "id": "h01",
+      "kind": "hard",
+      "expect_route": "primary",
+      "hedge_task": "hard",
+      "task_type": "code",
+      "complexity": "moderate",
+      "confident": true,
+      "score": 3,
+      "hook_live_complexity": "moderate",
+      "policy_agree": true,
+      "route": "primary",
+      "route_ok": true,
+      "classify_ms": 0.235,
+      "chain": [
+        "ollama/qwen2.5-coder:7b-instruct",
+        "claude/claude-sonnet-4-6"
+      ],
+      "chain_first": "ollama/qwen2.5-coder:7b-instruct",
+      "chain_leads_ollama": true,
+      "hedge_lane": "cloud",
+      "hedge_ok": true,
+      "hedge_agree": true
+    },
+    {
+      "id": "h02",
+      "kind": "hard",
+      "expect_route": "primary",
+      "hedge_task": "hard",
+      "task_type": "generate",
+      "complexity": "moderate",
+      "confident": true,
+      "score": 3,
+      "hook_live_complexity": "moderate",
+      "policy_agree": true,
+      "route": "primary",
+      "route_ok": true,
+      "classify_ms": 0.276,
+      "chain": [
+        "ollama/qwen2.5-coder:7b-instruct",
+        "claude/claude-sonnet-4-6"
+      ],
+      "chain_first": "ollama/qwen2.5-coder:7b-instruct",
+      "chain_leads_ollama": true,
+      "hedge_lane": "cloud",
+      "hedge_ok": true,
+      "hedge_agree": true
+    },
+    {
+      "id": "h03",
+      "kind": "hard",
+      "expect_route": "primary",
+      "hedge_task": "hard",
+      "task_type": "query",
+      "complexity": "simple",
+      "confident": true,
+      "score": 3,
+      "hook_live_complexity": "simple",
+      "policy_agree": true,
+      "route": "economy",
+      "route_ok": false,
+      "classify_ms": 0.244,
+      "chain": [
+        "ollama/qwen2.5-coder:7b-instruct"
+      ],
+      "chain_first": "ollama/qwen2.5-coder:7b-instruct",
+      "chain_leads_ollama": true,
+      "hedge_lane": "cloud",
+      "hedge_ok": true,
+      "hedge_agree": false
+    },
+    {
+      "id": "h04",
+      "kind": "hard",
+      "expect_route": "primary",
+      "hedge_task": "hard",
+      "task_type": "query",
+      "complexity": "simple",
+      "confident": false,
+      "score": 0,
+      "hook_live_complexity": "simple",
+      "policy_agree": true,
+      "route": "economy",
+      "route_ok": false,
+      "classify_ms": 0.205,
+      "chain": [
+        "ollama/qwen2.5-coder:7b-instruct"
+      ],
+      "chain_first": "ollama/qwen2.5-coder:7b-instruct",
+      "chain_leads_ollama": true,
+      "hedge_lane": "cloud",
+      "hedge_ok": true,
+      "hedge_agree": false
+    },
+    {
+      "id": "h05",
+      "kind": "hard",
+      "expect_route": "primary",
+      "hedge_task": "hard",
+      "task_type": "query",
+      "complexity": "simple",
+      "confident": true,
+      "score": 3,
+      "hook_live_complexity": "simple",
+      "policy_agree": true,
+      "route": "economy",
+      "route_ok": false,
+      "classify_ms": 0.204,
+      "chain": [
+        "ollama/qwen2.5-coder:7b-instruct"
+      ],
+      "chain_first": "ollama/qwen2.5-coder:7b-instruct",
+      "chain_leads_ollama": true,
+      "hedge_lane": "cloud",
+      "hedge_ok": true,
+      "hedge_agree": false
+    },
+    {
+      "id": "h06",
+      "kind": "hard",
+      "expect_route": "primary",
+      "hedge_task": "hard",
+      "task_type": "code",
+      "complexity": "moderate",
+      "confident": true,
+      "score": 2,
+      "hook_live_complexity": "moderate",
+      "policy_agree": true,
+      "route": "primary",
+      "route_ok": true,
+      "classify_ms": 0.222,
+      "chain": [
+        "ollama/qwen2.5-coder:7b-instruct",
+        "claude/claude-sonnet-4-6"
+      ],
+      "chain_first": "ollama/qwen2.5-coder:7b-instruct",
+      "chain_leads_ollama": true,
+      "hedge_lane": "cloud",
+      "hedge_ok": true,
+      "hedge_agree": true
+    },
+    {
+      "id": "h07",
+      "kind": "hard",
+      "expect_route": "primary",
+      "hedge_task": "hard",
+      "task_type": "query",
+      "complexity": "simple",
+      "confident": false,
+      "score": 0,
+      "hook_live_complexity": "simple",
+      "policy_agree": true,
+      "route": "economy",
+      "route_ok": false,
+      "classify_ms": 0.207,
+      "chain": [
+        "ollama/qwen2.5-coder:7b-instruct"
+      ],
+      "chain_first": "ollama/qwen2.5-coder:7b-instruct",
+      "chain_leads_ollama": true,
+      "hedge_lane": "cloud",
+      "hedge_ok": true,
+      "hedge_agree": false
+    },
+    {
+      "id": "h08",
+      "kind": "hard",
+      "expect_route": "primary",
+      "hedge_task": "hard",
+      "task_type": "query",
+      "complexity": "simple",
+      "confident": false,
+      "score": 0,
+      "hook_live_complexity": "simple",
+      "policy_agree": true,
+      "route": "economy",
+      "route_ok": false,
+      "classify_ms": 0.207,
+      "chain": [
+        "ollama/qwen2.5-coder:7b-instruct"
+      ],
+      "chain_first": "ollama/qwen2.5-coder:7b-instruct",
+      "chain_leads_ollama": true,
+      "hedge_lane": "cloud",
+      "hedge_ok": true,
+      "hedge_agree": false
+    },
+    {
+      "id": "h09",
+      "kind": "hard",
+      "expect_route": "primary",
+      "hedge_task": "hard",
+      "task_type": "code",
+      "complexity": "moderate",
+      "confident": true,
+      "score": 5,
+      "hook_live_complexity": "moderate",
+      "policy_agree": true,
+      "route": "primary",
+      "route_ok": true,
+      "classify_ms": 0.204,
+      "chain": [
+        "ollama/qwen2.5-coder:7b-instruct",
+        "claude/claude-sonnet-4-6"
+      ],
+      "chain_first": "ollama/qwen2.5-coder:7b-instruct",
+      "chain_leads_ollama": true,
+      "hedge_lane": "cloud",
+      "hedge_ok": true,
+      "hedge_agree": true
+    },
+    {
+      "id": "h10",
+      "kind": "hard",
+      "expect_route": "primary",
+      "hedge_task": "hard",
+      "task_type": "query",
+      "complexity": "simple",
+      "confident": false,
+      "score": 1,
+      "hook_live_complexity": "simple",
+      "policy_agree": true,
+      "route": "economy",
+      "route_ok": false,
+      "classify_ms": 0.205,
+      "chain": [
+        "ollama/qwen2.5-coder:7b-instruct"
+      ],
+      "chain_first": "ollama/qwen2.5-coder:7b-instruct",
+      "chain_leads_ollama": true,
+      "hedge_lane": "cloud",
+      "hedge_ok": true,
+      "hedge_agree": false
+    }
+  ],
+  "secrets": [
+    {
+      "name": "clean",
+      "fires": false,
+      "score": 0.0,
+      "evidence": "no secret patterns matched",
+      "probe_rule_action": "default_chain",
+      "expect_fire": false,
+      "production_caller": false
+    },
+    {
+      "name": "openai_key",
+      "fires": true,
+      "score": 1.0,
+      "evidence": "matched pattern: openai_key",
+      "probe_rule_action": "local_only",
+      "expect_fire": true,
+      "production_caller": false
+    },
+    {
+      "name": "private_key_block",
+      "fires": true,
+      "score": 1.0,
+      "evidence": "matched pattern: private_key_block",
+      "probe_rule_action": "local_only",
+      "expect_fire": true,
+      "production_caller": false
+    },
+    {
+      "name": "github_token",
+      "fires": true,
+      "score": 1.0,
+      "evidence": "matched pattern: github_token",
+      "probe_rule_action": "local_only",
+      "expect_fire": true,
+      "production_caller": false
+    }
+  ],
+  "live": {
+    "meta": {
+      "model": "qwen2.5-coder:7b-instruct",
+      "model_was_loaded": false,
+      "keep_alive": "2m",
+      "mem_available_bytes": 77558497280,
+      "mem_need_bytes": 31843545600,
+      "host_busy": false,
+      "ollama_ps": [],
+      "drafts": 10,
+      "check_ok": 8
+    },
+    "drafts": [
+      {
+        "id": "t01",
+        "http_status": 200,
+        "answer_ms": 4458.7,
+        "check_ok": true,
+        "answer_excerpt": "4",
+        "classifier_route": "economy"
+      },
+      {
+        "id": "t02",
+        "http_status": 200,
+        "answer_ms": 189.2,
+        "check_ok": true,
+        "answer_excerpt": "4",
+        "classifier_route": "economy"
+      },
+      {
+        "id": "t03",
+        "http_status": 200,
+        "answer_ms": 183.0,
+        "check_ok": false,
+        "answer_excerpt": "Yes",
+        "classifier_route": "economy"
+      },
+      {
+        "id": "t04",
+        "http_status": 200,
+        "answer_ms": 177.2,
+        "check_ok": true,
+        "answer_excerpt": "blue",
+        "classifier_route": "economy"
+      },
+      {
+        "id": "t05",
+        "http_status": 200,
+        "answer_ms": 183.7,
+        "check_ok": true,
+        "answer_excerpt": "Paris",
+        "classifier_route": "economy"
+      },
+      {
+        "id": "t06",
+        "http_status": 200,
+        "answer_ms": 174.1,
+        "check_ok": true,
+        "answer_excerpt": "7",
+        "classifier_route": "economy"
+      },
+      {
+        "id": "t07",
+        "http_status": 200,
+        "answer_ms": 180.0,
+        "check_ok": true,
+        "answer_excerpt": "7",
+        "classifier_route": "economy"
+      },
+      {
+        "id": "t08",
+        "http_status": 200,
+        "answer_ms": 177.2,
+        "check_ok": true,
+        "answer_excerpt": "pong",
+        "classifier_route": "economy"
+      },
+      {
+        "id": "t09",
+        "http_status": 200,
+        "answer_ms": 180.5,
+        "check_ok": true,
+        "answer_excerpt": "B",
+        "classifier_route": "economy"
+      },
+      {
+        "id": "t10",
+        "http_status": 200,
+        "answer_ms": 173.4,
+        "check_ok": false,
+        "answer_excerpt": "Ok",
+        "classifier_route": "economy"
+      }
+    ]
+  }
+}

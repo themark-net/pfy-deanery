@@ -20,3 +20,5 @@
 | `install` touches real host config | Hooks appear in Mark's real agent config | Never run `install` outside a temp HOME; `llm-router uninstall --purge` removes them |
 | Heuristic misroutes hard prompts to a small model | Bad drafts on real work | Score it offline on a labeled set before any wiring; keep the grounding check on |
 | Upstream churn (15.x moves fast) | Smoke pin goes stale | Bump the pin deliberately in a follow-up after re-running the smoke |
+
+- **Status**: STAY I0 (evq1107). Offline complexity matched the HiRoute labels on 14 of 20. The hook chain named Ollama first on 20 of 20. Evidence: `eval/evq1107/llm-router/REPORT.md`. Not wired into `./pfy`.
