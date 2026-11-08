@@ -562,7 +562,6 @@ def run_mode(server: str, model: str, spec: str, port: int, cache: Path, prompts
                     text = ""
                 got = text.strip()
                 one["content"] = got
-                one["exact_off_later"] = False
                 one["expected_match"] = got == item["expected"].strip()
                 one["tok_s"] = decode_tok_s(payload)
                 timings = payload.get("timings") if isinstance(payload.get("timings"), dict) else {}
@@ -788,12 +787,16 @@ def run_live() -> int:
             result["ollama"] = {"status": "skipped", "reason": "LLAMA_NGRAM_SKIP_OLLAMA"}
         summary = summarize(modes, ollama_part)
         result["summary"] = summary
-        if all(m.get("status") == "ok" for m in modes) and summary.get("ratio_on_over_off") is not None:
+        modes_ok = all(m.get("status") == "ok" for m in modes)
+        complete = modes_ok and summary.get("compared") == len(CASES) and summary.get("ratio_on_over_off") is not None
+        if complete:
             result["status"] = "ok"
             result["reason"] = ""
         else:
             result["status"] = "skipped"
             reasons = [m.get("reason") for m in modes if m.get("status") != "ok" and m.get("reason")]
+            if modes_ok and summary.get("compared") != len(CASES):
+                reasons.append("decode rows were incomplete")
             result["reason"] = "; ".join(reasons) or "a llama-server mode did not finish"
         pin = {
             "commit": PIN_COMMIT,

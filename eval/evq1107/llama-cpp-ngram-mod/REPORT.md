@@ -79,7 +79,7 @@ Draft acceptance from the ngram-mod server log (accepted / generated draft token
 | edit-row-label | 146 / 256 | 0.57 |
 | All five (server totals) | 644 / 896 | 0.72 |
 
-The log also recorded 14 generated drafts and 14 accepted drafts across the five calls. Prompt token counts were 184 to 265, above the match length of 24.
+Those five lines are in `results.json` and sum to 644 accepted of 896 generated draft tokens. Prompt token counts were 184 to 265, above the match length of 24.
 
 ## Gates
 
