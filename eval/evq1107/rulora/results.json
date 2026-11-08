@@ -1,0 +1,188 @@
+{
+  "package_version": "0.1.0-alpha.4",
+  "node": "v22.23.0",
+  "wall_ms": 5,
+  "caps": {
+    "maxAttempts": 8,
+    "maxNoProgress": 3
+  },
+  "kind_build_lane": "kind must be network_reconnect, constraint_revision, or business_broadcast",
+  "native_exit_count": 2,
+  "exit_count": 8,
+  "native_exits": [
+    "turn_cap",
+    "no_progress"
+  ],
+  "wall_clock_3h_status": "active",
+  "exits": [
+    {
+      "id": 1,
+      "name": "goal_met",
+      "stop_status": "active",
+      "stop_closed": null,
+      "stop_trace": [
+        "active"
+      ],
+      "go_status": "active",
+      "go_closed": null,
+      "go_trace": [
+        "active"
+      ],
+      "native": false
+    },
+    {
+      "id": 2,
+      "name": "turn_cap",
+      "stop_status": "exhausted",
+      "stop_closed": "LOOP_CLOSED",
+      "stop_trace": [
+        "active",
+        "active",
+        "active",
+        "active",
+        "active",
+        "active",
+        "active",
+        "exhausted"
+      ],
+      "go_status": "active",
+      "go_closed": null,
+      "go_trace": [
+        "active",
+        "active",
+        "active",
+        "active",
+        "active",
+        "active",
+        "active"
+      ],
+      "native": true
+    },
+    {
+      "id": 3,
+      "name": "budget_cap",
+      "stop_status": "active",
+      "stop_closed": null,
+      "stop_trace": [
+        "active"
+      ],
+      "go_status": "active",
+      "go_closed": null,
+      "go_trace": [
+        "active"
+      ],
+      "native": false
+    },
+    {
+      "id": 4,
+      "name": "wall_clock",
+      "stop_status": "active",
+      "stop_closed": null,
+      "stop_trace": [
+        "active"
+      ],
+      "go_status": "active",
+      "go_closed": null,
+      "go_trace": [
+        "active"
+      ],
+      "native": false
+    },
+    {
+      "id": 5,
+      "name": "no_progress",
+      "stop_status": "human_handoff",
+      "stop_closed": "LOOP_CLOSED",
+      "stop_trace": [
+        "active",
+        "active",
+        "human_handoff"
+      ],
+      "go_status": "active",
+      "go_closed": null,
+      "go_trace": [
+        "active",
+        "active",
+        "active",
+        "active",
+        "active"
+      ],
+      "native": true
+    },
+    {
+      "id": 6,
+      "name": "human_interrupt",
+      "stop_status": "active",
+      "stop_closed": null,
+      "stop_trace": [
+        "active"
+      ],
+      "go_status": "active",
+      "go_closed": null,
+      "go_trace": [
+        "active"
+      ],
+      "native": false
+    },
+    {
+      "id": 7,
+      "name": "error_threshold",
+      "stop_status": "active",
+      "stop_closed": null,
+      "stop_trace": [
+        "active",
+        "active",
+        "active"
+      ],
+      "go_status": "active",
+      "go_closed": null,
+      "go_trace": [
+        "active",
+        "active",
+        "active"
+      ],
+      "native": false
+    },
+    {
+      "id": 8,
+      "name": "external_event",
+      "stop_status": "active",
+      "stop_closed": null,
+      "stop_trace": [
+        "active"
+      ],
+      "go_status": "active",
+      "go_closed": null,
+      "go_trace": [
+        "active"
+      ],
+      "native": false
+    }
+  ],
+  "output_boundary": {
+    "accepted": true,
+    "core_stage": "core",
+    "audit_stage": "audit",
+    "lie_accepted": true
+  },
+  "collective": {
+    "frozen_holds": true,
+    "selected": "b",
+    "unknown": "UNKNOWN_CANDIDATE"
+  },
+  "workflow": {
+    "under_blocked": false,
+    "over_blocked": true,
+    "next_code": "TOKEN_BUDGET_EXHAUSTED",
+    "elapsed_argument": "none",
+    "clock_tokens_used": 1,
+    "clock_blocked": false,
+    "clock_status": "active",
+    "no_progress_actions": [
+      "reask",
+      "correct",
+      "human_handoff"
+    ],
+    "no_progress_after": "HUMAN_HANDOFF_REQUIRED"
+  }
+}

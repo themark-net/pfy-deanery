@@ -1,0 +1,32 @@
+{
+  "name": "Rulora",
+  "integration_stage": "I1",
+  "intent": "staged_eval",
+  "entry": "sources/entries/106-rulora.md",
+  "github": "https://github.com/Buffalo2024/Rulora",
+  "notes_doc": "eval/evq1107/rulora/REPORT.md",
+  "uses": "Bounded loop counters and output validators with no model. Host still decides when a Build lane stops.",
+  "features": [
+    "loop counters",
+    "output boundary",
+    "frozen candidate ids"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1. I2 needs a probe where the 3 hour Build-lane stream stops inside the library, or native coverage above the 2 exits measured here (turn cap and no-progress). Do not wire a gate from this lane.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "gate_wiring",
+    "product runtime",
+    "hosted model"
+  ],
+  "evidence": [
+    "entry:sources/entries/106-rulora.md",
+    "eval/evq1107/rulora/REPORT.md",
+    "eval/evq1107/rulora/VERDICT",
+    "eval/evq1107/rulora/results.json",
+    "pin @rulora/core@0.1.0-alpha.4 commit 7b09de37dddcfb608b727bda26fe9396828ddc82"
+  ],
+  "handoff_by": "llm"
+}

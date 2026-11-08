@@ -20,4 +20,4 @@
 | Language mismatch | pfy-mentat is Python, Rulora is Node | Use as a reference contract or a subprocess; do not add Node to pfylib for this |
 | Host forgets to stop | `LoopControl` only reports status; the host must break | Smoke checks the closed loop throws `LOOP_CLOSED` on the next record |
 
-- **Status**: Cataloged I0. Verified on the Grok Bot box (offline examples, tests, smoke PASS); not installed on nimo.
+- **Status**: Staged I1 on nimo 2026-11-07. Pin @rulora/core@0.1.0-alpha.4. Control sources match commit 7b09de37dddcfb608b727bda26fe9396828ddc82. Probe eval/evq1107/rulora: LoopControl native on 2 of 8 Build-lane exits (turn cap, no-progress). The 3h wall-clock stream stays active. STAY I1. Not wired into a gate.
