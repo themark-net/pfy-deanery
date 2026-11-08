@@ -1,12 +1,12 @@
 # marketing-skills (marketing-council) evq1107
 
-STAY I1 reference: the council skill already matches this pin; the other 46 skills do not move the pfy build timeout
+STAY I1 reference: the council port tracks this pin except a process banner; the other 46 skills do not move the pfy build timeout
 
 ## What it is
 
 Marketing Skills (coreyhaines31/marketingskills) is a pack of markdown agent skills, Node helpers, and integration notes for Claude Code, Codex, Cursor, and other Agent Skills hosts. At this pin, plugin.json and marketplace.json say version 2.8.7. The X entry named v2.8.0. That changelog line (2026-07-06) is the one that added marketing-council. This pin is the 2026-07-10 merge, still with marketing-council at metadata.version 1.0.0. License is MIT. Root LICENSE. Copyright (c) 2025 Corey Haines. 47 skill directories, 415 files, worktree 3174365 bytes without `.git` (4482892 with it). `tools/clis` has 64 `.js` files. AGENTS.md says 51 CLI tools. `tools/integrations` has 93 notes. No file under `skills/` is executable. The longest SKILL.md is seo-audit at 497 lines.
 
-The council skill seats 12 named advisors. Modes are one seat, 3 to 5, or all 12. One seat must dissent. The output is a disagreement map and a chair summary. Dossiers live under `references/advisors/`.
+The council skill seats 12 named advisors. Modes are one seat, 3 to 5, or all 12. A council session seats a dissenter. Quick take is one named advisor. The output is a disagreement map and a chair summary. Dossiers live under `references/advisors/`.
 
 ## Pin and command
 
