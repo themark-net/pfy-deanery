@@ -8,11 +8,12 @@ Entry 049 lives in `sources/x-posts.md`. There is no `sources/entries` file for 
 
 ## Catalog comparison
 
-The job is worker memory and context for gap H1: a repeatable with/without number. `probe.py` reads `uses`, `features`, and tags on the other cards and keeps a card when one of these whole words appears: memory, vector, rag, recall, context. That scan hit 20 other cards (`results.json`, overlap length 21 including this card). skill-up and harness2 are the H1 neighbors in `docs/eval/TOOLSET-RANKING.md` and do not carry those words, so they are listed here too. Batch-1 under `eval/ev1107/` does not add another OpenCode memory plugin. `eval/catchup-1107/skill-up/VERDICT` is the with/without grade (both arms 5/5, delta 0). No stage card is named cass-memory, ai-memory, or kenfold.
+The job is worker memory and context for gap H1: a repeatable with/without number. `probe.py` reads `uses`, `features`, and tags on the other cards and keeps a card when one of these whole words appears: memory, vector, rag, recall, context. That scan hit 20 other cards (`results.json`, overlap length 21 including this card). skill-up and harness2 are the H1 neighbors in `docs/eval/TOOLSET-RANKING.md` and do not carry those words, so they are listed here too. cass-memory landed at I0 while this lane was open. Its uses and features do not contain those whole words, so it is absent from the scan. The table below includes it. ai-memory and kenfold still have no stage card. Batch-1 under `eval/ev1107/` does not add another OpenCode memory plugin. `eval/catchup-1107/skill-up/VERDICT` is the with/without grade (both arms 5/5, delta 0).
 
 | Card | Stage | What it already covers | How opencode-mem compares |
 | --- | --- | --- | --- |
 | skill-up | I3 | With-skill vs no-skill grade. Catch-up: 5/5 both arms, delta 0. | This probe is not that grade. It scored stored salts, 8/8 vs 0/8 in the tree. |
+| cass-memory | I0 | Procedural playbook. One session produced 0 rules. A hand playbook was top-1 on 7/8, token overlap on 8/8, repo facts 0/8. | Same job class, different store. This probe recalled 8/8 salts that are not in the tree. The playbook did not beat a text file. |
 | harness2 | I1 | The trial H1 is about. Its own gain was 0. | This run does not re-score that trial. |
 | Harness Score | I0 | Offline grade of harness files, including context files. | A scorer, not a store. |
 | codebase-memory-mcp | I2 | Primary code-graph MCP. | Decoy search for `smoke-codebase-memory` was not a hit. Different job. |
