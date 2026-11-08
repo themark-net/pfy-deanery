@@ -1,0 +1,127 @@
+{
+  "ok": true,
+  "ticket": "tmp/egm-probe/tickets/handoff.md",
+  "cited": "tmp/egm-probe/cited/handoff.md",
+  "grok_bin": "/home/mark/.local/bin/grok",
+  "max_turns": 2,
+  "personas": [
+    "readiness",
+    "critic",
+    "codebase"
+  ],
+  "elephant": {
+    "ok": true,
+    "turns": 1,
+    "wall_s": 32.635,
+    "attempts": 1,
+    "model": "grok-4.7-build",
+    "error": "",
+    "spec": "## Problem\n\nThis lane needs a written handoff at docs/HANDOFF-build-review-1106.md. The note must record what landed, the real ./pfy build trial result, which cataloged tools made it in, the commands a bot runs, and a Still open list. docs/HANDOFF-headless-1105.md must point at that note. A small exit test must check the note. The work must be committed.\n\n## Required behavior\n\n1. Write the handoff for this lane as docs/HANDOFF-build-review-1106.md.\n2. Say what landed and cite these SHAs from git log at 72bec83: 72bec83 Put cloud build worktrees on a short path and allow ordinary test edits. d6729c8 Review cloud builds one file at a time. 8a587e2 docs: local-lab runs nightly at 04:15 UTC. 3d1ca36 F5: cap local-lab steps and start at 04:15 UTC (#310). 315bfd0 Skip the handoff SHA check on a shallow checkout. b4ccf17 Document how a bot runs headless launch, status, stop, and build.\n3. Report the real ./pfy build trial result by reading tmp/trial/receipt.json and tmp/trial/trial.meta. Include status, reason, wall, commit, and branch. The receipt has status TIMEOUT, reason timeout, commit null, and branch null. The receipt wall_seconds is 10802.404. trial.meta has exit=3 and wall_s=10803.\n4. Say which cataloged tools made it in, covering codebase-memory-mcp and/or Tree-sitter Analyzer, and the fallback.\n5. Include the commands a bot runs.\n6. Include a Still open list.\n7. Use ASCII hyphens only. Do not use em dashes.\n8. Point docs/HANDOFF-headless-1105.md at docs/HANDOFF-build-review-1106.md. That file exists and opens as the 2026-11-05 headless bot handoff, with commands ./pfy launch --headless, ./pfy launch status, and ./pfy launch stop.\n9. Add a small exit test that the note exists and that the note names the cap env var and the impact source. The receipt field impact.source is git-grep.\n10. Commit.\n\n## Files named\n\n- docs/HANDOFF-build-review-1106.md\n- tmp/trial/receipt.json\n- tmp/trial/trial.meta\n- docs/HANDOFF-headless-1105.md\n\n## Tests named\n\nThe ticket names no test file. It asks for a small exit test that the note exists and names the cap env var and the impact source.\n",
+    "unstated": [
+      "Which of codebase-memory-mcp and Tree-sitter Analyzer made it in, and what the fallback is",
+      "The name of the cap env var the note and exit test must use",
+      "The exact commands a bot runs in this handoff",
+      "The items on the Still open list",
+      "The path and name of the exit test",
+      "Which wall figure to print when receipt wall_seconds 10802.404 and trial.meta wall_s 10803 differ",
+      "The commit message"
+    ]
+  },
+  "goldfish": [
+    {
+      "persona": "readiness",
+      "ok": true,
+      "turns": 1,
+      "wall_s": 37.022,
+      "attempts": 1,
+      "model": "grok-4.7-build",
+      "error": "",
+      "findings": [
+        {
+          "severity": "Blocker",
+          "scope": "catalog tools in the handoff",
+          "finding": "Required behavior 4 says the note must cover codebase-memory-mcp and/or Tree-sitter Analyzer, and the fallback, but never says which of those tools landed or what the fallback is. The implementer would have to invent the catalog result."
+        },
+        {
+          "severity": "Blocker",
+          "scope": "exit test and cap env var",
+          "finding": "Required behavior 9 says the exit test must check that the note names the cap env var, and the impact source is given as git-grep, but the spec and excerpts never name the cap environment variable. The assertion string is unspecified, so the test can require the wrong name."
+        },
+        {
+          "severity": "Blocker",
+          "scope": "exit test file",
+          "finding": "The ticket names no test file and does not say which suite, path, or command the small exit test belongs to. Placing it outside the exit path means the required check never runs."
+        },
+        {
+          "severity": "Major",
+          "scope": "Still open list",
+          "finding": "Required behavior 6 requires a Still open list and gives no items, owners, or empty-list rule. The implementer chooses the contents."
+        },
+        {
+          "severity": "Major",
+          "scope": "trial wall in the handoff",
+          "finding": "Required behavior 3 says to include wall after reading both tmp/trial/receipt.json (wall_seconds 10802.404) and tmp/trial/trial.meta (wall_s 10803). It does not say whether the note reports one of those figures, both, or a single rounded value."
+        },
+        {
+          "severity": "Major",
+          "scope": "commands a bot runs",
+          "finding": "Required behavior 5 says the new note includes the commands a bot runs. The headless excerpt shows ./pfy launch --headless, ./pfy launch status, and ./pfy launch stop, while commit b4ccf17 also mentions build, and no build command line is given. The implementer chooses whether a build command is copied and what its text is."
+        }
+      ]
+    },
+    {
+      "persona": "critic",
+      "ok": true,
+      "turns": 1,
+      "wall_s": 61.816,
+      "attempts": 1,
+      "model": "grok-4.7-build",
+      "error": "",
+      "findings": [
+        {
+          "severity": "Blocker",
+          "scope": "exit test for docs/HANDOFF-build-review-1106.md",
+          "finding": "The exit test must assert that the note names the cap env var, but neither the required behavior nor the cited log, receipt, trial.meta, or headless handoff states that variable name. The check the ticket adds can pass on a guessed name or be skipped, so it does not lock the cap fact."
+        },
+        {
+          "severity": "Blocker",
+          "scope": "docs/HANDOFF-build-review-1106.md catalog tools",
+          "finding": "The note must say which cataloged tools made it in, covering codebase-memory-mcp and/or Tree-sitter Analyzer, and the fallback. The excerpts give no landed set and no fallback name. Writing that section from the ticket ships an unsupported tool result."
+        }
+      ]
+    },
+    {
+      "persona": "codebase",
+      "ok": true,
+      "turns": 1,
+      "wall_s": 56.553,
+      "attempts": 1,
+      "model": "grok-4.7-build",
+      "error": "",
+      "findings": [
+        {
+          "severity": "Blocker",
+          "scope": "exit test / cap env var",
+          "finding": "Item 9 requires the new note and exit test to name the cap env var, but neither the spec nor the cited excerpts give that variable name. The only related text is the 3d1ca36 subject about capping local-lab steps."
+        },
+        {
+          "severity": "Blocker",
+          "scope": "catalog tools",
+          "finding": "Item 4 requires the note to say which of codebase-memory-mcp and Tree-sitter Analyzer made it in, plus the fallback. The cited excerpts never name those tools or a fallback, so that claim is not grounded in the evidence."
+        },
+        {
+          "severity": "Major",
+          "scope": "tmp/trial/receipt.json",
+          "finding": "The receipt also has exit_code 3, gate.after.exit 124, and a worktree_removed key. The spec's required trial report lists only status, reason, wall, commit, and branch, plus trial.meta exit and wall_s, so the note can omit the after-gate exit 124."
+        },
+        {
+          "severity": "Nit",
+          "scope": "SHA 8a587e2",
+          "finding": "The spec's citation adds a trailing period to the 8a587e2 subject. The git log line is \"docs: local-lab runs nightly at 04:15 UTC\" with no period."
+        }
+      ]
+    }
+  ],
+  "wall_s": 94.453,
+  "error": ""
+}

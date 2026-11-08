@@ -1,19 +1,33 @@
 {
   "name": "Elephant-Goldfish Model",
-  "integration_stage": "I0",
-  "intent": "awareness",
+  "integration_stage": "I1",
+  "intent": "staged_eval",
   "entry": "sources/entries/165-egm.md",
   "github": "https://github.com/google/elephant-goldfish-model",
+  "notes_doc": "eval/ev1107/egm/REPORT.md",
   "uses": "Fresh-eyes spec review before Build starts.",
-  "potential": "medium",
-  "next_gate": "Next pick after the three trials: run /egm-review on one Build drop-in in an isolated profile.",
+  "features": [
+    "elephant draft from a ticket and cited excerpts",
+    "fresh-process goldfish review, tools off",
+    "advisory script scripts/egm_review.py"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1. The 2026-11-07 probe named the recheck directory mode and missed the lock-wait and fast-forward parks. The clean slice still drew Blockers. Do not wire this into a gate. A later probe has to put the driver lock and the land step in the cited packet, and a clean landed ticket has to stay at a handful of Blockers.",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",
-    "catalog_hold_70_75"
+    "catalog_hold_70_75",
+    "plugin_install_into_agent_home",
+    "gate_wiring"
   ],
   "evidence": [
-    "entry:sources/entries/165-egm.md"
+    "entry:sources/entries/165-egm.md",
+    "eval/ev1107/egm/REPORT.md",
+    "eval/ev1107/egm/VERDICT",
+    "eval/ev1107/egm/runs/fix.json",
+    "eval/ev1107/egm/runs/handoff.json",
+    "eval/ev1107/egm/runs/slice1.json",
+    "pin 7bd119c plugin 0.1.1; three reviews in 135.2s parallel; STAY I1"
   ],
   "handoff_by": "llm"
 }

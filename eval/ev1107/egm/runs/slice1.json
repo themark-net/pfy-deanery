@@ -1,0 +1,137 @@
+{
+  "ok": true,
+  "ticket": "tmp/egm-probe/tickets/slice1.md",
+  "cited": "tmp/egm-probe/cited/slice1.md",
+  "grok_bin": "/home/mark/.local/bin/grok",
+  "max_turns": 2,
+  "personas": [
+    "readiness",
+    "critic",
+    "codebase"
+  ],
+  "elephant": {
+    "ok": true,
+    "turns": 1,
+    "wall_s": 35.434,
+    "attempts": 1,
+    "model": "grok-4.7-build",
+    "error": "",
+    "spec": "# Slice 1: per-file review with a change-impact map\n\n## Problem\n`scripts/pfy_build_cloud.py` has `DIFF_CAP = 12000`. `review_refusal()` refuses any diff over that cap with reason `review-diff-too-large`. A ~24 KB, 5-file diff was refused after 7081 s with no commit. This slice replaces that whole-diff raw cap with per-file review and a per-file size guard.\n\n## Required behavior\n1. Review per file: split the diff by file, review each file's hunk with the task, gate tail, and a change-impact map, then combine verdicts (any reject = reject; all accept = accept). Keep #308 guarantees: the reviewer must see every line it accepts; binary-change refusal stays.\n2. Change-impact map from the cataloged tools: prefer codebase-memory-mcp (`examples/codebase-memory-mcp`, binary `/home/mark/.local/bin/codebase-memory-mcp`) for callers/callees of changed symbols; fall back to Tree-sitter Analyzer (catalog entry 121, `--change-impact`) if available; if neither is available, a plain `git grep` of changed symbol names, and record which source was used in the receipt (`impact.source`). Never fail the build only because the impact tool is missing.\n3. Per-file size guard, configurable: `PFY_REVIEW_FILE_CAP` (chars, default 12000) and a `--review-file-cap` flag. A file over the cap is refused with reason `review-file-too-large` naming the file.\n4. Check the guard EARLY: right after the agent finishes and before the full gate runs, so an oversize change fails in seconds, not after the 35-minute gate. Receipt records `phase=precheck`.\n\nExit tests (behavior, not tautology). Document how each could fail and how to recover in the test docstrings.\n- A 24 KB diff across 4+ files, each under the cap, reviews successfully (stub reviewer) and commits.\n- One file over the cap fails with `review-file-too-large` before the gate runs (assert gate never started).\n- Env var and flag change the cap.\n- Impact map present in each per-file review prompt; `impact.source` recorded; missing tools fall back.\n- A reject on any one file rejects the build.\n\n## Files named\n- `scripts/pfy_build_cloud.py` (`DIFF_CAP`, `review_refusal()`, `review_prompt()`)\n- `examples/codebase-memory-mcp`\n- `/home/mark/.local/bin/codebase-memory-mcp`\n- Tree-sitter Analyzer, catalog entry 121 (`--change-impact`)\n- Receipt path cited only as context: `tmp/headless-1105/tmp/trial-receipt/receipt.json`\n\n## Tests named\nNo test file path is named. The required cases are the five exit tests above, with failure and recovery written in the test docstrings.\n",
+    "unstated": [
+      "Whether DIFF_CAP and reason review-diff-too-large are removed or left unused after the per-file cap replaces the whole-diff cap",
+      "Whether the per-file cap counts raw chars or len(redact(...)) as review_refusal does today",
+      "Precedence when PFY_REVIEW_FILE_CAP and --review-file-cap are both set",
+      "How a diff is split into files (renames, new files, deletions, mode-only changes)",
+      "Which file is named, and whether review stops, when more than one file is over the cap",
+      "Whether binary-change refusal runs in the early precheck or only at review time, and whether it is whole-diff or per file",
+      "Allowed string values for impact.source",
+      "How changed symbol names are chosen for callers/callees and for git grep",
+      "Shape of the change-impact map text inside each per-file prompt",
+      "What happens when a cataloged impact tool is present but errors, versus missing",
+      "When the impact map is built relative to the gate (precheck has no gate tail; review prompts include gate tail)",
+      "Verdict when the stub or reviewer emits neither accept nor reject, or emits both"
+    ]
+  },
+  "goldfish": [
+    {
+      "persona": "readiness",
+      "ok": true,
+      "turns": 1,
+      "wall_s": 63.353,
+      "attempts": 1,
+      "model": "grok-4.7-build",
+      "error": "",
+      "findings": [
+        {
+          "severity": "Blocker",
+          "scope": "per-file verdict combination",
+          "finding": "The spec says any reject rejects and all accept accepts, but it never says what a per-file result that is neither accept nor reject does (empty output, timeout, model error, or extra text). Treating that as accept would publish lines the reviewer did not accept and break the #308 guarantee; treating it as reject changes the build outcome. The implementer needs an explicit status for that case."
+        },
+        {
+          "severity": "Blocker",
+          "scope": "PFY_REVIEW_FILE_CAP and --review-file-cap",
+          "finding": "The cap is a char count with default 12000, but invalid values are unspecified: missing, non-integer, zero, or negative. A bad parse can throw before the precheck, skip the guard, or refuse every file. Say whether the process exits, which status it uses, and whether the receipt still records phase=precheck."
+        },
+        {
+          "severity": "Major",
+          "scope": "exit tests and which files change",
+          "finding": "Five behavior tests are required, including a stub reviewer and an assertion that the gate never started, but no test path, stub seam, or gate-started signal is named. The production edit is bounded to scripts/pfy_build_cloud.py; where the tests live and how they observe the gate is left to the implementer."
+        },
+        {
+          "severity": "Major",
+          "scope": "impact.source",
+          "finding": "Fallback order is fixed (codebase-memory-mcp, then Tree-sitter Analyzer --change-impact, then git grep) and the receipt field name is impact.source, but the allowed values are not. Different strings for the same tool make the receipt check in the exit test ambiguous."
+        },
+        {
+          "severity": "Major",
+          "scope": "changed symbol names",
+          "finding": "The git grep fallback, and the caller/callee queries, depend on changed symbol names, but the spec does not say how those names are taken from a hunk. Empty, comment-only, or over-broad extraction still lets the build pass, so the impact map can be wrong without failing."
+        },
+        {
+          "severity": "Major",
+          "scope": "oversize refusal and cap precedence",
+          "finding": "A file over the cap is refused with reason review-file-too-large naming the file. When more than one file is over the cap, it is unclear whether the receipt names the first file or every file. When both the env var and --review-file-cap are set, which value wins is also unspecified."
+        }
+      ]
+    },
+    {
+      "persona": "critic",
+      "ok": true,
+      "turns": 1,
+      "wall_s": 86.674,
+      "attempts": 1,
+      "model": "grok-4.7-build",
+      "error": "",
+      "findings": [
+        {
+          "severity": "Blocker",
+          "scope": "per-file split and accept",
+          "finding": "The spec keeps the #308 rule that an accept may cover only lines the reviewer saw, but it never requires the reviewed per-file pieces to equal the full diff. Wording is 'each file's hunk' (singular). A later hunk, a rename, or any section the splitter drops can be omitted from every prompt and still ship when the files that were reviewed all accept."
+        },
+        {
+          "severity": "Blocker",
+          "scope": "verdict combine",
+          "finding": "Combine rules are only 'any reject rejects' and 'all accept accepts'. A reviewer crash, timeout, or reply with no verdict line is unspecified. That path can fail open and commit without an accept, which skips the review this ticket exists to enforce. Anything other than a parsed per-file accept has to refuse the build."
+        },
+        {
+          "severity": "Major",
+          "scope": "impact tools",
+          "finding": "Fallbacks apply only when codebase-memory-mcp and Tree-sitter Analyzer are missing. A binary that is present but hangs or exits non-zero has no timeout and no required fallback. A hang stalls the build the way the 7081s refusal did. Treating that crash as 'unavailable' and continuing to accept hides a broken environment."
+        },
+        {
+          "severity": "Major",
+          "scope": "review prompt",
+          "finding": "PFY_REVIEW_FILE_CAP bounds only the file text. The impact map and the gate tail are added with no size limit, while today's review_prompt refuses to cut the diff and TAIL_CAP is only 4000. Nothing stops a large map from being kept by dropping diff lines, so an accept can cover file bytes that were not in the prompt the reviewer saw."
+        },
+        {
+          "severity": "Nit",
+          "scope": "cap measurement",
+          "finding": "Today review_refusal compares len(redact(diff_text)) to DIFF_CAP. The new guard says chars but not whether redaction runs first, and it does not say whether PFY_REVIEW_FILE_CAP or --review-file-cap wins when both are set. A secret-heavy file or a stale flag can disagree with the early review-file-too-large decision."
+        }
+      ]
+    },
+    {
+      "persona": "codebase",
+      "ok": true,
+      "turns": 1,
+      "wall_s": 41.529,
+      "attempts": 1,
+      "model": "grok-4.7-build",
+      "error": "",
+      "findings": [
+        {
+          "severity": "Blocker",
+          "scope": "scripts/pfy_build_cloud.py review_refusal",
+          "finding": "The spec says the current cap is a raw whole-diff limit: any diff over DIFF_CAP (12000) is refused as review-diff-too-large. The excerpt refuses only when len(redact(diff_text or \"\")) > DIFF_CAP, so a raw diff over 12000 can pass after redact and the predicate is not raw length."
+        },
+        {
+          "severity": "Major",
+          "scope": "scripts/pfy_build_cloud.py review_prompt",
+          "finding": "review_prompt redacts the diff, says never cut it, and requires reject when a diff deletes a test or assertion or prints a token, key, secret, or password, even if the task or a planted test asks for that. The spec rebuilds each per-file prompt as task, gate tail, and change-impact map and does not say those reject rules or redact-before-show must stay."
+        }
+      ]
+    }
+  ],
+  "wall_s": 122.11,
+  "error": ""
+}
