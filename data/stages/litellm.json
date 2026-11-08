@@ -16,7 +16,8 @@
   "catalog_github": "https://github.com/BerriAI/litellm",
   "posture": [],
   "evidence": [
-    "make:smoke-litellm-ollama"
+    "make:smoke-litellm-ollama",
+    "receipt:eval/integrate/litellm/receipt.json"
   ],
   "tier_ceiling": "I3",
   "uses": "One OpenAI-compatible proxy for Grok and local models.",

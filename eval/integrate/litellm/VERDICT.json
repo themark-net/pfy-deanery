@@ -1,0 +1,7 @@
+{
+  "metric": "readonly_proxy_models_status",
+  "threshold": 200,
+  "value_gate": "pass",
+  "modularity_gate": "pass",
+  "proposed_stage": "I3"
+}
