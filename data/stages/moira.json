@@ -1,0 +1,39 @@
+{
+  "name": "Moira",
+  "integration_stage": "I1",
+  "intent": "staged_evaluation",
+  "entry": "sources/entries/118-moira.md",
+  "github": "https://github.com/moira-mcp/moira",
+  "pin": "b66b537a0465194d8806fa638776237d8cf853c5",
+  "release": "v6.0.0",
+  "license": "Apache-2.0",
+  "uses": "Per-step JSON Schema on an agent directive, plus a condition node that routes fields the agent already sent. The completion string is not checked. Offline library path. No account.",
+  "features": [
+    "json schema on step input",
+    "condition routing",
+    "completion string is prose",
+    "offline"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1. Schema rejected 8/8 bad shapes and the condition stopped 4/4 honest reports. 4/4 schema-valid lies still finished, and the completion string changed 0/2 routes. Re-open only if a later pin checks that string against a host clock and a host pregate result, and a lie that says PASS with a short elapsed no longer finishes. No gate wiring. The I1 ceiling stays until a TOOLS.md row exists.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "gate_wiring",
+    "moira cloud",
+    "compose up in this lane",
+    "local account",
+    "replace agent-loops",
+    "replace Rulora"
+  ],
+  "evidence": [
+    "entry:sources/entries/118-moira.md",
+    "pin:b66b537a0465194d8806fa638776237d8cf853c5",
+    "release:v6.0.0",
+    "eval/evq1107/moira/REPORT.md",
+    "eval/evq1107/moira/VERDICT",
+    "eval/evq1107/moira/results.json"
+  ],
+  "handoff_by": "llm"
+}

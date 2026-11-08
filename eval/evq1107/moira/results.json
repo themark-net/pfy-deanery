@@ -1,0 +1,246 @@
+{
+  "pin": "b66b537a0465194d8806fa638776237d8cf853c5",
+  "describe": "v6.0.0",
+  "license": "Apache-2.0",
+  "src_bytes": 28561760,
+  "truth": {
+    "pregate": "FAIL",
+    "elapsed_s": 10800,
+    "fail_count": 2,
+    "wall_cap_s": 10800
+  },
+  "wall_s": 0.15656,
+  "engine_elapsed_us": 14036.883,
+  "ajv": "8.20.0",
+  "engine": "SchemaValidator.validate+routeNode",
+  "skill": {
+    "path": "bootstrap/grok-cli/skills/agent-loops/SKILL.md",
+    "exit_names_present": 8,
+    "exit_names": 8,
+    "input_schema_mentions": 0
+  },
+  "summary": {
+    "malformed_rejected": {
+      "hit": 8,
+      "n": 8
+    },
+    "lies_routed_done": {
+      "hit": 4,
+      "n": 4
+    },
+    "honest_not_done": {
+      "hit": 4,
+      "n": 4
+    },
+    "completion_string_changed": false,
+    "completion_string_n": 2,
+    "prose_done_accepted": {
+      "hit": 18,
+      "n": 18
+    },
+    "skill_exit_names_present": 8,
+    "skill_exit_names": 8,
+    "skill_input_schema_mentions": 0
+  },
+  "mismatches": [],
+  "cases": [
+    {
+      "id": "mal-empty",
+      "group": "malformed",
+      "valid": false,
+      "output": null,
+      "expect_valid": false,
+      "expect_output": null,
+      "ok": true,
+      "prose_accept": true,
+      "error": "VALIDATION ERROR: Required field 'pregate' is missing. Add 'pregate' field to your input."
+    },
+    {
+      "id": "mal-enum",
+      "group": "malformed",
+      "valid": false,
+      "output": null,
+      "expect_valid": false,
+      "expect_output": null,
+      "ok": true,
+      "prose_accept": true,
+      "error": "VALIDATION ERROR: Field 'pregate' must be one of: [\"PASS\",\"FAIL\"]. Got: \"done\". Use one of the allowed values."
+    },
+    {
+      "id": "mal-type",
+      "group": "malformed",
+      "valid": false,
+      "output": null,
+      "expect_valid": false,
+      "expect_output": null,
+      "ok": true,
+      "prose_accept": true,
+      "error": "VALIDATION ERROR: Field 'elapsed_s' must be integer, got string. Provide integer value instead."
+    },
+    {
+      "id": "mal-extra",
+      "group": "malformed",
+      "valid": false,
+      "output": null,
+      "expect_valid": false,
+      "expect_output": null,
+      "ok": true,
+      "prose_accept": true,
+      "error": "VALIDATION ERROR: Unknown field 'lane_done' is not allowed. Remove 'lane_done' or check field name spelling."
+    },
+    {
+      "id": "mal-missing",
+      "group": "malformed",
+      "valid": false,
+      "output": null,
+      "expect_valid": false,
+      "expect_output": null,
+      "ok": true,
+      "prose_accept": true,
+      "error": "VALIDATION ERROR: Required field 'goal_met' is missing. Add 'goal_met' field to your input."
+    },
+    {
+      "id": "mal-min",
+      "group": "malformed",
+      "valid": false,
+      "output": null,
+      "expect_valid": false,
+      "expect_output": null,
+      "ok": true,
+      "prose_accept": true,
+      "error": "VALIDATION ERROR: Field 'elapsed_s' must be at least 0. Got: -1. Provide number >= 0."
+    },
+    {
+      "id": "mal-int",
+      "group": "malformed",
+      "valid": false,
+      "output": null,
+      "expect_valid": false,
+      "expect_output": null,
+      "ok": true,
+      "prose_accept": true,
+      "error": "VALIDATION ERROR: Field 'elapsed_s' must be integer, got number. Provide integer value instead."
+    },
+    {
+      "id": "mal-prose",
+      "group": "malformed",
+      "valid": false,
+      "output": null,
+      "expect_valid": false,
+      "expect_output": null,
+      "ok": true,
+      "prose_accept": true,
+      "error": "VALIDATION ERROR: Field 'root' must be object, got string. Provide object value instead."
+    },
+    {
+      "id": "lie-underreport",
+      "group": "lie",
+      "valid": true,
+      "output": "done",
+      "expect_valid": true,
+      "expect_output": "done",
+      "ok": true,
+      "prose_accept": true,
+      "error": ""
+    },
+    {
+      "id": "lie-one-under-cap",
+      "group": "lie",
+      "valid": true,
+      "output": "done",
+      "expect_valid": true,
+      "expect_output": "done",
+      "ok": true,
+      "prose_accept": true,
+      "error": ""
+    },
+    {
+      "id": "lie-goal-ignored",
+      "group": "lie",
+      "valid": true,
+      "output": "done",
+      "expect_valid": true,
+      "expect_output": "done",
+      "ok": true,
+      "prose_accept": true,
+      "error": ""
+    },
+    {
+      "id": "lie-failcount-ignored",
+      "group": "lie",
+      "valid": true,
+      "output": "done",
+      "expect_valid": true,
+      "expect_output": "done",
+      "ok": true,
+      "prose_accept": true,
+      "error": ""
+    },
+    {
+      "id": "honest-park",
+      "group": "honest",
+      "valid": true,
+      "output": "park",
+      "expect_valid": true,
+      "expect_output": "park",
+      "ok": true,
+      "prose_accept": true,
+      "error": ""
+    },
+    {
+      "id": "honest-cap",
+      "group": "honest",
+      "valid": true,
+      "output": "timeout",
+      "expect_valid": true,
+      "expect_output": "timeout",
+      "ok": true,
+      "prose_accept": true,
+      "error": ""
+    },
+    {
+      "id": "honest-clock-beats-pass",
+      "group": "honest",
+      "valid": true,
+      "output": "timeout",
+      "expect_valid": true,
+      "expect_output": "timeout",
+      "ok": true,
+      "prose_accept": true,
+      "error": ""
+    },
+    {
+      "id": "honest-over",
+      "group": "honest",
+      "valid": true,
+      "output": "timeout",
+      "expect_valid": true,
+      "expect_output": "timeout",
+      "ok": true,
+      "prose_accept": true,
+      "error": ""
+    },
+    {
+      "id": "string-pass",
+      "group": "string",
+      "valid": true,
+      "output": "park",
+      "expect_valid": true,
+      "expect_output": "park",
+      "ok": true,
+      "prose_accept": true,
+      "error": ""
+    },
+    {
+      "id": "string-fail",
+      "group": "string",
+      "valid": true,
+      "output": "park",
+      "expect_valid": true,
+      "expect_output": "park",
+      "ok": true,
+      "prose_accept": true,
+      "error": ""
+    }
+  ]
+}

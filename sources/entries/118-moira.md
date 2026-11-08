@@ -20,3 +20,5 @@
 | Unpinned image | `:latest` changes under us | Smoke refuses anything but `@sha256:` |
 | Secrets in `.env` | Leak into logs or git | Smoke never reads or prints them; `.env` stays under gitignored `tmp/` |
 | Port clash | 8080 already used | Smoke defaults to 18080 (`$MOIRA_PORT`) |
+
+- **Status**: STAY I1 after the 2026-11-07 nimo probe (`eval/evq1107/moira/`). Pin `b66b537a0465194d8806fa638776237d8cf853c5`, tag v6.0.0, cache checkout `~/.cache/pfy/tools/moira/`. Schema rejected 8/8 bad shapes. The condition stopped 4/4 honest reports. 4/4 schema-valid lies still finished. The completion string changed 0/2 routes. MCP server SKIPPED (account). Not a gate. No Feature GO.
