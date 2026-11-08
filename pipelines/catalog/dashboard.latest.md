@@ -12,8 +12,8 @@ Cards: 129. I2+: 22.
 |-------|------:|
 | I0 | 47 |
 | I1 | 60 |
-| I2 | 13 |
-| I3 | 9 |
+| I2 | 12 |
+| I3 | 10 |
 
 ## Intent counts
 
@@ -96,7 +96,7 @@ Cards: 129. I2+: 22.
 | claude-code-unified-agents | I1 | curated_paths_pack |
 | claude-codex-settings | I1 | pattern_only |
 | Cloudflare security-audit skill | I0 | awareness |
-| codebase-memory-mcp | I2 | smoke_path |
+| codebase-memory-mcp | I3 | smoke_path |
 | CodeGuard | I0 | awareness |
 | colibri | I1 | local_probe_stayed_i1 |
 | Continue.dev | I1 | catalog_default |
