@@ -1,0 +1,9 @@
+{
+  "children": [],
+  "error": "[FAIL]",
+  "input": "",
+  "name": "pregate-combo-0",
+  "output": "pregate: pruning stale run /home/mark/DEVELOP/pfy-mentat/tmp/pg/1375d6b-144233 (owner pid 1888069 is gone)\n[PASS] lint: filemode, launchers, encoded payloads, smoke_contract, catalog, workflow image pin\n[PASS] ci-parity: bwrap hidden; runtime-dir tests pin auto_unsafe=False and pass\n[PASS] gate-hash: tests/ and gate files match HEAD; no committed gate-file change vs base\n[FAIL] ubuntu-parity: exit...[truncated]\nsha256:87b04bf864a9530e2b39d51d9334935523b58138b54e1e937059b23f4ab40025",
+  "project": "pfy-grok",
+  "status": "ERROR"
+}

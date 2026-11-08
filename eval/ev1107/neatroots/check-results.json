@@ -1,0 +1,206 @@
+{
+  "runs": [
+    {
+      "file": "eval/ev1107/neatroots/traces/build-pk1.json",
+      "trace_id": "c4bda4ea4030ef174399de1707a0929b",
+      "root_name": "build-pk1",
+      "findings": []
+    },
+    {
+      "file": "eval/ev1107/neatroots/traces/build-pk2-attempt0.json",
+      "trace_id": "01178dd49a30e7addb487a64d7d0c7a7",
+      "root_name": "build-pk2-attempt0",
+      "findings": [
+        {
+          "check_id": "run-failed",
+          "title": "Run ended with an error",
+          "evidence_span_ids": [
+            "e55940981cd2f5f8"
+          ],
+          "params": {
+            "error": "Couldn't create session"
+          }
+        }
+      ]
+    },
+    {
+      "file": "eval/ev1107/neatroots/traces/build-pk2.json",
+      "trace_id": "ad0bfc440a7f3ac084da808441562ada",
+      "root_name": "build-pk2",
+      "findings": []
+    },
+    {
+      "file": "eval/ev1107/neatroots/traces/build-pk3.json",
+      "trace_id": "821c3eb033f2d36c282a73a8ef06809a",
+      "root_name": "build-pk3",
+      "findings": []
+    },
+    {
+      "file": "eval/ev1107/neatroots/traces/build-pkr.json",
+      "trace_id": "7e41422d5decde4236024019cb5ef5ed",
+      "root_name": "build-pkr",
+      "findings": []
+    },
+    {
+      "file": "eval/ev1107/neatroots/traces/driver-cu.json",
+      "trace_id": "5008011e0e0160583b03ecc8e149b961",
+      "root_name": "driver-cu",
+      "findings": [
+        {
+          "check_id": "run-failed",
+          "title": "Run ended with an error",
+          "evidence_span_ids": [
+            "6a220a4f0cbf8442"
+          ],
+          "params": {
+            "error": "error:"
+          }
+        }
+      ]
+    },
+    {
+      "file": "eval/ev1107/neatroots/traces/pregate-combo-0.json",
+      "trace_id": "c30600320ac54779b1cd2c4b991f2332",
+      "root_name": "pregate-combo-0",
+      "findings": [
+        {
+          "check_id": "run-failed",
+          "title": "Run ended with an error",
+          "evidence_span_ids": [
+            "608a474a7b7da0dd"
+          ],
+          "params": {
+            "error": "[FAIL]"
+          }
+        }
+      ]
+    },
+    {
+      "file": "eval/ev1107/neatroots/traces/pregate-pk1-0.json",
+      "trace_id": "5c1f6c3abce6abe0a59ea95e0e5b2603",
+      "root_name": "pregate-pk1-0",
+      "findings": [
+        {
+          "check_id": "run-failed",
+          "title": "Run ended with an error",
+          "evidence_span_ids": [
+            "353c38731ff458a3"
+          ],
+          "params": {
+            "error": "[FAIL]"
+          }
+        }
+      ]
+    },
+    {
+      "file": "eval/ev1107/neatroots/traces/session-cloud-help-streak.json",
+      "trace_id": "2d39231f131220272baccd9710b11201",
+      "root_name": "cloud-help-streak",
+      "findings": [
+        {
+          "check_id": "tool-error-streak",
+          "title": "Several tool calls failed in a row",
+          "evidence_span_ids": [
+            "d308cbb0e0607e6d",
+            "a8f0cca96f97cf7b",
+            "ea8ce91736f337d3"
+          ],
+          "params": {
+            "tool": "read_file",
+            "error": "Error: /home/mark/DEVELOP/pfy-mentat/tmp/mvp-intfix-1031/docs/ops/HANDOFF-mvp-intfix-1031.md does not exist.",
+            "count": "3"
+          }
+        }
+      ]
+    },
+    {
+      "file": "eval/ev1107/neatroots/traces/session-local-build-grep.json",
+      "trace_id": "b00f56f8e4fcffed2018ca9526579803",
+      "root_name": "local-build-grep",
+      "findings": [
+        {
+          "check_id": "repeated-tool-call",
+          "title": "Same tool called repeatedly with identical arguments",
+          "evidence_span_ids": [
+            "0a6d421a9d1c6671",
+            "02113a8ced64a60f",
+            "c9505d1a1ea95a6b"
+          ],
+          "params": {
+            "tool": "grep",
+            "count": "3",
+            "args": "{\"path\":\"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-local-build/docs/ops/AUTONOMOUS-DECISIONS-2026-10-26.md\",\"pattern\":\"\\u20…",
+            "result": "<workspace_result workspace_path=\"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-local-build\">\nNo matches found\n</workspace_resu…"
+          }
+        },
+        {
+          "check_id": "soft-tool-failure",
+          "title": "A tool reported success but its output looks like a failure",
+          "evidence_span_ids": [
+            "16953e4bcf232a8e",
+            "c94c2508bf249c0b"
+          ],
+          "params": {
+            "count": "2",
+            "span": "16953e"
+          }
+        }
+      ]
+    },
+    {
+      "file": "eval/ev1107/neatroots/traces/session-mvp2-local-build.json",
+      "trace_id": "91f5a0a3f9a8a438efb9895a30084e2f",
+      "root_name": "mvp2-local-build",
+      "findings": [
+        {
+          "check_id": "repeated-tool-call",
+          "title": "Same tool called repeatedly with identical arguments",
+          "evidence_span_ids": [
+            "6f2d13618a8c245c",
+            "311eecf356529977",
+            "0f59049c1111c4d1",
+            "a40e39f3838ab508",
+            "f01eb44f4dda88ff",
+            "d388200dd464b4fa"
+          ],
+          "params": {
+            "tool": "read_file",
+            "count": "6",
+            "args": "{\"target_file\":\"/home/mark/DEVELOP/pfy-mentat/tmp/mvp2/tmp/mvp2-runs/logs/all-local.stdout\"}\nsha256:3096c53db43fc90a2b0…",
+            "result": "[Tool result omitted — too old]\nsha256:3b43f2f1bd52ea12d4ef6353fb68dcc8b3d3d14c0a39c8aaed0bcc8c8cacc8d5"
+          }
+        },
+        {
+          "check_id": "runaway-loop",
+          "title": "Unusually many LLM calls in one run",
+          "evidence_span_ids": [
+            "568869a5bd21ef29",
+            "0992eb4c2261a8c8",
+            "589cfdba21702adf",
+            "80c3b249928a6daf",
+            "679b3207738ed433"
+          ],
+          "params": {
+            "count": "34"
+          }
+        }
+      ]
+    }
+  ],
+  "rules": [
+    "repeated-tool-call",
+    "tool-error-streak",
+    "llm-call-failed",
+    "runaway-loop",
+    "token-budget",
+    "secret-in-output",
+    "unrecovered-tool-failure",
+    "secret-in-tool-output",
+    "soft-tool-failure",
+    "context-growth",
+    "tool-cycle",
+    "run-failed",
+    "empty-final-answer"
+  ],
+  "errors": []
+}

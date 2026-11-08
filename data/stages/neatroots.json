@@ -1,19 +1,32 @@
 {
   "name": "neatroots",
-  "integration_stage": "I0",
-  "intent": "awareness",
+  "integration_stage": "I2",
+  "intent": "ad_hoc_probe",
   "entry": "sources/entries/137-neatroots.md",
   "github": "https://github.com/neatlogs/neatroots",
-  "uses": "Offline trace rule checks (loops, repeated tool calls, error streaks) for eval runs.",
+  "uses": "Offline rule checks for loops, repeated tool calls, and error streaks on saved agent traces.",
+  "features": [
+    "offline neatroots check",
+    "13 library rules",
+    "exit 0 clean, 1 finding, 2 bad input",
+    "Neatlogs HTTP trace import"
+  ],
   "potential": "medium",
-  "next_gate": "Needs a Grok Build or opencode trace export before it can check our runs. Trial after skill-up lands.",
-  "tier_ceiling": "I1",
+  "next_gate": "Stay I2. Do not wire a gate from this lane. Next proof is a check that does not treat Grok's omitted tool-result placeholder as a repeated result, and a separate ticket if this should sit on an eval receipt.",
+  "tier_ceiling": "I2",
   "non_goals": [
     "feature_go",
-    "catalog_hold_70_75"
+    "catalog_hold_70_75",
+    "neatroots_start_connect_or_install_sh",
+    "hosted_llm",
+    "laya_download",
+    "gate_wiring"
   ],
   "evidence": [
-    "entry:sources/entries/137-neatroots.md"
+    "entry:sources/entries/137-neatroots.md",
+    "eval/ev1107/neatroots/REPORT.md",
+    "eval/ev1107/neatroots/VERDICT",
+    "eval/ev1107/neatroots/check-results.json"
   ],
   "handoff_by": "llm"
 }

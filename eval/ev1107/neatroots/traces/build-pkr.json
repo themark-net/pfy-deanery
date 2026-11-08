@@ -1,0 +1,8 @@
+{
+  "children": [],
+  "input": "",
+  "name": "build-pkr",
+  "output": "I'll read the ticket and the project context it depends on, then carry it out as written.The ticket adds a catalog-first rule to the stage scheme and makes `catalog_check` enforce it. I'll inspect the current branch, catalog, and the files the other lanes own so I only touch this lane's scope.The stages split is already on this branch. Next I\u2019ll read the stage loader, the catalog check, and the so...[truncated]\nsha256:34d0865e5fda3083abb57a46c6cf9b354e760b7c065833571242a5ed5cc2ebfe",
+  "project": "pfy-grok",
+  "status": "OK"
+}
