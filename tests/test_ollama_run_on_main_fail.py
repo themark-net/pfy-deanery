@@ -110,10 +110,16 @@ class OllamaRunOnMainFailTest(unittest.TestCase):
     def test_this_worktree_is_not_a_receipt(self) -> None:
         with tempfile.TemporaryDirectory() as raw:
             td = Path(raw)
+            # Fixture checkout one commit ahead of origin/main, so this checks
+            # the refusal and not whether a receipt is committed on main.
+            repo = td / "repo"
+            init_main_repo(repo)
+            git(repo, "commit", "--allow-empty", "-m", "ahead")
+            script = install_probe(repo, "http://127.0.0.1:9/api/version")
             dest = td / "receipt.json"
             dest.write_text("keep\n", encoding="utf-8")
             lock = td / "model.lock"
-            proc = run_probe(SCRIPT, ROOT, dest, lock)
+            proc = run_probe(script, repo, dest, lock)
             self.assertEqual(proc.returncode, 1, proc.stderr + proc.stdout)
             self.assertIn("not an ancestor", proc.stderr)
             self.assertEqual(dest.read_text(encoding="utf-8"), "keep\n")
