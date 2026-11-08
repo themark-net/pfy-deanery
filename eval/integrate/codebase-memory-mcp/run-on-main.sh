@@ -1,28 +1,67 @@
 #!/bin/bash
-# Code-graph fixture smoke on a commit that is already an ancestor of origin/main.
+# Code-graph fixture smoke. HEAD must be an ancestor of origin/main.
+# The receipt is written only after that check and the fixture smoke exit 0.
+#
 # A second start that finds
 # /home/mark/DEVELOP/pfy-mentat/tmp/integrate2/codebase-memory-mcp.dispatched
-# must exit 2 and write no receipt. The lane keeps that marker while it runs
-# this script, so a one-argument receipt call is not a second start.
+# exits 2 and writes no receipt, unless that marker's pid is an ancestor of
+# this process. The driver writes "pid <lane-pid>" and still holds the marker
+# when it runs the one-argument receipt call, so that admitted lane continues.
+# This script does not create or remove the marker.
+#
 # The main push is one flock fast-forward on
 # /home/mark/DEVELOP/pfy-mentat/tmp/integrate2/push.lock.
-# The smoke lock is the fixture directory only. No model call.
+# This script does not take that lock. The smoke lock is the fixture
+# directory only (flock). No model call.
+#
 # Usage: eval/integrate/codebase-memory-mcp/run-on-main.sh RECEIPT_PATH
 # Driver, after this commit is on origin/main:
 #   bash eval/integrate/codebase-memory-mcp/run-on-main.sh eval/integrate/codebase-memory-mcp/receipt.json
 # A timeout is not a pass. Missing binary, non-ancestor HEAD, or a nonzero
-# smoke exits nonzero and does not create that receipt.json.
+# smoke exits nonzero and does not create the receipt.
 
 set -euo pipefail
 
-MARKER=/home/mark/DEVELOP/pfy-mentat/tmp/integrate2/codebase-memory-mcp.dispatched
+MARKER=${PFY_CBM_LANE_MARKER:-/home/mark/DEVELOP/pfy-mentat/tmp/integrate2/codebase-memory-mcp.dispatched}
 
 if [ "$#" -ne 1 ] || [ -z "${1:-}" ]; then
-  if [ -f "$MARKER" ]; then
-    printf '%s\n' "already dispatched: $MARKER" >&2
-  fi
   printf '%s\n' "usage: eval/integrate/codebase-memory-mcp/run-on-main.sh RECEIPT_PATH" >&2
   exit 2
+fi
+
+marker_pid_is_ancestor() {
+  local file=$1
+  local target cur guard ppid
+  # Unreadable or pid-less marker is not an admitted lane.
+  target=$(sed -n 's/^pid \([0-9][0-9]*\)[[:space:]]*$/\1/p' "$file" 2>/dev/null || true)
+  target=${target%%$'\n'*}
+  if [ -z "$target" ]; then
+    return 1
+  fi
+  cur=$$
+  guard=0
+  while [ "$cur" -gt 1 ] && [ "$guard" -lt 40 ]; do
+    if [ "$cur" = "$target" ]; then
+      return 0
+    fi
+    if [ ! -r "/proc/$cur/status" ]; then
+      return 1
+    fi
+    ppid=$(awk '/^PPid:/ {print $2}' "/proc/$cur/status" 2>/dev/null || true)
+    if [ -z "$ppid" ] || [ "$ppid" = "$cur" ]; then
+      return 1
+    fi
+    cur=$ppid
+    guard=$((guard + 1))
+  done
+  return 1
+}
+
+if [ -f "$MARKER" ]; then
+  if ! marker_pid_is_ancestor "$MARKER"; then
+    printf '%s\n' "already dispatched: $MARKER" >&2
+    exit 2
+  fi
 fi
 
 receipt=$1
@@ -36,6 +75,10 @@ fi
 sha=$(git rev-parse HEAD)
 if ! git merge-base --is-ancestor "$sha" origin/main; then
   printf '%s\n' "HEAD is not an ancestor of origin/main" >&2
+  exit 1
+fi
+if [[ ! "$sha" =~ ^[0-9a-f]{40}$ ]]; then
+  printf '%s\n' "main_sha is not 40 hex characters" >&2
   exit 1
 fi
 
@@ -70,6 +113,7 @@ if ! flock -n 7; then
 fi
 
 cache=$(mktemp -d "${TMPDIR:-/tmp}/cbm-integrate.XXXXXX")
+mkdir -p "$cache/db"
 receipt_tmp=
 cleanup() {
   if [ -n "${cache:-}" ]; then
@@ -88,12 +132,17 @@ export CBM_LOG_LEVEL=${CBM_LOG_LEVEL:-error}
 project=pfy-mentat-cm-smoke
 
 set +e
-version=$(timeout 30 "$bin" --version 2>/dev/null | head -n 1 | tr -d '\r')
+version=$(timeout 30 "$bin" --version 2>/dev/null)
 vrc=$?
 set -e
 if [ "$vrc" -ne 0 ]; then
+  if [ "$vrc" -eq 124 ]; then
+    printf '%s\n' "version timeout" >&2
+  fi
   exit "$vrc"
 fi
+version=${version%%$'\n'*}
+version=${version//$'\r'/}
 if [ -z "$version" ]; then
   version=codebase-memory-mcp
 fi
@@ -106,29 +155,35 @@ run_cli() {
   rc=$?
   set -e
   printf '%s\n' "$cli_out" >&2
+  if [ "$rc" -eq 124 ]; then
+    printf '%s\n' "smoke timeout" >&2
+    exit 124
+  fi
   if [ "$rc" -ne 0 ]; then
     exit "$rc"
   fi
 }
 
+out_has() {
+  grep -q "$1" <<<"$cli_out"
+}
+
 started=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 run_cli cli index_repository --repo-path "$fixture" --name "$project" --mode fast
-printf '%s\n' "$cli_out" | grep -q '"status":"indexed"' \
-  || printf '%s\n' "$cli_out" | grep -qi 'indexed' \
-  || {
-    printf '%s\n' "index did not report indexed" >&2
-    exit 1
-  }
+if ! out_has '"status":"indexed"' && ! grep -qi 'indexed' <<<"$cli_out"; then
+  printf '%s\n' "index did not report indexed" >&2
+  exit 1
+fi
 run_cli cli list_projects
-printf '%s\n' "$cli_out" | grep -q "$project" || {
+if ! out_has "$project"; then
   printf '%s\n' "project $project not listed" >&2
   exit 1
-}
+fi
 run_cli cli search_code --pattern greet --project "$project" --limit 5
-printf '%s\n' "$cli_out" | grep -Eiq 'greet|app\.py' || {
+if ! grep -Eiq 'greet|app\.py' <<<"$cli_out"; then
   printf '%s\n' "search_code did not hit the fixture" >&2
   exit 1
-}
+fi
 finished=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
 # Write receipt.json only after the smoke exits 0.
