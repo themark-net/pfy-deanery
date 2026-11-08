@@ -1,18 +1,25 @@
 #!/bin/bash
 # One catalog loop tick. Idempotent. Does not install units and does not
 # start a model. PFY_LOOP_NO_PUSH=1 and --dry-run push nothing.
+# Optional command word: tick (same as no argument).
 #
-# State: ${PFY_LOOP_STATE:-$HOME/DEVELOP/pfy-mentat/tmp/loop}
+# State: ${PFY_CATALOG_STATE_DIR:-${PFY_LOOP_STATE:-$HOME/DEVELOP/pfy-mentat/tmp/loop}}
 # Worktree: ${PFY_LOOP_WT:-$HOME/DEVELOP/pfy-mentat/tmp/loop/wt}
 # Lock: STATE/loop.lock. A busy lock exits 0 with status busy.
 # STOP and QUOTA_STOP exit 0 with status stopped and launch nothing.
+# PFY_CATALOG_OFFLINE=1 skips fetch, regen writes, and push. Tests use it.
+# PFY_SUPERSEDE_CHECK, when set, replaces python3 scripts/supersede_check.py.
 set -euo pipefail
 
 export GIT_TERMINAL_PROMPT=0
 export PYTHONDONTWRITEBYTECODE=1
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-STATE="${PFY_LOOP_STATE:-$HOME/DEVELOP/pfy-mentat/tmp/loop}"
+if [ -n "${PFY_CATALOG_STATE_DIR:-}" ]; then
+  STATE="$PFY_CATALOG_STATE_DIR"
+else
+  STATE="${PFY_LOOP_STATE:-$HOME/DEVELOP/pfy-mentat/tmp/loop}"
+fi
 WT="${PFY_LOOP_WT:-$HOME/DEVELOP/pfy-mentat/tmp/loop/wt}"
 REPO="${PFY_LOOP_REPO:-$HOME/DEVELOP/pfy-mentat}"
 INTEGRATE_ROOT="${PFY_INTEGRATE_ROOT:-$HOME/DEVELOP/pfy-mentat/tmp/integrate}"
@@ -27,6 +34,9 @@ while [ $# -gt 0 ]; do
       DRY=1
       shift
       ;;
+    tick)
+      shift
+      ;;
     *)
       printf '%s\n' "unknown arg: $1" >&2
       exit 2
@@ -35,6 +45,26 @@ while [ $# -gt 0 ]; do
 done
 
 mkdir -p "$STATE"
+
+OFFLINE=0
+if [ "${PFY_CATALOG_OFFLINE:-}" = "1" ]; then
+  # No fetch and no regen writes. Isolate marker roots so a live integrate2
+  # batch cannot fill the cap or receive a ticket from this test tick.
+  OFFLINE=1
+  export PFY_LOOP_NO_PUSH=1
+  if [ -z "${PFY_LOOP_WT:-}" ]; then
+    WT="$STATE/offline-wt"
+  fi
+  if [ -z "${PFY_INTEGRATE_ROOT:-}" ]; then
+    INTEGRATE_ROOT="$STATE/integrate"
+  fi
+  if [ -z "${PFY_INTEGRATE2_ROOT:-}" ]; then
+    INTEGRATE2_ROOT="$STATE/integrate2"
+  fi
+  if [ -z "${PFY_EVQ_ROOT:-}" ]; then
+    EVQ_ROOT="$STATE/evq"
+  fi
+fi
 
 now_pair() {
   printf '%s' "{\"utc\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"pt\":\"$(TZ=America/Los_Angeles date +%Y-%m-%dT%H:%M:%S%z)\"}"
@@ -57,6 +87,8 @@ export PFY_RAISED="[]"
 export PFY_REFUSED="[]"
 export PFY_PARKED="[]"
 export PFY_ERRORS="[]"
+export PFY_SUPERSEDE=""
+export PFY_SUPERSEDE_STALE="[]"
 
 write_status() {
   local status="$1"
@@ -97,6 +129,8 @@ doc = {
     "refused": grab("PFY_REFUSED", []),
     "parked": grab("PFY_PARKED", []),
     "errors": grab("PFY_ERRORS", []),
+    "supersede": os.environ.get("PFY_SUPERSEDE", ""),
+    "supersede_stale": grab("PFY_SUPERSEDE_STALE", []),
 }
 text = json.dumps(doc, indent=2, sort_keys=True) + "\n"
 for dest in (state_path, repo_path):
@@ -120,6 +154,156 @@ fail() {
   write_status error || true
   printf '%s\n' "status=error ${msg}" >&2
   exit "$code"
+}
+
+drop_supersede_rows() {
+  local dest="$1"
+  python3 - "$dest" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+if not path.is_file():
+    raise SystemExit(0)
+kept = []
+for line in path.read_text(encoding="utf-8").splitlines():
+    parts = line.split("\t")
+    if len(parts) >= 2 and parts[1] == "supersede-stop":
+        continue
+    kept.append(line)
+body = [line for line in kept if line and not line.startswith("slug\t")]
+if not body:
+    path.unlink()
+    raise SystemExit(0)
+path.write_text("\n".join(kept) + "\n", encoding="utf-8")
+PY
+}
+
+append_supersede_row() {
+  local dest="$1"
+  local slug="$2"
+  local since="$3"
+  python3 - "$dest" "$slug" "$since" <<'PY'
+import sys
+from pathlib import Path
+
+dest, slug, since = sys.argv[1:]
+slug = slug.replace("\t", " ").strip() or "supersede-watch"
+header = "slug\tkind\treason\tevidence\tsince"
+row = "\t".join((
+    slug,
+    "supersede-stop",
+    "supersede check exit 1",
+    "scripts/supersede_check.py",
+    since or "-",
+))
+path = Path(dest)
+lines = path.read_text(encoding="utf-8").splitlines() if path.is_file() else []
+for line in lines:
+    parts = line.split("\t")
+    if len(parts) >= 2 and parts[0] == slug and parts[1] == "supersede-stop":
+        raise SystemExit(0)
+if not lines or not lines[0].startswith("slug\t"):
+    lines.insert(0, header)
+lines.append(row)
+path.parent.mkdir(parents=True, exist_ok=True)
+path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+PY
+}
+
+supersede_project_id() {
+  python3 - "$1" "$2" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+def read(path):
+    file = Path(path)
+    if not file.is_file():
+        return []
+    return file.read_text(encoding="utf-8", errors="replace").splitlines()
+
+named = []
+bare = []
+skip = ("projects=", "candidate:", "stale:", "note:")
+for raw in read(sys.argv[1]) + read(sys.argv[2]):
+    text = raw.strip()
+    if not text or text.startswith(skip):
+        continue
+    if text.startswith("FAIL "):
+        body = text[5:].strip()
+        if body.startswith("cannot read") or ":" not in body:
+            continue
+        name = body.split(":", 1)[0].strip()
+        if not name or "must be" in name:
+            continue
+        named.append(name)
+        continue
+    if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", text):
+        bare.append(text)
+if named:
+    print(named[0])
+elif bare:
+    print(bare[0])
+else:
+    print("supersede-watch")
+PY
+}
+
+run_supersede_check() {
+  local out="$STATE/supersede.out"
+  local err="$STATE/supersede.err"
+  local rc=0
+  local slug=""
+  local since=""
+  SUPERSEDE_ACTION=error
+  PFY_SUPERSEDE=""
+  export PFY_SUPERSEDE
+  : >"$out"
+  : >"$err"
+  set +e
+  if [ -n "${PFY_SUPERSEDE_CHECK:-}" ]; then
+    timeout 60 "$PFY_SUPERSEDE_CHECK" >"$out" 2>"$err"
+    rc=$?
+  else
+    # Reads data/supersede-watchlist.json only. No offline flag exists.
+    # Passing one would make argparse exit 2 and stop every tick.
+    timeout 60 python3 scripts/supersede_check.py >"$out" 2>"$err"
+    rc=$?
+  fi
+  set -e
+  if [ "$rc" -eq 0 ]; then
+    PFY_SUPERSEDE_STALE=$(python3 - "$out" <<'PY'
+import json
+import sys
+from pathlib import Path
+text = Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")
+stale = [line for line in text.splitlines() if line.startswith("stale:")]
+print(json.dumps(stale))
+PY
+)
+    export PFY_SUPERSEDE_STALE
+    drop_supersede_rows "$STATE/needs-mark.tsv"
+    SUPERSEDE_ACTION=continue
+    return 0
+  fi
+  if [ "$rc" -eq 1 ]; then
+    slug=$(supersede_project_id "$out" "$err")
+    since=$(TZ=America/Los_Angeles date +%Y-%m-%d)
+    append_supersede_row "$STATE/needs-mark.tsv" "$slug" "$since"
+    if [ "$OFFLINE" -eq 0 ]; then
+      append_supersede_row "eval/catalog-queue/needs-mark.tsv" "$slug" "$since"
+    fi
+    PFY_SUPERSEDE=stop
+    export PFY_SUPERSEDE
+    SUPERSEDE_ACTION=stop
+    return 0
+  fi
+  # Exit other than 0 or 1, including timeout 124. No stop row.
+  # The tick still exits 0. Grilled tests require that. Status carries error.
+  PFY_ERRORS=$(python3 -c 'import json,sys; print(json.dumps([sys.argv[1]]))' "supersede check exit ${rc}")
+  export PFY_ERRORS
+  SUPERSEDE_ACTION=error
 }
 
 json_list() {
@@ -156,7 +340,9 @@ if [ "${PFY_LOOP_IN_WORKTREE:-}" != "1" ]; then
     write_status busy
     exit 0
   fi
-  if ! in_prepared_worktree; then
+  if [ "$OFFLINE" -eq 1 ]; then
+    export PFY_LOOP_IN_WORKTREE=1
+  elif ! in_prepared_worktree; then
     export PFY_LOOP_IN_WORKTREE=1
     if [ "$DRY" -eq 1 ]; then
       "$SCRIPT_DIR/loop_worktree.sh" --wt "$WT" -- scripts/catalog_loop.sh --dry-run
@@ -187,6 +373,14 @@ export GIT_COMMITTER_EMAIL=catalog-loop@localhost
 
 origin_main=$(git rev-parse origin/main 2>/dev/null || true)
 export PFY_ORIGIN_MAIN="$origin_main"
+
+applied=()
+refused=()
+raised=()
+SUPERSEDE_ACTION=continue
+if [ "$OFFLINE" -eq 1 ]; then
+  run_supersede_check
+else
 
 python3 scripts/catalog_counts.py || fail "catalog_counts failed"
 python3 scripts/catalog_eval_queue.py || fail "catalog_eval_queue failed"
@@ -258,6 +452,8 @@ fi
 needs_count=$(printf '%s\n' "$needs_line" | awk '{print $2}')
 PFY_NEEDS_COUNT=${needs_count:-0}
 export PFY_NEEDS_CHANGED PFY_NEEDS_COUNT
+
+run_supersede_check
 
 allow_args=()
 for slug in "${raised[@]+"${raised[@]}"}"; do
@@ -347,6 +543,8 @@ if [ "$commit_rc" -eq 3 ]; then
 elif [ "$commit_rc" -ne 0 ]; then
   fail "loop commit failed"
 fi
+
+fi # online regeneration. PFY_CATALOG_OFFLINE=1 skips this block.
 
 today=$(TZ=America/Los_Angeles date +%Y%m%d)
 counter="$STATE/started-${today}"
@@ -439,6 +637,11 @@ if [ "$started" -ge 20 ]; then
 fi
 export PFY_STARTED_TODAY="$started"
 export PFY_SLOTS="$slots"
+if [ "$SUPERSEDE_ACTION" = "stop" ]; then
+  status_name=stopped
+elif [ "$SUPERSEDE_ACTION" = "error" ]; then
+  status_name=error
+fi
 
 pid_alive() {
   local file="$1"
@@ -516,7 +719,7 @@ PY
 
 launched=()
 skipped=()
-if [ "$DRY" -eq 0 ] && [ -f eval/catalog-queue/queue.tsv ]; then
+if [ "$SUPERSEDE_ACTION" = "continue" ] && [ "$DRY" -eq 0 ] && [ -f eval/catalog-queue/queue.tsv ]; then
   while IFS=$'\t' read -r n slug mode gap entry card why; do
     [ "${n:-}" = "n" ] && continue
     [ -n "${slug:-}" ] || continue

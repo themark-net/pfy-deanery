@@ -16,6 +16,8 @@ A Build lane does not install systemd units and does not start the real loop. Th
 - Integrate markers also live under `$PFY_INTEGRATE_ROOT` and `$PFY_INTEGRATE2_ROOT`.
 - Eval markers from the old queue also live under `$PFY_EVQ_ROOT`.
 - `PFY_LOOP_NO_PUSH=1` and `--dry-run` push nothing. `--dry-run` does not launch. `PFY_LOOP_NO_PUSH=1` still launches.
+- `PFY_CATALOG_STATE_DIR`, when set, is the state dir instead of `$PFY_LOOP_STATE`.
+- `PFY_CATALOG_OFFLINE=1` skips fetch, regeneration writes, and push. Production leaves it unset.
 
 ## Outputs
 
@@ -32,7 +34,7 @@ Path: `eval/catalog-queue/needs-mark.tsv`.
 
 Columns: `slug`, `kind`, `reason`, `evidence`, `since`.
 
-`kind` is one of: `ceiling`, `gpu`, `pull-over-25gb`, `excluded`, `demotion-flag`, `parked`, `risky-class`.
+`kind` is one of: `ceiling`, `gpu`, `pull-over-25gb`, `excluded`, `demotion-flag`, `parked`, `risky-class`, `supersede-stop`.
 
 The loop skips every slug in that file. Do not launch them by hand from the loop.
 
@@ -58,6 +60,22 @@ Taken, so the tick will not launch the slug:
 - Budget: at most 20 starts per PT calendar day and at most 4 lanes at once. The counter is `started-YYYYMMDD`.
 - GPU, pulls over 25 GB, trading, release, deploy, and secrets are never launched.
 - Hang check: `$PFY_LOOP_STATE/tails.json`. A repeated identical log tail sets `hang_same_tail` on that running row, with `pid_age_s`.
+
+## Supersede stop
+
+The tick runs `python3 scripts/supersede_check.py` in the loop worktree after regeneration and before launch. The limit is 60 seconds. Tests set `PFY_SUPERSEDE_CHECK` to a stub executable. The checker reads the local watchlist only. It has no network mode and no offline flag. Do not invent one. An unknown flag makes it exit 2, and the tick then records status `error` and launches nothing.
+
+- Exit 0: launch continues. Lines that start with `stale:` are copied in order to `loop.latest.json` field `supersede_stale`. They do not add a needs-mark row.
+- Exit 1: no-reinvention STOP. Append one `needs-mark.tsv` row with kind `supersede-stop`. The slug is the project id named in the checker output, or `supersede-watch` when it names none. Set `supersede` to `stop` and `status` to `stopped`. Launch nothing this tick. A later tick that still exits 1 does not append a second row for the same slug.
+- Any other exit, including 124: `status` is `error`. Launch nothing. Do not write a supersede-stop row. The tick exits 0. Regeneration failures and a failed `systemd-run` still exit nonzero.
+
+### How Mark clears it
+
+1. Read the `supersede-stop` row and the checker output.
+2. Decide adopt, adopt parts, or keep going. Record that on `data/supersede-watchlist.json`.
+3. A project that covers all four parts in full stays exit 1 until its verdict is `replace_us`.
+4. When the checker exits 0, the next tick rewrites `eval/catalog-queue/needs-mark.tsv` and does not put the stop row back.
+5. This is not the `STOP` file. Do not delete `STATE/STOP` to clear a supersede stop.
 
 ## Retry
 

@@ -38,9 +38,20 @@ Run the command once. If the line starts with `duplicate`, stop. Do not call `--
 - Duplicate: stop. Do not edit the matched card in this step.
 - Do not raise `tier_ceiling` or `integration_stage` here.
 
+## Supersede intake hook
+
+When the source may cover track, catalog, evaluate, or integrate, ask the checker. Do not reimplement the part count.
+
+```bash
+python3 scripts/supersede_check.py --parts track,catalog
+```
+
+The command prints one JSON object with `supersede_candidate`. True means two or more of those parts. Tag the source `#supersede-candidate` and add a row to `data/supersede-watchlist.json`. A false result does not add a row. This command does not run the catalog loop.
+
 ## Commands
 
 ```bash
 python3 scripts/catalog_intake_dedupe.py "<source>"
 python3 scripts/catalog_intake_dedupe.py "<source>" --write-card
+python3 scripts/supersede_check.py --parts track,catalog
 ```

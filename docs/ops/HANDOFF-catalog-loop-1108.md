@@ -68,7 +68,7 @@ STATE/integrate/LANDED_<slug>
 
 The loop worktree is `$PFY_LOOP_WT` (default `$HOME/DEVELOP/pfy-mentat/tmp/loop/wt`). `scripts/loop_worktree.sh` fetches and resets that worktree to `origin/main` on each tick.
 
-`loop.latest.json` fields: `tick_started`, `tick_finished` (each `{"utc","pt"}`), `origin_main`, `status` (`ok`, `stopped`, `busy`, `quota`, `error`), `stop_files`, `running` (`slug`, `kind`, `unit`, `pid`, `source`, plus `pid_age_s` and `hang_same_tail` when set), `started_today`, `cap` (`{"running":4,"daily":20}`), `slots`, `launched`, `skipped_taken`, `needs_mark_count`, `needs_mark_changed`, `applied`, `auto_raised`, `refused`, `parked`, `errors`.
+`loop.latest.json` fields: `tick_started`, `tick_finished` (each `{"utc","pt"}`), `origin_main`, `status` (`ok`, `stopped`, `busy`, `quota`, `error`), `stop_files`, `running` (`slug`, `kind`, `unit`, `pid`, `source`, plus `pid_age_s` and `hang_same_tail` when set), `started_today`, `cap` (`{"running":4,"daily":20}`), `slots`, `launched`, `skipped_taken`, `needs_mark_count`, `needs_mark_changed`, `applied`, `auto_raised`, `refused`, `parked`, `errors`, `supersede` (`stop` or empty), `supersede_stale` (list of `stale:` lines).
 
 `status` is `quota` when the daily cap blocks launches. It is `ok` when the running cap is the only reason `slots` is 0. A busy lock exits 0 with `busy` and launches nothing.
 
@@ -97,7 +97,7 @@ Retry: read `<dir>/<slug>.parked`, then remove `.dispatched`. A leftover `.parke
 
 Path: `eval/catalog-queue/needs-mark.tsv`. Header: `slug`, `kind`, `reason`, `evidence`, `since`. Bytes are deterministic. The file is replaced only when the bytes change.
 
-`kind` is one of: `ceiling`, `gpu`, `pull-over-25gb`, `excluded`, `demotion-flag`, `parked`, `risky-class`.
+`kind` is one of: `ceiling`, `gpu`, `pull-over-25gb`, `excluded`, `demotion-flag`, `parked`, `risky-class`, `supersede-stop`.
 
 Sources: `scripts/integrate_intake.py` flags, `eval/catalog-queue/exclusions.tsv` rows whose reason says Mark, GPU, or 25 GB, demotion rows in `eval/catalog-verdicts/CEILING-MISMATCHES.md`, auto-raise refusals by class, and parked lane files. Evidence paths are repo-relative. `since` is an ISO date from the parked file's first line, otherwise `-`.
 
@@ -131,7 +131,7 @@ GPU runs and model pulls over 25 GB always need Mark. Trading, release, deploy, 
 1. What triggers it? The hourly user timer `catalog-loop.timer`, one manual `systemctl --user start catalog-loop.service`, or one `scripts/catalog_loop.sh` tick. The service fetches `origin/main` and runs through `scripts/loop_worktree.sh`.
 2. What does it do, and which services does it read and write? It reads `origin/main`, `data/stages/<slug>.json`, verdicts, receipts, `eval/catalog-queue/exclusions.tsv`, intake flags, and lane markers including integrate2 pid files. It writes the counts files, `eval/catalog-queue/queue.tsv`, `needs-mark.tsv`, `eval/catalog-verdicts/CEILING-MISMATCHES.md`, ceiling and stage fields through the apply and raise scripts, and `STATE/loop.latest.json`. When bytes change and push is allowed, it commits as `catalog-loop` and fast-forwards `main`. It then starts at most `slots` user units through `systemd-run` (`PFY_SYSTEMD_RUN` in tests).
 3. What does it trigger next? `scripts/integrate_lane.sh --slug <slug>` for an I2 card whose ceiling is already I3 or I4 and which has no receipt. Every other launchable card goes to `scripts/eval_lane.sh --slug <slug>`. The next tick applies a landed verdict or receipt.
-4. Where does a human re-enter? `needs-mark.tsv`, a human `STOP` or `QUOTA_STOP`, and a parked lane after the `.parked` reason is read. GPU, pulls over 25 GB, security, live-money, runtime-takeover, unknown, release, and deploy stay with Mark. The operator installs the timer.
+4. Where does a human re-enter? `needs-mark.tsv` (including a `supersede-stop` row), a human `STOP` or `QUOTA_STOP`, and a parked lane after the `.parked` reason is read. GPU, pulls over 25 GB, security, live-money, runtime-takeover, unknown, release, and deploy stay with Mark. The operator installs the timer. Mark clears a supersede stop by updating `data/supersede-watchlist.json` so `scripts/supersede_check.py` exits 0. The next tick drops the row. Do not delete `STATE/STOP` for that.
 5. What stops two runs doing the same work? `flock -n` on `STATE/loop.lock`, the noclobber `.dispatched` marker, and the taken markers listed above. There is no global CI lock and no second scheduler.
 
 ## Catalog-first
@@ -146,3 +146,36 @@ Checked `docs/eval/TOOLSET-RANKING.md`, stage `uses` / `features` / `tags`, `doc
 - SkillSpector, skill-up, and asm (agent-skill-manager): not used as the skill index. First-party skills already have `SKILL.md` frontmatter plus `bootstrap/grok-cli/manifest.json`. The offline check is `verify_skills.py` (`make smoke-grok-skills` without `INSTALLED=1`). SkillSpector's card says not to vendor it and not to make it a pregate. skill-up grades a with/without harness gap. asm is an I1 reference card, not this repo's installer.
 
 `PFY_LOOP_NO_PUSH=1` and `--dry-run` push nothing. `--dry-run` does not launch. `PFY_LOOP_NO_PUSH=1` still launches.
+
+## Supersede watch hook
+
+Lane `supersede`. LIVE_HARD_OFF stays true. The tick calls `python3 scripts/supersede_check.py` in the loop worktree after `scripts/catalog_needs_mark.py` and before launch. Timeout is 60 seconds (`timeout` exit 124 counts as an error). `PFY_SUPERSEDE_CHECK`, when set, is the executable instead of that command. Same pattern as `PFY_SYSTEMD_RUN`.
+
+The checker reads `data/supersede-watchlist.json` only. It has no network mode and no `--offline` flag. The tick does not pass one. A stub that exits 2 is how tests stand in for "this would need the network": status `error`, no launch.
+
+- Exit 0: continue. `stale:` lines, in order, go to `supersede_stale`. Other lines are ignored. Launch proceeds. No `supersede-stop` row.
+- Exit 1: append one needs-mark row, kind `supersede-stop`. The slug is the project id the checker names (a `FAIL <id>:` line, or one bare id token), otherwise `supersede-watch`. `supersede` is `stop`. `status` is `stopped`. That tick launches nothing. The same slug is not appended twice. The row Mark reads is appended to `eval/catalog-queue/needs-mark.tsv` before the generated commit. The same row is stored in `STATE/needs-mark.tsv`, which is the file the behavior tests read. Exit 0 removes `supersede-stop` rows from that state file. The queue file is rebuilt by `scripts/catalog_needs_mark.py` and only gains the row again when the checker still exits 1.
+- Any other exit: `status` is `error`, `errors` names the exit code, no stop row, no launch. The tick process exits 0 so the grilled tests can read the status file. Regeneration failures and a failed `systemd-run` still exit nonzero through `fail`.
+
+`PFY_CATALOG_OFFLINE=1` is the no-network switch tests set. It skips fetch, regeneration writes, and push, and it points unset integrate and evq roots at the state dir so a live integrate2 batch is not part of that tick. Production leaves this unset. `PFY_CATALOG_STATE_DIR`, when set, is the state dir instead of `PFY_LOOP_STATE`. The command word `tick` is accepted and changes nothing else.
+
+Clearing a stop is in the catalog-loop-operator skill. There is no recheck lane for stale lines yet.
+
+### Five questions for this hook
+
+1. What triggers it? The same catalog tick, after regeneration and before launch.
+2. What does it do, and which services does it read and write? It reads the watchlist through `scripts/supersede_check.py`. On exit 1 it appends one `supersede-stop` row to `eval/catalog-queue/needs-mark.tsv` and `STATE/needs-mark.tsv`. It writes `supersede` and `supersede_stale` on `STATE/loop.latest.json`. It does not edit the watchlist.
+3. What does it trigger next? Exit 0 keeps the normal launch walk. Exit 1 and every other exit launch nothing.
+4. Where does a human re-enter? Mark reads the `supersede-stop` row, updates the watchlist, and lets the next tick drop the row when the checker exits 0.
+5. What stops two runs doing the same work? The tick is the unit. Exit 1 records one open row and launches nothing, so a second tick cannot repeat that launch. The row append is idempotent for the same slug and kind. The existing `flock` still stops two ticks at once. No new global lock.
+
+### Catalog-first for this hook
+
+Read `docs/eval/TOOLSET-RANKING.md`, stage `uses` / `features` / `tags` for ATG, neatroots, headson, Sponsio, and Brigade, plus `docs/ops/INTEGRATE.md`, `docs/ops/integration-stages.md`, the 1107 counts, queue, and verdicts handoffs, and `docs/ops/HANDOFF-integrate2-1108.md` before editing the loop.
+
+- ATG: not used. This is a pre-launch read of a local JSON file, not a DAG compile.
+- neatroots: not used. Stale watchlist lines are stored. They are not trace rules.
+- headson: not used. The checker prints a few lines. A byte-budget preview is not needed.
+- Sponsio: not used. This is not a tool-call order gate. Sponsio's main-run receipt landed separately and this hook does not touch it.
+- Brigade: not vendored. The one-row guard is the needs-mark append. The tick lock stays the flock the loop already has.
+- The checker was already in the repo (`scripts/supersede_check.py`). The hook calls it. No new catalog tool.

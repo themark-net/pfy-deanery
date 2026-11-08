@@ -20,6 +20,8 @@ ROOT = Path(__file__).resolve().parents[1]
 LOOP = ROOT / "scripts" / "catalog_loop.sh"
 COPY_REL = (
     "scripts/catalog_loop.sh",
+    "scripts/supersede_check.py",
+    "data/supersede-watchlist.json",
     "scripts/catalog_counts.py",
     "scripts/catalog_eval_queue.py",
     "scripts/catalog_apply_verdict.py",

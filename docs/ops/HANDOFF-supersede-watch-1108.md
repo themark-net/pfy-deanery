@@ -11,7 +11,7 @@
 Nothing replaces pfy-mentat. Closest: Flux (Nairon-AI, dormant) and X Patrol Deploy (tiny). Adopt-part candidates: Decision Hub eval cases and security grade, Argusic does-it-run verdicts as I2 prior evidence.
 
 ## Not done, for the catalog loop owner
-- Hook for the catalog loop (not edited here, another worker owns those files): each hourly run can call `python3 scripts/supersede_check.py`; on exit 1 put a STOP decision in the approval queue; when it prints `stale:` lines, queue one recheck lane (web, GitHub and X reads, no installs) that updates coverage and last_checked.
-- Intake does not tag `#supersede-candidate` on its own yet. Wire `--parts` into the intake/dedupe skill when that lands.
+- Hook: done in the catalog loop. See the supersede section of `docs/ops/HANDOFF-catalog-loop-1108.md`. Exit 1 writes a `supersede-stop` needs-mark row and launches nothing. `stale:` lines are recorded on `loop.latest.json` only. There is still no recheck lane.
+- Intake does not tag `#supersede-candidate` by itself. The catalog-intake-dedupe skill now names `python3 scripts/supersede_check.py --parts` as the hook. The person running intake still adds the tag and the watchlist row.
 - Sandcastle has no stage card even though sandcastle-grok runs our lanes. Add one through normal intake.
 - AgenC has no sources/entries file; the stage card is the record.
