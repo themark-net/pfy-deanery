@@ -63,7 +63,7 @@ The probe writes `eval/evq1107/kanbots/results.json`. Live CLI dispatch is SKIPP
 
 | Check | Result |
 | --- | --- |
-| git worktree add plus remove | 0.0051 s |
+| git worktree add plus remove | 5.1 ms |
 | kanbots create | 10.2 ms |
 | stamp identity | 8.6 ms |
 | remove | 2.9 ms |
@@ -80,7 +80,7 @@ The probe writes `eval/evq1107/kanbots/results.json`. Live CLI dispatch is SKIPP
 | `runCheck` of `sleep 5` with `timeoutMs` 400 | fail, 404 ms, summary `timed out` |
 | Check default in source | 5 minutes, and only when a caller uses `runCheck` |
 | CLIs on PATH | 3/11 (`claude`, `codex`, `opencode`). 0 dispatched. |
-| `@kanbots/cli --help` | version line and help only. 0 subcommands. |
+| `@kanbots/cli --help` | Usage and options only. 0 subcommands. |
 | qa autopilot | source throws `is not implemented yet` |
 | feature-dev turn cap | no `turnCap`, `maxIterations`, or `MAX_TURNS` |
 | Gap B | 0 hours removed. `./pfy build` was not started. |
