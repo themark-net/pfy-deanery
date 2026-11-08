@@ -1,0 +1,41 @@
+{
+  "name": "assay",
+  "integration_stage": "I1",
+  "intent": "staged_evaluation",
+  "entry": "sources/entries/116-assay.md",
+  "github": "https://github.com/awss1i/assay",
+  "pin": "29bb1331c9b53bd1cd323eeb9dbc351f04187c1c",
+  "version": "0.3.0",
+  "license": "MIT",
+  "uses": "No-LLM web QA for one static page. It presses the controls visible on the first paint. The 2026-11-07 probe pressed 12 of 47 operator controls and passed 31 of 31 while /launch returned HTTP 501. Offline. No account.",
+  "features": [
+    "first-paint control list",
+    "quiet button press",
+    "chromium",
+    "offline"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1. Re-open only if a later pin fails a button whose click returns HTTP 501 or only writes FAIL, and lists controls inside a display:none view. Chromium for this pin is 711303422 bytes under the tool cache, so this is not an in-repo copy. No gate wiring.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "gate_wiring",
+    "tauri build",
+    "replace Tester launch check",
+    "skill install"
+  ],
+  "evidence": [
+    "entry:sources/entries/116-assay.md",
+    "pin:29bb1331c9b53bd1cd323eeb9dbc351f04187c1c",
+    "version:0.3.0",
+    "eval/evq1107/assay/REPORT.md",
+    "eval/evq1107/assay/VERDICT",
+    "eval/evq1107/assay/results.json"
+  ],
+  "handoff_by": "llm",
+  "self_pipeline": {
+    "status": "not_applicable",
+    "reason": "The 2026-11-07 probe was not applied to this repo's pipeline. The operator page passed 31 of 31 checks while /launch returned HTTP 501. Not a gate."
+  }
+}

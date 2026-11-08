@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>assay planted</title>
+<style>
+.view{display:none}
+.view.on{display:block}
+</style>
+</head>
+<body>
+<h1>operator slice</h1>
+<nav>
+  <button type="button" id="nav-loop">Loop</button>
+  <button type="button" id="nav-engine">Engine</button>
+</nav>
+<section class="view on" id="view-loop">
+  <p id="launchmsg">idle</p>
+  <button type="button" id="dead" onclick="void 0">Launch session</button>
+  <button type="button" id="failpaint" onclick="document.getElementById('launchmsg').textContent='FAIL launch'">Launch env</button>
+  <button type="button" id="throw" onclick="undefinedFn()">Refresh status</button>
+</section>
+<section class="view" id="view-engine">
+  <button type="button" id="hidden-throw" onclick="hiddenBoom()">Pull</button>
+</section>
+<script>
+document.getElementById("nav-engine").addEventListener("click", function () {
+  document.getElementById("view-engine").className = "view on";
+  document.getElementById("view-loop").className = "view";
+});
+document.getElementById("nav-loop").addEventListener("click", function () {
+  document.getElementById("view-loop").className = "view on";
+  document.getElementById("view-engine").className = "view";
+});
+</script>
+</body>
+</html>
