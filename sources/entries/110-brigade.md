@@ -22,4 +22,4 @@
 | Scope creep | Memory routing and harness projection compete with pfy tooling | Trial limited to `work task/claim/verify` + `receipts verify` |
 | Release churn | 0.28 beta on main renames commands or JSON keys | Pin `brigade-cli==0.27.0`; smoke FAILs with the step that broke |
 
-- **Status**: Cataloged I0. Verified on the Grok Bot box offline under a read-only root; not installed on nimo.
+- **Status**: STAY I0. nimo probe 2026-11-07: brigade-cli 0.27.0, 0 duplicate claims of 92 with 8 workers (4.8816s), same 0 as exclusive markers (0.0108s). Not wired. Cache install only.

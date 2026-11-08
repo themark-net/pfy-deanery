@@ -1,0 +1,32 @@
+{
+  "name": "Brigade",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/110-brigade.md",
+  "github": "https://github.com/escoffier-labs/brigade",
+  "uses": "File ledger of tasks with an exclusive claim so two actors do not take the same item.",
+  "features": [
+    "task-ledger",
+    "exclusive-claim"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I0. On 2026-11-07 the claim probe recorded 0 duplicate ids out of 92 stage slugs with 8 workers (4.8816s). Exclusive marker files recorded the same 0 in 0.0108s. Do not wire a gate.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "gate_wiring",
+    "product_checkout_init",
+    "brigade_setup",
+    "fleet_hub",
+    "harness_wiring"
+  ],
+  "evidence": [
+    "entry:sources/entries/110-brigade.md",
+    "eval/evq1107/brigade/REPORT.md",
+    "eval/evq1107/brigade/VERDICT",
+    "eval/evq1107/brigade/summary.json",
+    "pin brigade-cli==0.27.0 wheel sha256 ac63094d379459338adde3be6dc49d54d928d5a06663342dec71eee975fed8c1 commit 2e008c24e6636a7db9b64059b7576f4523492abe"
+  ],
+  "handoff_by": "llm"
+}
