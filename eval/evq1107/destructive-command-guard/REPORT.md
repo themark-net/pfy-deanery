@@ -107,9 +107,9 @@ After the run, `home`, `config`, `data`, and `cache` under the tool directory ha
 
 ## Gates
 
-Value gate, all four hold. I3 still waits on pipeline evidence. This lane does not wire a gate.
+Value gate: 4 of 4 on the shell hole the card named. That does not close H2. I3 still waits on a pipeline application. This lane does not wire a gate. The card is not classified as a CI, testing, or review tool (`pipeline_role_hits` is empty), so `self_pipeline` is not required at I2.
 
-1. Gap fill. Met for the shell hole the card named. write-guard has 0 shell ops and allowed a normal write while dcg denied 12/12 destructive commands, including the inline Python `rm`. Not met for H2 as a whole: the skill `git clone` was allowed, and SkillSpector remains the copy check.
+1. Gap fill. Met for the shell hole. write-guard has 0 shell ops and allowed a normal write while dcg denied 12/12 destructive commands, including the inline Python `rm`. The H2 skill-byte check stays open: the skill `git clone` was allowed, and SkillSpector remains the copy check.
 2. Operator leverage. Met. One `dcg test --stdin` line. Ordinary commands were allowed 8/8, including a non-force `git push`. This lane does not turn the hook on.
 3. Evidence. Met. The probe exited 0 on this pin.
 4. Blast radius. Met for a cache-only probe. MIT plus the rider, no weights, no account, cache under 50 MiB. The repo copy is text. Redistribution to a restricted party is out of scope.
