@@ -15,17 +15,31 @@
   "catalog_github": "https://github.com/coreyhaines31/marketingskills",
   "posture": [],
   "evidence": [
-    "path:bootstrap/grok-cli/skills/marketing-council"
+    "path:bootstrap/grok-cli/skills/marketing-council",
+    "pin:5139746081be40a975316a0a11d8bcf61fae8fe4",
+    "eval/evq1107/marketing-skills-marketing-council/REPORT.md",
+    "eval/evq1107/marketing-skills-marketing-council/VERDICT"
   ],
   "tier_ceiling": "I1",
-  "uses": "First-party marketing council skill.",
+  "uses": "First-party council skill already matches the pin. The other 46 skills stay out.",
   "features": [
-    "council prompts"
+    "council prompts",
+    "designated dissenter",
+    "advisor dossiers"
   ],
-  "potential": "medium",
-  "next_gate": "Stay a skill.",
+  "potential": "low",
+  "next_gate": "Stay I1 reference. The council is bootstrap/grok-cli/skills/marketing-council at pin 5139746081be. Re-open only if that pin's council text contradicts the port, and still leave the other 46 skills out. No install and no gate. Gap B stays the pfy build timeout. Not a Feature GO.",
   "handoff_by": "llm",
   "non_goals": [
-    "product runtime"
-  ]
+    "product runtime",
+    "the other 46 skills",
+    "npx skills add",
+    "tools/clis and Composio",
+    "feature_go",
+    "gate wiring"
+  ],
+  "pin": "5139746081be40a975316a0a11d8bcf61fae8fe4",
+  "license": "MIT",
+  "package_version": "2.8.7",
+  "notes_doc": "eval/evq1107/marketing-skills-marketing-council/REPORT.md"
 }
