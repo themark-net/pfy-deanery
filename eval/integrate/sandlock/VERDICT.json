@@ -1,0 +1,9 @@
+{
+  "metric": "sandboxed_fixture_install_and_run",
+  "threshold": 1,
+  "value_gate": "pass",
+  "modularity_gate": "pass",
+  "proposed_stage": "I3",
+  "intent": "adhoc_probe",
+  "receipt": "receipt:eval/integrate/sandlock/receipt.json"
+}
