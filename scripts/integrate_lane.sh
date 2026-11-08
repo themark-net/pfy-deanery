@@ -140,6 +140,13 @@ fi
 mkdir -p "$MARK_DIR/wt"
 run_checked git -C "$ROOT" worktree add -b "$BRANCH" "$WT" origin/main >&2 || park_exit "worktree add failed"
 progress "$SLUG worktree $BRANCH"
+skill_rel="bootstrap/grok-cli/skills/catalog-integrate-lane/SKILL.md"
+if [ -f "$WT/$skill_rel" ]; then
+  skill_sha=$(git -C "$WT" hash-object "$skill_rel")
+else
+  skill_sha="missing"
+fi
+progress "skill=catalog-integrate-lane sha=${skill_sha}"
 
 (
   cd "$WT"
@@ -176,13 +183,14 @@ run_grok() {
 impl="$MARK_DIR/${SLUG}-implement.prompt"
 review="$MARK_DIR/${SLUG}-review.prompt"
 {
-  printf '%s\n' "Implement the integration ticket. Follow docs/ops/INTEGRATE.md. Do not push. Do not open a pull request."
+  printf '%s\n' "Follow skill catalog-integrate-lane: read bootstrap/grok-cli/skills/catalog-integrate-lane/SKILL.md, then tmp/TICKET-${SLUG}.md"
   printf '%s\n' "Ticket path: $ticket"
   printf '\n'
   cat "$ticket"
 } > "$impl"
 {
   printf '%s\n' "Self-review the integration diff. Fix correctness, scope, secrets, and tests. Do not push."
+  printf '%s\n' "Follow skill catalog-integrate-lane: read bootstrap/grok-cli/skills/catalog-integrate-lane/SKILL.md, then tmp/TICKET-${SLUG}.md"
   printf '%s\n' "Ticket path: $ticket"
 } > "$review"
 

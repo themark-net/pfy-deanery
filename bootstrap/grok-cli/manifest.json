@@ -105,6 +105,31 @@
         "name": "best-effort-and-bot-budget-build-max",
         "origin": "first-party port of org bot standing (2026-09-25); org skill is a pointer",
         "purpose": "BEST_EFFORT vs GATED; maximize Build; isolate from an open founder checkout; no Feature GO"
+      },
+      {
+        "name": "catalog-intake-dedupe",
+        "origin": "first-party catalog pipeline (2026-11-08)",
+        "purpose": "Source string to an I0 card, or a duplicate match, via scripts/catalog_intake_dedupe.py"
+      },
+      {
+        "name": "catalog-eval-lane",
+        "origin": "first-party catalog pipeline (2026-11-08)",
+        "purpose": "I0 to I2 eval lane. The skill drives scripts/eval_lane.sh"
+      },
+      {
+        "name": "catalog-integrate-lane",
+        "origin": "first-party catalog pipeline (2026-11-08)",
+        "purpose": "I2 to I3 integrate lane. The skill drives scripts/integrate_lane.sh"
+      },
+      {
+        "name": "catalog-apply-and-ceiling",
+        "origin": "first-party catalog pipeline (2026-11-08)",
+        "purpose": "Apply a verdict and auto-raise tier_ceiling to I3 when the gates and risk class allow it"
+      },
+      {
+        "name": "catalog-loop-operator",
+        "origin": "first-party catalog pipeline (2026-11-08)",
+        "purpose": "STOP, QUOTA_STOP, needs-mark.tsv, loop.latest.json, and parked-lane retry"
       }
     ]
   },

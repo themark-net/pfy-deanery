@@ -140,6 +140,11 @@ class LaneLandTest(unittest.TestCase):
             parked = (clone / "tmp" / "integrate" / "badtool.parked").read_text()
             self.assertIn("grok", parked)
             self.assertFalse((clone / "tmp" / "integrate" / "LANDED_badtool").exists())
+            impl = (clone / "tmp" / "integrate" / "badtool-implement.prompt").read_text()
+            self.assertIn("bootstrap/grok-cli/skills/catalog-integrate-lane/SKILL.md", impl)
+            self.assertIn("tmp/TICKET-badtool.md", impl)
+            review = (clone / "tmp" / "integrate" / "badtool-review.prompt").read_text()
+            self.assertIn("Self-review", review)
             after_fail = subprocess.check_output(
                 ["git", "--git-dir", str(bare), "rev-parse", "main"], text=True
             ).strip()
@@ -171,6 +176,7 @@ class LaneLandTest(unittest.TestCase):
             self.assertIn("rebase attempt", progress)
             self.assertIn("goodtool landed", progress)
             self.assertIn("test_select mode=none", progress)
+            self.assertIn("skill=catalog-integrate-lane sha=", progress)
             again = subprocess.run(
                 ["bash", str(SCRIPT), "--root", str(clone), "--slug", "goodtool", "--date", "1108"],
                 cwd=clone,
