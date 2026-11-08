@@ -1,0 +1,1 @@
+PROMOTE I2 hson 0.17.1 kept valid JSON and every top-level key on 6/6 documents inside 1024 budgeted bytes (3/6 stdout sizes are 1025 from one trailing newline); head -c parsed 0/6 and jq shrink left the bench receipt at 8626 bytes

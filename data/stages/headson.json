@@ -1,0 +1,39 @@
+{
+  "name": "headson",
+  "integration_stage": "I2",
+  "intent": "ad_hoc_probe",
+  "entry": "sources/entries/133-headson.md",
+  "github": "https://github.com/kantord/headson",
+  "pin": "headson-v0.17.1 26ccc98d9e90150ff4c2d9a7299f7ad85544cd23",
+  "tarball_sha256": "90f5880efcacd16000e12e6f461e7e486ea56636d2f67243de2a65160006ac58",
+  "binary_sha256": "1a5920a7088db2f2eaf3e53c588fb5133b020a4b9aa417631977e16ead136422",
+  "license": "MIT",
+  "uses": "Byte-budgeted preview of JSON and YAML for a local-model prompt. The 2026-11-07 probe kept every top-level key in valid JSON on 6 of 6 repo documents at a 1024-byte document cap. head -c parsed 0 of 6.",
+  "features": [
+    "strict JSON preview",
+    "per-file byte budget",
+    "head and tail array bias",
+    "grep may exceed the budget"
+  ],
+  "potential": "medium",
+  "next_gate": "Stay I2. A later ticket can add a caller for the pinned cache binary with -c and -t strict, strip one trailing newline when the pipe must be <= the budget, and skip --grep when the cap is hard. The derived receipt kept row id 2500 in 0 preview modes. jq remains the row lookup. H1's with/without harness score stays on skill-up. No gate wiring from this lane.",
+  "tier_ceiling": "I2",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "gate_wiring",
+    "explore_sessions",
+    "python_package",
+    "replace_jq_row_lookup"
+  ],
+  "evidence": [
+    "entry:sources/entries/133-headson.md",
+    "eval/evq1107/headson/REPORT.md",
+    "eval/evq1107/headson/VERDICT",
+    "eval/evq1107/headson/results.json",
+    "pin headson-v0.17.1 26ccc98d9e90150ff4c2d9a7299f7ad85544cd23",
+    "tarball_sha256:90f5880efcacd16000e12e6f461e7e486ea56636d2f67243de2a65160006ac58",
+    "binary_sha256:1a5920a7088db2f2eaf3e53c588fb5133b020a4b9aa417631977e16ead136422"
+  ],
+  "handoff_by": "llm"
+}

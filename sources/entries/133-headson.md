@@ -23,4 +23,4 @@
 | Lost context | A sampled preview hides the row an agent needs | Use it for shape only; query exact rows with `jq` |
 | Upstream churn | Preview format changes between versions | Pin the version; the smoke checks valid JSON and kept keys |
 
-- **Status**: Cataloged I0. Smoke PASS on the Grok Bot box; not staged on nimo.
+- **Status**: PROMOTE I2 on 2026-11-07 (evq1107). Pinned hson 0.17.1 under ~/.cache/pfy/tools/headson/. Document cap 6/6 at 1024 bytes with every top-level key; head -c parsed 0/6. Stdout is 1025 on 3/6 because of one trailing newline. Not wired into a gate. See eval/evq1107/headson/REPORT.md.
