@@ -40,8 +40,8 @@ Same job: local verbatim memory with scoped search, and the lane gap H1 (a repea
 | Python | uv CPython 3.12.12. System Python 3.14 was not used. The pin's `.python-version` is 3.12. |
 | Packages that ran | mempalace 3.12.0 from the pinned tree, chromadb 1.5.9, onnxruntime 1.31.1. |
 | Embedder | `minilm`, Chroma's all-MiniLM-L6-v2 ONNX. `model.onnx` 90387606 bytes. `onnx.tar.gz` 83178821 bytes. Chroma cache dir 174510889 bytes. |
-| Work tree | 68560448 bytes excluding `.git`. `.git` is 17951917 bytes. `results.json` `src_bytes` is 86512365, which is the tree plus `.git`. Large files include three benchmark jsonl dumps (about 13 MB, 13 MB, and 12 MB) and `website/public/hero_video.mp4` (8411136 bytes). |
-| Install sizes | `du -sb` venv 372820504 bytes. `du -sb` uv cache 58620845 bytes. Palace after the warm run 713510 bytes. None of these are committed. |
+| Work tree | `results.json` records `src_worktree_bytes` 68560448, `src_git_bytes` 17951917, and `src_bytes` 86512365. The first two sum to the third. Large files include three benchmark jsonl dumps (about 13 MB, 13 MB, and 12 MB) and `website/public/hero_video.mp4` (8411136 bytes). |
+| Install sizes | `du -sb` venv 372820504 bytes. `du -sb` uv cache 58620845 bytes. Palace on the recorded run 709414 bytes. None of these are committed. |
 | Checksum | The entry gives a commit, not a tarball digest. The commit was re-checked with `git rev-parse`. |
 
 `HOME`, `XDG_CONFIG_HOME`, `XDG_CACHE_HOME`, `XDG_DATA_HOME`, `TMPDIR`, `UV_CACHE_DIR`, and `HF_HOME` pointed under `~/.cache/pfy/tools/mempalace/`. The real home paths `.mempalace`, `.config/mempalace`, and `.cache/chroma` were absent before and after both runs. No API key was set. `--no-llm` was passed. `serve`, MCP, `wake-up`, and convos mining were not run. The model lock was not taken. This path does not call Ollama.
@@ -74,12 +74,12 @@ The probe copies a short window around eight anchors into a cache corpus, two wi
 
 Corpus: 8 excerpts, 8 drawers filed, 0 mine retries. Anchors are real lines in this repo. Questions do not contain the anchor string.
 
-| Check | Cold run | Warm run (results.json) |
+| Check | Cold run | Recorded warm run (results.json) |
 | --- | --- | --- |
-| Wall | 57.60 s | 42.53 s |
-| init | 1.003 s, exit 0 | 0.96 s, exit 0 |
-| mine | 17.539 s (onnx download) | 2.863 s |
-| search | 38.895 s | 38.59 s |
+| Wall | 57.60 s | 42.22 s |
+| init | 1.003 s, exit 0 | 0.97 s, exit 0 |
+| mine | 17.539 s (onnx download) | 2.755 s |
+| search | 38.895 s | 38.371 s |
 | drawers | 8 | 8 |
 | top-1 | 8/8 | 8/8 |
 | top-5 | 8/8 | 8/8 |
@@ -92,7 +92,7 @@ Corpus: 8 excerpts, 8 drawers filed, 0 mine retries. Anchors are real lines in t
 | repo yaml added | 0 | 0 |
 | real home watched paths | unchanged (absent) | unchanged (absent) |
 
-The walk missed `value-gate` and `skill-grade` (no unique winning excerpt). MemPalace ranked both first. The other six matched the walk.
+A warm run between those two also scored 8/8 top-1, 6/8 on the walk, 0 wing leaks, in 42.53 s. The walk missed `value-gate` and `skill-grade` (no unique winning excerpt). MemPalace ranked both first. The other six matched the walk. A smaller stop list of function words only still scores the walk at 6/8: `value-gate` shares one content word with its own excerpt and two with other excerpts, and `skill-grade` ties `h1-gap`.
 
 Upstream's 96.6% LongMemEval R@5 was not reproduced. This set is eight short windows, not that benchmark.
 

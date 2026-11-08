@@ -196,11 +196,13 @@ def version_of(text: str) -> str | None:
     return match.group(1) if match else None
 
 
-def tree_bytes(path: Path) -> int:
+def tree_bytes(path: Path, skip_git: bool = False) -> int:
     if not path.exists():
         return 0
     total = 0
-    for dirpath, _dirnames, filenames in os.walk(path):
+    for dirpath, dirnames, filenames in os.walk(path):
+        if skip_git and ".git" in dirnames:
+            dirnames.remove(".git")
         for name in filenames:
             try:
                 total += (Path(dirpath) / name).stat().st_size
@@ -435,6 +437,8 @@ def main(argv: list[str] | None = None) -> int:
         doc["src_head"] = (git.get("stdout") or "").strip()
         doc["src_head_matches_pin"] = doc["src_head"] == PIN
         doc["src_bytes"] = tree_bytes(args.src)
+        doc["src_git_bytes"] = tree_bytes(args.src / ".git")
+        doc["src_worktree_bytes"] = tree_bytes(args.src, skip_git=True)
     else:
         doc["src_head"] = None
         doc["src_head_matches_pin"] = None
