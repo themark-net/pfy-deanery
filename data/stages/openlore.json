@@ -1,0 +1,38 @@
+{
+  "name": "OpenLore",
+  "integration_stage": "I1",
+  "intent": "staged_evaluation",
+  "entry": "sources/entries/129-openlore.md",
+  "github": "https://github.com/clay-good/OpenLore",
+  "pin": "openlore@3.3.1 f33d3b2fbcd34380dfcb5925d966eccd080c2383",
+  "uses": "Local breaking-change label for a review of module-level Python exports. Trialed on this repo. The suite selector stays scripts/test_select.py.",
+  "features": [
+    "module-level breaking label",
+    "keyword orient",
+    "blast-radius briefing"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1. The prefix allocates 708 MB, over the 50 MB I2 copy limit. Reopen only if a later pin is under that limit, flags a required parameter on an indented public method (pfylib/build_phase_clock.py PhaseClock.phase), and still names the seven load_stages consumers. Do not wire a gate.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "gate_wiring",
+    "install connect setup",
+    "embedding model download",
+    "replace codebase-memory",
+    "mcp host wiring"
+  ],
+  "evidence": [
+    "entry:sources/entries/129-openlore.md",
+    "eval/evq1107/openlore/REPORT.md",
+    "eval/evq1107/openlore/VERDICT",
+    "eval/evq1107/openlore/results.json",
+    "pin openlore@3.3.1 integrity sha512-iDg86/Vt+hxSUgBek1Dh2sG0D+DGSyXqD9OGjerko2nf2mHCcyccCC2hiWsEDg1lnP6cScJ4P6Yya/Ef6nrd7g== tag v3.3.1 f33d3b2fbcd34380dfcb5925d966eccd080c2383"
+  ],
+  "handoff_by": "llm",
+  "self_pipeline": {
+    "status": "not_applicable",
+    "reason": "Report-only probe in eval/evq1107/openlore/REPORT.md. Module-level contract 4/4. The same one-file diff matched test_select on 3 tests. A method break was not flagged. Not applied to pregate or CI."
+  }
+}

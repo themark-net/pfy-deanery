@@ -1,0 +1,692 @@
+{
+  "pin": {
+    "version": "3.3.1",
+    "license": "MIT",
+    "engines": {
+      "node": "^22.19.0 || >=23.5.0"
+    },
+    "integrity": "sha512-iDg86/Vt+hxSUgBek1Dh2sG0D+DGSyXqD9OGjerko2nf2mHCcyccCC2hiWsEDg1lnP6cScJ4P6Yya/Ef6nrd7g==",
+    "resolved": "https://registry.npmjs.org/openlore/-/openlore-3.3.1.tgz",
+    "tag": "v3.3.1",
+    "commit": "f33d3b2fbcd34380dfcb5925d966eccd080c2383",
+    "node": "v22.23.0",
+    "prefix": {
+      "bytes": 1673767825,
+      "human": "708M"
+    },
+    "npm_cache": {
+      "bytes": 614205073,
+      "human": "487M"
+    },
+    "ignore_scripts": true,
+    "no_embed": true
+  },
+  "phases": {
+    "clone": {
+      "seconds": 0.137,
+      "code": 0,
+      "stderr_tail": "Cloning into '/home/mark/.cache/pfy/tools/openlore/probe/repo'...\ndone.\n"
+    },
+    "init": {
+      "seconds": 0.257,
+      "code": 0,
+      "stderr_tail": "(node:1390183) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n",
+      "stdout_tail": "",
+      "status": [
+        " M .gitignore"
+      ]
+    },
+    "analyze": {
+      "seconds": 12.195,
+      "code": 0,
+      "timed_out": false,
+      "stderr_tail": "(node:1390204) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n",
+      "stdout_tail": " config files: not generated\n    Tip: Re-run with --ai-configs to generate CLAUDE.md, .cursorrules, AGENTS.md, etc.\n\n    ? Function index built [keyword+vocabulary] (2915 call-graph functions + 2429 test functions + 1683 signature-only symbols; 7027 indexed repo symbols); vocabulary partial, 53666 candidate input(s) omitted\n    ? Text line index built 257831 lines across 2483 files\n    ? Spec index skipped: Spec directory /home/mark/.cache/pfy/tools/openlore/probe/repo/openspec/specs exists but contains no spec.md files ? run 'openlore generate', or point openspecPath at your specs\n  Total time: 11.8s\n\n[ok] Ready for generation!\n\n  Next step: Run 'openlore generate' to create OpenSpec files\n",
+      "index": {
+        "bytes": 93545740,
+        "human": "13M"
+      }
+    }
+  },
+  "watched_before": {
+    "real_openlore": false,
+    "real_pi": false
+  },
+  "head": "e7d45466c3cdf8b7ed92ead08f0b2fe985285cd7",
+  "orient": [
+    {
+      "symbol": "load_stages",
+      "by_name": {
+        "task": "load_stages",
+        "seconds": 0.765,
+        "code": 0,
+        "timed_out": false,
+        "names": [
+          "load_integration_stages",
+          "load_stages",
+          "STAGES",
+          "STAGES_REL",
+          "STAGES_ROOT"
+        ],
+        "error": null,
+        "stderr_tail": "(node:1393906) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n[ok] Successfully validated directory: /home/mark/.cache/pfy/tools/openlore/probe/repo\n"
+      },
+      "by_name_hit": true,
+      "by_phrase": {
+        "task": "Old monolith shape of stage cards",
+        "seconds": 0.769,
+        "code": 0,
+        "timed_out": false,
+        "names": [
+          "test_validate_rejects_monolith_and_bad_cards",
+          "load_stages",
+          "MONOLITH_MESSAGE",
+          "test_assembled_document_matches_legacy_monolith",
+          "test_stage_cards_stay_i0_and_catalog_rows_stay_absent"
+        ],
+        "error": null,
+        "stderr_tail": "(node:1394220) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n[ok] Successfully validated directory: /home/mark/.cache/pfy/tools/openlore/probe/repo\n"
+      },
+      "by_phrase_hit": true
+    },
+    {
+      "symbol": "write_tool",
+      "by_name": {
+        "task": "write_tool",
+        "seconds": 0.766,
+        "code": 0,
+        "timed_out": false,
+        "names": [
+          "write_tool",
+          "test_write_tool_touches_exactly_one_file",
+          "list_roots",
+          "write_status",
+          "write_file"
+        ],
+        "error": null,
+        "stderr_tail": "(node:1394484) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n[ok] Successfully validated directory: /home/mark/.cache/pfy/tools/openlore/probe/repo\n"
+      },
+      "by_name_hit": true,
+      "by_phrase": {
+        "task": "Write one tool file for a stage card",
+        "seconds": 0.763,
+        "code": 0,
+        "timed_out": false,
+        "names": [
+          "test_write_tool_touches_exactly_one_file",
+          "write_tool",
+          "self_pipeline_problems",
+          "CARD",
+          "evidence_for"
+        ],
+        "error": null,
+        "stderr_tail": "(node:1394625) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n[ok] Successfully validated directory: /home/mark/.cache/pfy/tools/openlore/probe/repo\n"
+      },
+      "by_phrase_hit": true
+    },
+    {
+      "symbol": "pipeline_role_hits",
+      "by_name": {
+        "task": "pipeline_role_hits",
+        "seconds": 0.774,
+        "code": 0,
+        "timed_out": false,
+        "names": [
+          "pipeline_role_hits",
+          "ROLE_TAGS",
+          "HARNESS_ROLE",
+          "hits",
+          "step_role"
+        ],
+        "error": null,
+        "stderr_tail": "(node:1394770) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n[ok] Successfully validated directory: /home/mark/.cache/pfy/tools/openlore/probe/repo\n"
+      },
+      "by_name_hit": true,
+      "by_phrase": {
+        "task": "Why a card covers CI testing or review",
+        "seconds": 0.813,
+        "code": 0,
+        "timed_out": false,
+        "names": [
+          "pipeline_role_hits",
+          "spec_covers",
+          "test_review_module_runs_with_bwrap_hidden_and_skips_nothing",
+          "test_overall_timeout_stops_the_review_loop_without_a_commit",
+          "WHY"
+        ],
+        "error": null,
+        "stderr_tail": "(node:1394965) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n[ok] Successfully validated directory: /home/mark/.cache/pfy/tools/openlore/probe/repo\n"
+      },
+      "by_phrase_hit": true
+    }
+  ],
+  "clean": {
+    "seconds": 0.482,
+    "code": 0,
+    "timed_out": false,
+    "overall": "non-breaking",
+    "error": null,
+    "status": null,
+    "summary": {
+      "breaking": 0,
+      "potentiallyBreaking": 0,
+      "nonBreaking": 0
+    },
+    "suggestedBump": "patch",
+    "changes": [],
+    "breaking": [],
+    "stderr_tail": "(node:1395182) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+  },
+  "history": [
+    {
+      "sha": "56f6df154eeebf29be90c6290a0a28a917e5d4bb",
+      "parent": "ba18f7cc7947f88f19564ea585ccf68c7276073c",
+      "py_files": [
+        "scripts/grill_ticket.py"
+      ],
+      "true_breaking": false,
+      "breaks": [],
+      "overall": "non-breaking",
+      "summary": {
+        "breaking": 0,
+        "potentiallyBreaking": 0,
+        "nonBreaking": 17
+      },
+      "seconds": 0.672,
+      "code": 0,
+      "timed_out": false,
+      "error": null,
+      "strict": true,
+      "tool_breaks": []
+    },
+    {
+      "sha": "9d3688718e964dd9e26df465f22ce61cf31e8a0b",
+      "parent": "1868e5d1b2c5f8c042ffef24c67153c61b0b2a3c",
+      "py_files": [],
+      "true_breaking": false,
+      "breaks": [],
+      "overall": "non-breaking",
+      "summary": {
+        "breaking": 0,
+        "potentiallyBreaking": 0,
+        "nonBreaking": 0
+      },
+      "seconds": 0.48,
+      "code": 0,
+      "timed_out": false,
+      "error": null,
+      "strict": true,
+      "tool_breaks": []
+    },
+    {
+      "sha": "1868e5d1b2c5f8c042ffef24c67153c61b0b2a3c",
+      "parent": "914b11c8a2c2fc55407874342ee5789ed223a085",
+      "py_files": [],
+      "true_breaking": false,
+      "breaks": [],
+      "overall": "non-breaking",
+      "summary": {
+        "breaking": 0,
+        "potentiallyBreaking": 0,
+        "nonBreaking": 0
+      },
+      "seconds": 0.52,
+      "code": 0,
+      "timed_out": false,
+      "error": null,
+      "strict": true,
+      "tool_breaks": []
+    },
+    {
+      "sha": "914b11c8a2c2fc55407874342ee5789ed223a085",
+      "parent": "9bfc82fcf66c6738b5443bc9972ce7e6e49f251e",
+      "py_files": [
+        "scripts/cbm_shadow.py"
+      ],
+      "true_breaking": false,
+      "breaks": [],
+      "overall": "non-breaking",
+      "summary": {
+        "breaking": 0,
+        "potentiallyBreaking": 0,
+        "nonBreaking": 25
+      },
+      "seconds": 0.655,
+      "code": 0,
+      "timed_out": false,
+      "error": null,
+      "strict": true,
+      "tool_breaks": []
+    },
+    {
+      "sha": "9bfc82fcf66c6738b5443bc9972ce7e6e49f251e",
+      "parent": "25e488764894eb314424660b95ece131ffc9898d",
+      "py_files": [
+        "scripts/pfy_attach_mode_208.py",
+        "scripts/pfy_build_cloud.py",
+        "scripts/pfy_code_graph_215.py",
+        "scripts/pfy_launch_wizard_225.py",
+        "scripts/pfy_session_compose_224.py",
+        "scripts/pfy_skill_scan.py",
+        "scripts/run_tests.py"
+      ],
+      "true_breaking": false,
+      "breaks": [],
+      "overall": "non-breaking",
+      "summary": {
+        "breaking": 0,
+        "potentiallyBreaking": 0,
+        "nonBreaking": 4
+      },
+      "seconds": 2.593,
+      "code": 0,
+      "timed_out": false,
+      "error": null,
+      "strict": true,
+      "tool_breaks": []
+    },
+    {
+      "sha": "25e488764894eb314424660b95ece131ffc9898d",
+      "parent": "56f6df154eeebf29be90c6290a0a28a917e5d4bb",
+      "py_files": [],
+      "true_breaking": false,
+      "breaks": [],
+      "overall": "non-breaking",
+      "summary": {
+        "breaking": 0,
+        "potentiallyBreaking": 0,
+        "nonBreaking": 0
+      },
+      "seconds": 0.533,
+      "code": 0,
+      "timed_out": false,
+      "error": null,
+      "strict": true,
+      "tool_breaks": []
+    },
+    {
+      "sha": "ba18f7cc7947f88f19564ea585ccf68c7276073c",
+      "parent": "31c373ba1c77588f0bdbb875383d7185ca3be3cb",
+      "py_files": [],
+      "true_breaking": false,
+      "breaks": [],
+      "overall": "non-breaking",
+      "summary": {
+        "breaking": 0,
+        "potentiallyBreaking": 0,
+        "nonBreaking": 0
+      },
+      "seconds": 0.488,
+      "code": 0,
+      "timed_out": false,
+      "error": null,
+      "strict": true,
+      "tool_breaks": []
+    },
+    {
+      "sha": "31c373ba1c77588f0bdbb875383d7185ca3be3cb",
+      "parent": "dd861e01cc8ba33c1547e0e45c40e4623bc9dd1a",
+      "py_files": [
+        "scripts/pipeline_retro.py"
+      ],
+      "true_breaking": false,
+      "breaks": [],
+      "overall": "non-breaking",
+      "summary": {
+        "breaking": 0,
+        "potentiallyBreaking": 0,
+        "nonBreaking": 0
+      },
+      "seconds": 0.87,
+      "code": 0,
+      "timed_out": false,
+      "error": null,
+      "strict": true,
+      "tool_breaks": []
+    },
+    {
+      "sha": "dd861e01cc8ba33c1547e0e45c40e4623bc9dd1a",
+      "parent": "79c083e9e53a4302ed30188d40fc29d445140ab6",
+      "py_files": [
+        "scripts/pipeline_retro.py"
+      ],
+      "true_breaking": false,
+      "breaks": [],
+      "overall": "non-breaking",
+      "summary": {
+        "breaking": 0,
+        "potentiallyBreaking": 0,
+        "nonBreaking": 22
+      },
+      "seconds": 0.721,
+      "code": 0,
+      "timed_out": false,
+      "error": null,
+      "strict": true,
+      "tool_breaks": []
+    },
+    {
+      "sha": "79c083e9e53a4302ed30188d40fc29d445140ab6",
+      "parent": "1afa8d26f74672b4c244ec3aa875c48f75543a12",
+      "py_files": [
+        "scripts/catalog_check.py"
+      ],
+      "true_breaking": false,
+      "breaks": [],
+      "overall": "non-breaking",
+      "summary": {
+        "breaking": 0,
+        "potentiallyBreaking": 0,
+        "nonBreaking": 2
+      },
+      "seconds": 0.642,
+      "code": 0,
+      "timed_out": false,
+      "error": null,
+      "strict": true,
+      "tool_breaks": []
+    }
+  ],
+  "planted": [
+    {
+      "name": "required_param",
+      "expect": "breaking",
+      "truth": [
+        "signature load_stages"
+      ],
+      "hit": true,
+      "caller": true,
+      "cert": {
+        "seconds": 0.672,
+        "code": 0,
+        "timed_out": false,
+        "overall": "breaking",
+        "error": null,
+        "status": null,
+        "summary": {
+          "breaking": 1,
+          "potentiallyBreaking": 0,
+          "nonBreaking": 0
+        },
+        "suggestedBump": "major",
+        "changes": [
+          {
+            "class": "breaking",
+            "name": "load_stages",
+            "file": "pfylib/stage_registry.py",
+            "changeKind": "signature",
+            "reasons": [
+              "required parameter \"lane\" was added"
+            ],
+            "ruleCodes": [
+              "param-required-added"
+            ]
+          }
+        ],
+        "breaking": [
+          {
+            "name": "load_stages",
+            "file": "pfylib/stage_registry.py",
+            "consumers": [
+              {
+                "name": "main",
+                "file": "pfylib/stage_registry.py"
+              },
+              {
+                "name": "main",
+                "file": "scripts/catalog_check.py"
+              },
+              {
+                "name": "load",
+                "file": "scripts/catalog_stage_eval.py"
+              },
+              {
+                "name": "scripts/pfy_catalog_ask_queue_209.py",
+                "file": "scripts/pfy_catalog_ask_queue_209.py"
+              },
+              {
+                "name": "tests/test_catalog_stage_eval.py",
+                "file": "tests/test_catalog_stage_eval.py"
+              },
+              {
+                "name": "tests/test_stage_registry.py",
+                "file": "tests/test_stage_registry.py"
+              },
+              {
+                "name": "tests/test_voice_stage0_ref.py",
+                "file": "tests/test_voice_stage0_ref.py"
+              }
+            ],
+            "truncated": 0
+          }
+        ],
+        "stderr_tail": "(node:1397736) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      }
+    },
+    {
+      "name": "optional_param",
+      "expect": "non-breaking",
+      "truth": [],
+      "hit": true,
+      "caller": null,
+      "cert": {
+        "seconds": 0.618,
+        "code": 0,
+        "timed_out": false,
+        "overall": "non-breaking",
+        "error": null,
+        "status": null,
+        "summary": {
+          "breaking": 0,
+          "potentiallyBreaking": 0,
+          "nonBreaking": 1
+        },
+        "suggestedBump": "patch",
+        "changes": [
+          {
+            "class": "non-breaking",
+            "name": "load_stages",
+            "file": "pfylib/stage_registry.py",
+            "changeKind": "signature",
+            "reasons": [
+              "optional trailing parameter \"lane\" was added"
+            ],
+            "ruleCodes": []
+          }
+        ],
+        "breaking": [],
+        "stderr_tail": "(node:1398304) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      }
+    },
+    {
+      "name": "docstring",
+      "expect": "non-breaking",
+      "truth": [],
+      "hit": true,
+      "caller": null,
+      "cert": {
+        "seconds": 0.902,
+        "code": 0,
+        "timed_out": false,
+        "overall": "non-breaking",
+        "error": null,
+        "status": null,
+        "summary": {
+          "breaking": 0,
+          "potentiallyBreaking": 0,
+          "nonBreaking": 0
+        },
+        "suggestedBump": "patch",
+        "changes": [],
+        "breaking": [],
+        "stderr_tail": "(node:1398422) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      }
+    },
+    {
+      "name": "export_removed",
+      "expect": "breaking",
+      "truth": [
+        "removed load_stages"
+      ],
+      "hit": true,
+      "caller": null,
+      "cert": {
+        "seconds": 0.614,
+        "code": 0,
+        "timed_out": false,
+        "overall": "breaking",
+        "error": null,
+        "status": null,
+        "summary": {
+          "breaking": 1,
+          "potentiallyBreaking": 0,
+          "nonBreaking": 0
+        },
+        "suggestedBump": "major",
+        "changes": [
+          {
+            "class": "breaking",
+            "name": "load_stages",
+            "file": "pfylib/stage_registry.py",
+            "changeKind": "removed",
+            "reasons": [
+              "exported symbol was removed from the public surface"
+            ],
+            "ruleCodes": [
+              "export-removed"
+            ]
+          }
+        ],
+        "breaking": [
+          {
+            "name": "load_stages",
+            "file": "pfylib/stage_registry.py",
+            "consumers": [
+              {
+                "name": "main",
+                "file": "pfylib/stage_registry.py"
+              },
+              {
+                "name": "main",
+                "file": "scripts/catalog_check.py"
+              },
+              {
+                "name": "load",
+                "file": "scripts/catalog_stage_eval.py"
+              },
+              {
+                "name": "scripts/pfy_catalog_ask_queue_209.py",
+                "file": "scripts/pfy_catalog_ask_queue_209.py"
+              },
+              {
+                "name": "tests/test_catalog_stage_eval.py",
+                "file": "tests/test_catalog_stage_eval.py"
+              },
+              {
+                "name": "tests/test_stage_registry.py",
+                "file": "tests/test_stage_registry.py"
+              },
+              {
+                "name": "tests/test_voice_stage0_ref.py",
+                "file": "tests/test_voice_stage0_ref.py"
+              }
+            ],
+            "truncated": 0
+          }
+        ],
+        "stderr_tail": "(node:1398508) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      }
+    },
+    {
+      "name": "method_required_param",
+      "expect": null,
+      "truth": [],
+      "hit": null,
+      "caller": null,
+      "cert": {
+        "seconds": 0.627,
+        "code": 0,
+        "timed_out": false,
+        "overall": "non-breaking",
+        "error": null,
+        "status": null,
+        "summary": {
+          "breaking": 0,
+          "potentiallyBreaking": 0,
+          "nonBreaking": 0
+        },
+        "suggestedBump": "patch",
+        "changes": [],
+        "breaking": [],
+        "stderr_tail": "(node:1398602) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      }
+    }
+  ],
+  "blast": {
+    "seconds": 0.982,
+    "code": 0,
+    "timed_out": false,
+    "tests": [
+      "tests/test_catalog_stage_eval.py",
+      "tests/test_stage_registry.py",
+      "tests/test_voice_stage0_ref.py"
+    ],
+    "error": null,
+    "top_keys": [
+      "baseRef",
+      "caveats",
+      "changeGranularity",
+      "changed",
+      "confidenceBoundary",
+      "decisions",
+      "driftAssessment",
+      "federation",
+      "headline",
+      "impact",
+      "indexStaleness",
+      "memory",
+      "posture",
+      "resolvedBaseRef",
+      "specs",
+      "tests"
+    ],
+    "stderr_tail": "(node:1397980) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+  },
+  "test_select": {
+    "seconds": 1.092,
+    "code": 0,
+    "mode": "affected",
+    "modules": [
+      "tests.test_catalog_stage_eval",
+      "tests.test_stage_registry",
+      "tests.test_voice_stage0_ref"
+    ],
+    "reason": "import graph selected 3 module(s)"
+  },
+  "watched_after": {
+    "real_openlore": false,
+    "real_pi": false
+  },
+  "redirected_home": [],
+  "clone_status_tail": [
+    "?? .openlore/"
+  ],
+  "score": {
+    "orient_name": 3,
+    "orient_name_n": 3,
+    "orient_phrase": 3,
+    "orient_phrase_n": 3,
+    "planted_contract": 4,
+    "planted_contract_n": 4,
+    "planted_caller": true,
+    "method_overall": "non-breaking",
+    "history_strict": 10,
+    "history_n": 10,
+    "history_true_breaks": 0,
+    "history_caught": 0,
+    "history_false_breaking": 0,
+    "history_conservative": 0,
+    "analyze_seconds": 12.195,
+    "prefix_bytes": 1673767825
+  }
+}

@@ -1,4 +1,4 @@
-### Entry 129: OpenLore — deterministic local code memory plus breaking-change guardrails for coding agents
+### Entry 129: OpenLore - deterministic local code memory plus breaking-change guardrails for coding agents
 
 - **URL**: https://github.com/clay-good/OpenLore (MIT, TypeScript; 341 stars at this read; npm `openlore` 3.3.1, tag `v3.3.1` at `f33d3b2fbcd3`, 2026-10-10)
 - **Date**: 2026-10-17 (daily X intake)
@@ -11,7 +11,7 @@
 - **Extracted Repos / Tools**: https://github.com/clay-good/OpenLore · https://www.npmjs.com/package/openlore
 - **TOOLS.md Link**: None yet. I0 awareness. No TOOLS.md row, no `data/tools.json` row.
 - **Smoke**: `python3 examples/x-intake-local/smoke_128_130.py --entry openlore`. Looks up `$NODE_BIN`, `tmp/node/bin/node`, then PATH, and `$OPENLORE_DIR` or `tmp/openlore`; package version pinned to 3.3.1. Temp TS fixture repo only. Receipt: `pipelines/smoke/openlore/latest.json`.
-- **Non-goals**: No `install`/`connect`/`setup`, no MCP registration in any host, no embeddings model download, no run on a real repo yet.
+- **Non-goals**: No `install`/`connect`/`setup`, no MCP registration in any host, no embeddings model download. The nimo probe did run on this repo; see the status line.
 - **How this fails / how we recover**:
 
 | Risk | How it fails | Recovery |
@@ -21,4 +21,4 @@
 | Disk and Node footprint | 1.7 GB prefix, Node 22 needed | Stage under `tmp/`, delete the prefix after a trial |
 | Overlap with code-graph tools | Two indexes doing the same job | Trial against codebase-memory-mcp on the same tasks before keeping both |
 
-- **Status**: Cataloged I0. Smoke PASS on the Grok Bot box; not staged on nimo.
+- **Status**: STAY I1. nimo probe 2026-11-07: module-level contract 4/4, 0 false breaks on 10 commits, method break missed, prefix 708 MB. See eval/evq1107/openlore/REPORT.md.
