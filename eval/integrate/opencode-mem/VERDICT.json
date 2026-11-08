@@ -1,0 +1,8 @@
+{
+  "metric": "temp_home_recall_search_hits",
+  "threshold": 8,
+  "value_gate": "pass",
+  "modularity_gate": "pass",
+  "proposed_stage": "I3",
+  "note": "Apply refused: above-ceiling: proposed I3 is above allowed I1 (evidence I2: report, VERDICT, probe artifact, pin, record; tier_ceiling I1 caps the evidence). The card bytes stay unchanged. tier_ceiling stays I1. Proposed I3 is recorded here, not on the card."
+}
