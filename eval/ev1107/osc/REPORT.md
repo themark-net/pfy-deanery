@@ -73,18 +73,18 @@ Fail reasons:
 
 | Count | What failed |
 | --- | --- |
-| 26 | Unexpected key `argument-hint`. Our first-party skills and `project-process` use it. The adr skill is the pattern: a `>` description is accepted, then `argument-hint` fails the allowlist. |
+| 26 | Unexpected key `argument-hint`. 25 are first-party (12 under `.grok/skills`, 12 under `bootstrap/grok-cli/skills`, plus `project-process`). One is vendored ponytail. The adr skill is the pattern: a `>` description is accepted, then `argument-hint` fails the allowlist. |
 | 4 | Unexpected key `disable-model-invocation` on vendored mattpocock skills (`grill-me`, `implement`, `retro`, `to-spec`). |
 | 2 | Unquoted `description` contains `: ` (colon space). Both software-factory copies, line 3. The message says the runtime will drop the skill. This lane did not start OpenCode, so that drop was not observed. |
 | 1 | `examples/agentdescent-trial/skill` has no YAML frontmatter. It is a prompt excerpt, not a skill package. |
 
-The only first-party fail that is not `argument-hint` is `.grok/skills/software-factory`.
+The only first-party fail that is not `argument-hint` is `.grok/skills/software-factory`. The vendored software-factory also sets `disable-model-invocation: true`. `skill_validate` returns on the unquoted colon first, so that key is not in `failing_keys` for that file. The 4 above are the files where the allowlist error is the one the tool returned.
 
 Side effects of plugin load, both runs: the bundled skill was copied to `$XDG_CONFIG_HOME/opencode/skills/opencode-skill-creator/` (8 files). With auto-update off there was no update-check file and no file under `XDG_CACHE_HOME`. The cache `HOME` stayed empty. `~/.config/opencode` directory mtime did not change across pack, install, or either validate run.
 
 ## Comparison with SkillSpector
 
-Source: `eval/catchup-1107/skillspector/scan-summary.json` (57 directories, static `--no-llm`). Ten skill dirs exist now that that scan did not cover (grill-me, implement, pipeline-retro, retro, software-factory, and the matching mattpocock copies, plus grilling). On the shared 57: osc fails 28 and passes 29. SkillSpector has findings on 12 directories. Those split 6 / 6 against osc pass/fail, and the overlap is not the same issue.
+Source: `eval/catchup-1107/skillspector/scan-summary.json` (57 directories, static `--no-llm`). Ten skill dirs exist now that that scan did not cover. Five are under `.grok/skills`: grill-me, implement, pipeline-retro, retro, software-factory. Five are under mattpocock: grill-me, grilling, implement, retro, software-factory. `pipeline-retro` is only in `.grok/skills`. `grilling` is only in the vendored tree. On the shared 57: osc fails 28 and passes 29. SkillSpector has findings on 12 directories. Those split 6 / 6 against osc pass/fail, and the overlap is not the same issue.
 
 What `skill_validate` catches that SkillSpector does not:
 

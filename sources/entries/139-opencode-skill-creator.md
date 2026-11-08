@@ -25,4 +25,4 @@
 | Trigger eval over-read | A high trigger rate is taken as a good skill | Upstream says it measures selection only; pair it with graded outputs |
 | Frontmatter rules differ | Our skills fail validation on extra keys | Run it read-only first and decide per key |
 
-- **Status**: Cataloged I0. STAY I0 after the 2026-11-07 nimo eval (`skill_validate` only, 68 skills, 35 pass / 33 fail). See eval/ev1107/osc/REPORT.md. The Grok Bot box smoke still stands for validate/parse and start-up side effects.
+- **Status**: Cataloged I0. STAY I0 after the 2026-11-07 nimo eval (`skill_validate` only, 68 skills, 35 pass / 33 fail). See eval/ev1107/osc/REPORT.md. The earlier Grok Bot box smoke was not re-run.
