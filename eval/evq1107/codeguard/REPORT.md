@@ -14,7 +14,7 @@ CodeGuard is entry 126. The 2026-11-07 ranking covers entries 137 to 167, so thi
 | --- | --- | --- | --- |
 | SkillSpector | I3 | Static scan of a skill directory before copy. Catch-up trial: 57 directories in 38.44 s. `scripts/pfy_skill_scan.py` exits 0 only for SAFE. | The H2 copy check already on disk. This probe has no scanner command. The skill fixture (prompt injection plus `shell=True`) had 0 prefix hits. |
 | agentgg | I0 | Local SAST on a deploy, release, or secrets diff. `eval/ev1107/agentgg/` caught planted `shell=True` and missed a planted Python secret written to a log. Needs a local model. | This pass missed both of those plants. It caught a `ghp_` token with a prefix list. It does not beat that probe. |
-| OpenQodex | I1 | Scanner candidates on changed lines. `eval/evq1107/openqodex/` hit `shell=True` and a `ghp_` token, and missed the Python log line. Scanner install is about 524 MB. | Same token hit, and the shell miss OpenQodex did not have. Warm scan here was the prefix walk, 1.7895 s over 2025 files. |
+| OpenQodex | I1 | Scanner candidates on changed lines. `eval/evq1107/openqodex/` hit `shell=True` and a `ghp_` token, and missed the Python log line. Scanner install is about 524 MB. | This pass caught the `ghp_` class and missed `shell=True`. OpenQodex caught that shell line. The prefix walk here took 1.7895 s over 2025 files. |
 | sandlock | I2 | Rootless confinement of one fetched-skill install command. | Wraps the installer. CodeGuard does not. |
 | cedr | I1 | Pin skill directories and MCP launch lines, then fail when those files change. | A hash pin. CodeGuard does not hash a skill. |
 | Bumblebee | I2 | Advisory read-only check for package lockfiles and MCP host configs. | Different files. The CodeGuard MCP server serves rule text. It was not started. |
@@ -41,7 +41,7 @@ Beats what we have: no.
 | Digest | The entry gives no file checksum. `git rev-parse HEAD` matched the full SHA. A fetch of the short prefix `41160d54980b` failed until the full SHA was used. |
 | Python | 3.14.4, PyYAML 6.0.3 (already on the host). No venv and no extra install. |
 
-No account and no key. The clone used `HOME`, `XDG_CONFIG_HOME`, `XDG_CACHE_HOME`, `TMPDIR`, and `GIT_CONFIG_GLOBAL` under the cache. The probe then called the validator and the translator with `PYTHONPATH` and `-o` pointed at the cache copy. The pin checkout was left clean.
+No account and no key. The clone used `HOME`, `XDG_CONFIG_HOME`, `XDG_CACHE_HOME`, `TMPDIR`, and `GIT_CONFIG_GLOBAL` under the cache. The probe then called the validator and the translator on a copy of the pin. `PYTHONPATH` was that copy's `src` directory. The translator `-o` path was the cache `dist` directory, next to the copy. The pin checkout was left clean.
 
 ## Commands
 
@@ -55,6 +55,13 @@ git -C "$BASE/src" init
 git -C "$BASE/src" remote add origin https://github.com/cosai-oasis/project-codeguard.git
 git -C "$BASE/src" fetch --depth 1 origin 41160d54980bab0618165485ade3cfd2ade93288
 git -C "$BASE/src" checkout --detach FETCH_HEAD
+```
+
+The probe uses `Path.home()` to find the cache, so it runs with the real `HOME`. `CODEGUARD_SRC` points at the pin.
+
+```bash
+unset HOME
+export CODEGUARD_SRC=/home/mark/.cache/pfy/tools/codeguard/src
 python3 eval/evq1107/codeguard/probe.py
 ```
 
@@ -71,6 +78,8 @@ python3 eval/evq1107/codeguard/probe.py
 ## Probe
 
 `python3 eval/evq1107/codeguard/probe.py` reads the pin. Plants are written under `tmp/codeguard-probe/` (gitignored) and are not committed. The result file stores the prefix name and the line number. It does not store the planted token.
+
+`python3 -m unittest tests.test_codeguard_probe` runs the probe as a subprocess with `--walk-check` on a directory whose ancestor is named `tmp`. It expects a file count of 1. With the skip applied to the absolute path, `--walk-check` exits 1 and the test fails (`AssertionError: 1 != 0`). The mutant was restored. The committed probe uses the path relative to the scan root.
 
 The credential rule `codeguard-1-hardcoded-credentials` has a Recognition Patterns section. The probe takes backtick tokens from that section, skips `eyJ` (the rule also requires three base64 sections), and treats a private-key block and `mongodb://` userinfo as their own patterns. A prefix hit needs the prefix plus 8 more alphanumeric characters, so a bare mention of the prefix in prose is not a hit. The rule's warning-sign words (`password`, `secret`, `key`, `token`, `auth`) are not scanned. Those words would flag ordinary identifiers.
 

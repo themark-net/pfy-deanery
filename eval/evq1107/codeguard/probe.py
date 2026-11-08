@@ -439,6 +439,12 @@ def run_tools(src: Path) -> dict:
 
 
 def main() -> int:
+    # The worktree path contains a directory named tmp. Skip rules must use
+    # the path relative to the scan root, or every file is dropped.
+    if len(sys.argv) == 3 and sys.argv[1] == "--walk-check":
+        result = scan_tree(Path(sys.argv[2]), [])
+        print(result["files"])
+        return 0 if result["files"] else 1
     started = time.perf_counter()
     if not (SRC / "sources" / "rules").is_dir():
         raise SystemExit("missing pin checkout at %s" % SRC)
