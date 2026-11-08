@@ -1,0 +1,325 @@
+{
+  "pin": "84582fb055a6429261f9c779da86c0561ec80adc",
+  "version_expected": "3.12.0",
+  "h1_graded_cases": 0,
+  "status": "scored",
+  "repo_mempalace_yaml_before": [],
+  "repo_mempalace_yaml_after": [],
+  "repo_mempalace_yaml_new": [],
+  "questions": [
+    {
+      "id": "value-gate",
+      "wing": "handoff",
+      "source": "docs/ops/integration-stages.md",
+      "anchor_found": true,
+      "bytes": 505,
+      "question": "How many of the four value checks must pass before a tool is onboarded?",
+      "top1": true,
+      "top5": true,
+      "top_source": "value-gate.md",
+      "repeat_top_source": "value-gate.md",
+      "repeat_agree": true,
+      "file_walk_top": null,
+      "file_walk_hit": false,
+      "scoped_leak": false,
+      "scoped_kept": true,
+      "search_exit": 0
+    },
+    {
+      "id": "state-file",
+      "wing": "handoff",
+      "source": "docs/ops/MODULAR-CI.md",
+      "anchor_found": true,
+      "bytes": 489,
+      "question": "What does modular CI give each tool so two lanes do not share state?",
+      "top1": true,
+      "top5": true,
+      "top_source": "state-file.md",
+      "repeat_top_source": "state-file.md",
+      "repeat_agree": true,
+      "file_walk_top": "state-file",
+      "file_walk_hit": true,
+      "scoped_leak": false,
+      "scoped_kept": true,
+      "search_exit": 0
+    },
+    {
+      "id": "worker-model",
+      "wing": "handoff",
+      "source": "AGENTS.md",
+      "anchor_found": true,
+      "bytes": 334,
+      "question": "Which environment variable names the local worker model?",
+      "top1": true,
+      "top5": true,
+      "top_source": "worker-model.md",
+      "repeat_top_source": "worker-model.md",
+      "repeat_agree": true,
+      "file_walk_top": "worker-model",
+      "file_walk_hit": true,
+      "scoped_leak": false,
+      "scoped_kept": true,
+      "search_exit": 0
+    },
+    {
+      "id": "code-graph",
+      "wing": "handoff",
+      "source": "data/stages/codebase-memory-mcp.json",
+      "anchor_found": true,
+      "bytes": 498,
+      "question": "Which tool is the primary code graph MCP?",
+      "top1": true,
+      "top5": true,
+      "top_source": "code-graph.md",
+      "repeat_top_source": "code-graph.md",
+      "repeat_agree": true,
+      "file_walk_top": "code-graph",
+      "file_walk_hit": true,
+      "scoped_leak": false,
+      "scoped_kept": true,
+      "search_exit": 0
+    },
+    {
+      "id": "memory-slot",
+      "wing": "ranking",
+      "source": "docs/eval/TOOLSET-RANKING.md",
+      "anchor_found": true,
+      "bytes": 191,
+      "question": "Where does the 2026-11-07 ranking place the memory slot relative to the MVP?",
+      "top1": true,
+      "top5": true,
+      "top_source": "memory-slot.md",
+      "repeat_top_source": "memory-slot.md",
+      "repeat_agree": true,
+      "file_walk_top": "memory-slot",
+      "file_walk_hit": true,
+      "scoped_leak": false,
+      "scoped_kept": true,
+      "search_exit": 0
+    },
+    {
+      "id": "h1-gap",
+      "wing": "ranking",
+      "source": "docs/eval/TOOLSET-RANKING.md",
+      "anchor_found": true,
+      "bytes": 423,
+      "question": "Which gap records that harness2 showed no gain and asks for a with and without score?",
+      "top1": true,
+      "top5": true,
+      "top_source": "h1-gap.md",
+      "repeat_top_source": "h1-gap.md",
+      "repeat_agree": true,
+      "file_walk_top": "h1-gap",
+      "file_walk_hit": true,
+      "scoped_leak": false,
+      "scoped_kept": true,
+      "search_exit": 0
+    },
+    {
+      "id": "skill-grade",
+      "wing": "ranking",
+      "source": "data/stages/skill-up.json",
+      "anchor_found": true,
+      "bytes": 518,
+      "question": "Which use grades a run that has a skill against a run that does not?",
+      "top1": true,
+      "top5": true,
+      "top_source": "skill-grade.md",
+      "repeat_top_source": "skill-grade.md",
+      "repeat_agree": true,
+      "file_walk_top": null,
+      "file_walk_hit": false,
+      "scoped_leak": false,
+      "scoped_kept": true,
+      "search_exit": 0
+    },
+    {
+      "id": "claim-once",
+      "wing": "ranking",
+      "source": "sources/entries/132-ai-memory.md",
+      "anchor_found": true,
+      "bytes": 519,
+      "question": "What guarantee stops two bots from taking the same handoff?",
+      "top1": true,
+      "top5": true,
+      "top_source": "claim-once.md",
+      "repeat_top_source": "claim-once.md",
+      "repeat_agree": true,
+      "file_walk_top": "claim-once",
+      "file_walk_hit": true,
+      "scoped_leak": false,
+      "scoped_kept": true,
+      "search_exit": 0
+    }
+  ],
+  "anchors_found": 8,
+  "src_head": "84582fb055a6429261f9c779da86c0561ec80adc",
+  "src_head_matches_pin": true,
+  "src_bytes": 86512365,
+  "version_output": "MemPalace 3.12.0",
+  "version": "3.12.0",
+  "version_ok": true,
+  "init_exit": 0,
+  "init_seconds": 0.96,
+  "init_target": "/home/mark/.cache/pfy/tools/mempalace/probe-work/corpus",
+  "mine_targets": [
+    "/home/mark/.cache/pfy/tools/mempalace/probe-work/corpus/handoff",
+    "/home/mark/.cache/pfy/tools/mempalace/probe-work/corpus/ranking"
+  ],
+  "mine_retries": 0,
+  "mine_seconds": 2.863,
+  "drawers_filed": 8,
+  "top1_hits": 8,
+  "top5_hits": 8,
+  "repeat_agreement": 8,
+  "file_walk_top1": 6,
+  "scoped_expected_leaks": 0,
+  "scoped_wing_mismatches": 0,
+  "scoped_results": 32,
+  "scoped_kept": 8,
+  "search_seconds": 38.59,
+  "scored": 8,
+  "chroma_bytes": 174510889,
+  "palace_bytes": 713510,
+  "reason": null,
+  "real_home_changed": [],
+  "overlaps": [
+    {
+      "name": "Agent Beacon",
+      "file": "agent-beacon.json",
+      "integration_stage": "I0",
+      "tokens": [
+        "memory"
+      ],
+      "uses": "Copy a committed Grok session into a local JSONL, then store a lesson a person types. Scoring one trace calls hosted TypeSafe Jev."
+    },
+    {
+      "name": "Chroma (or LanceDB)",
+      "file": "chroma-or-lancedb.json",
+      "integration_stage": "I0",
+      "tokens": [
+        "memory",
+        "rag",
+        "embeddings",
+        "vector",
+        "code-memory"
+      ],
+      "uses": "Vector store. Code memory is already chosen."
+    },
+    {
+      "name": "codebase-memory-mcp",
+      "file": "codebase-memory-mcp.json",
+      "integration_stage": "I2",
+      "tokens": [
+        "rag",
+        "code-memory"
+      ],
+      "uses": "Primary code-graph MCP and the code-graph toolset."
+    },
+    {
+      "name": "Graphify",
+      "file": "graphify.json",
+      "integration_stage": "I0",
+      "tokens": [
+        "memory",
+        "code-memory"
+      ],
+      "uses": "Tree-sitter graph for a per-file review. Trialed on pfy diffs. Not the code memory we run."
+    },
+    {
+      "name": "Grok CLI bootstrap",
+      "file": "grok-cli-bootstrap.json",
+      "integration_stage": "I3",
+      "tokens": [
+        "code-memory"
+      ],
+      "uses": "Operator env, skills install, cage Grok sessions."
+    },
+    {
+      "name": "Hermes Agent (feedback loops)",
+      "file": "hermes-agent-feedback-loops.json",
+      "integration_stage": "I1",
+      "tokens": [
+        "memory"
+      ],
+      "uses": "Feedback-loop pattern ported as a skill. Not the Hermes runtime."
+    },
+    {
+      "name": "imcodes",
+      "file": "imcodes.json",
+      "integration_stage": "I0",
+      "tokens": [
+        "memory"
+      ],
+      "uses": "Reference for a supervised review loop and final-answer memory. Not an install."
+    },
+    {
+      "name": "LangGraph (LangChain)",
+      "file": "langgraph-langchain.json",
+      "integration_stage": "I1",
+      "tokens": [
+        "rag"
+      ],
+      "uses": "Graph orchestration. Our loops already cover the operator path."
+    },
+    {
+      "name": "LEANN",
+      "file": "leann.json",
+      "integration_stage": "I1",
+      "tokens": [
+        "memory",
+        "rag",
+        "embeddings",
+        "bm25"
+      ],
+      "uses": "Compressed RAG for local text. The 2026-11-07 probe stored a 16582-byte HNSW graph against a 331776-byte float32 matrix, and the full index was 620548 bytes on 190529 bytes of passages. The CPU cache install is about 1.63 GB. Not our code memory."
+    },
+    {
+      "name": "Memvid",
+      "file": "memvid.json",
+      "integration_stage": "I1",
+      "tokens": [
+        "memory",
+        "rag"
+      ],
+      "uses": "Video-backed memory. No job in the current operator path."
+    },
+    {
+      "name": "MUE-X",
+      "file": "mue-x.json",
+      "integration_stage": "I1",
+      "tokens": [
+        "memory"
+      ],
+      "uses": "Self-rewriting agent. Interesting pattern, unsafe as a runtime."
+    },
+    {
+      "name": "opencode-mem",
+      "file": "opencode-mem.json",
+      "integration_stage": "I1",
+      "tokens": [
+        "memory",
+        "vector"
+      ],
+      "uses": "Memory plugin for the OpenCode worker."
+    },
+    {
+      "name": "OpenContext",
+      "file": "opencontext.json",
+      "integration_stage": "I1",
+      "tokens": [
+        "embedding"
+      ],
+      "uses": "Personal context store and oc CLI. The 2026-11-07 probe recalled 8 of 8 copied notes and 0 of 8 facts already in this repo, and it scored 0 with/without harness cases."
+    },
+    {
+      "name": "RoBrain",
+      "file": "robrain.json",
+      "integration_stage": "I0",
+      "tokens": [
+        "memory"
+      ],
+      "uses": "Decision memory with vetoes."
+    }
+  ]
+}

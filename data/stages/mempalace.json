@@ -1,19 +1,39 @@
 {
   "name": "MemPalace",
-  "integration_stage": "I0",
-  "intent": "awareness",
+  "integration_stage": "I1",
+  "intent": "staged_evaluation",
   "entry": "sources/entries/149-mempalace.md",
   "github": "https://github.com/MemPalace/mempalace",
-  "uses": "Verbatim local memory with scoped search.",
+  "pin": "84582fb055a6429261f9c779da86c0561ec80adc",
+  "version": "3.12.0",
+  "license": "MIT",
+  "uses": "Verbatim local memory with a wing filter. The 2026-11-07 probe ranked the right excerpt first on 8 of 8 questions (word-overlap walk 6 of 8, wing leaks 0 of 8, agreement 8 of 8). It graded 0 with/without harness cases. The checkout without git is 68560448 bytes and the MiniLM onnx file is 90387606 bytes.",
+  "features": [
+    "verbatim drawers",
+    "wing filter on search",
+    "minilm onnx embedder",
+    "hybrid cosine and bm25"
+  ],
   "potential": "medium",
-  "next_gate": "Post-MVP memory slot bake-off against 108 and 132.",
+  "next_gate": "Stay I1. Re-open I2 only if a pin keeps top-1 above 6 of 8 on these eight questions, keeps wing leaks at 0, and both the work tree and the embedder are under 50 MB. A same-question run against cass-memory (108) and ai-memory (132) is still open. cass-memory was not executed (license rider; Mark decides before a trial). Do not wire a gate.",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",
-    "catalog_hold_70_75"
+    "catalog_hold_70_75",
+    "llm mode",
+    "remote serve",
+    "mcp registration",
+    "gate wiring",
+    "in-repo copy",
+    "replace codebase-memory"
   ],
   "evidence": [
-    "entry:sources/entries/149-mempalace.md"
+    "entry:sources/entries/149-mempalace.md",
+    "eval/evq1107/mempalace/REPORT.md",
+    "eval/evq1107/mempalace/VERDICT",
+    "eval/evq1107/mempalace/results.json",
+    "pin 84582fb055a6429261f9c779da86c0561ec80adc",
+    "version 3.12.0"
   ],
   "handoff_by": "llm"
 }
