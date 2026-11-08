@@ -12,7 +12,7 @@
     "consume-once ephemeral text",
     "default-deny write roots",
     "read-only generated paths",
-    "edit drops the last green check"
+    "native Pi edit drops a prior green check"
   ],
   "potential": "low",
   "next_gate": "Stay I0 reference. Re-open only if a later ticket copies one rule into write-guard or the loop exits, and that ticket grills the copy first. No install, no TeaQL app generation, no gate. Gap B stays the pfy build timeout. Not a Feature GO.",

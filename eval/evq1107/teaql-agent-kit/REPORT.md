@@ -23,7 +23,7 @@ TeaQL Agent Kit (teaql/teaql-agent-kit) is a model-first TeaQL app skill plus `@
 
 | Idea | pfy file | Already covered by |
 | --- | --- | --- |
-| An edit drops the last green check. Their rerun stops at 3 rounds. | `docs/ops/loop-engineering.md` | Eight exits, written before the run. Review quality is `docs/build-dropins/mvp-review-quality-1031.md`. |
+| On native Pi, a successful edit drops the last green check. The rerun stops at 3 rounds. OpenCode does not get that hook. | `docs/ops/loop-engineering.md` | Eight exits, written before the run. Review quality is `docs/build-dropins/mvp-review-quality-1031.md`. |
 | Empty write roots deny every write. Generated paths stay read-only. | `harness/write-guard-mcp/src/write_guard/server.py` | Write mediation above the cage, with a content hash of the body. |
 | Missing numbers stay unreported. Do not invent savings. | `docs/ops/skill-verification.md` | Lane reports already require pins, commands, and numbers. |
 | A phase ends only on an explicit trusted discard. | `bootstrap/grok-cli/skills/agent-loops/SKILL.md` | Exit cards. The kit does not infer "phase complete". |
@@ -58,7 +58,7 @@ Modularity (all 4 for I2): local code was not required. One package is publishab
 | Risk | How it fails | How we recover |
 | --- | --- | --- |
 | Skill install writes an agent home | `npx skills add` or `pi install` touches a real agent home | Do not install. Cache only. |
-| Logos read as enforcement | A Grok or Cursor session is treated as marker-aware | The matrix says those hosts are guidance only. Grok is absent. |
+| Logos read as enforcement | A Cursor or Grok session is treated as marker-aware | The matrix lists Cursor as guidance only. Grok is absent. |
 | App generation scope | `build-teaql-app` starts a TeaQL app here | Reference only. No generation. |
 | License mix | Child Apache-2.0 text is copied under the root MIT line | Cite both. Copy no source. |
 | Pin drift | `main` moves past this SHA | Keep `92c79101f725655d5356078938742bd633f341a2`. |
