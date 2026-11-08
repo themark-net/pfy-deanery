@@ -27,4 +27,4 @@
 | Silent self-update | `update` or the board's update offer replaces the binary from GitHub | Pin the binary by sha256; never run `update` |
 | License creep | AGPL code copied into pfy-mentat | Use only as an external binary over MCP |
 
-- **Status**: Cataloged I0. Smoke PASS on the Grok Bot box with the release binary in `/tmp`; exit 2 by default (not staged). Possible later trial: one pfy-mentat project board driven by `next_task` from a Build run, compared with the current GitHub-issue queue.
+- **Status**: STAY I0 reference (read 2026-11-07). Pin `005424d4d0b4c2971278a14de6fbca6189605e6c` is crate 0.2.1, AGPL-3.0-only (tag `v0.2.1` is the earlier commit `f1aaf69582c50645de257f3da859fb6a03ddaa5e`). No install, no binary, no code copy. Smoke was not re-run. The Grok Bot box PASS on the release tarball and the exit 2 when no binary is staged stay as recorded above. Gap B stays the pfy build timeout. Receipt: `eval/evq1107/kanzo/REPORT.md`. No Feature GO.

@@ -4,16 +4,44 @@
   "intent": "awareness",
   "entry": "sources/entries/156-kanzo.md",
   "github": "https://github.com/emanuele-em/kanzo",
-  "uses": "Local kanban + MCP.",
+  "pin": "005424d4d0b4c2971278a14de6fbca6189605e6c",
+  "crate_version": "0.2.1",
+  "release_tag": "v0.2.1",
+  "release_commit": "f1aaf69582c50645de257f3da859fb6a03ddaa5e",
+  "license": "AGPL-3.0-only",
+  "notes_doc": "eval/evq1107/kanzo/REPORT.md",
+  "uses": "Local kanban and MCP on one SQLite folder. Reference read only. The pfy build timeout stays where it is.",
+  "features": [
+    "one data folder",
+    "next_task skips human rows",
+    "optional backlog column",
+    "markdown or json export"
+  ],
   "potential": "low",
-  "next_gate": "AGPL-3.0; run queue alternative post-MVP only.",
+  "next_gate": "Stay I0 reference. AGPL-3.0-only, cite only. Re-open only as an external binary at pin 005424d4d0b4c2971278a14de6fbca6189605e6c, with --home on a temp dir, an explicit project slug, and no update, service, or sync. Compare one next_task with docs/TODO.md. Gap B stays the pfy build timeout. Not a Feature GO.",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",
-    "catalog_hold_70_75"
+    "catalog_hold_70_75",
+    "install",
+    "cargo_build",
+    "release_binary",
+    "vendor_agpl",
+    "service_install",
+    "sync",
+    "update",
+    "mcp_registration",
+    "pregate or CI gate",
+    "replace docs/TODO.md"
   ],
   "evidence": [
-    "entry:sources/entries/156-kanzo.md"
+    "entry:sources/entries/156-kanzo.md",
+    "pin:005424d4d0b4c2971278a14de6fbca6189605e6c",
+    "crate:0.2.1",
+    "release_tag:v0.2.1",
+    "release_commit:f1aaf69582c50645de257f3da859fb6a03ddaa5e",
+    "eval/evq1107/kanzo/REPORT.md",
+    "eval/evq1107/kanzo/VERDICT"
   ],
   "handoff_by": "llm"
 }
