@@ -36,7 +36,7 @@
   "features": [
     "ast mutation",
     "memory layers",
-    "kernel hash seal",
+    "gene file rewrite",
     "llm rewrite pipeline"
   ],
   "potential": "low",

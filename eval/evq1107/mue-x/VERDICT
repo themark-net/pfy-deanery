@@ -1,1 +1,1 @@
-STAY I1 reference: mutation-safety note recorded at pin c703844; evolve stays off because KERNEL_FILES omits the security guard and an LLM path still replaces source
+STAY I1 reference: mutation-safety note recorded at pin c703844; evolve stays off because seal_kernel hashes no shipped kernel file and an LLM path still replaces gene source
