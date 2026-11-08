@@ -72,9 +72,9 @@ The probe writes two shim agents into the redirected `MCO_CONFIG_DIR` and review
 | Check | Result |
 | --- | --- |
 | Built-in adapters | 11 |
-| Adapters whose own binary name resolves | 7 (agy, claude, codex, grok, hermes, opencode, pi) |
+| Adapter binary names that resolve | 8 of 11: agy, claude, codex, grok, hermes, opencode, pi, and `agent` (the cursor adapter) |
 | Absent | copilot, gemini, qwen |
-| Cursor lookup name `agent` | resolves, and the path does not mention cursor. Not treated as the Cursor CLI |
+| `agent` path text | The resolved path does not contain the word cursor. Cursor's CLI is often named `agent`, so that miss does not identify the file. It was not executed |
 | Provider CLIs executed | 0. Doctor and live review SKIPPED |
 | Adapters with `context_files` | 4 of 11: claude, codex, hermes, pi |
 | Dry run | exit 0, 57.2 ms, `would_execute` false, 2 invocations, stub log lines 0 |
@@ -115,7 +115,7 @@ Modularity passes for a cache probe. That is not a promotion. The result is no l
 | Doctor starts a hosted CLI | `mco doctor` runs `grok models`, a gemini prompt, and copilot with `--allow-all-tools` when those binaries are on PATH | Do not run doctor on the host PATH. This lane did not. |
 | Default artifacts land in the repo | `artifact_base` defaults to `reports/review` | Pass an absolute `--artifact-base` under the cache, and use `--result-mode stdout` when the JSON envelope is enough. This run left `reports/review` absent. |
 | Synthesis looks like a merged review | `--synthesize` on a shim returns `context_file_unsupported` and the task status is `partial` | Treat `partial` as an unfinished provider call. The two raw lines are still the whole result. |
-| Generic `agent` binary | The cursor adapter looks up `agent`. A hit whose path does not mention cursor is a different program | Do not count that hit as Cursor, and do not execute it to find out. |
+| `agent` on PATH | The cursor adapter launches `agent`. That is the usual Cursor CLI name, including when the path does not contain the word cursor | Do not execute it on an offline probe. This lane did not. Doctor stays skipped |
 | Parallel writers | mco does not create worktrees and does not lock a file | One worktree per slug stays the lock. |
 | Skill sync writes into agent homes | `mco skills sync` copies the bundled skill into calling-agent directories | This lane did not sync skills. Keep HOME redirected if a later ticket does. |
 | Disagreement stays unresolved | 2 answers, 0 decisions. A lane can still hit the 3 hour timeout | Pregate and the 8 exits stay the stop. |

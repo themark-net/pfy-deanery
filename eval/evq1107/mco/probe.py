@@ -81,6 +81,7 @@ def provider_inventory() -> dict:
         resolved = shutil.which(binary)
         row = {"provider": provider, "binary": binary, "present": bool(resolved)}
         if provider == "cursor":
+            # Path text only. A miss does not prove this is not the Cursor CLI.
             row["path_mentions_cursor"] = bool(resolved) and "cursor" in resolved.lower()
         rows.append(row)
     return {
