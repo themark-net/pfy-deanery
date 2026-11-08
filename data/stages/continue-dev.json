@@ -14,21 +14,30 @@
     "#vs"
   ],
   "catalog_github": "https://github.com/continuedev/continue",
+  "pin": "5522c6f44ca0ac3528b37244818fbfa39b5af470",
+  "license": "Apache-2.0",
   "posture": [],
   "evidence": [
-    "path:bootstrap/continue"
+    "path:bootstrap/continue",
+    "eval/evq1107/continue-dev/REPORT.md",
+    "eval/evq1107/continue-dev/VERDICT",
+    "pin:5522c6f44ca0ac3528b37244818fbfa39b5af470"
   ],
   "tier_ceiling": "I3",
-  "uses": "IDE recipe pointed at the local OpenAI base. Not a CLI we exec.",
+  "uses": "IDE config recipe for a frozen Apache-2.0 VS Code client. It points at a local OpenAI base and does not serve a model. pfy writes the file and does not exec the IDE.",
   "features": [
     "ide",
-    "autocomplete"
+    "autocomplete",
+    "local apiBase",
+    "model roles"
   ],
-  "potential": "medium",
-  "next_gate": "Operator copies the generated config. I3 only if someone actually uses it.",
+  "potential": "low",
+  "next_gate": "Stay I1 reference. I3 only if an operator uses the generated config on a real edit. This lane did not install or exec the IDE. The README at 5522c6f says the repo is no longer maintained. Worktree is 283463694 bytes, over the 50 MB copy bar. It does not serve a model, so gap L stays open. No gate wiring. Not a Feature GO.",
   "handoff_by": "llm",
   "non_goals": [
     "exec the IDE",
-    "vendor Continue"
+    "vendor Continue",
+    "install",
+    "gate wiring"
   ]
 }
