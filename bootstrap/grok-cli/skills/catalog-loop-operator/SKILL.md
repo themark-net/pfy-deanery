@@ -65,6 +65,7 @@ Taken, so the tick will not launch the slug:
 2. After that read, remove `<dir>/<slug>.dispatched`.
 3. A leftover `.parked` still counts as taken. Remove `.parked` in the same step only after the reason is read and the retry is intended.
 4. Do not remove `LANDED_<slug>` or `.done` when the lane already landed.
+5. A tick that fails in `systemd-run` writes `.dispatched` and no `.parked`. Read `errors` in `loop.latest.json`, then remove that `.dispatched` to retry.
 
 ## Counts timer
 

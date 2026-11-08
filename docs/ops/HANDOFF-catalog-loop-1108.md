@@ -85,7 +85,7 @@ Dirs checked:
 
 The loop writes `$PFY_LOOP_STATE/<kind>/<slug>.dispatched` with noclobber before `systemd-run`. That file is not the integrate lane's `tmp/integrate/<slug>.dispatched`. Eval continues when `PFY_LANE_FROM_LOOP=1` and the marker already exists. A second eval start without that variable exits 2.
 
-Retry: read `<dir>/<slug>.parked`, then remove `.dispatched`. A leftover `.parked` still counts as taken, so remove it in the same step only after the reason is read and a retry is intended. Do not remove `LANDED_` or `.done` after a land.
+Retry: read `<dir>/<slug>.parked`, then remove `.dispatched`. A leftover `.parked` still counts as taken, so remove it in the same step only after the reason is read and a retry is intended. Do not remove `LANDED_` or `.done` after a land. A tick that fails inside `systemd-run` leaves `.dispatched` and no `.parked`. Read `errors` in `loop.latest.json`, then remove that `.dispatched` to retry.
 
 `STOP` or human `QUOTA_STOP` in the state dir stops the tick with status `stopped`. Do not clear a human `QUOTA_STOP`. Reaching 20 starts in one America/Los_Angeles day writes `QUOTA_STOP.auto`. A later tick on a new day removes only that auto file when the new day's counter is under 20.
 
@@ -102,6 +102,8 @@ Path: `eval/catalog-queue/needs-mark.tsv`. Header: `slug`, `kind`, `reason`, `ev
 Sources: `scripts/integrate_intake.py` flags, `eval/catalog-queue/exclusions.tsv` rows whose reason says Mark, GPU, or 25 GB, demotion rows in `eval/catalog-verdicts/CEILING-MISMATCHES.md`, auto-raise refusals by class, and parked lane files. Evidence paths are repo-relative. `since` is an ISO date from the parked file's first line, otherwise `-`.
 
 The loop does not launch a slug that appears in this file.
+
+`needs-mark.tsv` is written after auto-raise in the same tick. A ceiling that this tick raised to I3 is not listed as below I3, so the slug can still launch. Auto-raise refusals are still rows, because those cards are unchanged.
 
 ## Auto-raise rule and word lists
 

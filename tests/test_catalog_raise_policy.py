@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import tempfile
 import unittest
@@ -181,3 +182,21 @@ class RaisePolicyTest(unittest.TestCase):
             self.assertIn("aa-huge\tpull-over-25gb\t", text)
             self.assertNotIn("aa-open\tgpu\t", text)
             self.assertNotIn("aa-open\trisky-class\t", text)
+
+    def test_word_lists_in_the_skill_match_the_checker(self):
+        source = RAISE.read_text(encoding="utf-8")
+        blocks = re.findall(r"^([A-Z_]+) = frozenset\(\{([^}]*)\}\)", source, re.M)
+        self.assertGreaterEqual(len(blocks), 5)
+        skill = (ROOT / "bootstrap/grok-cli/skills/catalog-apply-and-ceiling/SKILL.md").read_text(encoding="utf-8")
+        mirror = (ROOT / ".grok/skills/catalog-apply-and-ceiling/SKILL.md").read_text(encoding="utf-8")
+        handoff = (ROOT / "docs/ops/HANDOFF-catalog-loop-1108.md").read_text(encoding="utf-8")
+        self.assertEqual(skill, mirror)
+        for _name, body in blocks:
+            tokens = re.findall(r'"([^"]+)"', body)
+            self.assertTrue(tokens)
+            for token in tokens:
+                self.assertIn(token, skill)
+                self.assertIn(token, handoff)
+        for phrase in ("open-weights", "cpu-gpu", "25 gb", "25gb"):
+            self.assertIn(phrase, skill)
+            self.assertIn(phrase, handoff)
