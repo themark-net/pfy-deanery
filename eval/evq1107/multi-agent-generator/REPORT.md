@@ -50,7 +50,7 @@ Gap B in `docs/eval/TOOLSET-RANKING.md` (2026-11-07) is `./pfy build`: the 3 hou
 
 Value (3 of 4 for I3): gap fill no. Operator leverage no. Evidence no: this lane did not run the one-liner, and the default provider is openai. Blast radius yes: MIT, no weights, worktree 1717242 bytes. Score 1 of 4.
 
-Modularity (all 4 for a local copy): the README, `docs/orchestration.md`, and `pyproject.toml` were enough, so local code was not required. One console script. The cache copy is isolatable, and deleting it leaves the pin. 3 of 4. Potential is low, so I2 does not open. `TOOLS.md` says `(I0)`, so the ceiling stays I0.
+Modularity (all 4 for a local copy): the README was enough to refuse an install. Seeing `shell=True` and the dead enum names took a source read, so local code was needed for those risks. One console script. The cache copy is isolatable, and deleting it leaves the pin. 4 of 4. Potential is low, so I2 stays closed. `TOOLS.md` says `(I0)`, so the ceiling stays I0.
 
 `uses` and `features` do not name a CI, test, or review role token. No `self_pipeline` field. No gate wiring.
 
