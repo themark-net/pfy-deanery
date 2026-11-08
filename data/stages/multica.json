@@ -1,7 +1,7 @@
 {
   "name": "Multica",
   "integration_stage": "I1",
-  "intent": "catalog_default",
+  "intent": "reference",
   "tier": "A",
   "auto": true,
   "catalog_tier": "A",
@@ -15,18 +15,42 @@
     "#docker"
   ],
   "catalog_github": "https://github.com/multica-ai/multica",
-  "posture": [],
-  "evidence": [],
-  "tier_ceiling": "I1",
-  "uses": "Multi-agent board. Not our orchestrator.",
-  "features": [
-    "board",
-    "docker"
+  "posture": [
+    "pattern_only"
   ],
-  "potential": "medium",
-  "next_gate": "Stay I1. Compare patterns only.",
+  "evidence": [
+    "entry:sources/x-posts.md",
+    "pin:2a48ffa2aa734a4a362c2c52a786cd98a20bcef6",
+    "eval/evq1107/multica/REPORT.md",
+    "eval/evq1107/multica/VERDICT"
+  ],
+  "tier_ceiling": "I1",
+  "uses": "Cloud or self-host board where a person and an agent share one issue. Reference read only. The pfy build timeout stays where it is.",
+  "features": [
+    "assignee is a person or an agent",
+    "squad leader routes the issue",
+    "local daemon claims work for installed CLIs",
+    "skill files dropped into the work directory",
+    "autopilot opens the issue on a schedule"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1 reference. Re-open only if a later ticket asks for a pattern note on person-or-agent issues, and that ticket still leaves the cloud login, the daemon, Postgres, and Docker out. Gap B stays the pfy build timeout. No install. Not a Feature GO.",
   "handoff_by": "llm",
   "non_goals": [
-    "primary orchestrator"
-  ]
+    "primary orchestrator",
+    "feature_go",
+    "catalog_hold_70_75",
+    "install",
+    "cloud_login",
+    "docker_compose",
+    "code_copy",
+    "product_ui",
+    "gate_wiring"
+  ],
+  "entry": "sources/x-posts.md",
+  "github": "https://github.com/multica-ai/multica",
+  "pin": "2a48ffa2aa734a4a362c2c52a786cd98a20bcef6",
+  "license": "modified Apache-2.0",
+  "license_note": "Apache-2.0 plus a ban on hosted or embedded commercial use without a written license, a frontend logo lock, and a clause that lets the producer tighten terms. Not MIT. Copy no source.",
+  "notes_doc": "eval/evq1107/multica/REPORT.md"
 }
