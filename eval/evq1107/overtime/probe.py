@@ -14,7 +14,6 @@ import subprocess
 import time
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[3]
 OUT = Path(__file__).resolve().parent
 STUB = OUT / "stub_acp.mjs"
 CACHE = Path("/home/mark/.cache/pfy/tools/overtime")
