@@ -24,7 +24,19 @@ Factory questions for this receipt script:
 
 ## HiRoute
 
-Pending in this handoff. The runner on main still exits 1 after the dispatched-marker check because classification is marked no-listen. The ev1107 probe scored 20/20 and stopped at I2. Ceiling stays I1.
+The old runner exited 2 when `tmp/integrate2/hiroute.dispatched` existed, then exited 1 with `classification needs a listener` without running the binary. The binary is installed under `~/.cache/pfy/tools/hiroute/`, and `routing list` is `local_control_only` with `model_call: never`.
+
+`eval/integrate/hiroute/run-on-main.sh` now queries that socket. It does not bind a port, does not use 11434, and does not call a model. A receipt from this runner is a plan list, not `routing_agreement_of_20`. That metric needs the decision model. `ollama ps` was empty, so a new completion would load a model. That load is not approved. The runner does not do it.
+
+Factory questions:
+
+1. What triggers it? An operator runs the script after `HEAD` is an ancestor of `origin/main`. Not a CI job.
+2. What does it do, and which services does it read and write? It runs `hiroute routing list` against the existing trial-home control socket and writes the receipt. It reads the cache install. It does not write the daemon's store (the command effect is `none`).
+3. What does it trigger next? `scripts/catalog_apply_verdict.py`. The verdict proposes I3 for `routing_agreement_of_20`. This list does not measure that metric. Apply is expected to refuse while the card evidence has no main-run receipt line. The card is not hand-edited.
+4. Where does a human re-enter? Before a GPU model load for the 20-prompt agreement, before any ceiling or stage edit, and before wiring HiRoute into `./pfy`.
+5. What stops two runs doing the same work? A foreign `PFY_HIROUTE_LANE_MARKER` (default `tmp/integrate2/hiroute.dispatched`) exits 2. An ancestor pid is the admitted lane.
+
+## LiteLLM
 
 ## LiteLLM
 

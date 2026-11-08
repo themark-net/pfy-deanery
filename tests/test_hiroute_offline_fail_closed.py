@@ -1,3 +1,4 @@
+import json
 import os
 import pathlib
 import stat
@@ -71,15 +72,71 @@ class HirouteOfflineFailClosedTest(unittest.TestCase):
             proc = self._run(env, dest)
             self.assertNotEqual(proc.returncode, 0, proc.stderr)
             self.assertFalse(dest.exists(), proc.stderr)
-            self.assertFalse(stamp.exists(), proc.stderr)
             self.assertNotIn("already dispatched", proc.stderr)
             if ancestor:
-                self.assertIn("classification needs a listener", proc.stderr)
+                self.assertTrue(stamp.exists(), proc.stderr)
+                self.assertNotIn("not an ancestor", proc.stderr)
             else:
+                self.assertFalse(stamp.exists(), proc.stderr)
                 self.assertIn("not an ancestor", proc.stderr)
         finally:
             for path in sorted(work.rglob("*"), reverse=True):
                 path.unlink(missing_ok=True)
+            work.rmdir()
+
+    def test_routing_list_success_writes_receipt(self):
+        work = pathlib.Path(tempfile.mkdtemp(dir="/tmp"))
+        try:
+            hi = work / "hiroute"
+            dest = work / "receipt.json"
+            marker = work / "missing-marker"
+            hi.write_text(
+                textwrap.dedent(
+                    """\
+                    #!/bin/sh
+                    if [ "$1" = version ]; then
+                      printf '%s\\n' 'hiroute 0.3.1-test'
+                      exit 0
+                    fi
+                    if [ "$1" = routing ] && [ "$2" = list ]; then
+                      printf '%s\\n' '{"status":"succeeded","data":{"plans":[{"model_alias":"stub-route"}]}}'
+                      exit 0
+                    fi
+                    exit 2
+                    """
+                ),
+                encoding="utf-8",
+            )
+            hi.chmod(hi.stat().st_mode | stat.S_IEXEC)
+            env = os.environ.copy()
+            env["HIROUTE_BIN"] = str(hi)
+            env["PFY_HIROUTE_LANE_MARKER"] = str(marker)
+            env["HIROUTE_CACHE"] = str(work / "cache")
+            proc = subprocess.run(
+                ["/bin/bash", str(SCRIPT), str(dest)],
+                cwd=ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            doc = json.loads(dest.read_text(encoding="utf-8"))
+            self.assertEqual(doc["slug"], "hiroute")
+            self.assertEqual(doc["run_kind"], "pipeline")
+            self.assertEqual(doc["outcome"], "ok")
+            self.assertEqual(doc["tool_version"], "hiroute 0.3.1-test")
+            self.assertIn("stub-route", doc["did"])
+            self.assertIn("model_call never", doc["did"])
+            self.assertIn("routing_agreement_of_20", doc["did"])
+            self.assertNotIn("hr_", doc["did"])
+        finally:
+            for path in sorted(work.rglob("*"), reverse=True):
+                if path.is_file() or path.is_symlink():
+                    path.unlink(missing_ok=True)
+            for path in sorted(work.rglob("*"), reverse=True):
+                if path.is_dir():
+                    path.rmdir()
             work.rmdir()
 
     def _run(self, env, dest):
