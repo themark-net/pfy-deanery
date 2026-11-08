@@ -4,16 +4,33 @@
   "intent": "awareness",
   "entry": "sources/entries/167-teaql-agent-kit.md",
   "github": "https://github.com/teaql/teaql-agent-kit",
-  "uses": "Agent context and verification policy patterns.",
+  "pin": "92c79101f725655d5356078938742bd633f341a2",
+  "license": "MIT root, Apache-2.0 @teaql/agent-context-kit 0.5.0",
+  "uses": "Reference read of context lifetimes and a default-deny file policy for other coding hosts. Not an install.",
+  "features": [
+    "named context blocks",
+    "consume-once ephemeral text",
+    "default-deny write roots",
+    "read-only generated paths",
+    "edit drops the last green check"
+  ],
   "potential": "low",
-  "next_gate": "Pattern read only.",
+  "next_gate": "Stay I0 reference. Re-open only if a later ticket copies one rule into write-guard or the loop exits, and that ticket grills the copy first. No install, no TeaQL app generation, no gate. Gap B stays the pfy build timeout. Not a Feature GO.",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",
-    "catalog_hold_70_75"
+    "catalog_hold_70_75",
+    "install",
+    "code_copy",
+    "teaql_app_generation",
+    "gate_wiring",
+    "agent_home_writes"
   ],
   "evidence": [
-    "entry:sources/entries/167-teaql-agent-kit.md"
+    "entry:sources/entries/167-teaql-agent-kit.md",
+    "pin:92c79101f725655d5356078938742bd633f341a2",
+    "eval/evq1107/teaql-agent-kit/REPORT.md",
+    "eval/evq1107/teaql-agent-kit/VERDICT"
   ],
   "handoff_by": "llm"
 }

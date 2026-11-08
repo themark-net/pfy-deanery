@@ -24,4 +24,4 @@
 | App-generation scope creep | build-teaql-app wants to generate apps | Use only as design reference for context/verification |
 | Pin drift | `main` moves | Smoke checks this SHA |
 
-- **Status**: Cataloged I0. Commit pin recorded. Kit not installed (smoke designed for exit 2). Next step, if any: read `packages/agent-context-kit` docs for patterns reusable in pfy write-guard / smoke HOME fingerprinting. No Feature GO.
+- **Status**: STAY I0 reference (nimo read 2026-11-07). Pin `92c79101f725655d5356078938742bd633f341a2`. Root MIT. Child `@teaql/agent-context-kit` 0.5.0 is Apache-2.0. Docs only, no install, no script run. Context lifetimes and the file policy overlap write-guard, cage, and the 8 exits. Gap B unchanged. Report: `eval/evq1107/teaql-agent-kit/REPORT.md`. Not a Feature GO.
