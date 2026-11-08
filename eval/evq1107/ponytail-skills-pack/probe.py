@@ -277,11 +277,16 @@ def full_probe() -> int:
     init_py = src / "__init__.py"
     refusal = register_refusal_checks(init_py.read_text(encoding="utf-8")) if init_py.is_file() else None
     package = json.loads((src / "package.json").read_text(encoding="utf-8"))
+    license_path = src / "LICENSE"
+    license_line = ""
+    if license_path.is_file():
+        license_line = license_path.read_text(encoding="utf-8").splitlines()[0].strip()
     payload = {
         "pin": pin,
         "pin_date": date_line.strip(),
         "package_version": package.get("version"),
-        "license": "MIT",
+        "license_first_line": license_line,
+        "license": "MIT" if license_line == "MIT License" else (license_line or "missing"),
         "cache_bytes_no_git": tree_bytes(src),
         "skills_bytes": tree_bytes(pin_skills),
         "skill_count": len(names),

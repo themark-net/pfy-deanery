@@ -2,6 +2,7 @@
   "pin": "8e69b4a55f735e1319999064f82786b838cb3d7b",
   "pin_date": "2026-07-09T04:15:43+02:00",
   "package_version": "4.8.4",
+  "license_first_line": "MIT License",
   "license": "MIT",
   "cache_bytes_no_git": 1596339,
   "skills_bytes": 17214,
@@ -29,7 +30,7 @@
   },
   "smoke": {
     "exit": 0,
-    "seconds": 0.0266,
+    "seconds": 0.037,
     "asserted": [],
     "asserted_count": 0,
     "pack_count": 6
@@ -47,5 +48,5 @@
     "short_detail": "claude-unified-agents degraded: claude-unified-agents=9, missing mattpocock, missing ponytail"
   },
   "register_refusal_checks": 0,
-  "seconds": 0.0353
+  "seconds": 0.0579
 }

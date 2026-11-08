@@ -71,7 +71,7 @@ The probe uses `Path.home()` to find the cache, so it ran with the real `HOME`. 
 python3 eval/evq1107/ponytail-skills-pack/probe.py
 ```
 
-Exit 0. Probe clock 0.0353 s. `verify_skills.py` (the body of `make smoke-grok-skills`, without `--installed`) clock 0.0266 s, exit 0. No model lock. `ollama` was not called.
+Exit 0. Probe clock 0.0579 s. `verify_skills.py` (the body of `make smoke-grok-skills`, without `--installed`) clock 0.037 s, exit 0. No model lock. `ollama` was not called. The probe read the pin `LICENSE` first line (`MIT License`) instead of assuming the license.
 
 `bootstrap/grok-cli/install.sh` was not run. Its verify step merges the real Grok config. That script prints `OK ponytail snapshot` when `ponytail/SKILL.md` exists. That is one file, and it is not `smoke-grok-skills`.
 
