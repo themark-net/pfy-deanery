@@ -20,17 +20,36 @@
   "catalog_github": "https://github.com/fcakyon/claude-codex-settings",
   "posture": [],
   "evidence": [
-    "notes_doc:docs/ops/claude-codex-quality-hooks.md"
+    "notes_doc:docs/ops/claude-codex-quality-hooks.md",
+    "entry:sources/entries/076-claude-codex-settings.md",
+    "pin:0574bbbae11bd710f063abe62cf2c1b5b6d157c4",
+    "eval/evq1107/claude-codex-settings/REPORT.md",
+    "eval/evq1107/claude-codex-settings/VERDICT"
   ],
   "tier_ceiling": "I1",
-  "uses": "Hook and plugin pack for other CLIs.",
+  "uses": "Claude, Codex, and Cursor plugin marketplace of skills and command hooks. Reference only. It does not scan a skill before copy.",
   "features": [
-    "hooks"
+    "38 local plugins",
+    "7 command hook packs",
+    "force-push and rebase deny",
+    "simplify-before-commit marker",
+    "buzzword block on writes"
   ],
   "potential": "low",
-  "next_gate": "Extract a hook only when a Grok policy needs it.",
+  "next_gate": "Stay I1 reference. The extract is docs/ops/claude-codex-quality-hooks.md. Re-open only if a later ticket names one policy and copies that rule into write-guard or destructive-command-guard. No install, no marketplace add, no gate. H2 stays with SkillSpector. Not a Feature GO.",
   "handoff_by": "llm",
   "non_goals": [
-    "vendor the pack"
-  ]
+    "vendor the pack",
+    "feature_go",
+    "catalog_hold_70_75",
+    "install",
+    "marketplace_add",
+    "code_copy",
+    "gate_wiring",
+    "hosted model recipes"
+  ],
+  "entry": "sources/entries/076-claude-codex-settings.md",
+  "pin": "0574bbbae11bd710f063abe62cf2c1b5b6d157c4",
+  "license": "Apache-2.0 root; anthropic-office-skills LICENSE.txt forbids copies outside Anthropic services",
+  "marketplace_version": "2.10.0"
 }
