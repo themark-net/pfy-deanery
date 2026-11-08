@@ -202,12 +202,14 @@ lines = path.read_text(encoding="utf-8").splitlines() if path.is_file() else []
 for line in lines:
     parts = line.split("\t")
     if len(parts) >= 2 and parts[0] == slug and parts[1] == "supersede-stop":
+        print("kept")
         raise SystemExit(0)
 if not lines or not lines[0].startswith("slug\t"):
     lines.insert(0, header)
 lines.append(row)
 path.parent.mkdir(parents=True, exist_ok=True)
 path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+print("added")
 PY
 }
 
@@ -290,9 +292,15 @@ PY
   if [ "$rc" -eq 1 ]; then
     slug=$(supersede_project_id "$out" "$err")
     since=$(TZ=America/Los_Angeles date +%Y-%m-%d)
-    append_supersede_row "$STATE/needs-mark.tsv" "$slug" "$since"
+    state_add=$(append_supersede_row "$STATE/needs-mark.tsv" "$slug" "$since")
+    repo_add=kept
     if [ "$OFFLINE" -eq 0 ]; then
-      append_supersede_row "eval/catalog-queue/needs-mark.tsv" "$slug" "$since"
+      repo_add=$(append_supersede_row "eval/catalog-queue/needs-mark.tsv" "$slug" "$since")
+    fi
+    if [ "$repo_add" = "added" ] || { [ "$OFFLINE" -eq 1 ] && [ "$state_add" = "added" ]; }; then
+      PFY_NEEDS_COUNT=$(( ${PFY_NEEDS_COUNT:-0} + 1 ))
+      PFY_NEEDS_CHANGED=1
+      export PFY_NEEDS_COUNT PFY_NEEDS_CHANGED
     fi
     PFY_SUPERSEDE=stop
     export PFY_SUPERSEDE
