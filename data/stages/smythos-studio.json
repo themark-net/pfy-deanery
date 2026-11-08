@@ -1,0 +1,41 @@
+{
+  "name": "SmythOS Studio",
+  "integration_stage": "I1",
+  "intent": "reference",
+  "entry": "sources/entries/081-smythos-studio.md",
+  "github": "https://github.com/SmythOS/smythos-studio",
+  "pin": "3e1ea87e6718fdfdb24365b2184fbd1daa9f94f8",
+  "license": "MIT",
+  "license_note": "Root LICENSE is MIT (INK Content, Inc., 2025). Root, runtime, and middleware package.json license fields say ISC. The app field is empty.",
+  "notes_doc": "eval/evq1107/smythos-studio/REPORT.md",
+  "uses": "Visual drag-and-drop agent workspace plus a MySQL and Redis runtime. Reference read only. The pfy build timeout stays where it is.",
+  "features": [
+    "component graph",
+    "traefik mysql redis compose",
+    "ollama provider block",
+    "mcp client component",
+    "embodiment targets"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1 reference. Re-open only if a later ticket asks for a visual authoring note, and that ticket still leaves this stack out. No install, no Docker, no home model sync, no gate. Gap B stays the pfy build timeout. Not a Feature GO.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install",
+    "docker_compose",
+    "code_copy",
+    "product_ui",
+    "sre_runtime",
+    "gate_wiring",
+    "tools_md_row",
+    "replace pfy build"
+  ],
+  "evidence": [
+    "entry:sources/entries/081-smythos-studio.md",
+    "pin:3e1ea87e6718fdfdb24365b2184fbd1daa9f94f8",
+    "eval/evq1107/smythos-studio/REPORT.md",
+    "eval/evq1107/smythos-studio/VERDICT"
+  ],
+  "handoff_by": "llm"
+}
