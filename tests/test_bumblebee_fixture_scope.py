@@ -12,6 +12,9 @@ class BumblebeeFixtureScopeTest(unittest.TestCase):
         self.assertIn("scripts/pfy_mcp_scan.py", text)
         self.assertNotIn("~/.grok", text)
         self.assertNotIn("auth.json", text)
+        self.assertNotIn("$HOME", text)
+        self.assertNotIn("~/", text)
+        self.assertNotIn(".cache/pfy", text)
 
 
 if __name__ == "__main__":
