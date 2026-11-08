@@ -4,7 +4,7 @@ STAY I1 reference: stealth browser does not build the Tauri operator window, and
 
 ## What it is
 
-Camofox Browser (https://github.com/jo-inc/camofox-browser) is a Node REST server that launches Camoufox, a Firefox fork with C++ fingerprint spoofing, for agents. `@askjo/camofox-browser` at this pin is 1.18.1. `@askjo/camofox-browser-mcp` is the same version and lists 11 tools. The MCP process proxies to the REST server and does not ship the browser. Default port is 9377. A tab is `userId` plus `sessionKey`. A snapshot is an accessibility tree with refs such as `e1`. Refs reset on navigation. `lib/snapshot.js` windows a tree at 80000 characters and keeps a 5000 character tail. Sessions expire after 30 minutes idle. The browser process stops after 300000 ms with no sessions. Profiles default to `~/.camofox/profiles/`. Cookie import stays closed unless `CAMOFOX_API_KEY` is set. Crash telemetry defaults on, to `camofox-telemetry.askjo.workers.dev`. The README says the first `npm install` downloads about 300MB of Camoufox. Node is `>=22`. The entry's 47-tool MCP is the redf0x1 fork. This pin is not that fork. The GitHub API at this read reported 12199 stars. The entry's "~6k" is older.
+Camofox Browser (https://github.com/jo-inc/camofox-browser) is a Node REST server that launches Camoufox, a Firefox fork with C++ fingerprint spoofing, for agents. `@askjo/camofox-browser` at this pin is 1.18.1. `@askjo/camofox-browser-mcp` is the same version and lists 11 tools. The MCP process proxies to the REST server and does not ship the browser. Default port is 9377. A tab is `userId` plus `sessionKey`. A snapshot is an accessibility tree with refs such as `e1`. Refs reset on navigation. `lib/snapshot.js` windows a tree at 80000 characters and keeps a 5000 character tail. Session inactivity defaults to 600000 ms in `lib/config.js` and the env table. The architecture paragraph still says 30 minutes. The browser process stops after 300000 ms with no sessions. Profiles default to `~/.camofox/profiles/`. Cookie import stays closed unless `CAMOFOX_API_KEY` is set. Crash telemetry defaults on, to `camofox-telemetry.askjo.workers.dev`. The README says the first `npm install` downloads about 300MB of Camoufox. Node is `>=22`. The entry's 47-tool MCP is the redf0x1 fork. This pin is not that fork. The GitHub API at this read reported 12199 stars. The entry's "~6k" is older.
 
 ## License and pin
 
@@ -56,6 +56,7 @@ Modularity (all 4 for I2): the README was enough to stay. The surface is the RES
 | Cookie store | Persistence writes `~/.camofox/profiles/`. | Do not start it. A trial would set `CAMOFOX_PROFILE_DIR` under the cache and leave cookie import unset. |
 | Gap W misread | A stealth browser is treated as the operator window. | The verdict stays I1. Tauri binaries stayed 0. |
 | HOLD lift | Entry 071 moves onto the product path. | Do not edit TOOLS.md. The ask queue still HOLDs 70-75 by entry number. |
+| Handoff apply | `catalog_stage_eval.py --apply` copies uses and next_gate from `data/catalog_stage_handoff.json`, which still says Stay I1. | This lane leaves that shared file alone. Put this card's text back if an apply lands first. |
 
 ## Next gate
 
