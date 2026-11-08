@@ -1,0 +1,73 @@
+{
+  "decide": {
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "augmented": true,
+        "task": "Human-decision inventory B1 phase0 / structural. Prefer defaults and reversible experiments.",
+        "state": "{\"kind\": \"optional catalog tool\", \"make_eval_structural\": \"FAIL\", \"open_source_local_coding_assist\": true, \"structural_lane\": \"red\"}",
+        "criteria": "{\"awareness_only\": \"not coding/design assist; catalog C/awareness only\", \"fix_structural\": \"structural lane red; fix until green; stop\", \"implement_now\": \"fits existing skill or smoke path; ship without a human\", \"open_oq\": \"no safe default or high blast radius; batch an OQ\", \"skip_install\": \"safe default exists: no runtime install, catalog I1 + P3 TODO\"}",
+        "choice": "fix_structural",
+        "confidence": 0.95
+      },
+      {
+        "augmented": true,
+        "task": "CUA-S1-FORMS form-fill specialist: pick one action for this element",
+        "state": "{\"document\": [{\"label\": \"model\", \"value\": \"qwen3-coder:30b\"}, {\"label\": \"lane\", \"value\": \"local\"}], \"element\": {\"label\": \"model\", \"placeholder\": \"tag\", \"role\": \"TextBox\", \"value\": \"\"}, \"form\": \"Launch session\", \"task\": \"fill the form from the document, then submit\"}",
+        "criteria": "{\"fill:lane\": \"fill with lane=local\", \"fill:model\": \"fill with model=qwen3-coder:30b\", \"skip\": \"leave this element unchanged\"}",
+        "choice": "fill:model",
+        "confidence": 0.95
+      },
+      {
+        "augmented": true,
+        "task": "compaction: keep session text verbatim",
+        "state": "{\"bulky\": true, \"index\": 4, \"last_user\": \"Summarize the eval-structural log and keep the failing target names.\", \"n\": 8, \"text_head\": \"Very long log: thousands of lines of passing checks, then a short FAIL list at the end.\", \"tool\": \"make eval-structural\"}",
+        "criteria": "{\"drop\": \"stale tool result; no longer needed\", \"keep\": \"still needed for the latest user request\", \"truncate\": \"keep a short head; drop the bulky body\"}",
+        "choice": "truncate",
+        "confidence": 0.95
+      },
+      {
+        "augmented": true,
+        "task": "Choose the model or tool for this coding session. Decision layer is not Gab auto and not local recommend order.",
+        "state": "{\"request\": \"Use deepseek-coder:6.7b as the local coder for this session.\", \"wizard_harness\": \"opencode\", \"wizard_lane\": \"local\", \"wizard_toolsets\": \"bare\"}",
+        "criteria": "{\"deepseek-coder:6.7b\": \"local model on FreeToken-first spine (not gab auto)\", \"qwen3-coder:30b\": \"local model on FreeToken-first spine (not gab auto)\", \"tool:bare\": \"wizard toolset bare\"}",
+        "choice": "deepseek-coder:6.7b",
+        "confidence": 0.95
+      }
+    ],
+    "signature": {
+      "instructions": "You are a typed Choice decision engine, not a chatbot.\nPick exactly one criteria key. Confidence is a calibrated margin in 0..1, never percent-correct.",
+      "fields": [
+        {
+          "prefix": "Task:",
+          "description": "${task}"
+        },
+        {
+          "prefix": "State:",
+          "description": "${state}"
+        },
+        {
+          "prefix": "Criteria:",
+          "description": "${criteria}"
+        },
+        {
+          "prefix": "Choice:",
+          "description": "exactly one criteria key"
+        },
+        {
+          "prefix": "Confidence:",
+          "description": "a number from 0 to 1"
+        }
+      ]
+    },
+    "lm": null
+  },
+  "metadata": {
+    "dependency_versions": {
+      "python": "3.12",
+      "dspy": "3.4.1",
+      "cloudpickle": "3.1"
+    }
+  }
+}

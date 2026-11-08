@@ -1,0 +1,910 @@
+{
+  "tool": "dspy",
+  "model": "qwen3.6:35b",
+  "base_url": "http://127.0.0.1:11434",
+  "num_ctx": 4096,
+  "max_tokens": 128,
+  "temperature": 0,
+  "seed": 230,
+  "optimizer": "BootstrapFewShot",
+  "optimizer_params": {
+    "max_bootstrapped_demos": 4,
+    "max_labeled_demos": 4,
+    "max_rounds": 1,
+    "max_errors": 8
+  },
+  "phases": [
+    "17:04:06 preload",
+    "17:04:21 baseline held-out A",
+    "17:04:40 baseline held-out B",
+    "17:04:59 baseline dev",
+    "17:05:08 bootstrap",
+    "17:05:14 optimized held-out A",
+    "17:05:34 optimized held-out B",
+    "17:05:53 optimized dev"
+  ],
+  "split": {
+    "seed": 230,
+    "train": [
+      "hd-04-structural-fail",
+      "fm-01-fill-model",
+      "cp-03-truncate-bulky",
+      "wz-12-local-deepseek",
+      "hd-07-write-guard-audit",
+      "ph-10-unknown-kronos",
+      "fm-08-skip-already-filled",
+      "cp-04-keep-error",
+      "ph-04-known-red",
+      "fm-03-check-decision-on",
+      "fm-02-fill-lane",
+      "fm-06-skip-launch-empty",
+      "hd-12-colibri-no-download",
+      "ph-08-missing-ci",
+      "wz-09-local-not-tool",
+      "wz-04-gab-auto",
+      "wz-03-local-freetoken-empty",
+      "wz-06-cloud-grok",
+      "hd-01-optional-tool-skip",
+      "hd-10-phase0-not-assist",
+      "wz-01-local-30b",
+      "hd-05-eval-no-ollama",
+      "hd-02-high-blast-weights",
+      "ph-03-ci-red"
+    ],
+    "dev": [
+      "cp-05-drop-old-models-list",
+      "cp-06-truncate-readme-dump",
+      "wz-02-local-7b",
+      "fm-04-skip-decision-off",
+      "hd-08-architecture-fork",
+      "hd-11-fits-skill-path",
+      "wz-11-cloud-generic",
+      "wz-05-opencode-free"
+    ],
+    "heldout": [
+      "fm-07-skip-unrelated",
+      "hd-09-scheduling-only",
+      "cp-01-keep-needed",
+      "hd-03-antigravity-skip",
+      "ph-07-waived-busy",
+      "ph-01-green-idle",
+      "ph-05-kronos-busy",
+      "ph-06-red-busy",
+      "wz-07-toolset-jev",
+      "ph-02-waived-idle",
+      "cp-02-drop-stale",
+      "ph-09-unknown-ci",
+      "wz-08-honesty-local-not-gab",
+      "hd-06-no-subtree",
+      "fm-05-click-launch-ready",
+      "wz-10-default-local-lane"
+    ]
+  },
+  "conf_gate": 0.85,
+  "ollama_ps_before": "NAME    ID    SIZE    PROCESSOR    CONTEXT    UNTIL",
+  "loaded_by_us": true,
+  "mem_available_gib": 84.04862213134766,
+  "keep_alive": "2m",
+  "model_clock_start": "2026-11-08T01:04:06Z",
+  "preload": {
+    "status": 200,
+    "eval_count": 2,
+    "content": "pong",
+    "thinking_chars": 0,
+    "error": null
+  },
+  "ollama_ps_after_preload": "NAME           ID              SIZE     PROCESSOR    CONTEXT    UNTIL                   \nqwen3.6:35b    a7eb95c53bcf    21 GB    100% GPU     4096       About a minute from now",
+  "context_after_preload": 4096,
+  "api_ps_after_preload": [
+    {
+      "name": "qwen3.6:35b",
+      "model": "qwen3.6:35b",
+      "size": 21697742765,
+      "digest": "a7eb95c53bcf96b4bdd008d0fab4a5dac88047d9c1a7a9ab88ed453423fbd87c",
+      "details": {
+        "parent_model": "",
+        "format": "gguf",
+        "family": "qwen35moe",
+        "families": [
+          "qwen35moe"
+        ],
+        "parameter_size": "35.5B",
+        "quantization_level": "Q4_K_M"
+      },
+      "expires_at": "2026-11-07T17:06:20.860741248-08:00",
+      "size_vram": 21697742765,
+      "context_length": 4096
+    }
+  ],
+  "dspy": "3.4.1",
+  "litellm": "1.108.3",
+  "adapter": "JSONAdapter",
+  "transport": "ollama /api/chat",
+  "context_after_first_score": 4096,
+  "baseline": {
+    "heldout_a": {
+      "n": 16,
+      "n_correct": 12,
+      "n_parse_ok": 16,
+      "parse_ok": 1.0,
+      "n_escalate": 0,
+      "wrong_but_confident": 4,
+      "gate": 0.85,
+      "ids_correct": [
+        "hd-09-scheduling-only",
+        "cp-01-keep-needed",
+        "hd-03-antigravity-skip",
+        "ph-01-green-idle",
+        "ph-06-red-busy",
+        "wz-07-toolset-jev",
+        "ph-02-waived-idle",
+        "cp-02-drop-stale",
+        "wz-08-honesty-local-not-gab",
+        "hd-06-no-subtree",
+        "fm-05-click-launch-ready",
+        "wz-10-default-local-lane"
+      ],
+      "rows": [
+        {
+          "id": "fm-07-skip-unrelated",
+          "choice": "fill:model",
+          "label": "skip",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": false,
+          "escalate": false,
+          "wrong_but_confident": true
+        },
+        {
+          "id": "hd-09-scheduling-only",
+          "choice": "catalog_note",
+          "label": "catalog_note",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "cp-01-keep-needed",
+          "choice": "keep",
+          "label": "keep",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "hd-03-antigravity-skip",
+          "choice": "skip_install",
+          "label": "skip_install",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "ph-07-waived-busy",
+          "choice": "push",
+          "label": "hold",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": false,
+          "escalate": false,
+          "wrong_but_confident": true
+        },
+        {
+          "id": "ph-01-green-idle",
+          "choice": "push",
+          "label": "push",
+          "confidence": 1.0,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "ph-05-kronos-busy",
+          "choice": "push",
+          "label": "hold",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": false,
+          "escalate": false,
+          "wrong_but_confident": true
+        },
+        {
+          "id": "ph-06-red-busy",
+          "choice": "hold",
+          "label": "hold",
+          "confidence": 1.0,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "wz-07-toolset-jev",
+          "choice": "tool:jev",
+          "label": "tool:jev",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "ph-02-waived-idle",
+          "choice": "push",
+          "label": "push",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "cp-02-drop-stale",
+          "choice": "drop",
+          "label": "drop",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "ph-09-unknown-ci",
+          "choice": "hold",
+          "label": "escalate",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": false,
+          "escalate": false,
+          "wrong_but_confident": true
+        },
+        {
+          "id": "wz-08-honesty-local-not-gab",
+          "choice": "qwen3-coder:30b",
+          "label": "qwen3-coder:30b",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "hd-06-no-subtree",
+          "choice": "no_subtree",
+          "label": "no_subtree",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "fm-05-click-launch-ready",
+          "choice": "click",
+          "label": "click",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "wz-10-default-local-lane",
+          "choice": "local",
+          "label": "local",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        }
+      ]
+    },
+    "heldout_b": {
+      "n": 16,
+      "n_correct": 12,
+      "n_parse_ok": 16,
+      "parse_ok": 1.0,
+      "n_escalate": 0,
+      "wrong_but_confident": 4,
+      "gate": 0.85,
+      "ids_correct": [
+        "hd-09-scheduling-only",
+        "cp-01-keep-needed",
+        "hd-03-antigravity-skip",
+        "ph-01-green-idle",
+        "ph-06-red-busy",
+        "wz-07-toolset-jev",
+        "ph-02-waived-idle",
+        "cp-02-drop-stale",
+        "wz-08-honesty-local-not-gab",
+        "hd-06-no-subtree",
+        "fm-05-click-launch-ready",
+        "wz-10-default-local-lane"
+      ],
+      "rows": [
+        {
+          "id": "fm-07-skip-unrelated",
+          "choice": "fill:model",
+          "label": "skip",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": false,
+          "escalate": false,
+          "wrong_but_confident": true
+        },
+        {
+          "id": "hd-09-scheduling-only",
+          "choice": "catalog_note",
+          "label": "catalog_note",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "cp-01-keep-needed",
+          "choice": "keep",
+          "label": "keep",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "hd-03-antigravity-skip",
+          "choice": "skip_install",
+          "label": "skip_install",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "ph-07-waived-busy",
+          "choice": "push",
+          "label": "hold",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": false,
+          "escalate": false,
+          "wrong_but_confident": true
+        },
+        {
+          "id": "ph-01-green-idle",
+          "choice": "push",
+          "label": "push",
+          "confidence": 1.0,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "ph-05-kronos-busy",
+          "choice": "push",
+          "label": "hold",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": false,
+          "escalate": false,
+          "wrong_but_confident": true
+        },
+        {
+          "id": "ph-06-red-busy",
+          "choice": "hold",
+          "label": "hold",
+          "confidence": 1.0,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "wz-07-toolset-jev",
+          "choice": "tool:jev",
+          "label": "tool:jev",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "ph-02-waived-idle",
+          "choice": "push",
+          "label": "push",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "cp-02-drop-stale",
+          "choice": "drop",
+          "label": "drop",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "ph-09-unknown-ci",
+          "choice": "hold",
+          "label": "escalate",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": false,
+          "escalate": false,
+          "wrong_but_confident": true
+        },
+        {
+          "id": "wz-08-honesty-local-not-gab",
+          "choice": "qwen3-coder:30b",
+          "label": "qwen3-coder:30b",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "hd-06-no-subtree",
+          "choice": "no_subtree",
+          "label": "no_subtree",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "fm-05-click-launch-ready",
+          "choice": "click",
+          "label": "click",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "wz-10-default-local-lane",
+          "choice": "local",
+          "label": "local",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        }
+      ]
+    },
+    "dev": {
+      "n": 8,
+      "n_correct": 7,
+      "n_parse_ok": 8,
+      "parse_ok": 1.0,
+      "n_escalate": 0,
+      "wrong_but_confident": 1,
+      "gate": 0.85
+    },
+    "n_correct": [
+      12,
+      12
+    ]
+  },
+  "demos": {
+    "n_demos": 4,
+    "n_bootstrapped": 4,
+    "n_labeled": 0
+  },
+  "optimized": {
+    "heldout_a": {
+      "n": 16,
+      "n_correct": 13,
+      "n_parse_ok": 16,
+      "parse_ok": 1.0,
+      "n_escalate": 0,
+      "wrong_but_confident": 3,
+      "gate": 0.85,
+      "ids_correct": [
+        "fm-07-skip-unrelated",
+        "hd-09-scheduling-only",
+        "cp-01-keep-needed",
+        "hd-03-antigravity-skip",
+        "ph-01-green-idle",
+        "ph-06-red-busy",
+        "wz-07-toolset-jev",
+        "ph-02-waived-idle",
+        "cp-02-drop-stale",
+        "wz-08-honesty-local-not-gab",
+        "hd-06-no-subtree",
+        "fm-05-click-launch-ready",
+        "wz-10-default-local-lane"
+      ],
+      "rows": [
+        {
+          "id": "fm-07-skip-unrelated",
+          "choice": "skip",
+          "label": "skip",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "hd-09-scheduling-only",
+          "choice": "catalog_note",
+          "label": "catalog_note",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "cp-01-keep-needed",
+          "choice": "keep",
+          "label": "keep",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "hd-03-antigravity-skip",
+          "choice": "skip_install",
+          "label": "skip_install",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "ph-07-waived-busy",
+          "choice": "push",
+          "label": "hold",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": false,
+          "escalate": false,
+          "wrong_but_confident": true
+        },
+        {
+          "id": "ph-01-green-idle",
+          "choice": "push",
+          "label": "push",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "ph-05-kronos-busy",
+          "choice": "push",
+          "label": "hold",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": false,
+          "escalate": false,
+          "wrong_but_confident": true
+        },
+        {
+          "id": "ph-06-red-busy",
+          "choice": "hold",
+          "label": "hold",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "wz-07-toolset-jev",
+          "choice": "tool:jev",
+          "label": "tool:jev",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "ph-02-waived-idle",
+          "choice": "push",
+          "label": "push",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "cp-02-drop-stale",
+          "choice": "drop",
+          "label": "drop",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "ph-09-unknown-ci",
+          "choice": "hold",
+          "label": "escalate",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": false,
+          "escalate": false,
+          "wrong_but_confident": true
+        },
+        {
+          "id": "wz-08-honesty-local-not-gab",
+          "choice": "qwen3-coder:30b",
+          "label": "qwen3-coder:30b",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "hd-06-no-subtree",
+          "choice": "no_subtree",
+          "label": "no_subtree",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "fm-05-click-launch-ready",
+          "choice": "click",
+          "label": "click",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "wz-10-default-local-lane",
+          "choice": "local",
+          "label": "local",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        }
+      ]
+    },
+    "heldout_b": {
+      "n": 16,
+      "n_correct": 13,
+      "n_parse_ok": 16,
+      "parse_ok": 1.0,
+      "n_escalate": 0,
+      "wrong_but_confident": 3,
+      "gate": 0.85,
+      "ids_correct": [
+        "fm-07-skip-unrelated",
+        "hd-09-scheduling-only",
+        "cp-01-keep-needed",
+        "hd-03-antigravity-skip",
+        "ph-01-green-idle",
+        "ph-06-red-busy",
+        "wz-07-toolset-jev",
+        "ph-02-waived-idle",
+        "cp-02-drop-stale",
+        "wz-08-honesty-local-not-gab",
+        "hd-06-no-subtree",
+        "fm-05-click-launch-ready",
+        "wz-10-default-local-lane"
+      ],
+      "rows": [
+        {
+          "id": "fm-07-skip-unrelated",
+          "choice": "skip",
+          "label": "skip",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "hd-09-scheduling-only",
+          "choice": "catalog_note",
+          "label": "catalog_note",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "cp-01-keep-needed",
+          "choice": "keep",
+          "label": "keep",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "hd-03-antigravity-skip",
+          "choice": "skip_install",
+          "label": "skip_install",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "ph-07-waived-busy",
+          "choice": "push",
+          "label": "hold",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": false,
+          "escalate": false,
+          "wrong_but_confident": true
+        },
+        {
+          "id": "ph-01-green-idle",
+          "choice": "push",
+          "label": "push",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "ph-05-kronos-busy",
+          "choice": "push",
+          "label": "hold",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": false,
+          "escalate": false,
+          "wrong_but_confident": true
+        },
+        {
+          "id": "ph-06-red-busy",
+          "choice": "hold",
+          "label": "hold",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "wz-07-toolset-jev",
+          "choice": "tool:jev",
+          "label": "tool:jev",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "ph-02-waived-idle",
+          "choice": "push",
+          "label": "push",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "cp-02-drop-stale",
+          "choice": "drop",
+          "label": "drop",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "ph-09-unknown-ci",
+          "choice": "hold",
+          "label": "escalate",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": false,
+          "escalate": false,
+          "wrong_but_confident": true
+        },
+        {
+          "id": "wz-08-honesty-local-not-gab",
+          "choice": "qwen3-coder:30b",
+          "label": "qwen3-coder:30b",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "hd-06-no-subtree",
+          "choice": "no_subtree",
+          "label": "no_subtree",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "fm-05-click-launch-ready",
+          "choice": "click",
+          "label": "click",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        },
+        {
+          "id": "wz-10-default-local-lane",
+          "choice": "local",
+          "label": "local",
+          "confidence": 0.95,
+          "parse_ok": true,
+          "correct": true,
+          "escalate": false,
+          "wrong_but_confident": false
+        }
+      ]
+    },
+    "dev": {
+      "n": 8,
+      "n_correct": 7,
+      "n_parse_ok": 8,
+      "parse_ok": 1.0,
+      "n_escalate": 0,
+      "wrong_but_confident": 1,
+      "gate": 0.85
+    },
+    "n_correct": [
+      13,
+      13
+    ]
+  },
+  "verdict_math": {
+    "noise": 0,
+    "gain": "1",
+    "need": 2,
+    "promote": false
+  },
+  "lm_history": 84,
+  "wall_s": 117.3,
+  "finished": "2026-11-08T01:06:03Z"
+}

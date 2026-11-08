@@ -14,16 +14,20 @@
     "#reasoning"
   ],
   "catalog_github": "https://github.com/stanfordnlp/dspy",
+  "notes_doc": "eval/ev1107/dspy/REPORT.md",
   "posture": [],
-  "evidence": [],
+  "evidence": [
+    "eval/ev1107/dspy/receipt.json",
+    "notes_doc:eval/ev1107/dspy/REPORT.md"
+  ],
   "tier_ceiling": "I1",
-  "uses": "Optimize prompts when an eval shows a reliability hole.",
+  "uses": "Compile a prompt program against a labeled local eval. Advisory only.",
   "features": [
     "optimizers",
     "pipelines"
   ],
   "potential": "medium",
-  "next_gate": "One eval task, or stay I1.",
+  "next_gate": "Held-out #230, seed 230, last 16: baseline 12/16 twice, BootstrapFewShot 13/16 twice, noise 0, mean gain 1. I2 needs a mean gain of at least noise plus 2 on a fresh pair of passes. Not a gate.",
   "handoff_by": "llm",
   "non_goals": [
     "product runtime"
