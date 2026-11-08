@@ -1,0 +1,22 @@
+{
+  "name": "pfy-clean",
+  "project": "pfy-smoke",
+  "input": "status of order 7",
+  "output": "Order 7 shipped.",
+  "children": [
+    {
+      "name": "lookup_order",
+      "kind": "TOOL",
+      "input": {"id": 7},
+      "output": "shipped"
+    },
+    {
+      "name": "answer",
+      "kind": "LLM",
+      "model": "stub",
+      "input": "status",
+      "output": "Order 7 shipped.",
+      "tokens": {"prompt": 10, "completion": 5}
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "metric": "offline_trace_check",
+  "threshold": "exit_code_0",
+  "value_gate": "pass",
+  "modularity_gate": "pass",
+  "proposed_stage": "I3"
+}
