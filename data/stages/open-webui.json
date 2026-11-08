@@ -14,18 +14,33 @@
     "#multi-model"
   ],
   "catalog_github": "https://github.com/open-webui/open-webui",
+  "pin": "c38885a1a737da4968f157092f304f3b5481d0bf",
+  "license": "Open WebUI License (SPDX NOASSERTION)",
   "posture": [],
-  "evidence": [],
+  "evidence": [
+    "eval/evq1107/open-webui/REPORT.md",
+    "eval/evq1107/open-webui/VERDICT",
+    "pin:c38885a1a737da4968f157092f304f3b5481d0bf",
+    "tag:v0.13.0"
+  ],
   "tier_ceiling": "I1",
-  "uses": "Chat UI for local models. The operator window is the product UI.",
+  "uses": "Self-hosted chat UI in front of Ollama or an OpenAI-compatible API. Reference read only. Gap L stays with the engines. The operator window stays the product UI.",
   "features": [
     "chat ui",
-    "docker"
+    "ollama or openai-compatible backend",
+    "docker",
+    "branding-locked license"
   ],
   "potential": "low",
-  "next_gate": "Stay I1.",
+  "next_gate": "Stay I1 reference. Re-open only if a later ticket wants a chat-client note, and that ticket still leaves this app uninstalled. No pip, no Docker, no :ollama bundle, no code copy. Tree at the pin is 56112756 bytes, over the 50 MB copy bar. Clause 4 locks the Open WebUI brand. Gap L stays with Ollama, llama-server, and Strata. Gap W stays the operator window. No gate wiring. Not a Feature GO.",
   "handoff_by": "llm",
   "non_goals": [
-    "product UI"
+    "product UI",
+    "install",
+    "docker",
+    "bundle ollama",
+    "code copy",
+    "gate wiring",
+    "feature go"
   ]
 }
