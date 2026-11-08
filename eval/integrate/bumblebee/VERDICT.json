@@ -1,0 +1,7 @@
+{
+  "metric": "clean fixture advisory scan",
+  "threshold": 1,
+  "value_gate": "pass",
+  "modularity_gate": "pass",
+  "proposed_stage": "I3"
+}
