@@ -19,4 +19,4 @@
 | Pre-1.0 schema churn | Ledger schema changes between versions | Ledger is per-repo under `.git/foremerge`; delete and re-init for a trial |
 | Single machine | Cursor cloud agents and nimo don't share one `.git` | Scope a trial to agents running on nimo (Build plus local bots) |
 
-- **Status**: Cataloged I0. Verified on the Grok Bot box; not installed on nimo.
+- **Status**: STAY I1 after the 2026-11-07 nimo probe (eval/evq1107/foremerge/REPORT.md). Release v0.5.1 is unpacked under ~/.cache/pfy/tools/foremerge/. Same-path modify is advisory, not a blocking gate. Not wired.

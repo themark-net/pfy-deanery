@@ -1,0 +1,468 @@
+{
+  "pin": {
+    "version": "foremerge 0.5.1",
+    "tag": "v0.5.1",
+    "tag_commit": "0fdeb6629379a5f644590bdbcb923f84e215a1c4",
+    "tarball": "foremerge-v0.5.1-x86_64-unknown-linux-gnu.tar.gz",
+    "tarball_bytes": 10528077,
+    "tarball_sha256": "9263599abd66a5a97b2222f3010b995f780ead892f26d02a3a2b61d44d5526e3",
+    "sidecar": "9263599abd66a5a97b2222f3010b995f780ead892f26d02a3a2b61d44d5526e3  foremerge-v0.5.1-x86_64-unknown-linux-gnu.tar.gz",
+    "sha_matches_sidecar": true,
+    "binary_bytes": 12736504,
+    "binary_sha256": "51455569f46f87e11ba33a2c5ca88c8248cdaea1ff15a67d496263a56fa3f988"
+  },
+  "summary": {
+    "high_blocking": "4/4",
+    "park_blocking": "0/6",
+    "park_shared_contract_not_blocking": "6/6",
+    "clean_quiet": "6/6",
+    "short_path_advisory": "2/2",
+    "check_ms_min": 5.47,
+    "check_ms_median": 6.2,
+    "check_ms_max": 7.85,
+    "n_cases": 20
+  },
+  "cases": [
+    {
+      "name": "high-symbol",
+      "group": "high",
+      "scope_a": "symbol:load_stages=replace",
+      "scope_b": "symbol:load_stages=extend",
+      "ok": true,
+      "blocking": true,
+      "n": 1,
+      "check_ms": 7.69,
+      "conflicts": [
+        {
+          "severity": "HIGH",
+          "kind": "destructive_vs_additive",
+          "rule": "FM-C001",
+          "score": 0.97,
+          "explanation": "One intent will replace `load_stages` while the other will extend it; both declare the same semantic scope.",
+          "blocking_policy_field": true
+        }
+      ]
+    },
+    {
+      "name": "high-file",
+      "group": "high",
+      "scope_a": "file:Makefile=replace",
+      "scope_b": "file:Makefile=extend",
+      "ok": true,
+      "blocking": true,
+      "n": 1,
+      "check_ms": 5.47,
+      "conflicts": [
+        {
+          "severity": "HIGH",
+          "kind": "destructive_vs_additive",
+          "rule": "FM-C001",
+          "score": 0.97,
+          "explanation": "One intent will replace `Makefile` while the other will extend it; both declare the same semantic scope.",
+          "blocking_policy_field": true
+        }
+      ]
+    },
+    {
+      "name": "high-remove",
+      "group": "high",
+      "scope_a": "symbol:write_tool=remove",
+      "scope_b": "symbol:write_tool=extend",
+      "ok": true,
+      "blocking": true,
+      "n": 1,
+      "check_ms": 7.22,
+      "conflicts": [
+        {
+          "severity": "HIGH",
+          "kind": "destructive_vs_additive",
+          "rule": "FM-C001",
+          "score": 0.97,
+          "explanation": "One intent will remove `write_tool` while the other will extend it; both declare the same semantic scope.",
+          "blocking_policy_field": true
+        }
+      ]
+    },
+    {
+      "name": "both-replace",
+      "group": "high",
+      "scope_a": "symbol:pipeline_role_hits=replace",
+      "scope_b": "symbol:pipeline_role_hits=replace",
+      "ok": true,
+      "blocking": true,
+      "n": 2,
+      "check_ms": 7.0,
+      "conflicts": [
+        {
+          "severity": "HIGH",
+          "kind": "divergent_rewrite",
+          "rule": "FM-C002",
+          "score": 0.97,
+          "explanation": "Both intents will replace `pipeline_role_hits` (both declare the same semantic scope), so they point toward different outcomes.",
+          "blocking_policy_field": true
+        },
+        {
+          "severity": "MEDIUM",
+          "kind": "duplicate_work",
+          "rule": "FM-C004",
+          "score": 0.728,
+          "explanation": "The two intents have substantially similar goals and may be solving the same work twice.",
+          "blocking_policy_field": true
+        }
+      ]
+    },
+    {
+      "name": "park-makefile",
+      "group": "park",
+      "scope_a": "file:Makefile=modify",
+      "scope_b": "file:Makefile=modify",
+      "ok": true,
+      "blocking": false,
+      "n": 1,
+      "check_ms": 6.09,
+      "conflicts": [
+        {
+          "severity": "MEDIUM",
+          "kind": "shared_contract",
+          "rule": "FM-C003",
+          "score": 0.97,
+          "explanation": "Both intents change `Makefile` (both declare the same semantic scope); their implementations may depend on the same contract.",
+          "blocking_policy_field": false
+        }
+      ]
+    },
+    {
+      "name": "park-agents",
+      "group": "park",
+      "scope_a": "file:AGENTS.md=modify",
+      "scope_b": "file:AGENTS.md=modify",
+      "ok": true,
+      "blocking": false,
+      "n": 1,
+      "check_ms": 5.57,
+      "conflicts": [
+        {
+          "severity": "MEDIUM",
+          "kind": "shared_contract",
+          "rule": "FM-C003",
+          "score": 0.97,
+          "explanation": "Both intents change `AGENTS.md` (both declare the same semantic scope); their implementations may depend on the same contract.",
+          "blocking_policy_field": false
+        }
+      ]
+    },
+    {
+      "name": "park-ranking",
+      "group": "park",
+      "scope_a": "file:docs/eval/TOOLSET-RANKING.md=modify",
+      "scope_b": "file:docs/eval/TOOLSET-RANKING.md=modify",
+      "ok": true,
+      "blocking": false,
+      "n": 1,
+      "check_ms": 5.91,
+      "conflicts": [
+        {
+          "severity": "MEDIUM",
+          "kind": "shared_contract",
+          "rule": "FM-C003",
+          "score": 0.97,
+          "explanation": "Both intents change `docs/eval/TOOLSET-RANKING.md` (both declare the same semantic scope); their implementations may depend on the same contract.",
+          "blocking_policy_field": false
+        }
+      ]
+    },
+    {
+      "name": "park-registry",
+      "group": "park",
+      "scope_a": "file:data/stages/_registry.json=modify",
+      "scope_b": "file:data/stages/_registry.json=modify",
+      "ok": true,
+      "blocking": false,
+      "n": 1,
+      "check_ms": 6.39,
+      "conflicts": [
+        {
+          "severity": "MEDIUM",
+          "kind": "shared_contract",
+          "rule": "FM-C003",
+          "score": 0.97,
+          "explanation": "Both intents change `data/stages/_registry.json` (both declare the same semantic scope); their implementations may depend on the same contract.",
+          "blocking_policy_field": false
+        }
+      ]
+    },
+    {
+      "name": "park-pregate",
+      "group": "park",
+      "scope_a": "file:scripts/pregate.sh=modify",
+      "scope_b": "file:scripts/pregate.sh=modify",
+      "ok": true,
+      "blocking": false,
+      "n": 1,
+      "check_ms": 6.93,
+      "conflicts": [
+        {
+          "severity": "MEDIUM",
+          "kind": "shared_contract",
+          "rule": "FM-C003",
+          "score": 0.97,
+          "explanation": "Both intents change `scripts/pregate.sh` (both declare the same semantic scope); their implementations may depend on the same contract.",
+          "blocking_policy_field": false
+        }
+      ]
+    },
+    {
+      "name": "park-symbol",
+      "group": "park",
+      "scope_a": "symbol:load_stages=modify",
+      "scope_b": "symbol:load_stages=modify",
+      "ok": true,
+      "blocking": false,
+      "n": 1,
+      "check_ms": 6.34,
+      "conflicts": [
+        {
+          "severity": "MEDIUM",
+          "kind": "shared_contract",
+          "rule": "FM-C003",
+          "score": 0.97,
+          "explanation": "Both intents change `load_stages` (both declare the same semantic scope); their implementations may depend on the same contract.",
+          "blocking_policy_field": false
+        }
+      ]
+    },
+    {
+      "name": "cards",
+      "group": "clean",
+      "scope_a": "file:data/stages/foremerge.json=modify",
+      "scope_b": "file:data/stages/hiroute.json=modify",
+      "ok": true,
+      "blocking": false,
+      "n": 0,
+      "check_ms": 6.16,
+      "conflicts": []
+    },
+    {
+      "name": "scripts",
+      "group": "clean",
+      "scope_a": "file:scripts/catalog_check.py=modify",
+      "scope_b": "file:scripts/test_select.py=modify",
+      "ok": true,
+      "blocking": false,
+      "n": 0,
+      "check_ms": 6.05,
+      "conflicts": []
+    },
+    {
+      "name": "disjoint-top",
+      "group": "clean",
+      "scope_a": "file:Makefile=modify",
+      "scope_b": "file:README.md=modify",
+      "ok": true,
+      "blocking": false,
+      "n": 0,
+      "check_ms": 5.84,
+      "conflicts": []
+    },
+    {
+      "name": "disjoint-symbol",
+      "group": "clean",
+      "scope_a": "symbol:load_stages=extend",
+      "scope_b": "symbol:write_tool=extend",
+      "ok": true,
+      "blocking": false,
+      "n": 0,
+      "check_ms": 6.5,
+      "conflicts": []
+    },
+    {
+      "name": "unrelated",
+      "group": "clean",
+      "scope_a": "file:pfylib/stage_registry.py=modify",
+      "scope_b": "file:docs/DESIGN.md=modify",
+      "ok": true,
+      "blocking": false,
+      "n": 0,
+      "check_ms": 6.23,
+      "conflicts": []
+    },
+    {
+      "name": "readme-license",
+      "group": "clean",
+      "scope_a": "file:README.md=modify",
+      "scope_b": "file:LICENSE=modify",
+      "ok": true,
+      "blocking": false,
+      "n": 0,
+      "check_ms": 5.61,
+      "conflicts": []
+    },
+    {
+      "name": "short-py",
+      "group": "short",
+      "scope_a": "file:a.py=modify",
+      "scope_b": "file:b.py=modify",
+      "ok": true,
+      "blocking": false,
+      "n": 1,
+      "check_ms": 5.83,
+      "conflicts": [
+        {
+          "severity": "MEDIUM",
+          "kind": "shared_contract",
+          "rule": "FM-C003",
+          "score": 0.825,
+          "explanation": "Both intents change `b.py` (`b.py` overlaps `a.py` (overlapping semantic scope tokens)); their implementations may depend on the same contract.",
+          "blocking_policy_field": false
+        }
+      ]
+    },
+    {
+      "name": "short-docs",
+      "group": "short",
+      "scope_a": "file:docs/a.md=modify",
+      "scope_b": "file:docs/b.md=modify",
+      "ok": true,
+      "blocking": false,
+      "n": 1,
+      "check_ms": 6.08,
+      "conflicts": [
+        {
+          "severity": "MEDIUM",
+          "kind": "shared_contract",
+          "rule": "FM-C003",
+          "score": 0.825,
+          "explanation": "Both intents change `docs/b.md` (`docs/b.md` overlaps `docs/a.md` (overlapping semantic scope tokens)); their implementations may depend on the same contract.",
+          "blocking_policy_field": false
+        }
+      ]
+    },
+    {
+      "name": "omitted-op",
+      "group": "note",
+      "scope_a": "file:Makefile",
+      "scope_b": "file:Makefile=replace",
+      "ok": true,
+      "blocking": false,
+      "n": 1,
+      "check_ms": 7.2,
+      "conflicts": [
+        {
+          "severity": "MEDIUM",
+          "kind": "destructive_vs_additive",
+          "rule": "FM-C001",
+          "score": 0.97,
+          "explanation": "One intent will replace `Makefile` while the other will add it; both declare the same semantic scope.",
+          "blocking_policy_field": false
+        }
+      ]
+    },
+    {
+      "name": "kind-mismatch",
+      "group": "note",
+      "scope_a": "symbol:Makefile=replace",
+      "scope_b": "file:Makefile=extend",
+      "ok": true,
+      "blocking": false,
+      "n": 1,
+      "check_ms": 7.85,
+      "conflicts": [
+        {
+          "severity": "MEDIUM",
+          "kind": "destructive_vs_additive",
+          "rule": "FM-C001",
+          "score": 0.873,
+          "explanation": "One intent will replace `Makefile` while the other will extend it; both declare the same semantic key across scope kinds.",
+          "blocking_policy_field": false
+        }
+      ]
+    }
+  ],
+  "worktree": {
+    "init_ms": 18.73,
+    "check_ms": 11.69,
+    "ok": true,
+    "blocking": true,
+    "n": 1,
+    "kinds": [
+      "destructive_vs_additive"
+    ],
+    "severities": [
+      "HIGH"
+    ],
+    "shared_across_worktrees": true,
+    "database_under_throwaway": true,
+    "runtime_under_throwaway": true,
+    "token_file_exists": true,
+    "used_database_override": false
+  },
+  "git_baseline": {
+    "file": "pfylib/stage_registry.py",
+    "same_line": {
+      "merge_ms": 3.52,
+      "returncode": 1,
+      "conflict_markers": true
+    },
+    "different_region": {
+      "merge_ms": 5.3,
+      "returncode": 0,
+      "conflict_markers": false
+    },
+    "foremerge_same_file_modify": {
+      "check_ms": 7.04,
+      "blocking": false,
+      "conflicts": [
+        {
+          "severity": "MEDIUM",
+          "kind": "shared_contract",
+          "rule": "FM-C003",
+          "score": 0.97,
+          "explanation": "Both intents change `pfylib/stage_registry.py` (both declare the same semantic scope); their implementations may depend on the same contract.",
+          "blocking_policy_field": false
+        }
+      ]
+    }
+  },
+  "history": {
+    "commits": 80,
+    "newest": "db42453b822e",
+    "oldest": "c1f94554468c",
+    "newest_ts": "2026-11-07T17:44:20-08:00",
+    "oldest_ts": "2026-11-03T18:06:53-08:00",
+    "adjacent_pairs": 79,
+    "adjacent_pairs_sharing_a_path": 24,
+    "of_those_same_author": 22,
+    "cross_author_shared_paths": [
+      {
+        "newer": "341877173d52",
+        "older": "e5c9d688eec8",
+        "files": [
+          "eval/catchup-1107/strata/REPORT.md",
+          "eval/catchup-1107/strata/bench.py",
+          "tests/test_strata_bench_exit.py"
+        ]
+      },
+      {
+        "newer": "7db8c4f73377",
+        "older": "340344cca129",
+        "files": [
+          "scripts/pfy_build_cloud.py"
+        ]
+      }
+    ],
+    "hot_file_touches": {
+      "Makefile": 4,
+      "AGENTS.md": 2,
+      "docs/eval/TOOLSET-RANKING.md": 1,
+      "data/stages/_registry.json": 1,
+      "scripts/pregate.sh": 3,
+      "scripts/test_select.py": 1,
+      "run_tests.py": 0,
+      "scripts/test_cache.py": 1,
+      "TOOLS.md": 2,
+      "data/tools.json": 0,
+      ".github": 7
+    }
+  },
+  "elapsed_s": 1.26
+}

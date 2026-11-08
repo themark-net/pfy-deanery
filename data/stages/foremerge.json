@@ -1,0 +1,31 @@
+{
+  "name": "Foremerge",
+  "integration_stage": "I1",
+  "intent": "staged_eval",
+  "entry": "sources/entries/097-foremerge.md",
+  "github": "https://github.com/naw103/foremerge",
+  "uses": "Pre-edit intent ledger for parallel agents on one machine.",
+  "features": [
+    "sqlite ledger in the git common dir",
+    "declared-scope conflict check",
+    "high only when an operation is declared destructive"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1. Do not wire a gate. The 2026-11-07 probe blocked 0/6 same-path modify pairs and warned on all 6, including a same-file edit git merged clean. A later probe has to separate a same-line content conflict from a clean merge of two regions. I3 needs that plus a repeatable script and self_pipeline evidence.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "foremerge_setup",
+    "mcp_client_registration",
+    "install_sh",
+    "gate_wiring"
+  ],
+  "evidence": [
+    "entry:sources/entries/097-foremerge.md",
+    "eval/evq1107/foremerge/REPORT.md",
+    "eval/evq1107/foremerge/VERDICT",
+    "eval/evq1107/foremerge/results.json"
+  ],
+  "handoff_by": "llm"
+}
