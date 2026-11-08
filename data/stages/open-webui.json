@@ -28,7 +28,7 @@
   "features": [
     "chat ui",
     "ollama or openai-compatible backend",
-    "docker",
+    "upstream docker images",
     "branding-locked license"
   ],
   "potential": "low",

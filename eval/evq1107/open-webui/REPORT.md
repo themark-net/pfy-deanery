@@ -6,7 +6,7 @@ STAY I1 reference: chat client of an existing engine, and clause 4 locks the Ope
 
 Open WebUI (open-webui/open-webui) is a self-hosted chat app. The README says it runs offline and connects to local models through Ollama or to OpenAI-compatible APIs. `package.json` is 0.13.0. The UI is SvelteKit. `pyproject.toml` points `license` at `LICENSE` and depends on FastAPI and uvicorn. README install paths are `pip install open-webui` on Python 3.12, then `open-webui serve` on port 8080, or Docker publishing host port 3000 to container port 8080. Image tags are `:main`, `:slim`, `:cuda`, `:ollama` (Ollama bundled), and `:dev`. The README also links a separate desktop app. In-repo `docs/` is only `SECURITY.md`, which points at the public docs site. This lane did not open that site, install the package, pull an image, or run a script.
 
-The current `LICENSE` is the Open WebUI License, copyright 2023- Open WebUI Inc. GitHub `license.spdx_id` is NOASSERTION. Clause 4 forbids removing the Open WebUI brand except when end users stay at or under 50 in any 30 days, or with written permission, or with an enterprise license. `LICENSE_HISTORY` at this pin keeps a 3-clause BSD-style grant for material before `60d84a3aae9802339705826e9095e272e3c83623`, and MIT for material before `a76068d69cd59568b920dfab85dc573dbbb8f131`. Cite only. Copy no source.
+The current `LICENSE` is the Open WebUI License, copyright 2023- Open WebUI Inc. GitHub `license.spdx_id` is NOASSERTION. Clause 4 forbids removing the Open WebUI brand except when end users stay at or under 50 in any 30 days, or with written permission, or with an enterprise license. `LICENSE_HISTORY` at this pin keeps a 3-condition grant (retain the notice, reproduce it in binaries, no endorsement) for material before `60d84a3aae9802339705826e9095e272e3c83623`, and the MIT text for material before `a76068d69cd59568b920dfab85dc573dbbb8f131`. Cite only. Copy no source.
 
 ## Pin and command
 
@@ -24,13 +24,13 @@ The current `LICENSE` is the Open WebUI License, copyright 2023- Open WebUI Inc.
 
 1. One client, two backends (an Ollama base URL, or an OpenAI-compatible API). Already `docs/adr/0014-pluggable-local-inference-spine.md`. Workers use one `LOCAL_OPENAI_BASE_URL`. Leave this app uninstalled.
 2. Chat beside files, a terminal, a browser, and a desktop (0.13.0 changelog tabs, through a separate Open Terminal). The operator window is Loop, Engine, Stage, and Attach in `gui/operator/README.md`. Levers stay onboard, stage, and ship in `docs/ops/product-operator-surface.md`.
-3. A tool call waits until a person allows it (changelog: sidebar "Waiting for approval"; MCP apps confirm each call). Already `docs/adr/0007-write-guard-mcp-layer.md` and `harness/write-guard-mcp`. Leave the 1024-round tool loop there.
-4. A side chat that stays out of the main thread (`/side` in the 0.13.0 changelog). Stop conditions already live in `docs/ops/loop-engineering.md`.
+3. A tool call waits until a person allows it (changelog: sidebar "Waiting for approval"; MCP apps confirm each call). Already `docs/adr/0007-write-guard-mcp-layer.md` and `harness/write-guard-mcp`. Do not import the 1024-round limit.
+4. A side chat that stays out of the main thread (`/side` in the 0.13.0 changelog). The product UI stays `gui/operator/README.md`. Do not add a second chat.
 5. `HF_HUB_OFFLINE=1` on the Docker line so the UI does not pull weights. `config/profiles/local-only.env` already keeps the lab local.
 
 ## Catalog comparison
 
-Same job: a person chats with a local model. Gap L in `docs/eval/TOOLSET-RANKING.md` (2026-11-07) is a second inference engine. This README connects to an engine. The `:ollama` tag would bundle Ollama, which pfy already runs, and `:cuda` wants NVIDIA. nimo has no NVIDIA. This lane builds no pipeline step. Searched `data/stages/*.json` uses, features, and tags. TOOLS.md already has the row. This lane did not edit it.
+Same job: a person chats with a local model. Gap L in `docs/eval/TOOLSET-RANKING.md` (2026-11-07) is a second inference engine. This README connects to an engine. The `:ollama` tag would bundle Ollama, which pfy already runs, and `:cuda` wants NVIDIA. nimo has no NVIDIA. This lane builds no pipeline step. Searched `data/stages/*.json` uses, features, and tags. kanbots is I1 and tagged `#ui`, and it is a kanban for coding CLIs, so that tag is a different job. TOOLS.md already has the row. This lane did not edit it.
 
 | Tool | Stage | How Open WebUI compares |
 | --- | --- | --- |
@@ -48,7 +48,7 @@ Same job: a person chats with a local model. Gap L in `docs/eval/TOOLSET-RANKING
 
 ## Gates
 
-Value, 3 of 4 for I3: gap fill no (L is an engine, W is our window), operator leverage no (Docker or pip, and clause 4 blocks rebranding it as pfy), evidence no (docs only), blast radius no (brand lock, 56112756 byte tree, `:ollama` bundles an engine, 0.13.0 changelog says unlisted security fixes and a schema change with no rolling update). Score 0 of 4.
+Value, 3 of 4 for I3: gap fill no (L is an engine, W is our window), operator leverage no (Docker or pip, and clause 4 blocks rebranding it as pfy), evidence no (docs only; the README quickstart was not run), blast radius no (it would take over the product UI, clause 4 blocks a rebrand, `:ollama` bundles an engine, and the 0.13.0 changelog says unlisted security fixes plus a schema change with no rolling update). Score 0 of 4.
 
 Modularity, all 4: the README, LICENSE, and changelog were enough to decide. The unit is a SvelteKit app, a Python backend, Docker, and separate desktop and terminal repos. The cache clone is isolatable, and deleting it leaves the pin. 2 of 4. Potential is low. I2 stays closed. No `self_pipeline`. Tags stay `#ui #chat #local-first #docker #multi-model`. No gate wiring.
 
@@ -74,4 +74,4 @@ This lane writes the card and this directory. It does not put Open WebUI on a pi
 2. It would read an Ollama base URL or an OpenAI-compatible API and write chat data in its own volume. This lane called no model and used no account.
 3. Next would be the browser on the published port. Nothing here starts that.
 4. A human re-enters before any install, any image pull, any bind, and any I3 claim.
-5. One worktree per slug keeps this card private. Two servers on port 8080 would collide. This lane started none.
+5. One worktree per slug keeps this card private. A second `open-webui serve` would also want port 8080. Docker would want host port 3000. This lane started none.
