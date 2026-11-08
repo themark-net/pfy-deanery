@@ -72,7 +72,7 @@ class AiderProbeTest(unittest.TestCase):
                 from pathlib import Path
                 path = Path("mathutil.py")
                 path.write_text(path.read_text().replace("return a - b", "return a * b"))
-                import subprocess, os
+                import subprocess
                 subprocess.check_call(["git", "add", "mathutil.py"])
                 subprocess.check_call(["git", "commit", "-m", "wrong"])
                 """,
@@ -220,6 +220,74 @@ class AiderProbeTest(unittest.TestCase):
             self.assertEqual(body["git_edit"], 0)
             self.assertFalse(body["keep_alive_sent"])
             self.assertFalse((folder / "repo" / "called").exists())
+
+    def test_run_refuses_the_real_binary_and_a_preload_miss_skips(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="aider-guard-") as tmp:
+            folder = Path(tmp)
+            (folder / "home").mkdir()
+            editor = _stub(
+                folder,
+                "editor.py",
+                """\
+                #!/usr/bin/env python3
+                from pathlib import Path
+                Path("called").write_text("yes")
+                """,
+            )
+            refused = self._run(
+                ["run", "--editor", str(editor), *self._common(folder)],
+                env={
+                    "PATH": "/usr/bin:/bin",
+                    "HOME": str(folder / "home"),
+                    "LANG": "C.UTF-8",
+                    "AIDER_PROBE_AIDER_BIN": str(editor),
+                },
+            )
+            self.assertEqual(refused.returncode, 2, refused.stderr)
+            self.assertIn("use live", refused.stderr)
+            self.assertFalse((folder / "results.json").exists())
+            self.assertFalse((folder / "repo" / "called").exists())
+
+            lock = _stub(
+                folder,
+                "lock.sh",
+                """\
+                #!/bin/sh
+                export PFY_MODEL_LOCK_HELD=1
+                exec "$@"
+                """,
+            )
+            missed = self._run(
+                [
+                    "live",
+                    "--editor",
+                    str(editor),
+                    "--work",
+                    str(folder / "live-repo"),
+                    "--out",
+                    str(folder / "live.json"),
+                    "--home",
+                    str(folder / "home"),
+                    "--gitconfig",
+                    str(folder / "gitconfig"),
+                ],
+                env={
+                    "PATH": "/usr/bin:/bin",
+                    "HOME": str(folder / "home"),
+                    "LANG": "C.UTF-8",
+                    "AIDER_PROBE_LOCK": str(lock),
+                    "AIDER_PROBE_SKIP_OLLAMA": "1",
+                    "AIDER_PROBE_MEM_KIB": "80000000",
+                    "AIDER_PROBE_MODEL_BYTES": "1000",
+                    "AIDER_PROBE_PRELOAD_FAIL": "1",
+                },
+            )
+            self.assertEqual(missed.returncode, 0, missed.stdout + missed.stderr)
+            body = json.loads((folder / "live.json").read_text())
+            self.assertEqual(body["status"], "SKIPPED")
+            self.assertEqual(body["correct_edits"], 0)
+            self.assertFalse(body["keep_alive_sent"])
+            self.assertFalse((folder / "live-repo" / "called").exists())
 
 
 if __name__ == "__main__":

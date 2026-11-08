@@ -363,9 +363,32 @@ def run_editor(cmd: list[str], work: Path, env: dict[str, str], out: Path) -> in
     return 0
 
 
+def skip_result(out: Path, reason: str) -> int:
+    body = base_body()
+    body.update(
+        {
+            "status": "SKIPPED",
+            "reason": reason,
+            "correct_edits": 0,
+            "git_edit": 0,
+            "new_commits": 0,
+            "host_busy": False,
+            "keep_alive_sent": False,
+        }
+    )
+    write_results(out, body)
+    print("SKIPPED " + reason, file=sys.stderr)
+    return 0
+
+
 def cmd_run(args: argparse.Namespace) -> int:
     if not args.editor:
         print("run needs --editor", file=sys.stderr)
+        return 2
+    # `run` is the stub path. The real binary is a model call and must use `live`.
+    banned = Path(os.environ.get("AIDER_PROBE_AIDER_BIN", str(AIDER_BIN)))
+    if Path(args.editor).resolve() == banned.resolve():
+        print("refusing run on the aider binary; use live", file=sys.stderr)
         return 2
     home = Path(args.home)
     gitconfig = Path(args.gitconfig) if args.gitconfig else home / "gitconfig"
@@ -393,40 +416,12 @@ def cmd_live(args: argparse.Namespace) -> int:
     try:
         loaded = model_loaded()
     except Exception as exc:
-        body = base_body()
-        body.update(
-            {
-                "status": "SKIPPED",
-                "reason": "ollama ps failed: " + type(exc).__name__,
-                "correct_edits": 0,
-                "git_edit": 0,
-                "new_commits": 0,
-                "host_busy": False,
-                "keep_alive_sent": False,
-            }
-        )
-        write_results(args.out, body)
-        print("SKIPPED ollama", file=sys.stderr)
-        return 0
+        return skip_result(args.out, "ollama ps failed: " + type(exc).__name__)
     if not loaded:
         try:
             need = model_size_bytes() + HEADROOM
         except Exception as exc:
-            body = base_body()
-            body.update(
-                {
-                    "status": "SKIPPED",
-                    "reason": "model size failed: " + type(exc).__name__,
-                    "correct_edits": 0,
-                    "git_edit": 0,
-                    "new_commits": 0,
-                    "host_busy": False,
-                    "keep_alive_sent": False,
-                }
-            )
-            write_results(args.out, body)
-            print("SKIPPED model size", file=sys.stderr)
-            return 0
+            return skip_result(args.out, "model size failed: " + type(exc).__name__)
         if not wait_for_memory(need):
             scored = score(work, env)
             body = base_body()
@@ -446,9 +441,14 @@ def cmd_live(args: argparse.Namespace) -> int:
             write_results(args.out, body)
             print("HOST-BUSY", file=sys.stderr)
             return 0
+        if os.environ.get("AIDER_PROBE_PRELOAD_FAIL") == "1":
+            return skip_result(args.out, "preload failed")
         if os.environ.get("AIDER_PROBE_SKIP_OLLAMA") != "1":
-            preload()
-        keep_alive_sent = True
+            try:
+                preload()
+            except Exception as exc:
+                return skip_result(args.out, "preload failed: " + type(exc).__name__)
+            keep_alive_sent = True
     editor = Path(args.editor) if args.editor else AIDER_BIN
     if args.editor:
         cmd = [args.editor]

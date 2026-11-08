@@ -137,6 +137,8 @@ I2 needs a probe that measurably helps while potential is still open, and a copy
 | Price-cache download | The first `--exit` fetched litellm's model price file into the redirected home | Leave it in the cache. Do not commit it. |
 | Host Python 3.14 | `pip install` on `/usr/bin/python3` fails the `requires` bound | Use the existing CPython 3.12.12 venv. Do not install a second interpreter. |
 | Two editors, one checkout | A second aider races git with OpenCode | One worktree per run, and the model lock for Ollama. |
+| Preload error | Ollama rejects the load and aider never starts | The probe writes `SKIPPED` and does not start the editor. The card stays I1. |
+| `run` pointed at the real binary | A stub-path command would call Ollama without the lock | `run` refuses that path. The model step is `live`, which re-execs `scripts/model_lock.sh`. |
 
 ## Next gate
 
