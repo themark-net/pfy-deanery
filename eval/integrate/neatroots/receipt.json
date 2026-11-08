@@ -1,0 +1,11 @@
+{
+  "slug": "neatroots",
+  "run_kind": "pipeline",
+  "main_sha": "fd98be20bd47eba650b35dae90c51440b53694e3",
+  "run_id": "neatroots-fd98be20bd47-2026-11-08T19:46:28Z",
+  "started": "2026-11-08T19:46:28Z",
+  "finished": "2026-11-08T19:46:28Z",
+  "outcome": "ok",
+  "tool_version": "0.2.9",
+  "did": "Ran neatroots check on eval/integrate/neatroots/fixtures/trace.json offline. Exit 0."
+}
