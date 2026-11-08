@@ -4,16 +4,33 @@
   "intent": "awareness",
   "entry": "sources/entries/159-skills-manager.md",
   "github": "https://github.com/shenysun/skills-manager",
-  "uses": "Skill distribution CLI.",
+  "pin": "fae0bb864a8b96c1d0ca6278a6b7062e62992a36",
+  "license": "MIT",
+  "uses": "Install skills into one home hub and symlink or copy a subset into agent homes. Reference read only.",
+  "features": [
+    "subtree tree-SHA update anchor",
+    "resident cost ledger",
+    "symlink or copy distribute",
+    "no-arg bootstrap into detected agents"
+  ],
   "potential": "low",
-  "next_gate": "Comparison only; our tree stays the source.",
+  "next_gate": "Stay I0 reference. Re-open only to copy the subtree tree-SHA note or the resident-cost count into docs/ops/skill-verification.md, with no CLI and no second hub. Not a Feature GO.",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",
-    "catalog_hold_70_75"
+    "catalog_hold_70_75",
+    "install",
+    "bootstrap",
+    "second_hub",
+    "gate_wiring",
+    "code_copy"
   ],
   "evidence": [
-    "entry:sources/entries/159-skills-manager.md"
+    "entry:sources/entries/159-skills-manager.md",
+    "pin:fae0bb864a8b96c1d0ca6278a6b7062e62992a36",
+    "npm:skills-manager-cli@2026.10.27-1",
+    "eval/evq1107/skills-manager/REPORT.md",
+    "eval/evq1107/skills-manager/VERDICT"
   ],
   "handoff_by": "llm"
 }
