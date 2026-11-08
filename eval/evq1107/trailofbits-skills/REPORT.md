@@ -1,6 +1,6 @@
 # trailofbits-skills evq1107
 
-STAY I0. The install check blocked 4 of 7 skills the entry would copy (exit 1, 30.088s). `--allow-caution` still exited 1 because sharp-edges is DO_NOT_INSTALL. differential-review on one risky diff in this repo found 0 new defects. The pack does not beat SkillSpector at the install gate, and it does not beat the review skill or the existing behavior test on that diff.
+STAY I0. The install check blocked 4 of 7 skills the entry would copy (exit 1, 30.088s). `--allow-caution` still exited 1 because sharp-edges is DO_NOT_INSTALL. differential-review on one risky diff in this repo found 0 new defects. That does not beat SkillSpector at the install gate, and it does not add a defect beyond the behavior test already on that commit. The mattpocock review skill was not re-run.
 
 `STAY I0 4 of 7 candidate skills blocked by the install check, 0 new defects on the risky diff`
 
@@ -20,7 +20,7 @@ The job is two parts: an install check before a fetched skill is copied (gap H2)
 | Bumblebee | I2 | Advisory read of package lockfiles and MCP configs. | Different files. |
 | write-guard-mcp | I3 | Write mediation above the cage mount. | A runtime guard. It does not read a skill pack or a diff. |
 | destructive_command_guard | I1 | Blocks destructive shell commands. Overlaps write-guard. | A shell guard, not a skill scan and not a diff checklist. |
-| mattpocock/skills | I1 | Planning and review skills already on the path. Tag `#review`. | The review skill is already the reviewer. differential-review added 0 defects on the diff below. |
+| mattpocock/skills | I1 | Planning and review skills already on the path. Tag `#review`. | This lane did not re-run that skill. The checklist's own count on the diff was 0 new defects. |
 | agentgg | I0 | Local SAST on a deploy, release, or secrets diff. Needs a local model. | This diff has no planted shell or secret line. agentgg was not re-run. The checklist needed no model. |
 | OpenQodex | I1 | Scanner candidates on changed lines. STAY I1, 2 of 3 planted lines. | Those scanners were not needed. The changed lines are cleanup and a test. |
 
@@ -68,7 +68,42 @@ git -C "$BASE/src" checkout --detach FETCH_HEAD
 
 `git rev-parse HEAD` printed `5c99c03fb8a9ea568432ecbcba5d86e9f4ac2bf0`.
 
-The gate command is `scripts/pfy_skill_scan.py` (static mode, `--no-llm` inside the wrapper) on the seven directories named in the entry, with `PFY_SKILLSPECTOR_BIN` set to the cached SkillSpector. Provider env vars are dropped by the wrapper. The receipt is not committed: it holds short scanner titles that quote the skill text. Counts are in `results.json`.
+The gate command is `scripts/pfy_skill_scan.py` (static mode, `--no-llm` inside the wrapper) on the seven directories named in the entry, with `PFY_SKILLSPECTOR_BIN` set to the cached SkillSpector. The wrapper drops provider env vars before it starts SkillSpector. The receipt is not committed: it holds short scanner titles that quote the skill text. Counts are in `results.json`.
+
+```bash
+WT=$PWD
+BASE=/home/mark/.cache/pfy/tools/trailofbits-skills
+SS=/home/mark/.cache/pfy/tools/skillspector
+UV=/home/mark/.local/share/uv
+SRC=$BASE/src
+OUT=$BASE/tmp/gate
+rm -rf "$OUT" && mkdir -p "$OUT" "$BASE/home"
+SKILLS=(
+  "$SRC/plugins/property-based-testing/skills/property-based-testing"
+  "$SRC/plugins/semgrep-rule-creator/skills/semgrep-rule-creator"
+  "$SRC/plugins/variant-analysis/skills/variant-analysis"
+  "$SRC/plugins/sharp-edges/skills/sharp-edges"
+  "$SRC/plugins/differential-review/skills/differential-review"
+  "$SRC/plugins/fp-check/skills/fp-check"
+  "$SRC/plugins/testing-handbook-skills/skills/atheris"
+)
+/usr/bin/bwrap --unshare-net --die-with-parent \
+  --ro-bind /usr /usr --ro-bind /lib /lib --ro-bind /lib64 /lib64 \
+  --ro-bind /bin /bin --ro-bind /etc /etc --proc /proc --dev /dev \
+  --tmpfs /tmp \
+  --ro-bind "$SS" "$SS" --ro-bind "$UV" "$UV" --ro-bind "$SRC" "$SRC" \
+  --ro-bind "$WT/scripts/pfy_skill_scan.py" /pfy_skill_scan.py \
+  --bind "$OUT" "$OUT" --bind "$BASE/home" "$BASE/home" \
+  --setenv HOME "$BASE/home" --setenv TMPDIR /tmp \
+  --setenv XDG_CACHE_HOME "$OUT" --setenv XDG_CONFIG_HOME "$OUT" \
+  --setenv PFY_SKILLSPECTOR_BIN "$SS/.venv/bin/skillspector" \
+  --unsetenv OPENAI_API_KEY --unsetenv ANTHROPIC_API_KEY \
+  --unsetenv NVIDIA_INFERENCE_KEY \
+  --chdir "$OUT" \
+  -- /usr/bin/python3 /pfy_skill_scan.py --out "$OUT/receipt.json" "${SKILLS[@]}"
+```
+
+The `--allow-caution` rerun was the same command with that flag and `--out "$BASE/tmp/gate-allow/receipt.json"`. That rerun did not pass the three `--unsetenv` flags. The wrapper still drops those names from the scanner child.
 
 Default run: exit 1, verdict FLAGGED, wall 30.088s, wrapper `llm` false, scratch directory removed. The wrapper deletes the raw reports. One raw report, for differential-review, had `llm_requested` false. All seven ran with the network namespace closed.
 
@@ -99,6 +134,16 @@ The other 78 skills in the pack were not scanned. The entry says not to port the
 ## Probe
 
 Skill tried: `plugins/differential-review/skills/differential-review`. The deep path names a Claude subagent. That agent was not dispatched. The countable phases were run as git commands on commit `a81ffba49a85d6c42b431106007a9668f55d7766` (delete raw scanner JSON when the receipt write fails). That commit is the failure path of the install-gate script. 434 Python files at that commit, so the skill's size table says LARGE and the strategy is SURGICAL. Mechanical checks took 0.371s.
+
+```bash
+C=a81ffba49a85d6c42b431106007a9668f55d7766
+git diff --stat "$C^" "$C"
+git log -S 'for child in scratch.iterdir():' --format='%H %s' "$C"
+git blame -L 284,290 "$C^" -- scripts/pfy_skill_scan.py
+git grep -n -F _clear_scratch "$C"
+git grep -n -F _scan_paths "$C"
+git ls-tree -r --name-only "$C" | grep -c '\.py$'
+```
 
 | File | Risk | Why |
 | --- | --- | --- |
