@@ -83,7 +83,8 @@ if ! git merge-base --is-ancestor "$main_sha" origin/main; then
   printf '%s\n' "HEAD is not an ancestor of origin/main" >&2
   exit 1
 fi
-if ! printf '%s\n' "$main_sha" | grep -E -q '^[0-9a-f]{40}$'; then
+# grep -q under pipefail can die with SIGPIPE on a match. Do not use it here.
+if [[ ! "$main_sha" =~ ^[0-9a-f]{40}$ ]]; then
   printf '%s\n' "main_sha is not 40 hex characters" >&2
   exit 1
 fi
