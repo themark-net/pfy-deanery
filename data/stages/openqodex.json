@@ -1,0 +1,36 @@
+{
+  "name": "OpenQodex",
+  "integration_stage": "I1",
+  "intent": "staged_eval",
+  "entry": "sources/entries/115-openqodex.md",
+  "github": "https://github.com/openqodex/openqodex",
+  "notes_doc": "eval/evq1107/openqodex/REPORT.md",
+  "uses": "Scanner candidates on changed lines, then a model-free check that a raised finding cites a real scanner token. Not the review gate.",
+  "features": [
+    "changed-line scanner candidates",
+    "model-free finalize source check",
+    "warn-only exit unless block_on_severity is set"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1. Potential is low, so I2 does not apply. The npm tree is 15.3MB. The scanner install is 524MB of binaries, which the I2 size gate also forbids. A later probe has to catch a real pfy diff the review skill misses. Do not wire a gate. A gate that trusts the exit code without review.block_on_severity stays open: this probe's default finalize exited 0 with major findings.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "gate_wiring",
+    "init on nimo",
+    "hosted reviewer"
+  ],
+  "evidence": [
+    "entry:sources/entries/115-openqodex.md",
+    "eval/evq1107/openqodex/REPORT.md",
+    "eval/evq1107/openqodex/VERDICT",
+    "eval/evq1107/openqodex/results.json",
+    "pin openqodex@0.12.0 tag v0.12.0 9c4d516a15954ba3ed648fe1177038c92fb8f884"
+  ],
+  "handoff_by": "llm",
+  "self_pipeline": {
+    "status": "not_applicable",
+    "reason": "Advisory probe only in eval/evq1107/openqodex/REPORT.md. Default finalize exits 0 on major findings. Not applied to pregate or CI."
+  }
+}

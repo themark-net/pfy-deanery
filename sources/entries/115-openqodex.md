@@ -21,3 +21,5 @@
 | Scanner download | First run needs network and ~360 MB | HOME under `tmp/`, kept between runs; smoke exit 2 is honest offline |
 | OPENQODEX_HOME outside the temp area | Scanners download into the real home or the repo | Smoke exits 2 and does not start a review |
 | Young project | Released 2026-10-02, fast churn | Version pinned; bump deliberately |
+
+- **Status**: STAY I1 on nimo 2026-11-07. Pin npm `openqodex@0.12.0` (tag `v0.12.0`, `9c4d516a15954ba3ed648fe1177038c92fb8f884`). Probe `eval/evq1107/openqodex/`: 2 of 3 planted changed lines hit, 0 candidates off the diff, default finalize exits 0 on major findings. Not wired into a gate. No Feature GO.

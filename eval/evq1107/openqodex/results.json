@@ -1,0 +1,135 @@
+{
+  "agent": {
+    "exit": 0,
+    "seconds": 4.461,
+    "timed_out": false
+  },
+  "agent_stdout_head": "# OpenQodex review brief",
+  "agent_stderr_tail": "Scanners: 4 ran, 0 had nothing to check, 3 candidates to check\nopenqodex: Created .openqodex/config.yaml and .openqodex/custom-instructions.md.\nopenqodex: Commit .openqodex/config.yaml and .openqodex/custom-instructions.md so your team shares them.\nopenqodex: Write in .openqodex/custom-instructions.md what a reviewer of this repo must know: conventions, what never to flag, what always to check.",
+  "plants": {
+    "shell_changed_line": 4,
+    "log_changed_line": 2,
+    "secret_changed_line": 2,
+    "shell_unchanged_line": 4
+  },
+  "changed_lines": {
+    "handlers/runner.py": [
+      4
+    ],
+    "handlers/session.py": [
+      2
+    ],
+    "handlers/tokenstore.py": [
+      2
+    ],
+    "scripts/sync_todo_status.py": [
+      2
+    ]
+  },
+  "candidate_count": 3,
+  "on_changed_lines": 3,
+  "off_changed_lines": 0,
+  "off_changed_ids": [],
+  "shell_hit": true,
+  "log_hit": false,
+  "secret_hit": true,
+  "unchanged_shell_leak": false,
+  "comment_file_candidates": 0,
+  "planted_hits": 2,
+  "planted_total": 3,
+  "candidates": [
+    {
+      "id": "c1",
+      "token": "semgrep:python.lang.security.audit.subprocess-shell-true.subprocess-shell-true",
+      "file": "handlers/runner.py",
+      "line": 4,
+      "line_end": 4,
+      "severity": "major",
+      "message": "Found 'subprocess' function 'call' with 'shell=True'. This is dangerous because this call will spawn the command using a shell process. Doing so propagates current shell settings a"
+    },
+    {
+      "id": "c2",
+      "token": "gitleaks:github-pat",
+      "file": "handlers/tokenstore.py",
+      "line": 2,
+      "line_end": 2,
+      "severity": "major",
+      "message": "Uncovered a GitHub Personal Access Token, potentially leading to unauthorized repository access and sensitive content exposure."
+    },
+    {
+      "id": "c3",
+      "token": "bandit:B602",
+      "file": "handlers/runner.py",
+      "line": 4,
+      "line_end": 4,
+      "severity": "major",
+      "message": "B602: subprocess call with shell=True identified, security issue."
+    }
+  ],
+  "change_id": "0209c50b05f0",
+  "block_line": "- Block threshold: warn only, nothing blocks the push",
+  "scanner_line": "- Scanners: 4 scanners ran",
+  "finalize_default": {
+    "good": {
+      "exit": 0,
+      "seconds": 0.14,
+      "first": "Passed with warnings: 1 finding (1 major)",
+      "err": ""
+    },
+    "none": {
+      "exit": 0,
+      "seconds": 0.132,
+      "first": "Passed with warnings: 3 findings (3 major)",
+      "err": ""
+    },
+    "madeup": {
+      "exit": 2,
+      "seconds": 0.125,
+      "first": "",
+      "err": "openqodex: finding 0 (\"Shell call on a changed line\") cites source \"made-up\", which is neither a scanner token in this scan nor a lens selected for this change; set source to one of those or to null"
+    }
+  },
+  "agent_block": {
+    "exit": 0,
+    "seconds": 4.393,
+    "timed_out": false,
+    "block_line": "- Block threshold: a finding at or above major blocks the push",
+    "stderr_tail": "Scanners: 4 ran, 0 had nothing to check, 3 candidates to check"
+  },
+  "finalize_block": {
+    "good": {
+      "exit": 1,
+      "seconds": 0.134,
+      "first": "Blocked: 1 finding at or above major (1 major)",
+      "err": ""
+    },
+    "none": {
+      "exit": 1,
+      "seconds": 0.137,
+      "first": "Blocked: 3 findings at or above major (3 major)",
+      "err": ""
+    }
+  },
+  "scan_block_major": {
+    "exit": 1,
+    "seconds": 4.251,
+    "first": "Blocked: 3 findings at or above major (3 major)",
+    "err": "Scanners: 4 ran, 0 had nothing to check, 3 candidates to check"
+  },
+  "tools": {
+    "tools_dir_bytes": 549091308,
+    "semgrep": "1.94.0",
+    "bandit": "bandit 1.9.4",
+    "ruff": "ruff 0.8.4",
+    "ruff_sha256": "ce7b99797145b43d23b732d6050fbbd62e4f9059663cf24218810598753dfb90",
+    "gitleaks": "8.21.2",
+    "gitleaks_sha256": "50b742abd7daad8bbddb6301f3017efb680632d9a5b3b4d8f137b3aac250e359"
+  },
+  "home_mtime_unchanged": {
+    "claude": true,
+    "codex": true,
+    "cursor": true,
+    "grok": false,
+    "openqodex": true
+  }
+}
