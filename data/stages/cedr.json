@@ -1,0 +1,41 @@
+{
+  "name": "cedr",
+  "integration_stage": "I1",
+  "intent": "staged_eval",
+  "entry": "sources/entries/168-cedr.md",
+  "github": "https://github.com/Sheernox/cedr",
+  "notes_doc": "eval/evq1107/cedr/REPORT.md",
+  "pin": "9cf2683e54a60e2f36f6f11fe715a7906e711597",
+  "release": "v0.10.0",
+  "tarball_sha256": "2bd8d14ef4456c36f2ded6e481953ea013b9c200fc093d39aed92bda44a2e634",
+  "binary_sha256": "d49387a3379f18bb886a87cd122b338dcac01e91604be7c9b2c01fdf4bde7c50",
+  "uses": "Pin skill directories and MCP server launch definitions, then fail when those files change.",
+  "features": [
+    "skill content hash",
+    "MCP launch hash",
+    "frontmatter and link checks",
+    "dry-run rules diff",
+    "offline verify"
+  ],
+  "potential": "medium",
+  "next_gate": "Stay I1. Value gate is 2 of 4. A later advisory pin would need a fixture with an MCP config and no skill-dir symlink, and it would still sit beside SkillSpector. No gate wiring and no Feature GO from this lane.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "pregate or CI gate",
+    "cedr.dev account",
+    "self-update",
+    "route or council",
+    "writing a real agent home"
+  ],
+  "evidence": [
+    "entry:sources/entries/168-cedr.md",
+    "pin:9cf2683e54a60e2f36f6f11fe715a7906e711597",
+    "release:v0.10.0",
+    "eval/evq1107/cedr/REPORT.md",
+    "eval/evq1107/cedr/VERDICT",
+    "eval/evq1107/cedr/results.json"
+  ],
+  "handoff_by": "llm"
+}

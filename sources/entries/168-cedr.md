@@ -24,4 +24,4 @@
 | Sync overwrites hand-edited agent files | `--force` used | Never pass `--force`; run in a worktree first |
 | Pin drift | `main` moves | Smoke checks this SHA |
 
-- **Status**: Cataloged I0. Next step, if any: eval-auto trial of Guard + Sync in a throwaway worktree against our current skill/MCP pinning and AGENTS.md porting. No Feature GO.
+- **Status**: Trialed 2026-11-07. PROMOTE I1. Guard lock and verify work offline (43 skills, 0 MCP, one-line drift caught). Sync init exits 2 on this tree (skill-dir symlink, then invalid front matter). Value gate 2 of 4. Not an H2 install gate. No Feature GO.

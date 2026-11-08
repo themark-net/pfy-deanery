@@ -1,0 +1,97 @@
+{
+  "release": "v0.10.0",
+  "commit": "9cf2683e54a60e2f36f6f11fe715a7906e711597",
+  "tarball_sha256": "2bd8d14ef4456c36f2ded6e481953ea013b9c200fc093d39aed92bda44a2e634",
+  "binary_sha256": "d49387a3379f18bb886a87cd122b338dcac01e91604be7c9b2c01fdf4bde7c50",
+  "binary_bytes": 31658632,
+  "version": "0.10.0",
+  "auto_update": false,
+  "update_off": {
+    "wall_s": 0.03,
+    "af_inet": 0,
+    "update_check": false,
+    "hash_unchanged": true
+  },
+  "update_on_control": {
+    "wall_s": 18.02,
+    "af_inet": 4,
+    "update_json_error": "dns error resolving the release host",
+    "hash_unchanged": true
+  },
+  "guard": {
+    "lint_findings": 9,
+    "cg002_warning": 7,
+    "cg004_error": 2,
+    "cg009": 0,
+    "lint_text_wall_s": 0.06,
+    "lint_exit": 1,
+    "lock_skills": 43,
+    "lock_mcp": 0,
+    "lock_wall_s": 0.02,
+    "verify_clean_exit": 0,
+    "verify_wall_s": 0.02,
+    "drift_rule": "CV001",
+    "drift_wall_s": 0.02,
+    "skill_roots": {
+      ".grok/skills": 24,
+      "bootstrap/grok-cli/skills": 15,
+      "mattpocock_unique_after_dedupe": 4,
+      "mattpocock_on_disk": 8
+    }
+  },
+  "sync": {
+    "unmodified_init_exit": 2,
+    "unmodified_reason": "symlink refused: .grok/skills/to-spec",
+    "after_symlink_copy_exit": 2,
+    "after_symlink_copy_reason": "skills: invalid front matter",
+    "after_quote_init_exit": 0,
+    "dry_run_bytes": 189831,
+    "dry_run_files": 56,
+    "agents_md_added_lines": 1,
+    "agents_md_deleted_lines": 0,
+    "check_cs003": 55,
+    "check_cs001": 1
+  },
+  "skill_scan": {
+    "dirs": 43,
+    "wall_s": 116.51,
+    "llm": false,
+    "safe": 9,
+    "caution": 34,
+    "do_not_install": 0,
+    "with_findings": 10,
+    "exit": 1
+  },
+  "mcp_scan": {
+    "verdict": "CLEAN",
+    "findings": 0,
+    "wall_s": 0.09,
+    "exit": 0
+  },
+  "tree_drift": {
+    "shared_bootstrap_grok": 15,
+    "identical": 9,
+    "differ": 6,
+    "grok_only": ["pipeline-retro"],
+    "grok_symlinks": ["code-review", "grilling", "tdd", "to-spec"]
+  },
+  "value_gate": {
+    "gap_fill": false,
+    "operator_leverage": false,
+    "evidence": true,
+    "blast_radius": true,
+    "score": "2/4"
+  },
+  "modularity_gate": {
+    "local_code_needed": true,
+    "bounded_surface": true,
+    "isolatable": true,
+    "reversible": true,
+    "score": "4/4"
+  },
+  "doctor": {
+    "checks": 33,
+    "warn": ["route.config", "sync.config"],
+    "guard_lock_message": "0 Guard findings"
+  }
+}
