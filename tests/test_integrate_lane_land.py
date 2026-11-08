@@ -213,3 +213,53 @@ class LaneLandTest(unittest.TestCase):
             parked = (root / "tmp" / "integrate" / "stop-slug.parked").read_text()
             self.assertIn("STOP file", parked)
             self.assertFalse(log.exists(), log.read_text() if log.exists() else "")
+
+    def test_stop_during_review_parks_before_push(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            td = Path(tmp)
+            clone, bare = make_fixture(td)
+            bindir = td / "bin"
+            bindir.mkdir()
+            grok = bindir / "grok"
+            grok.write_text(textwrap.dedent("""\
+                #!/bin/sh
+                set -e
+                prompt=""
+                prev=""
+                for arg in "$@"; do
+                  if [ "$prev" = "--prompt-file" ]; then
+                    prompt=$arg
+                  fi
+                  prev=$arg
+                done
+                if grep -q "Self-review" "$prompt"; then
+                  mkdir -p tmp
+                  printf '%s\\n' stop > tmp/STOP
+                  exit 0
+                fi
+                exit 0
+            """))
+            grok.chmod(grok.stat().st_mode | stat.S_IEXEC)
+            env = os.environ.copy()
+            env["PATH"] = str(bindir) + os.pathsep + env.get("PATH", "")
+            before = subprocess.check_output(
+                ["git", "--git-dir", str(bare), "rev-parse", "main"], text=True
+            ).strip()
+            (clone / "tmp").mkdir()
+            (clone / "tmp" / "TICKET-reviewstop.md").write_text("review stop\n")
+            result = subprocess.run(
+                ["bash", str(SCRIPT), "--root", str(clone), "--slug", "reviewstop", "--date", "1108"],
+                cwd=clone,
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+            parked = (clone / "tmp" / "integrate" / "reviewstop.parked").read_text()
+            self.assertIn("STOP file", parked)
+            self.assertFalse((clone / "tmp" / "integrate" / "LANDED_reviewstop").exists())
+            after = subprocess.check_output(
+                ["git", "--git-dir", str(bare), "rev-parse", "main"], text=True
+            ).strip()
+            self.assertEqual(after, before)

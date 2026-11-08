@@ -211,6 +211,19 @@ def _expected_slug(card: dict, fallback: str) -> str:
     return fallback
 
 
+def _has_embed(card: dict) -> bool:
+    raw = card.get("evidence")
+    if not isinstance(raw, list):
+        return False
+    for item in raw:
+        if not isinstance(item, str):
+            continue
+        low = item.strip().lower()
+        if low.startswith("submodule:") or low.startswith("subtree:"):
+            return True
+    return False
+
+
 def _receipt_rels(card: dict) -> list[str]:
     raw = card.get("evidence")
     if not isinstance(raw, list):
@@ -483,8 +496,9 @@ def apply_stage(card_path: Path, target: str, repo_root: Path) -> str | None:
 
     A refusal leaves the card bytes unchanged. None means the stage is target.
     I3 and I4 need a valid main-run receipt and a tier_ceiling at or above
-    the target. The self_pipeline cap still blocks a CI, testing, or review
-    tool that would fail catalog_check at I3.
+    the target. I4 also needs a submodule: or subtree: evidence item.
+    The self_pipeline cap still blocks a CI, testing, or review tool that
+    would fail catalog_check at I3.
     """
     path = Path(card_path)
     repo = Path(repo_root)
@@ -506,6 +520,8 @@ def apply_stage(card_path: Path, target: str, repo_root: Path) -> str | None:
         problem = receipt_problem(card, repo, _expected_slug(card, path.stem))
         if problem:
             return problem
+    if target == "I4" and not _has_embed(card):
+        return "missing-embed"
     if card.get("integration_stage") != target:
         updated = dict(card)
         updated["integration_stage"] = target

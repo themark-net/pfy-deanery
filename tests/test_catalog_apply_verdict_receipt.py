@@ -130,3 +130,27 @@ class ReceiptRuleTest(unittest.TestCase):
             good = write_card(td, "goodtool", "I3", ["receipt:eval/integrate/goodtool/receipt.json"])
             self.assertIsNone(mod.apply_stage(good, "I3", repo))
             self.assertEqual(json.loads(good.read_text())["integration_stage"], "I3")
+
+    def test_i4_without_embed_refuses_then_embed_applies(self):
+        mod = load_mod()
+        with tempfile.TemporaryDirectory() as tmp:
+            td = Path(tmp)
+            repo, main_sha, _side = make_repo(td)
+            write_receipt(repo, "embedtool", main_sha)
+            card = write_card(
+                td,
+                "embedtool",
+                "I4",
+                ["receipt:eval/integrate/embedtool/receipt.json"],
+            )
+            before = card.read_bytes()
+            self.assertEqual(mod.apply_stage(card, "I4", repo), "missing-embed")
+            self.assertEqual(card.read_bytes(), before)
+            body = json.loads(before)
+            body["evidence"] = [
+                "submodule:tools/embedtool",
+                "receipt:eval/integrate/embedtool/receipt.json",
+            ]
+            card.write_text(json.dumps(body))
+            self.assertIsNone(mod.apply_stage(card, "I4", repo))
+            self.assertEqual(json.loads(card.read_text())["integration_stage"], "I4")

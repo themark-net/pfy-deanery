@@ -61,7 +61,7 @@ What it triggers next: the child lane's real pipeline or gate run on main, which
 
 Where a human re-enters: see the last section.
 
-What stops two runs: the dispatched marker for that slug. Two different slugs are two lanes. The land push is a fast-forward, so the second push loses if main moved.
+What stops two runs: the dispatched marker for that slug. Two different slugs are two lanes. The land push is a fast-forward. A rejected push rebases and retries up to 3 times, then parks.
 
 ## Landing
 
@@ -113,12 +113,13 @@ The card evidence item is `receipt:eval/integrate/<slug>/receipt.json`.
 | Return | When |
 | --- | --- |
 | `missing-main-receipt` | No `receipt:` file, or the path is missing. `make:` and `path:` alone hit this. |
-| `receipt-malformed` | The file is not the object above, or `run_kind` is not `pipeline` or `gate`. |
+| `receipt-malformed` | The receipt is not the object above, `run_kind` is not `pipeline` or `gate`, or the card file is not JSON. |
 | `receipt-sha-not-on-main` | `main_sha` is not an ancestor of `origin/main`. |
 | `git-unavailable` | `origin/main` cannot be resolved, or git is missing. |
 | `tier_ceiling` | The card ceiling is below the target. A valid receipt does not lift it. |
 | `self_pipeline` | A CI, testing, or review tool still fails the `catalog_check.py` rule at I3. |
-| none | The write is allowed. I4 still needs `submodule:` or `subtree:` as well as the receipt. |
+| `missing-embed` | The target is I4 and no evidence item starts with `submodule:` or `subtree:`. |
+| none | The write is allowed. I4 needs the receipt and an embed item. |
 
 `apply_stage(card_path, target, repo_root)` is the function the tests call. The CLI verdict path uses the same receipt rule inside the ceiling. Value and modularity gates on a verdict are unchanged. The `self_pipeline` cap is unchanged.
 

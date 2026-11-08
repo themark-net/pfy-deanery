@@ -175,6 +175,9 @@ if [ -f "$ROOT/tmp/STOP" ] || [ -f "$WT/tmp/STOP" ]; then
   park_exit "STOP file" 0
 fi
 run_grok review "$review" || park_exit "grok self-review failed"
+if [ -f "$ROOT/tmp/STOP" ] || [ -f "$WT/tmp/STOP" ]; then
+  park_exit "STOP file" 0
+fi
 
 if [ -n "$(git -C "$WT" status --porcelain)" ]; then
   park_exit "dirty worktree after grok"
@@ -276,7 +279,10 @@ land() {
       fi
     fi
     progress "$SLUG rebase attempt $attempt"
-    GIT_EDITOR=: GIT_SEQUENCE_EDITOR=: git -C "$WT" rebase origin/main >&2 || return 1
+    if ! GIT_EDITOR=: GIT_SEQUENCE_EDITOR=: git -C "$WT" rebase origin/main >&2; then
+      git -C "$WT" rebase --abort >&2 || true
+      return 1
+    fi
     sha=$(git -C "$WT" rev-parse HEAD)
     attempt=$((attempt + 1))
   done

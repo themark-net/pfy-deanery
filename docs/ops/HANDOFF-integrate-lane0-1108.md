@@ -8,7 +8,7 @@ Lane `bot/integrate-lane0-1108`. Not pushed. No pull request. No card `integrati
 - [integrate/TEMPLATE.md](integrate/TEMPLATE.md): the six ticket questions.
 - `scripts/integrate_intake.py`: open I2 cards, table and `--json`. Ceilings are read only.
 - `scripts/integrate_lane.sh`: one slug, worktree `bot/integrate-<slug>-<date>`, no pull request. `tmp/integrate/<slug>.dispatched` is created before fetch, worktree, grok, or push. A second start exits 2. Land is `git fetch origin && git merge-base --is-ancestor origin/main <sha> && git push origin <sha>:refs/heads/main`, with rebase and retry when main is not an ancestor. Markers: `LANDED_<slug>`, `<slug>.done`, `<slug>.parked`, `progress.md`. `tmp/STOP` parks.
-- `scripts/catalog_apply_verdict.py`: I3 and I4 need a valid main-run receipt. `make:` and `path:` do not. Scan flags current I3 cards and does not demote them. `tier_ceiling` and `self_pipeline` caps stay.
+- `scripts/catalog_apply_verdict.py`: I3 and I4 need a valid main-run receipt. I4 also needs a `submodule:` or `subtree:` item (`missing-embed` otherwise). `make:` and `path:` do not reach I3. Scan flags current I3 cards and does not demote them. `tier_ceiling` and `self_pipeline` caps stay.
 - One link line in [integration-stages.md](integration-stages.md).
 
 Receipt path: `eval/integrate/<slug>/receipt.json`. `run_kind` is `pipeline` or `gate`. `main_sha` must be an ancestor of `origin/main`. A branch SHA is `receipt-sha-not-on-main`. Missing git or `origin/main` is `git-unavailable`. Bad JSON or a bad `run_kind` is `receipt-malformed`. No receipt file is `missing-main-receipt`. A ceiling below the target is `tier_ceiling` even when the receipt is valid.
@@ -88,7 +88,7 @@ Open I2 cards whose ceiling is already I3: codebase-memory-mcp, litellm, ollama,
 | skill-up | I3 | I1 | I3 | I1 | missing-main-receipt |
 | write-guard-mcp | I3 | I2 | I3 | I2 | missing-main-receipt |
 
-The other 12 mismatches are the previous ceiling flags (tier cap or notes-only evidence). They are not new receipt codes, because those cards are below I3.
+The other 12 mismatches are the previous ceiling flags (tier cap or notes-only evidence). They are not new receipt codes, because those cards are below I3. repowise stays in that set. Its evidence ceiling is now I2 (`make:` is an operator path), down from I3. `tier_ceiling` I1 still caps it. The card was not edited.
 
 ## Run
 
