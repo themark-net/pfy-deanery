@@ -1,0 +1,9 @@
+{
+  "metric": "destructive commands denied by the wired guard",
+  "threshold": 12,
+  "value_gate": "pass",
+  "modularity_gate": "pass",
+  "proposed_stage": "I3",
+  "intent": "adhoc_probe",
+  "receipt": "eval/integrate/destructive-command-guard/receipt.json"
+}

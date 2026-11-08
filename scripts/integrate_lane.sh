@@ -15,6 +15,22 @@ set -euo pipefail
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 DEFAULT_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 
+# dcg classifies argv and does not run it. Exit 126 denies.
+# sandlock and llama-cpp-ngram-mod add their own checks beside this one.
+dcg_check() {
+  local guard="$SCRIPT_DIR/integrations/dcg/guard.sh"
+  if [ ! -f "$guard" ]; then
+    printf '%s\n' "dcg-fallback: guard.sh missing; ordinary commands unchanged" >&2
+    return 0
+  fi
+  bash "$guard" "$@"
+}
+
+run_checked() {
+  dcg_check "$@" || return $?
+  "$@"
+}
+
 ROOT=""
 SLUG=""
 DATE=""
@@ -117,12 +133,12 @@ if [ ! -f "$ticket" ]; then
   park_exit "missing ticket"
 fi
 
-git -C "$ROOT" fetch origin >&2 || park_exit "git fetch failed"
+run_checked git -C "$ROOT" fetch origin >&2 || park_exit "git fetch failed"
 if [ -e "$WT" ]; then
   park_exit "worktree path exists"
 fi
 mkdir -p "$MARK_DIR/wt"
-git -C "$ROOT" worktree add -b "$BRANCH" "$WT" origin/main >&2 || park_exit "worktree add failed"
+run_checked git -C "$ROOT" worktree add -b "$BRANCH" "$WT" origin/main >&2 || park_exit "worktree add failed"
 progress "$SLUG worktree $BRANCH"
 
 (
@@ -145,7 +161,7 @@ run_grok() {
   while [ "$try" -le 3 ]; do
     if (
       cd "$WT"
-      grok --always-approve --output-format plain --prompt-file "$prompt"
+      run_checked grok --always-approve --output-format plain --prompt-file "$prompt"
     ) >"$log" 2>&1; then
       progress "$SLUG grok $label ok"
       return 0
@@ -185,7 +201,7 @@ fi
 
 sanity() {
   local rel suffix changed
-  changed=$(git -C "$WT" diff --name-only --diff-filter=ACMR origin/main...HEAD) || return 1
+  changed=$(run_checked git -C "$WT" diff --name-only --diff-filter=ACMR origin/main...HEAD) || return 1
   while IFS= read -r rel; do
     [ -n "$rel" ] || continue
     [ -f "$WT/$rel" ] || continue
@@ -268,28 +284,52 @@ fi
 
 land() {
   local sha attempt
-  sha=$(git -C "$WT" rev-parse HEAD)
+  sha=$(run_checked git -C "$WT" rev-parse HEAD)
   attempt=1
   while [ "$attempt" -le 3 ]; do
-    git -C "$ROOT" fetch origin >&2 || return 1
-    if git -C "$ROOT" merge-base --is-ancestor origin/main "$sha"; then
-      if git -C "$ROOT" push origin "${sha}:refs/heads/main" >&2; then
+    run_checked git -C "$ROOT" fetch origin >&2 || return 1
+    if run_checked git -C "$ROOT" merge-base --is-ancestor origin/main "$sha"; then
+      if run_checked git -C "$ROOT" push origin "${sha}:refs/heads/main" >&2; then
         printf '%s\n' "$sha"
         return 0
       fi
     fi
     progress "$SLUG rebase attempt $attempt"
-    if ! GIT_EDITOR=: GIT_SEQUENCE_EDITOR=: git -C "$WT" rebase origin/main >&2; then
-      git -C "$WT" rebase --abort >&2 || true
+    if ! GIT_EDITOR=: GIT_SEQUENCE_EDITOR=: run_checked git -C "$WT" rebase origin/main >&2; then
+      run_checked git -C "$WT" rebase --abort >&2 || true
       return 1
     fi
-    sha=$(git -C "$WT" rev-parse HEAD)
+    sha=$(run_checked git -C "$WT" rev-parse HEAD)
     attempt=$((attempt + 1))
   done
   return 1
 }
 
 sha=$(land) || park_exit "land failed"
+
+# After the fast-forward, run the slug receipt once and apply the verdict.
+# A missing script keeps today's behavior. Apply refusal does not rewrite a card.
+receipt_script="$WT/eval/integrate/${SLUG}/run-on-main.sh"
+if [ -f "$receipt_script" ]; then
+  run_checked git -C "$WT" fetch origin >&2 || progress "$SLUG receipt fetch failed"
+  receipt_path="$WT/eval/integrate/${SLUG}/receipt.json"
+  if (cd "$WT" && bash "$receipt_script" "$receipt_path"); then
+    progress "$SLUG receipt wrote"
+  else
+    progress "$SLUG receipt refused"
+  fi
+  verdict="$WT/eval/integrate/${SLUG}/VERDICT.json"
+  card="$WT/data/stages/${SLUG}.json"
+  if [ -f "$verdict" ] && [ -f "$card" ]; then
+    apply_log="$MARK_DIR/${SLUG}.apply"
+    if python3 "$WT/scripts/catalog_apply_verdict.py" --card "$card" --verdict "$verdict" >"$apply_log" 2>&1; then
+      progress "$SLUG apply ok"
+    else
+      progress "$SLUG apply refused"
+    fi
+  fi
+fi
+
 printf '%s\n' "$sha" > "$LANDED"
 printf '%s\n' "$sha" > "$DONE"
 progress "$SLUG landed $sha"
