@@ -27,4 +27,4 @@
 | The official agent pack is large | The first scan clones agents into the scratch home | The pack observed here was about 1.7 MB. The scan is time-boxed. A timeout exits 2 and the process group is killed |
 | No local model | Ollama is down, or only cloud tags are present | Exit 2 after help and version. Do not pull and do not start a server |
 
-- **Status**: Stayed I0 after the 2026-11-07 ev1107 probe (`agentgg@0.1.29`, agents `v0.1.41`, `qwen2.5-coder:7b-instruct`). Caught the planted shell=True diff and missed the planted Python secret-in-log diff. Not wired into a gate. No Feature GO.
+- **Status**: Stayed I0 after the 2026-11-07 ev1107 probe (`agentgg@0.1.29`, agents `v0.1.41`, `qwen2.5-coder:7b-instruct`). Caught the planted shell=True diff and missed the planted Python secret-in-log diff. Earlier smoke PASS on nimo still stands for version, help, and one time-boxed scan of a comment fixture with `deepseek-coder:latest`. Not wired into a gate. No Feature GO.

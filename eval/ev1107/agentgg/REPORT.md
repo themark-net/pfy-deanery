@@ -27,7 +27,7 @@ npm install --ignore-scripts --no-fund --no-audit --no-package-lock \
 /home/mark/.cache/pfy/tools/agentgg/prefix/node_modules/.bin/agentgg agents update --force
 ```
 
-At lock start, `ollama ps` was empty and MemAvailable was 62096452 KiB (about 59 GiB). The bar was model size plus 25 GiB (30 GiB). The warmup request sent `keep_alive: "2m"` because the model was not loaded. Nothing was unloaded.
+At lock start, `ollama ps` was empty and MemAvailable was 62096452 KiB (about 59 GiB). The check required 5 GiB plus 25 GiB. The Ollama listing for this model is 4.7 GB, so 5 GiB is that file rounded up. The warmup request sent `keep_alive: "2m"` because the model was not loaded. Nothing was unloaded.
 
 Each scan:
 
@@ -95,7 +95,7 @@ Value gate for I3 needs 3 of 4. This probe has 2.
 
 Modularity, all four, for a cache probe only:
 
-1. Local code was required. The docs do not say the secret-in-log prefilter is JavaScript and TypeScript only.
+1. Local code was required. The installed rule file limits the secret-in-log prefilter to TypeScript and JavaScript.
 2. The CLI entrypoint is bounded. The pack is 266 agents, selected by prefilters.
 3. It sat under `~/.cache/pfy/tools/agentgg/` and did not become the product runtime.
 4. Deleting that directory does not remove the catalog pin or this report.
