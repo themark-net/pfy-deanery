@@ -1,0 +1,416 @@
+{
+  "pin": {
+    "npm": "chiasmus@0.1.40",
+    "tarball_sha256": "0d1e911a8ada5007c5f440d0c87a0f284d367188aeb2d0f8fba790f833500a34",
+    "npm_shasum": "3b2036b60d9fd5217b9466c3a45a178cf7fcac05",
+    "node": "v22.23.0"
+  },
+  "window": "last 10 first-parent commits of origin/main at 9d3688718e964dd9e26df465f22ce61cf31e8a0b",
+  "chiasmus_agreement": "3/10",
+  "chiasmus_unique_name_agreement": "3/10",
+  "cbm_agreement": "5/10",
+  "real_misses": [],
+  "wall_s": 50.683,
+  "commits": [
+    {
+      "sha": "9d3688718e964dd9e26df465f22ce61cf31e8a0b",
+      "base": "1868e5d1b2c5f8c042ffef24c67153c61b0b2a3c",
+      "mode": "structural",
+      "changed_py": [],
+      "targets": 0,
+      "test_select": 0,
+      "cbm": 0,
+      "chiasmus": 0,
+      "chiasmus_unique_names": 0,
+      "agree_test_select": true,
+      "agree_unique_names": true,
+      "cbm_agree_test_select": true,
+      "only_in_chiasmus": 0,
+      "only_in_test_select": 0,
+      "real_misses": [],
+      "top_collisions": [],
+      "wall_s": 3.635,
+      "facts_s": 0.731,
+      "impact_s": 0.0,
+      "test_select_s": 1.433,
+      "cbm_s": 0.048,
+      "py_files": 459,
+      "defines": 6389,
+      "error": "",
+      "only_in_test_select_paths": []
+    },
+    {
+      "sha": "1868e5d1b2c5f8c042ffef24c67153c61b0b2a3c",
+      "base": "914b11c8a2c2fc55407874342ee5789ed223a085",
+      "mode": "full",
+      "changed_py": [],
+      "targets": 0,
+      "test_select": 181,
+      "cbm": 0,
+      "chiasmus": 0,
+      "chiasmus_unique_names": 0,
+      "agree_test_select": false,
+      "agree_unique_names": false,
+      "cbm_agree_test_select": false,
+      "only_in_chiasmus": 0,
+      "only_in_test_select": 181,
+      "real_misses": [],
+      "top_collisions": [],
+      "wall_s": 2.932,
+      "facts_s": 0.258,
+      "impact_s": 0.0,
+      "test_select_s": 1.016,
+      "cbm_s": 0.049,
+      "py_files": 459,
+      "defines": 6389,
+      "error": "",
+      "only_in_test_select_paths": []
+    },
+    {
+      "sha": "914b11c8a2c2fc55407874342ee5789ed223a085",
+      "base": "9bfc82fcf66c6738b5443bc9972ce7e6e49f251e",
+      "mode": "full",
+      "changed_py": [
+        "scripts/cbm_shadow.py",
+        "tests/test_cbm_shadow.py",
+        "tests/test_stage_registry.py"
+      ],
+      "targets": 47,
+      "test_select": 181,
+      "cbm": 2,
+      "chiasmus": 145,
+      "chiasmus_unique_names": 119,
+      "agree_test_select": false,
+      "agree_unique_names": false,
+      "cbm_agree_test_select": false,
+      "only_in_chiasmus": 0,
+      "only_in_test_select": 36,
+      "real_misses": [],
+      "top_collisions": [
+        {
+          "name": "main",
+          "files": 158
+        },
+        {
+          "name": "setUp",
+          "files": 66
+        },
+        {
+          "name": "tearDown",
+          "files": 56
+        }
+      ],
+      "wall_s": 7.578,
+      "facts_s": 0.174,
+      "impact_s": 5.306,
+      "test_select_s": 0.921,
+      "cbm_s": 0.04,
+      "py_files": 459,
+      "defines": 6389,
+      "error": "",
+      "only_in_test_select_paths": []
+    },
+    {
+      "sha": "9bfc82fcf66c6738b5443bc9972ce7e6e49f251e",
+      "base": "25e488764894eb314424660b95ece131ffc9898d",
+      "mode": "full",
+      "changed_py": [
+        "scripts/pfy_attach_mode_208.py",
+        "scripts/pfy_build_cloud.py",
+        "scripts/pfy_code_graph_215.py",
+        "scripts/pfy_launch_wizard_225.py",
+        "scripts/pfy_session_compose_224.py",
+        "scripts/pfy_skill_scan.py",
+        "scripts/run_tests.py",
+        "tests/test_ci_discover_cover.py",
+        "tests/test_local_lab_budget.py",
+        "tests/test_model_lock.py",
+        "tests/test_pfy_skill_scan.py",
+        "tests/test_pregate_concurrent.py",
+        "tests/test_run_tests.py",
+        "tests/test_tool_cache.py",
+        "tests/test_workflow_image_pin.py"
+      ],
+      "targets": 32,
+      "test_select": 180,
+      "cbm": 8,
+      "chiasmus": 173,
+      "chiasmus_unique_names": 137,
+      "agree_test_select": false,
+      "agree_unique_names": false,
+      "cbm_agree_test_select": false,
+      "only_in_chiasmus": 0,
+      "only_in_test_select": 7,
+      "real_misses": [],
+      "top_collisions": [
+        {
+          "name": "main",
+          "files": 157
+        },
+        {
+          "name": "setUp",
+          "files": 65
+        },
+        {
+          "name": "tearDown",
+          "files": 55
+        }
+      ],
+      "wall_s": 5.917,
+      "facts_s": 0.112,
+      "impact_s": 3.518,
+      "test_select_s": 0.914,
+      "cbm_s": 0.045,
+      "py_files": 457,
+      "defines": 6343,
+      "error": "",
+      "only_in_test_select_paths": [
+        "tests/test_build_preflight.py",
+        "tests/test_entry_149_count.py",
+        "tests/test_hermes_landed_status.py",
+        "tests/test_jev_decision_skill.py",
+        "tests/test_kolibri_receipt_absolute.py",
+        "tests/test_scoring_rollup.py",
+        "tests/test_typed_decisions_receipt_absolute.py"
+      ]
+    },
+    {
+      "sha": "25e488764894eb314424660b95ece131ffc9898d",
+      "base": "56f6df154eeebf29be90c6290a0a28a917e5d4bb",
+      "mode": "affected",
+      "changed_py": [
+        "tests/test_grill_ticket.py"
+      ],
+      "targets": 1,
+      "test_select": 1,
+      "cbm": 1,
+      "chiasmus": 1,
+      "chiasmus_unique_names": 1,
+      "agree_test_select": true,
+      "agree_unique_names": true,
+      "cbm_agree_test_select": true,
+      "only_in_chiasmus": 0,
+      "only_in_test_select": 0,
+      "real_misses": [],
+      "top_collisions": [],
+      "wall_s": 3.859,
+      "facts_s": 0.773,
+      "impact_s": 0.114,
+      "test_select_s": 0.881,
+      "cbm_s": 0.045,
+      "py_files": 454,
+      "defines": 6316,
+      "error": "",
+      "only_in_test_select_paths": []
+    },
+    {
+      "sha": "56f6df154eeebf29be90c6290a0a28a917e5d4bb",
+      "base": "ba18f7cc7947f88f19564ea585ccf68c7276073c",
+      "mode": "affected",
+      "changed_py": [
+        "scripts/grill_ticket.py",
+        "tests/test_grill_ticket.py"
+      ],
+      "targets": 55,
+      "test_select": 1,
+      "cbm": 1,
+      "chiasmus": 139,
+      "chiasmus_unique_names": 115,
+      "agree_test_select": false,
+      "agree_unique_names": false,
+      "cbm_agree_test_select": true,
+      "only_in_chiasmus": 138,
+      "only_in_test_select": 0,
+      "real_misses": [],
+      "top_collisions": [
+        {
+          "name": "main",
+          "files": 157
+        },
+        {
+          "name": "setUp",
+          "files": 62
+        },
+        {
+          "name": "tearDown",
+          "files": 52
+        }
+      ],
+      "wall_s": 8.936,
+      "facts_s": 0.312,
+      "impact_s": 5.019,
+      "test_select_s": 0.905,
+      "cbm_s": 0.04,
+      "py_files": 454,
+      "defines": 6316,
+      "error": "",
+      "only_in_test_select_paths": []
+    },
+    {
+      "sha": "ba18f7cc7947f88f19564ea585ccf68c7276073c",
+      "base": "31c373ba1c77588f0bdbb875383d7185ca3be3cb",
+      "mode": "structural",
+      "changed_py": [],
+      "targets": 0,
+      "test_select": 0,
+      "cbm": 0,
+      "chiasmus": 0,
+      "chiasmus_unique_names": 0,
+      "agree_test_select": true,
+      "agree_unique_names": true,
+      "cbm_agree_test_select": true,
+      "only_in_chiasmus": 0,
+      "only_in_test_select": 0,
+      "real_misses": [],
+      "top_collisions": [],
+      "wall_s": 2.086,
+      "facts_s": 0.274,
+      "impact_s": 0.0,
+      "test_select_s": 0.87,
+      "cbm_s": 0.048,
+      "py_files": 452,
+      "defines": 6261,
+      "error": "",
+      "only_in_test_select_paths": []
+    },
+    {
+      "sha": "31c373ba1c77588f0bdbb875383d7185ca3be3cb",
+      "base": "dd861e01cc8ba33c1547e0e45c40e4623bc9dd1a",
+      "mode": "affected",
+      "changed_py": [
+        "scripts/pipeline_retro.py",
+        "tests/test_pipeline_retro.py"
+      ],
+      "targets": 5,
+      "test_select": 1,
+      "cbm": 1,
+      "chiasmus": 19,
+      "chiasmus_unique_names": 10,
+      "agree_test_select": false,
+      "agree_unique_names": false,
+      "cbm_agree_test_select": true,
+      "only_in_chiasmus": 18,
+      "only_in_test_select": 0,
+      "real_misses": [],
+      "top_collisions": [
+        {
+          "name": "main",
+          "files": 156
+        },
+        {
+          "name": "check",
+          "files": 18
+        },
+        {
+          "name": "body",
+          "files": 15
+        }
+      ],
+      "wall_s": 2.514,
+      "facts_s": 0.125,
+      "impact_s": 0.368,
+      "test_select_s": 0.861,
+      "cbm_s": 0.044,
+      "py_files": 452,
+      "defines": 6261,
+      "error": "",
+      "only_in_test_select_paths": []
+    },
+    {
+      "sha": "dd861e01cc8ba33c1547e0e45c40e4623bc9dd1a",
+      "base": "79c083e9e53a4302ed30188d40fc29d445140ab6",
+      "mode": "full",
+      "changed_py": [
+        "scripts/pipeline_retro.py",
+        "tests/test_pipeline_retro.py"
+      ],
+      "targets": 46,
+      "test_select": 176,
+      "cbm": 1,
+      "chiasmus": 170,
+      "chiasmus_unique_names": 138,
+      "agree_test_select": false,
+      "agree_unique_names": false,
+      "cbm_agree_test_select": false,
+      "only_in_chiasmus": 0,
+      "only_in_test_select": 6,
+      "real_misses": [],
+      "top_collisions": [
+        {
+          "name": "main",
+          "files": 156
+        },
+        {
+          "name": "setUp",
+          "files": 61
+        },
+        {
+          "name": "tearDown",
+          "files": 51
+        }
+      ],
+      "wall_s": 7.295,
+      "facts_s": 0.155,
+      "impact_s": 4.34,
+      "test_select_s": 0.892,
+      "cbm_s": 0.045,
+      "py_files": 452,
+      "defines": 6260,
+      "error": "",
+      "only_in_test_select_paths": [
+        "tests/test_build_preflight.py",
+        "tests/test_entry_149_count.py",
+        "tests/test_hermes_landed_status.py",
+        "tests/test_jev_decision_skill.py",
+        "tests/test_pfy_build_docs.py",
+        "tests/test_scoring_rollup.py"
+      ]
+    },
+    {
+      "sha": "79c083e9e53a4302ed30188d40fc29d445140ab6",
+      "base": "1afa8d26f74672b4c244ec3aa875c48f75543a12",
+      "mode": "affected",
+      "changed_py": [
+        "scripts/catalog_check.py",
+        "tests/test_catalog_self_pipeline.py",
+        "tests/test_stage_registry.py"
+      ],
+      "targets": 19,
+      "test_select": 3,
+      "cbm": 2,
+      "chiasmus": 39,
+      "chiasmus_unique_names": 17,
+      "agree_test_select": false,
+      "agree_unique_names": false,
+      "cbm_agree_test_select": false,
+      "only_in_chiasmus": 37,
+      "only_in_test_select": 1,
+      "real_misses": [],
+      "top_collisions": [
+        {
+          "name": "main",
+          "files": 155
+        },
+        {
+          "name": "check",
+          "files": 18
+        },
+        {
+          "name": "body",
+          "files": 15
+        }
+      ],
+      "wall_s": 5.931,
+      "facts_s": 0.252,
+      "impact_s": 2.276,
+      "test_select_s": 0.881,
+      "cbm_s": 0.046,
+      "py_files": 450,
+      "defines": 6214,
+      "error": "",
+      "only_in_test_select_paths": [
+        "tests/test_catalog_entry_numbers.py"
+      ]
+    }
+  ]
+}

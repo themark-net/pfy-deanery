@@ -1,19 +1,30 @@
 {
   "name": "Chiasmus",
-  "integration_stage": "I0",
-  "intent": "awareness",
+  "integration_stage": "I1",
+  "intent": "staged_evaluation",
   "entry": "sources/entries/140-chiasmus.md",
   "github": "https://github.com/yogthos/chiasmus",
-  "uses": "Call-graph impact and Z3/Prolog checks over a diff; candidate impact source for ./pfy build per-file review.",
-  "potential": "medium",
-  "next_gate": "Overlaps codebase-memory-mcp (primary impact source). Trial only if CM impact output proves weak on pfy's own diffs.",
+  "uses": "Call-graph impact for per-file review. Trialed on pfy diffs. Not a test selector.",
+  "features": [
+    "stdio MCP",
+    "tree-sitter call graph",
+    "impact analysis"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1 unless a later pin qualifies Python names by file and a repeat of eval/ev1107/chiasmus/REPORT.md beats codebase-memory or names a skipped test that imports the change. The 0.1.40 install is 86 MB, over the 50 MB I2 copy limit, so a win still stays cached.",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",
-    "catalog_hold_70_75"
+    "catalog_hold_70_75",
+    "test_select_gate"
   ],
   "evidence": [
-    "entry:sources/entries/140-chiasmus.md"
+    "entry:sources/entries/140-chiasmus.md",
+    "eval/ev1107/chiasmus/REPORT.md"
   ],
-  "handoff_by": "llm"
+  "handoff_by": "llm",
+  "self_pipeline": {
+    "status": "not_applicable",
+    "reason": "Report-only comparison in eval/ev1107/chiasmus/REPORT.md. Impact agrees with test_select on 3/10 commits. codebase-memory agrees on 5/10. No extra test imports the change. Not wired into a gate."
+  }
 }
