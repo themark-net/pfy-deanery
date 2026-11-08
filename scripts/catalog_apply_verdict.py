@@ -446,12 +446,14 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.scan:
             if args.card or args.verdict or args.write_one_line:
-                raise Refuse("malformed-verdict: --scan does not take --card, --verdict, or --write-one-line")
+                raise Refuse("scan-only: --scan does not take --card, --verdict, or --write-one-line")
             root = _abs(args.root) if args.root else ROOT
             report = _abs(args.report) if args.report else root / "eval" / "catalog-verdicts" / "CEILING-MISMATCHES.md"
             return scan(root, report)
-        if not args.card or not args.verdict:
+        if not args.card:
             raise Refuse("missing-card: pass --card and --verdict, or pass --scan")
+        if not args.verdict:
+            raise Refuse("missing-verdict: pass --verdict")
         one_line = _abs(args.write_one_line) if args.write_one_line else None
         return apply_verdict(_abs(args.card), _abs(args.verdict), one_line)
     except Refuse as exc:
