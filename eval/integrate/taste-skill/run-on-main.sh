@@ -112,8 +112,11 @@ trap cleanup EXIT
 mkdir -p "$work/home" "$work/tmp" "$work/xdg"
 
 started=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+# Clean child env. Do not pass the parent environment into node.
+# --kill-after makes the 30s cap a real stop if node ignores TERM.
 set +e
-timeout 30 env \
+timeout --kill-after=5 30 env -i \
+  PATH="${PATH:-/usr/bin:/bin}" \
   HOME="$work/home" \
   TMPDIR="$work/tmp" \
   XDG_CONFIG_HOME="$work/xdg" \
@@ -121,13 +124,14 @@ timeout 30 env \
   XDG_DATA_HOME="$work/xdg" \
   TASTE_SKILL_TMP="$work/tmp" \
   TASTE_SKILL_HISTORY="$work/history.json" \
+  LANG=C.UTF-8 \
   NO_COLOR=1 \
   "$node" "$lint" "$rel" --app --json >"$work/lint.json" 2>"$work/lint.err"
 rc=$?
 set -e
-if [ "$rc" -eq 124 ]; then
+if [ "$rc" -eq 124 ] || [ "$rc" -eq 137 ]; then
   printf '%s\n' "timeout is not a pass" >&2
-  exit 124
+  exit "$rc"
 fi
 if [ "$rc" -ne 0 ] && [ "$rc" -ne 1 ]; then
   printf '%s\n' "lint exit $rc" >&2
