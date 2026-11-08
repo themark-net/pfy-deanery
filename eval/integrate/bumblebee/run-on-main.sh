@@ -12,7 +12,8 @@
 # this script for the receipt. Exiting 2 whenever the file exists would park
 # that receipt. A marker whose pid is an ancestor of this process is that
 # admitted lane, so the scan continues. Any other existing marker is a second
-# start.
+# start. A missing marker is created only after HEAD is an ancestor of
+# origin/main, so a refused run does not claim the lane.
 #
 # bumblebee-main-ff.lock is the flock for the main fast-forward only.
 # It is not a global CI lock and it is not scripts/model_lock.sh.
@@ -20,7 +21,8 @@
 # The scan reads tmp/bumblebee-fixture only. It calls scripts/pfy_mcp_scan.py.
 # Missing binary, scan error, or timeout: exit nonzero and write no receipt.
 # A timeout is not a pass. The scanner's own --out file is a temp file, not
-# this receipt. When this script is not run, today's scan behavior stays.
+# this receipt. Version text is read with a scratch HOME. When this script is
+# not run, today's scan behavior stays.
 
 set -euo pipefail
 
@@ -29,8 +31,14 @@ if [ "$#" -ne 1 ] || [ -z "${1:-}" ]; then
   exit 2
 fi
 receipt=$1
+if [ "${receipt#/}" = "$receipt" ]; then
+  receipt="$PWD/$receipt"
+fi
 
 marker=${BUMBLEBEE_LANE_MARKER:-/home/mark/DEVELOP/pfy-mentat/tmp/integrate2/bumblebee.dispatched}
+if [ "${marker#/}" = "$marker" ]; then
+  marker="$PWD/$marker"
+fi
 
 marker_pid_is_ancestor() {
   local file=$1
@@ -58,17 +66,9 @@ marker_pid_is_ancestor() {
   return 1
 }
 
-if [ -f "$marker" ]; then
-  if ! marker_pid_is_ancestor "$marker"; then
-    printf '%s\n' "already dispatched" >&2
-    exit 2
-  fi
-else
-  mkdir -p "$(dirname -- "$marker")"
-  if ! (set -o noclobber; printf 'pid %s\n' "$$" > "$marker") 2>/dev/null; then
-    printf '%s\n' "already dispatched" >&2
-    exit 2
-  fi
+if [ -f "$marker" ] && ! marker_pid_is_ancestor "$marker"; then
+  printf '%s\n' "already dispatched" >&2
+  exit 2
 fi
 
 root=$(CDPATH= cd -- "$(dirname -- "$0")/../../.." && pwd)
@@ -83,15 +83,20 @@ if ! git merge-base --is-ancestor "$head" origin/main; then
   printf '%s\n' "HEAD is not an ancestor of origin/main" >&2
   exit 1
 fi
+if ! printf '%s\n' "$head" | grep -E -q '^[0-9a-f]{40}$'; then
+  printf '%s\n' "main_sha is not 40 hex characters" >&2
+  exit 1
+fi
+
+if [ ! -f "$marker" ]; then
+  mkdir -p "$(dirname -- "$marker")"
+  if ! (set -o noclobber; printf 'pid %s\n' "$$" > "$marker") 2>/dev/null; then
+    printf '%s\n' "already dispatched" >&2
+    exit 2
+  fi
+fi
 
 fix=$root/tmp/bumblebee-fixture
-case $fix in
-  "$root"/tmp/bumblebee-fixture) ;;
-  *)
-    printf '%s\n' "bad fixture path" >&2
-    exit 1
-    ;;
-esac
 rm -rf "$fix"
 mkdir -p "$fix/.cursor" "$fix/clean-app"
 cat > "$fix/.cursor/mcp.json" <<'EOF'
@@ -163,16 +168,26 @@ if [ "$verdict" != "CLEAN" ]; then
   exit 1
 fi
 
-if [ -n "${PFY_BUMBLEBEE_BIN:-}" ] && [ -x "${PFY_BUMBLEBEE_BIN}" ]; then
-  bin=$PFY_BUMBLEBEE_BIN
-elif command -v bumblebee >/dev/null 2>&1; then
-  bin=$(command -v bumblebee)
-else
-  cache=${PFY_TOOL_CACHE:-$HOME/.cache/pfy}
-  bin=$cache/tools/bumblebee/bumblebee
+bin=$(python3 - <<'PY'
+import importlib.util
+
+spec = importlib.util.spec_from_file_location("pfy_mcp_scan", "scripts/pfy_mcp_scan.py")
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+found = mod.find_binary()
+print("" if found is None else str(found))
+PY
+)
+version=bumblebee
+if [ -n "$bin" ] && [ -x "$bin" ]; then
+  vhome=$(mktemp -d)
+  version=$(
+    timeout --foreground 5 env -i PATH="/usr/bin:/bin" HOME="$vhome" \
+      "$bin" version 2>/dev/null | head -n 1 | tr -d '\r' || true
+  )
+  rm -rf "$vhome"
 fi
-version=$("$bin" version 2>/dev/null | head -n 1 | tr -d '\r' || true)
-if [ -z "$version" ]; then
+if [ -z "$version" ] || [ "${#version}" -gt 80 ] || printf '%s' "$version" | grep -q '[/~]'; then
   version=bumblebee
 fi
 
