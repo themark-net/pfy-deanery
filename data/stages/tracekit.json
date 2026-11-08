@@ -4,16 +4,37 @@
   "intent": "awareness",
   "entry": "sources/entries/141-tracekit.md",
   "github": "https://github.com/Cygnux-Labs/Tracekit",
-  "uses": "Signed, policy-gated tool call records.",
+  "notes_doc": "eval/evq1107/tracekit/REPORT.md",
+  "pin": "a94af452db0862ceb990c079fff17b6fed223ad3",
+  "release": "v1.4.1",
+  "wheel_sha256": "2166ceba02d451cdca52c922617e0c5b14c44936efeaf3c651cec89dfcf2aa60",
+  "uses": "Signed offline records of agent tool calls, with a policy decision before the call. The default pack does not hold a fetched-skill copy.",
+  "features": [
+    "ed25519 bundle",
+    "offline verify",
+    "coding strict and dev packs",
+    "same-user dev signer"
+  ],
   "potential": "low",
-  "next_gate": "Security posture change; needs Tester and Reviewer. Post-MVP.",
+  "next_gate": "Stay I0. Coding and the default dev pack blocked 0/6 skill-load commands. Strict held only pip install by name (1/6). Verify caught 4/4 edited bundles. An unsigned JSON file of the same decisions caught 0/1. Asks were self-approved. No gate wiring. A later trial needs a signer under another user before the record counts against the agent that wrote it, and it still would not scan skill text.",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",
-    "catalog_hold_70_75"
+    "catalog_hold_70_75",
+    "pregate or CI gate",
+    "tracekit init up or instrument",
+    "gateway or witness server",
+    "replace SkillSpector",
+    "replace Sandlock",
+    "replace destructive_command_guard"
   ],
   "evidence": [
-    "entry:sources/entries/141-tracekit.md"
+    "entry:sources/entries/141-tracekit.md",
+    "pin:a94af452db0862ceb990c079fff17b6fed223ad3",
+    "release:v1.4.1",
+    "eval/evq1107/tracekit/REPORT.md",
+    "eval/evq1107/tracekit/VERDICT",
+    "eval/evq1107/tracekit/results.json"
   ],
   "handoff_by": "llm"
 }

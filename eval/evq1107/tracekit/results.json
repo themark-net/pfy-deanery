@@ -1,0 +1,763 @@
+{
+  "pins": {
+    "version": "1.4.1",
+    "wheel": "tracekit_ai-1.4.1-py3-none-any.whl",
+    "wheel_sha256": "2166ceba02d451cdca52c922617e0c5b14c44936efeaf3c651cec89dfcf2aa60",
+    "wheel_sha_ok": true,
+    "tag": "v1.4.1",
+    "tag_commit": "a94af452db0862ceb990c079fff17b6fed223ad3",
+    "python": "3.14.4",
+    "cache_bytes": 51660543,
+    "venv_bytes": 42316390,
+    "wheel_bytes": 1138998,
+    "module_version": "1.4.1",
+    "cli_version": "tracekit 1.4.1"
+  },
+  "executed_shell": false,
+  "error": null,
+  "packs": {
+    "coding": {
+      "pack": "coding",
+      "policy_version": "2026.10-v2-21",
+      "policy_sha256": "b77c1be830cfcf8ab1494f4bc0e8b1034798b9cc9f1610d7ea2688c6c2e1c755",
+      "wall_s": 0.0266,
+      "bundle_s": null,
+      "decide_ms_median": 0.713,
+      "decide_ms_max": 1.446,
+      "rows": [
+        {
+          "id": "read-ls",
+          "bucket": "read",
+          "tool": "Bash",
+          "decision": "allow",
+          "rules": [],
+          "ms": 1.446,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "read-cat",
+          "bucket": "read",
+          "tool": "Bash",
+          "decision": "allow",
+          "rules": [],
+          "ms": 0.678,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "read-status",
+          "bucket": "read",
+          "tool": "Bash",
+          "decision": "allow",
+          "rules": [],
+          "ms": 0.672,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "read-tool",
+          "bucket": "read",
+          "tool": "Read",
+          "decision": "allow",
+          "rules": [],
+          "ms": 0.584,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "load-clone",
+          "bucket": "h2_load",
+          "tool": "Bash",
+          "decision": "allow",
+          "rules": [
+            "TK-F012"
+          ],
+          "ms": 1.438,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "load-cp",
+          "bucket": "h2_load",
+          "tool": "Bash",
+          "decision": "allow",
+          "rules": [],
+          "ms": 0.713,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "load-write",
+          "bucket": "h2_load",
+          "tool": "Write",
+          "decision": "allow",
+          "rules": [],
+          "ms": 0.736,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "load-bash",
+          "bucket": "h2_load",
+          "tool": "Bash",
+          "decision": "allow",
+          "rules": [],
+          "ms": 0.581,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "load-pip-name",
+          "bucket": "h2_load",
+          "tool": "Bash",
+          "decision": "allow",
+          "rules": [
+            "TK-F004"
+          ],
+          "ms": 0.573,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "load-npm",
+          "bucket": "h2_load",
+          "tool": "Bash",
+          "decision": "allow",
+          "rules": [],
+          "ms": 0.557,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "overlap-curl",
+          "bucket": "overlap",
+          "tool": "Bash",
+          "decision": "deny",
+          "rules": [
+            "TK-D002",
+            "TK-SHELL-PARSE",
+            "TK-F001",
+            "TK-F012",
+            "TK-F013"
+          ],
+          "ms": 0.812,
+          "unavailable": false
+        },
+        {
+          "id": "overlap-url-pip",
+          "bucket": "overlap",
+          "tool": "Bash",
+          "decision": "deny",
+          "rules": [
+            "TK-D021",
+            "TK-F004",
+            "TK-F012"
+          ],
+          "ms": 0.851,
+          "unavailable": false
+        },
+        {
+          "id": "overlap-git-pip",
+          "bucket": "overlap",
+          "tool": "Bash",
+          "decision": "ask",
+          "rules": [
+            "TK-A028",
+            "TK-F004",
+            "TK-F012"
+          ],
+          "ms": 0.695,
+          "unavailable": false,
+          "other_args_ok": false,
+          "same_args_ok": true,
+          "self_approved": true
+        },
+        {
+          "id": "overlap-sudo",
+          "bucket": "overlap",
+          "tool": "Bash",
+          "decision": "deny",
+          "rules": [
+            "TK-D001",
+            "TK-D004",
+            "TK-F003"
+          ],
+          "ms": 0.955,
+          "unavailable": false
+        },
+        {
+          "id": "hold-parse",
+          "bucket": "hold",
+          "tool": "Bash",
+          "decision": "ask",
+          "rules": [
+            "TK-SHELL-PARSE"
+          ],
+          "ms": 0.774,
+          "unavailable": false,
+          "other_args_ok": false,
+          "same_args_ok": true,
+          "self_approved": true
+        }
+      ],
+      "binding": {
+        "other_args_ok": false,
+        "same_args_ok": true,
+        "self_approved": true
+      },
+      "verify": null,
+      "h2_load": {
+        "n": 6,
+        "allow": 6,
+        "deny": 0,
+        "ask": 0,
+        "other": 0,
+        "blocked": 0
+      },
+      "overlap": {
+        "n": 4,
+        "allow": 0,
+        "deny": 3,
+        "ask": 1,
+        "other": 0,
+        "blocked": 4
+      },
+      "read": {
+        "n": 4,
+        "allow": 4,
+        "deny": 0,
+        "ask": 0,
+        "other": 0,
+        "blocked": 0
+      },
+      "hold": {
+        "n": 1,
+        "allow": 0,
+        "deny": 0,
+        "ask": 1,
+        "other": 0,
+        "blocked": 1
+      },
+      "socket_path_len": 63
+    },
+    "strict": {
+      "pack": "strict",
+      "policy_version": "2026.10-strict-3",
+      "policy_sha256": "3ce4aedff560e7ea20b5a116a8396d354809ccfdd25113ea566410d72bb74723",
+      "wall_s": 0.0235,
+      "bundle_s": null,
+      "decide_ms_median": 0.704,
+      "decide_ms_max": 1.13,
+      "rows": [
+        {
+          "id": "read-ls",
+          "bucket": "read",
+          "tool": "Bash",
+          "decision": "allow",
+          "rules": [],
+          "ms": 1.013,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "read-cat",
+          "bucket": "read",
+          "tool": "Bash",
+          "decision": "allow",
+          "rules": [],
+          "ms": 0.749,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "read-status",
+          "bucket": "read",
+          "tool": "Bash",
+          "decision": "allow",
+          "rules": [],
+          "ms": 0.607,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "read-tool",
+          "bucket": "read",
+          "tool": "Read",
+          "decision": "allow",
+          "rules": [],
+          "ms": 0.512,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "load-clone",
+          "bucket": "h2_load",
+          "tool": "Bash",
+          "decision": "allow",
+          "rules": [
+            "TK-F012"
+          ],
+          "ms": 0.917,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "load-cp",
+          "bucket": "h2_load",
+          "tool": "Bash",
+          "decision": "allow",
+          "rules": [],
+          "ms": 1.13,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "load-write",
+          "bucket": "h2_load",
+          "tool": "Write",
+          "decision": "allow",
+          "rules": [],
+          "ms": 0.565,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "load-bash",
+          "bucket": "h2_load",
+          "tool": "Bash",
+          "decision": "allow",
+          "rules": [],
+          "ms": 0.61,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "load-pip-name",
+          "bucket": "h2_load",
+          "tool": "Bash",
+          "decision": "ask",
+          "rules": [
+            "TK-F004"
+          ],
+          "ms": 0.678,
+          "unavailable": false,
+          "other_args_ok": false,
+          "same_args_ok": true,
+          "self_approved": true
+        },
+        {
+          "id": "load-npm",
+          "bucket": "h2_load",
+          "tool": "Bash",
+          "decision": "allow",
+          "rules": [],
+          "ms": 0.614,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "overlap-curl",
+          "bucket": "overlap",
+          "tool": "Bash",
+          "decision": "deny",
+          "rules": [
+            "TK-SHELL-PARSE",
+            "TK-D002",
+            "TK-F013",
+            "TK-F001",
+            "TK-F012"
+          ],
+          "ms": 0.751,
+          "unavailable": false
+        },
+        {
+          "id": "overlap-url-pip",
+          "bucket": "overlap",
+          "tool": "Bash",
+          "decision": "deny",
+          "rules": [
+            "TK-D021",
+            "TK-F004",
+            "TK-F012"
+          ],
+          "ms": 0.704,
+          "unavailable": false
+        },
+        {
+          "id": "overlap-git-pip",
+          "bucket": "overlap",
+          "tool": "Bash",
+          "decision": "ask",
+          "rules": [
+            "TK-A028",
+            "TK-F004",
+            "TK-F012"
+          ],
+          "ms": 0.859,
+          "unavailable": false,
+          "other_args_ok": false,
+          "same_args_ok": true,
+          "self_approved": true
+        },
+        {
+          "id": "overlap-sudo",
+          "bucket": "overlap",
+          "tool": "Bash",
+          "decision": "deny",
+          "rules": [
+            "TK-D001",
+            "TK-D004",
+            "TK-F003"
+          ],
+          "ms": 0.774,
+          "unavailable": false
+        },
+        {
+          "id": "hold-parse",
+          "bucket": "hold",
+          "tool": "Bash",
+          "decision": "deny",
+          "rules": [
+            "TK-SHELL-PARSE"
+          ],
+          "ms": 0.571,
+          "unavailable": false
+        }
+      ],
+      "binding": null,
+      "verify": null,
+      "h2_load": {
+        "n": 6,
+        "allow": 5,
+        "deny": 0,
+        "ask": 1,
+        "other": 0,
+        "blocked": 1
+      },
+      "overlap": {
+        "n": 4,
+        "allow": 0,
+        "deny": 3,
+        "ask": 1,
+        "other": 0,
+        "blocked": 4
+      },
+      "read": {
+        "n": 4,
+        "allow": 4,
+        "deny": 0,
+        "ask": 0,
+        "other": 0,
+        "blocked": 0
+      },
+      "hold": {
+        "n": 1,
+        "allow": 0,
+        "deny": 1,
+        "ask": 0,
+        "other": 0,
+        "blocked": 1
+      },
+      "socket_path_len": 63
+    },
+    "dev": {
+      "pack": "dev",
+      "policy_version": "",
+      "policy_sha256": "890141a0d1115eb85d81c46198cb84cdfdc56b774815663525b8cca8f8524488",
+      "wall_s": 0.021,
+      "bundle_s": 1.5272,
+      "decide_ms_median": 0.603,
+      "decide_ms_max": 0.896,
+      "rows": [
+        {
+          "id": "read-ls",
+          "bucket": "read",
+          "tool": "Bash",
+          "decision": "allow",
+          "rules": [],
+          "ms": 0.896,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "read-cat",
+          "bucket": "read",
+          "tool": "Bash",
+          "decision": "allow",
+          "rules": [],
+          "ms": 0.603,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "read-status",
+          "bucket": "read",
+          "tool": "Bash",
+          "decision": "allow",
+          "rules": [],
+          "ms": 0.563,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "read-tool",
+          "bucket": "read",
+          "tool": "Read",
+          "decision": "allow",
+          "rules": [],
+          "ms": 0.425,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "load-clone",
+          "bucket": "h2_load",
+          "tool": "Bash",
+          "decision": "allow",
+          "rules": [
+            "TK-F012"
+          ],
+          "ms": 0.605,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "load-cp",
+          "bucket": "h2_load",
+          "tool": "Bash",
+          "decision": "allow",
+          "rules": [],
+          "ms": 0.542,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "load-write",
+          "bucket": "h2_load",
+          "tool": "Write",
+          "decision": "allow",
+          "rules": [],
+          "ms": 0.458,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "load-bash",
+          "bucket": "h2_load",
+          "tool": "Bash",
+          "decision": "allow",
+          "rules": [],
+          "ms": 0.703,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "load-pip-name",
+          "bucket": "h2_load",
+          "tool": "Bash",
+          "decision": "allow",
+          "rules": [
+            "TK-F004"
+          ],
+          "ms": 0.817,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "load-npm",
+          "bucket": "h2_load",
+          "tool": "Bash",
+          "decision": "allow",
+          "rules": [],
+          "ms": 0.576,
+          "unavailable": false,
+          "consume_ok": true
+        },
+        {
+          "id": "overlap-curl",
+          "bucket": "overlap",
+          "tool": "Bash",
+          "decision": "deny",
+          "rules": [
+            "TK-D002",
+            "TK-SHELL-PARSE",
+            "TK-F001",
+            "TK-F012",
+            "TK-F013"
+          ],
+          "ms": 0.671,
+          "unavailable": false
+        },
+        {
+          "id": "overlap-url-pip",
+          "bucket": "overlap",
+          "tool": "Bash",
+          "decision": "deny",
+          "rules": [
+            "TK-D021",
+            "TK-F004",
+            "TK-F012"
+          ],
+          "ms": 0.618,
+          "unavailable": false
+        },
+        {
+          "id": "overlap-git-pip",
+          "bucket": "overlap",
+          "tool": "Bash",
+          "decision": "ask",
+          "rules": [
+            "TK-A028",
+            "TK-F004",
+            "TK-F012"
+          ],
+          "ms": 0.618,
+          "unavailable": false,
+          "other_args_ok": false,
+          "same_args_ok": true,
+          "self_approved": true
+        },
+        {
+          "id": "overlap-sudo",
+          "bucket": "overlap",
+          "tool": "Bash",
+          "decision": "deny",
+          "rules": [
+            "TK-D001",
+            "TK-D004",
+            "TK-F003"
+          ],
+          "ms": 0.589,
+          "unavailable": false
+        },
+        {
+          "id": "hold-parse",
+          "bucket": "hold",
+          "tool": "Bash",
+          "decision": "ask",
+          "rules": [
+            "TK-SHELL-PARSE"
+          ],
+          "ms": 0.49,
+          "unavailable": false,
+          "other_args_ok": false,
+          "same_args_ok": true,
+          "self_approved": true
+        }
+      ],
+      "binding": {
+        "other_args_ok": false,
+        "same_args_ok": true,
+        "self_approved": true
+      },
+      "verify": {
+        "made": {
+          "naive_flip": true,
+          "rehash_flip": true,
+          "rehash_drop": true
+        },
+        "reports": {
+          "good": {
+            "rc": 0,
+            "integrity": "VERIFIED",
+            "failed": [],
+            "binding_mismatch": true,
+            "stderr_tail": ""
+          },
+          "naive_flip": {
+            "rc": 1,
+            "integrity": "FAILED",
+            "failed": [
+              "manifest",
+              "signatures"
+            ],
+            "binding_mismatch": true,
+            "stderr_tail": ""
+          },
+          "rehash_flip": {
+            "rc": 1,
+            "integrity": "FAILED",
+            "failed": [
+              "signatures"
+            ],
+            "binding_mismatch": true,
+            "stderr_tail": ""
+          },
+          "rehash_drop": {
+            "rc": 1,
+            "integrity": "FAILED",
+            "failed": [
+              "run chain"
+            ],
+            "binding_mismatch": true,
+            "stderr_tail": ""
+          },
+          "other_witness": {
+            "rc": 1,
+            "integrity": "FAILED",
+            "failed": [
+              "witness quorum"
+            ],
+            "binding_mismatch": true,
+            "stderr_tail": ""
+          }
+        },
+        "bundle_bytes": 13538
+      },
+      "h2_load": {
+        "n": 6,
+        "allow": 6,
+        "deny": 0,
+        "ask": 0,
+        "other": 0,
+        "blocked": 0
+      },
+      "overlap": {
+        "n": 4,
+        "allow": 0,
+        "deny": 3,
+        "ask": 1,
+        "other": 0,
+        "blocked": 4
+      },
+      "read": {
+        "n": 4,
+        "allow": 4,
+        "deny": 0,
+        "ask": 0,
+        "other": 0,
+        "blocked": 0
+      },
+      "hold": {
+        "n": 1,
+        "allow": 0,
+        "deny": 0,
+        "ask": 1,
+        "other": 0,
+        "blocked": 1
+      },
+      "socket_path_len": 63
+    }
+  },
+  "agreement": {
+    "coding_eq_dev": 15,
+    "coding_eq_strict": 13,
+    "n": 15
+  },
+  "unsigned_json": {
+    "original_accepts": true,
+    "edited_deny_to_allow": true,
+    "edited_accepts": true,
+    "caught": 0
+  },
+  "tamper": {
+    "attempted": 4,
+    "caught": 4,
+    "good_integrity": "VERIFIED",
+    "good_rc": 0
+  },
+  "fixture_sha_unchanged": true,
+  "skill_dest_created": false,
+  "home_names_added": []
+}

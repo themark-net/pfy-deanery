@@ -26,4 +26,4 @@
 | Policy reworded around | A destructive command phrased differently is allowed | Policy is defence in depth next to Sandlock (096), not the boundary |
 | Internal API drift | `demo_server` helpers change and the smoke breaks | Pin 1.4.1; switch the smoke to the public SDK when a trial wires it in |
 
-- **Status**: Cataloged I0. Smoke PASS on the Grok Bot box; not staged on nimo. Possible eval-auto trial on gate receipts (see the handoff).
+- **Status**: I0 after the nimo probe, 2026-11-07. Pinned tracekit-ai 1.4.1 commit a94af452db0862ceb990c079fff17b6fed223ad3, cache install only. Default dev pack blocked 0/6 fetched-skill loads. Verify caught 4/4 edited bundles. See eval/evq1107/tracekit/REPORT.md.
