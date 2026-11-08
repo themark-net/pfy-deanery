@@ -2,6 +2,8 @@
 
 Lane `bot/loopbuild-counts-1108`. Not pushed. This lane does not build the catalog loop. The next lane can call `scripts/loop_worktree.sh`.
 
+The branch started 3 commits behind `origin/main` (codebase-memory receipts). Those commits do not touch these files. The driver rebases. This lane did not.
+
 ## What broke
 
 The installed user unit ran in Mark's checkout. That tree does not have `scripts/catalog_counts.py`. Journal from the 04:17 PT run on 2026-11-08:
@@ -35,7 +37,7 @@ Exit 2. Nothing was written.
 
 - No output change: print `unchanged`, exit 0.
 - Any path other than the three outputs below: print the paths, commit nothing, exit 3.
-- `PFY_LOOP_NO_PUSH=1`: print the three paths (or `unchanged`), commit nothing, exit 0. A stray path is still exit 3.
+- `PFY_LOOP_NO_PUSH=1`: print each changed path (or `unchanged`), commit nothing, exit 0. A stray path is still exit 3.
 - Otherwise commit `catalog: regenerate counts` as author and committer `catalog-loop <catalog-loop@localhost>`, then fast-forward `refs/heads/main`.
 - The push tries at most 3 times: `git fetch origin`, `git merge-base --is-ancestor origin/main HEAD`, `git push origin HEAD:refs/heads/main`. If `origin/main` is not an ancestor, it rebases only that counts commit and retries. A rebase conflict aborts and exits 1. Nothing is forced. `GIT_TERMINAL_PROMPT=0` is set for the whole publish script, including push.
 - If `catalog_counts.py` exits non-zero, publish exits with that status and does not commit, even if the tree is dirty.
