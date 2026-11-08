@@ -14,17 +14,43 @@
     "#html"
   ],
   "catalog_github": "https://github.com/heygen-com/hyperframes",
+  "pin": "ab785e9c5c59e9542593e49b93f9547cb2665b44",
+  "license": "Apache-2.0",
+  "cli_version": "0.9.22",
+  "release_tag": "v0.9.22",
+  "release_commit": "26956ea1f4c855e80cfdd1677c1e02e15fbf088d",
+  "entry": "sources/entries/070-hyperframes.md",
+  "notes_doc": "eval/evq1107/hyperframes/REPORT.md",
   "posture": [],
-  "evidence": [],
-  "tier_ceiling": "I3",
-  "uses": "HTML-to-video for agents. Not a product surface here.",
-  "features": [
-    "html to mp4"
+  "evidence": [
+    "entry:sources/entries/070-hyperframes.md",
+    "pin:ab785e9c5c59e9542593e49b93f9547cb2665b44",
+    "cli:0.9.22",
+    "tag:v0.9.22",
+    "eval/evq1107/hyperframes/REPORT.md",
+    "eval/evq1107/hyperframes/VERDICT"
   ],
-  "potential": "medium",
-  "next_gate": "Stay I1 unless a doc or demo needs rendered video.",
+  "tier_ceiling": "I3",
+  "uses": "Agents write HTML and a CLI renders an MP4. Reference read only. Gap W stays the operator window.",
+  "features": [
+    "html composition to mp4",
+    "seek one frame",
+    "data-start timing",
+    "local chrome and ffmpeg",
+    "optional heygen cloud"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1 reference. Re-open only for one local MP4 in a temp project, with no skills install, no events beacon, no HeyGen account, and no cloud render. Node 22 and FFmpeg stay outside this repo. The checkout at the pin is 331781011 bytes, over the 50 MB copy bar. Gap W stays the operator window. No gate wiring. Not a Feature GO.",
   "handoff_by": "llm",
   "non_goals": [
-    "product video pipeline"
+    "product video pipeline",
+    "feature_go",
+    "install",
+    "npx skills add",
+    "events beacon",
+    "heygen cloud",
+    "studio app",
+    "code copy",
+    "gate wiring"
   ]
 }
