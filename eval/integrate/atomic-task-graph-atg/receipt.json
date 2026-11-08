@@ -1,0 +1,11 @@
+{
+  "slug": "atomic-task-graph-atg",
+  "run_kind": "pipeline",
+  "main_sha": "46b2f19f8e344e844149432700af2cca841a6cf8",
+  "run_id": "atg-46b2f19f8e34-20261108T193300Z",
+  "started": "2026-11-08T19:33:00Z",
+  "finished": "2026-11-08T19:33:00Z",
+  "outcome": "ok",
+  "tool_version": "543e778ed24fbf3fc903eb961feb627039019832",
+  "did": "Ran the wired offline atg-compile check in tests/test_atg_compile_bench.py. No model call."
+}
