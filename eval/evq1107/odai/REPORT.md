@@ -1,6 +1,6 @@
 # odai evq1107
 
-STAY I0 reference: MIT governance skill restates checks pfy already holds and does not move the pfy build timeout.
+STAY I0 reference: MIT governance skill restates checks pfy already holds and does not move the pfy build timeout
 
 ## What it is
 
