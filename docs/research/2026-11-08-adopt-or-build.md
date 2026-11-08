@@ -1,8 +1,9 @@
 # Adopt or build: does an existing project already do the suite?
 
 **Date of research:** 2026-11-08
-**Worktree:** `/tmp/pfy-adopt-or-build-20261108` on `research/adopt-or-build-20261108` at `210cd443` (`catalog: regenerate counts`)
+**Worktree:** `/tmp/pfy-adopt-or-build-20261108` on `research/adopt-or-build-20261108`. First write sat on `210cd443` (`catalog: regenerate counts`) and was committed as `6980ff8f`. This continuation edits only this file.
 **Scope of this change:** this report only. Catalog, code, and config were not edited. Nothing was installed, published, or pushed.
+**Continuation provenance:** a parent session supplied member-page notes from Read Multiplex (Brian Roemmele). Those notes are labeled **parent-read** below. This pass did not read the member bodies. A public GET of each URL on 2026-11-08 returned HTTP 200 and the page title, and the HTML contained a "members only" marker. Public checks in this pass were the GitHub and Hugging Face records for Laya, and the GitHub record for x402.
 
 ## Bottom line
 
@@ -12,6 +13,8 @@ No public project found on 2026-11-08 does all five parts together, with working
 
 Star counts, a place in a backlog, and a short eval wall do not show that a tool made output better. This brief keeps a **17.5-day backlog wait** separate from an **evaluation that finishes in under an hour**. Neither number was re-measured here, and neither is a quality result. The quality results already on disk are the ones that say gain or no gain: harness2 held-out gain 0, skill-up delta 0, Hermes bake-off NO-WIN.
 
+The parent-read member notes do not name a project that does the five parts. Laya is a real Apache-2.0 decision model, already trialed in this repo on 2026-10-06. That trial did not establish a speed or quality win, so Laya is not added to the adopt list. The order below is the same as in `6980ff8f`. The `1e546d96` watchlist still has no `replace_us` row, and it does not mention Laya.
+
 ### Adopt a piece, in this order
 
 1. **OpenCode, already in use, record the canonical repo.** `sst/opencode` and `anomalyco/opencode` are the same GitHub repository (id `975734319`). The live name is [anomalyco/opencode](https://github.com/anomalyco/opencode). It is the worker harness (ADR-0011), status `partial` in `data/harnesses.json`, and that record's `github` field is null. It is not a catalog. Do not make it the product.
@@ -20,14 +23,19 @@ Star counts, a place in a backlog, and a short eval wall do not show that a tool
 4. **Official MCP Registry as an intake feed only.** [modelcontextprotocol/registry](https://github.com/modelcontextprotocol/registry) catalogs MCP servers. Upstream says the codebase is not designed for self-hosting. It does not score improvement and it does not integrate tools into a product pipeline.
 5. **OpenEvolve only if a later ticket needs evolutionary search over a program with an automatic score.** It is maintained. It is not a tool catalog. SICA, the Darwin Gödel Machine, and ACE are research prototypes or research code, not a suite to switch to.
 
+**Not inserted.** Laya stays off this list. The 7 Nov 2026 parent-read post proposes it as a cheaper local clerk in front of a Grok bot. Public records confirm the weights and the Apache-2.0 code repo. Entry 086 already ran that clerk on the decision lane and did not promote it. A use as cheap intake classification was not measured. See "Laya, checked this pass" under Brian Roemmele.
+
 ### Uncertainties
 
 - GitHub star counts below are `stargazers_count` from `api.github.com` on 2026-11-08. They move the same day.
 - AgenC's "84.5% on Terminal-Bench 2.1 for $27" is an upstream README claim. This research did not re-run it.
 - Aggregator counts for MCP servers (roughly 25k, 60k, and 170k on different sites the same day) disagree. They are not facts about tool quality.
 - Smithery's proxy shutdown on 31 October 2026 is from a secondary write-up, not from a Smithery status page opened here.
-- `grokbot.rocks` redirects to a Read Multiplex URL. Paid Read Multiplex was not opened. Public episode notes claim a directory of Grok bots. That claim was not checked inside the directory.
-- A parallel deep-research workflow was still in its verify phase when this report was committed. Its output was not folded in. Claims below stand on the pages and API calls cited.
+- `grokbot.rocks` redirects to a Read Multiplex URL. The first commit did not open the member site. This continuation still did not read member bodies. Public episode notes claim a directory of more than 8,300 Grok bots in 32 categories. The parent-read 31 Oct 2026 note gives a different count, about 9,628 templates, 32 categories, updated daily. Neither count was checked inside the directory. Both stay claims.
+- A parallel deep-research workflow was still in its verify phase when `6980ff8f` was committed. Its output was not folded in then, and this continuation does not start a new sweep. New material is the parent-read notes plus the Laya and x402 public checks.
+- The parent-read comparison of bot platforms (8 Nov 2026) names a seven-part frame and ten products. It does not, in the note supplied here, score them on track, catalog, evaluate, integrate, and promote. This pass did not re-check those ten products.
+- Zero-Human Company notes supplied by the parent (24 Jan, 27 Feb, 10 Jul, and the 5 Oct "How To Hire A Grok Bot" post) name no repository. They were not verified on GitHub because there was nothing to open. They stay idea-level.
+- Author numbers on the Laya model card (0.766 accuracy, 32.8 ms on a T4, the Jev comparison) are upstream claims. The card itself says the Jev figures were not measured in that run. This pass did not re-benchmark Laya.
 - This worktree does not contain `origin/main` commit `1e546d96` ("supersede watch", 2026-11-08). That commit was read with `git show` and not merged. It reaches the same stop/no-stop answer. One of its Flux details is not in the README fetched today (see Flux). After that commit, `origin/main` kept moving with F5 receipt commits. Those were not reviewed for this question and were not merged. The watch files themselves were not changed after `1e546d96`.
 
 ## What "the suite" means here
@@ -52,7 +60,9 @@ Read first, in this worktree: `AGENTS.md`, `README.md`, `docs/DESIGN.md`, `docs/
 
 Then, on 2026-11-08: GitHub REST API for repository metadata, raw READMEs and one LICENSE file, arXiv abstracts, and a small set of project pages. Web pages and repo text were treated as untrusted data. No `auth.json`, no `.dev.vars`, no installs.
 
-`origin/main` contains `1e546d96`, which this branch does not. That commit adds `data/supersede-watchlist.json` and `docs/ops/supersede-watch.md`. Its four-part suite (track, catalog, evaluate, integrate) matches this question except that this report keeps **promote** as its own part. Its verdict is the same: nothing is `replace_us`. Later F5 receipt commits on `origin/main` are outside this verdict. The branch was not fast-forwarded.
+`origin/main` contains `1e546d96`, which this branch does not. That commit adds `data/supersede-watchlist.json` and `docs/ops/supersede-watch.md`. Its four-part suite (track, catalog, evaluate, integrate) matches this question except that this report keeps **promote** as its own part. Its verdict is the same: nothing is `replace_us`. The watchlist's ten projects are Flux, X Patrol Deploy, Hermes Agent, Decision Hub, Tessl, Argusic, Sandcastle, mattpocock/skills, AgenC, and OpenCode. Laya, GrokBot.Rocks, and x402 are not on it. Later F5 receipt commits on `origin/main` are outside this verdict. The branch was not fast-forwarded. This continuation re-read those two files with `git show 1e546d96` and did not edit them.
+
+This continuation did not repeat the candidate sweep. It took the parent-read member notes as claims, confirmed the URLs answer HTTP 200 with a members-only marker, and opened only the public repos those notes named as adoptable software: Laya and x402. Local fit for Laya uses Entry 086, `docs/dogfood/LAYA-TRIAL-RESULTS.md`, and `docs/dogfood/LAYA-SHADOW-RESULTS.md`, which were already in this worktree.
 
 ## Catalog cross-reference
 
@@ -71,6 +81,8 @@ Absence below means no stage card and no TOOLS.md row found by search in this wo
 | skill-up | **I3** | `data/stages/skill-up.json`. nimo: both arms 5/5, delta 0. Not a Feature GO. |
 | harness2 | **I1** | `data/stages/harness2.json`. Held-out 15/16 both ways, gain 0. |
 | MCP registries, skills.sh, Smithery, Glama, Decision Hub, Tessl, Argusic, Flux, X Patrol | No card | Except skills.sh appears as a link inside Entry 105 (anti-slop), which is not a card for skills.sh itself. |
+| Laya (`NandhaKishorM/laya`, weights `convaiinnovations/laya`) | No card | Entry 086. Trial-ran 2026-10-06. Catalog HOLD 70–75. No TOOLS.md row. Shadow flag `PFY_JEV_LAYA_SHADOW` default off. |
+| x402 (`x402-foundation/x402`) | No card | Payments protocol. Named only as a non-goal on Monid and Runx intake. |
 
 ADR-0010 (2026-07-12) rejected AgenC as the primary runtime after a TUI trial. ADR-0013 (2026-07-27) supersedes the absolute "catalog-only" posture: the AgenC surface may be scored, the default stays Grok plus agent-cage, and preference is measured only after real use. The 2026-11-07 card still says stay I0 and do not install. ADR-0013 did not promote it.
 
@@ -124,16 +136,53 @@ This repo already ported the feedback pattern (`/hermes-feedback`) and kept the 
 
 **Nearby, same class.** [SakanaAI/ShinkaEvolve](https://github.com/SakanaAI/ShinkaEvolve), Apache-2.0, 1,502 stars, pushed 2026-10-05. Sample-efficient program evolution. Same verdict as OpenEvolve, and not a second tool to probe in parallel. [skyvanguard/CodeForge](https://github.com/skyvanguard/CodeForge), MIT, 0 stars, pushed 2026-03-24. A blog calls it a local Hyperagents port. The repo metadata does not support "maintained". **Verdict: ignore.** Survey list [iSEngLab/Awesome-Self-Evolving-Coding-Agents](https://github.com/iSEngLab/Awesome-Self-Evolving-Coding-Agents), 152 stars, no license detected, pushed 2026-10-04. A bibliography. **Verdict: ignore as software. Useful only as a map of papers.**
 
-### Brian Roemmele, public only
+### Brian Roemmele
 
-Paid Read Multiplex was not used. Public items that were opened or already in the repo:
+**Public items opened in the first pass, or already in the repo.** Paid pages were not used for these:
 
 - X post 14 July 2026, `@BrianRoemmele`, status `2077011759114973616`, promoting BrowserOS. The same post is Entry 040 in `sources/x-posts.md`.
 - Public Substack post the same day naming [browseros-ai/BrowserOS](https://github.com/browseros-ai/BrowserOS) and `browseros.com`.
 - [browseros-ai/BrowserOS](https://github.com/browseros-ai/BrowserOS). AGPL-3.0. 14,283 stars. Pushed 2026-11-08. Org `browseros-ai`. Active browser product. Nothing in the API result shows Roemmele as the owner. He documented it. He is not, on this evidence, the maintainer.
-- Public podcast and Apple Podcasts listing (early November 2026) for a directory he calls GrokBot.Rocks: "every public Grok bot", with counts in the episode notes (more than 8,300, 32 categories). Those counts are episode-note claims. `grokbot.rocks` redirects to `readmultiplex.com`. The member site was not used.
+- Public podcast and Apple Podcasts listing (early November 2026) for a directory he calls GrokBot.Rocks: "every public Grok bot", with counts in the episode notes (more than 8,300, 32 categories). Those counts are episode-note claims. `grokbot.rocks` redirects to `readmultiplex.com`.
 
-BrowserOS overlap: track none, catalog none, evaluate none, integrate none for our tool loop, promote none. It is a local-ish agent browser with an MCP server. AGPL conflicts with the permissive-embed gate. The Entry 040 receipt says cataloged. The stage registry does not have a card. **Verdict: ignore as a suite. Reconcile the catalog drift later. Do not embed AGPL code.** GrokBot.Rocks, as described in public notes, is a directory of bots, not a scored coding-tool pipeline. **Verdict: ignore.**
+BrowserOS overlap: track none, catalog none, evaluate none, integrate none for our tool loop, promote none. It is a local-ish agent browser with an MCP server. AGPL conflicts with the permissive-embed gate. The Entry 040 receipt says cataloged. The stage registry does not have a card. **Verdict: ignore as a suite. Reconcile the catalog drift later. Do not embed AGPL code.**
+
+**Parent-read member notes, not read by this pass.** The parent supplied these from Read Multiplex. This pass confirmed each URL returns HTTP 200 and that the HTML includes a members-only marker. The article text was not used. Maturity of anything that lives only inside those pages is unknown here.
+
+- 8 Nov 2026, [I tested every bot platform](https://readmultiplex.com/2026/11/08/i-tested-every-bot-platform-so-you-did-not-have-to-here-is-what-i-found/). Parent says the piece compares Dots, Muse, ChatGPT Work, Claude, Gemini, Copilot, Manus, Perplexity, OpenClaw, and Grok Bot on a frame of brain, computer, hands-tools, memory, clock, leash-safety, and recipe. That frame is a bot-platform checklist. It is not the five-part suite in this report. The supplied note does not crown a replacement catalog. OpenClaw is the same host already ignored under X Patrol Deploy. **Verdict: ignore as a suite. The frame is a borrow-idea for how someone else describes a bot, not a score we adopt.**
+- 31 Oct 2026, [Why I built GrokBot.Rocks](https://readmultiplex.com/2026/10/31/why-i-built-grokbot-rocks-the-compressive-directory-of-all-known-public-grok-bots/). Parent observation, paywalled: a searchable index of about 9,628 public Grok templates across 32 categories, updated daily. This pass did not count the index. The public episode notes say more than 8,300 and the same 32 categories. Discovery only. Overlap with our suite: a directory can feed track, and it does not catalog dev tools, score improvement vectors, integrate a tool, or promote on a receipt. **Verdict: ignore. Do not treat either count as a catalog fact.**
+- Member starter kit at [readmultiplex.com/grokbot-rocks](https://readmultiplex.com/grokbot-rocks/). Public title on the HTTP 200 shell: "Every Grok Bot: The Complete Directory". Parent says the member kit contains a memory template, a routine prompt, safety rules, a token-budget checklist, multi-bot coordination, and a launch checklist. No repo was named. **Verdict: borrow-idea for operator checklists if a later ops ticket wants them. Not a suite. Not software to pin.**
+- Zero-Human Company, parent dates 24 Jan, 27 Feb, and 10 Jul. Parent summary: LM Studio and LM Link nodes, a Mirafish sim, and markdown memory swarms. 5 Oct, "How To Hire A Grok Bot": parent calls it idea-level orchestration and self-refining scripts. No repository was supplied, so none was verified. **Verdict: ignore as adoptable code. Unknown maturity. Leave it as a note.**
+
+### Laya, checked this pass
+
+The 7 Nov 2026 parent-read post, [A simple way to make Grok Bot run faster and cost less](https://readmultiplex.com/2026/11/07/a-simple-way-to-make-grok-bot-run-faster-and-cost-less/), names Laya as a local 421M-parameter Apache-2.0 model for bounded routing and classification, and cites `convaiinnovations/laya`. The parent likens it to a TypeSafe Jev clerk. The post's performance claim was not read here and is not treated as measured.
+
+Public records on 2026-11-08:
+
+| Check | Result |
+|-------|--------|
+| `github.com/convaiinnovations/laya` | HTTP 404 from `api.github.com`. That path is not a GitHub repository. |
+| Code repo | [NandhaKishorM/laya](https://github.com/NandhaKishorM/laya). Apache-2.0 on the GitHub license API. 35,221 stars. Default-branch tip `2e50c4e` at 2026-11-08 18:09 UTC, author `NandhaKishorM`. Description: non-autoregressive System 1 decision engine, typed choice, score, and yes/no, with a router that picks the checkpoint. Homepage points at the Hugging Face repo. |
+| Weights | [huggingface.co/convaiinnovations/laya](https://huggingface.co/convaiinnovations/laya). Not gated. Card metadata `license: apache-2.0`, `pipeline_tag: text-classification`. Hub sha `7b928d828b7b0e022f929d9bd2e44165aa270148`, `lastModified` 2026-10-03. API `safetensors.total` is 421,293,830, one 421M checkpoint, not the sum of the three folders. Same revision string as the 6 Oct trial. The GitHub tip is newer than that sha. Its message says a v0.4.30 release gate failed before publish. That is a runtime-repo fact. The weights the trial loaded have not moved. |
+| What the card says the model is | English root: ModernBERT-large, 421M, 512-token context. `laya-multilingual`: mmBERT-base, 322M, 1,024 tokens, up to 8,192 with `max_len`. `laya-typed-decisions`: ModernBERT-large, 421M, 1,024 tokens, fine-tuned on that benchmark. `Router` sends English to the English checkpoint and other languages to multilingual. `laya-serve` speaks `POST /v1/systemone`, the TypeSafe Jev wire. It does not generate text. |
+| Card's own limit on the headline number | Fine-tuned checkpoint 0.766 on 2,000 typed decisions. Base English checkpoint 0.362 on the same set. The card's baselines on that set are 0.318 random and 0.461 majority-class, so 0.362 sits above random and below majority. The 0.766 figure is the checkpoint trained on that benchmark's training split. Jev 1.13.0 numbers on the card are marked third-party, not measured in that run. T4 latency figures (about 33–40 ms) are the card's GPU claim. |
+
+Local fit, from files already in this worktree, not from the member post:
+
+- Entry 086 (2026-10-05) and the eval-auto trial (2026-10-06, nimo, CPU) already asked whether Laya can fill the TypeSafe slot with no key. ADR-0016 keeps CUA-S1-FORMS as `PRIMARY_LOCAL`. TypeSafe stays optional cloud.
+- On 48 labeled Choice cases, gate 0.85: `laya:english` raw accuracy 30/48 (62.5%) and **0/48 held**. Confidence max 0.6553. `laya:typed-decisions` 27/48 and 0/48 held. Warm p50 about 0.20 s. Process high-water about 4.57 GB with both checkpoints loaded. CUA-S1-FORMS was 27/48 accurate, 11/48 escalate, about 26 MB. The written recommendation is to keep CUA. Catalog HOLD 70–75. No stage card. Not a Feature GO.
+- Shadow (`PFY_JEV_LAYA_SHADOW`, default off): english caught 9 of 16 CUA wrong-but-confident cases and false-escalated 4 of 21 held-correct cases. English-only high-water about 2.9 GB. The write-up says keep the flag off unless an operator is already running `laya-serve`.
+- A Grok Bot box CPU smoke (8 vCPU, no GPU, package `laya` 0.3.28) returned the README billing example as `billing` at confidence 0.9865 in 16.9 s including the first download. That shows the CPU path runs. It is one example, not a speed win.
+- The license passes the permissive gate. The weights fit a CPU host that already has a few gigabytes free. The English 512-token budget is a tight fit for a long intake post. The built-in router chooses a language checkpoint. It does not classify a tool into this catalog.
+
+Overlap with the five parts: track none, catalog none, evaluate none for outside tools, integrate none for the catalog pipeline, promote none. The decision-layer trial already pointed `laya-serve` at the Jev wire and left the default on CUA. That experiment is not suite integration. The parent's "faster and cheaper Grok bot" claim is not established by the October receipt: on that set Laya was slower and much larger than CUA, and it never auto-acted. Using it as a cheap intake classifier for new sources is a different task, and this repo has no measurement of that task. Unknown until that set exists: whether a short intake label fits the 512-token English budget, and whether confidence on that set clears 0.85.
+
+**Verdict: do not add it to the adopt list. Do not reinstall it from the 7 Nov post. Keep the October disposition (shadow off, CUA primary). Reopen only with a new labeled intake-classification set, and only as a bounded classifier, after the October confidence result is treated as the prior.** The `1e546d96` watchlist does not need a Laya row for the supersede question: Laya does not cover two of track, catalog, evaluate, and integrate.
+
+### x402, one public check
+
+[x402-foundation/x402](https://github.com/x402-foundation/x402). Apache-2.0. 6,793 stars. Pushed 2026-11-08. API description: "A payments protocol for the internet. Built on HTTP." The parent asked for a brief mention and called agent payments likely out of scope. This repo already names x402 only as something intake must not wire (Monid, Runx). **Verdict: ignore. Out of scope for the suite.**
 
 ### Discovery, catalog, and eval projects that are not the suite
 
@@ -176,6 +225,8 @@ Flux is the only project whose README even sketches (1) and a thin (3), and it i
 - The MCP Registry's own docs say not to self-host it and not to point host apps at it directly.
 - Entry 040 says BrowserOS was cataloged. The machine catalog has no card. Fixing that is a catalog change, out of scope here.
 - `origin/main` already wrote a watchlist with this same stop rule. Merging this report and that commit needs a human pass so the two do not fork into two decision logs. This report does not edit `docs/adr/` or the watchlist.
+- Promoting Laya from the 7 Nov member post would ignore the 6 Oct receipt and ADR-0016. The shadow flag stays off. A member speed claim is not a new checkpoint: the Hub sha still matches the trial revision `7b928d82`.
+- GrokBot.Rocks templates and the member starter kit are prompts and a directory. Copying them into `bootstrap/grok-cli/skills/` would add a second skill source of truth. The kit was not copied.
 
 ## Next probes
 
@@ -189,15 +240,17 @@ Each probe is a read or a one-hour eval. None of them is a reason to believe a t
 6. Before citing an Argusic score, open one published log and see if the commands match the verdict. Until then the number is a claim.
 7. Do not schedule SICA, DGM, ACE, or OpenEvolve. Reopen OpenEvolve only with a scorer and a held-out set.
 8. Optional intake: one read-only pull of the official MCP Registry API, deduped against `data/stages/`, stored as a note. Not a self-hosted registry.
-9. After this branch can see `1e546d96`, fold this report's corrections (Flux radar not in the current README, OpenCode repo id, AgenC's two licenses, BrowserOS drift) into the watchlist. Do not keep two stop-rules.
+9. After this branch can see `1e546d96`, fold this report's corrections (Flux radar not in the current README, OpenCode repo id, AgenC's two licenses, BrowserOS drift) into the watchlist. Do not keep two stop-rules. Do not add Laya, GrokBot.Rocks, or x402 to that list unless a later read shows one of them covering two suite parts.
+10. Do not reopen Laya from the 7 Nov member post. The October trial is the prior. A new ticket needs a labeled intake-classification set and has to beat "always escalate at 0.85" before any flag default changes. No install from this report.
 
 ## Handoff
 
-- Question answered: do not stop. No whole-suite adoption.
-- File: `docs/research/2026-11-08-adopt-or-build.md` on `research/adopt-or-build-20261108`.
-- Not done, on purpose: no catalog triple-write, no stage-card edits, no Sandcastle card, no OpenCode URL edit, no merge of `1e546d96` or later `origin/main` F5 commits, no PR, no install.
-- The owner of the next catalog pass should treat the nine probes as the queue. Probe 2 and probe 4 are the only ones that change what we might adopt. The rest are bookkeeping or explicit non-adoptions.
+- Question answered: do not stop. No whole-suite adoption. The parent-read member notes do not change that. Laya is not a new adopt piece.
+- File: `docs/research/2026-11-08-adopt-or-build.md` on `research/adopt-or-build-20261108`. First commit `6980ff8f`. This continuation is a second local commit on the same file.
+- Not done, on purpose: no catalog triple-write, no stage-card edits, no Sandcastle card, no OpenCode URL edit, no Laya flag change, no merge of `1e546d96` or later `origin/main` F5 commits, no PR, no install, no push.
+- The owner of the next catalog pass should treat the ten probes as the queue. Probe 2 and probe 4 are the only ones that change what we might adopt. The rest are bookkeeping or explicit non-adoptions.
 - If a later web pass finds a project with all five parts full, the decision goes to Mark in writing. It does not land as a silent swap.
+- Adopt pieces, unchanged order: record the OpenCode canonical repo; Sandcastle only after a read-only probe; keep mattpocock/skills, skill-up, and the Hermes pattern; MCP Registry as an intake feed; OpenEvolve only with an automatic score. Laya, GrokBot.Rocks, the member starter kit, the Zero-Human notes, and x402 are not on that list.
 
 ## Sources
 
@@ -225,6 +278,16 @@ Primary, opened or returned by the GitHub API on 2026-11-08 unless noted:
 - https://x.com/BrianRoemmele/status/2077011759114973616
 - https://x.com/mattpocockuk/status/2116805878187794740
 - Local: `docs/DESIGN.md`, `docs/adr/0010-reject-agenc-as-primary-runtime.md`, `docs/adr/0011-hybrid-operator-surfaces-grok-opencode-ollama.md`, `docs/adr/0013-optional-operator-tuis-empirical-preference.md`, `docs/ops/integration-stages.md`, `docs/eval/TOOLSET-RANKING.md`, `data/stages/`, `data/harnesses.json`, `TOOLS.md`, `sources/x-posts.md` Entry 040, `eval/evq1107/agenc/VERDICT`, `docs/PENDING-HANDOFF.md`
-- Read-only from `origin/main` at `1e546d96`: `docs/ops/supersede-watch.md`, `docs/ops/HANDOFF-supersede-watch-1108.md`, `data/supersede-watchlist.json`
+- Read-only from `origin/main` at `1e546d96`: `docs/ops/supersede-watch.md`, `docs/ops/HANDOFF-supersede-watch-1108.md`, `data/supersede-watchlist.json`. Re-read in this continuation with `git show`. Not merged.
+- This continuation, public only: `api.github.com` 404 for `convaiinnovations/laya`; `api.github.com` for `NandhaKishorM/laya` (license Apache-2.0, tip `2e50c4e`); Hugging Face model API and raw README for `convaiinnovations/laya` (sha `7b928d82`, card license apache-2.0); `api.github.com` for `x402-foundation/x402`. HTTP 200 title-and-marker check only for the four Read Multiplex URLs listed below. Member bodies were not read.
+- Local Laya prior, already in the tree: `sources/entries/086-laya.md`, `docs/dogfood/LAYA-TRIAL-RESULTS.md`, `docs/dogfood/LAYA-SHADOW-RESULTS.md`, ADR-0016.
 
 Secondary, labeled as such in the text: MCP Toplist, Skillful.sh, the 3 Nov 2026 Smithery shutdown article, Skillburst on skills.sh, releasealert.dev for Hermes canaries, and the CodeForge blog. Those were not used as the maturity numbers in the tables above.
+
+Parent-read, paywalled, not independently accessed in this pass. Findings in the Brian Roemmele section are the parent's notes, not a reading of the articles:
+
+- https://readmultiplex.com/2026/11/08/i-tested-every-bot-platform-so-you-did-not-have-to-here-is-what-i-found/
+- https://readmultiplex.com/2026/11/07/a-simple-way-to-make-grok-bot-run-faster-and-cost-less/
+- https://readmultiplex.com/2026/10/31/why-i-built-grokbot-rocks-the-compressive-directory-of-all-known-public-grok-bots/
+- https://readmultiplex.com/grokbot-rocks/
+- Zero-Human Company posts dated by the parent 24 Jan, 27 Feb, 10 Jul, and 5 Oct 2026 ("How To Hire A Grok Bot"). No URLs were supplied for those four, and none were fetched.
