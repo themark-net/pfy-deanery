@@ -4,7 +4,9 @@
 # Usage:
 #   bash eval/integrate/neatroots/run-on-main.sh eval/integrate/neatroots/receipt.json
 #
-# Exit nonzero and write no receipt when HEAD is not an ancestor of origin/main.
+# A relative receipt path is resolved from the caller cwd before this script
+# enters the repo root. Exit nonzero and write no receipt when HEAD is not an
+# ancestor of origin/main.
 # A worktree-only diff is not the receipt.
 #
 # A second start that finds
@@ -30,6 +32,11 @@ MARKER=${PFY_NEATROOTS_LANE_MARKER:-/home/mark/DEVELOP/pfy-mentat/tmp/integrate2
 if [ "$#" -ne 1 ] || [ -z "${1:-}" ]; then
   printf '%s\n' "usage: eval/integrate/neatroots/run-on-main.sh RECEIPT.json" >&2
   exit 2
+fi
+
+receipt=$1
+if [ "${receipt#/}" = "$receipt" ]; then
+  receipt="$PWD/$receipt"
 fi
 
 marker_pid_is_ancestor() {
@@ -66,7 +73,6 @@ if [ -f "$MARKER" ]; then
   fi
 fi
 
-receipt=$1
 root=$(git rev-parse --show-toplevel)
 cd "$root"
 
@@ -161,7 +167,8 @@ started=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 run_neatroots "$work/version.txt" "$work/version.err" --version
 version=$(tail -n 1 "$work/version.txt" | tr -d '\r')
 if [ -z "$version" ]; then
-  version=neatroots
+  printf '%s\n' "neatroots version missing" >&2
+  exit 1
 fi
 
 run_neatroots "$work/check.json" "$work/check.err" check "$trace" --json
@@ -174,6 +181,15 @@ path = Path(sys.argv[1])
 data = json.loads(path.read_text(encoding="utf-8"))
 if not isinstance(data, dict):
     raise SystemExit("check json is not an object")
+runs = data.get("runs")
+if not isinstance(runs, list) or not runs:
+    raise SystemExit("check json has no runs")
+for run in runs:
+    if not isinstance(run, dict):
+        raise SystemExit("check json run is not an object")
+    findings = run.get("findings")
+    if not isinstance(findings, list) or findings:
+        raise SystemExit("check json reported findings")
 errors = data.get("errors")
 if errors:
     raise SystemExit("check json reported errors")
