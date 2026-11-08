@@ -2,6 +2,10 @@
 
 Instructions for coding agents working in this repository.
 
+## North star: no reinvention
+
+pfy-mentat exists to **track, catalog, evaluate and integrate** outside tools, local-first. It is not trying to out-build harnesses or skill packs; it adopts them. If another project does that full suite better, we stop and use theirs. Near-matches live in `data/supersede-watchlist.json`; rules in [docs/ops/supersede-watch.md](docs/ops/supersede-watch.md). Before building a pipeline piece, check the watchlist and the catalog for one that already exists.
+
 ## Mandatory reads (before non-trivial design or multi-step work)
 
 1. [docs/DESIGN.md](docs/DESIGN.md) — goals, shape, non-goals, process model  

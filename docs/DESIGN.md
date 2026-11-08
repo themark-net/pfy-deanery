@@ -15,6 +15,8 @@ Build a **living, scored catalog** of local-first LLM development tools and a **
 
 One-line purpose: **Track · Categorize · Rank · Integrate** tools for robust self-hosted agentic development.
 
+**No reinvention:** if another project does track, catalog, evaluate and integrate better, we stop and adopt it. See [supersede-watch.md](ops/supersede-watch.md) and `data/supersede-watchlist.json`.
+
 The **product you ship** is the operator stack (`./pfy` onboard / stage / ship). The catalog is how we choose pieces, not the end-user surface.
 
 ---

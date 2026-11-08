@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "rule": "No reinvention. If a project does the full suite (track, catalog, evaluate, integrate, local-first) better than pfy-mentat, stop and adopt it. See docs/ops/supersede-watch.md.",
+  "parts": {
+    "track": "Watches outside sources (X, GitHub, feeds) for new tools on its own.",
+    "catalog": "Keeps one deduped catalog of tools with a record per tool.",
+    "evaluate": "Scores each tool against a rubric of improvement vectors, with staged evidence (I0-I4 or equal).",
+    "integrate": "Wires the tool in for real and proves it with a run, local-first."
+  },
+  "levels": ["none", "partial", "full"],
+  "verdicts": ["replace_us", "adopt_part", "watch"],
+  "candidate_min_parts": 2,
+  "recheck_days": 30,
+  "projects": [
+    {
+      "name": "Flux (Nairon-AI)",
+      "url": "https://github.com/Nairon-AI/flux",
+      "what": "Self-improving harness for Codex CLI. Its Flux Radar read curated X accounts, AI-scored tools, deduped them into recommendation YAMLs, and /flux:improve installed and verified picks.",
+      "coverage": {"track": "full", "catalog": "partial", "evaluate": "partial", "integrate": "partial"},
+      "verdict": "watch",
+      "reason": "Closest concept to ours, but one relevance score (no vectors, no staged evidence), install-and-verify only, cloud models. The flux-recommendations repo now returns 404 and flux itself last pushed 2026-05-12 with 7 stars.",
+      "last_checked": "2026-11-08"
+    },
+    {
+      "name": "X Patrol Deploy",
+      "url": "https://github.com/00OO666/x-patrol-deploy",
+      "what": "OpenClaw skill: scrapes the X feed and bookmarks, sorts tools into 3 tiers, checks for already-installed tools, auto-installs the simple ones.",
+      "coverage": {"track": "full", "catalog": "partial", "evaluate": "partial", "integrate": "partial"},
+      "verdict": "watch",
+      "reason": "Scores install difficulty, not improvement vectors, and has no integration proof. 0 stars, last push 2026-02-28.",
+      "last_checked": "2026-11-08"
+    },
+    {
+      "name": "Hermes Agent",
+      "url": "https://github.com/NousResearch/hermes-agent",
+      "what": "Self-improving agent. Writes skills from its own sessions, a background Curator grades, merges and archives them, and it installs skills from the agentskills.io hub.",
+      "coverage": {"track": "none", "catalog": "partial", "evaluate": "partial", "integrate": "partial"},
+      "verdict": "adopt_part",
+      "reason": "Improves from its own experience, not from outside tools. Curator and review patterns are already ported as /hermes-feedback; Hermes is a harness slot.",
+      "last_checked": "2026-11-08"
+    },
+    {
+      "name": "Decision Hub",
+      "url": "https://github.com/pymc-labs/decision-hub",
+      "what": "Open-source, self-hostable skill registry. Every publish runs sandboxed eval cases with an LLM judge and an A-F security grade, and it re-publishes tracked GitHub repos.",
+      "coverage": {"track": "partial", "catalog": "full", "evaluate": "partial", "integrate": "none"},
+      "verdict": "adopt_part",
+      "reason": "Skills only and author-submitted. Its eval-case format and security grade are worth reusing as I1/I2 evidence.",
+      "last_checked": "2026-11-08"
+    },
+    {
+      "name": "Tessl Registry",
+      "url": "https://tessl.io/registry",
+      "what": "Hosted skill registry with automatic evals, a measured uplift score per skill and Snyk scanning.",
+      "coverage": {"track": "none", "catalog": "full", "evaluate": "partial", "integrate": "none"},
+      "verdict": "watch",
+      "reason": "Hosted and commercial, skills only. The uplift-per-skill idea matches our vector scoring.",
+      "last_checked": "2026-11-08"
+    },
+    {
+      "name": "Argusic (does it run)",
+      "url": "https://argusic.com/",
+      "what": "An agent clones a pinned commit of an open-source repo on a clean machine, installs and runs it, and publishes a recorded verdict.",
+      "coverage": {"track": "partial", "catalog": "partial", "evaluate": "partial", "integrate": "none"},
+      "verdict": "adopt_part",
+      "reason": "Answers does it run, not does it improve anything. Its verdicts could feed our I2 probe as prior evidence.",
+      "last_checked": "2026-11-08"
+    },
+    {
+      "name": "Sandcastle (Matt Pocock)",
+      "url": "https://github.com/mattpocock/sandcastle",
+      "what": "TypeScript library that runs coding agents in sandboxes (bwrap, Docker, cloud) on branches and merges the commits back.",
+      "coverage": {"track": "none", "catalog": "none", "evaluate": "none", "integrate": "partial"},
+      "verdict": "adopt_part",
+      "reason": "Lane runner, not a catalog. Already used through the sandcastle-grok fork for lanes. No stage card yet.",
+      "last_checked": "2026-11-08"
+    },
+    {
+      "name": "mattpocock/skills",
+      "url": "https://github.com/mattpocock/skills",
+      "what": "Pocock's engineering skills pack (to-spec, tdd, code-review, grill-me, software-factory).",
+      "coverage": {"track": "none", "catalog": "none", "evaluate": "none", "integrate": "none"},
+      "verdict": "adopt_part",
+      "reason": "Content we load, not a pipeline. Stage card mattpocock-skills at I1.",
+      "last_checked": "2026-11-08"
+    },
+    {
+      "name": "AgenC",
+      "url": "https://github.com/tetsuo-ai/agenc-core",
+      "what": "tetsuo-ai terminal coding agent with a local daemon, plus the agenc.ag Solana marketplace where agents are hired and paid in SOL.",
+      "coverage": {"track": "none", "catalog": "none", "evaluate": "none", "integrate": "partial"},
+      "verdict": "watch",
+      "reason": "A runtime and a paid-task marketplace, not a tool pipeline. ADR-0010 stands; stage card agenc at I0. The marketplace touches live money, so no wiring.",
+      "last_checked": "2026-11-08"
+    },
+    {
+      "name": "OpenCode",
+      "url": "https://github.com/anomalyco/opencode",
+      "what": "Open-source coding agent (formerly sst/opencode).",
+      "coverage": {"track": "none", "catalog": "none", "evaluate": "none", "integrate": "partial"},
+      "verdict": "adopt_part",
+      "reason": "A harness, not a catalog. Already our secondary surface (ADR-0011).",
+      "last_checked": "2026-11-08"
+    }
+  ]
+}
