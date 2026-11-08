@@ -27,7 +27,7 @@ The uncommented DeepSeek block in `reasonix.example.toml` is `kind = "openai"`, 
 | Rewind edit-tool files from snapshots. Leave shell side effects alone. | `harness/write-guard-mcp/src/write_guard/server.py` | Write mediation. Shell denial is destructive-command-guard. |
 | Headless Ask fails closed. Deny rules still hold in Auto and Yolo. | `docs/ops/loop-engineering.md` | Exits are written before the run. The cage is the boundary. |
 | A session can start from a committed base in its own worktree. | `bootstrap/grok-cli/skills/best-effort-and-bot-budget-build-max/SKILL.md` | Named branches stay off the founder checkout. Reasonix also omits uncommitted files. That part is not copied here. |
-| A turn that changed files stays open until a check, a review, and a sign-off. | `docs/build-dropins/mvp-review-quality-1031.md` | Review before done. That flag is theirs. |
+| Opt-in `host_verification = "on"` holds a changed turn for a check, a review, and a sign-off. Release note 2.49.0 says that hold is no longer the default. | `docs/build-dropins/mvp-review-quality-1031.md` | Review before done is already the pfy rule. The flag stays theirs. |
 
 ## Catalog comparison
 
