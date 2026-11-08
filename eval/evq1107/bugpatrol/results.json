@@ -1,0 +1,202 @@
+{
+  "tauri_binaries": 0,
+  "frontend_files": [
+    "app-core-0.js",
+    "app-core-1.js",
+    "app-core-2.js",
+    "app-core-3.js",
+    "app-ui.js",
+    "index.html",
+    "space-invaders.js"
+  ],
+  "bugpatrol_version": "0.3.0",
+  "node": "v22.23.0",
+  "fixture": {
+    "url": "http://127.0.0.1:40797/",
+    "phases": {
+      "baseline": {
+        "exit": 0,
+        "seconds": 0.724,
+        "timeout": false,
+        "pass_line": "PASS  no tier-1 regressions",
+        "tail": "  Starting the app: python3 -m http.server\n  Using the app already serving at http://127.0.0.1:40797/\n  Capturing / at desktop\n\nPASS  no tier-1 regressions\n      1/1 screen(s), 1 capture(s), mode changed-only\nnote: determinism.image is not pinned by digest, so these baselines are only valid on this machine. See docs/determinism-contract.md.\nnote: Decider: none because --no-models was set.\nnote: First approved run: reporting only, nothing blocks.\nnote: 1 baseline(s) captured for the first time. Nothing can regress against a baseline it just created.\n\nReport: /home/mark/.cache/pfy/tools/bugpatrol/tmp/probe-20261108T035539Z/project-fixture/.bugpatrol/runs/gate/run_mw7auru9/report.html\nExit 0 (clean, or non-blocking findings only)\n",
+        "run_id": "run_mw7auru9",
+        "status": "passed",
+        "exit_code_recorded": 0,
+        "findings": 0,
+        "blocking": 0,
+        "rules": [],
+        "blocking_rules": [],
+        "summaries": [],
+        "changed_pixels": null,
+        "console_errors": []
+      },
+      "clean": {
+        "exit": 0,
+        "seconds": 0.746,
+        "timeout": false,
+        "pass_line": "PASS  no tier-1 regressions",
+        "tail": "  Starting the app: python3 -m http.server\n  Using the app already serving at http://127.0.0.1:40797/\n  Capturing / at desktop\n\nPASS  no tier-1 regressions\n      1/1 screen(s), 1 capture(s), mode changed-only\nnote: determinism.image is not pinned by digest, so these baselines are only valid on this machine. See docs/determinism-contract.md.\nnote: Decider: none because --no-models was set.\n\nReport: /home/mark/.cache/pfy/tools/bugpatrol/tmp/probe-20261108T035539Z/project-fixture/.bugpatrol/runs/gate/run_mw7ausec/report.html\nExit 0 (clean, or non-blocking findings only)\n",
+        "run_id": "run_mw7ausec",
+        "status": "passed",
+        "exit_code_recorded": 0,
+        "findings": 0,
+        "blocking": 0,
+        "rules": [],
+        "blocking_rules": [],
+        "summaries": [],
+        "changed_pixels": 0,
+        "console_errors": []
+      },
+      "broken": {
+        "exit": 1,
+        "seconds": 0.851,
+        "timeout": false,
+        "pass_line": "FAIL  2 tier-1 regression(s)",
+        "tail": "  Starting the app: python3 -m http.server\n  Using the app already serving at http://127.0.0.1:40797/\n  Capturing / at desktop\n\nFAIL  2 tier-1 regression(s)\n      1/1 screen(s), 1 capture(s), mode changed-only\n\nBlocking:\n  - \"/\" no longer matches its baseline at desktop: 426 pixels changed across 1 region(s) (0.033% of the compared area).  [visual/pixel-diff]\n  - A new console error appeared on this screen: tauri binary absent  [runtime/console-errors]\nnote: determinism.image is not pinned by digest, so these baselines are only valid on this machine. See docs/determinism-contract.md.\nnote: Decider: none because --no-models was set.\n\nReport: /home/mark/.cache/pfy/tools/bugpatrol/tmp/probe-20261108T035539Z/project-fixture/.bugpatrol/runs/gate/run_mw7ausz7/report.html\nExit 1 (tier-1 regression detected)\n",
+        "run_id": "run_mw7ausz7",
+        "status": "failed",
+        "exit_code_recorded": 1,
+        "findings": 2,
+        "blocking": 2,
+        "rules": [
+          "visual/pixel-diff",
+          "runtime/console-errors"
+        ],
+        "blocking_rules": [
+          "visual/pixel-diff",
+          "runtime/console-errors"
+        ],
+        "summaries": [
+          "\"/\" no longer matches its baseline at desktop: 426 pixels changed across 1 region(s) (0.033% of the compared area).",
+          "A new console error appeared on this screen: tauri binary absent"
+        ],
+        "changed_pixels": 426,
+        "console_errors": [
+          "tauri binary absent"
+        ]
+      }
+    },
+    "clean_agreement": 1,
+    "defect_caught": 1
+  },
+  "frontend": {
+    "url": "http://127.0.0.1:52651/",
+    "phases": {
+      "baseline": {
+        "exit": 0,
+        "seconds": 0.824,
+        "timeout": false,
+        "pass_line": "PASS  no tier-1 regressions",
+        "tail": "  Starting the app: python3 -m http.server\n  Using the app already serving at http://127.0.0.1:52651/\n  Capturing / at desktop\n\nPASS  no tier-1 regressions\n      1/1 screen(s), 1 capture(s), mode changed-only\nnote: determinism.image is not pinned by digest, so these baselines are only valid on this machine. See docs/determinism-contract.md.\nnote: Decider: none because --no-models was set.\nnote: First approved run: reporting only, nothing blocks.\nnote: 1 baseline(s) captured for the first time. Nothing can regress against a baseline it just created.\n\nReport: /home/mark/.cache/pfy/tools/bugpatrol/tmp/probe-20261108T035539Z/project-frontend/.bugpatrol/runs/gate/run_mw7autq1/report.html\nExit 0 (clean, or non-blocking findings only)\n",
+        "run_id": "run_mw7autq1",
+        "status": "passed",
+        "exit_code_recorded": 0,
+        "findings": 0,
+        "blocking": 0,
+        "rules": [],
+        "blocking_rules": [],
+        "summaries": [],
+        "changed_pixels": null,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 404 (File not found)"
+        ]
+      },
+      "clean": {
+        "exit": 0,
+        "seconds": 0.857,
+        "timeout": false,
+        "pass_line": "PASS  no tier-1 regressions",
+        "tail": "  Starting the app: python3 -m http.server\n  Using the app already serving at http://127.0.0.1:52651/\n  Capturing / at desktop\n\nPASS  no tier-1 regressions\n      1/1 screen(s), 1 capture(s), mode changed-only\nnote: determinism.image is not pinned by digest, so these baselines are only valid on this machine. See docs/determinism-contract.md.\nnote: Decider: none because --no-models was set.\n\nReport: /home/mark/.cache/pfy/tools/bugpatrol/tmp/probe-20261108T035539Z/project-frontend/.bugpatrol/runs/gate/run_mw7auucm/report.html\nExit 0 (clean, or non-blocking findings only)\n",
+        "run_id": "run_mw7auucm",
+        "status": "passed",
+        "exit_code_recorded": 0,
+        "findings": 0,
+        "blocking": 0,
+        "rules": [],
+        "blocking_rules": [],
+        "summaries": [],
+        "changed_pixels": 0,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 404 (File not found)"
+        ]
+      },
+      "broken": {
+        "exit": 0,
+        "seconds": 0.893,
+        "timeout": false,
+        "pass_line": "PASS  no tier-1 regressions",
+        "tail": "  Starting the app: python3 -m http.server\n  Using the app already serving at http://127.0.0.1:52651/\n  Capturing / at desktop\n\nPASS  no tier-1 regressions\n      1/1 screen(s), 1 capture(s), mode changed-only\nnote: determinism.image is not pinned by digest, so these baselines are only valid on this machine. See docs/determinism-contract.md.\nnote: Decider: none because --no-models was set.\n\nReport: /home/mark/.cache/pfy/tools/bugpatrol/tmp/probe-20261108T035539Z/project-frontend/.bugpatrol/runs/gate/run_mw7auv12/report.html\nExit 0 (clean, or non-blocking findings only)\n",
+        "run_id": "run_mw7auv12",
+        "status": "passed",
+        "exit_code_recorded": 0,
+        "findings": 0,
+        "blocking": 0,
+        "rules": [],
+        "blocking_rules": [],
+        "summaries": [],
+        "changed_pixels": 0,
+        "console_errors": [
+          "Failed to load resource: the server responded with a status of 404 (File not found)"
+        ]
+      }
+    },
+    "clean_agreement": 1,
+    "third_phase": "same files as the baseline; second compare, not a plant"
+  },
+  "scratch": "/home/mark/.cache/pfy/tools/bugpatrol/tmp/probe-20261108T035539Z",
+  "live": {
+    "attempts": [
+      {
+        "model": "qwen2.5-coder:7b-instruct",
+        "size_bytes": 4700000000,
+        "need_bytes": 31543545600,
+        "memory": "ok",
+        "warmup": {
+          "keep_alive": "2m",
+          "loaded_before": false,
+          "seconds": 2.205
+        },
+        "explore": {
+          "model": "qwen2.5-coder:7b-instruct",
+          "exit": 0,
+          "timeout": false,
+          "seconds": 4.165,
+          "tool_calls": 0,
+          "run_command": 0,
+          "report_bug": 0,
+          "text_only_replies": 3,
+          "candidates": 0,
+          "quoted_plant": false,
+          "off_box_urls": [],
+          "tail": "Explorer started\n{\"name\": \"run_command\", \"arguments\": {\"command\": \"python3 window_status.py\"}}\nModel replied without a tool call.\n{\"name\": \"list_screens\", \"arguments\": {}}\nModel replied without a tool call.\n{\"name\": \"run_command\", \"arguments\": {\"command\": \"python3 window_status.py\"}}\nModel replied without a tool call.\n{\"name\": \"run_command\", \"arguments\": {\"command\": \"python3 window_status.py\"}}\n0 screen(s) known, 0 candidate(s) raised in 3 steps.\nTokens: qwen2.5-coder:7b-instruct: 6.6k in, 56 out tokens\nNext: run `bugpatrol judge` to file the real bugs as issues, or open `bugpatrol dashboard`.\n"
+        }
+      },
+      {
+        "model": "qwen3.6:35b",
+        "size_bytes": 22000000000,
+        "need_bytes": 48843545600,
+        "memory": "ok",
+        "warmup": {
+          "keep_alive": "2m",
+          "loaded_before": false,
+          "seconds": 19.061
+        },
+        "explore": {
+          "model": "qwen3.6:35b",
+          "exit": 0,
+          "timeout": false,
+          "seconds": 24.599,
+          "tool_calls": 3,
+          "run_command": 1,
+          "report_bug": 1,
+          "text_only_replies": 0,
+          "candidates": 1,
+          "quoted_plant": true,
+          "off_box_urls": [],
+          "tail": "Explorer started\nCalled run_command.\nRan python3 window_status.py\nCalled report_bug.\ntauri=absent printed despite exit code 0\nreport_bug: Reported can_bc894123f4b3: tauri=absent printed despite exit code 0. Used current screen as fallback for unrecorded.\nCalled finish.\nfinish: Ran `python3 window_status.py`. It exited 0 but printed \"tauri=absent\" and \"status=window-not-built\". Reported bug can_bc894123f4b3 about tauri=absent with e...\nRan `python3 window_status.py`. It exited 0 but printed \"tauri=absent\" and \"status=window-not-built\". Reported bug can_bc894123f4b3 about tauri=absent with exit code 0. No app screens or controls to explore - this is a terminal-only task per the guide.\n0 screen(s) known, 1 candidate(s) raised in 3 steps.\nTokens: qwen3.6:35b: 8.5k in, 571 out tokens\nNext: run `bugpatrol judge` to file the real bugs as issues, or open `bugpatrol dashboard`.\n"
+        }
+      }
+    ]
+  }
+}

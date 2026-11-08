@@ -1,0 +1,36 @@
+{
+  "name": "BugPatrol",
+  "integration_stage": "I1",
+  "intent": "staged_evaluation",
+  "entry": "sources/entries/103-bugpatrol.md",
+  "github": "https://github.com/agent-labs-dev/bugpatrol",
+  "uses": "QA patrol of a web or CLI app through a local OpenAI-compatible endpoint. The 2026-11-07 probe did not build the operator window.",
+  "features": [
+    "no-model web gate",
+    "custom model endpoint",
+    "explorer and judge loop"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1. Do not wire a gate. The no-model gate caught a planted console error and a 426 px diff 1/1, and two compares of the static operator frontend stayed at 0 px with 0 tier-1 findings. qwen2.5-coder:7b-instruct executed 0 of 3 tool calls. qwen3.6:35b raised 1 candidate for a planted CLI line. Tauri binaries stayed 0. The install is over the 50 MB I2 copy limit. Reopen only if a later ticket runs the gate against the built operator window and shows a defect the webkit or tk path misses, and that ticket grills wiring first.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "gate_wiring",
+    "github_publishing",
+    "fixer",
+    "paid_provider",
+    "patrol_on_main_checkout"
+  ],
+  "evidence": [
+    "entry:sources/entries/103-bugpatrol.md",
+    "eval/evq1107/bugpatrol/REPORT.md",
+    "eval/evq1107/bugpatrol/VERDICT",
+    "eval/evq1107/bugpatrol/results.json",
+    "pin bugpatrol 0.3.0 tarball sha256 2bb646a0f9a6c7402ebaddb7004f2461104a9760cf970d38310e57af2bc0fc0b gitHead efd3a087321d58946f999ac53f7e20b68a89a83d"
+  ],
+  "handoff_by": "llm",
+  "self_pipeline": {
+    "status": "not_applicable",
+    "reason": "No-model gate and one local explore on throwaway copies. Not applied to this repo's pipeline. Not a gate."
+  }
+}
