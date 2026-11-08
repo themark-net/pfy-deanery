@@ -7,7 +7,7 @@ The job is a local tree-sitter graph for pfy build review (gap B). Gap B is that
 | Tool | Stage | What it already covers | How Graphify compares |
 |------|-------|------------------------|------------------------|
 | codebase-memory-mcp | I2 | Primary code-graph. On this 10-commit window its impact agreed with test_select on 5/10 (`eval/ev1107/chiasmus/results.json`). | This probe also agreed on 5/10. The scored set is the test files in the diff. It did not beat the primary graph. |
-| Tree-sitter Analyzer | I1 | Change-impact on the same window, 5/10 (`eval/evq1107/tree-sitter-analyzer/REPORT.md`). Venv 173 MB. | Same 5/10. TSA named the importing test on the affected rows. `graphify affected` on the changed script printed no nodes. |
+| Tree-sitter Analyzer | I1 | Change-impact on the same window, 5/10 (`eval/evq1107/tree-sitter-analyzer/REPORT.md`). Venv 173 MB. | Same 5/10. `graphify affected` on the changed script printed no nodes. |
 | Chiasmus | I1 | Tree-sitter call graph. Agreed on 3/10. Bare Python names inflated callers (`main` in 157 files). Install 86 MB. | Agreed on 5/10 and added 0 tests outside test_select. It still does not beat codebase-memory. |
 | repowise | I2 | Context packing. The card says it overlaps codebase-memory. | Not a change-impact CLI. |
 | LEANN | I1 | Compressed RAG. The card says it is not our code memory. | Different job. |
