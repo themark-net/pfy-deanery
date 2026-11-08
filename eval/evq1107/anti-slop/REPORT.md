@@ -10,12 +10,13 @@ Same job: a repeatable score of generic AI output, plus the context cost of a SK
 
 anti-slop is entry 105. The 2026-11-07 ranking covers entries 137 to 167, so this entry is not in that table. That ranking assigns H1 to skill-up (with/without grade) and, for offline trace rules, to neatroots.
 
-The probe's keyword scan (slop, copywriting, buzzword, contrast, baseline, yagni, comment) hit four cards: taste-skill (slop), skill-up (baseline), ponytail (yagni), Open Steps (baseline). Open Steps is a word hit only. The scan missed karpathy-guidelines, harness2, neatroots, and eval-harness (pfy) because their uses lines use other words. Those four were read because they are the H1 tools or the skill packs already loaded.
+The probe's keyword scan (slop, copywriting, buzzword, contrast, baseline, yagni, comment) hit four cards: taste-skill (slop), skill-up (baseline), ponytail (yagni), Open Steps (baseline). Open Steps is a word hit only. The scan reads uses, features, and tags, not the tool name, and it ran before Sloptrim's card was in this worktree. Sloptrim (entry 114) is I1 on origin/main. The scan also missed karpathy-guidelines, harness2, neatroots, and eval-harness (pfy) because their uses lines use other words. Those cards were read because they are the H1 tools, the skill packs already loaded, or the prose scorer that landed beside this lane.
 
 | Tool | Stage | What that card covers | How anti-slop compares |
 | --- | --- | --- | --- |
 | skill-up | I3 | Grade a with-skill run against a plain run. Catch-up trial: both arms 5/5, delta 0, flake 0/10. | The H1 instrument already on disk. This pack does not grade a run. It does not beat that probe. |
 | taste-skill | I0 | Design slop lint plus a browser layout check. The entry records lint exit 1 on a slop fixture (emoji, eyebrow, gradient, lorem, purple) and exit 0 on a clean fixture. | A page scanner. anti-slop has no page scanner. `check-repo.mjs` audits the pack's own tree. The phrase pass below is this probe, not an upstream CLI. |
+| Sloptrim | I1 | Offline 0-100 score for AI-writing patterns in a prose file (entry 114). Its evq verdict: planted pages separated by 66 points, 0 of 20 docs above 40, 0 harness comparisons. | An upstream program that emits a number. anti-slop's programs do not score a prose file. This phrase pass does not beat that score. |
 | karpathy-guidelines | I1 | One coding-behavior skill already in the skill tree. 2518 bytes. | The core skill is 57827 bytes and still needs a person to apply it. It does not add a score. |
 | ponytail (skills pack) | I1 | YAGNI skill pack already under skills-external. Six SKILL.md files sum to 17214 bytes. | Already loaded, and smaller than the anti-slop core file alone. |
 | neatroots | I2 | Offline rule checks for loops, repeated tool calls, and error streaks on saved traces. | Different rules. This probe did not score a trace. |
@@ -35,7 +36,7 @@ Beats what we have: no.
 | Parent | `91f12ec67e9de6043cfd93b846404986ba73c3f4`, tag v3.2.20, subject `v3.2.20: usage modes become a saved preference` |
 | Version | `3.2.20` in `package.json`, `cli/package.json`, and `skills/antislop/VERSION`. The tag commit says the same version. The entry names both the tag and the child commit. This lane pins the child. |
 | License | MIT (`LICENSE`) |
-| Tree | 1207333 bytes excluding `.git`. Cache dir 2338661 bytes after the clone. Under the 50 MB I2 bar. |
+| Tree | 1207333 bytes excluding `.git`. Under the 50 MB I2 bar. |
 | Digest | The entry gives no file checksum. `antislop.md` sha256 `1b32f1295b2eef2a9f9c9609bf2de6e71408bb41ca424731753c7f66e011c6e7`. `skills/antislop/VERSION` sha256 `ce6ddda39d58fbf68b3810aa75fe22894936f20c1e62c901ae455e0bab5138df`. `contrast-check.py` sha256 `619cdf3da8b27f87d8e4049b4acecfe1a559b234ab2aa9cf09447c28745c3075`. |
 | Node | v22.23.0 at `/usr/bin/node`. Used only for `scripts/check-repo.mjs`. |
 | Python | 3.14.4. No venv and no extra install. |
