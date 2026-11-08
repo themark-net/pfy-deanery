@@ -24,4 +24,4 @@
 | Overlap with 154 | Both speak authorization/verification | Compare doctrines before any trial; do not double-wire |
 | Pin drift | commit moves | Smoke checks this SHA |
 
-- **Status**: Cataloged I0. Commit pin recorded. Skills not installed (smoke designed for exit 2). Next step, if any: read `skills/odai` against Entry 154 docs and decide whether odai is a drop-in governance skill for Hermes/Build. No Feature GO.
+- **Status**: STAY I0 reference (read 2026-11-07). Pin `ce7a999843ca42ecd84778561cb0ac7642c5648e`, skillVersion `0.7.1`, MIT. Not a drop-in next to Entry 154: the doctrine overlaps the 8 exits, one-shot, and the testing standing rule. Skills stay uninstalled (smoke still exits 2). No DSH, no hooks. Gap B stays the pfy build timeout. Receipt: `eval/evq1107/odai/REPORT.md`. No Feature GO.

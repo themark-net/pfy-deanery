@@ -1,19 +1,40 @@
 {
   "name": "odai",
   "integration_stage": "I0",
-  "intent": "awareness",
+  "intent": "design_reference",
   "entry": "sources/entries/166-odai.md",
   "github": "https://github.com/orziz/odai",
-  "uses": "Evidence-before-done governance skill.",
-  "potential": "medium",
-  "next_gate": "Read against our gate doctrine; skill port only if it adds a check we lack.",
+  "pin": "ce7a999843ca42ecd84778561cb0ac7642c5648e",
+  "license": "MIT",
+  "skill_version": "0.7.1",
+  "cli_version": "0.0.2",
+  "uses": "Evidence-before-done governance skill. Read against the gate doctrine. Reference only.",
+  "features": [
+    "ask only on a material boundary",
+    "evidence tied to the object",
+    "gap-loaded playbooks",
+    "optional host routing",
+    "separate DSH packages"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I0 reference. Re-open only if a later ticket names one check in bootstrap/grok-cli/skills that this text adds, and that check changes a real Build lane. No skill copy, no DSH install, no hooks, no gate. Gap B stays the pfy build timeout. Not a Feature GO.",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",
-    "catalog_hold_70_75"
+    "catalog_hold_70_75",
+    "skill_install",
+    "dsh_install",
+    "hook_install",
+    "care_or_crisis_port",
+    "code_copy",
+    "gate_wiring"
   ],
   "evidence": [
-    "entry:sources/entries/166-odai.md"
+    "entry:sources/entries/166-odai.md",
+    "pin:ce7a999843ca42ecd84778561cb0ac7642c5648e",
+    "skill:0.7.1",
+    "eval/evq1107/odai/REPORT.md",
+    "eval/evq1107/odai/VERDICT"
   ],
   "handoff_by": "llm"
 }
