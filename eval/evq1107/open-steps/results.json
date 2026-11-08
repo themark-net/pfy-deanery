@@ -1,0 +1,120 @@
+{
+  "pack": "/home/mark/.cache/pfy/tools/open-steps/src/repo",
+  "pin": "4fa744ba8ea06ccf128a39853824c46ac391dd00",
+  "worktree_clean_session": {
+    "start_exit": 0,
+    "stop_exit": 0,
+    "stop_asks": false,
+    "stop_ms": 36.9,
+    "start_ms": 37.8,
+    "report_md": 0,
+    "porcelain_same": true,
+    "porcelain_lines": 3
+  },
+  "work_landed": {
+    "second_stop_no_report": {
+      "first_exit": 2,
+      "first_asks": true,
+      "second_exit": 0,
+      "second_asks": false,
+      "report_md": 0,
+      "first_ms": 26.7,
+      "second_ms": 24.4
+    },
+    "outside_report_ignored_on_first_stop": {
+      "report_md_before_stop": 1,
+      "first_exit": 2,
+      "first_asks": true,
+      "second_exit": 0,
+      "report_md": 1
+    },
+    "in_repo_handoff": {
+      "first_exit": 2,
+      "first_asks": true,
+      "second_exit": 0,
+      "outside_report_md": 0,
+      "handoff_in_repo": true
+    },
+    "commit_then_second_stop": {
+      "worktree_clean_after_commit": true,
+      "first_exit": 2,
+      "first_asks": true,
+      "second_exit": 0,
+      "report_md": 0
+    }
+  },
+  "second_stop_still_blocked": 0,
+  "work_landed_cases": 4,
+  "big_picture_only": {
+    "stop_exit": 0,
+    "stop_asks": false
+  },
+  "cooldown_more_work": {
+    "first_exit": 2,
+    "first_asks": true,
+    "second_exit_with_more_work": 0,
+    "second_asks": false,
+    "report_md": 0
+  },
+  "disable": {
+    "stop_exit": 0,
+    "stop_asks": false
+  },
+  "min_files": {
+    "one_file_exit": 0,
+    "five_files_exit": 2,
+    "five_files_asks": true
+  },
+  "gap_b_env": {
+    "clean_exit": 0,
+    "dirty_exit": 2,
+    "dirty_asks": true,
+    "env_pfy_elapsed_s": "10800",
+    "env_pfy_pregate": "FAIL"
+  },
+  "cursor": {
+    "first_exit": 0,
+    "first_has_followup": true,
+    "second_exit": 0,
+    "second_stdout": "{}",
+    "report_md": 0
+  },
+  "gemini_retry": {
+    "first_exit": 0,
+    "first_denies": true,
+    "retry_exit": 0,
+    "retry_stdout": "{}",
+    "report_md": 0
+  },
+  "grok_adapter": {
+    "exit": 1,
+    "stderr_has_usage": true
+  },
+  "two_sessions": {
+    "lane_b_exit": 0,
+    "lane_b_asks": false,
+    "lane_a_after_b_exit": 0,
+    "lane_a_after_b_asks": false,
+    "report_md": 0
+  },
+  "recent_commits": {
+    "n": 30,
+    "newest": "dc7340da3983f5855498224361d761353377c6c4",
+    "oldest": "b4bcaf058feaef2d3ec7a9bfbde265eb42481fc7",
+    "nonempty_trees": 30,
+    "touch_docs": 3,
+    "touch_handoff_name": 0
+  },
+  "upstream_suite": {
+    "exit": 0,
+    "passed": 290,
+    "failed": 0,
+    "ms": 4821.5
+  },
+  "tree_bytes_excluding_git": 651376,
+  "os_check_work_allows_gh_pr_merge": true,
+  "real_home_state_dir_existed_before": false,
+  "real_home_state_dir_exists_after": false,
+  "worktree_porcelain_same": true,
+  "wall_ms": 5933.4
+}

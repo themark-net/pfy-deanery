@@ -20,4 +20,4 @@
 | Merge bypass | Pack's own merge-when-green behavior skips our gates | Don't install the merging part; keep it to the reporting skills and hooks |
 | Harness mismatch | Grok Build's hook model differs from Claude Code's exit-2 contract | Trial through `hooks/adapter.sh` or a pfy wrapper that checks the exit code itself |
 
-- **Status**: Cataloged I0. Verified on the Grok Bot box; not installed on nimo.
+- **Status**: STAY I0 after the 2026-11-07 nimo probe (`eval/evq1107/open-steps/`). Pin `4fa744ba8ea06ccf128a39853824c46ac391dd00`, pack 0.4.8, cache install `~/.cache/pfy/tools/open-steps/`. Second stop exits 0 with no report file in 4 of 4 work-landed cases. Not wired.

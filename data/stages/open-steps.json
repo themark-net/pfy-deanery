@@ -1,0 +1,37 @@
+{
+  "name": "Open Steps",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/099-open-steps.md",
+  "github": "https://github.com/kharmanskyi/open-steps",
+  "pin": "4fa744ba8ea06ccf128a39853824c46ac391dd00",
+  "version": "0.4.8",
+  "license": "MIT",
+  "uses": "One-shot stop nag when the git fingerprint changes. A second stop exits 0 with no report file. It does not see a 3 hour build timeout or a parked pregate failure.",
+  "features": [
+    "session-start baseline",
+    "stop exit 2 once per fingerprint",
+    "report path outside the repo",
+    "cursor and gemini adapter"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I0. Re-open only if a later pin keeps exit 2 on the second stop until a report file exists, that file is the in-repo handoff, and the exit changes when the wall clock is 10800 seconds or pregate is FAIL. Do not wire a gate from this lane.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "gate_wiring",
+    "copy_skills_into_agent_home",
+    "gh_pr_merge",
+    "grok_hook_install"
+  ],
+  "evidence": [
+    "entry:sources/entries/099-open-steps.md",
+    "pin:4fa744ba8ea06ccf128a39853824c46ac391dd00",
+    "version:0.4.8",
+    "eval/evq1107/open-steps/REPORT.md",
+    "eval/evq1107/open-steps/VERDICT",
+    "eval/evq1107/open-steps/results.json"
+  ],
+  "handoff_by": "llm"
+}
