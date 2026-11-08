@@ -1,7 +1,7 @@
 {
   "name": "opencode-mem",
-  "integration_stage": "I1",
-  "intent": "catalog_default",
+  "integration_stage": "I2",
+  "intent": "ad_hoc_probe",
   "tier": "A",
   "auto": true,
   "catalog_tier": "A",
@@ -13,17 +13,34 @@
     "#local-first"
   ],
   "catalog_github": "https://github.com/tickernelz/opencode-mem",
+  "github": "https://github.com/tickernelz/opencode-mem",
+  "pin": "6c5828f3e49f962385aeb3ad033ecac5adc22878",
+  "npm_version": "2.41.1",
+  "tarball_sha256": "142d404aea2add4ffbe1742862e912ddfd109e8b0e7533b73de8adf132ecf883",
   "posture": [],
-  "evidence": [],
+  "evidence": [
+    "eval/evq1107/opencode-mem/REPORT.md",
+    "eval/evq1107/opencode-mem/VERDICT",
+    "eval/evq1107/opencode-mem/results.json",
+    "pin:6c5828f3e49f962385aeb3ad033ecac5adc22878",
+    "npm:opencode-mem@2.41.1"
+  ],
   "tier_ceiling": "I1",
-  "uses": "Memory plugin for the OpenCode worker.",
+  "uses": "Memory plugin for the OpenCode worker. A new process searched 8 of 8 stored salts that rg does not find in this repo.",
   "features": [
-    "worker memory"
+    "local turso vector store",
+    "manual add and search",
+    "restart recall"
   ],
   "potential": "medium",
-  "next_gate": "Stay I1 unless the worker smoke shows a context hole.",
+  "next_gate": "Stay I2. On 2026-11-07 a second process searched 8 of 8 stored salts and listed 8 of 8. rg on this repo found 0 of 8. A notes file found 8 of 8 in 11.6 ms. A damaged shard did not rebuild. Next proof is an OpenCode run with the plugin and without it on these salts. Do not wire a gate.",
   "handoff_by": "llm",
   "non_goals": [
-    "replace codebase-memory"
+    "replace codebase-memory",
+    "gate wiring",
+    "feature_go",
+    "hosted embeddings",
+    "web ui",
+    "catalog_hold_70_75"
   ]
 }

@@ -1,0 +1,16 @@
+First attempt on the package default config, before the scored run.
+Storage was the cache home ~/.opencode-mem/data. A sibling opencode-mem.json
+was ignored because opencode-mem.jsonc already existed (the package template).
+Model: Xenova/nomic-embed-text-v1.
+
+store ok false. salt 01 error: Timeout after 30000ms. salts 02-08 stored.
+recall in a new process: list_count 7. search hits 7 of 8.
+salt 01 listed false, searched false, top similarity 0.6315, and the text
+did not contain the salt.
+
+Deleting those shard files while metadata.db still named them made the next
+add fail, twice per salt: Shard project/94f30b5f90fb12f4#0 is incompatible
+or corrupt. The original database was left untouched.
+
+The scored run in results.json used a new storage directory and the same
+ONNX cache. It did not repeat this cold timeout.

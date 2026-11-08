@@ -1,0 +1,391 @@
+{
+  "results_written": true,
+  "pins": {
+    "pin": "6c5828f3e49f962385aeb3ad033ecac5adc22878",
+    "npm_version": "2.41.1",
+    "tarball_sha256": "142d404aea2add4ffbe1742862e912ddfd109e8b0e7533b73de8adf132ecf883",
+    "tarball_sha1": "5e285c025f956c0c2036aac16de3986d38dc309a",
+    "checkout": "/home/mark/.cache/pfy/tools/opencode-mem/src/opencode-mem",
+    "tarball": "/home/mark/.cache/pfy/tools/opencode-mem/npm/opencode-mem-2.41.1.tgz",
+    "checkout_head": "6c5828f3e49f962385aeb3ad033ecac5adc22878",
+    "checkout_matches": true,
+    "tarball_bytes": 611949,
+    "tarball_sha256_ok": true,
+    "tarball_sha1_ok": true,
+    "installed_version": "2.41.1",
+    "installed_version_ok": true,
+    "ok": true
+  },
+  "repo_novel_hits": 0,
+  "repo_known_hits": 8,
+  "repo_known_asked": 8,
+  "repo_scan_ms": 158.6,
+  "file_baseline_hits": 8,
+  "file_baseline_ms": 11.6,
+  "store_ok": true,
+  "stored": 8,
+  "store_ms": 1149.2,
+  "recall_ok": true,
+  "recall_search_hits": 8,
+  "recall_list_hits": 8,
+  "recall_ms": 1034.2,
+  "decoy_hit": false,
+  "corrupt_ok": false,
+  "corrupt_search_hits": 0,
+  "corrupt_list_hits": 0,
+  "corrupt_ms": 93.0,
+  "corrupt": {
+    "ok": false,
+    "error": "failed to open database /home/mark/.cache/pfy/tools/opencode-mem/run/data/projects/project_94f30b5f90fb12f4_shard_0.db: File is not a database; failed to open database /home/mark/.cache/pfy/tools/opencode-mem/run/data/projects/project_94f30b5f90fb12f4_shard_0.db: File is not a database",
+    "damaged": [
+      "project_94f30b5f90fb12f4_shard_0.db"
+    ]
+  },
+  "real_home_changed": [],
+  "overlap": [
+    {
+      "file": "agent-beacon.json",
+      "name": "Agent Beacon",
+      "stage": "I0",
+      "uses": "Copy a committed Grok session into a local JSONL, then store a lesson a person types. Scoring one trace calls hosted TypeSafe Jev.",
+      "hits": [
+        "memory"
+      ]
+    },
+    {
+      "file": "auto-company.json",
+      "name": "Auto-Company",
+      "stage": "I1",
+      "uses": "Company-daemon patterns worth extracting. Not a runtime to adopt.",
+      "hits": [
+        "memory"
+      ]
+    },
+    {
+      "file": "chroma-or-lancedb.json",
+      "name": "Chroma (or LanceDB)",
+      "stage": "I0",
+      "uses": "Vector store. Code memory is already chosen.",
+      "hits": [
+        "memory",
+        "vector",
+        "rag"
+      ]
+    },
+    {
+      "file": "codebase-memory-mcp.json",
+      "name": "codebase-memory-mcp",
+      "stage": "I2",
+      "uses": "Primary code-graph MCP and the code-graph toolset.",
+      "hits": [
+        "memory",
+        "rag"
+      ]
+    },
+    {
+      "file": "graphify.json",
+      "name": "Graphify",
+      "stage": "I0",
+      "uses": "Tree-sitter graph for a per-file review. Trialed on pfy diffs. Not the code memory we run.",
+      "hits": [
+        "memory"
+      ]
+    },
+    {
+      "file": "grok-cli-bootstrap.json",
+      "name": "Grok CLI bootstrap",
+      "stage": "I3",
+      "uses": "Operator env, skills install, cage Grok sessions.",
+      "hits": [
+        "memory"
+      ]
+    },
+    {
+      "file": "harness-score.json",
+      "name": "Harness Score",
+      "stage": "I0",
+      "uses": "Offline L0-L4 grade of repo harness files: context, skills, hooks, sensors, CI, and hygiene.",
+      "hits": [
+        "context"
+      ]
+    },
+    {
+      "file": "hermes-agent-feedback-loops.json",
+      "name": "Hermes Agent (feedback loops)",
+      "stage": "I1",
+      "uses": "Feedback-loop pattern ported as a skill. Not the Hermes runtime.",
+      "hits": [
+        "memory"
+      ]
+    },
+    {
+      "file": "imcodes.json",
+      "name": "imcodes",
+      "stage": "I0",
+      "uses": "Reference for a supervised review loop and final-answer memory. Not an install.",
+      "hits": [
+        "memory"
+      ]
+    },
+    {
+      "file": "kolibri-1.json",
+      "name": "Kolibri-1",
+      "stage": "I0",
+      "uses": "Optional local DE/EN reasoning MoE via patched llama.cpp GGUF smoke (I0 lab).",
+      "hits": [
+        "context"
+      ]
+    },
+    {
+      "file": "laguna-s-2-1.json",
+      "name": "Laguna S 2.1",
+      "stage": "I1",
+      "uses": "Large local coding weights, when a machine can hold them.",
+      "hits": [
+        "context"
+      ]
+    },
+    {
+      "file": "langgraph-langchain.json",
+      "name": "LangGraph (LangChain)",
+      "stage": "I1",
+      "uses": "Graph orchestration. Our loops already cover the operator path.",
+      "hits": [
+        "rag"
+      ]
+    },
+    {
+      "file": "leann.json",
+      "name": "LEANN",
+      "stage": "I1",
+      "uses": "Compressed RAG. Not our code memory.",
+      "hits": [
+        "memory",
+        "rag"
+      ]
+    },
+    {
+      "file": "mempalace.json",
+      "name": "MemPalace",
+      "stage": "I0",
+      "uses": "Verbatim local memory with scoped search.",
+      "hits": [
+        "memory"
+      ]
+    },
+    {
+      "file": "memvid.json",
+      "name": "Memvid",
+      "stage": "I1",
+      "uses": "Video-backed memory. No job in the current operator path.",
+      "hits": [
+        "memory",
+        "rag"
+      ]
+    },
+    {
+      "file": "mue-x.json",
+      "name": "MUE-X",
+      "stage": "I1",
+      "uses": "Self-rewriting agent. Interesting pattern, unsafe as a runtime.",
+      "hits": [
+        "memory"
+      ]
+    },
+    {
+      "file": "opencode-mem.json",
+      "name": "opencode-mem",
+      "stage": "I2",
+      "uses": "Memory plugin for the OpenCode worker. A new process searched 8 of 8 stored salts that rg does not find in this repo.",
+      "hits": [
+        "memory",
+        "vector",
+        "recall"
+      ]
+    },
+    {
+      "file": "opencontext.json",
+      "name": "OpenContext",
+      "stage": "I1",
+      "uses": "Personal context store and oc CLI. The 2026-11-07 probe recalled 8 of 8 copied notes and 0 of 8 facts already in this repo, and it scored 0 with/without harness cases.",
+      "hits": [
+        "context"
+      ]
+    },
+    {
+      "file": "repowise.json",
+      "name": "repowise",
+      "stage": "I2",
+      "uses": "Context packing probe. Overlaps codebase-memory.",
+      "hits": [
+        "memory",
+        "context"
+      ]
+    },
+    {
+      "file": "robrain.json",
+      "name": "RoBrain",
+      "stage": "I0",
+      "uses": "Decision memory with vetoes.",
+      "hits": [
+        "memory"
+      ]
+    },
+    {
+      "file": "teaql-agent-kit.json",
+      "name": "TeaQL Agent Kit",
+      "stage": "I0",
+      "uses": "Agent context and verification policy patterns.",
+      "hits": [
+        "context"
+      ]
+    }
+  ],
+  "arms": {
+    "store": {
+      "ok": true,
+      "command": "store",
+      "tag": "opencode_project_94f30b5f90fb12f4",
+      "model": "Xenova/nomic-embed-text-v1",
+      "storage": "/home/mark/.cache/pfy/tools/opencode-mem/run/data",
+      "warmup_ms": 688,
+      "warm_error": null,
+      "removed": [],
+      "stored": 8,
+      "rows": [
+        {
+          "salt": "OCM1107_SALT_01",
+          "success": true,
+          "attempts": 1,
+          "error": null
+        },
+        {
+          "salt": "OCM1107_SALT_02",
+          "success": true,
+          "attempts": 1,
+          "error": null
+        },
+        {
+          "salt": "OCM1107_SALT_03",
+          "success": true,
+          "attempts": 1,
+          "error": null
+        },
+        {
+          "salt": "OCM1107_SALT_04",
+          "success": true,
+          "attempts": 1,
+          "error": null
+        },
+        {
+          "salt": "OCM1107_SALT_05",
+          "success": true,
+          "attempts": 1,
+          "error": null
+        },
+        {
+          "salt": "OCM1107_SALT_06",
+          "success": true,
+          "attempts": 1,
+          "error": null
+        },
+        {
+          "salt": "OCM1107_SALT_07",
+          "success": true,
+          "attempts": 1,
+          "error": null
+        },
+        {
+          "salt": "OCM1107_SALT_08",
+          "success": true,
+          "attempts": 1,
+          "error": null
+        }
+      ],
+      "ms": 1149.2
+    },
+    "recall": {
+      "ok": true,
+      "command": "recall",
+      "tag": "opencode_project_94f30b5f90fb12f4",
+      "model": "Xenova/nomic-embed-text-v1",
+      "storage": "/home/mark/.cache/pfy/tools/opencode-mem/run/data",
+      "warmup_ms": 721,
+      "warm_error": null,
+      "list_count": 8,
+      "list_error": null,
+      "rows": [
+        {
+          "salt": "OCM1107_SALT_01",
+          "listed": true,
+          "searched": true,
+          "similarity": 0.7,
+          "error": null
+        },
+        {
+          "salt": "OCM1107_SALT_02",
+          "listed": true,
+          "searched": true,
+          "similarity": 0.7,
+          "error": null
+        },
+        {
+          "salt": "OCM1107_SALT_03",
+          "listed": true,
+          "searched": true,
+          "similarity": 0.7,
+          "error": null
+        },
+        {
+          "salt": "OCM1107_SALT_04",
+          "listed": true,
+          "searched": true,
+          "similarity": 0.7,
+          "error": null
+        },
+        {
+          "salt": "OCM1107_SALT_05",
+          "listed": true,
+          "searched": true,
+          "similarity": 0.7,
+          "error": null
+        },
+        {
+          "salt": "OCM1107_SALT_06",
+          "listed": true,
+          "searched": true,
+          "similarity": 0.7,
+          "error": null
+        },
+        {
+          "salt": "OCM1107_SALT_07",
+          "listed": true,
+          "searched": true,
+          "similarity": 0.7,
+          "error": null
+        },
+        {
+          "salt": "OCM1107_SALT_08",
+          "listed": true,
+          "searched": true,
+          "similarity": 0.7,
+          "error": null
+        }
+      ],
+      "decoy_hit": false,
+      "decoy_success": true,
+      "ms": 1034.2
+    },
+    "corrupt": {
+      "ok": false,
+      "command": "corrupt",
+      "tag": "opencode_project_94f30b5f90fb12f4",
+      "damaged": [
+        "project_94f30b5f90fb12f4_shard_0.db"
+      ],
+      "error": "failed to open database /home/mark/.cache/pfy/tools/opencode-mem/run/data/projects/project_94f30b5f90fb12f4_shard_0.db: File is not a database; failed to open database /home/mark/.cache/pfy/tools/opencode-mem/run/data/projects/project_94f30b5f90fb12f4_shard_0.db: File is not a database",
+      "rows": [],
+      "ms": 93.0
+    }
+  }
+}
