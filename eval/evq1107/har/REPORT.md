@@ -16,8 +16,8 @@ These cards already cover a piece of the job. Batch-1 results under `eval/ev1107
 | harness2 | I1 | Local harness edit trial. Its own trial gain was 0. | Different job (gap H1). |
 | gitai | I0 | CAS lands for many agents on one branch. | One shared branch. HAR's point is a separate slot. |
 | TeaQL Agent Kit | I0 | Verification policy patterns. | Patterns, not a runner. |
-| Elephant-Goldfish Model | I0 | Fresh-eyes spec read before a build lane. Ranking: indirect on gap B. | Does not launch a slot or time a check. |
-| Chiasmus | I0 | Call-graph impact for a per-file read. Overlaps codebase-memory. | Review shape, not a worktree receipt. |
+| Elephant-Goldfish Model | I1 | Fresh-eyes spec read before a build lane. Its ev1107 probe stayed I1. | Does not launch a slot or time a check. |
+| Chiasmus | I1 | Call-graph impact for a per-file read. Its ev1107 probe stayed I1 (3/10 with the test selector, 5/10 with codebase-memory). | Not a worktree receipt. |
 
 ## Verdict
 
