@@ -2,7 +2,7 @@
 
 Verdict: STAY I1. Stdio recall returned 8 of 8 copied tokens to a second agent, and the second pass agreed, 8 of 8. The same store returned 0 of 8 facts already in this repo. A secret fixture was rejected and the error did not echo it. Graded with/without harness cases: 0. Nothing was wired into a gate.
 
-It does not beat rg on this repo, it does not beat skill-up on gap H1, and it does not beat opencode-mem, which is already I2 for 8 of 8 stored salts with no Postgres.
+It does not beat rg on this repo, it does not beat skill-up on gap H1, and it does not beat opencode-mem, which is already I2 for 8 of 8 stored salts with no Postgres. It also does not beat ai-memory, which stayed I1 for 8 of 8 pasted notes, 0 of 8 repo facts, and 8 of 8 claim-once handoffs.
 
 The stage card did not exist. The entry had left Kenfold at I0 until Docker was confirmed. This probe used rootless podman, not a new Docker install. The result does not earn I2 or I3. No TOOLS.md row.
 
@@ -10,7 +10,7 @@ The stage card did not exist. The entry had left Kenfold at I0 until Docker was 
 
 Same job: one memory store several agent CLIs can read, and gap H1 (a repeatable with/without score, plus memory and context). H1 is that harness2 showed no gain and there is no score to re-measure it, or to compare pfy with a plain Build run. The 2026-11-07 ranking gives that score to skill-up. Shared memory for its own sake is the post-MVP slot (MemPalace, RoBrain), not the H1 score.
 
-`eval/evq1107/kenfold/probe.py` token-scans `uses`, `features`, and `tags` on the other cards. It listed 27 cards. Batch-1 under `eval/ev1107/` (agentgg, bumblebee, chiasmus, dspy, egm, hiroute, neatroots, osc) has no shared memory server. neatroots is the H1-evals neighbor: `eval/ev1107/neatroots/VERDICT` is PROMOTE I2 for an offline trace check, not a memory store. `eval/catchup-1107/skill-up/VERDICT` is PROMOTE I3, both arms 5/5, delta 0. skillspector and strata in that directory are other jobs. `eval/evq1107/opencode-mem/VERDICT` is PROMOTE I2: a second process recalled 8 of 8 stored salts, rg found 0 of 8, and a notes file found the same 8 in 11.6 ms. `eval/evq1107/cass-memory/VERDICT` is STAY I0. `eval/evq1107/mempalace/VERDICT` is STAY I1.
+`eval/evq1107/kenfold/probe.py` token-scans the card name, `uses`, `features`, `tags`, and `catalog_tags`. It listed 28 cards. Batch-1 under `eval/ev1107/` (agentgg, bumblebee, chiasmus, dspy, egm, hiroute, neatroots, osc) has no shared memory server. neatroots is the H1-evals neighbor: `eval/ev1107/neatroots/VERDICT` is PROMOTE I2 for an offline trace check, not a memory store. `eval/catchup-1107/skill-up/VERDICT` is PROMOTE I3, both arms 5/5, delta 0. skillspector and strata in that directory are other jobs. `eval/evq1107/opencode-mem/VERDICT` is PROMOTE I2: a second process recalled 8 of 8 stored salts, rg found 0 of 8, and a notes file found the same 8 in 11.6 ms. `eval/evq1107/ai-memory/VERDICT` is STAY I1: pasted search 8/8, repo facts 0/8, claim-once 8/8. `eval/evq1107/cass-memory/VERDICT` is STAY I0. `eval/evq1107/mempalace/VERDICT` is STAY I1.
 
 | Card | Stage | What it already covers | How Kenfold compares |
 | --- | --- | --- | --- |
@@ -22,6 +22,7 @@ Same job: one memory store several agent CLIs can read, and gap H1 (a repeatable
 | codebase-memory-mcp | I2 | Primary code-graph MCP. | Kenfold saw 0 of 8 repo facts until they are pasted. Different job. |
 | repowise | I2 | Context packing. Overlaps codebase-memory. | Packs the repo. Kenfold does not read the repo. |
 | opencode-mem | I2 | Worker memory. Second process 8/8 stored salts. rg 0/8. Notes file 8/8 in 11.6 ms. | Same pasted-fact count. Kenfold still needs Postgres. It does not beat this. |
+| ai-memory | I1 | Git wiki plus a claim-once mailbox. Pasted search 8/8, repo facts 0/8, claim-once 8/8. | Same pasted count. Same miss on repo facts. This probe did not measure claim-once. It does not beat this card. |
 | OpenContext | I1 | Personal note store. Its probe was 8/8 copied notes, 0/8 repo facts, 0 graded cases. | Same shape of result. OpenContext stayed I1. |
 | cass-memory | I0 | Procedural playbook. 0 rules from one session. Hand playbook top-1 7/8. | Different store. This probe did not run that playbook. |
 | LEANN | I1 | Compressed RAG. Not our code memory. | Kenfold's vector path was off. Full-text only. |
@@ -40,7 +41,7 @@ Same job: one memory store several agent CLIs can read, and gap H1 (a repeatable
 | LangGraph (LangChain) | I1 | Graph orchestration. Tag rag. | Not this server. |
 | Grok CLI bootstrap | I3 | Operator sessions. Tag code-memory. | The surface that already runs. Kenfold was not attached to it. |
 | Kolibri-1, Laguna S 2.1 | I0, I1 | Local weights. Tag context. | A context window, not a store. |
-| rg on this worktree | in this repo | Finds the 8 known facts with no store. | 8/8 in 160.5 ms. Kenfold hits on those facts: 0/8. |
+| rg on this worktree | in this repo | Finds the 8 known facts with no store. | 8/8 in 141.0 ms. Kenfold hits on those facts: 0/8. |
 
 ## Pins
 
@@ -81,16 +82,16 @@ The probe writes `eval/evq1107/kenfold/results.json`. It starts Postgres on `127
 
 | Check | Result |
 | --- | --- |
-| rg, 8 facts already in this repo | 8/8, part of a 160.5 ms scan of 16 needles |
+| rg, 8 facts already in this repo | 8/8, part of a 141.0 ms scan of 16 needles |
 | rg, 8 novel tokens | 0/8 |
 | postgres start | attempt 1, then removed |
-| migrate up | exit 0, 52.6 ms |
+| migrate up | exit 0, 47.8 ms |
 | secret fixture remember | rejected, not echoed |
-| 8 remembers | 8 active, writer session 34.1 ms including the rejected call |
+| 8 remembers | 8 active, writer session 33.0 ms including the rejected call |
 | reader recall, 8 novel tokens | 8/8, source agent `grok-build` on 8/8 |
 | reader recall, 8 repo facts | 0/8 |
-| first reader session | 32.2 ms (8 novel queries plus 8 repo queries) |
-| second reader session | 8/8 novel, 27.5 ms |
+| first reader session | 30.3 ms (8 novel queries plus 8 repo queries) |
+| second reader session | 8/8 novel, 27.2 ms |
 | agreement on the 8 novel tokens | 8/8 |
 | graded with/without cases | 0 |
 | score delta | none |
@@ -104,7 +105,7 @@ Recall was full-text. The query was the token itself, which is also in the store
 
 Value (3 of 4 needed for I3):
 
-1. Gap fill: no. H1 needs a with/without score. skill-up already emits one (5 cases, both arms pass, delta 0). This run graded 0 cases. Facts already in the repo: rg 8/8 in 160.5 ms, Kenfold 0/8. Pasted tokens: opencode-mem already recalls 8/8 with no Postgres.
+1. Gap fill: no. H1 needs a with/without score. skill-up already emits one (5 cases, both arms pass, delta 0). This run graded 0 cases. Facts already in the repo: rg 8/8 in 141.0 ms, Kenfold 0/8. Pasted tokens: opencode-mem already recalls 8/8 with no Postgres. ai-memory already recalls 8/8 pasted notes and claimed 8/8 handoffs, also with no Postgres.
 2. Operator leverage: no. Nothing in the operator path reads this store. Copying 8 sentences into Postgres did not make a harness comparison, and it did not beat the I2 opencode-mem recall.
 3. Evidence: yes. The pin matches. The image id matches the pull. Stdio remember, recall, provenance, and the secret rejection ran with no key. `results.json` records the exits.
 4. Blast radius: yes, while it stays in the cache. MIT. No model weights. The 469 MB image and the Go toolchain are not in the repo. The container and volume were removed. It did not become the product runtime. No account and no API key.
@@ -137,7 +138,7 @@ Modularity passes. The result is no longer ambiguous, and it does not help H1, s
 
 ## Next gate
 
-Stay I1. Do not wire Kenfold into pregate, CI, or a client config. Reopen only if a later pin, still with no API key and no hosted model, beats rg on facts already in this repo or emits a repeatable with/without harness score. A bake-off against opencode-mem is a different ticket. That ticket grills wiring first.
+Stay I1. Do not wire Kenfold into pregate, CI, or a client config. Reopen only if a later pin, still with no API key and no hosted model, beats rg on facts already in this repo or emits a repeatable with/without harness score. A bake-off against opencode-mem is a different ticket. ai-memory already stayed I1 on the same pasted-note shape and also claimed 8 of 8 handoffs.
 
 ## Five questions (if this tool ran in our pipeline)
 

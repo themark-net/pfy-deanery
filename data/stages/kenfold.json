@@ -20,7 +20,7 @@
     "full-text recall"
   ],
   "potential": "low",
-  "next_gate": "Stay I1. On 2026-11-07 stdio recall was 8 of 8 copied tokens (agreement 8 of 8, second pass 27.5 ms) and 0 of 8 facts already in this repo. rg found those 8 facts in 160.5 ms. opencode-mem is already I2 for 8 of 8 stored salts with no Postgres. Graded with/without cases: 0. skill-up already grades that gap (5 cases, both arms pass, delta 0). Do not wire a gate.",
+  "next_gate": "Stay I1. On 2026-11-07 stdio recall was 8 of 8 copied tokens (agreement 8 of 8, second pass 27.2 ms) and 0 of 8 facts already in this repo. rg found those 8 facts in 141.0 ms. opencode-mem is already I2 for 8 of 8 stored salts with no Postgres. ai-memory stayed I1 for 8 of 8 pasted notes, 0 of 8 repo facts, and 8 of 8 claim-once handoffs. Graded with/without cases: 0. skill-up already grades that gap (5 cases, both arms pass, delta 0). Do not wire a gate.",
   "tier_ceiling": "I1",
   "non_goals": [
     "api key",

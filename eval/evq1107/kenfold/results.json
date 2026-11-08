@@ -6,7 +6,7 @@
   ],
   "mcp_open": true,
   "migrate_exit": 0,
-  "migrate_ms": 52.6,
+  "migrate_ms": 47.8,
   "no_server": false,
   "overlap": [
     {
@@ -14,6 +14,15 @@
       "h1_named": false,
       "name": "Agent Beacon",
       "stage": "I0",
+      "words": [
+        "memory"
+      ]
+    },
+    {
+      "file": "ai-memory.json",
+      "h1_named": false,
+      "name": "ai-memory",
+      "stage": "I1",
       "words": [
         "memory"
       ]
@@ -268,10 +277,10 @@
   "provenance_hits": 8,
   "real_home_unchanged": true,
   "recall_hits": 8,
-  "recall_ms": 32.2,
+  "recall_ms": 30.3,
   "recall_open": true,
   "recall_second_hits": 8,
-  "recall_second_ms": 27.5,
+  "recall_second_ms": 27.2,
   "recall_second_open": true,
   "recall_second_tokens": [
     "KF1107_NOVEL_01",
@@ -293,10 +302,10 @@
     "KF1107_NOVEL_07",
     "KF1107_NOVEL_08"
   ],
-  "remember_ms": 34.1,
+  "remember_ms": 33.0,
   "remember_ok": 8,
   "repo_recall_hits": 0,
-  "rg_ms": 160.5,
+  "rg_ms": 141.0,
   "rg_novel_hits": 0,
   "rg_repo_hits": 8,
   "secret_echoed": false,
