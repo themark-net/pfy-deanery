@@ -1,0 +1,25 @@
+{
+  "verdict": "FLAGGED",
+  "root": "/home/mark/DEVELOP/pfy-mentat/tmp/ev-bumblebee/tmp/bumblebee-fixture-home",
+  "findings": [
+    {
+      "kind": "git-selector",
+      "server": "git-tool",
+      "source": ".codeium/windsurf/mcp_config.json"
+    },
+    {
+      "kind": "package-exposure",
+      "package": "node-ipc",
+      "version": "10.1.1",
+      "severity": "critical",
+      "catalog_id": "socket-2026-05-14-npm-node-ipc-credential-stealer",
+      "source": "bad-app/package-lock.json"
+    },
+    {
+      "kind": "plaintext-env",
+      "server": "paid-tool",
+      "key": "API_TOKEN",
+      "source": ".config/Claude/claude_desktop_config.json"
+    }
+  ]
+}

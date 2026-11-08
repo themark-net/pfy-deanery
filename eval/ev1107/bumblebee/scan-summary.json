@@ -1,0 +1,37 @@
+{
+  "version": "v0.1.2",
+  "commit": "cc57710eeaf685e7b89924a36c8583cad0a378fe",
+  "built": "2026-06-18T15:03:13Z",
+  "go": "go1.25.11",
+  "tarball": "bumblebee_0.1.2_linux_amd64.tar.gz",
+  "tarball_sha256": "53b080cf3ddb692b0c4e5492ef4785b4c54daf1624fcd0fcba3958116a0be8d9",
+  "binary_sha256": "3b46f98ab8fa6345a5d39c7483ff37c51b2ee7699aabe51f2a54133f357f6c7a",
+  "binary_bytes": 6738104,
+  "selftest_findings": 5,
+  "selftest_duration_ms_runs": [2, 3],
+  "worktree_bumblebee": {
+    "files_considered": 2427,
+    "packages": 0,
+    "findings": 0,
+    "duration_ms": 11,
+    "wall_sec": 0.02,
+    "exclude": "tmp"
+  },
+  "fixture_bumblebee": {
+    "files_considered": 6,
+    "packages": 6,
+    "findings": 1,
+    "duration_us": 868,
+    "wall_sec": 0.0,
+    "token_in_output": false
+  },
+  "package_json_only": {
+    "files_considered": 1,
+    "packages": 0,
+    "findings": 0,
+    "duration_us": 164
+  },
+  "script_fixture": {"exit": 1, "findings": 3, "wall_sec": 0.07},
+  "script_worktree": {"exit": 0, "findings": 0, "wall_sec": 0.15},
+  "script_home_refuse": {"exit": 2, "wall_sec": 0.07}
+}

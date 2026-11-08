@@ -1,6 +1,6 @@
 {
   "name": "Bumblebee",
-  "integration_stage": "I1",
+  "integration_stage": "I2",
   "intent": "catalog_default",
   "tier": "A",
   "auto": true,
@@ -15,16 +15,29 @@
   ],
   "catalog_github": "https://github.com/perplexityai/bumblebee",
   "posture": [],
-  "evidence": [],
+  "evidence": [
+    "notes_doc:docs/ops/bumblebee-mcp-scan.md",
+    "pin:cc57710eeaf685e7b89924a36c8583cad0a378fe",
+    "eval/ev1107/bumblebee/REPORT.md",
+    "eval/ev1107/bumblebee/VERDICT",
+    "scripts/pfy_mcp_scan.py"
+  ],
   "tier_ceiling": "I1",
-  "uses": "Read-only scanner for packages and MCP configs.",
+  "uses": "Advisory read-only check for package lockfiles and MCP host configs.",
   "features": [
-    "supply chain scan"
+    "supply chain exact-match",
+    "mcp inventory",
+    "advisory wrapper"
   ],
   "potential": "medium",
-  "next_gate": "One cage probe next to write-guard, or stay I1.",
+  "next_gate": "Stay I2 until a grilled smoke runs scripts/pfy_mcp_scan.py on a fixture. Not a gate in this lane.",
   "handoff_by": "llm",
   "non_goals": [
-    "replace write-guard"
-  ]
+    "replace write-guard",
+    "pregate or CI gate",
+    "scan the real home"
+  ],
+  "notes_doc": "docs/ops/bumblebee-mcp-scan.md",
+  "pin": "cc57710eeaf685e7b89924a36c8583cad0a378fe",
+  "entry": "sources/entries/069-bumblebee.md"
 }

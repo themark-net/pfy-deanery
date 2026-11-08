@@ -1,0 +1,1 @@
+PROMOTE I2 exact-match supply-chain scan works, and the advisory wrapper covers git MCP selectors and secret-like env keys, but the check is not on the pipeline
