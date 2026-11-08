@@ -109,24 +109,19 @@ def _failed(case: dict) -> bool:
 
 
 def score_planted(report: dict) -> dict:
-    """Which of the 4 planted defects produced a failed case."""
+    """Which of the 4 planted defects produced a failed case.
+
+    A hidden control that only shows up in the surface list is not caught.
+    The case has to fail.
+    """
     cases = [c for c in (report.get("cases") or []) if isinstance(c, dict)]
-    surface = report.get("surface") if isinstance(report.get("surface"), list) else []
     visible = any(_failed(c) and "undefinedFn" in _blob(c) for c in cases)
     dead = any(_failed(c) and _clicked(c, "#dead") for c in cases)
     fail_text = any(_failed(c) and _clicked(c, "#failpaint") for c in cases)
-    hidden = False
-    for item in surface:
-        if not isinstance(item, dict):
-            continue
-        label = str(item.get("selector") or "") + " " + str(item.get("label") or "")
-        if "hidden-throw" in label or "hiddenBoom" in label:
-            hidden = True
-    if not hidden:
-        hidden = any(
-            _failed(c) and ("hiddenBoom" in _blob(c) or "#hidden-throw" in _blob(c))
-            for c in cases
-        )
+    hidden = any(
+        _failed(c) and ("hiddenBoom" in _blob(c) or "#hidden-throw" in _blob(c))
+        for c in cases
+    )
     items = {
         "visible-throw": visible,
         "dead-button": dead,

@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """Drive the assay probe with a stub binary. No network and no Chromium.
 
-A stub that says the page works must not count as help. A stub that fails
-all four planted defects must. A missing binary must not write a result.
+A stub that says the page works must not count as help. A stub that only
+lists the hidden control, and passes that click, must not count it. A stub
+that fails all four planted defects must. A missing binary must not write
+a result.
 """
 
 from __future__ import annotations
 
 import json
-import os
 import stat
 import subprocess
 import sys
@@ -187,6 +188,20 @@ class AssayProbeTest(unittest.TestCase):
             self.assertEqual(body["operator"]["markup_controls"], 4)
             self.assertEqual(body["operator"]["markup_hidden"], 3)
             self.assertEqual(body["operator"]["markup_visible"], 1)
+
+            listed = dict(RECOVER)
+            listed_cases = [dict(case) for case in RECOVER["cases"]]
+            listed_cases[3] = dict(listed_cases[3], outcome="passed", detail="", rules=[])
+            listed["cases"] = listed_cases
+            listed_bin = folder / "listed-assay"
+            _stub(listed_bin, listed)
+            listed_out = folder / "listed.json"
+            listed_run = self._run(str(listed_bin), folder, listed_out)
+            self.assertEqual(listed_run.returncode, 1, listed_run.stderr)
+            listed_body = json.loads(listed_out.read_text(encoding="utf-8"))
+            self.assertFalse(listed_body["helps"])
+            self.assertFalse(listed_body["planted"]["items"]["hidden-throw"])
+            self.assertEqual(listed_body["planted"]["caught"], 3)
 
             recover_bin = folder / "recover-assay"
             _stub(recover_bin, RECOVER)
