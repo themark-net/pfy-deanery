@@ -1,14 +1,24 @@
 {
   "name": "multi-agent-generator",
   "integration_stage": "I0",
-  "intent": "watch",
+  "intent": "design_reference",
   "github": "https://github.com/aakriti1318/multi-agent-generator",
-  "notes_doc": "sources/entries/079-multi-agent-generator.md",
+  "entry": "sources/entries/079-multi-agent-generator.md",
+  "notes_doc": "eval/evq1107/multi-agent-generator/REPORT.md",
+  "pin": "2bf55b5a665340295ab8d3fc28e684cbc9256c06",
+  "license": "MIT",
+  "version": "1.0.0",
   "non_goals": [
     "pipeline hard dependency",
-    "pipeline dependency"
+    "pipeline dependency",
+    "install",
+    "code_copy",
+    "gate_wiring",
+    "feature_go",
+    "second loop runtime",
+    "shell or python exec tools"
   ],
-  "next_gate": "Stay I0.",
+  "next_gate": "Stay I0 reference. Reopen only if a later ticket adds a pattern name to /agent-loops and still does not install this package. Gap B stays the pfy build timeout. No gate wiring. Not a Feature GO.",
   "catalog_tier": "B",
   "catalog_overall": "79",
   "catalog_tags": [
@@ -25,12 +35,18 @@
     "i0_explicit"
   ],
   "evidence": [
-    "notes_doc:sources/entries/079-multi-agent-generator.md"
+    "entry:sources/entries/079-multi-agent-generator.md",
+    "notes_doc:sources/entries/079-multi-agent-generator.md",
+    "pin:2bf55b5a665340295ab8d3fc28e684cbc9256c06",
+    "eval/evq1107/multi-agent-generator/REPORT.md",
+    "eval/evq1107/multi-agent-generator/VERDICT"
   ],
   "tier_ceiling": "I0",
-  "uses": "Scaffolds CrewAI or LangGraph teams. The note already says I0.",
+  "uses": "Emits CrewAI, LangGraph, ReAct, or Agno team source from one sentence. Reference read only.",
   "features": [
-    "team scaffold"
+    "five pattern templates",
+    "LiteLLM provider flag",
+    "JSON or code emit"
   ],
   "potential": "low",
   "handoff_by": "llm"
