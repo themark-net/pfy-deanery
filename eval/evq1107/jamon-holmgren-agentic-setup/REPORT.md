@@ -25,7 +25,7 @@ Leave these out: a cheaper-model precommit fixer, a screenshot-diff product, and
 
 ## Catalog comparison
 
-Same job: setup patterns (router, workflow skill, session notes, loops). A scan of uses, features, and catalog_tags for workflow, agents-md, agents.md, persona, worksheet, or night hit 7 cards besides this one: gstack, Multica, Auto-Company, OpenContext, repository-harness, Ruben Hassid, and runx. OpenContext is a context store. Ruben Hassid is prompt notes. runx seals a skill-run receipt. Broader harness or process tokens hit 11 more cards, including project-process (I3), agent-cage (I3), Harness Score (I0), and harness2 (I1). The table is the close set, plus the skill-path covers the scan misses. `docs/eval/TOOLSET-RANKING.md` (2026-11-07) says no entry from 137 to 167 closes gap B. Entry 007 is older than that list. This lane builds no pipeline, CI, or gate.
+Same job: setup patterns (router, workflow skill, session notes, loops). A whole-token scan of uses, features, and catalog_tags for workflow, agents-md, agents.md, persona, worksheet, or night hit 6 cards besides this one: gstack, Multica, Auto-Company, repository-harness, Ruben Hassid, and runx. Ruben Hassid is prompt notes. runx seals a skill-run receipt. Broader harness or process tokens hit 11 more cards, including project-process (I3), agent-cage (I3), Harness Score (I0), and harness2 (I1). The table is the close set, plus the skill-path covers the scan misses. `docs/eval/TOOLSET-RANKING.md` (2026-11-07) says no entry from 137 to 167 closes gap B. Entry 007 is older than that list. This lane builds no pipeline, CI, or gate.
 
 | Tool | Stage | How this post compares |
 | --- | --- | --- |
