@@ -58,6 +58,8 @@ The agreement call drops `--change-impact-no-tests` and adds `--change-impact-fu
 
 Window: the same 10 first-parent commits as `eval/ev1107/chiasmus/results.json` (origin/main at `9d3688718e96`). This probe re-ran `scripts/test_select.py` on those shas. Full mode is now 189 tests. The chiasmus trial recorded 181, 180, and 176 on those three full rows. The agree/disagree flags for codebase-memory and chiasmus are copied from that trial. Counts below for Tree-sitter Analyzer and test_select are from this run.
 
+The cold commit is listed first. The other rows follow the chiasmus window order.
+
 | sha | mode | test_select | cbm | chiasmus | tsa | agree | cbm agree | chiasmus agree | full s |
 |---|---|---:|---:|---:|---:|---|---|---|---:|
 | 56f6df154eee | affected | 1 | 1 | 139 | 1 | yes | yes | no | 13.464 |
@@ -81,7 +83,9 @@ Agreement is set equality of `tests/test_*.py` paths. Tree-sitter Analyzer 5/10.
 
 `1868e5d1b2c5` has no Python hunks that select a single test. test_select is full (189). Tree-sitter Analyzer, codebase-memory, and chiasmus all return no tests.
 
-On the four full rows, Tree-sitter Analyzer returns 0, 4, 19, and 2 tests. codebase-memory returned 0, 2, 8, and 1. Chiasmus returned 0, 145, 173, and 170. `only_tsa` is 0 on all 10 commits: every test Tree-sitter Analyzer named is inside the test_select set. On a full row that set is the whole suite, so a short list still disagrees. Chiasmus added tests outside the import graph. Tree-sitter Analyzer did not, on this window.
+On the four full rows, Tree-sitter Analyzer returns 0, 4, 19, and 2 tests. codebase-memory returned 0, 2, 8, and 1. Chiasmus returned 0, 145, 173, and 170. `only_tsa` is 0 on all 10 commits: every test Tree-sitter Analyzer named is inside the test_select set. On a full row that set is the whole suite, so a short list still disagrees. On the affected rows, chiasmus added tests the diff does not import (139, 19, and 39). Tree-sitter Analyzer added none.
+
+The build keeps `paths[:20]`. `9bfc82fcf66c` changed 32 files and `dd861e01cc8b` changed 26. The agreement calls passed every path. The wired fallback would drop the rest, and the repeated scope flag would then keep only the last of those 20.
 
 `affected_count` in the JSON was 0 on all 10 commits. The scored set is `tests_to_run`.
 
