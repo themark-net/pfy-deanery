@@ -1,19 +1,39 @@
 {
   "name": "agentplay",
   "integration_stage": "I0",
-  "intent": "awareness",
+  "intent": "design_reference",
   "entry": "sources/entries/160-agentplay.md",
   "github": "https://github.com/Entelligence-AI/agentplay",
-  "uses": "Session replay map.",
+  "pin": "ff5f83e37063a38ec55ab7dd2b0fcdc435f4a72c",
+  "license": "Apache-2.0",
+  "version": "0.2.6",
+  "uses": "Redacted session replay map and timeline. Reference read only.",
+  "features": [
+    "redacted session map",
+    "file touch levels",
+    "retry and compaction counters",
+    "loopback viewer",
+    "nine agent parsers and no Grok reader"
+  ],
   "potential": "low",
-  "next_gate": "No Grok Build transcript reader.",
+  "next_gate": "Stay I0 reference. Re-open only if a later ticket names a Grok Build reader for ~/.grok/sessions and still keeps scoring on skill-up. No install, no viewer, no fix or autotune, no code copy, no gate. H1 stays the with/without score. Not a Feature GO.",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",
-    "catalog_hold_70_75"
+    "catalog_hold_70_75",
+    "install",
+    "viewer",
+    "code_copy",
+    "grok_parser_port",
+    "fix_or_autotune",
+    "gate_wiring"
   ],
   "evidence": [
-    "entry:sources/entries/160-agentplay.md"
+    "entry:sources/entries/160-agentplay.md",
+    "pin:ff5f83e37063a38ec55ab7dd2b0fcdc435f4a72c",
+    "version:0.2.6",
+    "eval/evq1107/agentplay/REPORT.md",
+    "eval/evq1107/agentplay/VERDICT"
   ],
   "handoff_by": "llm"
 }
