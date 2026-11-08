@@ -1,0 +1,113 @@
+{
+  "binary_bytes": 1914920,
+  "binary_sha256": "68b6a51e40cd8e229f1f056c2aa5ea93de7934f746dcf8dd38e3b7d9dd4ee397",
+  "seed_files": [
+    "docs/DESIGN.md",
+    "docs/adr/README.md",
+    "docs/TODO.md",
+    "docs/OPEN_QUESTIONS.md",
+    "docs/QUICKSTART-pfy-build.md",
+    "docs/PENDING-HANDOFF.md",
+    "AGENTS.md",
+    "docs/plans/MVP-1031-STATUS.md",
+    "docs/plans/MVP-PARALLEL-1031-lanes.tsv",
+    "docs/plans/MVP-PARALLEL-1031.md",
+    "docs/plans/hermes-bot-interface.md"
+  ],
+  "dry_run": {
+    "rc": 0,
+    "seconds": 0.001,
+    "timeout": false,
+    "payload_paths": 26,
+    "payload_files_already_in_repo": [
+      "AGENTS.md"
+    ],
+    "payload_paths_whose_parent_is_nonempty": [
+      "docs/WORKFLOW.md",
+      "docs/README.md",
+      "docs/plans/README.md"
+    ],
+    "empty_dir_entries_after_dry_run": [
+      ".git"
+    ]
+  },
+  "project_process": {
+    "ran": true,
+    "rc": 0,
+    "seconds": 0.031,
+    "dry_run_skip": 5,
+    "dry_run_write": 3,
+    "template_files": 8,
+    "template_files_already_in_repo": 6
+  },
+  "install": {
+    "rc": 0,
+    "seconds": 0.015,
+    "timeout": false,
+    "applied": true,
+    "version": "0.1.10",
+    "kinds": {
+      "adopt": 1,
+      "create": 25,
+      "other": 0
+    },
+    "agents_sha_same": true,
+    "preexisting_changed": [],
+    "plans_total": 4,
+    "plans_changed": [],
+    "stderr": ""
+  },
+  "authority": {
+    "paths": [
+      "docs/DESIGN.md",
+      "docs/adr/README.md",
+      "docs/TODO.md",
+      "docs/OPEN_QUESTIONS.md",
+      "docs/QUICKSTART-pfy-build.md",
+      "docs/PENDING-HANDOFF.md"
+    ],
+    "in_agents": [
+      "docs/DESIGN.md",
+      "docs/adr/README.md",
+      "docs/TODO.md",
+      "docs/OPEN_QUESTIONS.md",
+      "docs/PENDING-HANDOFF.md"
+    ],
+    "in_new_map": []
+  },
+  "update": {
+    "rc": 0,
+    "seconds": 1.35,
+    "timeout": false,
+    "applied": true,
+    "from_version": "0.1.10",
+    "to_version": "0.1.10",
+    "conflicts": 0,
+    "planted": [
+      "AGENTS.md",
+      "docs/WORKFLOW.md"
+    ],
+    "marker_hits": {
+      "AGENTS.md": 1,
+      "docs/README.md": 0,
+      "docs/WORKFLOW.md": 1
+    },
+    "markers_kept": 2,
+    "agents_keeps_pre_update_body": true,
+    "stderr": ""
+  },
+  "doctor": {
+    "rc": 0,
+    "seconds": 0.003,
+    "timeout": false,
+    "healthy": true,
+    "stderr": ""
+  },
+  "status": {
+    "rc": 0,
+    "seconds": 0.002,
+    "timeout": false,
+    "modified": 2,
+    "stderr": ""
+  }
+}

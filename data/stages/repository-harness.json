@@ -1,0 +1,36 @@
+{
+  "name": "repository-harness",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/100-repository-harness.md",
+  "github": "https://github.com/hoangnb24/repository-harness",
+  "pin": "harness-v0.1.10 e765792b635b4d5e3e5fc0578f82f9ca5dea2681",
+  "sha256": "68b6a51e40cd8e229f1f056c2aa5ea93de7934f746dcf8dd38e3b7d9dd4ee397",
+  "uses": "Install a repository map and four skills beside an existing AGENTS.md, then keep local lines on a later same-version core update.",
+  "features": [
+    "adopt an existing AGENTS.md",
+    "same-version update keeps local lines",
+    "doctor",
+    "status flags modified files"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I0. The new map named 0 of 6 authority paths. AGENTS.md already names 5 of 6. project-process already has 6 of 8 template files in this repo. Re-open only if a newer pin changes a line this repo already edited and the merge keeps that line. Do not install into this repo. No gate wiring. Not a Feature GO.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "gate_wiring",
+    "install into pfy-mentat",
+    "curl pipe bash",
+    "engineering-wisdom payload"
+  ],
+  "evidence": [
+    "entry:sources/entries/100-repository-harness.md",
+    "pin:harness-v0.1.10",
+    "sha256:68b6a51e40cd8e229f1f056c2aa5ea93de7934f746dcf8dd38e3b7d9dd4ee397",
+    "eval/evq1107/repository-harness/REPORT.md",
+    "eval/evq1107/repository-harness/VERDICT",
+    "eval/evq1107/repository-harness/results.json"
+  ],
+  "handoff_by": "llm"
+}

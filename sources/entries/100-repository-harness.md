@@ -19,4 +19,4 @@
 | Overlap with our docs | Its `docs/` layout collides with pfy-mentat's existing docs tree | Only trial on a scratch copy; a merge decision about layout is a design call, not automatic |
 | Generic binary name | Some other `harness` on PATH answers and the JSON checks fail | Set `$HARNESS_BIN` explicitly; the smoke records which binary it ran |
 
-- **Status**: Cataloged I0. Verified on the Grok Bot box; not installed on nimo.
+- **Status**: STAY I0. nimo probe in eval/evq1107/repository-harness/REPORT.md. Pinned harness-v0.1.10 sha256 68b6a51e40cd8e229f1f056c2aa5ea93de7934f746dcf8dd38e3b7d9dd4ee397. The new map named 0 of 6 authority paths. Not installed into this repo.
