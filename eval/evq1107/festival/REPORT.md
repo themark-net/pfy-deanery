@@ -36,7 +36,7 @@ It does not beat what we have.
 | camp | v0.14.0, commit `4aaf41aca025edb5ece63443bd0e2f343cdc6c2d`, 36,065,464 bytes, sha256 `550df7ee2716d0cc298d5e6f571cb719b9b611eafe4861c55d9e0e945cf20464` |
 | Templates | `fest system sync --tag v0.9.5 --force`. A bare `fest init --minimal` first resolved the stable channel to v0.10.1. The measured run used the v0.9.5 templates. |
 | Install | `~/.cache/pfy/tools/festival/` (82 MB). `HOME`, `XDG_*`, and `TMPDIR` point under that directory. No brew, no `npm install -g`, no `festival update`, no shell-init. |
-| Isolation | Real `~/.obey` and `~/campaigns` stayed absent. This worktree has no `.camp` file. The linked project was `projects/probe-notes` inside the camp, not this repo. |
+| Isolation | Real `~/.obey` and `~/campaigns` stayed absent. This worktree has no `.camp` file. `fest link` was not used. The sequence `fest_working_dir` is `projects/probe-notes` inside the camp. |
 
 ## Commands
 
@@ -45,11 +45,12 @@ It does not beat what we have.
 # under ~/.cache/pfy/tools/festival/unpack/. HOME and the XDG dirs stay under
 # that cache path. Put unpack/ on PATH.
 camp create probe -d "festival eval probe" -m "measure fest next on one backlog slice"
+cd ~/.cache/pfy/tools/festival/home/campaigns/probe
 fest init --minimal --no-checksums
-# From the camp root. That init synced the stable channel (v0.10.1).
+# That init synced the stable channel (v0.10.1). Pin the templates and re-init.
 fest system sync --tag v0.9.5 --force
 rm -rf festivals && fest init --minimal --no-checksums
-# Back in this worktree.
+# Then, from this worktree:
 python3 eval/evq1107/festival/probe.py
 ```
 
