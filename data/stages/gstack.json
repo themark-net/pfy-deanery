@@ -17,14 +17,18 @@
     "docs_only",
     "pattern_only"
   ],
-  "evidence": [],
+  "evidence": [
+    "eval/evq1107/gstack/REPORT.md",
+    "eval/evq1107/gstack/VERDICT",
+    "pin:7c9df1c568a9ea745508f679a329332b2c338063"
+  ],
   "tier_ceiling": "I1",
-  "uses": "Role patterns already ported in docs. Do not clone the repo.",
+  "uses": "Role patterns already ported in docs/ops/gstack-role-recipes.md. Do not clone the repo.",
   "features": [
     "roles"
   ],
   "potential": "low",
-  "next_gate": "Stay I1, patterns only.",
+  "next_gate": "Stay I1 reference. Patterns live in docs/ops/gstack-role-recipes.md (T-0014) and the investigate skill (T-0017). Re-open only if a later ticket shows the pin contradicts that note. No install, no gate. Gap B stays the pfy build timeout. Not a Feature GO.",
   "handoff_by": "llm",
   "non_goals": [
     "clone garrytan/gstack",

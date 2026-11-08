@@ -120,7 +120,7 @@ Log of X (Twitter) posts used to seed or expand the tool catalog. Each entry inc
 - **Extracted Repos / Tools**: Primary: https://github.com/garrytan/gstack (MIT). 23+ slash-command skills embodying distinct roles and methodologies; power tools for orchestration, safety, browser automation, memory. Install via simple git clone + ./setup into ~/.claude/skills/ or equivalent for other hosts.
 - **TOOLS.md Link**: Row **gstack** (A-tier). Integration is **docs-first** (T-0014): `docs/ops/gstack-role-recipes.md` + AGENTS.md role router — not a skills.paths full embed (ADR-0009).
 - **Notes**: Role specialization + Think→Plan→Build→Review→Test→Ship→Reflect is the portable value. Complements marketing-council (T-0011 first-party), mattpocock paths subset (tdd/code-review/to-spec), one-shot, cage smokes. **Do not** clone full gstack into this catalog. **2026-07-12 deeper-port eval:** raw skills.paths blocked (Claude harness); comparison attrs in `docs/ops/gstack-skill-port-comparison.md`; single-skill recommendation = first-party **investigate** RCA method rewrite (T-0017), not rsync.
-- **Status**: Triple-write complete; T-0014 docs recipes + deeper-port comparison shipped 2026-07-12
+- **Status**: STAY I1 reference (read 2026-11-07). Pin `7c9df1c568a9ea745508f679a329332b2c338063` is v1.60.1.0, MIT. HEAD `d479c5bf1efed979297dc4498c60aef7b67aa639` is v1.98.0.0, still MIT, no Grok host. Patterns already in `docs/ops/gstack-role-recipes.md` (T-0014) and the investigate skill (T-0017). No install, no code copy. Gap B is unchanged. Receipt: `eval/evq1107/gstack/REPORT.md`. No Feature GO.
 
 ### Entry 011: agent-cage (PNNL) — Docker sandbox harness with MCP (operator-selected)
 
