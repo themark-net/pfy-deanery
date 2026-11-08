@@ -1,0 +1,36 @@
+{
+  "name": "Harness Score",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/128-harness-score.md",
+  "github": "https://github.com/paladini/harness-score",
+  "pin": "70a0ecc1aa907faf1f7a99a919eb88122f9a328d",
+  "tarball_sha256": "816c6362704e73111801cfce3861a189c2494868d0a95b4aa7883ca29a0b94c2",
+  "uses": "Offline L0-L4 grade of repo harness files: context, skills, hooks, sensors, CI, and hygiene.",
+  "features": [
+    "36 filesystem checks",
+    "L0-L4 level",
+    "json report",
+    "min-level exit"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I0. Re-open only if a pinned version scores .grok/skills and the level moves when that tree is removed. This probe stayed L1 (48/105 with the tree, 41/105 without it) and skills stayed 0/17. No gate wiring. Not a Feature GO.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "cursor plugin",
+    "github action",
+    "min-level gate",
+    "score chasing"
+  ],
+  "evidence": [
+    "entry:sources/entries/128-harness-score.md",
+    "pin:70a0ecc1aa907faf1f7a99a919eb88122f9a328d",
+    "tarball_sha256:816c6362704e73111801cfce3861a189c2494868d0a95b4aa7883ca29a0b94c2",
+    "eval/evq1107/harness-score/REPORT.md",
+    "eval/evq1107/harness-score/VERDICT",
+    "eval/evq1107/harness-score/summary.json"
+  ],
+  "handoff_by": "llm"
+}

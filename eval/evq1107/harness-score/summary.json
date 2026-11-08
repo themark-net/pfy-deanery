@@ -1,0 +1,918 @@
+{
+  "package": "harness-score",
+  "version": "1.8.2",
+  "git_commit": "70a0ecc1aa907faf1f7a99a919eb88122f9a328d",
+  "tarball_sha256": "816c6362704e73111801cfce3861a189c2494868d0a95b4aa7883ca29a0b94c2",
+  "tarball_bytes": 37355,
+  "node": "v22.23.0",
+  "with": {
+    "label": "worktree",
+    "exit": 0,
+    "seconds": 0.0556,
+    "stdout_sha256": "d391c13398273b44f955f321d15e1fd0abe7cb78ffc7a380c93ac00badc4ebf2",
+    "stdout_bytes": 45407,
+    "stderr": "",
+    "tool": {
+      "name": "harness-score",
+      "version": "1.8.2"
+    },
+    "level_index": 1,
+    "level_name": "Documented",
+    "next_level_gaps": [
+      "skills \u2265 30% or hooks \u2265 30%"
+    ],
+    "score": {
+      "earned": 48,
+      "max": 105,
+      "percent": 46
+    },
+    "detected_harnesses": [
+      "codex"
+    ],
+    "verdicts": {
+      "maturity": {
+        "status": "complete",
+        "reasons": []
+      },
+      "effective": {
+        "status": "complete",
+        "reasons": []
+      }
+    },
+    "truncated": false,
+    "dimensions": [
+      {
+        "id": "context",
+        "earned": 20,
+        "max": 20,
+        "percent": 100
+      },
+      {
+        "id": "skills",
+        "earned": 0,
+        "max": 17,
+        "percent": 0
+      },
+      {
+        "id": "hooks",
+        "earned": 0,
+        "max": 14,
+        "percent": 0
+      },
+      {
+        "id": "sensors",
+        "earned": 2,
+        "max": 20,
+        "percent": 10
+      },
+      {
+        "id": "ci",
+        "earned": 8,
+        "max": 14,
+        "percent": 57
+      },
+      {
+        "id": "hygiene",
+        "earned": 18,
+        "max": 20,
+        "percent": 90
+      }
+    ],
+    "passed": 17,
+    "failed": 19,
+    "check_count": 36,
+    "checks": [
+      {
+        "id": "CTX-01",
+        "dimension": "context",
+        "passed": true,
+        "applicable": true,
+        "points": 4,
+        "earned": 4,
+        "title": "Agent context file present (AGENTS.md)",
+        "evidence": "Found AGENTS.md at repository root."
+      },
+      {
+        "id": "CTX-02",
+        "dimension": "context",
+        "passed": true,
+        "applicable": true,
+        "points": 3,
+        "earned": 3,
+        "title": "Agent context file is substantive",
+        "evidence": "AGENTS.md: 136 non-empty lines, 32 headings (needs \u226520 lines and \u22652 headings)."
+      },
+      {
+        "id": "CTX-03",
+        "dimension": "context",
+        "passed": true,
+        "applicable": true,
+        "points": 4,
+        "earned": 4,
+        "title": "Scoped rules in use",
+        "evidence": "Found 1 rule(s) (codex): bootstrap/project-process/templates/AGENTS.md"
+      },
+      {
+        "id": "CTX-04",
+        "dimension": "context",
+        "passed": true,
+        "applicable": true,
+        "points": 3,
+        "earned": 3,
+        "title": "Rules have valid frontmatter",
+        "evidence": "All 1 rule(s) declare usable frontmatter."
+      },
+      {
+        "id": "CTX-05",
+        "dimension": "context",
+        "passed": true,
+        "applicable": true,
+        "points": 2,
+        "earned": 2,
+        "title": "Rules are scoped, not all always-on",
+        "evidence": "1 rule(s): 1 path-scoped, 0 always-on."
+      },
+      {
+        "id": "CTX-06",
+        "dimension": "context",
+        "passed": true,
+        "applicable": true,
+        "points": 2,
+        "earned": 2,
+        "title": "No bloated rules (\u2264500 lines each)",
+        "evidence": "All 1 rule(s) are \u2264500 lines."
+      },
+      {
+        "id": "CTX-07",
+        "dimension": "context",
+        "passed": true,
+        "applicable": true,
+        "points": 1,
+        "earned": 1,
+        "title": "README present",
+        "evidence": "README.md found at repository root."
+      },
+      {
+        "id": "CTX-08",
+        "dimension": "context",
+        "passed": true,
+        "applicable": true,
+        "points": 1,
+        "earned": 1,
+        "title": "No legacy .cursorrules file",
+        "evidence": "No deprecated .cursorrules file."
+      },
+      {
+        "id": "SKL-01",
+        "dimension": "skills",
+        "passed": false,
+        "applicable": true,
+        "points": 4,
+        "earned": 0,
+        "title": "At least one agent skill defined",
+        "evidence": "No SKILL.md under .cursor/skills/, .claude/skills/, .devin/skills/, .agents/skills/, or a plugin skills/ directory at the scan root."
+      },
+      {
+        "id": "SKL-02",
+        "dimension": "skills",
+        "passed": false,
+        "applicable": true,
+        "points": 3,
+        "earned": 0,
+        "title": "Skills declare name and description",
+        "evidence": "No skills found to validate."
+      },
+      {
+        "id": "SKL-03",
+        "dimension": "skills",
+        "passed": false,
+        "applicable": true,
+        "points": 3,
+        "earned": 0,
+        "title": "Explicit workflows/commands defined",
+        "evidence": "No command/workflow files found (.cursor/commands, .windsurf/workflows, .claude/commands, .continue/prompts, plugin commands/, \u2026)."
+      },
+      {
+        "id": "SKL-04",
+        "dimension": "skills",
+        "passed": false,
+        "applicable": true,
+        "points": 2,
+        "earned": 0,
+        "title": "Skill descriptions are trigger-worthy",
+        "evidence": "No skills found."
+      },
+      {
+        "id": "AGT-01",
+        "dimension": "skills",
+        "passed": false,
+        "applicable": true,
+        "points": 3,
+        "earned": 0,
+        "title": "Custom subagent defined",
+        "evidence": "No subagent files found (.cursor/agents, .claude/agents, .opencode/agents, or plugin agents/)."
+      },
+      {
+        "id": "AGT-02",
+        "dimension": "skills",
+        "passed": false,
+        "applicable": true,
+        "points": 2,
+        "earned": 0,
+        "title": "Subagents declare name and description",
+        "evidence": "No subagents found to validate."
+      },
+      {
+        "id": "HKS-01",
+        "dimension": "hooks",
+        "passed": false,
+        "applicable": true,
+        "points": 4,
+        "earned": 0,
+        "title": "Hooks configuration present and valid JSON",
+        "evidence": "No .cursor/hooks.json, .claude/settings.json hooks key, plugin hooks/hooks.json, .devin/hooks.v1.json, or .devin/config.json hooks key found."
+      },
+      {
+        "id": "HKS-02",
+        "dimension": "hooks",
+        "passed": false,
+        "applicable": true,
+        "points": 2,
+        "earned": 0,
+        "title": "Hook events and handlers are structurally valid",
+        "evidence": "No parseable hooks configuration."
+      },
+      {
+        "id": "HKS-03",
+        "dimension": "hooks",
+        "passed": false,
+        "applicable": true,
+        "points": 4,
+        "earned": 0,
+        "title": "Gate hook guards risky operations",
+        "evidence": "No parseable hooks configuration."
+      },
+      {
+        "id": "HKS-04",
+        "dimension": "hooks",
+        "passed": false,
+        "applicable": true,
+        "points": 2,
+        "earned": 0,
+        "title": "Feedback hook observes agent output",
+        "evidence": "No parseable hooks configuration."
+      },
+      {
+        "id": "HKS-05",
+        "dimension": "hooks",
+        "passed": false,
+        "applicable": true,
+        "points": 2,
+        "earned": 0,
+        "title": "Hook scripts exist in the repository",
+        "evidence": "No parseable hooks configuration."
+      },
+      {
+        "id": "SNS-01",
+        "dimension": "sensors",
+        "passed": false,
+        "applicable": true,
+        "points": 6,
+        "earned": 0,
+        "title": "Test runner configured",
+        "evidence": "Found 258 test file(s), e.g. eval/local-build/fixtures/t01-fix-off-by-one/tests/__init__.py, but no test runner or standard entry point detected."
+      },
+      {
+        "id": "SNS-02",
+        "dimension": "sensors",
+        "passed": false,
+        "applicable": true,
+        "points": 5,
+        "earned": 0,
+        "title": "Linter configured",
+        "evidence": "No linter configuration detected."
+      },
+      {
+        "id": "SNS-03",
+        "dimension": "sensors",
+        "passed": false,
+        "applicable": true,
+        "points": 4,
+        "earned": 0,
+        "title": "Type checking in place",
+        "evidence": "No language ecosystem detected, and no type-checker configuration found."
+      },
+      {
+        "id": "SNS-04",
+        "dimension": "sensors",
+        "passed": false,
+        "applicable": true,
+        "points": 3,
+        "earned": 0,
+        "title": "Formatter configured",
+        "evidence": "No formatter configuration detected."
+      },
+      {
+        "id": "SNS-05",
+        "dimension": "sensors",
+        "passed": true,
+        "applicable": true,
+        "points": 2,
+        "earned": 2,
+        "title": "Test files actually exist",
+        "evidence": "Found 258 test file(s), e.g. eval/local-build/fixtures/t01-fix-off-by-one/tests/__init__.py."
+      },
+      {
+        "id": "CI-01",
+        "dimension": "ci",
+        "passed": true,
+        "applicable": true,
+        "points": 4,
+        "earned": 4,
+        "title": "CI pipeline configured",
+        "evidence": "Found: .github/workflows/eval-structural.yml, .github/workflows/filemode-operator-scripts.yml, .github/workflows/full-suite-nightly.yml."
+      },
+      {
+        "id": "CI-02",
+        "dimension": "ci",
+        "passed": true,
+        "applicable": true,
+        "points": 4,
+        "earned": 4,
+        "title": "CI runs the test suite",
+        "evidence": "CI invokes tests (\"pytest\")."
+      },
+      {
+        "id": "CI-03",
+        "dimension": "ci",
+        "passed": false,
+        "applicable": true,
+        "points": 3,
+        "earned": 0,
+        "title": "CI runs lint / type checks",
+        "evidence": "CI configuration does not appear to run lint or type checks."
+      },
+      {
+        "id": "CI-04",
+        "dimension": "ci",
+        "passed": false,
+        "applicable": true,
+        "points": 3,
+        "earned": 0,
+        "title": "Pre-commit checks installed",
+        "evidence": "No pre-commit hook tooling detected."
+      },
+      {
+        "id": "HYG-01",
+        "dimension": "hygiene",
+        "passed": true,
+        "applicable": true,
+        "points": 2,
+        "earned": 2,
+        "title": ".gitignore present",
+        "evidence": ".gitignore found at repository root."
+      },
+      {
+        "id": "HYG-02",
+        "dimension": "hygiene",
+        "passed": true,
+        "applicable": true,
+        "points": 3,
+        "earned": 3,
+        "title": ".gitignore covers environment files",
+        "evidence": ".gitignore contains a .env pattern."
+      },
+      {
+        "id": "HYG-03",
+        "dimension": "hygiene",
+        "passed": true,
+        "applicable": true,
+        "points": 4,
+        "earned": 4,
+        "title": "No unprotected .env files in the tree",
+        "evidence": "No real .env files in the tree (templates like .env.example are fine)."
+      },
+      {
+        "id": "HYG-04",
+        "dimension": "hygiene",
+        "passed": true,
+        "applicable": true,
+        "points": 4,
+        "earned": 4,
+        "title": "MCP configuration free of credentials",
+        "evidence": "No MCP config in repository (nothing to leak)."
+      },
+      {
+        "id": "HYG-05",
+        "dimension": "hygiene",
+        "passed": false,
+        "applicable": true,
+        "points": 2,
+        "earned": 0,
+        "title": "License present",
+        "evidence": "No LICENSE file at repository root."
+      },
+      {
+        "id": "HYG-06",
+        "dimension": "hygiene",
+        "passed": true,
+        "applicable": true,
+        "points": 2,
+        "earned": 2,
+        "title": "No credential signatures in harness files",
+        "evidence": "Scanned 3 harness file(s); no credential signatures."
+      },
+      {
+        "id": "HYG-07",
+        "dimension": "hygiene",
+        "passed": true,
+        "applicable": true,
+        "points": 3,
+        "earned": 3,
+        "title": "Dependency lockfile committed",
+        "evidence": "No dependency manifest detected (nothing to lock)."
+      },
+      {
+        "id": "HYG-08",
+        "dimension": "hygiene",
+        "passed": false,
+        "applicable": false,
+        "points": 3,
+        "earned": 0,
+        "title": "MCP config uses env interpolation for credentials",
+        "evidence": "No MCP config is in use; HYG-08 does not apply."
+      }
+    ]
+  },
+  "with_rerun": {
+    "exit": 0,
+    "seconds": 0.0528,
+    "stdout_sha256": "d391c13398273b44f955f321d15e1fd0abe7cb78ffc7a380c93ac00badc4ebf2",
+    "byte_identical": true
+  },
+  "without": {
+    "label": "stripped",
+    "exit": 0,
+    "seconds": 0.0511,
+    "stdout_sha256": "239d916b0a86fb794a2d29d696a5790c514359611d390c3556c577b1e5503fb8",
+    "stdout_bytes": 45498,
+    "stderr": "",
+    "tool": {
+      "name": "harness-score",
+      "version": "1.8.2"
+    },
+    "level_index": 1,
+    "level_name": "Documented",
+    "next_level_gaps": [
+      "skills \u2265 30% or hooks \u2265 30%"
+    ],
+    "score": {
+      "earned": 41,
+      "max": 105,
+      "percent": 39
+    },
+    "detected_harnesses": [
+      "codex"
+    ],
+    "verdicts": {
+      "maturity": {
+        "status": "complete",
+        "reasons": []
+      },
+      "effective": {
+        "status": "complete",
+        "reasons": []
+      }
+    },
+    "truncated": false,
+    "dimensions": [
+      {
+        "id": "context",
+        "earned": 13,
+        "max": 20,
+        "percent": 65
+      },
+      {
+        "id": "skills",
+        "earned": 0,
+        "max": 17,
+        "percent": 0
+      },
+      {
+        "id": "hooks",
+        "earned": 0,
+        "max": 14,
+        "percent": 0
+      },
+      {
+        "id": "sensors",
+        "earned": 2,
+        "max": 20,
+        "percent": 10
+      },
+      {
+        "id": "ci",
+        "earned": 8,
+        "max": 14,
+        "percent": 57
+      },
+      {
+        "id": "hygiene",
+        "earned": 18,
+        "max": 20,
+        "percent": 90
+      }
+    ],
+    "passed": 15,
+    "failed": 21,
+    "check_count": 36,
+    "checks": [
+      {
+        "id": "CTX-01",
+        "dimension": "context",
+        "passed": false,
+        "applicable": true,
+        "points": 4,
+        "earned": 0,
+        "title": "Agent context file present (AGENTS.md)",
+        "evidence": "No AGENTS.md, CLAUDE.md, or GEMINI.md at repository root, and no .claude/CLAUDE.md or .claude/AGENTS.md project instructions."
+      },
+      {
+        "id": "CTX-02",
+        "dimension": "context",
+        "passed": false,
+        "applicable": true,
+        "points": 3,
+        "earned": 0,
+        "title": "Agent context file is substantive",
+        "evidence": "No agent context file to evaluate."
+      },
+      {
+        "id": "CTX-03",
+        "dimension": "context",
+        "passed": true,
+        "applicable": true,
+        "points": 4,
+        "earned": 4,
+        "title": "Scoped rules in use",
+        "evidence": "Found 1 rule(s) (codex): bootstrap/project-process/templates/AGENTS.md"
+      },
+      {
+        "id": "CTX-04",
+        "dimension": "context",
+        "passed": true,
+        "applicable": true,
+        "points": 3,
+        "earned": 3,
+        "title": "Rules have valid frontmatter",
+        "evidence": "All 1 rule(s) declare usable frontmatter."
+      },
+      {
+        "id": "CTX-05",
+        "dimension": "context",
+        "passed": true,
+        "applicable": true,
+        "points": 2,
+        "earned": 2,
+        "title": "Rules are scoped, not all always-on",
+        "evidence": "1 rule(s): 1 path-scoped, 0 always-on."
+      },
+      {
+        "id": "CTX-06",
+        "dimension": "context",
+        "passed": true,
+        "applicable": true,
+        "points": 2,
+        "earned": 2,
+        "title": "No bloated rules (\u2264500 lines each)",
+        "evidence": "All 1 rule(s) are \u2264500 lines."
+      },
+      {
+        "id": "CTX-07",
+        "dimension": "context",
+        "passed": true,
+        "applicable": true,
+        "points": 1,
+        "earned": 1,
+        "title": "README present",
+        "evidence": "README.md found at repository root."
+      },
+      {
+        "id": "CTX-08",
+        "dimension": "context",
+        "passed": true,
+        "applicable": true,
+        "points": 1,
+        "earned": 1,
+        "title": "No legacy .cursorrules file",
+        "evidence": "No deprecated .cursorrules file."
+      },
+      {
+        "id": "SKL-01",
+        "dimension": "skills",
+        "passed": false,
+        "applicable": true,
+        "points": 4,
+        "earned": 0,
+        "title": "At least one agent skill defined",
+        "evidence": "No SKILL.md under .cursor/skills/, .claude/skills/, .devin/skills/, .agents/skills/, or a plugin skills/ directory at the scan root."
+      },
+      {
+        "id": "SKL-02",
+        "dimension": "skills",
+        "passed": false,
+        "applicable": true,
+        "points": 3,
+        "earned": 0,
+        "title": "Skills declare name and description",
+        "evidence": "No skills found to validate."
+      },
+      {
+        "id": "SKL-03",
+        "dimension": "skills",
+        "passed": false,
+        "applicable": true,
+        "points": 3,
+        "earned": 0,
+        "title": "Explicit workflows/commands defined",
+        "evidence": "No command/workflow files found (.cursor/commands, .windsurf/workflows, .claude/commands, .continue/prompts, plugin commands/, \u2026)."
+      },
+      {
+        "id": "SKL-04",
+        "dimension": "skills",
+        "passed": false,
+        "applicable": true,
+        "points": 2,
+        "earned": 0,
+        "title": "Skill descriptions are trigger-worthy",
+        "evidence": "No skills found."
+      },
+      {
+        "id": "AGT-01",
+        "dimension": "skills",
+        "passed": false,
+        "applicable": true,
+        "points": 3,
+        "earned": 0,
+        "title": "Custom subagent defined",
+        "evidence": "No subagent files found (.cursor/agents, .claude/agents, .opencode/agents, or plugin agents/)."
+      },
+      {
+        "id": "AGT-02",
+        "dimension": "skills",
+        "passed": false,
+        "applicable": true,
+        "points": 2,
+        "earned": 0,
+        "title": "Subagents declare name and description",
+        "evidence": "No subagents found to validate."
+      },
+      {
+        "id": "HKS-01",
+        "dimension": "hooks",
+        "passed": false,
+        "applicable": true,
+        "points": 4,
+        "earned": 0,
+        "title": "Hooks configuration present and valid JSON",
+        "evidence": "No .cursor/hooks.json, .claude/settings.json hooks key, plugin hooks/hooks.json, .devin/hooks.v1.json, or .devin/config.json hooks key found."
+      },
+      {
+        "id": "HKS-02",
+        "dimension": "hooks",
+        "passed": false,
+        "applicable": true,
+        "points": 2,
+        "earned": 0,
+        "title": "Hook events and handlers are structurally valid",
+        "evidence": "No parseable hooks configuration."
+      },
+      {
+        "id": "HKS-03",
+        "dimension": "hooks",
+        "passed": false,
+        "applicable": true,
+        "points": 4,
+        "earned": 0,
+        "title": "Gate hook guards risky operations",
+        "evidence": "No parseable hooks configuration."
+      },
+      {
+        "id": "HKS-04",
+        "dimension": "hooks",
+        "passed": false,
+        "applicable": true,
+        "points": 2,
+        "earned": 0,
+        "title": "Feedback hook observes agent output",
+        "evidence": "No parseable hooks configuration."
+      },
+      {
+        "id": "HKS-05",
+        "dimension": "hooks",
+        "passed": false,
+        "applicable": true,
+        "points": 2,
+        "earned": 0,
+        "title": "Hook scripts exist in the repository",
+        "evidence": "No parseable hooks configuration."
+      },
+      {
+        "id": "SNS-01",
+        "dimension": "sensors",
+        "passed": false,
+        "applicable": true,
+        "points": 6,
+        "earned": 0,
+        "title": "Test runner configured",
+        "evidence": "Found 258 test file(s), e.g. eval/local-build/fixtures/t01-fix-off-by-one/tests/__init__.py, but no test runner or standard entry point detected."
+      },
+      {
+        "id": "SNS-02",
+        "dimension": "sensors",
+        "passed": false,
+        "applicable": true,
+        "points": 5,
+        "earned": 0,
+        "title": "Linter configured",
+        "evidence": "No linter configuration detected."
+      },
+      {
+        "id": "SNS-03",
+        "dimension": "sensors",
+        "passed": false,
+        "applicable": true,
+        "points": 4,
+        "earned": 0,
+        "title": "Type checking in place",
+        "evidence": "No language ecosystem detected, and no type-checker configuration found."
+      },
+      {
+        "id": "SNS-04",
+        "dimension": "sensors",
+        "passed": false,
+        "applicable": true,
+        "points": 3,
+        "earned": 0,
+        "title": "Formatter configured",
+        "evidence": "No formatter configuration detected."
+      },
+      {
+        "id": "SNS-05",
+        "dimension": "sensors",
+        "passed": true,
+        "applicable": true,
+        "points": 2,
+        "earned": 2,
+        "title": "Test files actually exist",
+        "evidence": "Found 258 test file(s), e.g. eval/local-build/fixtures/t01-fix-off-by-one/tests/__init__.py."
+      },
+      {
+        "id": "CI-01",
+        "dimension": "ci",
+        "passed": true,
+        "applicable": true,
+        "points": 4,
+        "earned": 4,
+        "title": "CI pipeline configured",
+        "evidence": "Found: .github/workflows/eval-structural.yml, .github/workflows/filemode-operator-scripts.yml, .github/workflows/full-suite-nightly.yml."
+      },
+      {
+        "id": "CI-02",
+        "dimension": "ci",
+        "passed": true,
+        "applicable": true,
+        "points": 4,
+        "earned": 4,
+        "title": "CI runs the test suite",
+        "evidence": "CI invokes tests (\"pytest\")."
+      },
+      {
+        "id": "CI-03",
+        "dimension": "ci",
+        "passed": false,
+        "applicable": true,
+        "points": 3,
+        "earned": 0,
+        "title": "CI runs lint / type checks",
+        "evidence": "CI configuration does not appear to run lint or type checks."
+      },
+      {
+        "id": "CI-04",
+        "dimension": "ci",
+        "passed": false,
+        "applicable": true,
+        "points": 3,
+        "earned": 0,
+        "title": "Pre-commit checks installed",
+        "evidence": "No pre-commit hook tooling detected."
+      },
+      {
+        "id": "HYG-01",
+        "dimension": "hygiene",
+        "passed": true,
+        "applicable": true,
+        "points": 2,
+        "earned": 2,
+        "title": ".gitignore present",
+        "evidence": ".gitignore found at repository root."
+      },
+      {
+        "id": "HYG-02",
+        "dimension": "hygiene",
+        "passed": true,
+        "applicable": true,
+        "points": 3,
+        "earned": 3,
+        "title": ".gitignore covers environment files",
+        "evidence": ".gitignore contains a .env pattern."
+      },
+      {
+        "id": "HYG-03",
+        "dimension": "hygiene",
+        "passed": true,
+        "applicable": true,
+        "points": 4,
+        "earned": 4,
+        "title": "No unprotected .env files in the tree",
+        "evidence": "No real .env files in the tree (templates like .env.example are fine)."
+      },
+      {
+        "id": "HYG-04",
+        "dimension": "hygiene",
+        "passed": true,
+        "applicable": true,
+        "points": 4,
+        "earned": 4,
+        "title": "MCP configuration free of credentials",
+        "evidence": "No MCP config in repository (nothing to leak)."
+      },
+      {
+        "id": "HYG-05",
+        "dimension": "hygiene",
+        "passed": false,
+        "applicable": true,
+        "points": 2,
+        "earned": 0,
+        "title": "License present",
+        "evidence": "No LICENSE file at repository root."
+      },
+      {
+        "id": "HYG-06",
+        "dimension": "hygiene",
+        "passed": true,
+        "applicable": true,
+        "points": 2,
+        "earned": 2,
+        "title": "No credential signatures in harness files",
+        "evidence": "Scanned 2 harness file(s); no credential signatures."
+      },
+      {
+        "id": "HYG-07",
+        "dimension": "hygiene",
+        "passed": true,
+        "applicable": true,
+        "points": 3,
+        "earned": 3,
+        "title": "Dependency lockfile committed",
+        "evidence": "No dependency manifest detected (nothing to lock)."
+      },
+      {
+        "id": "HYG-08",
+        "dimension": "hygiene",
+        "passed": false,
+        "applicable": false,
+        "points": 3,
+        "earned": 0,
+        "title": "MCP config uses env interpolation for credentials",
+        "evidence": "No MCP config is in use; HYG-08 does not apply."
+      }
+    ]
+  },
+  "without_removed": [
+    "AGENTS.md",
+    ".grok",
+    "bootstrap/grok-cli/skills",
+    "bootstrap/grok-cli/skills-external",
+    "bootstrap/opencode"
+  ],
+  "skill_md_with": 68,
+  "skill_md_without": 3,
+  "min_level_2": {
+    "exit": 1,
+    "seconds": 0.0536,
+    "stderr": "harness-score: maturity L1 is below required L2 \u2014 missing: skills \u2265 30% or hooks \u2265 30%"
+  },
+  "flips": [
+    {
+      "id": "CTX-01",
+      "with": true,
+      "without": false
+    },
+    {
+      "id": "CTX-02",
+      "with": true,
+      "without": false
+    }
+  ]
+}

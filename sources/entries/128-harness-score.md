@@ -21,4 +21,4 @@
 | Local `.env` in the tree | HYG-03 fails on a dev checkout | Scan a clean worktree or CI checkout |
 | Upstream churn (minor versions add checks) | Scores move between versions | Pin the version; `--diff` flags `maturityModelChanged` |
 
-- **Status**: Cataloged I0. Smoke PASS on the Grok Bot box; not staged on nimo.
+- **Status**: STAY I0 on nimo (2026-11-07). harness-score 1.8.2 scored this clean worktree L1 Documented, 48/105 (46%), 17/36 checks, in 0.0556s. The rerun was byte-identical (0.0528s). Removing AGENTS.md and 65 SKILL.md files dropped the score to 41/105 and left the level at L1. Skills stayed 0/17. Not a gate. Receipt: `eval/evq1107/harness-score/REPORT.md`.
