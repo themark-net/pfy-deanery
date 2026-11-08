@@ -13,7 +13,7 @@
     "file touch levels",
     "retry and compaction counters",
     "loopback viewer",
-    "nine agent parsers and no Grok reader"
+    "nine transcript sources and no Grok reader"
   ],
   "potential": "low",
   "next_gate": "Stay I0 reference. Re-open only if a later ticket names a Grok Build reader for ~/.grok/sessions and still keeps scoring on skill-up. No install, no viewer, no fix or autotune, no code copy, no gate. H1 stays the with/without score. Not a Feature GO.",

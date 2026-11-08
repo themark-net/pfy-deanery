@@ -4,7 +4,7 @@ STAY I0 reference: Apache-2.0 replay map has no Grok Build reader and does not s
 
 ## What it is
 
-agentplay (Entelligence-AI/agentplay) builds one redacted `agentplay/v1` JSON map per coding-agent session and plays it in a local viewer. A map records tool calls, file touches, MCP calls, skills, subagents, and model requests in order. It stores no prompt text, tool input, tool output, or file contents. A shell command is a verb only. Paths outside a repo collapse to a bucket. The CLI is `agentplay.cli:main`. No arguments is rewritten to `view` (`cli.py`), which builds maps and opens a browser on `127.0.0.1:7317`. Other subcommands: build, list, export, import, agents, fix, repos, autotune. The agent tuple is claude-code, codex, cursor, copilot, copilot-vscode, opencode, kiro, gemini-cli, antigravity-cli. There is no `grok` name and no `AGENTPLAY_GROK_HOMES`.
+agentplay (Entelligence-AI/agentplay) builds one redacted `agentplay/v1` JSON map per coding-agent session and plays it in a local viewer. A map records tool calls, file touches, MCP calls, skills, subagents, and model requests in order. The map stores no prompt text, tool input, tool output, or file contents. A shell command is a verb only. Paths outside a repo collapse to a bucket. The CLI is `agentplay.cli:main`. No arguments is rewritten to `view` (`cli.py`), which builds maps and opens a browser on `127.0.0.1:7317`. Other subcommands: build, list, export, import, agents, fix, repos, autotune. The agent tuple is claude-code, codex, cursor, copilot, copilot-vscode, opencode, kiro, gemini-cli, antigravity-cli. There is no `grok` name and no `AGENTPLAY_GROK_HOMES`.
 
 License is Apache-2.0. Root `LICENSE`, `python/LICENSE`, and `NOTICE` say Apache 2.0, copyright 2026 Entelligence AI, Inc. `python/pyproject.toml` sets `"license": "Apache-2.0"` and version `0.2.6`. No runtime dependencies. Python >= 3.11.
 
@@ -34,7 +34,7 @@ Gap H1 in `docs/eval/TOOLSET-RANKING.md` (2026-11-07) is a repeatable with/witho
 
 Same job, already covered: skill-up I3 (with/without grade, tag `#eval`), eval-harness (pfy) I1 (feature `eval`), Harness Score I0 (grades harness files, not a session), neatroots I2 (offline rules for loops, repeated calls, and error streaks on saved traces), Agent Beacon I0 (copies a committed Grok session to JSONL; scoring calls hosted Jev), Tracekit I0 (signed tool-call records before the call), Pi-Harness I0 (trace and replay for Pi, reference only), Hermes Agent (feedback loops) I1 (memory skill, not a map). Host session layout is `docs/ops/cage-session-resumption-design.md`. `./pfy build -p` already writes a receipt with a session id. The entry records smoke PASS on 2026-11-04 for version, help, import, and list of one synthetic map. That receipt file is not in this worktree. This lane did not re-run the smoke.
 
-agentplay can read an OpenCode db and still cannot read `~/.grok/sessions`. It draws a picture. It does not add the H1 score skill-up owns.
+agentplay can read an OpenCode db and still cannot read `~/.grok/sessions`. It draws a picture. It does not add the H1 score skill-up owns. H1 memory cards that do not replay a session: ai-memory I1, OpenContext I1, cass-memory I0. codebase-memory-mcp I2 is the code graph.
 
 ## Gates
 
@@ -49,10 +49,10 @@ Modularity (all 4 for a local copy): the format doc and the agent tuple were eno
 | Risk | How it fails | How we recover |
 | --- | --- | --- |
 | Browser and email POST | A bare `agentplay` runs `view` | Do not run it. The smoke stays on version, help, import, and list, with `AGENTPLAY_NO_NETWORK=1`. |
-| Repo writes | `fix` and `autotune` may write `CLAUDE.md`, `CLAUDE.local.md`, `.claude/settings.json`, or `.claude/settings.local.json`. `autotune on` can hook Claude session start, and `--at` prints a crontab line | Do not run `fix`, `repos`, or `autotune`. This lane did not. |
+| Repo and home writes | `fix` may write repo `CLAUDE.md`, `CLAUDE.local.md`, `.claude/settings.json`, or `.claude/settings.local.json`. `autotune on` writes a SessionStart hook into `~/.claude/settings.json`. `--at` only prints a crontab line | Do not run `fix`, `repos`, or `autotune`. This lane did not. |
 | False reader | The synthetic import is treated as proof for `~/.grok` | Stay I0. The status line says there is no Grok reader. |
 | Prompt text on disk | Titles keep the first 90 characters of a prompt in `index.json` | No `AGENTPLAY_HOME` on the real home. This lane created none. |
-| Pin drift | Intake `main` was `b5fcffe`, not this pin | Keep `ff5f83e` and version 0.2.6. |
+| Pin drift | Intake `main` was `b5fcffe889933cbcf28515d2ccc9d3567b22274b`, not this pin | Keep `ff5f83e` and version 0.2.6. |
 
 ## Next gate
 
