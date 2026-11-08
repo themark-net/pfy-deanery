@@ -1,0 +1,627 @@
+{
+  "pin": {
+    "commit": "f2932199e1ef1d9f089b51d39430c87be0f560b5",
+    "jah_version": "jah 0.1.0",
+    "pyproject_sha256": "72b18f8e7741b213f5688b9b05b8cfaf41dc7f6bed6a85e910089a6ff6d43a83",
+    "src_bytes_without_git": 32616355,
+    "jah_bin": "/home/mark/.cache/pfy/tools/jevagentharness/venv/bin/jah"
+  },
+  "offline": {
+    "up": true,
+    "wall_s": 0.012,
+    "replies": [
+      {
+        "has_token": false,
+        "n_tool_calls": 1,
+        "text_head": ""
+      },
+      {
+        "has_token": false,
+        "n_tool_calls": 1,
+        "text_head": ""
+      },
+      {
+        "has_token": false,
+        "n_tool_calls": 1,
+        "text_head": ""
+      },
+      {
+        "has_token": false,
+        "n_tool_calls": 0,
+        "text_head": "done by qwen2.5-coder:7b-instruct"
+      }
+    ],
+    "steps": [
+      {
+        "step": 0,
+        "tier": "strong",
+        "reason": "first_steps",
+        "why": null,
+        "p_hard": null,
+        "decision_error": null,
+        "call_tiers": [
+          "strong"
+        ],
+        "call_models": [
+          "qwen2.5-coder:7b-instruct"
+        ],
+        "call_latency_s": [
+          0.003
+        ],
+        "latency_s": 0.004,
+        "finish_check": false
+      },
+      {
+        "step": 1,
+        "tier": "fast",
+        "reason": "routine",
+        "why": "no_signal",
+        "p_hard": 0.1,
+        "decision_error": null,
+        "call_tiers": [
+          "fast"
+        ],
+        "call_models": [
+          "qwen2.5-coder:1.5b"
+        ],
+        "call_latency_s": [
+          0.001
+        ],
+        "latency_s": 0.001,
+        "finish_check": false
+      },
+      {
+        "step": 2,
+        "tier": "strong",
+        "reason": "hard",
+        "why": "error_signal",
+        "p_hard": 0.9,
+        "decision_error": null,
+        "call_tiers": [
+          "strong"
+        ],
+        "call_models": [
+          "qwen2.5-coder:7b-instruct"
+        ],
+        "call_latency_s": [
+          0.001
+        ],
+        "latency_s": 0.001,
+        "finish_check": false
+      },
+      {
+        "step": 3,
+        "tier": "strong",
+        "reason": "finish_check",
+        "why": "no_signal",
+        "p_hard": 0.1,
+        "decision_error": null,
+        "call_tiers": [
+          "fast",
+          "strong"
+        ],
+        "call_models": [
+          "qwen2.5-coder:1.5b",
+          "qwen2.5-coder:7b-instruct"
+        ],
+        "call_latency_s": [
+          0.001,
+          0.001
+        ],
+        "latency_s": 0.002,
+        "finish_check": true
+      }
+    ],
+    "counts": {
+      "strong_calls": 3,
+      "fast_calls": 2,
+      "upstream_calls": 5
+    },
+    "first_tiers": [
+      "strong",
+      "fast",
+      "strong",
+      "fast"
+    ],
+    "log_leaks": [],
+    "stub_auth": false,
+    "stub_models": [
+      "qwen2.5-coder:7b-instruct",
+      "qwen2.5-coder:1.5b",
+      "qwen2.5-coder:7b-instruct",
+      "qwen2.5-coder:1.5b",
+      "qwen2.5-coder:7b-instruct"
+    ],
+    "stub_auth_seen": false,
+    "score": {
+      "why_ok": true,
+      "first_ok": true,
+      "reasons": [
+        "first_steps",
+        "routine",
+        "hard",
+        "finish_check"
+      ],
+      "whys": [
+        null,
+        "no_signal",
+        "error_signal",
+        "no_signal"
+      ]
+    },
+    "token": "I2"
+  },
+  "live": {
+    "token": "I2",
+    "loaded_before": [
+      "qwen2.5-coder:1.5b",
+      "qwen2.5-coder:7b-instruct"
+    ],
+    "we_loaded": [],
+    "memory": [],
+    "warmup": [
+      {
+        "model": "qwen2.5-coder:7b-instruct",
+        "skipped_warmup": true,
+        "keep_alive": null
+      },
+      {
+        "model": "qwen2.5-coder:1.5b",
+        "skipped_warmup": true,
+        "keep_alive": null
+      }
+    ],
+    "rules": {
+      "up": true,
+      "wall_s": 2.037,
+      "replies": [
+        {
+          "has_token": false,
+          "n_tool_calls": 0,
+          "text_head": "{\"name\": \"bash\", \"arguments\": {\"cmd\": \"cat data/stages/ollama.json | jq '.integration_stage'\"}}"
+        },
+        {
+          "has_token": true,
+          "n_tool_calls": 0,
+          "text_head": "I2"
+        },
+        {
+          "has_token": true,
+          "n_tool_calls": 0,
+          "text_head": "I2"
+        },
+        {
+          "has_token": true,
+          "n_tool_calls": 0,
+          "text_head": "I2"
+        }
+      ],
+      "steps": [
+        {
+          "step": 0,
+          "tier": "strong",
+          "reason": "first_steps",
+          "why": null,
+          "p_hard": null,
+          "decision_error": null,
+          "call_tiers": [
+            "strong"
+          ],
+          "call_models": [
+            "qwen2.5-coder:7b-instruct"
+          ],
+          "call_latency_s": [
+            0.878
+          ],
+          "latency_s": 0.878,
+          "finish_check": false
+        },
+        {
+          "step": 1,
+          "tier": "strong",
+          "reason": "finish_check",
+          "why": "no_signal",
+          "p_hard": 0.1,
+          "decision_error": null,
+          "call_tiers": [
+            "fast",
+            "strong"
+          ],
+          "call_models": [
+            "qwen2.5-coder:1.5b",
+            "qwen2.5-coder:7b-instruct"
+          ],
+          "call_latency_s": [
+            0.244,
+            0.287
+          ],
+          "latency_s": 0.532,
+          "finish_check": true
+        },
+        {
+          "step": 2,
+          "tier": "strong",
+          "reason": "hard",
+          "why": "error_signal",
+          "p_hard": 0.9,
+          "decision_error": null,
+          "call_tiers": [
+            "strong"
+          ],
+          "call_models": [
+            "qwen2.5-coder:7b-instruct"
+          ],
+          "call_latency_s": [
+            0.246
+          ],
+          "latency_s": 0.246,
+          "finish_check": false
+        },
+        {
+          "step": 3,
+          "tier": "strong",
+          "reason": "finish_check",
+          "why": "no_signal",
+          "p_hard": 0.1,
+          "decision_error": null,
+          "call_tiers": [
+            "fast",
+            "strong"
+          ],
+          "call_models": [
+            "qwen2.5-coder:1.5b",
+            "qwen2.5-coder:7b-instruct"
+          ],
+          "call_latency_s": [
+            0.146,
+            0.229
+          ],
+          "latency_s": 0.376,
+          "finish_check": true
+        }
+      ],
+      "counts": {
+        "strong_calls": 4,
+        "fast_calls": 2,
+        "upstream_calls": 6
+      },
+      "first_tiers": [
+        "strong",
+        "fast",
+        "strong",
+        "fast"
+      ],
+      "log_leaks": [],
+      "stub_auth": null,
+      "score": {
+        "why_ok": true,
+        "first_ok": true,
+        "reasons": [
+          "first_steps",
+          "finish_check",
+          "hard",
+          "finish_check"
+        ],
+        "whys": [
+          null,
+          "no_signal",
+          "error_signal",
+          "no_signal"
+        ]
+      }
+    },
+    "strong": {
+      "up": true,
+      "wall_s": 1.55,
+      "replies": [
+        {
+          "has_token": false,
+          "n_tool_calls": 0,
+          "text_head": "{\"name\": \"bash\", \"arguments\": {\"cmd\": \"cat data/stages/ollama.json | jq '.integration_stage'\"}}"
+        },
+        {
+          "has_token": true,
+          "n_tool_calls": 0,
+          "text_head": "I2"
+        },
+        {
+          "has_token": true,
+          "n_tool_calls": 0,
+          "text_head": "I2"
+        },
+        {
+          "has_token": true,
+          "n_tool_calls": 0,
+          "text_head": "I2"
+        }
+      ],
+      "steps": [
+        {
+          "step": 0,
+          "tier": "strong",
+          "reason": "pinned",
+          "why": null,
+          "p_hard": null,
+          "decision_error": null,
+          "call_tiers": [
+            "strong"
+          ],
+          "call_models": [
+            "qwen2.5-coder:7b-instruct"
+          ],
+          "call_latency_s": [
+            0.837
+          ],
+          "latency_s": 0.837,
+          "finish_check": false
+        },
+        {
+          "step": 1,
+          "tier": "strong",
+          "reason": "pinned",
+          "why": null,
+          "p_hard": null,
+          "decision_error": null,
+          "call_tiers": [
+            "strong"
+          ],
+          "call_models": [
+            "qwen2.5-coder:7b-instruct"
+          ],
+          "call_latency_s": [
+            0.232
+          ],
+          "latency_s": 0.232,
+          "finish_check": false
+        },
+        {
+          "step": 2,
+          "tier": "strong",
+          "reason": "pinned",
+          "why": null,
+          "p_hard": null,
+          "decision_error": null,
+          "call_tiers": [
+            "strong"
+          ],
+          "call_models": [
+            "qwen2.5-coder:7b-instruct"
+          ],
+          "call_latency_s": [
+            0.244
+          ],
+          "latency_s": 0.244,
+          "finish_check": false
+        },
+        {
+          "step": 3,
+          "tier": "strong",
+          "reason": "pinned",
+          "why": null,
+          "p_hard": null,
+          "decision_error": null,
+          "call_tiers": [
+            "strong"
+          ],
+          "call_models": [
+            "qwen2.5-coder:7b-instruct"
+          ],
+          "call_latency_s": [
+            0.231
+          ],
+          "latency_s": 0.232,
+          "finish_check": false
+        }
+      ],
+      "counts": {
+        "strong_calls": 4,
+        "fast_calls": 0,
+        "upstream_calls": 4
+      },
+      "first_tiers": [
+        "strong",
+        "strong",
+        "strong",
+        "strong"
+      ],
+      "log_leaks": [],
+      "stub_auth": null
+    },
+    "jev": {
+      "up": true,
+      "wall_s": 2.239,
+      "replies": [
+        {
+          "has_token": false,
+          "n_tool_calls": 0,
+          "text_head": "{\"name\": \"bash\", \"arguments\": {\"cmd\": \"cat data/stages/ollama.json | jq '.integration_stage'\"}}"
+        },
+        {
+          "has_token": true,
+          "n_tool_calls": 0,
+          "text_head": "I2"
+        },
+        {
+          "has_token": true,
+          "n_tool_calls": 0,
+          "text_head": "I2"
+        },
+        {
+          "has_token": true,
+          "n_tool_calls": 0,
+          "text_head": "I2"
+        }
+      ],
+      "steps": [
+        {
+          "step": 0,
+          "tier": "strong",
+          "reason": "first_steps",
+          "why": null,
+          "p_hard": null,
+          "decision_error": null,
+          "call_tiers": [
+            "strong"
+          ],
+          "call_models": [
+            "qwen2.5-coder:7b-instruct"
+          ],
+          "call_latency_s": [
+            0.837
+          ],
+          "latency_s": 0.838,
+          "finish_check": false
+        },
+        {
+          "step": 1,
+          "tier": "strong",
+          "reason": "finish_check",
+          "why": null,
+          "p_hard": 0.09,
+          "decision_error": null,
+          "call_tiers": [
+            "fast",
+            "strong"
+          ],
+          "call_models": [
+            "qwen2.5-coder:1.5b",
+            "qwen2.5-coder:7b-instruct"
+          ],
+          "call_latency_s": [
+            0.135,
+            0.223
+          ],
+          "latency_s": 0.494,
+          "finish_check": true
+        },
+        {
+          "step": 2,
+          "tier": "strong",
+          "reason": "hard",
+          "why": null,
+          "p_hard": 0.91,
+          "decision_error": null,
+          "call_tiers": [
+            "strong"
+          ],
+          "call_models": [
+            "qwen2.5-coder:7b-instruct"
+          ],
+          "call_latency_s": [
+            0.234
+          ],
+          "latency_s": 0.382,
+          "finish_check": false
+        },
+        {
+          "step": 3,
+          "tier": "strong",
+          "reason": "finish_check",
+          "why": null,
+          "p_hard": 0.09,
+          "decision_error": null,
+          "call_tiers": [
+            "fast",
+            "strong"
+          ],
+          "call_models": [
+            "qwen2.5-coder:1.5b",
+            "qwen2.5-coder:7b-instruct"
+          ],
+          "call_latency_s": [
+            0.142,
+            0.221
+          ],
+          "latency_s": 0.52,
+          "finish_check": true
+        }
+      ],
+      "counts": {
+        "strong_calls": 4,
+        "fast_calls": 2,
+        "upstream_calls": 6
+      },
+      "first_tiers": [
+        "strong",
+        "fast",
+        "strong",
+        "fast"
+      ],
+      "log_leaks": [],
+      "stub_auth": null
+    },
+    "jev_calls": [
+      {
+        "path": "/v1/systemone",
+        "model": "qwen2.5-coder:1.5b",
+        "auth": false,
+        "choice": "routine",
+        "error": "",
+        "latency_s": 0.134
+      },
+      {
+        "path": "/v1/systemone",
+        "model": "qwen2.5-coder:1.5b",
+        "auth": false,
+        "choice": "hard",
+        "error": "",
+        "latency_s": 0.146
+      },
+      {
+        "path": "/v1/systemone",
+        "model": "qwen2.5-coder:1.5b",
+        "auth": false,
+        "choice": "routine",
+        "error": "",
+        "latency_s": 0.155
+      }
+    ],
+    "sizes": {
+      "qwen2.5-coder:7b-instruct": 4683087561,
+      "qwen2.5-coder:1.5b": 986062089
+    }
+  },
+  "headline": {
+    "rules_strong_calls": 4,
+    "rules_fast_calls": 2,
+    "rules_upstream_calls": 6,
+    "strong_arm_calls": 4,
+    "strong_calls_saved": 0,
+    "rules_wall_s": 2.037,
+    "strong_wall_s": 1.55,
+    "wall_ratio_rules_over_strong": 1.314,
+    "rules_first_tiers": [
+      "strong",
+      "fast",
+      "strong",
+      "fast"
+    ],
+    "rules_score": {
+      "why_ok": true,
+      "first_ok": true,
+      "reasons": [
+        "first_steps",
+        "finish_check",
+        "hard",
+        "finish_check"
+      ],
+      "whys": [
+        null,
+        "no_signal",
+        "error_signal",
+        "no_signal"
+      ]
+    },
+    "jev_first_tiers": [
+      "strong",
+      "fast",
+      "strong",
+      "fast"
+    ],
+    "jev_agree": "4/4",
+    "jev_decision_errors": 0,
+    "routine_reply_visible_from_fast": false,
+    "rules_reply_token_hits": 3,
+    "log_leaks": []
+  }
+}

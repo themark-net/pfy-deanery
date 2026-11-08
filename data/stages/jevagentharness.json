@@ -1,0 +1,37 @@
+{
+  "name": "JevAgentHarness",
+  "integration_stage": "I1",
+  "intent": "staged_evaluation",
+  "entry": "sources/entries/131-jevagentharness.md",
+  "github": "https://github.com/JevAgentHarness/JevAgentHarness",
+  "pin": "f2932199e1ef1d9f089b51d39430c87be0f560b5",
+  "uses": "Per-step proxy that sends a routine agent step to a fast local model and a hard step to a strong one.",
+  "features": [
+    "rules router",
+    "systemone decision client",
+    "openai chat proxy",
+    "finish check on a fast final answer"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1. Do not wire a gate. Reopen only if a later ticket shows a tool-call trace where routine steps stay on the fast tier and strong calls drop below a strong-only run, compared with HiRoute. The cache install is the pin, not an in-repo copy.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "gate_wiring",
+    "hosted Jev or a TypeSafe key",
+    "AgentDecision weight download",
+    "replace Ollama",
+    "replace HiRoute",
+    "replace LiteLLM",
+    "second inference engine"
+  ],
+  "evidence": [
+    "entry:sources/entries/131-jevagentharness.md",
+    "pin:f2932199e1ef1d9f089b51d39430c87be0f560b5",
+    "eval/evq1107/jevagentharness/REPORT.md",
+    "eval/evq1107/jevagentharness/VERDICT",
+    "eval/evq1107/jevagentharness/results.json"
+  ],
+  "handoff_by": "llm"
+}
