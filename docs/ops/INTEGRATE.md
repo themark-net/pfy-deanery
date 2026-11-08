@@ -53,7 +53,7 @@ A failed step appends `tmp/integrate/progress.md`, writes `tmp/integrate/<slug>.
 
 Log tails use `tail -n 40`. Do not use `tail -40`.
 
-What triggers it: a person, or a later scheduler, runs the driver with a slug from intake.
+What triggers it: `scripts/catalog_loop.sh` (hourly user timer `catalog-loop.timer`, or one manual tick) launches `scripts/integrate_lane.sh --slug <slug>` for an open I2 card whose ceiling is already I3 or I4. A person can still run that driver with a slug from intake.
 
 What it does: it reads the ticket, the stage card, and `origin/main`. It writes a worktree, lane markers under `tmp/integrate/`, and, only on a fast-forward, `refs/heads/main`. The child lane writes the wiring and the receipt. This driver does not edit stage cards by itself.
 

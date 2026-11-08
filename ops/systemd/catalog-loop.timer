@@ -1,0 +1,13 @@
+# User timer. Does not start a bot or a model.
+# Hourly. Persistent so a missed hour runs after boot. A short random delay
+# keeps it off the top of the hour.
+[Unit]
+Description=Hourly catalog loop
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+RandomizedDelaySec=120
+
+[Install]
+WantedBy=timers.target

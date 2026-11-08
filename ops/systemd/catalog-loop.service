@@ -1,0 +1,13 @@
+# User unit. Does not start from Mark's checkout.
+# WorkingDirectory is the home directory.
+# ExecStart fetches origin and copies scripts/loop_worktree.sh from origin/main
+# into the runtime dir, then runs scripts/catalog_loop.sh in the loop worktree.
+# A credential prompt is off. Type=oneshot and Nice=10.
+[Unit]
+Description=One tick of the catalog loop
+
+[Service]
+Type=oneshot
+Nice=10
+WorkingDirectory=%h
+ExecStart=/bin/bash -c 'GIT_DIR=%h/DEVELOP/pfy-mentat/.git GIT_TERMINAL_PROMPT=0 git fetch -q origin && GIT_DIR=%h/DEVELOP/pfy-mentat/.git GIT_TERMINAL_PROMPT=0 git show origin/main:scripts/loop_worktree.sh > %t/pfy-loop-worktree.sh && exec /bin/bash %t/pfy-loop-worktree.sh -- scripts/catalog_loop.sh'

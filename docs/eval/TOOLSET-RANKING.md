@@ -41,7 +41,7 @@ No entry in 137 to 167 closes gap B or W. Both are bugs or build work in pfy's o
 2. SkillSpector (148): scan every skill already in the repo, then build in an advisory scan command.
 3. skill-up (146): grade one small pfy case set with a baseline.
 
-Each trial records its verdict in `data/tool_integration_stages.json`. Results go in `eval/catchup-1107/`.
+Each trial records its verdict as `eval/<dir>/<slug>/VERDICT.json` (schema `docs/ops/VERDICT.schema.json`) and applies it with `scripts/catalog_apply_verdict.py` onto `data/stages/<slug>.json`. `data/tool_integration_stages.json` is retired. Results go in `eval/catchup-1107/`.
 
 ### Strata, long term
 
