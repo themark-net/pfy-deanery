@@ -30,7 +30,7 @@ Two eval-structural failures on main `aa84daad`:
 
 No catalog tool is a portable tool-cache or a test-pass cache for this repo. `scripts/test_cache.py` is the cache. The asm card stays I1 with ceiling I1. Its non-goal still says it is not a pregate or CI gate. This lane does not wire it in. It stops the existing unittest from creating a fixed login directory.
 
-`scripts/grill_ticket.py` was not executed. It calls grok, which spends and uses the login `HOME`. The grill below is the written pass. Answers that change behavior have tests.
+Build used the written grill below. The coordinator subsequently executed the required tools-off grill successfully; see the coordinator evidence below.
 
 1. Should a dirty skip exit 0? Yes. The suite already passed. Recording is optional. Test: `tests.test_test_cache.TestCacheTests.test_dirty_worktree_skips_record_and_the_suite_stays_green`.
 2. Should `check` exit 0 on a dirty tree? No. A dirty tree must not skip the suite. The same test expects `check` exit 1 and `dirty worktree`.
@@ -79,7 +79,7 @@ Green, same env, after the fix:
 - `record` treats a failed `git status` as dirty (`worktree_dirty` already did) and now exits 0 without writing. The suite result is unchanged.
 - Pregate already skipped `record` when `git status --porcelain` was non-empty, and that path did not fail the summary. It is unchanged.
 - The repro of the old probe refreshed the empty scratch dir `~/.cache/pfy/tools/asm-agent-skill-manager/tmp/asm-probe`. The prefix, tarball, and `probe-try` files were not removed. The green run did not touch that path.
-- `scripts/grill_ticket.py` was not run.
+- Build did not run the grill script; the coordinator subsequently ran it successfully.
 - No push. The coordinator lands after an independent sanity check.
 
 ## Post-commit selection run
@@ -89,3 +89,9 @@ On `1794a8ce`:
 - `python3 scripts/test_select.py --base origin/main --head HEAD` mode `full`, reason `core glob scripts/test_cache.py: scripts/test_cache.py`, 259 modules.
 - `python3 scripts/test_select.py --structural-checks --selection tmp/cifix-tests/selection.json` passed markdown links, `catalog_check.py`, `smoke_contract_lint.py`, `check_no_encoded_payloads.py`, and `./pfy help`.
 - `TMPDIR=$PWD/tmp/cifix-tests python3 scripts/run_tests.py --receipt tmp/cifix-tests/receipt.json` ran those 259 modules once. `jobs=16`, `seconds=502.239`, `skips=19`, `rc=1`. The only failure is `tests.test_stage_registry` (`test_assembled_document_matches_legacy_monolith`). `tests.test_asm_agent_skill_manager_probe` and `tests.test_test_cache` passed. This commit does not change `data/`, `pfylib/`, or `tests/test_stage_registry.py`. The legacy blob is the last commit of `data/tool_integration_stages.json`, which this commit does not touch. Stage cards were left unchanged. That failure is not one of the two ticket fixes.
+
+## Coordinator verification before landing
+
+- Build exited 0 and self-reviewed. Independent temp-HOME and temp-XDG run: both changed test modules, 7 tests, OK. Python compile and all workflow YAML parsing passed.
+- `python3 scripts/grill_ticket.py tmp/TICKET.md --paths scripts/test_cache.py` exited 0: 5 questions, 2 behavioral exit assertions. Full receipt in ignored `tmp/TICKET.md.grill.json`. The generated test examples refer to nonexistent convenience APIs, so they were not installed. Their assertions are covered by the existing subprocess regression tests in the two changed test modules.
+- The full selected suite's sole failure was reproduced on a fresh detached worktree of unchanged origin/main aa84daad: `python3 -m unittest tests.test_stage_registry` fails `test_assembled_document_matches_legacy_monolith` (6 tests, 1 failure). This is pre-existing and outside this task; stage cards and ceilings remain untouched. Landing the two approved CI fixes with that baseline failure disclosed.
