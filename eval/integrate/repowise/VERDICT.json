@@ -1,0 +1,7 @@
+{
+  "metric": "smoke-repowise exit 0",
+  "threshold": 0,
+  "value_gate": "pass",
+  "modularity_gate": "pass",
+  "proposed_stage": "I3"
+}
