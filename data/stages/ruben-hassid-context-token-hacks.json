@@ -1,7 +1,11 @@
 {
   "name": "Ruben Hassid context/token hacks",
   "integration_stage": "I0",
-  "intent": "watch",
+  "intent": "awareness",
+  "entry": "sources/x-posts.md",
+  "post": "https://x.com/i/status/2075807299638014212",
+  "post_id": "2075807299638014212",
+  "license": "no SPDX; public post, prompt files not vendored",
   "tier": "B",
   "auto": true,
   "catalog_tier": "B",
@@ -13,16 +17,34 @@
   ],
   "catalog_github": "https://x.com/i/status/2075807299638014212",
   "posture": [],
-  "evidence": [],
-  "tier_ceiling": "I1",
-  "uses": "Token-saving prompts. Not a tool we run.",
+  "notes_doc": "eval/evq1107/ruben-hassid-context-token-hacks/REPORT.md",
+  "uses": "Public prompt notes for a Claude plan. Reference read only. Gap H1 stays a with/without score.",
   "features": [
-    "prompt notes"
+    "markdown instead of a raw pdf",
+    "one topic per chat",
+    "session note then a fresh chat",
+    "cheap model for a short task"
   ],
   "potential": "low",
-  "next_gate": "Stay I0.",
-  "handoff_by": "llm",
+  "next_gate": "Stay I0 reference. Re-open only if a later ticket copies one habit into an existing pfy doc (a short standing brief, or a session note before compaction) and grills that copy. No newsletter prompt copy. H1 stays with skill-up. Not a Feature GO.",
+  "tier_ceiling": "I1",
   "non_goals": [
-    "runtime dependency"
-  ]
+    "feature_go",
+    "catalog_hold_70_75",
+    "newsletter_prompt_copy",
+    "code_copy",
+    "turn_memory_off",
+    "claude_schedule",
+    "voice_input",
+    "gemini_dependency",
+    "runtime_dependency",
+    "gate_wiring"
+  ],
+  "evidence": [
+    "entry:sources/x-posts.md",
+    "post:2075807299638014212",
+    "eval/evq1107/ruben-hassid-context-token-hacks/REPORT.md",
+    "eval/evq1107/ruben-hassid-context-token-hacks/VERDICT"
+  ],
+  "handoff_by": "llm"
 }
