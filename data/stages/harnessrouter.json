@@ -1,0 +1,31 @@
+{
+  "name": "HarnessRouter",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/123-harnessrouter.md",
+  "github": "https://github.com/HarnessRouter/harnessrouter",
+  "pin": "v0.34.2 0c43dc333abb1db1954bb36e8dc712724af7550b",
+  "uses": "One self-hosted API in front of many harnesses. The 2026-11-07 probe added 0 local engines.",
+  "features": [
+    "uhp responses api",
+    "custom openai base url"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I0. Do not wire a gate. Reopen only if a later ticket records one stub completion through a custom base URL and grills that path against LiteLLM and HiRoute first.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "gate_wiring",
+    "provider_key",
+    "default_runtime",
+    "harness_cli_install"
+  ],
+  "evidence": [
+    "entry:sources/entries/123-harnessrouter.md",
+    "eval/evq1107/harnessrouter/REPORT.md",
+    "eval/evq1107/harnessrouter/VERDICT",
+    "eval/evq1107/harnessrouter/results.json"
+  ],
+  "handoff_by": "llm"
+}
