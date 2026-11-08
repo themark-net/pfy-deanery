@@ -1,0 +1,51 @@
+{
+  "pin": "8e69b4a55f735e1319999064f82786b838cb3d7b",
+  "pin_date": "2026-07-09T04:15:43+02:00",
+  "package_version": "4.8.4",
+  "license": "MIT",
+  "cache_bytes_no_git": 1596339,
+  "skills_bytes": 17214,
+  "skill_count": 6,
+  "byte_identical": 6,
+  "byte_differ": [],
+  "only_pin": [],
+  "only_vendor": [],
+  "sha256": {
+    "ponytail-audit/SKILL.md": "5560b8e383dbe2ddfddc873a1e2bf2e586e23e0cd7d995537482b2315331f6d1",
+    "ponytail-debt/SKILL.md": "c84fba75f0ca12bfe83f9a78ea02fd125c5dd3f1fbb18124105a489937f284e6",
+    "ponytail-gain/SKILL.md": "24e01d1c9715cb136ba1c4f1e52a95940c0193558b876828e537736480d6408b",
+    "ponytail-help/SKILL.md": "2264d1615117b02b0fd5a69ec84cd2757006471a78e4d6c22eed6d581c1d37a4",
+    "ponytail-review/SKILL.md": "40df33b58fc6ef889b93585733feb9566b76e9586efa7f376785c1e995197ac0",
+    "ponytail/SKILL.md": "d1ffcddbc486ab787d5797441e8b6e4717da3249c6786b83fc2abd2f12803c29"
+  },
+  "safety": {
+    "frontmatter_bad": [],
+    "frontmatter_ok": 6,
+    "shell_fences_that_gate": 0,
+    "phrase_hits": 0,
+    "host_install_lines": 1,
+    "executable_skill_files": 0,
+    "shebang_skill_files": 0
+  },
+  "smoke": {
+    "exit": 0,
+    "seconds": 0.0266,
+    "asserted": [],
+    "asserted_count": 0,
+    "pack_count": 6
+  },
+  "structural_named": [
+    "ponytail"
+  ],
+  "s7": {
+    "live_ok": true,
+    "live_detail": "claude-unified-agents=16, mattpocock=8, ponytail=6",
+    "fixture_ok": true,
+    "missing_ok": true,
+    "missing_detail": "claude-unified-agents=10, missing mattpocock, missing ponytail",
+    "short_ok": false,
+    "short_detail": "claude-unified-agents degraded: claude-unified-agents=9, missing mattpocock, missing ponytail"
+  },
+  "register_refusal_checks": 0,
+  "seconds": 0.0353
+}

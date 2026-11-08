@@ -15,17 +15,30 @@
   "catalog_github": "https://github.com/DietrichGebert/ponytail",
   "posture": [],
   "evidence": [
-    "path:bootstrap/grok-cli/skills-external/ponytail"
+    "path:bootstrap/grok-cli/skills-external/ponytail",
+    "pin:8e69b4a55f735e1319999064f82786b838cb3d7b",
+    "eval/evq1107/ponytail-skills-pack/REPORT.md",
+    "eval/evq1107/ponytail-skills-pack/VERDICT",
+    "eval/evq1107/ponytail-skills-pack/results.json"
   ],
   "tier_ceiling": "I1",
-  "uses": "YAGNI skill pack already under skills-external.",
+  "uses": "YAGNI prompt pack already on skills.paths. The 2026-11-07 probe found smoke-grok-skills asserts 0 of 6 skills. The pack has no command that refuses a fetched skill.",
   "features": [
-    "skills"
+    "six markdown skills",
+    "pinned skills snapshot",
+    "no install gate"
   ],
   "potential": "high",
-  "next_gate": "I3 only if smoke-grok-skills asserts this pack loads.",
+  "next_gate": "Stay I1. smoke-grok-skills asserts 0 of 6 skills, so the old I3 bar on this card is closed. Reopen only if that smoke fails when one of the six is missing or its frontmatter breaks. Fetched skills stay on the SkillSpector check. No gate wiring.",
   "handoff_by": "llm",
   "non_goals": [
-    "product runtime"
-  ]
+    "product runtime",
+    "feature_go",
+    "catalog_hold_70_75",
+    "gate wiring",
+    "upstream hooks, MCP, and benchmarks",
+    "replace SkillSpector"
+  ],
+  "notes_doc": "eval/evq1107/ponytail-skills-pack/REPORT.md",
+  "pin": "8e69b4a55f735e1319999064f82786b838cb3d7b"
 }
