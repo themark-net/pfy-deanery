@@ -2,9 +2,9 @@
 # Read one status from a server the operator already started.
 # Usage: eval/integrate/strata/run-on-main.sh RECEIPT.json
 #
-# PFY_STRATA_BASE if set, otherwise http://127.0.0.1:8080.
-# The request is GET /v1/status. It does not start the server and it does
-# not fetch model files.
+# PFY_STRATA_BASE if set, otherwise http://127.0.0.1:18158.
+# The request is GET /v1/status on a loopback host only. It does not start
+# the server and it does not fetch model files.
 # scripts/model_lock.sh wraps a generate call. This receipt uses status only.
 # A timeout is not a pass. Missing listener, error, or timeout writes no receipt.
 #
@@ -86,8 +86,14 @@ if ! printf '%s\n' "$sha" | grep -E -q '^[0-9a-f]{40}$'; then
   exit 1
 fi
 
-base=${PFY_STRATA_BASE:-http://127.0.0.1:8080}
+base=${PFY_STRATA_BASE:-http://127.0.0.1:18158}
 base=${base%/}
+case $base in
+  *[@[:space:]]*)
+    printf '%s\n' "status request failed; no receipt" >&2
+    exit 1
+    ;;
+esac
 case $base in
   */v1) status_url=$base/status ;;
   *) status_url=$base/v1/status ;;
@@ -95,26 +101,41 @@ esac
 
 secs=${PFY_STRATA_TIMEOUT:-5}
 case $secs in
-  ''|*[!0-9]*) secs=5 ;;
+  [1-9]|[12][0-9]|30) ;;
+  *) secs=5 ;;
 esac
 
 started=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 set +e
 probe=$(
   PFY_STRATA_STATUS_URL=$status_url \
-    timeout "${secs}s" python3 - <<'PY'
+  PFY_STRATA_TIMEOUT=$secs \
+    timeout "$((secs + 1))s" python3 - <<'PY'
 import json
 import os
+import socket
 import sys
-import urllib.error
 import urllib.parse
 import urllib.request
 
 url = os.environ.get("PFY_STRATA_STATUS_URL", "")
 parsed = urllib.parse.urlparse(url)
-if parsed.scheme not in ("http", "https") or not parsed.hostname:
+host = (parsed.hostname or "").lower().rstrip(".")
+if (
+    parsed.scheme not in ("http", "https")
+    or parsed.username
+    or parsed.password
+    or host not in ("127.0.0.1", "localhost", "::1")
+):
     sys.exit(1)
-key = os.environ.get("PFY_STRATA_API_KEY", "")
+key = os.environ.get("PFY_STRATA_API_KEY") or os.environ.get("STRATA_API_KEY") or ""
+try:
+    sock_timeout = float(os.environ.get("PFY_STRATA_TIMEOUT", "5"))
+except ValueError:
+    sock_timeout = 5.0
+if sock_timeout < 1:
+    sock_timeout = 5.0
+
 req = urllib.request.Request(url, method="GET")
 if key:
     req.add_header("Authorization", "Bearer " + key)
@@ -124,12 +145,22 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
         return None
 
 opener = urllib.request.build_opener(NoRedirect)
+
+def give_up(exc):
+    reason = getattr(exc, "reason", None)
+    timed = isinstance(exc, (TimeoutError, socket.timeout)) or isinstance(
+        reason, (TimeoutError, socket.timeout)
+    )
+    if not timed and "timed out" in str(reason or "").lower():
+        timed = True
+    sys.exit(124 if timed else 1)
+
 try:
-    with opener.open(req, timeout=4) as resp:
+    with opener.open(req, timeout=sock_timeout) as resp:
         code = getattr(resp, "status", None) or resp.getcode()
         raw = resp.read(65536)
-except Exception:
-    sys.exit(1)
+except Exception as exc:
+    give_up(exc)
 if code != 200:
     sys.exit(1)
 try:
@@ -139,7 +170,11 @@ except (UnicodeError, json.JSONDecodeError):
 if not isinstance(data, dict) or data.get("service") != "strata":
     sys.exit(1)
 engine = data.get("engine")
-if not isinstance(engine, str) or not engine.strip():
+if isinstance(engine, str) and engine.strip():
+    engine = " ".join(engine.split())
+else:
+    engine = "strata"
+if len(engine) > 80 or (key and len(key) >= 8 and key in engine):
     engine = "strata"
 loaded = data.get("loaded")
 if loaded is True:
@@ -148,7 +183,7 @@ elif loaded is False:
     flag = "false"
 else:
     flag = "absent"
-sys.stdout.write(engine.strip().replace("\n", " ") + "\n" + flag + "\n")
+sys.stdout.write(engine + "\n" + flag + "\n")
 PY
 )
 rc=$?
@@ -164,10 +199,27 @@ fi
 
 tool_version=$(printf '%s\n' "$probe" | sed -n '1p')
 loaded_flag=$(printf '%s\n' "$probe" | sed -n '2p')
-if [ -z "$tool_version" ] || [ -z "$loaded_flag" ]; then
+case $loaded_flag in
+  true|false|absent) ;;
+  *)
+    printf '%s\n' "status request failed; no receipt" >&2
+    exit 1
+    ;;
+esac
+if [ -z "$tool_version" ]; then
   printf '%s\n' "status request failed; no receipt" >&2
   exit 1
 fi
+secret=${PFY_STRATA_API_KEY:-${STRATA_API_KEY:-}}
+if [ -n "$secret" ] && [ "${#secret}" -ge 8 ]; then
+  case $probe in
+    *"$secret"*)
+      printf '%s\n' "status request failed; no receipt" >&2
+      exit 1
+      ;;
+  esac
+fi
+unset secret
 
 finished=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 run_id="strata-${sha:0:12}-$(date -u +%Y%m%dT%H%M%SZ)"
