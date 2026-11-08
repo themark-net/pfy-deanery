@@ -1,0 +1,47 @@
+{
+  "name": "Agent Substrate",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/102-agent-substrate.md",
+  "github": "https://github.com/agent-substrate/substrate",
+  "pin": "769fd32630aa47bd6d7050b39e1aa0804a8622dc",
+  "release": "v0.4.0",
+  "release_commit": "756c2a53741121e728f4cc3066c8a19e575b4919",
+  "license": "Apache-2.0",
+  "notes_doc": "eval/evq1107/agent-substrate/REPORT.md",
+  "uses": "Checkpoint and restore one process that was started under runsc. The 2026-11-07 probe did not move the pfy build timeout.",
+  "features": [
+    "runsc checkpoint",
+    "runsc restore",
+    "rootless mode refuses restore",
+    "userns shelf"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I0. Rootless restore was refused. The userns cycle kept one counter and released a 79768 kB sentry, and gap B stayed 0. The unpack is 326118412 bytes, over the 50 MB copy bar. Re-open only if a later ticket starts the idle process under runsc, accepts unshare because --rootless cannot restore, and accepts that cache pin. No gate wiring. Not a Feature GO.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "gate_wiring",
+    "minikube",
+    "kind cluster",
+    "shelf an already running Build",
+    "replace Sandlock",
+    "replace agent-cage",
+    "nvproxy"
+  ],
+  "evidence": [
+    "entry:sources/entries/102-agent-substrate.md",
+    "pin:769fd32630aa47bd6d7050b39e1aa0804a8622dc",
+    "release:v0.4.0",
+    "release_commit:756c2a53741121e728f4cc3066c8a19e575b4919",
+    "runsc:release-20260824.0-120-g727c8c389c36-dirty",
+    "tarball_sha256:d547d81401461fd1c679c5c4fa0a6c2b8ef7dc3c22ce23c9e25dcc4c69cfd06f",
+    "eval/evq1107/agent-substrate/REPORT.md",
+    "eval/evq1107/agent-substrate/VERDICT",
+    "eval/evq1107/agent-substrate/results.json"
+  ],
+  "handoff_by": "llm",
+  "tarball_sha256": "d547d81401461fd1c679c5c4fa0a6c2b8ef7dc3c22ce23c9e25dcc4c69cfd06f",
+  "runsc_sha256": "1a3982cb91714f9c0c7148668d2c40143ee97e238f8a8e7452e410770d34fbe3"
+}
