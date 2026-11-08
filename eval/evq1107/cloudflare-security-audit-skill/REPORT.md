@@ -14,6 +14,7 @@ The job is gap H2 from the 2026-11-07 ranking: skill and tool discovery has no i
 | OpenCode Skill Creator | I0 | Frontmatter lint. The card says it is not a security scan. | Checks skill frontmatter. This probe's clean and planted files get the same JSON error. |
 | OpenQodex | I1 | Scanner hits on a diff, then a check that a finding cites a scanner token. Default finalize exits 0 on major findings. | Looks at changed lines. This validator accepted a confirmed record whose file is absent. |
 | agentgg | I0 | Local SAST on a diff. Caught planted `shell=True` in code, missed a secret in a log. Needs a local model. | A model scan of a diff. This lane used no model. The schema gate did not name `shell=True`. |
+| CodeGuard | I0 | Secure-coding rule text for a host agent. Prefix pass caught 1 of 3 planted defects, 0 of 2 agentgg plants, and 0 hits on a fetched-skill fixture. The card says it is not an install gate. | No findings schema and no install-gate command. This probe also left `shell=True` in place. |
 | write-guard-mcp | I3 | Write mediation above the cage mount. | A runtime guard. It does not read a skill or a findings file. |
 | destructive_command_guard | I1 | Blocks destructive shell commands. Overlaps write-guard. | Matches command text. The planted line is a string in a fixture. |
 | Bumblebee | I2 | Advisory lockfile and MCP config scan. | Other files. |
