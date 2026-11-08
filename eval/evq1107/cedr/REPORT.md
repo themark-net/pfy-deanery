@@ -28,7 +28,8 @@ Beats what we have for the install gate: no. The hash pin itself works.
 Host is linux x86_64. glibc 2.43 (the archive needs 2.34 or newer). Install path: `~/.cache/pfy/tools/cedr/`. No sudo, no copy into `~/.local/bin`.
 
 ```bash
-mkdir -p ~/.cache/pfy/tools/cedr/dl
+mkdir -p ~/.cache/pfy/tools/cedr/dl ~/.cache/pfy/tools/cedr/bin
+cd ~/.cache/pfy/tools/cedr/dl
 curl -fsSL -o SHA256SUMS https://github.com/Sheernox/cedr/releases/download/v0.10.0/SHA256SUMS
 curl -fsSL -o cedr-linux-x86_64.tar.gz https://github.com/Sheernox/cedr/releases/download/v0.10.0/cedr-linux-x86_64.tar.gz
 sha256sum -c SHA256SUMS --ignore-missing
@@ -130,7 +131,7 @@ On the unmodified throwaway, `cedr sync init` exits 2:
 
 After the four symlinks were replaced with copies (throwaway only), init still exited 2: `skills: invalid front matter`. The message does not name the file. A YAML parse of every `SKILL.md` found two failures, both `software-factory` (the colon above). `examples/agentdescent-trial/skill/SKILL.md` has no front matter and is outside Sync's skill roots.
 
-After that one description was quoted in the throwaway `.grok` copy, init exited 0 (0.03s) and wrote `.cedr/sync.toml` with targets `agents` and `grok`. The imported rules file is 12930 bytes, the same size as `AGENTS.md`. Dry-run (`cedr sync --dry-run`, no `--force`) was 189831 bytes, 56 files, 0.01s:
+After that one description was quoted in the throwaway `.grok` copy, init exited 0 (0.03s) and wrote `.cedr/sync.toml` with targets `agents` and `grok`. `.cedr/rules/10-agents.md` matched `AGENTS.md` byte for byte (12930 bytes). The generated comment is added only when Sync emits `AGENTS.md`. Dry-run (`cedr sync --dry-run`, no `--force`) was 189831 bytes, 56 files, 0.01s:
 
 | Path | What the diff does |
 | --- | --- |
@@ -182,6 +183,10 @@ Score 4 of 4. I2 is for ambiguous potential plus a small local copy. Potential i
 | Symlink pin | The lock names `.grok/skills/<name>` and skips the vendored path. Making the symlink a real directory looks like a new skill (CV002). | Read the lock path. Content edits of the canonical directory still fail verify. |
 | Clean lint treated as a security pass | CG009 was 0 while SkillSpector flagged 10 rows, including the known MP3 "delete history" false positive on open-questions. | Keep `pfy_skill_scan.py` as the H2 check. A cedr lint exit of 0 would still not be that check. |
 | Doctor on the wrong home | Monitor and MCP checks look at the isolated home, so they miss the real Grok install. | Do not point cedr at `~/.grok` to "fix" that. |
+
+## Checks
+
+`python3 scripts/catalog_check.py` exited 0. The new card is stage-only (no TOOLS.md row). `i1_cards_open` was 0. `python3 scripts/check_no_encoded_payloads.py` exited 0. No new script, so this lane adds no test file.
 
 ## Next gate
 
