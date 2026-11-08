@@ -12,7 +12,7 @@
     "final assistant text only",
     "idle verdict complete continue ask_human",
     "scored PASS REWORK BLOCKED",
-    "does not commit or push"
+    "auto deliver does not commit or push"
   ],
   "potential": "low",
   "next_gate": "Stay I0. Re-open only to copy the final-answer rule or the idle verdict into the local-build receipt, with no daemon and no node enrollment. Not a Feature GO.",
