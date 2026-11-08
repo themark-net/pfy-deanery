@@ -55,7 +55,7 @@ Same job: specialist role prompts for one coding agent. Gap B in `docs/eval/TOOL
 
 Value, 3 of 4 for I3: gap fill no (B is the build timeout; the 16 postures are already on the path). Operator leverage no (install.sh writes `~/.claude/agents`, not the Grok path, and the glue is already done). Evidence yes for the 2026-07-31 receipt (52/53, mean 4.06). This lane did not re-run it. Blast yes for the curated snapshot (MIT, about 1 MB, no weights) while Claude stays non-primary. Score 2 of 4.
 
-Modularity, all 4: the README, LICENSE, and file list were enough, so a product copy was not required. The unit is one agents directory plus three scripts. The cache tree is isolatable. Deleting it leaves the pin and the 16 skills. 3 of 4. Size is under 50 MB. Potential is low, not ambiguous, so I2 stays closed. Uses and features name no pipeline role. No `self_pipeline`. No gate wiring. No new TOOLS.md row.
+Modularity, all 4: the README, LICENSE, and file list were enough, so a product copy was not required. The unit is one agents directory plus three scripts. The cache tree is isolatable. Deleting it leaves the pin and the 16 skills. 3 of 4. Size is under 50 MB. Potential is low, not ambiguous, so I2 stays closed. Uses names a code-review posture, so the role hit is word:review. Stage is I1. `self_pipeline` is not_applicable: prefer mattpocock code-review, and this lane wires nothing. No gate wiring. No new TOOLS.md row.
 
 ## Risks
 

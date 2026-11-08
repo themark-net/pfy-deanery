@@ -18,7 +18,7 @@
     "docs/ops/unified-agents-recipes.md",
     "pipelines/eval/unified-agents-eval.latest.md"
   ],
-  "uses": "Curated specialist posture pack already on skills.paths. Reference read only. Gap B stays the pfy build timeout.",
+  "uses": "Curated specialist posture pack already on skills.paths, including a code-review posture that stays off the gate. Reference read only. Gap B stays the pfy build timeout.",
   "features": [
     "frontmatter name description and tool list",
     "category folders",
@@ -35,5 +35,9 @@
     "gate wiring",
     "feature_go"
   ],
+  "self_pipeline": {
+    "status": "not_applicable",
+    "reason": "The pack includes a code-review posture. It is not this repo's review gate. Prefer mattpocock code-review. This lane wires nothing."
+  },
   "handoff_by": "llm"
 }
