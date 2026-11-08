@@ -1,0 +1,7 @@
+{
+  "metric": "app_mode_fail_on_operator_index",
+  "threshold": 0,
+  "value_gate": "pass",
+  "modularity_gate": "pass",
+  "proposed_stage": "I3"
+}
