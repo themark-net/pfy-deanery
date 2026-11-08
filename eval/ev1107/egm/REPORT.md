@@ -143,10 +143,12 @@ The size gate would allow an I2 probe copy. The ticket's promote rule does not. 
 | Goldfish Blockers hold a ticket that would have landed | This probe. Keep the script advisory. Do not add it to pregate or CI. |
 | The cited packet omits the driver, so lock and land failures stay invisible | Put the driver and the land step in the packet before any later probe. |
 | Someone runs `claude plugin install` or `codex plugin add` | The smoke and this lane do not. The card non-goal `plugin_install_into_agent_home` records that. |
+| `--max-turns` is outside 1..4, so a review can run long | Exit 2 before grok starts. `test_max_turns_outside_1_to_4_exits_2_without_calling_grok`. |
+| A missing cited file is reported as a missing grok binary | Exit 2 names the missing file. The grok-install next step stays on the missing-binary path. `test_missing_cited_exits_2_without_a_grok_install_hint`. |
 
 RED, mutant restored before commit: treat a failed goldfish as success (force `ok` and exit 0) -> `tests.test_egm_review.EgmReviewTest.test_one_goldfish_failure_keeps_the_other_and_exits_1`.
 
-Tests: `python3 -m unittest tests.test_egm_review` (3 tests, stub binary, no network, no model).
+Tests: `python3 -m unittest tests.test_egm_review` (5 tests, stub binary, no network, no model).
 
 ## Next gate
 

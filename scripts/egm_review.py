@@ -6,10 +6,12 @@ excerpts. Two or three fresh processes then review that spec. They do not
 share a session, a cwd, or a conversation. Nothing here is wired into
 pregate, CI, or another gate.
 
-A missing grok binary exits 2 and prints a next step. A reviewer that
-times out, exits nonzero, or returns unreadable JSON is recorded, the
-other reviewers still run, and the process exits 1. Rerun the same command
-after the binary works. Partial findings stay in the report.
+A missing grok binary exits 2 and prints a next step. A missing ticket
+or cited file exits 2 and names that file. It does not ask for a grok
+install. A reviewer that times out, exits nonzero, or returns unreadable
+JSON is recorded, the other reviewers still run, and the process exits 1.
+Rerun the same command after the binary works. Partial findings stay in
+the report.
 
 Usage:
   python3 scripts/egm_review.py --ticket FILE --cited FILE --out FILE
@@ -440,13 +442,15 @@ def review(ticket_path: Path, cited_path: Path, out_path: Path, scratch: Path, m
         report["wall_s"] = round(time.monotonic() - started, 3)
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
-        if code == 2:
+        if code == 2 and str(report["error"]).startswith("grok binary is missing"):
             print(
                 "next step: set PFY_GROK_BIN to a grok binary, or install grok "
                 "on PATH as ~/.local/bin/grok. Do not install the EGM plugin "
                 "into an agent home. %s" % report["error"],
                 file=sys.stderr,
             )
+        elif code == 2:
+            print("next step: %s" % report["error"], file=sys.stderr)
         elif code == 1:
             print(
                 "Rerun scripts/egm_review.py after the reviewer process succeeds. "

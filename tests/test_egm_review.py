@@ -90,7 +90,7 @@ class EgmReviewTest(unittest.TestCase):
 
         shutil.rmtree(self.root, ignore_errors=True)
 
-    def run_review(self, extra=None, env=None):
+    def run_review(self, extra=None, env=None, max_turns="2"):
         argv = [
             sys.executable,
             str(SCRIPT),
@@ -103,7 +103,7 @@ class EgmReviewTest(unittest.TestCase):
             "--scratch",
             str(self.scratch),
             "--max-turns",
-            "2",
+            str(max_turns),
             "--personas",
             "readiness,critic",
         ]
@@ -150,6 +150,7 @@ class EgmReviewTest(unittest.TestCase):
             self.assertIn("--no-subagents", row["argv"])
             self.assertIn("--disable-web-search", row["argv"])
             self.assertIn("--verbatim", row["argv"])
+            self.assertEqual(row["argv"][row["argv"].index("--max-turns") + 1], "2")
             self.assertFalse(row["always_approve"])
             self.assertFalse(row["resume"])
             tools = row["argv"][row["argv"].index("--disallowed-tools") + 1]
@@ -173,6 +174,32 @@ class EgmReviewTest(unittest.TestCase):
         self.assertFalse(by_name["critic"]["ok"])
         self.assertEqual(by_name["critic"]["findings"], [])
         self.assertIn("ELEPHANT_SPEC_MARKER", report["elephant"]["spec"])
+
+    def test_max_turns_outside_1_to_4_exits_2_without_calling_grok(self):
+        for bad in ("0", "5"):
+            if self.log.exists():
+                self.log.unlink()
+            if self.out.exists():
+                self.out.unlink()
+            proc = self.run_review(max_turns=bad)
+            self.assertEqual(proc.returncode, 2, proc.stderr)
+            self.assertIn("refusing max-turns %s (cap 4)" % bad, proc.stderr)
+            self.assertNotIn("Rerun scripts/egm_review.py", proc.stderr)
+            self.assertFalse(self.log.exists(), proc.stderr)
+            self.assertFalse(self.out.exists(), proc.stderr)
+
+    def test_missing_cited_exits_2_without_a_grok_install_hint(self):
+        self.cited.unlink()
+        proc = self.run_review()
+        self.assertEqual(proc.returncode, 2, proc.stderr)
+        self.assertIn("next step:", proc.stderr)
+        self.assertIn("ticket or cited file is missing", proc.stderr)
+        self.assertNotIn("PFY_GROK_BIN", proc.stderr)
+        self.assertNotIn("EGM plugin", proc.stderr)
+        self.assertFalse(self.log.exists())
+        report = json.loads(self.out.read_text(encoding="utf-8"))
+        self.assertFalse(report["ok"])
+        self.assertEqual(report["goldfish"], [])
 
     def test_missing_binary_exits_2_with_a_next_step(self):
         env = self.env.copy()
