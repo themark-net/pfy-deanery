@@ -1,3 +1,9 @@
+## 2026-11-08: integrate2 repair
+
+- Landed on `main` by fast-forward. No PR. Not a Feature GO.
+- Product SHA `3c21028610674ac6e4f65dc8d7c5fd2c9ef802d4`. Eval-structural run 42511737320 failed because a test pinned `codebase-memory-mcp` at I2 after the receipt promotion to I3. The fixture proves a ceiling of I3 does not write the stage.
+- Handoff: [ops/HANDOFF-integrate2-repair-1108.md](ops/HANDOFF-integrate2-repair-1108.md).
+
 ## 2026-11-05: local-lab job wall (#310)
 
 Cause. After the MVP stack, the self-hosted nimo lab steps grew with the suite. nightly-models (`0 7 * * *`) can contend for that same runner. The 90 minute job wall is shorter than the grown suite's legitimate wall (about 100 minutes). Evidence from the runs:
