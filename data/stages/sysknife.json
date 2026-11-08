@@ -4,16 +4,40 @@
   "intent": "awareness",
   "entry": "sources/entries/157-sysknife.md",
   "github": "https://github.com/lacs-project/sysknife",
-  "uses": "Typed approval-gated Linux admin.",
+  "pin": "1b3aab98b878128a267368cd47b51c921cd31219",
+  "release": "v0.30.0",
+  "license": "MIT",
+  "notes_doc": "eval/evq1107/sysknife/REPORT.md",
+  "uses": "Typed approval-gated Linux admin. The model names an action and the daemon builds the command. Reference read only.",
+  "features": [
+    "typed action name",
+    "daemon-built command",
+    "one-time approval receipt",
+    "Ed25519 audit row"
+  ],
   "potential": "low",
-  "next_gate": "No cargo on nimo; comparison only.",
+  "next_gate": "Stay I0 reference. No cargo and no staged binary on nimo. H2 stays with SkillSpector. Re-open only to build this pin from the cache and dry-run one read-only intent, with no --yes, no daemon, and no release download. Not a Feature GO.",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",
-    "catalog_hold_70_75"
+    "catalog_hold_70_75",
+    "install",
+    "cargo_build",
+    "npx_setup",
+    "daemon",
+    "release_binary",
+    "unattended_root",
+    "pregate or CI gate",
+    "replace SkillSpector",
+    "replace destructive_command_guard",
+    "replace write-guard"
   ],
   "evidence": [
-    "entry:sources/entries/157-sysknife.md"
+    "entry:sources/entries/157-sysknife.md",
+    "pin:1b3aab98b878128a267368cd47b51c921cd31219",
+    "release:v0.30.0",
+    "eval/evq1107/sysknife/REPORT.md",
+    "eval/evq1107/sysknife/VERDICT"
   ],
   "handoff_by": "llm"
 }

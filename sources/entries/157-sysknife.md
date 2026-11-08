@@ -24,4 +24,4 @@
 | Unattended root | An env opt-in lets the daemon act as root | Do not set it. No sudo in this slice |
 | Pin drift | `main` moves past 0.30.0 | The smoke checks the commit and the version string |
 
-- **Status**: Cataloged I0. Smoke exit 2 on nimo (no cargo, no staged binary). Next step, if any: stage the pinned clone under `~/DEVELOP/pfy-mentat/tmp/sysknife` and re-run the dry-run. No Feature GO.
+- **Status**: STAY I0 reference (read 2026-11-07). Pin `1b3aab98b878128a267368cd47b51c921cd31219` is CLI 0.30.0, MIT. No cargo, no install, no code copy. Smoke stayed exit 2. H2 stays with SkillSpector. Receipt: `eval/evq1107/sysknife/REPORT.md`. No Feature GO.
