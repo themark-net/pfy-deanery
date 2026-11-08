@@ -1,9 +1,18 @@
 # User unit. No sudo. Does not start a bot or a model.
+# The 2026-11-08 04:17 run used Mark's checkout as WorkingDirectory and ExecStart.
+# python3 exited 2: can't open file .../DEVELOP/pfy-mentat/scripts/catalog_counts.py.
+# That checkout stays untouched. WorkingDirectory is the home directory.
+# ExecStart sets GIT_DIR on the main repo and does not cd into that checkout.
+# It fetches origin, copies scripts/loop_worktree.sh from origin/main into the
+# runtime dir, and runs scripts/catalog_counts_publish.sh from the loop worktree
+# (default ~/DEVELOP/pfy-mentat/tmp/loop/wt). A credential prompt is off.
+# Type=oneshot and Nice=10 stay on this service.
+# The timer file is unchanged: 04:17 daily, Persistent=true.
 [Unit]
 Description=Regenerate catalog counts from stage cards
 
 [Service]
 Type=oneshot
 Nice=10
-WorkingDirectory=%h/DEVELOP/pfy-mentat
-ExecStart=/usr/bin/python3 %h/DEVELOP/pfy-mentat/scripts/catalog_counts.py
+WorkingDirectory=%h
+ExecStart=/bin/bash -c 'GIT_DIR=%h/DEVELOP/pfy-mentat/.git GIT_TERMINAL_PROMPT=0 git fetch -q origin && GIT_DIR=%h/DEVELOP/pfy-mentat/.git GIT_TERMINAL_PROMPT=0 git show origin/main:scripts/loop_worktree.sh > %t/pfy-loop-worktree.sh && exec /bin/bash %t/pfy-loop-worktree.sh -- scripts/catalog_counts_publish.sh'
