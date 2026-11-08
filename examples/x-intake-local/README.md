@@ -299,3 +299,7 @@ Entries 165-167 (`smoke_165.py`, `smoke_166.py`, `smoke_167.py`) are commit-meta
 GitHub commit JSON through `$EGM_FETCH_BIN` / `$ODAI_FETCH_BIN` / `$TEAQL_FETCH_BIN` or a stdlib fetch, checks the SHA,
 and exits 2 without cloning or installing plugins/skills into agent homes. `PFY_XINTAKE_TIMEOUT` overrides the metadata
 timeout. A bad value exits 2.
+
+Entries 168-170 (`smoke_168.py`, `smoke_169.py`, `smoke_170.py`) are commit-metadata receipts for cedr, IM.codes and
+Pi-Harness. Each reads the pinned GitHub commit JSON through `$CEDR_FETCH_BIN` / `$IMCODES_FETCH_BIN` / `$PIHARNESS_FETCH_BIN`
+or a stdlib fetch, checks the SHA, and exits 2 without installing anything. `PFY_XINTAKE_TIMEOUT` overrides the timeout.

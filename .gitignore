@@ -171,3 +171,7 @@ pipelines/smoke/reasonix/
 pipelines/smoke/egm/
 pipelines/smoke/odai/
 pipelines/smoke/teaql-agent-kit/
+# 168-170 receipts.
+pipelines/smoke/cedr/
+pipelines/smoke/imcodes/
+pipelines/smoke/pi-harness/
