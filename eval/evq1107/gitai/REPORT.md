@@ -67,7 +67,7 @@ python3 eval/evq1107/gitai/probe.py
 
 Attempt 1 stopped in the bundled Git compile: `curl/curl.h` was under the multiarch include dir, and the compiler `-I` was the parent include dir. A symlink fixed the header. Attempt 2 stopped at link: `libcurl.a` referenced `ZSTD_createDStream` and the link line had no libzstd. Attempt 3 deleted that archive, pointed `libcurl.so` at the system shared library, and `make -j8 build` exited 0.
 
-The probe writes a throwaway bare repo, seeds it with the text of `data/stages/gitai.json`, and races the lands there. The same-line seed sets `integration_stage` back to I0 so both writers change that one line. The recorded run read the card while it was still I0, which is the same seed. It listens on a Unix socket under the cache tmp. It does not bind TCP and it does not start graft-cache. The plain-git timer covers the push rounds. The gitai timer covers `graft commit --land` after the clones exist. Both sides prepare the workspaces before the timer.
+The probe writes a throwaway bare repo, seeds it with the text of `data/stages/gitai.json`, and races the lands there. The same-line seed sets `integration_stage` back to I0 so both writers change that one line. The recorded run read the card while it was still I0, which is the same seed. `python3 tests/test_gitai_probe.py` reruns that shape with stub binaries and `GITAI_OUT` set, so it does not start the built server and it does not rewrite `results.json`. It listens on a Unix socket under the cache tmp. It does not bind TCP and it does not start graft-cache. The plain-git timer covers the push rounds. The gitai timer covers `graft commit --land` after the clones exist. Both sides prepare the workspaces before the timer.
 
 ## Numbers
 

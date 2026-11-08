@@ -21,7 +21,8 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-OUT = Path(__file__).resolve().parent / "results.json"
+# GITAI_OUT lets a check run write elsewhere. The default is the recorded file.
+OUT = Path(os.environ.get("GITAI_OUT", str(Path(__file__).resolve().parent / "results.json")))
 AGENTS = 8
 MAX_ROUNDS = 20
 PIN = "914e481ef057ca7b9dc9a5a7338d96bca16790e1"
