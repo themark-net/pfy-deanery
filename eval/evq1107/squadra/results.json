@@ -1,0 +1,206 @@
+{
+  "pin": {
+    "tag": "v3.10.1",
+    "tag_object": "acd9e6d6099903e5fd128eb0906f061a4e72e88e",
+    "commit": "5081a06ae054bc80072d8109ee2ef088b52513c3",
+    "commit_expected": "5081a06ae054bc80072d8109ee2ef088b52513c3",
+    "commit_ok": true,
+    "script_sha256": "fdef7bf4b459f42a5e1d91ec4fe2a9b58092d76ea80fb5e7afa14ac78d626261",
+    "checkout_has_git": true
+  },
+  "version_text": "3.10.1",
+  "wall_s": 2.8925,
+  "steps": [
+    {
+      "name": "version",
+      "exit": 0,
+      "seconds": 0.0578,
+      "err": "",
+      "stdout": "3.10.1"
+    },
+    {
+      "name": "init",
+      "exit": 0,
+      "seconds": 0.1024,
+      "err": ""
+    },
+    {
+      "name": "agent-c1",
+      "exit": 0,
+      "seconds": 0.1046,
+      "err": ""
+    },
+    {
+      "name": "agent-w1",
+      "exit": 0,
+      "seconds": 0.0882,
+      "err": ""
+    },
+    {
+      "name": "agent-r1",
+      "exit": 0,
+      "seconds": 0.0905,
+      "err": ""
+    },
+    {
+      "name": "task",
+      "exit": 0,
+      "seconds": 0.1786,
+      "err": ""
+    },
+    {
+      "name": "start-before-ack",
+      "exit": 1,
+      "seconds": 0.0871,
+      "err": "Squadra: Assignment has no recipient ACK"
+    },
+    {
+      "name": "close-before-deliver",
+      "exit": 1,
+      "seconds": 0.0999,
+      "err": "Squadra: Candidate drift; deliver/prove the new exact source"
+    },
+    {
+      "name": "ack-assign",
+      "exit": 0,
+      "seconds": 0.1118,
+      "err": ""
+    },
+    {
+      "name": "register-green",
+      "exit": 0,
+      "seconds": 0.1178,
+      "err": ""
+    },
+    {
+      "name": "challenge-green",
+      "exit": 1,
+      "seconds": 0.2305,
+      "err": "Squadra: fix_challenge_not_matched; read retained logs"
+    },
+    {
+      "name": "register-real",
+      "exit": 0,
+      "seconds": 0.1189,
+      "err": ""
+    },
+    {
+      "name": "challenge-real",
+      "exit": 0,
+      "seconds": 0.2759,
+      "err": ""
+    },
+    {
+      "name": "prove",
+      "exit": 0,
+      "seconds": 0.2582,
+      "err": ""
+    },
+    {
+      "name": "deliver",
+      "exit": 0,
+      "seconds": 0.1342,
+      "err": ""
+    },
+    {
+      "name": "review-author",
+      "exit": 1,
+      "seconds": 0.1232,
+      "err": "Squadra: Author cannot independently review own changes, even under another seat ID"
+    },
+    {
+      "name": "close-before-review",
+      "exit": 1,
+      "seconds": 0.1049,
+      "err": "Squadra: Independent current code review pending"
+    },
+    {
+      "name": "ack-review",
+      "exit": 0,
+      "seconds": 0.0975,
+      "err": ""
+    },
+    {
+      "name": "review-reader",
+      "exit": 0,
+      "seconds": 0.1295,
+      "err": ""
+    },
+    {
+      "name": "check",
+      "exit": 0,
+      "seconds": 0.1058,
+      "err": ""
+    },
+    {
+      "name": "close",
+      "exit": 0,
+      "seconds": 0.1327,
+      "err": ""
+    },
+    {
+      "name": "doctor",
+      "exit": 0,
+      "seconds": 0.1283,
+      "err": ""
+    }
+  ],
+  "green_runs": [
+    {
+      "label": "original",
+      "native_rc": 0,
+      "outcome": "passed"
+    },
+    {
+      "label": "remedy",
+      "native_rc": 0,
+      "outcome": "passed"
+    }
+  ],
+  "real_runs": [
+    {
+      "label": "original",
+      "native_rc": 1,
+      "outcome": "assertion"
+    },
+    {
+      "label": "remedy",
+      "native_rc": 0,
+      "outcome": "passed"
+    }
+  ],
+  "handoff": "review-a320fb1177f65765ffa2d9b9711196ad3dadb55740bf335fbe896dcd92f4e2d4",
+  "doctor": {
+    "integrity": "passed",
+    "events": 23,
+    "pending_ack": []
+  },
+  "refuses": {
+    "start_before_ack": true,
+    "close_before_deliver": true,
+    "always_passing_not_matched": true,
+    "author_review": true,
+    "close_before_independent_review": true
+  },
+  "refuse_count": 5,
+  "refuse_of": 5,
+  "real_challenge_matched": true,
+  "close_exit": 0,
+  "gap_b": {
+    "pfy_build_invoked": false,
+    "timeout_hours_changed": 0,
+    "pregate_fails_cleared": 0
+  },
+  "real_home_before": {
+    "/home/mark/.local/state/squadra": false,
+    "/home/mark/.cache/squadra": false,
+    "/home/mark/.squadra": false
+  },
+  "real_home_after": {
+    "/home/mark/.local/state/squadra": false,
+    "/home/mark/.cache/squadra": false,
+    "/home/mark/.squadra": false
+  },
+  "real_home_untouched": true,
+  "problems": []
+}

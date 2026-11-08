@@ -1,0 +1,41 @@
+{
+  "name": "Squadra",
+  "integration_stage": "I1",
+  "intent": "staged_evaluation",
+  "entry": "sources/entries/124-squadra.md",
+  "github": "https://github.com/dagoSte/squadra",
+  "notes_doc": "eval/evq1107/squadra/REPORT.md",
+  "pin": "5081a06ae054bc80072d8109ee2ef088b52513c3",
+  "release": "v3.10.1",
+  "tag_object": "acd9e6d6099903e5fd128eb0906f061a4e72e88e",
+  "script_sha256": "fdef7bf4b459f42a5e1d91ec4fe2a9b58092d76ea80fb5e7afa14ac78d626261",
+  "uses": "Local registry for manual seats on one task. The builder must acknowledge before start. An always-passing defect check is refused. Close waits for a non-author review. The 3 hour pfy build timeout stays put.",
+  "features": [
+    "assignment acknowledgement",
+    "always-passing challenge refused",
+    "red then green on the registered base",
+    "non-author review before close"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1. Ack was refused 1/1, the always-passing challenge matched 0/1, and the real red/green matched 1/1 in 2.8925s. Gap B is unchanged. Reopen only if a later grilled ticket shows the 3 hour build or the two pregate FAILs move because this registry is in that lane. I3 also needs self_pipeline evidence. No gate wiring in this lane.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "pregate or CI gate",
+    "installer into a host config dir",
+    "real project registry",
+    "second gate of record",
+    "dashboard or selftest",
+    "plugin install"
+  ],
+  "evidence": [
+    "entry:sources/entries/124-squadra.md",
+    "pin:5081a06ae054bc80072d8109ee2ef088b52513c3",
+    "release:v3.10.1",
+    "eval/evq1107/squadra/REPORT.md",
+    "eval/evq1107/squadra/VERDICT",
+    "eval/evq1107/squadra/results.json"
+  ],
+  "handoff_by": "llm"
+}

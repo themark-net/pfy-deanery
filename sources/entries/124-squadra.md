@@ -9,9 +9,10 @@
 - **Verified on the Grok Bot box**: smoke PASS in `/tmp` with a temp HOME, under bubblewrap: `init --temporary`, a coordinator and a builder seat, one task; `doctor` reported integrity "passed" with the assignment pending acknowledgement, `status` showed the task, the project repo stayed clean and HOME stayed empty. Negative paths: not staged gives exit 2; a wrong `$SQUADRA_VERSION` gives 2; a tiny `PFY_XINTAKE_TIMEOUT` gives 1.
 - **Finding**: the default registry lives under `~/.local/state/squadra/` (outside DEVELOP on nimo), so always pass `--root` under `tmp/`. `--lang` defaults to Italian, and some `status` lines stay Italian even with `--lang en`. On the box, hand-editing `events.jsonl` did not change `doctor`'s verdict, so treat that file as a readable mirror and the SQLite registry as the record. The installer copies skills into host config dirs; use the no-install path.
 - **Extracted Repos / Tools**: https://github.com/dagoSte/squadra · https://github.com/dagoSte/squadra/blob/v3.10.1/references/start.md
-- **TOOLS.md Link**: None yet. I0 awareness. No TOOLS.md row, no `data/tools.json` row.
+- **TOOLS.md Link**: None. No TOOLS.md row and no `data/tools.json` row.
 - **Smoke**: `python3 examples/x-intake-local/smoke_122_124.py --entry squadra`. Needs `$SQUADRA_DIR` or `tmp/squadra` at v3.10.1 and python3 >= 3.12. Temp git repo and registry only; no agent CLI started. Receipt: `pipelines/smoke/squadra/latest.json`.
 - **Non-goals**: No skills installed into any host, no real project registry, no change to the GitHub-based gate flow.
+- **Status**: STAY I1 after the 2026-11-07 nimo probe. Pin v3.10.1, tag object `acd9e6d6099903e5fd128eb0906f061a4e72e88e`, commit `5081a06ae054bc80072d8109ee2ef088b52513c3`. Ack refused 1/1. An always-passing challenge matched 0/1 (both runs passed). The real test failed by assertion on the base and passed on the candidate, 1/1, and close exited 0 only after a non-author review. Wall 2.8925s. Gap B (the 3 hour `./pfy build` timeout and the two pregate FAILs) was not changed. Not a gate. No Feature GO. Report `eval/evq1107/squadra/REPORT.md`.
 - **How this fails / how we recover**:
 
 | Risk | How it fails | Recovery |
