@@ -1,0 +1,47 @@
+{
+  "name": "hal0",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/130-hal0.md",
+  "github": "https://github.com/Hal0ai/hal0",
+  "pin": "60bcf6f77dc81c5e13692e4fde712db5eb3285ea",
+  "release": "v1.4.0",
+  "license": "Apache-2.0",
+  "notes_doc": "eval/evq1107/hal0/REPORT.md",
+  "uses": "Packaged OpenAI-compatible inference appliance for a Strix Halo box. Reference read only. Ollama and llama-server already cover that path.",
+  "features": [
+    "openai-compatible /v1",
+    "podman slot per capability",
+    "rocm vulkan cpu npu device pin",
+    "hal0 doctor and bench"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I0 reference. No sudo install, no podman, no FastFlowLM deb, no port 8080 bind. Gap L stays with Ollama and llama-server. Re-open only if Mark approves a separate ticket. Not a Feature GO.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install",
+    "sudo",
+    "systemd",
+    "podman",
+    "fastflowlm_deb",
+    "default_runtime",
+    "port_8080",
+    "openwebui_companion",
+    "hermes_bundle",
+    "weights_in_git",
+    "pregate or CI gate",
+    "replace Ollama",
+    "replace llama-server",
+    "tools_md_row"
+  ],
+  "evidence": [
+    "entry:sources/entries/130-hal0.md",
+    "pin:60bcf6f77dc81c5e13692e4fde712db5eb3285ea",
+    "release:v1.4.0",
+    "eval/evq1107/hal0/REPORT.md",
+    "eval/evq1107/hal0/VERDICT"
+  ],
+  "handoff_by": "llm"
+}
