@@ -225,8 +225,11 @@ class CharlotteProbeTests(unittest.TestCase):
             "--node", sys.executable,
             "--server", str(server),
             "--chrome", str(server),
-            "--skip-ax",
         ]
+        if extra.get("skip_ax", "1") != "0":
+            cmd.append("--skip-ax")
+        else:
+            (prefix / "node_modules" / "puppeteer").mkdir(parents=True)
         if extra.get("bad_tarball"):
             cmd.extend(["--tarball", str(tarball)])
         env = os.environ.copy()
@@ -369,6 +372,15 @@ class CharlotteProbeTests(unittest.TestCase):
         self.assertEqual(len(starts), 2)
         self.assertNotIn("--no-sandbox", starts[0])
         self.assertIn("--no-sandbox", starts[1])
+        self._assert_dead(done)
+
+    def test_accessibility_pass_failure_is_not_a_pass(self) -> None:
+        done = self._run(self._tmp(), "ok", skip_ax="0")
+        self.assertEqual(done.returncode, 1, done.stderr + done.stdout)
+        data = self._data(done)
+        self.assertFalse(data["ok"])
+        self.assertEqual((data.get("ax") or {}).get("status"), "failed")
+        self.assertEqual(data["agreement"], 1.0)
         self._assert_dead(done)
 
     def test_dead_server_is_not_a_pass(self) -> None:

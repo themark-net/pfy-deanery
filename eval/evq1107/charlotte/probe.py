@@ -884,7 +884,7 @@ def main(argv: list[str] | None = None) -> int:
         else:
             module = Path(args.prefix) / "node_modules" / "puppeteer"
             if not module.is_dir():
-                result["ax"] = {"status": "skipped", "reason": "puppeteer is not installed"}
+                result["ax"] = {"status": "failed", "error": "puppeteer is not installed"}
             else:
                 ax_out = tmp / "ax.json"
                 ax = run_ax(args.node, module, url, ax_out, env, sandbox == "off")
@@ -896,6 +896,10 @@ def main(argv: list[str] | None = None) -> int:
                     )
                 }
                 result.update(browser_score(ax, labels))
+            if result["ax"].get("status") != "ok":
+                result["error"] = "accessibility pass %s" % (result["ax"].get("status") or "missing")
+                code = 1
+                return code
         result["ok"] = True
         code = 0
         return code

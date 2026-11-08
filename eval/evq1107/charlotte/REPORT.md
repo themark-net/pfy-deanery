@@ -16,8 +16,8 @@ A scan of `data/stages/*.json` uses, features, and tags for browser, window, pup
 | Camofox Browser | I1 | Stealth browser for agents. Browser automation is not core. | A different browser. This probe did not use it. |
 | Open WebUI | I1 | Chat UI for local models. The operator window is the product UI. | A product UI, not a page bound for a local model. |
 | Hyperframes | I1 | HTML-to-video for agents. | Not a page bound. |
-| agentplay | I0 | Session replay map. | A map of a past session, not a live page read. |
-| Emdash | I0 | Parallel agents GUI, one worktree each. | A different GUI. |
+| agentplay | I0 | Redacted session replay map and timeline. Reference read only. | A map of a past session, not a live page read. |
+| Emdash | I0 | Desktop app that runs coding-agent CLIs, one worktree per task. Reference read only. | A different GUI. |
 | kanbots | I1 | Kanban fan-out. The board is the UI. | Different job. |
 
 First-party, not a catalog card: the operator window path in `docs/ops/simple-launch.md` (Tauri if the binary exists, otherwise webkit, otherwise tk). This probe did not launch `./pfy`.
@@ -120,7 +120,7 @@ Value gate (3 of 4 needed for I3):
 | --- | --- |
 | Gap fill | No. Tauri binaries stayed 0. Assay already presses the 12 visible controls. taste-skill already lints this page. BugPatrol already compares pixels. A smaller dump does not build the window. |
 | Operator leverage | No. The probe did not open the operator window, did not press Launch session, and did not call a model. |
-| Evidence | Yes. `probe.py` and `results.json` reproduce the counts above. The stub unittest covers a bad tarball, a wrong version, a page outside the page dir, a hidden leak, a bad id, EOF, and one sandbox retry. |
+| Evidence | Yes. `probe.py` and `results.json` reproduce the counts above. The stub unittest covers a bad tarball, a wrong version, a page outside the page dir, a hidden leak, a bad id, EOF, one sandbox retry, and an accessibility pass that does not finish. |
 | Blast radius | Yes, while it stays a cache install. MIT, no paid key, no hosted model. It does not become the product runtime. `file://` can read local files, so it stays off the product path. |
 
 Score: 2 of 4. Not I3.
@@ -148,6 +148,7 @@ Modularity passes. The lightweight I2 limit is a working tree under 50 MB and no
 | `file://` hides server errors | Console and network stayed 0. A dead `/launch` does not show up. | Keep Assay's HTTP 501 result as the launch check. Do not read a zero console count as a healthy server. |
 | Install over 50 MB | Copying the prefix into the repo fails the I2 size gate and commits `node_modules`. | Leave it under `~/.cache/pfy/tools/charlotte/`. Pin the tarball sha256. |
 | Sandbox retry | A sandbox error retries once with `--no-sandbox`. | This run did not retry. Do not pass `--no-sandbox` for a real site. |
+| Accessibility pass missing | The tree step can fail after the summary succeeded. Counting that run as ok would publish a pass without the tree byte count. | The probe exits 1 and leaves ok false unless the tree status is ok, or the run passed `--skip-ax`. The stub unittest covers the failure. |
 
 ## Next gate
 
