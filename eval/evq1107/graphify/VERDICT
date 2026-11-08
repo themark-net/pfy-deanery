@@ -1,0 +1,1 @@
+STAY I0 affected plus the tests in the diff agrees with test_select on 5/10 commits, tied with codebase-memory, and the affected walk added no test. The venv is 102 MB.
