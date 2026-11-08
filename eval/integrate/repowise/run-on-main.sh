@@ -5,9 +5,12 @@
 # Usage:
 #   bash eval/integrate/repowise/run-on-main.sh eval/integrate/repowise/receipt.json
 #
-# A second start that finds the lane marker exits 2 and writes no receipt.
-# This script does not create or write that marker:
+# A second start that finds
 # /home/mark/DEVELOP/pfy-mentat/tmp/integrate2/repowise.dispatched
+# exits 2 and writes no receipt, unless that marker's pid is an ancestor of
+# this process. The driver writes "pid <lane-pid>" and still holds the marker
+# when it runs this one-argument receipt call, so that admitted lane continues.
+# This script does not create or remove the marker.
 #
 # The main push is a fast-forward under one flock. The extra lock is
 # /home/mark/DEVELOP/pfy-mentat/tmp/integrate2/push.lock
@@ -21,6 +24,8 @@
 
 set -euo pipefail
 
+MARKER=${PFY_REPOWISE_LANE_MARKER:-/home/mark/DEVELOP/pfy-mentat/tmp/integrate2/repowise.dispatched}
+
 if [ "$#" -ne 1 ] || [ -z "${1:-}" ]; then
   printf '%s\n' "usage: eval/integrate/repowise/run-on-main.sh eval/integrate/repowise/receipt.json" >&2
   exit 2
@@ -31,10 +36,38 @@ if [ "${receipt#/}" = "$receipt" ]; then
   receipt=$PWD/$receipt
 fi
 
-marker=/home/mark/DEVELOP/pfy-mentat/tmp/integrate2/repowise.dispatched
-if [ -e "$marker" ]; then
-  printf '%s\n' "already dispatched: $marker" >&2
-  exit 2
+marker_pid_is_ancestor() {
+  local file=$1
+  local target cur guard ppid
+  target=$(sed -n 's/^pid \([0-9][0-9]*\)[[:space:]]*$/\1/p' "$file" 2>/dev/null || true)
+  target=${target%%$'\n'*}
+  if [ -z "$target" ]; then
+    return 1
+  fi
+  cur=$$
+  guard=0
+  while [ "$cur" -gt 1 ] && [ "$guard" -lt 40 ]; do
+    if [ "$cur" = "$target" ]; then
+      return 0
+    fi
+    if [ ! -r "/proc/$cur/status" ]; then
+      return 1
+    fi
+    ppid=$(awk '/^PPid:/ {print $2}' "/proc/$cur/status" 2>/dev/null || true)
+    if [ -z "$ppid" ] || [ "$ppid" = "$cur" ]; then
+      return 1
+    fi
+    cur=$ppid
+    guard=$((guard + 1))
+  done
+  return 1
+}
+
+if [ -f "$MARKER" ]; then
+  if ! marker_pid_is_ancestor "$MARKER"; then
+    printf '%s\n' "already dispatched: $MARKER" >&2
+    exit 2
+  fi
 fi
 
 root=$(git rev-parse --show-toplevel)
@@ -57,6 +90,10 @@ fi
 
 if ! command -v timeout >/dev/null 2>&1; then
   printf '%s\n' "timeout is missing; no receipt" >&2
+  exit 1
+fi
+if ! command -v make >/dev/null 2>&1; then
+  printf '%s\n' "make is missing; no receipt" >&2
   exit 1
 fi
 
