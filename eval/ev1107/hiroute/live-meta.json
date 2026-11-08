@@ -1,0 +1,9 @@
+{
+  "model": "qwen2.5-coder:7b-instruct",
+  "model_was_loaded": false,
+  "keep_alive": "2m",
+  "mem_available_bytes": 91582873600,
+  "mem_need_bytes": 31843545600,
+  "host_busy": false,
+  "ollama_ps": []
+}

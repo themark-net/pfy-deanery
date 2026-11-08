@@ -1,0 +1,20 @@
+{"id": "t01", "kind": "trivial", "hedge_task": "bulk", "hedge_lane": "local", "hedge_ok": true, "hedge_reason": "bulk task; local ready (override)"}
+{"id": "t02", "kind": "trivial", "hedge_task": "bulk", "hedge_lane": "local", "hedge_ok": true, "hedge_reason": "bulk task; local ready (override)"}
+{"id": "t03", "kind": "trivial", "hedge_task": "bulk", "hedge_lane": "local", "hedge_ok": true, "hedge_reason": "bulk task; local ready (override)"}
+{"id": "t04", "kind": "trivial", "hedge_task": "bulk", "hedge_lane": "local", "hedge_ok": true, "hedge_reason": "bulk task; local ready (override)"}
+{"id": "t05", "kind": "trivial", "hedge_task": "bulk", "hedge_lane": "local", "hedge_ok": true, "hedge_reason": "bulk task; local ready (override)"}
+{"id": "t06", "kind": "trivial", "hedge_task": "bulk", "hedge_lane": "local", "hedge_ok": true, "hedge_reason": "bulk task; local ready (override)"}
+{"id": "t07", "kind": "trivial", "hedge_task": "bulk", "hedge_lane": "local", "hedge_ok": true, "hedge_reason": "bulk task; local ready (override)"}
+{"id": "t08", "kind": "trivial", "hedge_task": "bulk", "hedge_lane": "local", "hedge_ok": true, "hedge_reason": "bulk task; local ready (override)"}
+{"id": "t09", "kind": "trivial", "hedge_task": "bulk", "hedge_lane": "local", "hedge_ok": true, "hedge_reason": "bulk task; local ready (override)"}
+{"id": "t10", "kind": "trivial", "hedge_task": "bulk", "hedge_lane": "local", "hedge_ok": true, "hedge_reason": "bulk task; local ready (override)"}
+{"id": "h01", "kind": "hard", "hedge_task": "hard", "hedge_lane": "cloud", "hedge_ok": true, "hedge_reason": "hard task; cloud within budget; local ready (override) as hedge"}
+{"id": "h02", "kind": "hard", "hedge_task": "hard", "hedge_lane": "cloud", "hedge_ok": true, "hedge_reason": "hard task; cloud within budget; local ready (override) as hedge"}
+{"id": "h03", "kind": "hard", "hedge_task": "hard", "hedge_lane": "cloud", "hedge_ok": true, "hedge_reason": "hard task; cloud within budget; local ready (override) as hedge"}
+{"id": "h04", "kind": "hard", "hedge_task": "hard", "hedge_lane": "cloud", "hedge_ok": true, "hedge_reason": "hard task; cloud within budget; local ready (override) as hedge"}
+{"id": "h05", "kind": "hard", "hedge_task": "hard", "hedge_lane": "cloud", "hedge_ok": true, "hedge_reason": "hard task; cloud within budget; local ready (override) as hedge"}
+{"id": "h06", "kind": "hard", "hedge_task": "hard", "hedge_lane": "cloud", "hedge_ok": true, "hedge_reason": "hard task; cloud within budget; local ready (override) as hedge"}
+{"id": "h07", "kind": "hard", "hedge_task": "hard", "hedge_lane": "cloud", "hedge_ok": true, "hedge_reason": "hard task; cloud within budget; local ready (override) as hedge"}
+{"id": "h08", "kind": "hard", "hedge_task": "hard", "hedge_lane": "cloud", "hedge_ok": true, "hedge_reason": "hard task; cloud within budget; local ready (override) as hedge"}
+{"id": "h09", "kind": "hard", "hedge_task": "hard", "hedge_lane": "cloud", "hedge_ok": true, "hedge_reason": "hard task; cloud within budget; local ready (override) as hedge"}
+{"id": "h10", "kind": "hard", "hedge_task": "hard", "hedge_lane": "cloud", "hedge_ok": true, "hedge_reason": "hard task; cloud within budget; local ready (override) as hedge"}

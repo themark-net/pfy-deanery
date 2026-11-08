@@ -1,0 +1,17 @@
+{
+  "prompts": 20,
+  "route_ok": 20,
+  "check_ok": 17,
+  "hedge_agree": 20,
+  "decision_median_ms": 746.0,
+  "decision_samples": 20,
+  "promote": true,
+  "verdict": "PROMOTE I2 routing 20/20 and decision median 746 ms",
+  "model": "qwen2.5-coder:7b-instruct",
+  "model_was_loaded": false,
+  "keep_alive": "2m",
+  "mem_available_bytes": 91582873600,
+  "mem_need_bytes": 31843545600,
+  "host_busy": false,
+  "ollama_ps": []
+}

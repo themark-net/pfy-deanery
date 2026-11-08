@@ -1,19 +1,24 @@
 {
   "name": "HiRoute",
-  "integration_stage": "I0",
-  "intent": "awareness",
+  "integration_stage": "I2",
+  "intent": "adhoc_probe",
   "entry": "sources/entries/147-hiroute.md",
   "github": "https://github.com/higress-group/HiRoute",
   "uses": "Difficulty router: cheap turns to the local model.",
+  "features": [
+    "difficulty-route",
+    "loopback-gateway"
+  ],
   "potential": "medium",
-  "next_gate": "After the Strata trial picks the local engine; compare with magpie (163) and HarnessRouter (123).",
+  "next_gate": "Do not wire into ./pfy. The I1 ceiling stays. A later ticket has to grill gate wiring before any I3 claim. The cache install is about 92 MB, so this I2 is the loopback probe, not a repo copy.",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",
     "catalog_hold_70_75"
   ],
   "evidence": [
-    "entry:sources/entries/147-hiroute.md"
+    "entry:sources/entries/147-hiroute.md",
+    "eval/ev1107/hiroute/REPORT.md"
   ],
   "handoff_by": "llm"
 }
