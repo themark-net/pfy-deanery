@@ -1,0 +1,7 @@
+{
+  "metric": "routing_agreement_of_20",
+  "threshold": 16,
+  "value_gate": "pass",
+  "modularity_gate": "pass",
+  "proposed_stage": "I3"
+}
