@@ -1,0 +1,35 @@
+{
+  "name": "imcodes",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/169-imcodes.md",
+  "github": "https://github.com/im4codes/imcodes",
+  "pin": "b8442c5ca3bd22046568258e84d30781dc6a79d0",
+  "package": "imcodes@0.1.2",
+  "license": "MIT",
+  "uses": "Reference for a supervised review loop and final-answer memory. Not an install.",
+  "features": [
+    "final assistant text only",
+    "idle verdict complete continue ask_human",
+    "scored PASS REWORK BLOCKED",
+    "does not commit or push"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I0. Re-open only to copy the final-answer rule or the idle verdict into the local-build receipt, with no daemon and no node enrollment. Not a Feature GO.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "daemon_install",
+    "controlled_nodes",
+    "cloud_sync",
+    "gate_wiring"
+  ],
+  "evidence": [
+    "entry:sources/entries/169-imcodes.md",
+    "pin:b8442c5ca3bd22046568258e84d30781dc6a79d0",
+    "eval/evq1107/imcodes/REPORT.md",
+    "eval/evq1107/imcodes/VERDICT"
+  ],
+  "handoff_by": "llm"
+}

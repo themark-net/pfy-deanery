@@ -23,4 +23,4 @@
 | Memory leaks to cloud | optional sync enabled | Keep local-only if ever trialed |
 | Pin drift | default branch moves | Smoke checks this SHA |
 
-- **Status**: Cataloged I0. Design reference for supervised audit/rework and lane memory. No Feature GO.
+- **Status**: STAY I0 reference. Read-only notes in eval/evq1107/imcodes/REPORT.md. No install, no Controlled Nodes, no Feature GO.
