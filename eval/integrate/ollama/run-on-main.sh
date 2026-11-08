@@ -60,13 +60,18 @@ import sys
 import urllib.error
 import urllib.request
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
 dest = sys.argv[1]
 url = "http://127.0.0.1:11434/api/version"
 req = urllib.request.Request(url, method="GET")
+opener = urllib.request.build_opener(_NoRedirect)
 try:
-    with urllib.request.urlopen(req, timeout=5) as resp:
+    with opener.open(req, timeout=5) as resp:
         status = int(resp.getcode())
-        raw = resp.read()
+        raw = resp.read(4096)
 except (urllib.error.URLError, TimeoutError, OSError):
     sys.exit(1)
 if status != 200:
@@ -75,7 +80,7 @@ version = ""
 try:
     parsed = json.loads(raw.decode("utf-8"))
     if isinstance(parsed, dict) and isinstance(parsed.get("version"), str):
-        version = parsed["version"].splitlines()[0].strip()[:64]
+        version = parsed["version"].replace("\r", "\n").split("\n", 1)[0].strip()[:64]
 except (UnicodeError, json.JSONDecodeError):
     version = ""
 if not version:
