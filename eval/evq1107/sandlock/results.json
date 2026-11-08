@@ -1,0 +1,167 @@
+{
+  "pins": {
+    "version_text": "sandlock 0.8.9",
+    "version_ok": true,
+    "tag": "v0.8.9",
+    "tag_commit": "4a8c09fb537a152710cddfb1a4351d7e8a5af05f",
+    "tarball": "sandlock-x86_64-unknown-linux-gnu.tar.gz",
+    "tarball_sha256": "2b6c3c4858177f0603c7c016dd2da854c09cc1dbce13682b8a627465c7842018",
+    "tarball_sha_ok": true,
+    "binary": "/home/mark/.cache/pfy/tools/sandlock/unpack/sandlock",
+    "binary_sha256": "79c8d72ddfef2c51fa7c598ef39c8ae746eafed76abd53a61d232ddee7e122b0",
+    "binary_sha_ok": true,
+    "binary_bytes": 13267816,
+    "kernel": "7.0.0-38-generic"
+  },
+  "kernel": {
+    "rc": 0,
+    "timeout": false,
+    "abi_line": "Landlock:       ABI v8",
+    "text": "Kernel feature support:\n  Landlock:       ABI v8\n  Minimum required: ABI v6\n  Status:         OK\n  Filesystem:     supported (ABI v1+)\n  File truncate:  supported (ABI v3+)\n  TCP ports:      supported (ABI v4+)\n  Device ioctl:   supported (ABI v5+)\n  IPC scoping:    supported (ABI v6+)\n  Signal scoping: supported (ABI v6+)\n\nPer-protection availability (host Landlock ABI v8):\n  FsRefer                requires v2 - available\n  FsTruncate             requires v3 - available\n  NetTcp                 requires v4 - available\n  FsIoctlDev             requires v5 - available\n  SignalScope            requires v6 - available\n  AbstractUnixSocketScope requires v6 - available\n  Platform: x86_64"
+  },
+  "control": {
+    "install_landed": true,
+    "skills_dir_untouched": true,
+    "stolen_bytes": 20,
+    "net_rc": "0",
+    "accepts": 1,
+    "escapes": {
+      "skills_write": true,
+      "sibling_write": true,
+      "canary_leaked": true,
+      "net_connect": true
+    },
+    "escapes_blocked": 0,
+    "escapes_total": 4,
+    "name": "control",
+    "sandboxed": false,
+    "net_allow": false,
+    "port": 41433,
+    "listener_error": "",
+    "rc": 0,
+    "timeout": false,
+    "seconds": 0.0168,
+    "permission_denied_lines": []
+  },
+  "enforce": {
+    "install_landed": true,
+    "skills_dir_untouched": true,
+    "stolen_bytes": 0,
+    "net_rc": "1",
+    "accepts": 0,
+    "escapes": {
+      "skills_write": false,
+      "sibling_write": false,
+      "canary_leaked": false,
+      "net_connect": false
+    },
+    "escapes_blocked": 4,
+    "escapes_total": 4,
+    "name": "enforce",
+    "sandboxed": true,
+    "net_allow": false,
+    "port": 36173,
+    "listener_error": "",
+    "rc": 0,
+    "timeout": false,
+    "seconds": 0.1163,
+    "permission_denied_lines": [
+      "sh: 10: cannot create /home/mark/DEVELOP/pfy-mentat/tmp/evq/wt/sandlock/tmp/sandlock-probe/enforce/skills/SKILL.md: Permission denied",
+      "sh: 11: cannot create /home/mark/DEVELOP/pfy-mentat/tmp/evq/wt/sandlock/tmp/sandlock-probe/enforce/sibling/escape.txt: Permission denied",
+      "cat: /home/mark/.cache/pfy/tools/sandlock/probe-secret/canary.txt: Permission denied",
+      "PermissionError: [Errno 13] Permission denied"
+    ]
+  },
+  "net_allow": {
+    "install_landed": true,
+    "skills_dir_untouched": true,
+    "stolen_bytes": 0,
+    "net_rc": "0",
+    "accepts": 1,
+    "escapes": {
+      "skills_write": false,
+      "sibling_write": false,
+      "canary_leaked": false,
+      "net_connect": true
+    },
+    "escapes_blocked": 3,
+    "escapes_total": 4,
+    "name": "net-allow",
+    "sandboxed": true,
+    "net_allow": true,
+    "port": 36213,
+    "listener_error": "",
+    "rc": 0,
+    "timeout": false,
+    "seconds": 0.0302,
+    "permission_denied_lines": [
+      "sh: 10: cannot create /home/mark/DEVELOP/pfy-mentat/tmp/evq/wt/sandlock/tmp/sandlock-probe/net-allow/skills/SKILL.md: Permission denied",
+      "sh: 11: cannot create /home/mark/DEVELOP/pfy-mentat/tmp/evq/wt/sandlock/tmp/sandlock-probe/net-allow/sibling/escape.txt: Permission denied",
+      "cat: /home/mark/.cache/pfy/tools/sandlock/probe-secret/canary.txt: Permission denied"
+    ]
+  },
+  "dry_run": {
+    "rc": 0,
+    "timeout": false,
+    "seconds": 0.0067,
+    "listed": [
+      {
+        "op": "A",
+        "path": "SKILL.md"
+      },
+      {
+        "op": "M",
+        "path": "keep.txt"
+      }
+    ],
+    "listed_count": 2,
+    "before": {
+      "keep.txt": "before\n"
+    },
+    "after": {
+      "keep.txt": "before\n"
+    },
+    "discarded": true,
+    "output_tail": "\nsandlock: dry-run: filesystem changes:\nA  SKILL.md\nM  keep.txt\n"
+  },
+  "startup": {
+    "samples_including_warmup": 21,
+    "reported_n": 20,
+    "median_ms": 2.8,
+    "min_ms": 2.7,
+    "max_ms": 3.9,
+    "all_rc_zero": true,
+    "times_ms": [
+      3.3,
+      2.8,
+      2.8,
+      2.9,
+      2.7,
+      3.1,
+      2.8,
+      2.8,
+      2.7,
+      2.7,
+      2.8,
+      3.9,
+      3.0,
+      3.9,
+      2.9,
+      2.8,
+      2.7,
+      2.7,
+      2.7,
+      2.7,
+      2.7
+    ]
+  },
+  "summary": {
+    "control_ok": true,
+    "enforce_ok": true,
+    "net_allow_ok": true,
+    "dry_run_ok": true,
+    "startup_ok": true,
+    "headline": "4/4 escapes blocked",
+    "install_landed": true
+  }
+}

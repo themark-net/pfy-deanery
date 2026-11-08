@@ -1,0 +1,35 @@
+{
+  "name": "Sandlock",
+  "integration_stage": "I2",
+  "intent": "adhoc_probe",
+  "entry": "sources/entries/096-sandlock.md",
+  "github": "https://github.com/multikernel/sandlock",
+  "pin": "4a8c09fb537a152710cddfb1a4351d7e8a5af05f",
+  "uses": "Rootless confinement of one fetched-skill install command. Writes stay in a stage directory unless dry-run discards them.",
+  "features": [
+    "landlock filesystem",
+    "default deny network",
+    "host port allowlist",
+    "dry-run discard"
+  ],
+  "potential": "medium",
+  "next_gate": "Stay I2. The I1 ceiling stays until a TOOLS.md row exists. A later ticket can grill one installer wrapper that hands the stage directory to SkillSpector. No gate wiring in this lane.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "replace SkillSpector content checks",
+    "replace agent-cage",
+    "replace write-guard",
+    "pregate or CI gate",
+    "https mitm or credential injection",
+    "oci shim",
+    "hostile-code boundary"
+  ],
+  "evidence": [
+    "entry:sources/entries/096-sandlock.md",
+    "pin:4a8c09fb537a152710cddfb1a4351d7e8a5af05f",
+    "eval/evq1107/sandlock/REPORT.md",
+    "eval/evq1107/sandlock/VERDICT",
+    "eval/evq1107/sandlock/results.json"
+  ],
+  "handoff_by": "llm"
+}

@@ -19,4 +19,4 @@
 | False sense of safety | Shared kernel; a kernel bug escapes the sandbox | Treat it as blast-radius reduction for our own agents, not a boundary for hostile code |
 | Breaks tools | Too-tight profile makes Build or ROCm calls fail (GPU device nodes, /proc) | Use `sandlock learn` on a known-good run to draft the profile; keep an unsandboxed fallback |
 
-- **Status**: Cataloged I0. Verified on the Grok Bot box; not installed on nimo.
+- **Status**: I2 probe on nimo, 2026-11-07. Pinned v0.8.9 commit 4a8c09fb537a152710cddfb1a4351d7e8a5af05f, cache install only. Enforce mode blocked 4/4 install escapes and the stage write landed. See eval/evq1107/sandlock/REPORT.md.
