@@ -14,17 +14,39 @@
     "#embeddings"
   ],
   "catalog_github": "https://github.com/chroma-core/chroma",
-  "posture": [],
-  "evidence": [],
+  "github": "https://github.com/chroma-core/chroma",
+  "pin": "11f3c7435e71024aa0a2b53710a28d3289d922d1",
+  "license": "Apache-2.0",
+  "posture": [
+    "reference_only"
+  ],
+  "evidence": [
+    "eval/evq1107/chroma-or-lancedb/REPORT.md",
+    "eval/evq1107/chroma-or-lancedb/VERDICT",
+    "pin:11f3c7435e71024aa0a2b53710a28d3289d922d1",
+    "tag:1.5.9",
+    "lancedb_pin:3936a8b3bcce8f8e073f3ec6a47e4ca4d3381b92",
+    "lancedb_tag:v0.41.0"
+  ],
   "tier_ceiling": "I1",
-  "uses": "Vector store. Code memory is already chosen.",
+  "uses": "Vector store. Code memory is already chosen. Reference read of Chroma 1.5.9 and LanceDB 0.41.0. Does not score gap H1.",
   "features": [
-    "embeddings"
+    "in-memory client and a persistent path",
+    "default minilm embedder downloads a model",
+    "metadata where filter",
+    "automatic table versions"
   ],
   "potential": "low",
-  "next_gate": "Stay I0.",
+  "next_gate": "Stay I0 reference. Re-open only if a later ticket names a retrieval job that codebase-memory-mcp, LEANN, and opencode-mem do not cover, and that ticket grills the copy first. The 2026-11-07 read did not install either package. Chroma pin 11f3c743 is tag 1.5.9. LanceDB pin 3936a8b3 is tag v0.41.0. Gap H1 stays with skill-up. No gate wiring. Not a Feature GO.",
   "handoff_by": "llm",
   "non_goals": [
-    "second memory store"
+    "second memory store",
+    "feature_go",
+    "catalog_hold_70_75",
+    "install",
+    "cloud_client",
+    "code_copy",
+    "gate_wiring",
+    "replace codebase-memory"
   ]
 }
