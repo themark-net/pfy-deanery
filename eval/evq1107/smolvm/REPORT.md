@@ -84,7 +84,7 @@ Guest stdout was the cache line, `pfy-smolvm-install-ok`, `name: probe-skill`, `
 
 The install body is `printf 'name: probe-skill'`. It is not a package install. Upstream's boot claim is under 200 ms. This wall is the whole `smolvm` process plus the guest shell, and it is 3.0446 s. Default `--mem` is 8192 MiB and default `--storage` is 20 GiB. This run set 512 and 1.
 
-`python3 -m unittest tests.test_smolvm_probe` passed. Those tests use stub executables. A stub that prints the host kernel and rewrites the sentinel exits 1 with `guest_escapes_blocked` 0. A stub that prints kernel `6.12.95` and leaves the sentinel exits 0 with 3/3. A wrong `SMOLVM_SHA256` exits 2 and the stub does not run. No network, no `/dev/kvm`, no real binary.
+`python3 -m unittest tests.test_smolvm_probe` passed. Those tests use stub executables. A stub that prints the host kernel and rewrites the sentinel exits 1 with `guest_escapes_blocked` 0. A stub that deletes the sentinel exits 1 with `sentinel_unchanged` false. A stub that prints kernel `6.12.95` and leaves the sentinel exits 0 with 3/3. With `SMOLVM_REQUIRE_IMAGE=1`, a missing cache line exits 1 even when the three escapes are blocked. A wrong `SMOLVM_SHA256` exits 2 and the stub does not run. No network, no `/dev/kvm`, no real binary.
 
 ## Gates
 

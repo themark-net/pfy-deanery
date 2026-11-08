@@ -50,6 +50,16 @@ KNOWN = {
 }
 
 
+def file_same(path: Path, digest: str, text: str) -> bool:
+    """True only when path is still that file. A missing path is a change."""
+    try:
+        if not path.is_file():
+            return False
+        return sha256_file(path) == digest and path.read_text(encoding="utf-8") == text
+    except OSError:
+        return False
+
+
 def sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -336,8 +346,8 @@ def main() -> int:
             wall = time.perf_counter() - started
     home_after = snap_home()
     parsed = parse_run(guest_out)
-    sentinel_same = sha256_file(guest_sentinel) == guest_before and guest_sentinel.read_text(encoding="utf-8") == SENTINEL_TEXT
-    cwd_same = sha256_file(cwd_marker) == cwd_before and cwd_marker.read_text(encoding="utf-8") == CWD_TEXT
+    sentinel_same = file_same(guest_sentinel, guest_before, SENTINEL_TEXT)
+    cwd_same = file_same(cwd_marker, cwd_before, CWD_TEXT)
     guest_blocked = 0
     if parsed["see"] == "host-hidden":
         guest_blocked += 1
@@ -347,7 +357,8 @@ def main() -> int:
         guest_blocked += 1
     kernel_differs = bool(parsed["kernel"]) and parsed["kernel"] != result["host_kernel"]
     install_ok = parsed["install"] == "pfy-smolvm-install-ok" and parsed["skill"] == "name: probe-skill"
-    image_ok = (not official) or bool(parsed["image_evidence"])
+    require_image = official or os.environ.get("SMOLVM_REQUIRE_IMAGE") == "1"
+    image_ok = (not require_image) or bool(parsed["image_evidence"])
     result.update(
         {
             "guest_rc": guest_rc,
