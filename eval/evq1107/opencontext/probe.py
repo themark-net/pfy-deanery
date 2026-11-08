@@ -8,6 +8,7 @@ no oc index build.
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import os
@@ -113,14 +114,14 @@ def home_fingerprint(root: Path) -> list[dict]:
     return rows
 
 
-def oc_env(store: Path) -> dict[str, str]:
+def oc_env(store: Path, home: Path | None = None, tmp: Path | None = None) -> dict[str, str]:
     base = cache_base()
     return {
         "PATH": os.environ.get("PATH", ""),
-        "HOME": str(base / "home"),
+        "HOME": str(home or (base / "home")),
         "XDG_CONFIG_HOME": str(base / "xdg-config"),
         "XDG_CACHE_HOME": str(base / "xdg-cache"),
-        "TMPDIR": str(base / "tmp"),
+        "TMPDIR": str(tmp or (base / "tmp")),
         "OPENCONTEXT_ROOT": str(store),
         "OPENCONTEXT_CONTEXTS_ROOT": str(store / "contexts"),
         "OPENCONTEXT_DB_PATH": str(store / "opencontext.db"),
@@ -158,14 +159,21 @@ def run_cmd(cmd: list[str], cwd: Path, env: dict[str, str], timeout: int) -> dic
     }
 
 
-def run_oc(store: Path, args: list[str], timeout: int = 30) -> dict:
-    return run_cmd([str(oc_bin())] + args, ROOT, oc_env(store), timeout)
+def run_oc(
+    store: Path,
+    args: list[str],
+    timeout: int = 30,
+    binary: Path | None = None,
+    home: Path | None = None,
+    tmp: Path | None = None,
+) -> dict:
+    return run_cmd([str(binary or oc_bin())] + args, ROOT, oc_env(store, home, tmp), timeout)
 
 
-def repo_hits(needle: str) -> dict:
+def repo_hits(needle: str, rg: str = "rg") -> dict:
     """Count files in this worktree that contain needle. Skip our own outputs."""
     cmd = [
-        "rg",
+        rg,
         "-F",
         "-l",
         "--glob",
@@ -229,10 +237,19 @@ def recall_subprocess(contexts: Path, needles: tuple[str, ...]) -> dict:
     }
 
 
-def manifest_tokens(store: Path, folder: str) -> dict:
+def manifest_tokens(
+    store: Path,
+    folder: str,
+    binary: Path | None = None,
+    home: Path | None = None,
+    tmp: Path | None = None,
+) -> dict:
     result = run_oc(
         store,
         ["context", "manifest", folder, "--limit", "20", "--format", "json"],
+        binary=binary,
+        home=home,
+        tmp=tmp,
     )
     rows = []
     parse_ok = False
@@ -402,24 +419,42 @@ def pin_facts() -> dict:
     }
 
 
-def main() -> int:
-    if len(sys.argv) > 1 and sys.argv[1] == "--recall":
-        return cmd_recall(sys.argv[2:])
+def main(argv: list[str] | None = None) -> int:
+    if argv is None:
+        argv = sys.argv[1:]
+    if argv and argv[0] == "--recall":
+        return cmd_recall(argv[1:])
 
-    before = home_fingerprint(real_home() / ".opencontext")
-    facts = pin_facts()
-    store = cache_base() / "run" / "h1"
+    parser = argparse.ArgumentParser(description="Offline OpenContext recall probe")
+    parser.add_argument("--out", type=Path, default=OUT)
+    parser.add_argument("--oc-bin", type=Path, default=None)
+    parser.add_argument("--rg-bin", default="rg")
+    parser.add_argument("--store", type=Path, default=None)
+    parser.add_argument("--home", type=Path, default=None)
+    parser.add_argument("--tmp", type=Path, default=None)
+    parser.add_argument("--skip-pins", action="store_true")
+    parser.add_argument("--skip-home", action="store_true")
+    args = parser.parse_args(argv)
+    binary = args.oc_bin
+    home = args.home
+    tmp = args.tmp
+
+    before = [] if args.skip_home else home_fingerprint(real_home() / ".opencontext")
+    facts = {"skipped": True} if args.skip_pins else pin_facts()
+    store = args.store or (cache_base() / "run" / "h1")
     if store.exists():
         shutil.rmtree(store)
     store.mkdir(parents=True)
     (store / "contexts").mkdir()
 
     rg_start = time.perf_counter()
-    repo_novel = {needle: repo_hits(needle) for needle in NOVEL}
-    repo_known = {needle: repo_hits(needle) for needle in REPO_NEEDLES}
+    repo_novel = {needle: repo_hits(needle, args.rg_bin) for needle in NOVEL}
+    repo_known = {needle: repo_hits(needle, args.rg_bin) for needle in REPO_NEEDLES}
     rg_ms = ms(rg_start)
 
-    folder = run_oc(store, ["folder", "create", "evq1107-h1", "-d", "evq1107 probe"])
+    folder = run_oc(
+        store, ["folder", "create", "evq1107-h1", "-d", "evq1107 probe"], binary=binary, home=home, tmp=tmp
+    )
     created = []
     capture_start = time.perf_counter()
     # folder create time is inside capture_ms together with the docs
@@ -428,13 +463,16 @@ def main() -> int:
             run_oc(
                 store,
                 ["doc", "create", "evq1107-h1", "note-%02d.md" % index, "-d", needle],
+                binary=binary,
+                home=home,
+                tmp=tmp,
             )
         )
     capture_ms = round(folder["ms"] + (time.perf_counter() - capture_start) * 1000.0, 1)
 
     contexts = store / "contexts"
     walk_before = file_walk_hits(contexts, NOVEL + REPO_NEEDLES)
-    manifest_before_body = manifest_tokens(store, "evq1107-h1")
+    manifest_before_body = manifest_tokens(store, "evq1107-h1", binary=binary, home=home, tmp=tmp)
 
     bodies_written = 0
     for index, needle in enumerate(NOVEL, start=1):
@@ -445,12 +483,15 @@ def main() -> int:
 
     walk_after = file_walk_hits(contexts, NOVEL + REPO_NEEDLES)
     recall = recall_subprocess(contexts, NOVEL + REPO_NEEDLES)
-    manifest_again = manifest_tokens(store, "evq1107-h1")
+    manifest_again = manifest_tokens(store, "evq1107-h1", binary=binary, home=home, tmp=tmp)
 
     search = run_oc(
         store,
         ["search", NOVEL[0], "--mode", "keyword", "--format", "json", "--limit", "5"],
         timeout=30,
+        binary=binary,
+        home=home,
+        tmp=tmp,
     )
     search_blob = (search["stdout"] + "\n" + search["stderr"]).strip()
     search_skipped = "API key not configured" in search_blob
@@ -513,13 +554,15 @@ def main() -> int:
         "h1_score_delta": None,
         "skill_up": skill_up_note(),
         "overlap": overlap_cards(),
-        "real_opencontext_unchanged": home_fingerprint(real_home() / ".opencontext") == before,
+        "real_opencontext_unchanged": (
+            None if args.skip_home else home_fingerprint(real_home() / ".opencontext") == before
+        ),
         "oc_init_ran": False,
         "oc_ui_ran": False,
         "oc_index_build_ran": False,
         "model_lock_taken": False,
     }
-    OUT.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+    args.out.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     print(
         "novel manifest %s/%s file-walk-after %s/%s second %s/%s repo-rg %s/%s search_skip %s"
         % (
@@ -534,7 +577,7 @@ def main() -> int:
             result["search_keyword"]["skipped_api_key"],
         )
     )
-    print("wrote", OUT)
+    print("wrote", args.out)
     return 0
 
 

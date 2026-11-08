@@ -72,6 +72,8 @@ python3 eval/evq1107/opencontext/probe.py
 
 The probe writes `eval/evq1107/opencontext/results.json`. The store for the run was `~/.cache/pfy/tools/opencontext/run/h1`. Eight notes were created in folder `evq1107-h1`. Each description was one novel token. The context file was empty until the probe wrote that token into the body. Repo needles were not copied into the store.
 
+`python3 -m unittest tests.test_opencontext_probe` drives the same script with stub `oc` and `rg` binaries. No network and no real `oc`. A key error that still prints the note stays skipped, and the manifest still returns 8 of 8. An empty doc file stays a miss until the body write.
+
 ## Numbers
 
 | Check | Result |
