@@ -1,0 +1,35 @@
+{
+  "name": "Festival",
+  "integration_stage": "I1",
+  "intent": "staged_evaluation",
+  "entry": "sources/entries/113-festival.md",
+  "github": "https://github.com/Obedience-Corp/festival",
+  "uses": "Filesystem plan, next-task, and checklist gates for a long agent goal. The 2026-11-07 probe did not close the pfy build timeout. Advisory only.",
+  "features": [
+    "fest next",
+    "markdown checklists",
+    "camp workspace"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1. Do not wire a gate. Reopen only if a later ticket shows TODO plus git plus the 8 exits lose the next step on a real lane, and that ticket grills wiring first. The cache install is 82 MB, so this is not an in-repo copy.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "gate_wiring",
+    "second loop runtime",
+    "shell-init",
+    "festival update"
+  ],
+  "evidence": [
+    "entry:sources/entries/113-festival.md",
+    "eval/evq1107/festival/REPORT.md",
+    "eval/evq1107/festival/VERDICT",
+    "eval/evq1107/festival/results.json"
+  ],
+  "handoff_by": "llm",
+  "self_pipeline": {
+    "status": "not_applicable",
+    "reason": "The testing checklist completed with 11 unchecked boxes and promote stayed at 4 of 11 tasks incomplete. Not applied to this repo's pipeline. Not a gate."
+  }
+}

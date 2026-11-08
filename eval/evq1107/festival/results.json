@@ -1,0 +1,553 @@
+{
+  "seconds_total": 0.553,
+  "festival_final": "/home/mark/.cache/pfy/tools/festival/home/campaigns/probe/festivals/active/gap-b-resume-GB0001",
+  "markers_scaffold": 38,
+  "markers_before_second_fill": 50,
+  "markers_after_fill": 0,
+  "validate_rc": 0,
+  "validate_valid": true,
+  "validate_score": 100,
+  "control_next_rc": 1,
+  "control_refused": true,
+  "first_next": "01_record_timeout.md",
+  "first_next_rc": 0,
+  "resume_same": true,
+  "progress": {
+    "total_tasks": 11,
+    "completed_tasks": 0,
+    "percentage": 0
+  },
+  "skip_ahead_rc": 0,
+  "skip_ahead_status": "completed",
+  "next_after_skip": "01_record_timeout.md",
+  "order": [
+    {
+      "expect": "01_record_timeout.md",
+      "fest_next": "01_record_timeout.md",
+      "flat_pending": "01_record_timeout.md",
+      "agree": true,
+      "rc": 0
+    },
+    {
+      "expect": "02_record_pregate.md",
+      "fest_next": "02_record_pregate.md",
+      "flat_pending": "02_record_pregate.md",
+      "agree": true,
+      "rc": 0
+    },
+    {
+      "expect": "03_record_recovery.md",
+      "fest_next": "03_record_recovery.md",
+      "flat_pending": "03_record_recovery.md",
+      "agree": true,
+      "rc": 0
+    }
+  ],
+  "order_hits": 3,
+  "gate_was_next": true,
+  "gate_complete_rc": 0,
+  "gate_complete_status": "completed",
+  "gate_unchecked_before": 11,
+  "gate_checked_before": 0,
+  "gate_unchecked_after": 11,
+  "gate_checked_after": 0,
+  "gate_file_status_after": "completed",
+  "phase_gate_rc": 0,
+  "phase_gate_needs_operator": true,
+  "phase_gate_excerpt": "\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\n## Step 1: PHASE GOAL\n\n**Question:** Does the implementation satisfy the PHASE_GOAL.md objectives? Were all required deliverables produced?\n\n\n**Actions:**\n  - Re-read PHASE_GOAL.md and compare stated objectives against actual results\n  - Verify each required deliverable exists and is functional\n  - Confirm the implementation solves the problem the phase was created for\n\n**Checkpoint:** This step requires user approval before proceeding\n\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nProgress: Step 1/4 | Phase: 001_IMPLEMENT | Type: IMPLEMENTATION PHASE GATE\n\nWhen work is complete, submit for review:\n  fest workflow advance\n\nThis will require operator approval before proceeding. Present the work and\nwait for the operator; do not approve it yourself.\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n",
+  "promote_blocked_rc": 1,
+  "promote_blocked_error": "4 of 11 tasks incomplete",
+  "template_gates": [
+    {
+      "file": "gates/implementation/QUALITY_GATE_FEST_COMMIT.md",
+      "rc": 0,
+      "status": "completed",
+      "unchecked_before": 8,
+      "checked_before": 0,
+      "unchecked_after": 8,
+      "checked_after": 0,
+      "file_status_after": "pending"
+    },
+    {
+      "file": "gates/implementation/QUALITY_GATE_ITERATE.md",
+      "rc": 0,
+      "status": "completed",
+      "unchecked_before": 7,
+      "checked_before": 0,
+      "unchecked_after": 7,
+      "checked_after": 0,
+      "file_status_after": "pending"
+    },
+    {
+      "file": "gates/implementation/QUALITY_GATE_REVIEW.md",
+      "rc": 0,
+      "status": "completed",
+      "unchecked_before": 13,
+      "checked_before": 0,
+      "unchecked_after": 13,
+      "checked_after": 0,
+      "file_status_after": "pending"
+    },
+    {
+      "file": "gates/implementation/QUALITY_GATE_TESTING.md",
+      "rc": 0,
+      "status": "completed",
+      "unchecked_before": 11,
+      "checked_before": 0,
+      "unchecked_after": 11,
+      "checked_after": 0,
+      "file_status_after": "pending"
+    }
+  ],
+  "promote_completed_rc": 1,
+  "promote_completed_to": "completed",
+  "promote_completed_success": false,
+  "promote_completed_error": "4 of 11 tasks incomplete",
+  "isolation": {
+    "real_obey_exists": false,
+    "real_campaigns_exists": false,
+    "worktree_camp_file": false,
+    "notes_files": [
+      "NOTE.md"
+    ]
+  },
+  "binary_bytes": {
+    "fest": 34406584,
+    "camp": 36065464,
+    "festival": 13336760
+  },
+  "steps": [
+    {
+      "cmd": [
+        "create",
+        "festival",
+        "--json",
+        "--skip-markers",
+        "--name",
+        "gap-b-resume",
+        "--goal",
+        "Name the unfinished pfy build step after a session ends. Success is fest next returning that step from files, with no second 3 hour build.",
+        "--type",
+        "implementation"
+      ],
+      "rc": 0,
+      "seconds": 0.023,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "create",
+        "sequence",
+        "--json",
+        "--skip-markers",
+        "--no-prompt",
+        "--name",
+        "record the park",
+        "--path",
+        "/home/mark/.cache/pfy/tools/festival/home/campaigns/probe/festivals/planning/gap-b-resume-GB0001/001_IMPLEMENT"
+      ],
+      "rc": 0,
+      "seconds": 0.017,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "create",
+        "task",
+        "--json",
+        "--skip-markers",
+        "--path",
+        "/home/mark/.cache/pfy/tools/festival/home/campaigns/probe/festivals/planning/gap-b-resume-GB0001/001_IMPLEMENT/01_record_the_park",
+        "--name",
+        "record timeout",
+        "--name",
+        "record pregate",
+        "--name",
+        "record recovery"
+      ],
+      "rc": 0,
+      "seconds": 0.016,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "gates",
+        "apply",
+        "--json",
+        "--approve",
+        "--sequence",
+        "001_IMPLEMENT/01_record_the_park"
+      ],
+      "rc": 0,
+      "seconds": 0.021,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "validate",
+        "--json",
+        "/home/mark/.cache/pfy/tools/festival/home/campaigns/probe/festivals/planning/gap-b-resume-GB0001"
+      ],
+      "rc": 0,
+      "seconds": 0.016,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "create",
+        "festival",
+        "--json",
+        "--skip-markers",
+        "--name",
+        "unfilled-control",
+        "--goal",
+        "Print hello",
+        "--type",
+        "implementation"
+      ],
+      "rc": 0,
+      "seconds": 0.019,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "next",
+        "--json"
+      ],
+      "rc": 1,
+      "seconds": 0.013,
+      "timeout": false,
+      "stdout_tail": "STOP: FESTIVAL VALIDATION FAILED\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nThis festival has issues that must be fixed before continuing.\n\nErrors:\n  \u2717 001_IMPLEMENT: Implementation phase 001_IMPLEMENT requires at least one sequence directory\n  \u2717 001_IMPLEMENT/PHASE_GOAL.md: File contains 11 unfilled template markers ([REPLACE:)\n  \u2717 FESTIVAL_GOAL.md: File contains 8 unfilled template markers ([REPLACE:)\n  \u2717 FESTIVAL_OVERVIEW.md: File contains 9 unfilled template markers ([REPLACE:)\n  \u2717 TODO.md: File contains 7 unfilled template markers ([REPLACE:)\n\nRun 'fest validate' for full details, then fix the issues.\nDo not proceed with tasks until the festival passes validation.\n",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "promote",
+        "--json",
+        "--no-commit"
+      ],
+      "rc": 0,
+      "seconds": 0.016,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "promote",
+        "--json",
+        "--no-commit"
+      ],
+      "rc": 0,
+      "seconds": 0.017,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "next",
+        "--json"
+      ],
+      "rc": 0,
+      "seconds": 0.016,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "next",
+        "--json"
+      ],
+      "rc": 0,
+      "seconds": 0.02,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "task",
+        "completed",
+        "--yes",
+        "--json",
+        "03_record_recovery.md"
+      ],
+      "rc": 0,
+      "seconds": 0.016,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "next",
+        "--json"
+      ],
+      "rc": 0,
+      "seconds": 0.019,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "task",
+        "reset",
+        "--yes",
+        "--json",
+        "03_record_recovery.md"
+      ],
+      "rc": 0,
+      "seconds": 0.017,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "next",
+        "--json"
+      ],
+      "rc": 0,
+      "seconds": 0.018,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "task",
+        "completed",
+        "--yes",
+        "--json",
+        "01_record_timeout.md"
+      ],
+      "rc": 0,
+      "seconds": 0.014,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "next",
+        "--json"
+      ],
+      "rc": 0,
+      "seconds": 0.019,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "task",
+        "completed",
+        "--yes",
+        "--json",
+        "02_record_pregate.md"
+      ],
+      "rc": 0,
+      "seconds": 0.017,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "next",
+        "--json"
+      ],
+      "rc": 0,
+      "seconds": 0.018,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "task",
+        "completed",
+        "--yes",
+        "--json",
+        "03_record_recovery.md"
+      ],
+      "rc": 0,
+      "seconds": 0.016,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "next",
+        "--json"
+      ],
+      "rc": 0,
+      "seconds": 0.017,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "task",
+        "completed",
+        "--yes",
+        "--json",
+        "04_testing.md"
+      ],
+      "rc": 0,
+      "seconds": 0.016,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "task",
+        "completed",
+        "--yes",
+        "--json",
+        "05_review.md"
+      ],
+      "rc": 0,
+      "seconds": 0.016,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "task",
+        "completed",
+        "--yes",
+        "--json",
+        "06_iterate.md"
+      ],
+      "rc": 0,
+      "seconds": 0.016,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "task",
+        "completed",
+        "--yes",
+        "--json",
+        "07_fest_commit.md"
+      ],
+      "rc": 0,
+      "seconds": 0.019,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "next"
+      ],
+      "rc": 0,
+      "seconds": 0.017,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "promote",
+        "--json",
+        "--no-commit"
+      ],
+      "rc": 1,
+      "seconds": 0.016,
+      "timeout": false,
+      "stdout_tail": "{\n  \"error\": \"4 of 11 tasks incomplete\",\n  \"from\": \"active\",\n  \"hint\": \"use --force to skip validation\",\n  \"success\": false,\n  \"to\": \"completed\"\n}\n",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "task",
+        "completed",
+        "--yes",
+        "--json",
+        "gates/implementation/QUALITY_GATE_FEST_COMMIT.md"
+      ],
+      "rc": 0,
+      "seconds": 0.016,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "task",
+        "completed",
+        "--yes",
+        "--json",
+        "gates/implementation/QUALITY_GATE_ITERATE.md"
+      ],
+      "rc": 0,
+      "seconds": 0.016,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "task",
+        "completed",
+        "--yes",
+        "--json",
+        "gates/implementation/QUALITY_GATE_REVIEW.md"
+      ],
+      "rc": 0,
+      "seconds": 0.017,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "task",
+        "completed",
+        "--yes",
+        "--json",
+        "gates/implementation/QUALITY_GATE_TESTING.md"
+      ],
+      "rc": 0,
+      "seconds": 0.016,
+      "timeout": false,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "cmd": [
+        "promote",
+        "--json",
+        "--no-commit"
+      ],
+      "rc": 1,
+      "seconds": 0.016,
+      "timeout": false,
+      "stdout_tail": "{\n  \"error\": \"4 of 11 tasks incomplete\",\n  \"from\": \"active\",\n  \"hint\": \"use --force to skip validation\",\n  \"success\": false,\n  \"to\": \"completed\"\n}\n",
+      "stderr_tail": ""
+    }
+  ]
+}
