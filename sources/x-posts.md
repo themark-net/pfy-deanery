@@ -896,4 +896,4 @@ When adding new X-sourced tools or papers:
 - **Summary:** Complete agent harness optimized for recursive self-improvement: code mount, rebuild_and_restart_exo, canonical event log, sandbox snapshot/rewind, skills as durable artifacts.
 - **Self-change eval:** Operational §8 (snapshot → build → rebuild tool → event log → rollback); no formal numeric rubric; canary clone still a gap upstream.
 - **Decision:** Catalog **A / I1**; extract patterns into integration-self-mod-eval + make target. Not primary runtime.
-- **Status:** Cataloged 2026-07-31
+- **Status:** STAY I1 reference (read 2026-11-07). Pin `372602d1b553af06e9843e19f31fa8a7f749ab6e` (2026-07-30). MIT. Patterns already in docs/ops/exo-self-mod-patterns.md. Docker plus a hosted key. Gap B stays the pfy build timeout. Receipt: `eval/evq1107/exo-exoharness/REPORT.md`. No Feature GO.

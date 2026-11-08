@@ -8,7 +8,7 @@ Exo (https://github.com/exoharness/exo) is a Rust and TypeScript agent harness. 
 
 The July pin still matches the pattern note. `docs/RSI.md` keeps an append-only event log outside the sandbox. `examples/exo/docs/SELF-CONTROL.md` section 8 is snapshot, cargo or pnpm checks, `rebuild_and_restart_exo(reason)`, then git revert or `rewind_sandbox`. The canary clone is still an upstream gap (sections 4 and 7: sandbox clone and agent clone are not built). `docs/design/skills-arch.md` stores skills as artifacts (name and description every turn, body on demand). `docs/sandbox-snapshots.md` captures filesystem bytes only. The skill index is read-modify-write with no compare-and-swap.
 
-There is no `sources/entries` file. The Status line in shared `sources/x-posts.md` still says Cataloged 2026-07-31. This lane left that file alone. Status for this pass is the card and `eval/evq1107/exo-exoharness/VERDICT`.
+There is no `sources/entries` file. The Exo harness entry in `sources/x-posts.md` now has Status STAY I1 reference for this read. The card and `eval/evq1107/exo-exoharness/VERDICT` match it.
 
 ## Pin and command
 
@@ -60,7 +60,7 @@ Modularity (all 4 for I2): the README, RSI.md, and SELF-CONTROL.md were enough, 
 | setup.sh | Installs toolchains and asks for a hosted key. Writes a real home. | Do not run it. This lane set HOME under `~/.cache/pfy/tools/exo-exoharness`. |
 | Unattended RSI | The agent edits `/workspace/exo` and rebuilds. | Do not start it. `default_harness` stays grok. Delete the cache clone. The pin stays. |
 | Tip drift | A reader treats `d7fb6d2` as the judged tree. This lane read `372602d1`. | Stay on the pin. A newer tree is a new ticket. |
-| Shared status | `sources/x-posts.md` still says Cataloged 2026-07-31. | The card, this report, and VERDICT are the 2026-11-07 status. |
+| Shared status | A later edit of `sources/x-posts.md` drops this Status line. | The card, this report, and VERDICT still say STAY I1. Put the Status line back. |
 | Skill index race | Two conversations drop one install. Upstream documents no compare-and-swap. | Do not run two copies. This lane started none. |
 | ExoChat | Canonical template talks to exoharness.ai. | Do not start the canonical template. |
 
