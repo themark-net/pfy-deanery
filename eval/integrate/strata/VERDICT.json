@@ -1,0 +1,8 @@
+{
+  "metric": "status_http",
+  "threshold": 200,
+  "value_gate": "pass",
+  "modularity_gate": "pass",
+  "proposed_stage": "I3",
+  "note": "Apply refused: above-ceiling: proposed I3 is above allowed I2 (evidence I2: entry, probe artifact, other; tier_ceiling I3 does not raise it). The card bytes stay unchanged. Proposed I3 stays on this verdict. Do not demote."
+}
