@@ -1,7 +1,7 @@
 {
   "name": "destructive_command_guard",
-  "integration_stage": "I1",
-  "intent": "catalog_default",
+  "integration_stage": "I2",
+  "intent": "adhoc_probe",
   "tier": "A",
   "auto": true,
   "catalog_tier": "A",
@@ -13,16 +13,37 @@
   ],
   "catalog_github": "https://github.com/Dicklesworthstone/destructive_command_guard",
   "posture": [],
-  "evidence": [],
+  "evidence": [
+    "entry:sources/x-posts.md Entry 041",
+    "pin:665fcd8fc62cb5941e0484ddab012419f146523d",
+    "release:v0.16.0",
+    "eval/evq1107/destructive-command-guard/REPORT.md",
+    "eval/evq1107/destructive-command-guard/VERDICT",
+    "eval/evq1107/destructive-command-guard/results.json"
+  ],
   "tier_ceiling": "I1",
-  "uses": "Blocks destructive shell commands. Overlaps write-guard.",
+  "uses": "Classifies one shell command and denies destructive git, filesystem, and disk commands. write-guard does not see the command.",
   "features": [
-    "shell guard"
+    "posix command classify",
+    "default core packs",
+    "inline python scan",
+    "json decision"
   ],
   "potential": "medium",
-  "next_gate": "Stay I1 unless write-guard's shell coverage is shown to be a hole.",
+  "next_gate": "Stay I2. write-guard shell ops were 0 and dcg denied 12/12 destructive commands. A later ticket can grill one worker-shell hook in a temp HOME. No gate wiring. The I1 ceiling stays.",
   "handoff_by": "llm",
   "non_goals": [
-    "replace write-guard"
-  ]
+    "replace write-guard",
+    "replace SkillSpector",
+    "replace Sandlock",
+    "pregate or CI gate",
+    "dcg install into a real home",
+    "feature_go",
+    "catalog_hold_70_75"
+  ],
+  "notes_doc": "eval/evq1107/destructive-command-guard/REPORT.md",
+  "pin": "665fcd8fc62cb5941e0484ddab012419f146523d",
+  "release": "v0.16.0",
+  "tarball_sha256": "e7d860eba7f99cb5d5535b00942196aae3d6ca22ec049491d74c97aab556b642",
+  "binary_sha256": "f98166f7f0cf3dc1ec9483fedb2af9d9bc27248f5806ac2b7c83ff97e2e2b324"
 }

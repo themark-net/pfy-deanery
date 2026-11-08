@@ -1,0 +1,9 @@
+# Side-effect switches only. [packs] is unset so the no-config
+# default stays: core.filesystem, core.git, system.disk.
+
+[general]
+check_updates = false
+self_heal_hook = false
+
+[history]
+enabled = false

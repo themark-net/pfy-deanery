@@ -622,7 +622,7 @@ When adding new X-sourced tools or papers:
 - **Extracted Repos / Tools**: Primary: https://github.com/Dicklesworthstone/destructive_command_guard — Safety layer for coding agents.
 - **TOOLS.md Link**: New row under Agent Frameworks & Orchestration / Safety & Guardrails (high-signal safety tool for agents).
 - **Notes**: **High relevance for agent safety.** Directly addresses a critical pain point in agentic coding: preventing catastrophic mistakes from powerful but unguardrailed agents. Fits perfectly with our focus on reliable, hardened agent workflows (e.g., agent-cage isolation, verification/eval loops, adversarial checking). Strong complement to safety-focused patterns in loop engineering and harness engineering. High fit for evaluation criteria: Very High Relevance (agent safety guardrails), High Integration Ease (works with all coding agents), High Reproducibility (open source), Low Redundancy. Recommend: (1) Catalog as major agent safety tool. (2) Strong candidate for integration/testing with our harness and loop engineering setups. (3) Excellent reference for building or evaluating safety layers in autonomous agent systems.
-- **Status**: Processed and cataloged (added as high-value agent safety guardrail tool; priority for safety category)
+- **Status**: I2 probe 2026-11-07. Pin v0.16.0 commit 665fcd8fc62cb5941e0484ddab012419f146523d. write-guard shell ops 0; dcg denied 12/12 destructive commands. Receipt: eval/evq1107/destructive-command-guard/REPORT.md. Not a gate.
 
 ## Future Entries Format
 
