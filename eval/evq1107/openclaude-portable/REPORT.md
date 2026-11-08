@@ -4,7 +4,7 @@ STAY I0 reference: USB wrapper that downloads official Claude Code plus Node 24.
 
 ## What it is
 
-techjarves/OpenClaude-Portable (package `claudecode-portable` 2.0.0) is a folder launcher for the official Claude Code CLI and Agent SDK. `start.sh` downloads Node.js 24.21.0 from nodejs.org when `engine/` lacks that version, then runs `tools/launcher.mjs`. The runtime manifest pins `@anthropic-ai/claude-code` 2.1.247, `@anthropic-ai/claude-agent-sdk` 0.3.247, and `claude-adapter` 2.2.1. Nine profiles: Anthropic, OpenRouter, DeepSeek, NVIDIA NIM, Gemini, OpenAI, Ollama (`http://127.0.0.1:11434`), LM Studio (`http://127.0.0.1:1234`), and a custom OpenAI base (default `http://127.0.0.1:8080/v1`). A browser dashboard and the terminal share Claude session ids. App files stay under `data/` (`PORTABLE_AI_DATA_DIR` or `<root>/data`). API keys sit in plaintext `data/settings.json` (mode 0600). Dashboard and adapters bind `127.0.0.1` with a fresh token. LICENSE is MIT (Copyright 2026 Tech Jarves). Claude Code and the SDK keep their own terms. The README says this is an independent interface.
+techjarves/OpenClaude-Portable (package `claudecode-portable` 2.0.0) is a folder launcher for the official Claude Code CLI and Agent SDK. `start.sh` downloads Node.js 24.21.0 from nodejs.org when `engine/` lacks that version, then runs `tools/launcher.mjs`. The runtime manifest pins `@anthropic-ai/claude-code` 2.1.247, `@anthropic-ai/claude-agent-sdk` 0.3.247, and `claude-adapter` 2.2.1. Nine profiles: Anthropic, OpenRouter, DeepSeek, NVIDIA NIM, Gemini, OpenAI, Ollama (`http://127.0.0.1:11434`), LM Studio (`http://127.0.0.1:1234`), and a custom OpenAI base (default `http://127.0.0.1:8080/v1`). A browser dashboard and the terminal share Claude session ids. Settings and chats stay under `data/` (`PORTABLE_AI_DATA_DIR` or `<root>/data`). API keys sit in plaintext `data/settings.json` (mode 0600). Dashboard and adapters bind `127.0.0.1` with a fresh token. LICENSE is MIT (Copyright 2026 Tech Jarves). Claude Code and the SDK keep their own terms. The README says this is an independent interface.
 
 ## Pin and command
 
@@ -18,14 +18,14 @@ techjarves/OpenClaude-Portable (package `claudecode-portable` 2.0.0) is a folder
 
 `HOME`, `XDG_CONFIG_HOME`, `XDG_CACHE_HOME`, and `TMPDIR` sat under `~/.cache/pfy/tools/openclaude-portable`. `GIT_CONFIG_GLOBAL` and `GIT_CONFIG_SYSTEM` were `/dev/null`.
 
-No `sources/entries` file (the ticket entry was `-`). Status is this card. `sources/x-posts.md` Entry 054 is the shared log and was left as it was.
+No `sources/entries` file (the ticket entry was `-`). Status line updated on `sources/x-posts.md` Entry 054. No new catalog row.
 
 ## Ideas, and the pfy file each would touch
 
 1. Folder-local `CLAUDE_CONFIG_DIR` under `data/claude/<provider>-<auth>`, telemetry off. Already `data/harnesses.json` (`claude-code` `config_dir`, default `~/.claude`) and ADR-0012. Leave that slot on the official installer.
 2. One launcher and a local-model profile. Already `./pfy` (ADR-0012) and OpenCode plus Ollama (ADR-0011, `bootstrap/opencode/`).
 3. Localhost bind and a launch token. Already agent-cage and write-guard-mcp. The plaintext settings file is not a pattern to copy.
-4. Checksum-pinned Node and npm packages inside the folder. Already ADR-0003 (pin, do not embed). Upstream gitignores `engine/`. Leave it in the cache.
+4. Checksum-checked Node tarball and version-pinned npm packages inside the folder. Already ADR-0003 (pin, do not embed). Upstream gitignores `engine/`. Leave it in the cache.
 
 ## Catalog comparison
 

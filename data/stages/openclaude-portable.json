@@ -17,6 +17,7 @@
   "posture": [],
   "evidence": [
     "pin:b3660fda34333d759b7e76ccb62b0a2aa076bb66",
+    "entry:sources/x-posts.md",
     "eval/evq1107/openclaude-portable/REPORT.md",
     "eval/evq1107/openclaude-portable/VERDICT"
   ],
@@ -29,7 +30,7 @@
     "pinned Node and Claude packages"
   ],
   "potential": "low",
-  "next_gate": "Stay I0 reference. Re-open only if a later ticket asks to replace the official installer in data/harnesses.json. This read does not. Pin b3660fda is main on 2026-09-12. Gap B stays the pfy build timeout. No install, no engine download, no gate. Not a Feature GO.",
+  "next_gate": "Stay I0 reference. Re-open only if a later ticket asks to replace the official installer in data/harnesses.json. This read does not. Pin b3660fda is main HEAD as fetched 2026-11-07 (commit 2026-09-12). Gap B stays the pfy build timeout. No install, no engine download, no gate. Not a Feature GO.",
   "handoff_by": "llm",
   "non_goals": [
     "second Claude install path",

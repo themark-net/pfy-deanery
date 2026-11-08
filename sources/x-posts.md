@@ -830,7 +830,7 @@ When adding new X-sourced tools or papers:
 - **Extracted Repos / Tools**: Primary: https://github.com/techjarves/OpenClaude-Portable — Portable, folder-based multi-provider coding agent.
 - **TOOLS.md Link**: New row under Agent Frameworks & Orchestration / Portable & Lightweight Agents (strong fit for new lightweight harness direction).
 - **Notes**: **Very high relevance to current pivot.** This directly supports the shift to a lightweight, scriptable, local-first harness (OpenCode + Grok build CLI). The "run from folder, no install" model is ideal for portable, reproducible environments. Strong candidate to evaluate as a core runtime or reference implementation for the harness. Complements our focus on OpenCode and custom agent CLIs. High fit for evaluation criteria: Very High Relevance (portable lightweight agent), High Integration Ease (folder-based, multi-provider), High Reproducibility (open source), Low Redundancy. Recommend: (1) Catalog as top portable agent option. (2) Strong candidate for direct testing/integration into `bootstrap/setup-lightweight-harness.py`. (3) Evaluate as potential primary runtime or unified dashboard layer alongside OpenCode and Grok CLI.
-- **Status**: Processed and cataloged (added as high-value portable lightweight agent; priority for harness integration)
+- **Status**: STAY I0 reference (read 2026-11-07). Pin `b3660fda34333d759b7e76ccb62b0a2aa076bb66` is main HEAD (commit 2026-09-12). MIT. USB wrapper downloads official Claude Code plus Node 24.21.0. The Claude slot already uses the official installer. Gap B stays the pfy build timeout. Receipt: `eval/evq1107/openclaude-portable/REPORT.md`. No Feature GO.
 
 ## Future Entries Format
 
