@@ -32,7 +32,7 @@ Log of X (Twitter) posts used to seed or expand the tool catalog. Each entry inc
 - **Extracted Repos/Tools**: adr-tools (https://github.com/npryce/adr-tools); ADR template collections; optional emerging enforcement (Mneme / Decision Guardian — watch list). Our response: **project-process** scaffold + skills, not a new platform.
 - **TOOLS.md Link**: project-process bootstrap (S); adr-tools (B optional)
 - **Notes**: Verdict recorded in ADR-0005 and `bootstrap/project-process/.../evaluation.md` — light framework sufficient.
-- **Status**: Analyzed — process kit shipped under `bootstrap/project-process/`
+- **Status**: STAY I1 reference (read 2026-11-07). Pin `b3279baf9be2207d1a4f4bbd608fd0b591c72aee` is master HEAD (2020-03-30), five commits after tag 3.0.0. GPL-3.0 on the scripts. The adr skill already numbers docs/adr. Gap B stays the pfy build timeout. Receipt: `eval/evq1107/adr-tools/REPORT.md`. No Feature GO.
 
 ### Entry 003: colibri - Extreme Low-Resource MoE Inference Engine
 
