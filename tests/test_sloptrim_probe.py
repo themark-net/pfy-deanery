@@ -32,6 +32,17 @@ STUB = textwrap.dedent(
     if "FORCE_BAD" in text:
         sys.stdout.write("not json\\n")
         sys.exit(1)
+    if "SCORE_TYPE" in text:
+        sys.stdout.write(json.dumps({
+            "_metrics": {
+                "ai_tell_score": "nope",
+                "ai_tell_band": "clean",
+                "confidence": "high",
+                "patterns_flagged": 0,
+                "invisible_chars": 0,
+            }
+        }))
+        sys.exit(0)
     score = 80 if "SLOP_MARK" in text else 5
     body = {
         "_metrics": {
@@ -100,6 +111,15 @@ class SloptrimProbeTest(unittest.TestCase):
             self.assertEqual(payload["summary"]["separation"], 75)
             self.assertEqual(payload["summary"]["max_abs_delta"], 0)
             self.assertEqual(payload["summary"]["harness_comparisons"], 0)
+
+            # A later non-numeric score must replace the success file.
+            # A crash would leave the separation above in place.
+            (folder / "typebad.md").write_text("SCORE_TYPE\n", encoding="utf-8")
+            typed = self._run(stub, folder, out)
+            self.assertNotEqual(typed.returncode, 0, typed.stdout + typed.stderr)
+            payload = json.loads(out.read_text(encoding="utf-8"))
+            self.assertIs(payload["ok"], False)
+            self.assertNotIn("summary", payload)
 
 
 if __name__ == "__main__":

@@ -57,7 +57,7 @@ python3 eval/evq1107/sloptrim/probe.py
 
 `probe.py` exit 0. Script clock 12.9735 s. No model lock. `ollama` was not called.
 
-`python3 -m unittest tests.test_sloptrim_probe` drives the probe with a stub `detect.py` in a temp dir (no network, no clone). A stub that prints `not json` and exits 1 must leave `ok` false and must omit `summary`. The same probe then scores a stub plain file at 5 and a stub slop file at 80. With the failure return removed, that test failed: the probe exited 0 and wrote a summary. The return was restored. The test then passed.
+`python3 -m unittest tests.test_sloptrim_probe` drives the probe with a stub `detect.py` in a temp dir (no network, no clone). A stub that prints `not json` and exits 1 must leave `ok` false and must omit `summary`. The same probe then scores a stub plain file at 5 and a stub slop file at 80. A later file whose score is the string `nope` must replace that success file. Before the number check, the probe raised TypeError and left `ok` true. With the failure return removed, the first half of that test failed: the probe exited 0 and wrote a summary. Both guards were restored. The test then passed.
 
 ## Probe
 

@@ -158,6 +158,10 @@ def parse_report(rc: int, stdout: str, stderr: str) -> tuple[dict | None, str]:
     metrics = data.get("_metrics")
     if not isinstance(metrics, dict) or "ai_tell_score" not in metrics:
         return None, "JSON has no _metrics.ai_tell_score"
+    score = metrics.get("ai_tell_score")
+    # bool is an int subclass. A true/false score must not pass as 1 or 0.
+    if isinstance(score, bool) or not isinstance(score, (int, float)):
+        return None, "ai_tell_score is not a number"
     return data, ""
 
 
