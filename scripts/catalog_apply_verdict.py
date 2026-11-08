@@ -22,13 +22,22 @@ card has one. tier_ceiling is a cap. It does not raise weaker evidence.
 
 Evidence comes only from the card's evidence list:
 
-- I4: submodule: or subtree:
-- I3: make: or path: (operator path in this repo)
+- I4: submodule: or subtree:, and a valid main-run receipt
+- I3: a valid main-run receipt (receipt:eval/integrate/<slug>/receipt.json
+  on origin/main, run_kind pipeline or gate). make: and path: do not reach I3.
 - I2: a measured probe (results.json, check-results.json, *-results.json,
-  *-bench.json, receipt.json, receipt:, tools/_probe/, probe:)
+  *-bench.json, receipt.json, receipt:, tools/_probe/, probe:) or an
+  operator path (make:, path:)
 - I1: any other listed artifact (notes, pin, entry, report, scan summary,
   VERDICT, summary, script)
 - I0: evidence list empty
+
+I3 and I4 also need that receipt when applying a stage. A missing file is
+missing-main-receipt. Bad JSON or a run_kind other than pipeline or gate is
+receipt-malformed. A main_sha that is not an ancestor of origin/main is
+receipt-sha-not-on-main. When origin/main cannot be resolved, the reason is
+git-unavailable. The card bytes stay as they are on every refusal. Scan flags
+cards already at I3 or I4 that fail this rule and does not demote them.
 
 On apply, a failing modularity gate caps the write at I1. A failing value
 gate caps the write at I2. I3 and I4 need both gates to pass. A CI, testing,
@@ -44,6 +53,8 @@ import argparse
 import importlib.util
 import json
 import os
+import re
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
@@ -51,7 +62,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from pfylib.stage_registry import VALID_STAGES, load_stages  # noqa: E402
+from pfylib.stage_registry import VALID_STAGES, load_stages, slug_for  # noqa: E402
 
 STAGES = VALID_STAGES
 RANK = {stage: index for index, stage in enumerate(STAGES)}
@@ -79,11 +90,14 @@ Allowed stage is the lower of the evidence ceiling and tier_ceiling when the car
 
 Evidence ceiling, from the evidence list only:
 
-- I4 when an item starts with `submodule:` or `subtree:`.
-- I3 when an item starts with `make:` or `path:` (an operator path in this repo).
+- I4 when an item starts with `submodule:` or `subtree:` and a valid main-run receipt is an ancestor of `origin/main`.
+- I3 when the card has a valid main-run receipt: an evidence item `receipt:eval/integrate/<slug>/receipt.json` whose file parses, whose `run_kind` is `pipeline` or `gate`, and whose `main_sha` is an ancestor of `origin/main`.
+- `make:` and `path:` are operator paths. They support I2. They do not support I3 or I4.
 - I2 when an item is a measured probe: `results.json`, `check-results.json`, a name ending in `-results.json` or `-bench.json`, `receipt.json`, a `receipt:` item, `tools/_probe/`, or `probe:`.
 - I1 when the list has any other artifact (notes, pin, entry, report, scan summary, VERDICT, summary, script).
 - I0 when the evidence list is empty.
+
+A card already at I3 or I4 without a valid receipt is flagged with `missing-main-receipt`, `receipt-malformed`, `receipt-sha-not-on-main`, or `git-unavailable`. The scan does not demote it. Cards below I3 do not get those codes.
 
 Apply adds two write caps the scan does not need. A failing modularity gate caps the write at I1. A failing value gate caps the write at I2. Both gates must pass before a write of I3 or I4.
 
@@ -142,9 +156,9 @@ def classify_item(item: str) -> tuple[int, str]:
     if low.startswith("submodule:") or low.startswith("subtree:"):
         return 4, "embed"
     if low.startswith("make:"):
-        return 3, "make target"
+        return 2, "make target"
     if low.startswith("path:"):
-        return 3, "repo path"
+        return 2, "repo path"
     if low.startswith("probe:") or "tools/_probe/" in low:
         return 2, "probe artifact"
     if (
@@ -183,20 +197,146 @@ def classify_item(item: str) -> tuple[int, str]:
     return 1, "other"
 
 
-def evidence_ceiling(card: dict) -> tuple[str, str]:
-    """Highest stage the evidence list supports, plus a short kind list."""
+_SHA = re.compile(r"^[0-9a-fA-F]{7,64}$")
+_RUN_KINDS = frozenset({"pipeline", "gate"})
+
+
+def _expected_slug(card: dict, fallback: str) -> str:
+    slug = card.get("slug")
+    if isinstance(slug, str) and slug.strip():
+        return slug.strip()
+    name = card.get("name")
+    if isinstance(name, str) and name.strip():
+        return slug_for(name)
+    return fallback
+
+
+def _receipt_rels(card: dict) -> list[str]:
+    raw = card.get("evidence")
+    if not isinstance(raw, list):
+        return []
+    rels: list[str] = []
+    for item in raw:
+        if not isinstance(item, str):
+            continue
+        text = item.strip()
+        if text.lower().startswith("receipt:"):
+            rels.append(text.split(":", 1)[1].strip())
+    return rels
+
+
+def _nonempty(data: dict, key: str) -> bool:
+    value = data.get(key)
+    return isinstance(value, str) and bool(value.strip())
+
+
+def _sha_on_origin_main(repo: Path, sha: str) -> str | None:
+    """None when sha is an ancestor of origin/main. Else a reason code."""
+    try:
+        probe = subprocess.run(
+            ["git", "-C", str(repo), "rev-parse", "--verify", "--quiet", "origin/main^{commit}"],
+            capture_output=True,
+            text=True,
+        )
+    except FileNotFoundError:
+        return "git-unavailable"
+    if probe.returncode != 0:
+        return "git-unavailable"
+    try:
+        anc = subprocess.run(
+            ["git", "-C", str(repo), "merge-base", "--is-ancestor", sha, "origin/main"],
+            capture_output=True,
+            text=True,
+        )
+    except FileNotFoundError:
+        return "git-unavailable"
+    if anc.returncode == 0:
+        return None
+    if anc.returncode == 1:
+        return "receipt-sha-not-on-main"
+    return "git-unavailable"
+
+
+def _one_receipt(card: dict, repo: Path, rel: str, slug: str) -> str | None:
+    """None when this receipt file is a valid main-run receipt."""
+    rel = rel.replace("\\", "/").strip()
+    if not rel or rel.startswith("/") or any(part == ".." for part in Path(rel).parts):
+        return "receipt-malformed"
+    path = (repo / rel).resolve()
+    try:
+        path.relative_to(repo.resolve())
+    except ValueError:
+        return "receipt-malformed"
+    if not path.is_file():
+        return "missing-main-receipt"
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return "receipt-malformed"
+    if not isinstance(data, dict):
+        return "receipt-malformed"
+    if data.get("run_kind") not in _RUN_KINDS:
+        return "receipt-malformed"
+    for key in ("slug", "main_sha", "started", "finished", "outcome", "tool_version", "did"):
+        if not _nonempty(data, key):
+            return "receipt-malformed"
+    if not (_nonempty(data, "run_id") or _nonempty(data, "log") or _nonempty(data, "log_path")):
+        return "receipt-malformed"
+    if slug and data["slug"] != slug:
+        return "receipt-malformed"
+    if _SHA.fullmatch(data["main_sha"]) is None:
+        return "receipt-malformed"
+    return _sha_on_origin_main(repo, data["main_sha"])
+
+
+def receipt_problem(card: dict, repo: Path, slug: str = "") -> str | None:
+    """None when any receipt: evidence item is a valid main-run receipt.
+
+    Otherwise the first named reason. No receipt: item is missing-main-receipt.
+    """
+    rels = _receipt_rels(card)
+    if not rels:
+        return "missing-main-receipt"
+    first = "missing-main-receipt"
+    for rel in rels:
+        problem = _one_receipt(card, repo, rel, slug)
+        if problem is None:
+            return None
+        if first == "missing-main-receipt":
+            first = problem
+    return first
+
+
+def evidence_ceiling(card: dict, repo: Path | None = None, slug: str = "") -> tuple[str, str]:
+    """Highest stage the evidence list supports, plus a short kind list.
+
+    make: and path: stop at I2. A valid main-run receipt lifts the ceiling to
+    I3, or to I4 when the list also has submodule: or subtree:.
+    """
     raw = card.get("evidence")
     items = [item for item in raw if isinstance(item, str)] if isinstance(raw, list) else []
     best = 0
+    embed = False
     kinds: list[str] = []
     for item in items:
         rank, kind = classify_item(item)
+        if rank >= 4:
+            embed = True
         if rank > best:
             best = rank
         if kind not in kinds and kind != "empty":
             kinds.append(kind)
     if not items:
         return "I0", "no evidence listed"
+    valid = False
+    if repo is not None and _receipt_rels(card):
+        valid = receipt_problem(card, repo, slug) is None
+    if valid:
+        best = 4 if embed else max(best, 3)
+        if "main-run receipt" not in kinds:
+            kinds.append("main-run receipt")
+    elif best > 2:
+        best = 2
     return STAGES[best], ", ".join(kinds)
 
 
@@ -210,12 +350,19 @@ def _self_pipeline_cap(name: str, card: dict) -> str | None:
     return None
 
 
-def decide_ceiling(name: str, card: dict, verdict: dict | None = None) -> tuple[str, str, str | None, str]:
+def decide_ceiling(
+    name: str,
+    card: dict,
+    verdict: dict | None = None,
+    repo: Path | None = None,
+) -> tuple[str, str, str | None, str]:
     """Return allowed stage, evidence stage, tier ceiling, and the reason.
 
     verdict gates apply only when a verdict is passed. The scan omits them.
     """
-    evidence_stage, kinds = evidence_ceiling(card)
+    root = repo if repo is not None else ROOT
+    slug = _expected_slug(card, "")
+    evidence_stage, kinds = evidence_ceiling(card, root, slug)
     allowed = evidence_stage
     bits = [f"evidence {evidence_stage}: {kinds}"]
     tier = _stage(card.get("tier_ceiling"))
@@ -237,6 +384,13 @@ def decide_ceiling(name: str, card: dict, verdict: dict | None = None) -> tuple[
         and RANK[allowed] == RANK[evidence_stage]
     ):
         bits.append("a self_pipeline record does not raise this evidence")
+    stage = _stage(card.get("integration_stage"))
+    if stage in ("I3", "I4"):
+        problem = receipt_problem(card, root, slug)
+        if problem:
+            bits.append(problem)
+            if RANK[allowed] >= RANK["I3"]:
+                allowed = "I2"
     if verdict is not None:
         if verdict["modularity_gate"] != "pass":
             if RANK["I1"] < RANK[allowed]:
@@ -324,12 +478,47 @@ def _write_json(path: Path, obj: dict) -> None:
         raise
 
 
+def apply_stage(card_path: Path, target: str, repo_root: Path) -> str | None:
+    """Write target onto the card, or return a named refusal.
+
+    A refusal leaves the card bytes unchanged. None means the stage is target.
+    I3 and I4 need a valid main-run receipt and a tier_ceiling at or above
+    the target. The self_pipeline cap still blocks a CI, testing, or review
+    tool that would fail catalog_check at I3.
+    """
+    path = Path(card_path)
+    repo = Path(repo_root)
+    before = path.read_bytes()
+    try:
+        card = json.loads(before.decode("utf-8"))
+    except (UnicodeError, json.JSONDecodeError):
+        return "receipt-malformed"
+    if not isinstance(card, dict) or _stage(target) is None:
+        return "missing-main-receipt"
+    tier = _stage(card.get("tier_ceiling"))
+    if tier is not None and RANK[tier] < RANK[target]:
+        return "tier_ceiling"
+    name = card.get("name") if isinstance(card.get("name"), str) and str(card.get("name")).strip() else path.stem
+    cap = _self_pipeline_cap(str(name), card)
+    if cap is not None and RANK[cap] < RANK[target]:
+        return "self_pipeline"
+    if RANK[target] >= RANK["I3"]:
+        problem = receipt_problem(card, repo, _expected_slug(card, path.stem))
+        if problem:
+            return problem
+    if card.get("integration_stage") != target:
+        updated = dict(card)
+        updated["integration_stage"] = target
+        _write_json(path, updated)
+    return None
+
+
 def apply_verdict(card_path: Path, verdict_path: Path, one_line_path: Path | None) -> int:
     card = _read_object(card_path, "card")
     verdict = parse_verdict(verdict_path)
     name = card.get("name") if isinstance(card.get("name"), str) and card.get("name").strip() else card_path.stem
     proposed = verdict["proposed_stage"]
-    allowed, _evidence, _tier, reason = decide_ceiling(name, card, verdict)
+    allowed, _evidence, _tier, reason = decide_ceiling(name, card, verdict, ROOT)
     if RANK[proposed] > RANK[allowed]:
         raise Refuse(f"above-ceiling: proposed {proposed} is above allowed {allowed} ({reason})")
     if card.get("integration_stage") != proposed:
@@ -353,12 +542,12 @@ def _intent_notes(tools: dict) -> list[tuple[str, str]]:
     return notes
 
 
-def render_report(tools: dict) -> str:
+def render_report(tools: dict, root: Path) -> str:
     mismatches = []
     for name in sorted(tools):
         card = tools[name]
         stage = _stage(card.get("integration_stage"))
-        allowed, evidence_stage, tier, reason = decide_ceiling(name, card, None)
+        allowed, evidence_stage, tier, reason = decide_ceiling(name, card, None, root)
         if stage is None:
             mismatches.append((name, str(card.get("integration_stage")), evidence_stage, tier, allowed, reason))
             continue
@@ -404,7 +593,7 @@ def scan(root: Path, report_path: Path) -> int:
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         raise Refuse(f"malformed-card: {exc}") from exc
     tools = doc.get("tools") or {}
-    text = render_report(tools)
+    text = render_report(tools, root)
     _write_text(report_path, text)
     sys.stdout.write(text)
     return 0

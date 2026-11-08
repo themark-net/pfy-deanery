@@ -6,34 +6,41 @@ Allowed stage is the lower of the evidence ceiling and tier_ceiling when the car
 
 Evidence ceiling, from the evidence list only:
 
-- I4 when an item starts with `submodule:` or `subtree:`.
-- I3 when an item starts with `make:` or `path:` (an operator path in this repo).
+- I4 when an item starts with `submodule:` or `subtree:` and a valid main-run receipt is an ancestor of `origin/main`.
+- I3 when the card has a valid main-run receipt: an evidence item `receipt:eval/integrate/<slug>/receipt.json` whose file parses, whose `run_kind` is `pipeline` or `gate`, and whose `main_sha` is an ancestor of `origin/main`.
+- `make:` and `path:` are operator paths. They support I2. They do not support I3 or I4.
 - I2 when an item is a measured probe: `results.json`, `check-results.json`, a name ending in `-results.json` or `-bench.json`, `receipt.json`, a `receipt:` item, `tools/_probe/`, or `probe:`.
 - I1 when the list has any other artifact (notes, pin, entry, report, scan summary, VERDICT, summary, script).
 - I0 when the evidence list is empty.
+
+A card already at I3 or I4 without a valid receipt is flagged with `missing-main-receipt`, `receipt-malformed`, `receipt-sha-not-on-main`, or `git-unavailable`. The scan does not demote it. Cards below I3 do not get those codes.
 
 Apply adds two write caps the scan does not need. A failing modularity gate caps the write at I1. A failing value gate caps the write at I2. Both gates must pass before a write of I3 or I4.
 
 A tool whose uses, features, or tags cover CI, testing, or review cannot sit above I2 unless self_pipeline passes the same check as scripts/catalog_check.py (applied with evidence, not_applicable with a reason, or pending with grace). That check does not promote a card. Notes, a scan summary, and a report stay I1 even when tier_ceiling is I3.
 
-Scanned 129 cards. Mismatches 14.
+Scanned 129 cards. Mismatches 18.
 
 | Tool | Stage | Evidence ceiling | Tier ceiling | Allowed | Why |
 | --- | --- | --- | --- | --- | --- |
 | Antigravity-Manager | I1 | I1 | I0 | I0 | evidence I1: notes; tier_ceiling I0 caps the evidence |
 | Bumblebee | I2 | I1 | I1 | I1 | evidence I1: notes, pin, report, VERDICT, script; tier_ceiling I1 agrees |
+| Grok CLI bootstrap | I3 | I2 | I3 | I2 | evidence I2: make target, repo path; tier_ceiling I3 does not raise it; missing-main-receipt |
 | HiRoute | I2 | I1 | I1 | I1 | evidence I1: entry, report; tier_ceiling I1 agrees |
 | MLX + MLX-LM | I1 | I0 | I1 | I0 | evidence I0: no evidence listed; tier_ceiling I1 does not raise it |
 | Sandlock | I2 | I2 | I1 | I1 | evidence I2: entry, pin, report, VERDICT, probe artifact; tier_ceiling I1 caps the evidence |
-| SkillSpector | I3 | I1 | I3 | I1 | evidence I1: entry, notes, pin, scan summary, report; tier_ceiling I3 does not raise it |
+| SkillSpector | I3 | I1 | I3 | I1 | evidence I1: entry, notes, pin, scan summary, report; tier_ceiling I3 does not raise it; missing-main-receipt |
 | Sponsio | I2 | I2 | I1 | I1 | evidence I2: entry, pin, record, report, VERDICT, probe artifact; tier_ceiling I1 caps the evidence |
+| agent-cage (PNNL) | I3 | I2 | I3 | I2 | evidence I2: make target, repo path; tier_ceiling I3 does not raise it; missing-main-receipt |
 | destructive_command_guard | I2 | I2 | I1 | I1 | evidence I2: entry, pin, record, report, VERDICT, probe artifact; tier_ceiling I1 caps the evidence |
 | llama.cpp (server mode) | I1 | I0 | I1 | I0 | evidence I0: no evidence listed; tier_ceiling I1 does not raise it |
 | llama.cpp ngram-mod | I2 | I2 | I1 | I1 | evidence I2: report, VERDICT, probe artifact, other; tier_ceiling I1 caps the evidence |
 | opencode-mem | I2 | I2 | I1 | I1 | evidence I2: report, VERDICT, probe artifact, pin, record; tier_ceiling I1 caps the evidence |
-| repowise | I2 | I3 | I1 | I1 | evidence I3: make target; tier_ceiling I1 caps the evidence |
-| skill-up | I3 | I1 | I3 | I1 | evidence I1: summary, report, entry; tier_ceiling I3 does not raise it; a self_pipeline record does not raise this evidence |
+| project-process bootstrap | I3 | I2 | I3 | I2 | evidence I2: repo path; tier_ceiling I3 does not raise it; missing-main-receipt |
+| repowise | I2 | I2 | I1 | I1 | evidence I2: make target; tier_ceiling I1 caps the evidence |
+| skill-up | I3 | I1 | I3 | I1 | evidence I1: summary, report, entry; tier_ceiling I3 does not raise it; a self_pipeline record does not raise this evidence; missing-main-receipt |
 | taste-skill | I2 | I2 | I1 | I1 | evidence I2: entry, pin, record, report, VERDICT, probe artifact; tier_ceiling I1 caps the evidence |
+| write-guard-mcp | I3 | I2 | I3 | I2 | evidence I2: make target, repo path; tier_ceiling I3 does not raise it; missing-main-receipt |
 
 ## Intent values outside the enum
 

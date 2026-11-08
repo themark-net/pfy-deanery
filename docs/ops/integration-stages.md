@@ -139,6 +139,8 @@ python3 scripts/catalog_check.py               # every TOOLS.md row still has a 
 
 `potential`, `uses`, `features`, `non_goals`, and `next_gate` come from the handoff file. Tier, scores, posture phrases, Makefile/path evidence, and the tier ceiling are computed from `TOOLS.md` and the repo. The ceiling is a cap, not a promotion. Edit the handoff and apply again to change a judgment. Do not flip `integration_stage` just because the ceiling allows it.
 
+I2 to I3 runs, tickets, and main-run receipts: [INTEGRATE.md](INTEGRATE.md).
+
 ## Stage files
 
 Each tool has its own card at `data/stages/<slug>.json`. Shared fields (`version`, `policy`, `default_stage`, `probe_path`, `coverage`, `handoff`) live in `data/stages/_registry.json`. Do not recreate `data/tool_integration_stages.json`. That single file made every parallel lane conflict on the same lines. `scripts/catalog_check.py` fails if the monolith is added back, and it checks every card: the file parses, `name` is set, the filename is the slug, and `integration_stage` is I0, I1, I2, I3, or I4.

@@ -2,7 +2,8 @@
 
 A SkillSpector-shaped card (notes, scan summary, report, no self_pipeline)
 stays at I3 while the report names it. A Bumblebee-shaped card stays at I2
-while tier_ceiling I1 is named. An operator path at I3 is not flagged.
+while tier_ceiling I1 is named. An operator path at I3 without a main-run
+receipt is flagged with missing-main-receipt and is not demoted.
 The same cards produce the same report on a second run.
 The worktree scan names SkillSpector and Bumblebee and leaves their cards.
 """
@@ -85,9 +86,13 @@ class VerdictMismatchScanTest(unittest.TestCase):
             probe_line = next(line for line in head.splitlines() if line.startswith("| Probe Cap |"))
             self.assertIn("| I3 |", scan_line)
             self.assertIn("| I1 |", scan_line)
+            self.assertIn("missing-main-receipt", scan_line)
             self.assertIn("| I2 |", probe_line)
             self.assertIn("| I1 |", probe_line)
-            self.assertNotIn("| Onboard Ok |", head)
+            self.assertNotIn("missing-main-receipt", probe_line)
+            onboard_line = next(line for line in head.splitlines() if line.startswith("| Onboard Ok |"))
+            self.assertIn("| I3 |", onboard_line)
+            self.assertIn("missing-main-receipt", onboard_line)
             for path, blob in before.items():
                 self.assertEqual(path.read_bytes(), blob)
             self.assertEqual(json.loads(scan_only.read_text())["integration_stage"], "I3")
@@ -119,8 +124,10 @@ class VerdictMismatchScanTest(unittest.TestCase):
             bumble_line = next(line for line in head.splitlines() if line.startswith("| Bumblebee |"))
             self.assertIn("| I3 |", skill_line)
             self.assertIn("| I1 |", skill_line)
+            self.assertIn("missing-main-receipt", skill_line)
             self.assertIn("| I2 |", bumble_line)
             self.assertIn("| I1 |", bumble_line)
+            self.assertNotIn("missing-main-receipt", bumble_line)
         self.assertEqual(skill.read_bytes(), before_skill)
         self.assertEqual(bumble.read_bytes(), before_bumble)
 
