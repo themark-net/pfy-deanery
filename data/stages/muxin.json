@@ -4,16 +4,37 @@
   "intent": "awareness",
   "entry": "sources/entries/145-muxin.md",
   "github": "https://github.com/LumaryLabsLLC/muxin",
-  "uses": "Fleet view MCP for Sysadmin.",
+  "pin": "d45f3e480e6523febe81ed51061261b92714b3c9",
+  "release": "v0.6.0",
+  "license": "Apache-2.0",
+  "notes_doc": "eval/evq1107/muxin/REPORT.md",
+  "uses": "Fleet desktop and MCP over SSH for many machines. Reference read only. Off the pfy build path.",
+  "features": [
+    "demo machines",
+    "readOnlyHint and destructiveHint",
+    "MUXIN_HOME config path",
+    "status attention list"
+  ],
   "potential": "low",
-  "next_gate": "Not on the pfy MVP path.",
+  "next_gate": "Stay I0 reference. Re-open only for a demo-only status read, as a user with no gh login, with no destructive tool exposed. No install.sh, no real host, no SSH key, no cloud account, no gate. Gap B stays the pfy build timeout. Not a Feature GO.",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",
-    "catalog_hold_70_75"
+    "catalog_hold_70_75",
+    "install",
+    "code_copy",
+    "real_hosts",
+    "ssh_keys",
+    "github_login",
+    "cloud_account",
+    "gate_wiring"
   ],
   "evidence": [
-    "entry:sources/entries/145-muxin.md"
+    "entry:sources/entries/145-muxin.md",
+    "pin:d45f3e480e6523febe81ed51061261b92714b3c9",
+    "tag:v0.6.0",
+    "eval/evq1107/muxin/REPORT.md",
+    "eval/evq1107/muxin/VERDICT"
   ],
   "handoff_by": "llm"
 }
