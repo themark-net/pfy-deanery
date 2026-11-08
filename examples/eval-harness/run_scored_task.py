@@ -101,6 +101,27 @@ def resolve_model() -> str:
     )
 
 
+def _llama_ngram_or_none(prompt: str, max_tokens: int) -> str | None:
+    """Opt-in ngram decode. None keeps the current engine and the same arguments."""
+    path = Path(__file__).resolve().parents[2] / "scripts" / "integrations" / "llama_ngram" / "run.py"
+    if not path.is_file():
+        print("llama ngram: run.py missing, baseline engine", file=sys.stderr)
+        return None
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("llama_ngram_run", path)
+    if spec is None or spec.loader is None:
+        print("llama ngram: cannot load run.py, baseline engine", file=sys.stderr)
+        return None
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    try:
+        return mod.complete_for_lane(prompt, max_tokens)
+    except Exception as exc:
+        print("llama ngram: %s, baseline engine" % exc, file=sys.stderr)
+        return None
+
+
 
 def _chat_completion(
     *,
@@ -111,6 +132,10 @@ def _chat_completion(
     max_tokens: int = 512,
 ) -> str:
     """OpenAI-compatible chat; litellm optional (self-hosted runners often lack it)."""
+    if os.environ.get("PFY_LLAMA_NGRAM") == "1":
+        routed = _llama_ngram_or_none(prompt, max_tokens)
+        if routed is not None:
+            return routed
     try:
         from litellm import completion  # type: ignore
 

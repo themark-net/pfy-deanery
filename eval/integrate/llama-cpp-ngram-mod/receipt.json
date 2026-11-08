@@ -1,0 +1,15 @@
+{
+  "slug": "llama-cpp-ngram-mod",
+  "run_kind": "pipeline",
+  "main_sha": "14b79a0a81d71e63c02007137010d8f0a17021a4",
+  "sha": "14b79a0a81d71e63c02007137010d8f0a17021a4",
+  "log_path": "eval/integrate/llama-cpp-ngram-mod/receipt.log",
+  "started": "2026-11-08T09:39:59Z",
+  "finished": "2026-11-08T09:40:41Z",
+  "outcome": "ok",
+  "tool_version": "version: 1 (6f3a9f3de)",
+  "did": "one check prompt on llama-server --spec-type ngram-mod versus --spec-type none",
+  "tok_s": 77.17649782699922,
+  "baseline_tok_s": 34.827259513691736,
+  "identical_outputs": "yes"
+}

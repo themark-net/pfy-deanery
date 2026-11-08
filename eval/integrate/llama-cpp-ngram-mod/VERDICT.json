@@ -1,0 +1,12 @@
+{
+  "metric": "ngram_over_baseline_tok_s",
+  "threshold": 1.15,
+  "value_gate": "pass",
+  "modularity_gate": "pass",
+  "proposed_stage": "I3",
+  "intent": "onboard",
+  "evidence_path": "eval/integrate/llama-cpp-ngram-mod/receipt.json",
+  "probe_ratio": 4.71,
+  "probe_evidence": "eval/evq1107/llama-cpp-ngram-mod/results.json",
+  "note": "Evq probe median ratio was 4.71 on five long prompts. The integrate receipt is a separate one-prompt run (about 2.22x, identical yes). Apply refuses because tier_ceiling is I1. This verdict does not edit the card."
+}

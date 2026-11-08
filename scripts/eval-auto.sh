@@ -28,6 +28,12 @@ MD
   exit 0
 fi
 
+# Opt-in only. Unset PFY_LLAMA_NGRAM leaves the Ollama ladder below unchanged.
+# A nonzero check (duplicate receipt or a crash) must not abort that ladder.
+if [[ "${PFY_LLAMA_NGRAM:-}" == "1" ]]; then
+  python3 "$ROOT/scripts/integrations/llama_ngram/run.py" || echo "llama ngram: entry failed, baseline engine" >&2
+fi
+
 ./examples/litellm-ollama/host-ollama-gateway.sh start 2>/dev/null || true
 python3 examples/eval-harness/select_ollama_models.py --pull-gate
 exports=$(exports_file)
