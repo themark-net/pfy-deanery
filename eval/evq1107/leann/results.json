@@ -1,0 +1,1118 @@
+{
+  "status": "ok",
+  "measured": true,
+  "skip_reason": "",
+  "adapter_note": "",
+  "passages": 216,
+  "raw_bytes": 190529,
+  "index_bytes": 620548,
+  "dim": 384,
+  "naive_embedding_bytes": 331776,
+  "embedding_matrix_stored": false,
+  "compression_beats_raw": false,
+  "savings_vs_naive": -0.8704,
+  "build_s": 7.5737,
+  "search_s": 97.4549,
+  "files": [
+    {
+      "name": "catalog.ids.txt",
+      "bytes": 1296
+    },
+    {
+      "name": "catalog.index",
+      "bytes": 16582
+    },
+    {
+      "name": "catalog.leann.bm25.sqlite",
+      "bytes": 372736
+    },
+    {
+      "name": "catalog.leann.meta.json",
+      "bytes": 673
+    },
+    {
+      "name": "catalog.leann.passages.idx",
+      "bytes": 2693
+    },
+    {
+      "name": "catalog.leann.passages.jsonl",
+      "bytes": 226568
+    }
+  ],
+  "backend": "hnsw",
+  "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "summary": {
+    "prose_vector_hit": {
+      "hits": 6,
+      "n": 6
+    },
+    "prose_bm25_hit": {
+      "hits": 6,
+      "n": 6
+    },
+    "prose_vector_passage_hit": {
+      "hits": 6,
+      "n": 6
+    },
+    "prose_bm25_passage_hit": {
+      "hits": 5,
+      "n": 6
+    },
+    "prose_cm_graph_hit": {
+      "hits": 0,
+      "n": 6
+    },
+    "prose_cm_grep_hit": {
+      "hits": 0,
+      "n": 6
+    },
+    "prose_cm_hit": {
+      "hits": 0,
+      "n": 6
+    },
+    "code_vector_hit": {
+      "hits": 4,
+      "n": 4
+    },
+    "code_bm25_hit": {
+      "hits": 4,
+      "n": 4
+    },
+    "code_vector_passage_hit": {
+      "hits": 4,
+      "n": 4
+    },
+    "code_bm25_passage_hit": {
+      "hits": 3,
+      "n": 4
+    },
+    "code_cm_graph_hit": {
+      "hits": 0,
+      "n": 4
+    },
+    "code_cm_grep_hit": {
+      "hits": 0,
+      "n": 4
+    },
+    "code_cm_hit": {
+      "hits": 0,
+      "n": 4
+    },
+    "recovered_by_bm25": 0
+  },
+  "questions": [
+    {
+      "id": "p1",
+      "kind": "prose",
+      "query": "How many of the four value checks have to be true before we onboard a tool?",
+      "expect_path": "docs/ops/integration-stages.md",
+      "vector_hit": true,
+      "bm25_hit": true,
+      "vector_passage_hit": true,
+      "bm25_passage_hit": false,
+      "recovered_by_bm25": false,
+      "cm_graph_hit": false,
+      "cm_grep_hit": false,
+      "cm_hit": false,
+      "cm_graph_top": [
+        "tests/test_registry.py",
+        "tests/test_registry.py",
+        "tests/test_mut_review_harness.py",
+        "tests/test_cloud_lane_mode.py",
+        "tests/test_pfy_build_local.py"
+      ],
+      "cm_grep_top": [],
+      "vector_top": [
+        {
+          "id": "p0005",
+          "path": "docs/ops/integration-stages.md",
+          "score": 0.41046881675720215,
+          "text": "## Thresholds  ### Value gate (required for I3+)  Promote toward onboard only if **\u2265 3 of 4**:  1. **Gap fill** \u2014 closes a hole vs existing S/A tools or first-party skills (not pur"
+        },
+        {
+          "id": "p0210",
+          "path": "data/stages/trailofbits-skills.json",
+          "score": 0.385689914226532,
+          "text": "{   \"name\": \"trailofbits-skills\",   \"integration_stage\": \"I0\",   \"intent\": \"awareness\",   \"entry\": \"sources/entries/125-trailofbits-skills.md\",   \"github\": \"https://github.com/trai"
+        },
+        {
+          "id": "p0012",
+          "path": "docs/ops/integration-stages.md",
+          "score": 0.3846741318702698,
+          "text": "## Self-pipeline rule (CI, testing, review)  I0 to I4 measure how far a tool is built into the product. They do not ask whether we use the tool on ourselves. A tool whose uses, fea"
+        },
+        {
+          "id": "p0004",
+          "path": "docs/ops/integration-stages.md",
+          "score": 0.3774035573005676,
+          "text": "## I1 \u2014 Staged evaluation (default)  Must identify and record:  | Field | Content | |-------|---------| | **Uses** | Concrete operator jobs (e.g. \u201clocal skill install\u201d, \u201cSTT edge\u201d)"
+        },
+        {
+          "id": "p0014",
+          "path": "docs/ops/integration-stages.md",
+          "score": 0.3765709102153778,
+          "text": "## Agent rules  1. New X/catalog entries start at **I1** (or I0 if Stage 0 fails). 2. Never ask for a subtree \u201cjust to have one.\u201d 3. Ambiguous potential + <50 MB \u2192 may open I2 prob"
+        }
+      ],
+      "bm25_top": [
+        {
+          "id": "p0002",
+          "path": "docs/ops/integration-stages.md",
+          "score": 16.961491449395073,
+          "text": "## Intent  Catalog scoring (S1\u2013S4, S/A/B/C) answers **\u201cis this tool interesting?\u201d**   This rubric answers **\u201chow deep may we pull it into *this* repo / lab?\u201d**  No tool is forced t"
+        },
+        {
+          "id": "p0014",
+          "path": "docs/ops/integration-stages.md",
+          "score": 11.209021602130168,
+          "text": "## Agent rules  1. New X/catalog entries start at **I1** (or I0 if Stage 0 fails). 2. Never ask for a subtree \u201cjust to have one.\u201d 3. Ambiguous potential + <50 MB \u2192 may open I2 prob"
+        },
+        {
+          "id": "p0003",
+          "path": "docs/ops/integration-stages.md",
+          "score": 10.870191101749631,
+          "text": "## Stages (lifecycle)  | Stage | Name | What lives in-repo | When to use | |------:|------|--------------------|-------------| | **I0** | **Awareness** | Catalog row optional / C-t"
+        },
+        {
+          "id": "p0012",
+          "path": "docs/ops/integration-stages.md",
+          "score": 10.459128964941186,
+          "text": "## Self-pipeline rule (CI, testing, review)  I0 to I4 measure how far a tool is built into the product. They do not ask whether we use the tool on ourselves. A tool whose uses, fea"
+        },
+        {
+          "id": "p0004",
+          "path": "docs/ops/integration-stages.md",
+          "score": 9.575324177055222,
+          "text": "## I1 \u2014 Staged evaluation (default)  Must identify and record:  | Field | Content | |-------|---------| | **Uses** | Concrete operator jobs (e.g. \u201clocal skill install\u201d, \u201cSTT edge\u201d)"
+        }
+      ]
+    },
+    {
+      "id": "p2",
+      "kind": "prose",
+      "query": "Should a storage-shrinking retriever replace the code graph as the default runtime?",
+      "expect_path": "docs/ops/memory-assist-patterns.md",
+      "vector_hit": true,
+      "bm25_hit": true,
+      "vector_passage_hit": true,
+      "bm25_passage_hit": true,
+      "recovered_by_bm25": false,
+      "cm_graph_hit": false,
+      "cm_grep_hit": false,
+      "cm_hit": false,
+      "cm_graph_top": [
+        "tests/test_pregate_orphans.py",
+        "tests/test_cloud_lane_mode.py",
+        "tests/test_eval_auto_candidates.py",
+        "tests/test_pfy_build_local.py",
+        "tests/test_cloud_lane_isolated_gitdir.py"
+      ],
+      "cm_grep_top": [],
+      "vector_top": [
+        {
+          "id": "p0000",
+          "path": "docs/ops/memory-assist-patterns.md",
+          "score": 0.3982125222682953,
+          "text": "# Memory assist patterns (LEANN / Memvid / CM)  **Sources:** Entries 044 Memvid \u00b7 052 LEANN \u00b7 active **codebase-memory-mcp**   **Posture:** Patterns for coding agents; **CM remains"
+        },
+        {
+          "id": "p0137",
+          "path": "data/stages/graphify.json",
+          "score": 0.34049129486083984,
+          "text": "{   \"name\": \"Graphify\",   \"integration_stage\": \"I0\",   \"intent\": \"watch\",   \"tier\": \"B\",   \"auto\": true,   \"catalog_tier\": \"B\",   \"catalog_overall\": \"80\",   \"catalog_tags\": [     \""
+        },
+        {
+          "id": "p0214",
+          "path": "sources/x-posts.md",
+          "score": 0.33290013670921326,
+          "text": "### Entry 052: LEANN \u2014 Extreme RAG Compression (201 GB \u2192 6 GB, 97% Savings, No Accuracy Loss)  - **URL**: https://x.com/i/status/2077528059339817025 - **Date**: 2026-07-15 - **Post"
+        },
+        {
+          "id": "p0120",
+          "path": "data/stages/codebase-memory-mcp.json",
+          "score": 0.3228756785392761,
+          "text": "{   \"name\": \"codebase-memory-mcp\",   \"integration_stage\": \"I2\",   \"intent\": \"smoke_path\",   \"tier\": \"S\",   \"auto\": true,   \"catalog_tier\": \"S\",   \"catalog_overall\": \"91\",   \"catalo"
+        },
+        {
+          "id": "p0212",
+          "path": "data/stages/tree-sitter-analyzer.json",
+          "score": 0.3055211901664734,
+          "text": "{   \"name\": \"Tree-sitter Analyzer\",   \"integration_stage\": \"I1\",   \"intent\": \"staged_evaluation\",   \"entry\": \"sources/entries/121-tree-sitter-analyzer.md\",   \"github\": \"https://git"
+        }
+      ],
+      "bm25_top": [
+        {
+          "id": "p0137",
+          "path": "data/stages/graphify.json",
+          "score": 9.204330996199785,
+          "text": "{   \"name\": \"Graphify\",   \"integration_stage\": \"I0\",   \"intent\": \"watch\",   \"tier\": \"B\",   \"auto\": true,   \"catalog_tier\": \"B\",   \"catalog_overall\": \"80\",   \"catalog_tags\": [     \""
+        },
+        {
+          "id": "p0120",
+          "path": "data/stages/codebase-memory-mcp.json",
+          "score": 8.30647087731105,
+          "text": "{   \"name\": \"codebase-memory-mcp\",   \"integration_stage\": \"I2\",   \"intent\": \"smoke_path\",   \"tier\": \"S\",   \"auto\": true,   \"catalog_tier\": \"S\",   \"catalog_overall\": \"91\",   \"catalo"
+        },
+        {
+          "id": "p0000",
+          "path": "docs/ops/memory-assist-patterns.md",
+          "score": 8.2813179259514,
+          "text": "# Memory assist patterns (LEANN / Memvid / CM)  **Sources:** Entries 044 Memvid \u00b7 052 LEANN \u00b7 active **codebase-memory-mcp**   **Posture:** Patterns for coding agents; **CM remains"
+        },
+        {
+          "id": "p0023",
+          "path": "docs/eval/TOOLSET-RANKING.md",
+          "score": 7.81170819669728,
+          "text": "| **claude-mem** (adapt, not adopt) | Its SQLite FTS5 observation store + session summaries is the best memory design on disk. Port the store pattern into `/hermes-feedback`. Its r"
+        },
+        {
+          "id": "p0021",
+          "path": "docs/eval/TOOLSET-RANKING.md",
+          "score": 7.807386928151633,
+          "text": "## Already integrated (not re-recommended)  codebase-memory-mcp (I2, `code-graph` toolset) \u00b7 LiteLLM (I2 smoke) \u00b7 Ollama (host runtime) \u00b7 agent-cage (I3) \u00b7 write-guard-mcp \u00b7 Grok C"
+        }
+      ]
+    },
+    {
+      "id": "p3",
+      "kind": "prose",
+      "query": "What storage reduction does the catalog entry claim for sixty million text chunks?",
+      "expect_path": "sources/x-posts.md",
+      "vector_hit": true,
+      "bm25_hit": true,
+      "vector_passage_hit": true,
+      "bm25_passage_hit": true,
+      "recovered_by_bm25": false,
+      "cm_graph_hit": false,
+      "cm_grep_hit": false,
+      "cm_hit": false,
+      "cm_graph_top": [
+        "tests/test_catalog_self_pipeline.py",
+        "pfylib/attach.py",
+        "tests/test_build_preflight.py",
+        "tests/test_hermes_bakeoff.py",
+        "tests/test_cloud_lane_isolated_gitdir.py"
+      ],
+      "cm_grep_top": [],
+      "vector_top": [
+        {
+          "id": "p0214",
+          "path": "sources/x-posts.md",
+          "score": 0.4760540723800659,
+          "text": "### Entry 052: LEANN \u2014 Extreme RAG Compression (201 GB \u2192 6 GB, 97% Savings, No Accuracy Loss)  - **URL**: https://x.com/i/status/2077528059339817025 - **Date**: 2026-07-15 - **Post"
+        },
+        {
+          "id": "p0215",
+          "path": "sources/x-posts.md",
+          "score": 0.41365694999694824,
+          "text": "ractical at scale. - **Status**: Processed and cataloged (added as high-value RAG compression tool; priority for context/memory category)  ## Future Entries Format  When adding new"
+        },
+        {
+          "id": "p0007",
+          "path": "docs/ops/integration-stages.md",
+          "score": 0.38640329241752625,
+          "text": "## Integration level rubric (I-level vs catalog tier)  | Catalog tier | Typical max I-stage without extra proof | |--------------|------------------------------------------| | S | "
+        },
+        {
+          "id": "p0170",
+          "path": "data/stages/mempalace.json",
+          "score": 0.37677207589149475,
+          "text": "{   \"name\": \"MemPalace\",   \"integration_stage\": \"I0\",   \"intent\": \"awareness\",   \"entry\": \"sources/entries/149-mempalace.md\",   \"github\": \"https://github.com/MemPalace/mempalace\", "
+        },
+        {
+          "id": "p0160",
+          "path": "data/stages/leann.json",
+          "score": 0.3704620599746704,
+          "text": "{   \"name\": \"LEANN\",   \"integration_stage\": \"I1\",   \"intent\": \"catalog_default\",   \"tier\": \"A\",   \"auto\": true,   \"catalog_tier\": \"A\",   \"catalog_overall\": \"87\",   \"catalog_tags\": "
+        }
+      ],
+      "bm25_top": [
+        {
+          "id": "p0214",
+          "path": "sources/x-posts.md",
+          "score": 16.881945995678745,
+          "text": "### Entry 052: LEANN \u2014 Extreme RAG Compression (201 GB \u2192 6 GB, 97% Savings, No Accuracy Loss)  - **URL**: https://x.com/i/status/2077528059339817025 - **Date**: 2026-07-15 - **Post"
+        },
+        {
+          "id": "p0008",
+          "path": "docs/ops/integration-stages.md",
+          "score": 10.05325674738714,
+          "text": "## What \u201cnot integrated\u201d means (I1\u2013I2)  - No claim of production operator path. - No default Make target that assumes the tool is always installed. - No env registry \u201crequired\u201d var"
+        },
+        {
+          "id": "p0110",
+          "path": "data/stages/brigade.json",
+          "score": 7.036835423495093,
+          "text": "{   \"name\": \"Brigade\",   \"integration_stage\": \"I0\",   \"intent\": \"awareness\",   \"entry\": \"sources/entries/110-brigade.md\",   \"github\": \"https://github.com/escoffier-labs/brigade\",  "
+        },
+        {
+          "id": "p0122",
+          "path": "data/stages/colibri.json",
+          "score": 6.22518411879248,
+          "text": "{   \"name\": \"colibri\",   \"integration_stage\": \"I1\",   \"intent\": \"eval_under_250gb_pool\",   \"notes_doc\": \"docs/ops/local-model-storage-and-eval.md\",   \"issues\": [     24   ],   \"non"
+        },
+        {
+          "id": "p0009",
+          "path": "docs/ops/integration-stages.md",
+          "score": 5.941668966656671,
+          "text": "## What \u201cintegrated\u201d means (I3)  At least two of:  - first-party skill or ops pattern with verification - `make smoke-*` (prefer in-cage) - eval task / structural scorer touchpoint"
+        }
+      ]
+    },
+    {
+      "id": "p4",
+      "kind": "prose",
+      "query": "Which ranked candidate is a compressed local index for asking questions over the catalog without standing up a vector database server?",
+      "expect_path": "docs/eval/TOOLSET-RANKING.md",
+      "vector_hit": true,
+      "bm25_hit": true,
+      "vector_passage_hit": true,
+      "bm25_passage_hit": true,
+      "recovered_by_bm25": false,
+      "cm_graph_hit": false,
+      "cm_grep_hit": false,
+      "cm_hit": false,
+      "cm_graph_top": [
+        "tests/test_bot_interface.py",
+        "tests/test_pfy_build_local_review.py",
+        "tests/test_mut_preflight_survivors.py",
+        "tests/test_mvp_1031_realfail3_receipts.py",
+        "tests/test_pfy_build_local_review.py"
+      ],
+      "cm_grep_top": [],
+      "vector_top": [
+        {
+          "id": "p0020",
+          "path": "docs/eval/TOOLSET-RANKING.md",
+          "score": 0.3818334937095642,
+          "text": "## 2026-10-06 ranking (history)  **Scope:** what to integrate next, assuming **local models only on nimo** (Strix Halo, Ollama about 22 GB edge; `llama-server --no-mmap` edge \u2265 51 "
+        },
+        {
+          "id": "p0214",
+          "path": "sources/x-posts.md",
+          "score": 0.3328590989112854,
+          "text": "### Entry 052: LEANN \u2014 Extreme RAG Compression (201 GB \u2192 6 GB, 97% Savings, No Accuracy Loss)  - **URL**: https://x.com/i/status/2077528059339817025 - **Date**: 2026-07-15 - **Post"
+        },
+        {
+          "id": "p0007",
+          "path": "docs/ops/integration-stages.md",
+          "score": 0.3274921774864197,
+          "text": "## Integration level rubric (I-level vs catalog tier)  | Catalog tier | Typical max I-stage without extra proof | |--------------|------------------------------------------| | S | "
+        },
+        {
+          "id": "p0023",
+          "path": "docs/eval/TOOLSET-RANKING.md",
+          "score": 0.31539326906204224,
+          "text": "| **claude-mem** (adapt, not adopt) | Its SQLite FTS5 observation store + session summaries is the best memory design on disk. Port the store pattern into `/hermes-feedback`. Its r"
+        },
+        {
+          "id": "p0215",
+          "path": "sources/x-posts.md",
+          "score": 0.23608922958374023,
+          "text": "ractical at scale. - **Status**: Processed and cataloged (added as high-value RAG compression tool; priority for context/memory category)  ## Future Entries Format  When adding new"
+        }
+      ],
+      "bm25_top": [
+        {
+          "id": "p0023",
+          "path": "docs/eval/TOOLSET-RANKING.md",
+          "score": 17.572179830029274,
+          "text": "| **claude-mem** (adapt, not adopt) | Its SQLite FTS5 observation store + session summaries is the best memory design on disk. Port the store pattern into `/hermes-feedback`. Its r"
+        },
+        {
+          "id": "p0022",
+          "path": "docs/eval/TOOLSET-RANKING.md",
+          "score": 13.579818925110965,
+          "text": "## Ranking  | # | Candidate | Value for pfy-mentat (local-only) | Effort | API key? | Status | |---|---|---|---|---|---| | 1 | **llama-server `--no-mmap` lane** (llama.cpp server m"
+        },
+        {
+          "id": "p0164",
+          "path": "data/stages/llama-cpp-server-mode.json",
+          "score": 11.12845218764661,
+          "text": "{   \"name\": \"llama.cpp (server mode)\",   \"integration_stage\": \"I1\",   \"intent\": \"catalog_default\",   \"tier\": \"A\",   \"auto\": true,   \"catalog_tier\": \"A\",   \"catalog_overall\": \"88\", "
+        },
+        {
+          "id": "p0006",
+          "path": "docs/ops/integration-stages.md",
+          "score": 8.998895096531996,
+          "text": "**plus**:  - Active customization *in this monorepo*, or offline/CI repro requires a committed pointer. - Prefer **submodule** over subtree; subtree only if small history + heavy l"
+        },
+        {
+          "id": "p0200",
+          "path": "data/stages/skill-up.json",
+          "score": 8.587584761896727,
+          "text": "{   \"name\": \"skill-up\",   \"integration_stage\": \"I3\",   \"intent\": \"trial_1107\",   \"entry\": \"sources/entries/146-skill-up.md\",   \"github\": \"https://github.com/alibaba/skill-up\",   \"n"
+        }
+      ]
+    },
+    {
+      "id": "p5",
+      "kind": "prose",
+      "query": "What is the lightweight copy size limit for an ad-hoc probe stage?",
+      "expect_path": "docs/ops/integration-stages.md",
+      "vector_hit": true,
+      "bm25_hit": true,
+      "vector_passage_hit": true,
+      "bm25_passage_hit": true,
+      "recovered_by_bm25": false,
+      "cm_graph_hit": false,
+      "cm_grep_hit": false,
+      "cm_hit": false,
+      "cm_graph_top": [
+        "tests/test_fs_nav.py",
+        "tests/test_workflow_image_pin.py",
+        "tests/test_pfy_build_local_review.py",
+        "tests/test_pfy_build_local_review.py",
+        "tests/test_mut_review_size_cap.py"
+      ],
+      "cm_grep_top": [],
+      "vector_top": [
+        {
+          "id": "p0015",
+          "path": "docs/ops/integration-stages.md",
+          "score": 0.4027222692966461,
+          "text": "## Resolution source  OQ-0003 (2026-07-30): Wait for first embed; define value + modularity thresholds; separate integration-stage rubric; staged evaluation default; lightweight in"
+        },
+        {
+          "id": "p0003",
+          "path": "docs/ops/integration-stages.md",
+          "score": 0.3248596787452698,
+          "text": "## Stages (lifecycle)  | Stage | Name | What lives in-repo | When to use | |------:|------|--------------------|-------------| | **I0** | **Awareness** | Catalog row optional / C-t"
+        },
+        {
+          "id": "p0212",
+          "path": "data/stages/tree-sitter-analyzer.json",
+          "score": 0.3008173704147339,
+          "text": "{   \"name\": \"Tree-sitter Analyzer\",   \"integration_stage\": \"I1\",   \"intent\": \"staged_evaluation\",   \"entry\": \"sources/entries/121-tree-sitter-analyzer.md\",   \"github\": \"https://git"
+        },
+        {
+          "id": "p0214",
+          "path": "sources/x-posts.md",
+          "score": 0.28691160678863525,
+          "text": "### Entry 052: LEANN \u2014 Extreme RAG Compression (201 GB \u2192 6 GB, 97% Savings, No Accuracy Loss)  - **URL**: https://x.com/i/status/2077528059339817025 - **Date**: 2026-07-15 - **Post"
+        },
+        {
+          "id": "p0005",
+          "path": "docs/ops/integration-stages.md",
+          "score": 0.276388943195343,
+          "text": "## Thresholds  ### Value gate (required for I3+)  Promote toward onboard only if **\u2265 3 of 4**:  1. **Gap fill** \u2014 closes a hole vs existing S/A tools or first-party skills (not pur"
+        }
+      ],
+      "bm25_top": [
+        {
+          "id": "p0003",
+          "path": "docs/ops/integration-stages.md",
+          "score": 26.304369892433016,
+          "text": "## Stages (lifecycle)  | Stage | Name | What lives in-repo | When to use | |------:|------|--------------------|-------------| | **I0** | **Awareness** | Catalog row optional / C-t"
+        },
+        {
+          "id": "p0178",
+          "path": "data/stages/neatroots.json",
+          "score": 11.09438608767733,
+          "text": "{   \"name\": \"neatroots\",   \"integration_stage\": \"I2\",   \"intent\": \"ad_hoc_probe\",   \"entry\": \"sources/entries/137-neatroots.md\",   \"github\": \"https://github.com/neatlogs/neatroots\""
+        },
+        {
+          "id": "p0005",
+          "path": "docs/ops/integration-stages.md",
+          "score": 10.898760263934305,
+          "text": "## Thresholds  ### Value gate (required for I3+)  Promote toward onboard only if **\u2265 3 of 4**:  1. **Gap fill** \u2014 closes a hole vs existing S/A tools or first-party skills (not pur"
+        },
+        {
+          "id": "p0004",
+          "path": "docs/ops/integration-stages.md",
+          "score": 10.75417137007107,
+          "text": "## I1 \u2014 Staged evaluation (default)  Must identify and record:  | Field | Content | |-------|---------| | **Uses** | Concrete operator jobs (e.g. \u201clocal skill install\u201d, \u201cSTT edge\u201d)"
+        },
+        {
+          "id": "p0008",
+          "path": "docs/ops/integration-stages.md",
+          "score": 10.192594314144461,
+          "text": "## What \u201cnot integrated\u201d means (I1\u2013I2)  - No claim of production operator path. - No default Make target that assumes the tool is always installed. - No env registry \u201crequired\u201d var"
+        }
+      ]
+    },
+    {
+      "id": "p6",
+      "kind": "prose",
+      "query": "LEANN extreme index compression spike",
+      "expect_path": "docs/ops/memory-assist-patterns.md",
+      "vector_hit": true,
+      "bm25_hit": true,
+      "vector_passage_hit": true,
+      "bm25_passage_hit": true,
+      "recovered_by_bm25": false,
+      "cm_graph_hit": false,
+      "cm_grep_hit": false,
+      "cm_hit": false,
+      "cm_graph_top": [],
+      "cm_grep_top": [],
+      "vector_top": [
+        {
+          "id": "p0214",
+          "path": "sources/x-posts.md",
+          "score": 0.465545117855072,
+          "text": "### Entry 052: LEANN \u2014 Extreme RAG Compression (201 GB \u2192 6 GB, 97% Savings, No Accuracy Loss)  - **URL**: https://x.com/i/status/2077528059339817025 - **Date**: 2026-07-15 - **Post"
+        },
+        {
+          "id": "p0000",
+          "path": "docs/ops/memory-assist-patterns.md",
+          "score": 0.3393718898296356,
+          "text": "# Memory assist patterns (LEANN / Memvid / CM)  **Sources:** Entries 044 Memvid \u00b7 052 LEANN \u00b7 active **codebase-memory-mcp**   **Posture:** Patterns for coding agents; **CM remains"
+        },
+        {
+          "id": "p0160",
+          "path": "data/stages/leann.json",
+          "score": 0.29579323530197144,
+          "text": "{   \"name\": \"LEANN\",   \"integration_stage\": \"I1\",   \"intent\": \"catalog_default\",   \"tier\": \"A\",   \"auto\": true,   \"catalog_tier\": \"A\",   \"catalog_overall\": \"87\",   \"catalog_tags\": "
+        },
+        {
+          "id": "p0020",
+          "path": "docs/eval/TOOLSET-RANKING.md",
+          "score": 0.28682589530944824,
+          "text": "## 2026-10-06 ranking (history)  **Scope:** what to integrate next, assuming **local models only on nimo** (Strix Halo, Ollama about 22 GB edge; `llama-server --no-mmap` edge \u2265 51 "
+        },
+        {
+          "id": "p0124",
+          "path": "data/stages/deepseek-v4-1-flash-1017-gguf.json",
+          "score": 0.25344419479370117,
+          "text": "{   \"name\": \"DeepSeek-V4.1-Flash-1017 GGUF\",   \"integration_stage\": \"I0\",   \"intent\": \"awareness_fit_gate_failed\",   \"github\": \"https://huggingface.co/unsloth/DeepSeek-V4.1-Flash-1"
+        }
+      ],
+      "bm25_top": [
+        {
+          "id": "p0000",
+          "path": "docs/ops/memory-assist-patterns.md",
+          "score": 22.558275280737366,
+          "text": "# Memory assist patterns (LEANN / Memvid / CM)  **Sources:** Entries 044 Memvid \u00b7 052 LEANN \u00b7 active **codebase-memory-mcp**   **Posture:** Patterns for coding agents; **CM remains"
+        },
+        {
+          "id": "p0214",
+          "path": "sources/x-posts.md",
+          "score": 16.913169892907376,
+          "text": "### Entry 052: LEANN \u2014 Extreme RAG Compression (201 GB \u2192 6 GB, 97% Savings, No Accuracy Loss)  - **URL**: https://x.com/i/status/2077528059339817025 - **Date**: 2026-07-15 - **Post"
+        },
+        {
+          "id": "p0160",
+          "path": "data/stages/leann.json",
+          "score": 10.576989237783206,
+          "text": "{   \"name\": \"LEANN\",   \"integration_stage\": \"I1\",   \"intent\": \"catalog_default\",   \"tier\": \"A\",   \"auto\": true,   \"catalog_tier\": \"A\",   \"catalog_overall\": \"87\",   \"catalog_tags\": "
+        },
+        {
+          "id": "p0215",
+          "path": "sources/x-posts.md",
+          "score": 5.524170387546264,
+          "text": "ractical at scale. - **Status**: Processed and cataloged (added as high-value RAG compression tool; priority for context/memory category)  ## Future Entries Format  When adding new"
+        },
+        {
+          "id": "p0042",
+          "path": "scripts/test_select.py",
+          "score": 5.480627096374201,
+          "text": "def parse_diff(raw: bytes) -> list[dict[str, str]]:     parts = raw.split(b\"\\0\")     out: list[dict[str, str]] = []     index = 0     while index < len(parts):         if not parts"
+        }
+      ]
+    },
+    {
+      "id": "c1",
+      "kind": "code",
+      "query": "function that selects tests from a diff",
+      "expect_path": "scripts/test_select.py",
+      "vector_hit": true,
+      "bm25_hit": true,
+      "vector_passage_hit": true,
+      "bm25_passage_hit": false,
+      "recovered_by_bm25": false,
+      "cm_graph_hit": false,
+      "cm_grep_hit": false,
+      "cm_hit": false,
+      "cm_graph_top": [
+        "tests/test_pfy_build_cloud.py",
+        "tests/test_registry.py",
+        "tests/test_cloud_lane_mode.py",
+        "tests/test_launch_session_e2e.py",
+        "tests/test_pfy_build_local.py"
+      ],
+      "cm_grep_top": [],
+      "vector_top": [
+        {
+          "id": "p0081",
+          "path": "scripts/cbm_shadow.py",
+          "score": 0.4447873532772064,
+          "text": "def tests_from_cbm(payload: dict) -> tuple[set[str], bool]:     found: set[str] = set()     run_all = False     if payload.get(\"run_all\") is True:         run_all = True     decisi"
+        },
+        {
+          "id": "p0043",
+          "path": "scripts/test_select.py",
+          "score": 0.4080640971660614,
+          "text": "def changed_between(root: Path, base: str, head: str) -> list[dict[str, str]]:     proc = subprocess.run(         [\"git\", \"diff\", \"--name-status\", \"--find-renames\", \"-z\", base, hea"
+        },
+        {
+          "id": "p0042",
+          "path": "scripts/test_select.py",
+          "score": 0.4031665623188019,
+          "text": "def parse_diff(raw: bytes) -> list[dict[str, str]]:     parts = raw.split(b\"\\0\")     out: list[dict[str, str]] = []     index = 0     while index < len(parts):         if not parts"
+        },
+        {
+          "id": "p0082",
+          "path": "scripts/cbm_shadow.py",
+          "score": 0.4018208086490631,
+          "text": "def selector_tests(root: Path, base: str, head: str, budget: float) -> tuple[dict, float, str]:     select = script_repo() / \"scripts\" / \"test_select.py\"     started = time.monoton"
+        },
+        {
+          "id": "p0045",
+          "path": "scripts/test_select.py",
+          "score": 0.39652273058891296,
+          "text": "def select(root: Path, changes: list[dict[str, str]], config: dict, graph: Graph | None = None) -> dict:     graph = graph or Graph(root)     all_tests = to_modules(set(graph.test_"
+        }
+      ],
+      "bm25_top": [
+        {
+          "id": "p0026",
+          "path": "scripts/test_select.py",
+          "score": 9.084079777842057,
+          "text": "#!/usr/bin/env python3 \"\"\"Map a diff to the unittest modules it can affect.    python3 scripts/test_select.py --base origin/main [--head HEAD]   python3 scripts/test_select.py --pa"
+        },
+        {
+          "id": "p0210",
+          "path": "data/stages/trailofbits-skills.json",
+          "score": 8.404978632422635,
+          "text": "{   \"name\": \"trailofbits-skills\",   \"integration_stage\": \"I0\",   \"intent\": \"awareness\",   \"entry\": \"sources/entries/125-trailofbits-skills.md\",   \"github\": \"https://github.com/trai"
+        },
+        {
+          "id": "p0066",
+          "path": "scripts/cbm_shadow.py",
+          "score": 7.337538872785874,
+          "text": "#!/usr/bin/env python3 \"\"\"Report-only shadow of codebase-memory-mcp detect_changes next to test_select.  Not a gate. A missing binary, a non-zero tool exit, and a timeout are one J"
+        },
+        {
+          "id": "p0043",
+          "path": "scripts/test_select.py",
+          "score": 5.589684560474162,
+          "text": "def changed_between(root: Path, base: str, head: str) -> list[dict[str, str]]:     proc = subprocess.run(         [\"git\", \"diff\", \"--name-status\", \"--find-renames\", \"-z\", base, hea"
+        },
+        {
+          "id": "p0101",
+          "path": "data/stages/agentgg.json",
+          "score": 5.194297513879805,
+          "text": "{   \"name\": \"agentgg\",   \"integration_stage\": \"I0\",   \"intent\": \"awareness\",   \"entry\": \"sources/entries/161-agentgg.md\",   \"github\": \"https://github.com/agentgg-dev/agentgg\",   \"u"
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "kind": "code",
+      "query": "self_pipeline evidence required before I3 for a review tool",
+      "expect_path": "scripts/catalog_check.py",
+      "vector_hit": true,
+      "bm25_hit": true,
+      "vector_passage_hit": true,
+      "bm25_passage_hit": true,
+      "recovered_by_bm25": false,
+      "cm_graph_hit": false,
+      "cm_grep_hit": false,
+      "cm_hit": false,
+      "cm_graph_top": [
+        "tests/test_catalog_self_pipeline.py",
+        "tests/test_catalog_self_pipeline.py",
+        "tests/test_catalog_self_pipeline.py",
+        "tests/test_catalog_self_pipeline.py",
+        "tests/test_catalog_self_pipeline.py"
+      ],
+      "cm_grep_top": [],
+      "vector_top": [
+        {
+          "id": "p0012",
+          "path": "docs/ops/integration-stages.md",
+          "score": 0.6587724685668945,
+          "text": "## Self-pipeline rule (CI, testing, review)  I0 to I4 measure how far a tool is built into the product. They do not ask whether we use the tool on ourselves. A tool whose uses, fea"
+        },
+        {
+          "id": "p0014",
+          "path": "docs/ops/integration-stages.md",
+          "score": 0.5553927421569824,
+          "text": "## Agent rules  1. New X/catalog entries start at **I1** (or I0 if Stage 0 fails). 2. Never ask for a subtree \u201cjust to have one.\u201d 3. Ambiguous potential + <50 MB \u2192 may open I2 prob"
+        },
+        {
+          "id": "p0062",
+          "path": "scripts/catalog_check.py",
+          "score": 0.5062527656555176,
+          "text": "def self_pipeline_problems(name: str, row: dict) -> list[str]:     \"\"\"Problems for one stage card. Empty when the rule does not apply or the card passes.      Fail closed at I3 and"
+        },
+        {
+          "id": "p0101",
+          "path": "data/stages/agentgg.json",
+          "score": 0.495708703994751,
+          "text": "{   \"name\": \"agentgg\",   \"integration_stage\": \"I0\",   \"intent\": \"awareness\",   \"entry\": \"sources/entries/161-agentgg.md\",   \"github\": \"https://github.com/agentgg-dev/agentgg\",   \"u"
+        },
+        {
+          "id": "p0013",
+          "path": "docs/ops/integration-stages.md",
+          "score": 0.4744052290916443,
+          "text": ": `ci`, `testing`, `test`, `tests`, `review`, `reviews`, `reviewer`, `qa`, `tdd`, `junit`, `pytest`, `lint`, `linter`. The word `eval` inside a sentence is not in this list.  `#pip"
+        }
+      ],
+      "bm25_top": [
+        {
+          "id": "p0012",
+          "path": "docs/ops/integration-stages.md",
+          "score": 11.648413718676004,
+          "text": "## Self-pipeline rule (CI, testing, review)  I0 to I4 measure how far a tool is built into the product. They do not ask whether we use the tool on ourselves. A tool whose uses, fea"
+        },
+        {
+          "id": "p0013",
+          "path": "docs/ops/integration-stages.md",
+          "score": 10.389658521449675,
+          "text": ": `ci`, `testing`, `test`, `tests`, `review`, `reviews`, `reviewer`, `qa`, `tdd`, `junit`, `pytest`, `lint`, `linter`. The word `eval` inside a sentence is not in this list.  `#pip"
+        },
+        {
+          "id": "p0014",
+          "path": "docs/ops/integration-stages.md",
+          "score": 9.640230064853473,
+          "text": "## Agent rules  1. New X/catalog entries start at **I1** (or I0 if Stage 0 fails). 2. Never ask for a subtree \u201cjust to have one.\u201d 3. Ambiguous potential + <50 MB \u2192 may open I2 prob"
+        },
+        {
+          "id": "p0204",
+          "path": "data/stages/squadra.json",
+          "score": 8.42901752178357,
+          "text": "{   \"name\": \"Squadra\",   \"integration_stage\": \"I1\",   \"intent\": \"staged_evaluation\",   \"entry\": \"sources/entries/124-squadra.md\",   \"github\": \"https://github.com/dagoSte/squadra\", "
+        },
+        {
+          "id": "p0062",
+          "path": "scripts/catalog_check.py",
+          "score": 8.194760356288171,
+          "text": "def self_pipeline_problems(name: str, row: dict) -> list[str]:     \"\"\"Problems for one stage card. Empty when the rule does not apply or the card passes.      Fail closed at I3 and"
+        }
+      ]
+    },
+    {
+      "id": "c3",
+      "kind": "code",
+      "query": "shadow detect_changes beside test selection",
+      "expect_path": "scripts/cbm_shadow.py",
+      "vector_hit": true,
+      "bm25_hit": true,
+      "vector_passage_hit": true,
+      "bm25_passage_hit": true,
+      "recovered_by_bm25": false,
+      "cm_graph_hit": false,
+      "cm_grep_hit": false,
+      "cm_hit": false,
+      "cm_graph_top": [
+        "tests/test_pfy_build_local_review.py",
+        "pfylib/loop_paint.py",
+        "pfylib/loop_paint.py",
+        "tests/test_test_select.py",
+        "tests/test_pfy_build_cloud_slice2.py"
+      ],
+      "cm_grep_top": [],
+      "vector_top": [
+        {
+          "id": "p0089",
+          "path": "scripts/cbm_shadow.py",
+          "score": 0.5255123376846313,
+          "text": "def shadow(base_ref: str, head_ref: str, source: Path, cache: Path, dest: Path, budget: float) -> dict:     record: dict = {         \"sha\": head_ref,         \"base\": base_ref,     "
+        },
+        {
+          "id": "p0066",
+          "path": "scripts/cbm_shadow.py",
+          "score": 0.4514656662940979,
+          "text": "#!/usr/bin/env python3 \"\"\"Report-only shadow of codebase-memory-mcp detect_changes next to test_select.  Not a gate. A missing binary, a non-zero tool exit, and a timeout are one J"
+        },
+        {
+          "id": "p0026",
+          "path": "scripts/test_select.py",
+          "score": 0.43217283487319946,
+          "text": "#!/usr/bin/env python3 \"\"\"Map a diff to the unittest modules it can affect.    python3 scripts/test_select.py --base origin/main [--head HEAD]   python3 scripts/test_select.py --pa"
+        },
+        {
+          "id": "p0096",
+          "path": "scripts/cbm_shadow.py",
+          "score": 0.4033995568752289,
+          "text": "append_record(                 dest,                 {                     \"sha\": args.head,                     \"base\": args.base,                     \"changed\": [],              "
+        },
+        {
+          "id": "p0212",
+          "path": "data/stages/tree-sitter-analyzer.json",
+          "score": 0.39085352420806885,
+          "text": "{   \"name\": \"Tree-sitter Analyzer\",   \"integration_stage\": \"I1\",   \"intent\": \"staged_evaluation\",   \"entry\": \"sources/entries/121-tree-sitter-analyzer.md\",   \"github\": \"https://git"
+        }
+      ],
+      "bm25_top": [
+        {
+          "id": "p0066",
+          "path": "scripts/cbm_shadow.py",
+          "score": 12.364047847155227,
+          "text": "#!/usr/bin/env python3 \"\"\"Report-only shadow of codebase-memory-mcp detect_changes next to test_select.  Not a gate. A missing binary, a non-zero tool exit, and a timeout are one J"
+        },
+        {
+          "id": "p0089",
+          "path": "scripts/cbm_shadow.py",
+          "score": 7.912465275647571,
+          "text": "def shadow(base_ref: str, head_ref: str, source: Path, cache: Path, dest: Path, budget: float) -> dict:     record: dict = {         \"sha\": head_ref,         \"base\": base_ref,     "
+        },
+        {
+          "id": "p0026",
+          "path": "scripts/test_select.py",
+          "score": 7.736481756323298,
+          "text": "#!/usr/bin/env python3 \"\"\"Map a diff to the unittest modules it can affect.    python3 scripts/test_select.py --base origin/main [--head HEAD]   python3 scripts/test_select.py --pa"
+        },
+        {
+          "id": "p0096",
+          "path": "scripts/cbm_shadow.py",
+          "score": 7.182428515053973,
+          "text": "append_record(                 dest,                 {                     \"sha\": args.head,                     \"base\": args.base,                     \"changed\": [],              "
+        },
+        {
+          "id": "p0051",
+          "path": "scripts/test_select.py",
+          "score": 7.154998692726271,
+          "text": "def main(argv: list[str] | None = None) -> int:     ap = argparse.ArgumentParser(description=__doc__)     ap.add_argument(\"--base\", default=None)     ap.add_argument(\"--head\", defa"
+        }
+      ]
+    },
+    {
+      "id": "c4",
+      "kind": "code",
+      "query": "Where is the LEANN stage card non-goal that says not to replace the code graph?",
+      "expect_path": "data/stages/leann.json",
+      "vector_hit": true,
+      "bm25_hit": true,
+      "vector_passage_hit": true,
+      "bm25_passage_hit": true,
+      "recovered_by_bm25": false,
+      "cm_graph_hit": false,
+      "cm_grep_hit": false,
+      "cm_hit": false,
+      "cm_graph_top": [
+        "tests/test_pfy_build_local_review.py",
+        "tests/test_mvp_1031_realfail2_receipts.py",
+        "tests/test_pfy_build_local_review.py",
+        "tests/test_pfy_build_cloud.py",
+        "tests/test_pfy_build_cloud.py"
+      ],
+      "cm_grep_top": [],
+      "vector_top": [
+        {
+          "id": "p0010",
+          "path": "docs/ops/integration-stages.md",
+          "score": 0.43973836302757263,
+          "text": "## How to move a card  Facts are recomputed. Judgments are not.  ```bash python3 scripts/catalog_stage_eval.py          # one line per tool: stage, ceiling, potential, evidence pyt"
+        },
+        {
+          "id": "p0160",
+          "path": "data/stages/leann.json",
+          "score": 0.43972113728523254,
+          "text": "{   \"name\": \"LEANN\",   \"integration_stage\": \"I1\",   \"intent\": \"catalog_default\",   \"tier\": \"A\",   \"auto\": true,   \"catalog_tier\": \"A\",   \"catalog_overall\": \"87\",   \"catalog_tags\": "
+        },
+        {
+          "id": "p0003",
+          "path": "docs/ops/integration-stages.md",
+          "score": 0.4385121762752533,
+          "text": "## Stages (lifecycle)  | Stage | Name | What lives in-repo | When to use | |------:|------|--------------------|-------------| | **I0** | **Awareness** | Catalog row optional / C-t"
+        },
+        {
+          "id": "p0177",
+          "path": "data/stages/muxin.json",
+          "score": 0.41906407475471497,
+          "text": "{   \"name\": \"Muxin\",   \"integration_stage\": \"I0\",   \"intent\": \"awareness\",   \"entry\": \"sources/entries/145-muxin.md\",   \"github\": \"https://github.com/LumaryLabsLLC/muxin\",   \"uses\""
+        },
+        {
+          "id": "p0164",
+          "path": "data/stages/llama-cpp-server-mode.json",
+          "score": 0.4155779480934143,
+          "text": "{   \"name\": \"llama.cpp (server mode)\",   \"integration_stage\": \"I1\",   \"intent\": \"catalog_default\",   \"tier\": \"A\",   \"auto\": true,   \"catalog_tier\": \"A\",   \"catalog_overall\": \"88\", "
+        }
+      ],
+      "bm25_top": [
+        {
+          "id": "p0120",
+          "path": "data/stages/codebase-memory-mcp.json",
+          "score": 14.068847377437915,
+          "text": "{   \"name\": \"codebase-memory-mcp\",   \"integration_stage\": \"I2\",   \"intent\": \"smoke_path\",   \"tier\": \"S\",   \"auto\": true,   \"catalog_tier\": \"S\",   \"catalog_overall\": \"91\",   \"catalo"
+        },
+        {
+          "id": "p0000",
+          "path": "docs/ops/memory-assist-patterns.md",
+          "score": 12.372576454039505,
+          "text": "# Memory assist patterns (LEANN / Memvid / CM)  **Sources:** Entries 044 Memvid \u00b7 052 LEANN \u00b7 active **codebase-memory-mcp**   **Posture:** Patterns for coding agents; **CM remains"
+        },
+        {
+          "id": "p0160",
+          "path": "data/stages/leann.json",
+          "score": 11.043846222679047,
+          "text": "{   \"name\": \"LEANN\",   \"integration_stage\": \"I1\",   \"intent\": \"catalog_default\",   \"tier\": \"A\",   \"auto\": true,   \"catalog_tier\": \"A\",   \"catalog_overall\": \"87\",   \"catalog_tags\": "
+        },
+        {
+          "id": "p0023",
+          "path": "docs/eval/TOOLSET-RANKING.md",
+          "score": 10.227553637181181,
+          "text": "| **claude-mem** (adapt, not adopt) | Its SQLite FTS5 observation store + session summaries is the best memory design on disk. Port the store pattern into `/hermes-feedback`. Its r"
+        },
+        {
+          "id": "p0152",
+          "path": "data/stages/jevagentharness.json",
+          "score": 9.407914086900742,
+          "text": "{   \"name\": \"JevAgentHarness\",   \"integration_stage\": \"I1\",   \"intent\": \"staged_evaluation\",   \"entry\": \"sources/entries/131-jevagentharness.md\",   \"github\": \"https://github.com/Je"
+        }
+      ]
+    }
+  ],
+  "overlap": [
+    {
+      "name": "Agent Beacon",
+      "slug": "agent-beacon",
+      "integration_stage": "I0",
+      "uses": "Copy a committed Grok session into a local JSONL, then store a lesson a person types. Scoring one trace calls hosted TypeSafe Jev.",
+      "tokens": [
+        "memory"
+      ]
+    },
+    {
+      "name": "Auto-Company",
+      "slug": "auto-company",
+      "integration_stage": "I1",
+      "uses": "Company-daemon patterns worth extracting. Not a runtime to adopt.",
+      "tokens": [
+        "memory"
+      ]
+    },
+    {
+      "name": "Chroma (or LanceDB)",
+      "slug": "chroma-or-lancedb",
+      "integration_stage": "I0",
+      "uses": "Vector store. Code memory is already chosen.",
+      "tokens": [
+        "rag",
+        "embedding",
+        "embeddings",
+        "vector",
+        "memory",
+        "code-memory",
+        "code memory"
+      ]
+    },
+    {
+      "name": "Cloudflare security-audit skill",
+      "slug": "cloudflare-security-audit-skill",
+      "integration_stage": "I0",
+      "uses": "Schema check for findings.json in a six-phase source audit. The 2026-11-07 probe blocked 0 of 1 planted skill lines.",
+      "tokens": [
+        "rag"
+      ]
+    },
+    {
+      "name": "codebase-memory-mcp",
+      "slug": "codebase-memory-mcp",
+      "integration_stage": "I2",
+      "uses": "Primary code-graph MCP and the code-graph toolset.",
+      "tokens": [
+        "rag",
+        "memory",
+        "code-memory"
+      ]
+    },
+    {
+      "name": "Graphify",
+      "slug": "graphify",
+      "integration_stage": "I0",
+      "uses": "Reference tree-sitter graph. Not the code memory we run.",
+      "tokens": [
+        "memory",
+        "code-memory",
+        "code memory"
+      ]
+    },
+    {
+      "name": "Grok CLI bootstrap",
+      "slug": "grok-cli-bootstrap",
+      "integration_stage": "I3",
+      "uses": "Operator env, skills install, cage Grok sessions.",
+      "tokens": [
+        "memory",
+        "code-memory"
+      ]
+    },
+    {
+      "name": "Hermes Agent (feedback loops)",
+      "slug": "hermes-agent-feedback-loops",
+      "integration_stage": "I1",
+      "uses": "Feedback-loop pattern ported as a skill. Not the Hermes runtime.",
+      "tokens": [
+        "memory"
+      ]
+    },
+    {
+      "name": "imcodes",
+      "slug": "imcodes",
+      "integration_stage": "I0",
+      "uses": "Reference for a supervised review loop and final-answer memory. Not an install.",
+      "tokens": [
+        "memory"
+      ]
+    },
+    {
+      "name": "LangGraph (LangChain)",
+      "slug": "langgraph-langchain",
+      "integration_stage": "I1",
+      "uses": "Graph orchestration. Our loops already cover the operator path.",
+      "tokens": [
+        "rag"
+      ]
+    },
+    {
+      "name": "MemPalace",
+      "slug": "mempalace",
+      "integration_stage": "I0",
+      "uses": "Verbatim local memory with scoped search.",
+      "tokens": [
+        "memory"
+      ]
+    },
+    {
+      "name": "Memvid",
+      "slug": "memvid",
+      "integration_stage": "I1",
+      "uses": "Video-backed memory. No job in the current operator path.",
+      "tokens": [
+        "rag",
+        "memory"
+      ]
+    },
+    {
+      "name": "MUE-X",
+      "slug": "mue-x",
+      "integration_stage": "I1",
+      "uses": "Self-rewriting agent. Interesting pattern, unsafe as a runtime.",
+      "tokens": [
+        "memory"
+      ]
+    },
+    {
+      "name": "opencode-mem",
+      "slug": "opencode-mem",
+      "integration_stage": "I1",
+      "uses": "Memory plugin for the OpenCode worker.",
+      "tokens": [
+        "vector",
+        "memory"
+      ]
+    },
+    {
+      "name": "repowise",
+      "slug": "repowise",
+      "integration_stage": "I2",
+      "uses": "Context packing probe. Overlaps codebase-memory.",
+      "tokens": [
+        "memory"
+      ]
+    },
+    {
+      "name": "RoBrain",
+      "slug": "robrain",
+      "integration_stage": "I0",
+      "uses": "Decision memory with vetoes.",
+      "tokens": [
+        "memory"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+[
+  {
+    "id": "p1",
+    "kind": "prose",
+    "query": "How many of the four value checks have to be true before we onboard a tool?",
+    "expect_path": "docs/ops/integration-stages.md",
+    "expect_substr": "3 of 4"
+  },
+  {
+    "id": "p2",
+    "kind": "prose",
+    "query": "Should a storage-shrinking retriever replace the code graph as the default runtime?",
+    "expect_path": "docs/ops/memory-assist-patterns.md",
+    "expect_substr": "CM remains primary"
+  },
+  {
+    "id": "p3",
+    "kind": "prose",
+    "query": "What storage reduction does the catalog entry claim for sixty million text chunks?",
+    "expect_path": "sources/x-posts.md",
+    "expect_substr": "97%"
+  },
+  {
+    "id": "p4",
+    "kind": "prose",
+    "query": "Which ranked candidate is a compressed local index for asking questions over the catalog without standing up a vector database server?",
+    "expect_path": "docs/eval/TOOLSET-RANKING.md",
+    "expect_substr": "Compressed local RAG"
+  },
+  {
+    "id": "p5",
+    "kind": "prose",
+    "query": "What is the lightweight copy size limit for an ad-hoc probe stage?",
+    "expect_path": "docs/ops/integration-stages.md",
+    "expect_substr": "50 MB"
+  },
+  {
+    "id": "p6",
+    "kind": "prose",
+    "query": "LEANN extreme index compression spike",
+    "expect_path": "docs/ops/memory-assist-patterns.md",
+    "expect_substr": "Extreme index compression"
+  },
+  {
+    "id": "c1",
+    "kind": "code",
+    "query": "function that selects tests from a diff",
+    "expect_path": "scripts/test_select.py",
+    "expect_substr": "def select("
+  },
+  {
+    "id": "c2",
+    "kind": "code",
+    "query": "self_pipeline evidence required before I3 for a review tool",
+    "expect_path": "scripts/catalog_check.py",
+    "expect_substr": "def self_pipeline_problems"
+  },
+  {
+    "id": "c3",
+    "kind": "code",
+    "query": "shadow detect_changes beside test selection",
+    "expect_path": "scripts/cbm_shadow.py",
+    "expect_substr": "detect_changes"
+  },
+  {
+    "id": "c4",
+    "kind": "code",
+    "query": "Where is the LEANN stage card non-goal that says not to replace the code graph?",
+    "expect_path": "data/stages/leann.json",
+    "expect_substr": "replace codebase-memory"
+  }
+]

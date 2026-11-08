@@ -14,14 +14,27 @@
   ],
   "catalog_github": "https://github.com/StarTrail-org/LEANN",
   "posture": [],
-  "evidence": [],
+  "pin": "v0.3.9 07796bd7e40f2d5f3a4be9e45adf1f62a68481fd",
+  "wheel_sha256": "3784706ec4a0a2b5da299437a01627c77ca3911c116828e2b2d1287957fe4615",
+  "sdist_sha256": "f0482785ef6edd75a93ab56297499a0a52a0867e665bf6146e40788cca4be769",
+  "license": "MIT",
+  "evidence": [
+    "sources/x-posts.md Entry 052",
+    "eval/evq1107/leann/REPORT.md",
+    "eval/evq1107/leann/VERDICT",
+    "eval/evq1107/leann/results.json",
+    "pin v0.3.9 07796bd7e40f2d5f3a4be9e45adf1f62a68481fd",
+    "wheel_sha256:3784706ec4a0a2b5da299437a01627c77ca3911c116828e2b2d1287957fe4615"
+  ],
   "tier_ceiling": "I1",
-  "uses": "Compressed RAG. Not our code memory.",
+  "uses": "Compressed RAG for local text. The 2026-11-07 probe stored a 16582-byte HNSW graph against a 331776-byte float32 matrix, and the full index was 620548 bytes on 190529 bytes of passages. The CPU cache install is about 1.63 GB. Not our code memory.",
   "features": [
-    "compressed embeddings"
+    "hnsw graph smaller than a float32 matrix",
+    "bm25 sidecar on the same passages",
+    "recompute embeddings at search"
   ],
   "potential": "medium",
-  "next_gate": "Stay I1 until a measured gap versus codebase-memory.",
+  "next_gate": "Stay I1 until a pin under 50 MB, with no torch wheel and no embedding weights, keeps an index smaller than the raw passages on this 216-passage set and still beats shadow codebase-memory file recall on the same questions.",
   "handoff_by": "llm",
   "non_goals": [
     "replace codebase-memory"

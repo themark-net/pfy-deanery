@@ -1,0 +1,1 @@
+STAY I1: index bundle 620548 bytes is larger than 190529 raw passage bytes, and the CPU cache install is 1.63 GB with torch and MiniLM weights, so the 50 MB I2 gate fails.
