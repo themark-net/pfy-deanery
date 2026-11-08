@@ -119,25 +119,28 @@ class TestNeatrootsReceiptBehavior(unittest.TestCase):
         )
         self.assertEqual(proc.returncode, 2, proc.stderr)
 
-    def test_this_worktree_is_not_main_and_writes_nothing(self):
+    def test_off_main_head_refuses_and_writes_nothing(self):
+        # Behavior, not repo state: a checkout whose HEAD is not an ancestor
+        # of origin/main must refuse, create no receipt, and leave an
+        # existing receipt byte-identical.
         before = CARD.read_bytes()
         with tempfile.TemporaryDirectory() as raw:
             td = Path(raw)
+            repo = _repo(td)
+            stub = _stub(td)
+            _git(repo, "commit", "--allow-empty", "-qm", "not on main")
             receipt = td / "absent" / "receipt.json"
-            proc = _run(ROOT, receipt, _env(td))
+            env = _env(repo, {**stub, "NEAT_CHECK_OUT": CLEAN})
+            proc = _run(repo, receipt, env)
             self.assertEqual(proc.returncode, 1, proc.stderr)
             self.assertIn("not an ancestor", proc.stderr)
             self.assertFalse(receipt.parent.exists())
-            self.assertFalse((ROOT / "eval/integrate/neatroots/receipt.json").exists())
+            existing = td / "existing.json"
+            existing.write_text("keep\n", encoding="utf-8")
+            again = _run(repo, existing, env)
+            self.assertEqual(again.returncode, 1, again.stderr)
+            self.assertEqual(existing.read_text(encoding="utf-8"), "keep\n")
         self.assertEqual(CARD.read_bytes(), before)
-        listed = subprocess.run(
-            ["git", "ls-files", "eval/integrate/neatroots/receipt.json"],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        self.assertEqual(listed.stdout.strip(), "")
 
     def test_foreign_and_pidless_markers_exit_2(self):
         with tempfile.TemporaryDirectory() as raw:
@@ -159,8 +162,11 @@ class TestNeatrootsReceiptBehavior(unittest.TestCase):
             marker = td / "marker"
             marker.write_text(f"pid {os.getpid()}\n", encoding="utf-8")
             receipt = td / "receipt.json"
-            env = _env(td, {"PFY_NEATROOTS_LANE_MARKER": str(marker)})
-            proc = _run(ROOT, receipt, env)
+            repo = _repo(td)
+            stub = _stub(td)
+            _git(repo, "commit", "--allow-empty", "-qm", "not on main")
+            env = _env(repo, {**stub, "PFY_NEATROOTS_LANE_MARKER": str(marker)})
+            proc = _run(repo, receipt, env)
             self.assertEqual(proc.returncode, 1, proc.stderr)
             self.assertNotIn("already dispatched", proc.stderr)
             self.assertIn("not an ancestor", proc.stderr)
