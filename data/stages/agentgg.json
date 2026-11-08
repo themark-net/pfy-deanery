@@ -4,16 +4,24 @@
   "intent": "awareness",
   "entry": "sources/entries/161-agentgg.md",
   "github": "https://github.com/agentgg-dev/agentgg",
-  "uses": "Local agentic SAST for risky diffs.",
-  "potential": "medium",
-  "next_gate": "Candidate extra pass for trading/deploy/secret changes; needs Tester and Reviewer to wire.",
+  "uses": "Local agentic SAST on a deploy, release, or secrets diff. Report only.",
+  "features": [
+    "scan a git diff with --diff",
+    "ollama provider on a loopback base URL",
+    "official agent pack v0.1.41 with semgrep-core 1.173.0 prefilters"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I0. A later probe can argue I2 only if a Python secret written to a log is reported and the false injection findings on the deploy script and the redaction diff are gone. I3 needs Tester and Reviewer and is not this lane.",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",
     "catalog_hold_70_75"
   ],
   "evidence": [
-    "entry:sources/entries/161-agentgg.md"
+    "entry:sources/entries/161-agentgg.md",
+    "eval/ev1107/agentgg/REPORT.md",
+    "eval/ev1107/agentgg/VERDICT",
+    "eval/ev1107/agentgg/results.json"
   ],
   "handoff_by": "llm"
 }

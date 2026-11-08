@@ -1,0 +1,99 @@
+{
+  "model": "qwen2.5-coder:7b-instruct",
+  "provider": "ollama",
+  "base_url": "http://127.0.0.1:11434",
+  "package": "agentgg@0.1.29",
+  "git_head": "20cca9c1896ef4fee26c93a8730c0f46e4ca44d6",
+  "agents": "v0.1.41",
+  "semgrep_core": "1.173.0",
+  "mem_available_kib_at_lock": 62096452,
+  "keep_alive": "2m",
+  "scans": [
+    {
+      "id": "p1-secret-log",
+      "kind": "planted",
+      "area": "secrets",
+      "seconds": 16.4,
+      "rc": 0,
+      "calls": 5,
+      "findings": 0,
+      "judgment": "miss: secret written to a log was not reported"
+    },
+    {
+      "id": "p2-shell-true",
+      "kind": "planted",
+      "area": "injection",
+      "seconds": 28.7,
+      "rc": 0,
+      "calls": 7,
+      "findings": 1,
+      "judgment": "true positive: shell=True on user input; validator uncertain"
+    },
+    {
+      "id": "h1-deploy-script",
+      "kind": "historical",
+      "sha": "889855bccf70005776689d8d10699104c799efe2",
+      "path": "scripts/eval-deploy-ready.sh",
+      "seconds": 37.4,
+      "rc": 0,
+      "calls": 9,
+      "findings": 2,
+      "judgment": "2 false positives on hardcoded commands"
+    },
+    {
+      "id": "h2-deploy-runbook",
+      "kind": "historical",
+      "sha": "2ad493609ade568155eea28a788aa4dfef1d95cb",
+      "path": "docs/ops/DEPLOY.md",
+      "seconds": 10.2,
+      "rc": 0,
+      "calls": 5,
+      "findings": 0,
+      "judgment": "no findings"
+    },
+    {
+      "id": "h3-deploy-profiles",
+      "kind": "historical",
+      "sha": "c18493b44aee49bdefb36fa10cad7f7ff47a7248",
+      "path": "docs/ops/deployment-profiles.md",
+      "seconds": 9.9,
+      "rc": 0,
+      "calls": 5,
+      "findings": 0,
+      "judgment": "no findings"
+    },
+    {
+      "id": "h4-deploy-pins",
+      "kind": "historical",
+      "sha": "9c51e1ff1113c94d7db12b0468799b3421c1caff",
+      "path": "examples/litellm-ollama/pins.env",
+      "seconds": 9.2,
+      "rc": 0,
+      "calls": 5,
+      "findings": 0,
+      "judgment": "no findings"
+    },
+    {
+      "id": "h6-payload-gate",
+      "kind": "historical",
+      "sha": "df9a9cdabd46b744d433a479b96264dcb505babb",
+      "path": "scripts/check_no_encoded_payloads.py",
+      "seconds": 68.0,
+      "rc": 0,
+      "calls": 13,
+      "findings": 1,
+      "judgment": "false positive: exec text is a negative fixture string; validator false-positive"
+    },
+    {
+      "id": "h5-secret-redact",
+      "kind": "historical",
+      "sha": "e558bd5001c65f2d76c6615288efa11608ca0d99",
+      "path": "scripts/pfy_build_cloud.py",
+      "seconds": 133.7,
+      "rc": 0,
+      "calls": 13,
+      "findings": 2,
+      "judgment": "2 false positives on static redaction regexes; validator uncertain"
+    }
+  ]
+}
