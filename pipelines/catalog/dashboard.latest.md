@@ -12,8 +12,8 @@ Cards: 129. I2+: 22.
 |-------|------:|
 | I0 | 47 |
 | I1 | 60 |
-| I2 | 12 |
-| I3 | 10 |
+| I2 | 10 |
+| I3 | 12 |
 
 ## Intent counts
 
@@ -139,7 +139,7 @@ Cards: 129. I2+: 22.
 | Laguna S 2.1 | I1 | eval_under_250gb_pool |
 | LangGraph (LangChain) | I1 | catalog_default |
 | LEANN | I1 | catalog_default |
-| LiteLLM | I2 | smoke_path |
+| LiteLLM | I3 | smoke_path |
 | LiveKit | I0 | ref_only |
 | llama.cpp (server mode) | I1 | catalog_default |
 | llama.cpp ngram-mod | I3 | speed_probe |
@@ -158,7 +158,7 @@ Cards: 129. I2+: 22.
 | Muxin | I0 | awareness |
 | neatroots | I2 | ad_hoc_probe |
 | odai | I0 | design_reference |
-| Ollama | I2 | host_runtime |
+| Ollama | I3 | host_runtime |
 | Open Steps | I0 | awareness |
 | Open WebUI | I1 | catalog_default |
 | OpenClaude-Portable | I0 | awareness |

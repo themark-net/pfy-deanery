@@ -8,14 +8,16 @@ atomic-task-graph-atg	pull-over-25gb	card text is over 25 GB	data/stages/atomic-
 bumblebee	ceiling	tier_ceiling below I3: needs Mark	data/stages/bumblebee.json	-
 bumblebee	demotion-flag	evidence I1: notes, pin, report, VERDICT, script; tier_ceiling I1 agrees	eval/catalog-verdicts/CEILING-MISMATCHES.md	-
 bumblebee	risky-class	security	data/stages/bumblebee.json	-
+chiasmus	parked	run_tests failed	parked/chiasmus.parked	-
 codeguard	risky-class	security	data/stages/codeguard.json	-
 colibri	pull-over-25gb	card text is over 25 GB	data/stages/colibri.json	-
 deepseek-v4-1-flash-1017-gguf	pull-over-25gb	card text is over 25 GB	data/stages/deepseek-v4-1-flash-1017-gguf.json	-
 destructive-command-guard	risky-class	security	data/stages/destructive-command-guard.json	-
+dspy	parked	run_tests failed	parked/dspy.parked	-
 grok-cli-bootstrap	demotion-flag	evidence I2: make target, repo path; tier_ceiling I3 does not raise it; missing-main-receipt	eval/catalog-verdicts/CEILING-MISMATCHES.md	-
 hal0	gpu	card text names a GPU run	data/stages/hal0.json	-
 hal0	risky-class	runtime-takeover	data/stages/hal0.json	-
-hiroute	demotion-flag	evidence I1: entry, report; tier_ceiling I1 agrees	eval/catalog-verdicts/CEILING-MISMATCHES.md	-
+hiroute	demotion-flag	evidence I1: entry, report; tier_ceiling I3 does not raise it	eval/catalog-verdicts/CEILING-MISMATCHES.md	-
 hiroute	parked	receipt run failed rc=2	parked/hiroute.parked	-
 kander	risky-class	security	data/stages/kander.json	-
 kenfold	risky-class	security	data/stages/kenfold.json	-
@@ -30,20 +32,16 @@ llama-cpp-server-mode	demotion-flag	evidence I0: no evidence listed; tier_ceilin
 llama-cpp-server-mode	gpu	card text names a GPU run	data/stages/llama-cpp-server-mode.json	-
 magpie	excluded	Needs Mark's GO (rewrites agent configs).	eval/catalog-queue/exclusions.tsv	-
 mlx-mlx-lm	demotion-flag	evidence I0: no evidence listed; tier_ceiling I1 does not raise it	eval/catalog-verdicts/CEILING-MISMATCHES.md	-
-opencode-mem	demotion-flag	evidence I2: report, VERDICT, probe artifact, pin, record; tier_ceiling I1 caps the evidence	eval/catalog-verdicts/CEILING-MISMATCHES.md	-
 opencode-skill-creator	risky-class	security	data/stages/opencode-skill-creator.json	-
 pipecat	risky-class	unknown	data/stages/pipecat.json	-
 project-process-bootstrap	demotion-flag	evidence I2: repo path; tier_ceiling I3 does not raise it; missing-main-receipt	eval/catalog-verdicts/CEILING-MISMATCHES.md	-
 qwen38-flash-next	pull-over-25gb	Smallest useful quant is 37.6 GB, over the 25 GB pull cap; needs Mark's OK.	eval/catalog-queue/exclusions.tsv	-
-repowise	demotion-flag	evidence I2: make target; tier_ceiling I1 caps the evidence	eval/catalog-verdicts/CEILING-MISMATCHES.md	-
 skill-up	demotion-flag	evidence I1: summary, report, entry; tier_ceiling I3 does not raise it; a self_pipeline record does not raise this evidence; missing-main-receipt	eval/catalog-verdicts/CEILING-MISMATCHES.md	-
 skillspector	demotion-flag	evidence I1: entry, notes, pin, scan summary, report; tier_ceiling I3 does not raise it; missing-main-receipt	eval/catalog-verdicts/CEILING-MISMATCHES.md	-
 skillspector	risky-class	security	data/stages/skillspector.json	-
-sponsio	demotion-flag	evidence I2: entry, pin, record, report, VERDICT, probe artifact; tier_ceiling I1 caps the evidence	eval/catalog-verdicts/CEILING-MISMATCHES.md	-
 strata	gpu	card text names a GPU run	data/stages/strata.json	-
 strata	parked	receipt run failed rc=1	parked/strata.parked	-
 sysknife	risky-class	release or deploy stays with Mark	data/stages/sysknife.json	-
-taste-skill	demotion-flag	evidence I2: entry, pin, record, report, VERDICT, probe artifact; tier_ceiling I1 caps the evidence	eval/catalog-verdicts/CEILING-MISMATCHES.md	-
 trailofbits-skills	risky-class	security	data/stages/trailofbits-skills.json	-
 write-guard-mcp	demotion-flag	evidence I2: make target, repo path; tier_ceiling I3 does not raise it; missing-main-receipt	eval/catalog-verdicts/CEILING-MISMATCHES.md	-
 write-guard-mcp	risky-class	security	data/stages/write-guard-mcp.json	-
