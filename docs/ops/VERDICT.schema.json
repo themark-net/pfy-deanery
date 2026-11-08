@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pfy-mentat/verdict",
+  "title": "Catalog VERDICT.json",
+  "description": "Canonical eval result for one catalog tool. scripts/catalog_apply_verdict.py reads this file and generates the one-line VERDICT from it. Do not keep a second hand-written verdict that can disagree. The one-line file is ACTION, a stage I0-I4, then the metric, threshold, and both gates. ACTION is PROMOTE, STAY, or DEMOTE.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["metric", "threshold", "value_gate", "modularity_gate", "proposed_stage"],
+  "properties": {
+    "metric": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Name of the measured value. Example: probe_score."
+    },
+    "threshold": {
+      "type": "number",
+      "description": "Gate cutoff for metric. The apply script does not recompute the measurement."
+    },
+    "value_gate": {
+      "enum": ["pass", "fail"],
+      "description": "Value gate from docs/ops/integration-stages.md. Required to pass before a write of I3 or I4."
+    },
+    "modularity_gate": {
+      "enum": ["pass", "fail"],
+      "description": "Modularity gate from docs/ops/integration-stages.md. Required to pass before a write of I2 or above."
+    },
+    "proposed_stage": {
+      "enum": ["I0", "I1", "I2", "I3", "I4"],
+      "description": "Stage the eval wants written. The apply script refuses a value above the evidence ceiling and tier_ceiling. It does not promote just because the ceiling allows a higher stage."
+    },
+    "intent": {
+      "type": "string",
+      "description": "Optional. A new write must be an enum value or an alias. The apply script does not rewrite the intent already stored on a card. Enum: awareness, catalog_default, staged_evaluation, ad_hoc_probe, onboard, embedded. Aliases: staged_eval -> staged_evaluation, adhoc_probe -> ad_hoc_probe, ad-hoc-probe -> ad_hoc_probe, ad-hoc_probe -> ad_hoc_probe."
+    }
+  },
+  "$defs": {
+    "intent_enum": {
+      "enum": [
+        "awareness",
+        "catalog_default",
+        "staged_evaluation",
+        "ad_hoc_probe",
+        "onboard",
+        "embedded"
+      ]
+    },
+    "intent_aliases": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "staged_eval": {"const": "staged_evaluation"},
+        "adhoc_probe": {"const": "ad_hoc_probe"},
+        "ad-hoc-probe": {"const": "ad_hoc_probe"},
+        "ad-hoc_probe": {"const": "ad_hoc_probe"}
+      }
+    }
+  }
+}
