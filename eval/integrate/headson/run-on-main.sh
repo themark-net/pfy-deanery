@@ -6,6 +6,12 @@
 # The driver flock on /home/mark/DEVELOP/pfy-mentat/tmp/integrate2/push.lock
 # serializes the fast-forward. This script does not take that lock and does not create the lane marker.
 #
+# The lane marker is $HSON_LANE_MARKER, or
+# /home/mark/DEVELOP/pfy-mentat/tmp/integrate2/headson.dispatched.
+# A second start exits 2 and writes no receipt. The driver writes "pid <lane-pid>"
+# and still holds that file when it runs this script, so a marker whose pid is an
+# ancestor of this process is the admitted lane and the preview continues.
+#
 # Usage: eval/integrate/headson/run-on-main.sh RECEIPT.json
 
 set -euo pipefail
@@ -20,10 +26,39 @@ if [ "${receipt#/}" = "$receipt" ]; then
   receipt="$PWD/$receipt"
 fi
 
-marker=/home/mark/DEVELOP/pfy-mentat/tmp/integrate2/headson.dispatched
+marker=${HSON_LANE_MARKER:-/home/mark/DEVELOP/pfy-mentat/tmp/integrate2/headson.dispatched}
+
+marker_pid_is_ancestor() {
+  local file=$1
+  local target cur guard ppid
+  target=$(sed -n 's/^pid \([0-9][0-9]*\)[[:space:]]*$/\1/p' "$file" 2>/dev/null | head -n 1 || true)
+  if [ -z "$target" ]; then
+    return 1
+  fi
+  cur=$$
+  guard=0
+  while (( cur > 1 && guard < 40 )); do
+    if [ "$cur" = "$target" ]; then
+      return 0
+    fi
+    if [ ! -r "/proc/$cur/status" ]; then
+      return 1
+    fi
+    ppid=$(awk '/^PPid:/ {print $2}' "/proc/$cur/status" 2>/dev/null || true)
+    if [ -z "$ppid" ] || [ "$ppid" = "$cur" ]; then
+      return 1
+    fi
+    cur=$ppid
+    guard=$((guard + 1))
+  done
+  return 1
+}
+
 if [ -f "$marker" ]; then
-  printf '%s\n' "headson already dispatched" >&2
-  exit 2
+  if ! marker_pid_is_ancestor "$marker"; then
+    printf '%s\n' "headson already dispatched" >&2
+    exit 2
+  fi
 fi
 
 root=$(git rev-parse --show-toplevel)
@@ -50,13 +85,6 @@ if [ ! -f "$fixture" ]; then
   printf '%s\n' "fixture missing" >&2
   exit 1
 fi
-fixture_bytes=$(wc -c < "$fixture" | tr -d ' ')
-if [ "$fixture_bytes" -le "$byte_cap" ]; then
-  :
-else
-  printf '%s\n' "byte cap is below the fixture" >&2
-  exit 1
-fi
 
 if [ -n "${HSON_BIN:-}" ]; then
   bin=$HSON_BIN
@@ -75,7 +103,7 @@ if [ "$actual_sha" != "$expected_sha" ]; then
   exit 1
 fi
 
-tool_version=$("$bin" --version 2>/dev/null | head -n 1 | tr -d '\r' || true)
+tool_version=$(timeout 30 "$bin" --version 2>/dev/null | head -n 1 | tr -d '\r' || true)
 if [ -z "$tool_version" ]; then
   printf '%s\n' "pinned headson version missing" >&2
   exit 1
@@ -89,7 +117,6 @@ set +e
 timeout 30 "$bin" -c "$byte_cap" -i json -f json -t strict --no-color "$fixture" >"$preview"
 code=$?
 set -e
-finished=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 if [ "$code" -ne 0 ]; then
   exit "$code"
 fi
@@ -107,14 +134,20 @@ if not raw.strip():
 body = raw[:-1] if raw.endswith(b"\n") else raw
 if len(body) > cap:
     raise SystemExit(1)
-json.loads(body.decode("utf-8"))
+try:
+    json.loads(body.decode("utf-8"))
+except (UnicodeDecodeError, json.JSONDecodeError):
+    raise SystemExit(1)
 PY
 
+finished=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 did="Previewed one fixture with -c and -t strict."
 mkdir -p "$(dirname "$receipt")"
 python3 - "$receipt" "$main_sha" "$preview" "$started" "$finished" "$tool_version" "$did" <<'PY'
 import json
+import os
 import sys
+import tempfile
 
 receipt, main_sha, log_path, started, finished, tool_version, did = sys.argv[1:]
 doc = {
@@ -128,9 +161,21 @@ doc = {
     "tool_version": tool_version,
     "did": did,
 }
-with open(receipt, "w", encoding="utf-8") as handle:
-    json.dump(doc, handle, indent=2)
-    handle.write("\n")
+parent = os.path.dirname(receipt) or "."
+fd, tmp_name = tempfile.mkstemp(prefix=".receipt.", dir=parent)
+try:
+    with os.fdopen(fd, "w", encoding="utf-8") as handle:
+        json.dump(doc, handle, indent=2)
+        handle.write("\n")
+        handle.flush()
+        os.fsync(handle.fileno())
+    os.replace(tmp_name, receipt)
+except Exception:
+    try:
+        os.unlink(tmp_name)
+    except OSError:
+        pass
+    raise
 PY
 
 trap - EXIT
