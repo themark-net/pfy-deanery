@@ -1,0 +1,38 @@
+{
+  "name": "Pi-Harness",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/170-pi-harness.md",
+  "github": "https://github.com/wangmiaozero/pi-harness",
+  "pin": "5b6ec2318d6741e444bfe8a640432be052e509fc",
+  "license": "AGPL-3.0-only",
+  "uses": "Desktop control plane around Pi Coding Agent: runs, trace, replay, and recovery. Reference read only.",
+  "features": [
+    "run trace and replay",
+    "run compare",
+    "advisory evaluation",
+    "policy budget checkpoint",
+    "review gates",
+    "task dag and worktrees"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I0 reference. Re-open only if a later ticket asks for an internal unmodified desktop trial after Pi has its own catalog entry. No AppImage, no code copy, no gate. The v2.3.23 pin does not fill H1. Not a Feature GO.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install",
+    "code_copy",
+    "appimage",
+    "gate_wiring",
+    "pi_runtime"
+  ],
+  "evidence": [
+    "entry:sources/entries/170-pi-harness.md",
+    "pin:5b6ec2318d6741e444bfe8a640432be052e509fc",
+    "tag:v2.3.23",
+    "eval/evq1107/pi-harness/REPORT.md",
+    "eval/evq1107/pi-harness/VERDICT"
+  ],
+  "handoff_by": "llm"
+}
