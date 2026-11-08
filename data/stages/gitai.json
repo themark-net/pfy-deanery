@@ -1,19 +1,31 @@
 {
   "name": "gitai",
-  "integration_stage": "I0",
-  "intent": "awareness",
+  "integration_stage": "I1",
+  "intent": "staged_eval",
   "entry": "sources/entries/144-gitai.md",
   "github": "https://github.com/feder-cr/git-ai",
   "uses": "CAS lands for many agents on one branch.",
-  "potential": "medium",
-  "next_gate": "LATER per entry: scratch trial after the MVP lands. Our FF races (build-review park) are the use case.",
+  "features": [
+    "rebase land with compare-and-swap",
+    "concurrent lands on one branch share a batch",
+    "a same-line edit comes back as a conflict"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1. Do not wire a gate. On 2026-11-07 eight disjoint files landed 8/8 in 117.9 ms at 1 attempt each (batches of 6 and 2). Plain git landed 1/8 on the first push, then 36 pushes over 8 rounds in 436.0 ms. A same-line edit conflicted on both sides. The 3 hour pfy build timeout is unchanged. I2 stays closed because the unit is a Gitaly fork. I3 needs a repeatable script and self_pipeline evidence.",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",
-    "catalog_hold_70_75"
+    "catalog_hold_70_75",
+    "gate_wiring",
+    "llm_resolver",
+    "product_git_replacement"
   ],
   "evidence": [
-    "entry:sources/entries/144-gitai.md"
+    "entry:sources/entries/144-gitai.md",
+    "eval/evq1107/gitai/REPORT.md",
+    "eval/evq1107/gitai/VERDICT",
+    "eval/evq1107/gitai/results.json",
+    "pin v0.3.1 commit 914e481ef057ca7b9dc9a5a7338d96bca16790e1 tag object 173a281aa5594d2c347c9bdb2178f699b5a66a47"
   ],
   "handoff_by": "llm"
 }

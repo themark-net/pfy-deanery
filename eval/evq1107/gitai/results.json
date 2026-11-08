@@ -1,0 +1,72 @@
+{
+  "pin_expected": "914e481ef057ca7b9dc9a5a7338d96bca16790e1",
+  "pin_head": "914e481ef057ca7b9dc9a5a7338d96bca16790e1",
+  "pin_match": true,
+  "gitaly_version": "Gitaly, version 0.3.1\nGO version:   go1.26.8\nOS/Arch:      linux/amd64",
+  "agents_disjoint": 8,
+  "plain": {
+    "disjoint": {
+      "first_push_ok": 1,
+      "rounds": 8,
+      "push_attempts": 36,
+      "landed": 8,
+      "conflicts": 0,
+      "unresolved": 0,
+      "wall_ms": 436.0,
+      "tip_files": 9,
+      "push_error": "To /home/mark/.cache/pfy/tools/gitai/tmp/probe-1895932/plain/disjoint.git\n ! [remote rejected] HEAD -> main (incorrect old value provided)\nerror: failed to push some refs to '/home/mark/.cache/pfy/tools/gitai/tmp/probe-1895932/plain/disjoint.git'",
+      "case": "disjoint"
+    },
+    "same_line": {
+      "first_push_ok": 1,
+      "rounds": 2,
+      "push_attempts": 2,
+      "landed": 1,
+      "conflicts": 1,
+      "unresolved": 0,
+      "wall_ms": 23.7,
+      "tip_files": 1,
+      "push_error": "To /home/mark/.cache/pfy/tools/gitai/tmp/probe-1895932/plain/same-line.git\n ! [remote rejected] HEAD -> main (incorrect old value provided)\nerror: failed to push some refs to '/home/mark/.cache/pfy/tools/gitai/tmp/probe-1895932/plain/same-line.git'",
+      "case": "same-line"
+    }
+  },
+  "gitai": {
+    "status": "ok",
+    "disjoint": {
+      "landed": 8,
+      "conflicts": 0,
+      "errors": 0,
+      "attempts_sum": 8,
+      "batched": 8,
+      "wall_ms": 117.9,
+      "error_kinds": [],
+      "sample_error": "",
+      "notes": [
+        "committed a1668a64d547 (1 changes) and landed it on main (batch 3/6, 1 attempt)",
+        "committed ac071d149246 (1 changes) and landed it on main (batch 2/2, 1 attempt)",
+        "committed ee95c0a14bcf (1 changes) and landed it on main (batch 1/6, 1 attempt)",
+        "committed 95aa66009b8f (1 changes) and landed it on main (batch 2/6, 1 attempt)",
+        "committed 220925005c93 (1 changes) and landed it on main (batch 4/6, 1 attempt)",
+        "committed b0e08bd98e0a (1 changes) and landed it on main (batch 5/6, 1 attempt)",
+        "committed 6edf56986d73 (1 changes) and landed it on main (batch 6/6, 1 attempt)",
+        "committed 37ad85af0aac (1 changes) and landed it on main (batch 1/2, 1 attempt)"
+      ],
+      "tip_files": 9
+    },
+    "same_line": {
+      "landed": 1,
+      "conflicts": 1,
+      "errors": 0,
+      "attempts_sum": 1,
+      "batched": 1,
+      "wall_ms": 62.9,
+      "error_kinds": [],
+      "sample_error": "",
+      "notes": [
+        "graft commit: committed c95408a4786626c697fa5475a4146603d84c7b8b on graft/lane-0/8a41cf4f9899a9e7 but landing failed (run graft land to retry, or graft land --abort to drop it): merge conflict: landing commit: rebase: commit",
+        "committed 65c28be40017 (1 changes) and landed it on main (batch 1/2, 1 attempt)"
+      ],
+      "tip_files": 1
+    }
+  }
+}
