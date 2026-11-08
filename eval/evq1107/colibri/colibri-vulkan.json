@@ -1,0 +1,121 @@
+{
+  "summary": {
+    "api": "openai",
+    "url": "http://127.0.0.1:18112/v1/chat/completions",
+    "model": "qwen36-colibri",
+    "scored": 4,
+    "ok": 4,
+    "decode_tps_median": 22.49353747625693,
+    "prompt_tps_median": 148.43857327070612,
+    "ttft_s_median": 0.515798884560354,
+    "wall_s_median": 0.6768920361064374,
+    "engine_decode_tps_median": null
+  },
+  "warmup": {
+    "text": "I2",
+    "line": "I2",
+    "wall_s": 11.347046856069937,
+    "ttft_s": 5.258489332161844,
+    "prompt_tokens": 75,
+    "completion_tokens": 2,
+    "decode_tps": 0.16709506954537942,
+    "prompt_tps": 14.262651355264113,
+    "engine_decode_tps": null,
+    "usage": {
+      "prompt_tokens": 75,
+      "completion_tokens": 2,
+      "total_tokens": 77
+    },
+    "id": "stage",
+    "expect": "I2",
+    "ok": true,
+    "wall_including_error_s": 11.347201571101323,
+    "scored": false
+  },
+  "runs": [
+    {
+      "text": "I2",
+      "line": "I2",
+      "wall_s": 0.6675052400678396,
+      "ttft_s": 0.5895294779911637,
+      "prompt_tokens": 75,
+      "completion_tokens": 2,
+      "decode_tps": 23.902248575383137,
+      "prompt_tps": 127.22010145372943,
+      "engine_decode_tps": null,
+      "usage": {
+        "prompt_tokens": 75,
+        "completion_tokens": 2,
+        "total_tokens": 77
+      },
+      "id": "stage",
+      "expect": "I2",
+      "ok": true,
+      "run": 1,
+      "scored": true
+    },
+    {
+      "text": "I2",
+      "line": "I2",
+      "wall_s": 0.5166574660688639,
+      "ttft_s": 0.4420682911295444,
+      "prompt_tokens": 75,
+      "completion_tokens": 2,
+      "decode_tps": 26.434685116588405,
+      "prompt_tps": 169.6570450876828,
+      "engine_decode_tps": null,
+      "usage": {
+        "prompt_tokens": 75,
+        "completion_tokens": 2,
+        "total_tokens": 77
+      },
+      "id": "stage",
+      "expect": "I2",
+      "ok": true,
+      "run": 2,
+      "scored": true
+    },
+    {
+      "text": "PFY_MODEL_LOCK_HELD",
+      "line": "PFY_MODEL_LOCK_HELD",
+      "wall_s": 1.9507665738929063,
+      "ttft_s": 1.3226410187780857,
+      "prompt_tokens": 68,
+      "completion_tokens": 6,
+      "decode_tps": 12.771336168083668,
+      "prompt_tps": 51.41228726054588,
+      "engine_decode_tps": null,
+      "usage": {
+        "prompt_tokens": 68,
+        "completion_tokens": 6,
+        "total_tokens": 74
+      },
+      "id": "lock",
+      "expect": "PFY_MODEL_LOCK_HELD",
+      "ok": true,
+      "run": 1,
+      "scored": true
+    },
+    {
+      "text": "PFY_MODEL_LOCK_HELD",
+      "line": "PFY_MODEL_LOCK_HELD",
+      "wall_s": 0.6862788321450353,
+      "ttft_s": 0.38771980814635754,
+      "prompt_tokens": 68,
+      "completion_tokens": 6,
+      "decode_tps": 21.08482637713072,
+      "prompt_tps": 175.3843847315925,
+      "engine_decode_tps": null,
+      "usage": {
+        "prompt_tokens": 68,
+        "completion_tokens": 6,
+        "total_tokens": 74
+      },
+      "id": "lock",
+      "expect": "PFY_MODEL_LOCK_HELD",
+      "ok": true,
+      "run": 2,
+      "scored": true
+    }
+  ]
+}

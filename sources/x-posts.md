@@ -43,7 +43,7 @@ Log of X (Twitter) posts used to seed or expand the tool catalog. Each entry inc
 - **Extracted Repos / Tools**: https://github.com/JustVugg/colibri (core inference engine). Pre-converted int4 model weights available on HF (jlnsrk/GLM-5.2-colibri-int4). Recent Tauri desktop shell addition.
 - **TOOLS.md Link**: Added new row in Inference & Serving category (A tier, overall 86). Detailed integration notes on low-RAM flagship model enablement, serve endpoint for pipelines, and speed tradeoffs.
 - **Notes**: Highest-signal external X seed to date for the catalog. Enables practical local use of flagship-scale MoE without datacenter hardware. Zero-deps + pure C = excellent reproducibility and pipeline friendliness. S1 very high (consumer HW access to 744B-class reasoning). S2 reflects current disk-streaming speed limits (0.05–1+ tok/s; faster on high-end NVMe/M-series). Strong community validation via rapid stars and engagement. Pinned specific recent commit. Recommended next: empirical testing of serve mode with LiteLLM/Grok CLI, tok/s benchmarks on target hardware, and MCP context integration potential.
-- **Status**: Processed and cataloged (initial scores applied; hands-on eval + score refinement queued)
+- **Status**: STAY I1 (2026-11-07 nimo). Pin v2.1.0 commit 704a3f68184b78367a04cb5526e428dc2f90f05b. Linux tarball sha256 d54b4c57c12417fc9e784b649249ac1aa3480eec44ece2777d4cbc639a25e66a. Served the local qwen3.6:35b GGUF: 4/4 exact, median decode 22.49 tok/s vs Ollama 45.28 tok/s (0.497x). GLM-5.2 weights not downloaded (381230481274 bytes). Not wired. See eval/evq1107/colibri/REPORT.md.
 
 ### Entry 004: Marketing Skills v2.8.0 — marketing-council multi-expert skill pack
 

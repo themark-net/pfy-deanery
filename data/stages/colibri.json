@@ -1,14 +1,15 @@
 {
   "name": "colibri",
   "integration_stage": "I1",
-  "intent": "eval_under_250gb_pool",
-  "notes_doc": "docs/ops/local-model-storage-and-eval.md",
+  "intent": "local_probe_stayed_i1",
+  "notes_doc": "eval/evq1107/colibri/REPORT.md",
   "issues": [
     24
   ],
   "non_goals": [
     "weights in git",
-    "weights in the repo"
+    "weights in the repo",
+    "default local engine"
   ],
   "catalog_tier": "A",
   "catalog_overall": "86",
@@ -25,15 +26,20 @@
     "no_weights"
   ],
   "evidence": [
-    "notes_doc:docs/ops/local-model-storage-and-eval.md"
+    "notes_doc:eval/evq1107/colibri/REPORT.md",
+    "eval/evq1107/colibri/VERDICT",
+    "eval/evq1107/colibri/colibri-vulkan.json",
+    "eval/evq1107/colibri/ollama.json",
+    "pin:704a3f68184b78367a04cb5526e428dc2f90f05b"
   ],
   "tier_ceiling": "I1",
-  "uses": "Low-RAM MoE server to try later inside the cage.",
+  "uses": "Low-RAM MoE server with an OpenAI shim. The 2026-11-07 probe served the on-disk qwen3.6:35b GGUF at 22.49 tok/s, 0.497x Ollama on the same prompts. GLM-5.2 weights were not downloaded (381 GB).",
   "features": [
     "cpu moe",
-    "openai shim"
+    "openai shim",
+    "vulkan tier"
   ],
-  "potential": "medium",
-  "next_gate": "T-0016: serve plus LiteLLM in the cage, or stay I1.",
+  "potential": "low",
+  "next_gate": "Stay I1 until a same-prompt trial on this host reaches at least 0.9x Ollama decode, or a model Ollama cannot hold is served from a pack under the 25 GB pull cap and the 250 GB pool. Do not download GLM-5.2. Do not wire a gate.",
   "handoff_by": "llm"
 }
