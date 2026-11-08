@@ -1,0 +1,6 @@
+Gap B, from docs/eval/TOOLSET-RANKING.md on 2026-11-07.
+./pfy build is not proven bot-usable.
+The 2026-11-06 trial hit the 3 h timeout.
+The recheck fix is parked after two pregate FAILs.
+TIMEOUT_HOURS=3
+PREGATE_FAIL_COUNT=2

@@ -1,0 +1,178 @@
+{
+  "fixture": "eval/evq1107/mco/fixture/gap-b.txt",
+  "inventory": {
+    "providers": 11,
+    "present": 8,
+    "rows": [
+      {
+        "provider": "agy",
+        "binary": "agy",
+        "present": true
+      },
+      {
+        "provider": "claude",
+        "binary": "claude",
+        "present": true
+      },
+      {
+        "provider": "codex",
+        "binary": "codex",
+        "present": true
+      },
+      {
+        "provider": "copilot",
+        "binary": "copilot",
+        "present": false
+      },
+      {
+        "provider": "cursor",
+        "binary": "agent",
+        "present": true,
+        "path_mentions_cursor": false
+      },
+      {
+        "provider": "gemini",
+        "binary": "gemini",
+        "present": false
+      },
+      {
+        "provider": "grok",
+        "binary": "grok",
+        "present": true
+      },
+      {
+        "provider": "hermes",
+        "binary": "hermes",
+        "present": true
+      },
+      {
+        "provider": "opencode",
+        "binary": "opencode",
+        "present": true
+      },
+      {
+        "provider": "pi",
+        "binary": "pi",
+        "present": true
+      },
+      {
+        "provider": "qwen",
+        "binary": "qwen",
+        "present": false
+      }
+    ],
+    "doctor": "SKIPPED",
+    "doctor_reason": "auth checks launch provider CLIs (grok models, gemini prompt, copilot --allow-all-tools). Not run.",
+    "live_review": "SKIPPED"
+  },
+  "context_files": {
+    "registry": 11,
+    "context_files": [
+      "claude",
+      "codex",
+      "hermes",
+      "pi"
+    ]
+  },
+  "dry_run": {
+    "exit_code": 0,
+    "elapsed_ms": 57.2,
+    "parse_error": "",
+    "status": null,
+    "would_execute": false,
+    "invocation_count": 2,
+    "decision_keys": [],
+    "outputs": [],
+    "stderr_tail": "",
+    "timing": {
+      "lines": 0,
+      "roles": [],
+      "overlap": false,
+      "span_s": null
+    }
+  },
+  "parallel": {
+    "exit_code": 0,
+    "elapsed_ms": 1057.4,
+    "parse_error": "",
+    "status": "complete",
+    "would_execute": null,
+    "invocation_count": 0,
+    "decision_keys": [],
+    "outputs": [
+      {
+        "provider": "lane-timeout",
+        "stage": "run",
+        "status": "success",
+        "error": null,
+        "output": "blocker: timeout 3h\n"
+      },
+      {
+        "provider": "lane-pregate",
+        "stage": "run",
+        "status": "success",
+        "error": null,
+        "output": "blocker: pregate fails 2\n"
+      }
+    ],
+    "stderr_tail": "",
+    "timing": {
+      "lines": 4,
+      "roles": [
+        "pregate",
+        "timeout"
+      ],
+      "overlap": true,
+      "span_s": 0.601
+    }
+  },
+  "synthesize": {
+    "exit_code": 1,
+    "elapsed_ms": 1081.9,
+    "status": "partial",
+    "decision_keys": [],
+    "outputs": [
+      {
+        "provider": "lane-timeout",
+        "stage": "run",
+        "status": "success",
+        "error": null,
+        "output": "blocker: timeout 3h\n"
+      },
+      {
+        "provider": "lane-pregate",
+        "stage": "run",
+        "status": "success",
+        "error": null,
+        "output": "blocker: pregate fails 2\n"
+      },
+      {
+        "provider": "lane-timeout",
+        "stage": "synthesis",
+        "status": "failed",
+        "error": "context_file_unsupported",
+        "output": null
+      }
+    ],
+    "synthesis_errors": [
+      "context_file_unsupported"
+    ],
+    "stderr_tail": "",
+    "timing": {
+      "lines": 4,
+      "roles": [
+        "pregate",
+        "timeout"
+      ],
+      "overlap": true,
+      "span_s": 0.603
+    }
+  },
+  "distinct_answers": [
+    "blocker: pregate fails 2",
+    "blocker: timeout 3h"
+  ],
+  "decision_key_count": 0,
+  "repo_writes": [],
+  "gap_b_closed": 0
+}

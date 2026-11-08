@@ -1,0 +1,37 @@
+{
+  "name": "MCO",
+  "integration_stage": "I1",
+  "intent": "staged_evaluation",
+  "entry": "sources/entries/083-mco.md",
+  "github": "https://github.com/mco-org/mco",
+  "pin": "v0.12.1 3cfce130362dbcc2aedda6170d1a31e39cf67d3e",
+  "license": "MIT",
+  "uses": "Parallel raw-answer review across provider CLIs. The 2026-11-07 probe kept 2 of 2 disagreeing answers and 0 comparison decisions. It did not move the pfy build timeout.",
+  "features": [
+    "raw answer retention",
+    "command shim",
+    "dry-run"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1. Do not wire a gate. Reopen only if a later ticket shows two local engines, with no paid CLI, producing a comparison decision on a real pfy diff that the review skills and pregate do not already state, and that ticket grills wiring first. Built-in provider review stays skipped while doctor auth checks launch hosted CLIs. The cache install is about 22 MB, so this is not an in-repo copy.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "gate_wiring",
+    "paid_provider_cli",
+    "doctor_on_host_path",
+    "default_runtime"
+  ],
+  "evidence": [
+    "entry:sources/entries/083-mco.md",
+    "eval/evq1107/mco/REPORT.md",
+    "eval/evq1107/mco/VERDICT",
+    "eval/evq1107/mco/results.json"
+  ],
+  "handoff_by": "llm",
+  "self_pipeline": {
+    "status": "not_applicable",
+    "reason": "The offline probe kept 2 raw answers and 0 comparison decisions. Built-in provider review was not run. Not applied to this repo's pipeline. Not a gate."
+  }
+}
