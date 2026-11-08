@@ -60,7 +60,7 @@ Depth is 1 because test_select scores direct dependents. The CLI default depth i
 
 ## Numbers
 
-Window: the same 10 first-parent commits as `eval/ev1107/chiasmus/results.json` (origin/main at `9d3688718e964dd9e26df465f22ce61cf31e8a0b`). This probe re-ran `scripts/test_select.py` on those shas. Full mode came out 181, 181, 180, and 176, matching the chiasmus trial. Counts for codebase-memory, chiasmus, and Tree-sitter Analyzer are copied from that trial and from `eval/evq1107/tree-sitter-analyzer/results.json`. Their agree flags, recomputed against this run's test_select sets, are still 5/10, 3/10, and 5/10.
+Window: the same 10 first-parent commits as `eval/ev1107/chiasmus/results.json` (origin/main at `9d3688718e964dd9e26df465f22ce61cf31e8a0b`). This probe re-ran `scripts/test_select.py` on those shas. Full mode came out 181, 181, 180, and 176, matching the chiasmus trial. Counts and agree flags for codebase-memory, chiasmus, and Tree-sitter Analyzer are copied from that trial and from `eval/evq1107/tree-sitter-analyzer/results.json`. This run's full-mode counts match that trial, and the copied flags are still 5/10, 3/10, and 5/10.
 
 `impact_s` is the sum of `axon impact` and `axon context` for that commit. Wall clock for the probe is 394.982s. Every analyze exited 0.
 
@@ -111,7 +111,7 @@ Lightweight I2 size gate: fail. The venv allocates 218 MB and the index is about
 
 | Risk | How it fails | Recovery |
 |------|----------------|----------|
-| Bare name collision | `exact_name_search` prefers a non-test file, then the first node id. `axon impact main` and `axon context main` hit one `main`. On `79c083e9e53a` that file was `.github/scripts/restore-operator-launcher.py`. | Query the changed file's node id. On this repo that still left 4/10, because `56f6df154eee` stored edges to 10 extra tests. |
+| Bare name collision | `exact_name_search` scores a path 2.0 when it does not contain `/tests/`, else 1.0, then keeps the first node id (`limit=1`). A top-level `tests/` path is not downranked. `axon context main` still hit one `main`. On `79c083e9e53a` that file was `.github/scripts/restore-operator-launcher.py`. | Query the changed file's node id. On this repo that still left 4/10, because `56f6df154eee` stored edges to 10 extra tests. |
 | mcp 2 import | `mcp>=1.0.0` installs 2.3.0. `cli/main.py` imports `streamablehttp_client` at module level. Every subcommand dies. | Pin `mcp>=1.0,<2` (1.30.0 here) until upstream imports `streamable_http_client`. Do not patch the checkout into the repo. |
 | Wheel is not the git pin | PyPI 1.0.1 differs in the eight Python files listed above. A later `pip install axoniq` will not match this probe. | Install commit `2b386fb38a468201ab2ec825ddea5ebf4c33f513` and record both the git pin and the wheel sha256. |
 | Daily PyPI GET | Without a fresh update cache the CLI calls pypi.org (1.5s, fail-closed). Timings mix in that wait. | Seed `update-check.json` under the redirected HOME, as this probe did, or accept the timeout. No key. |

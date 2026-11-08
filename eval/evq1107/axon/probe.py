@@ -258,7 +258,6 @@ def score_repo(repo: Path, base: str, sha: str, index: bool) -> dict:
         if meta_path.is_file():
             meta = json.loads(meta_path.read_text(encoding="utf-8"))
             row["stats"] = meta.get("stats") or {}
-            row["index_bytes"] = int(meta_path.parent.stat().st_size)
             total = 0
             for path in (repo / ".axon").rglob("*"):
                 if path.is_file():
