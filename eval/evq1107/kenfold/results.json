@@ -1,0 +1,313 @@
+{
+  "agreement": 8,
+  "h1_graded_cases": 0,
+  "image_lines": [
+    "b4a0a7b473ee375a4d5507e712a0646447dd2d3293a5e6987fbade5ee73e54dc docker.io/pgvector/pgvector:0.8.6-pg18-trixie 469 MB"
+  ],
+  "mcp_open": true,
+  "migrate_exit": 0,
+  "migrate_ms": 52.6,
+  "no_server": false,
+  "overlap": [
+    {
+      "file": "agent-beacon.json",
+      "h1_named": false,
+      "name": "Agent Beacon",
+      "stage": "I0",
+      "words": [
+        "memory"
+      ]
+    },
+    {
+      "file": "auto-company.json",
+      "h1_named": false,
+      "name": "Auto-Company",
+      "stage": "I1",
+      "words": [
+        "memory"
+      ]
+    },
+    {
+      "file": "cass-memory.json",
+      "h1_named": false,
+      "name": "cass-memory",
+      "stage": "I0",
+      "words": [
+        "memory"
+      ]
+    },
+    {
+      "file": "chroma-or-lancedb.json",
+      "h1_named": false,
+      "name": "Chroma (or LanceDB)",
+      "stage": "I0",
+      "words": [
+        "memory",
+        "rag",
+        "vector"
+      ]
+    },
+    {
+      "file": "codebase-memory-mcp.json",
+      "h1_named": false,
+      "name": "codebase-memory-mcp",
+      "stage": "I2",
+      "words": [
+        "memory",
+        "rag"
+      ]
+    },
+    {
+      "file": "eval-harness-pfy.json",
+      "h1_named": true,
+      "name": "eval-harness (pfy)",
+      "stage": "I1",
+      "words": []
+    },
+    {
+      "file": "graphify.json",
+      "h1_named": false,
+      "name": "Graphify",
+      "stage": "I0",
+      "words": [
+        "memory"
+      ]
+    },
+    {
+      "file": "grok-cli-bootstrap.json",
+      "h1_named": false,
+      "name": "Grok CLI bootstrap",
+      "stage": "I3",
+      "words": [
+        "memory"
+      ]
+    },
+    {
+      "file": "harness-score.json",
+      "h1_named": true,
+      "name": "Harness Score",
+      "stage": "I0",
+      "words": [
+        "context"
+      ]
+    },
+    {
+      "file": "harness2.json",
+      "h1_named": true,
+      "name": "harness2",
+      "stage": "I1",
+      "words": []
+    },
+    {
+      "file": "hermes-agent-feedback-loops.json",
+      "h1_named": false,
+      "name": "Hermes Agent (feedback loops)",
+      "stage": "I1",
+      "words": [
+        "memory"
+      ]
+    },
+    {
+      "file": "imcodes.json",
+      "h1_named": false,
+      "name": "imcodes",
+      "stage": "I0",
+      "words": [
+        "memory"
+      ]
+    },
+    {
+      "file": "kolibri-1.json",
+      "h1_named": false,
+      "name": "Kolibri-1",
+      "stage": "I0",
+      "words": [
+        "context"
+      ]
+    },
+    {
+      "file": "laguna-s-2-1.json",
+      "h1_named": false,
+      "name": "Laguna S 2.1",
+      "stage": "I1",
+      "words": [
+        "context"
+      ]
+    },
+    {
+      "file": "langgraph-langchain.json",
+      "h1_named": false,
+      "name": "LangGraph (LangChain)",
+      "stage": "I1",
+      "words": [
+        "rag"
+      ]
+    },
+    {
+      "file": "leann.json",
+      "h1_named": false,
+      "name": "LEANN",
+      "stage": "I1",
+      "words": [
+        "memory",
+        "rag"
+      ]
+    },
+    {
+      "file": "mempalace.json",
+      "h1_named": false,
+      "name": "MemPalace",
+      "stage": "I1",
+      "words": [
+        "memory"
+      ]
+    },
+    {
+      "file": "memvid.json",
+      "h1_named": false,
+      "name": "Memvid",
+      "stage": "I1",
+      "words": [
+        "memory",
+        "rag"
+      ]
+    },
+    {
+      "file": "mue-x.json",
+      "h1_named": false,
+      "name": "MUE-X",
+      "stage": "I1",
+      "words": [
+        "memory"
+      ]
+    },
+    {
+      "file": "neatroots.json",
+      "h1_named": true,
+      "name": "neatroots",
+      "stage": "I2",
+      "words": []
+    },
+    {
+      "file": "opencode-mem.json",
+      "h1_named": false,
+      "name": "opencode-mem",
+      "stage": "I2",
+      "words": [
+        "memory",
+        "vector"
+      ]
+    },
+    {
+      "file": "opencontext.json",
+      "h1_named": false,
+      "name": "OpenContext",
+      "stage": "I1",
+      "words": [
+        "context"
+      ]
+    },
+    {
+      "file": "repowise.json",
+      "h1_named": false,
+      "name": "repowise",
+      "stage": "I2",
+      "words": [
+        "memory",
+        "context"
+      ]
+    },
+    {
+      "file": "robrain.json",
+      "h1_named": false,
+      "name": "RoBrain",
+      "stage": "I0",
+      "words": [
+        "memory"
+      ]
+    },
+    {
+      "file": "ruben-hassid-context-token-hacks.json",
+      "h1_named": false,
+      "name": "Ruben Hassid context/token hacks",
+      "stage": "I0",
+      "words": [
+        "context"
+      ]
+    },
+    {
+      "file": "skill-up.json",
+      "h1_named": true,
+      "name": "skill-up",
+      "stage": "I3",
+      "words": []
+    },
+    {
+      "file": "teaql-agent-kit.json",
+      "h1_named": false,
+      "name": "TeaQL Agent Kit",
+      "stage": "I0",
+      "words": [
+        "context"
+      ]
+    }
+  ],
+  "pins": {
+    "binary_bytes": 29515936,
+    "binary_sha256": "a54fff6fff63d8a845957ba33b4548a3b1ffc84d2122e4938e00a3967acbdd23",
+    "checkout_bytes": 31827804,
+    "pin_head": "dfc18f9f1a7be98c5af8c0e7e1cbf566c37d51af",
+    "pin_head_ok": true,
+    "pin_tag": "v0.1.1",
+    "pin_tag_ok": true,
+    "version_line": [
+      "kenfold v0.1.1 (commit dfc18f9, built 2026-11-08T04:50:13Z)"
+    ]
+  },
+  "postgres_attempts": 1,
+  "provenance_hits": 8,
+  "real_home_unchanged": true,
+  "recall_hits": 8,
+  "recall_ms": 32.2,
+  "recall_open": true,
+  "recall_second_hits": 8,
+  "recall_second_ms": 27.5,
+  "recall_second_open": true,
+  "recall_second_tokens": [
+    "KF1107_NOVEL_01",
+    "KF1107_NOVEL_02",
+    "KF1107_NOVEL_03",
+    "KF1107_NOVEL_04",
+    "KF1107_NOVEL_05",
+    "KF1107_NOVEL_06",
+    "KF1107_NOVEL_07",
+    "KF1107_NOVEL_08"
+  ],
+  "recall_tokens": [
+    "KF1107_NOVEL_01",
+    "KF1107_NOVEL_02",
+    "KF1107_NOVEL_03",
+    "KF1107_NOVEL_04",
+    "KF1107_NOVEL_05",
+    "KF1107_NOVEL_06",
+    "KF1107_NOVEL_07",
+    "KF1107_NOVEL_08"
+  ],
+  "remember_ms": 34.1,
+  "remember_ok": 8,
+  "repo_recall_hits": 0,
+  "rg_ms": 160.5,
+  "rg_novel_hits": 0,
+  "rg_repo_hits": 8,
+  "secret_echoed": false,
+  "secret_rejected": true,
+  "server_skipped": false,
+  "skill_up": {
+    "case_count": 5,
+    "delta_pass_rate": "+0.00",
+    "present": true,
+    "with_mean": 1,
+    "without_mean": 1
+  },
+  "skip_reason": ""
+}

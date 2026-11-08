@@ -1,0 +1,47 @@
+{
+  "name": "Kenfold",
+  "integration_stage": "I1",
+  "intent": "staged_evaluation",
+  "entry": "sources/entries/120-kenfold.md",
+  "github": "https://github.com/jeonjw85/kenfold",
+  "pin": "dfc18f9f1a7be98c5af8c0e7e1cbf566c37d51af",
+  "pin_tag": "v0.1.1",
+  "go": "go1.27.2",
+  "go_tarball_sha256": "ecbadb99091a3f46e31f5f934b068b1864eafa7995211b39eaddf76996045fe5",
+  "image": "docker.io/pgvector/pgvector:0.8.6-pg18-trixie",
+  "image_id": "b4a0a7b473ee375a4d5507e712a0646447dd2d3293a5e6987fbade5ee73e54dc",
+  "binary_sha256": "a54fff6fff63d8a845957ba33b4548a3b1ffc84d2122e4938e00a3967acbdd23",
+  "uses": "Shared memory for several agent CLIs over MCP. The 2026-11-07 probe recalled 8 of 8 copied tokens from a second agent and 0 of 8 facts already in this repo, and it graded 0 with/without cases.",
+  "features": [
+    "stdio MCP with no API key",
+    "rootless podman postgres and pgvector",
+    "writer agent recorded on each memory",
+    "secret writes rejected",
+    "full-text recall"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1. On 2026-11-07 stdio recall was 8 of 8 copied tokens (agreement 8 of 8, second pass 27.5 ms) and 0 of 8 facts already in this repo. rg found those 8 facts in 160.5 ms. opencode-mem is already I2 for 8 of 8 stored salts with no Postgres. Graded with/without cases: 0. skill-up already grades that gap (5 cases, both arms pass, delta 0). Do not wire a gate.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "api key",
+    "oauth or a public URL",
+    "embeddings or a reranker in this lane",
+    "hosted bench",
+    "gate wiring",
+    "feature_go",
+    "replace codebase-memory",
+    "replace opencode-mem",
+    "docker install"
+  ],
+  "evidence": [
+    "entry:sources/entries/120-kenfold.md",
+    "eval/evq1107/kenfold/REPORT.md",
+    "eval/evq1107/kenfold/VERDICT",
+    "eval/evq1107/kenfold/results.json",
+    "pin dfc18f9f1a7be98c5af8c0e7e1cbf566c37d51af",
+    "tag v0.1.1",
+    "go1.27.2",
+    "image pgvector/pgvector:0.8.6-pg18-trixie"
+  ],
+  "handoff_by": "llm"
+}

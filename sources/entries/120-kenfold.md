@@ -9,8 +9,9 @@
 - **Verified on the Grok Bot box**: nothing ran; there is no Docker on the box. Read the README and `compose.yaml` at v0.1.1 only. The smoke's not-staged and no-docker paths exit 2 as intended.
 - **Finding**: the Kenfold image is built from source (`kenfold:dev`), so the pin is the git tag; Postgres is pinned by tag (`pgvector/pgvector:0.8.6-pg18-trixie`), not digest. A release build checks GitHub for updates unless `KENFOLD_UPDATE_CHECK=false` (the smoke sets it). `make key` prints an API key once to stdout, so keys must go straight into a secret store, never a log.
 - **Extracted Repos / Tools**: https://github.com/jeonjw85/kenfold · https://github.com/jeonjw85/kenfold/blob/v0.1.1/compose.yaml · https://github.com/jeonjw85/kenfold/blob/main/docs/deploy.md
-- **TOOLS.md Link**: None yet. I0 awareness, catalog only until Docker is confirmed on nimo. No TOOLS.md row, no `data/tools.json` row.
-- **Smoke**: `python3 examples/x-intake-local/smoke_119_121.py --entry kenfold`. Needs `$KENFOLD_DIR` or `tmp/kenfold` at tag v0.1.1 (`$KENFOLD_REF` overrides) and docker with compose; brings up only postgres + kenfold, probes `/healthz`, `/readyz`, a keyless `/mcp` (must be 401) and `kenfold healthcheck`, then `compose down -v`. Mints no key and writes no memory. Receipt: `pipelines/smoke/kenfold/latest.json`. **Happy path has not run anywhere.**
+- **TOOLS.md Link**: None. No TOOLS.md row and no `data/tools.json` row.
+- **Smoke**: `python3 examples/x-intake-local/smoke_119_121.py --entry kenfold`. Needs `$KENFOLD_DIR` or `tmp/kenfold` at tag v0.1.1 (`$KENFOLD_REF` overrides) and docker with compose; brings up only postgres + kenfold, probes `/healthz`, `/readyz`, a keyless `/mcp` (must be 401) and `kenfold healthcheck`, then `compose down -v`. Mints no key and writes no memory. Receipt: `pipelines/smoke/kenfold/latest.json`. **Compose happy path has still not run.** The 2026-11-07 lane used stdio and rootless podman; see Status.
+- **Status**: evq1107 2026-11-07 STAY I1. Stdio recall 8/8 copied tokens across two agents (agreement 8/8), 0/8 facts already in this repo, 0 graded with/without cases. A secret fixture was rejected and not echoed. No API key. Report: eval/evq1107/kenfold/REPORT.md.
 - **Non-goals**: No agent wired to Kenfold, no API key created, no remote/OAuth exposure.
 - **How this fails / how we recover**:
 
