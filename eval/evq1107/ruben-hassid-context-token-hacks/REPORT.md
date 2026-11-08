@@ -26,19 +26,19 @@ Leave these out: turning memory off, Wispr, Claude `/schedule`, a Gemini depende
 
 ## Catalog comparison
 
-Same job: cut reloaded context, and keep a reusable prompt. A search of `data/stages/*.json` uses, features, and tags for token, context, prompt, memory, and summar hit 35 cards. The table is the subset that does this job. `docs/eval/TOOLSET-RANKING.md` (2026-11-07) ranks entries 137 to 167 and assigns gap H1 to skill-up. Entry 009 is older than that list. This lane builds no pipeline, CI, or gate.
+Same job: cut reloaded context, and keep a reusable prompt. A search of other cards' uses, features, and tags for token, context, prompt, memory, and summar hit 35. The table is the close overlap, plus skill-up and harness2, which own gap H1. `docs/eval/TOOLSET-RANKING.md` (2026-11-07) ranks entries 137 to 167 and assigns that gap to skill-up. Entry 009 is older than that list. This lane builds no pipeline, CI, or gate.
 
 | Tool | Stage | How this post compares |
 | --- | --- | --- |
 | skill-up | I3 | With/without grade (5/5 both arms, delta 0). This post has no score. |
 | harness2 | I1 | Local trial on the 48-case set. Gain 0. Tips leave that measurement where it is. |
 | repowise | I2 | Context packing probe. This post is a list. |
-| codebase-memory-mcp | I2 | Primary code graph. A named query replaces reading the whole repo. |
+| codebase-memory-mcp | I2 | Primary code graph so agents stop rereading the tree. |
 | headson | I2 | Byte budget for JSON and YAML in a prompt. |
 | karpathy-guidelines, ponytail | I1, I1 | Short surgical prompts and a YAGNI pack, already installed. |
 | Hermes feedback loops | I1 | Session memory. The "turn memory off" hack fights this skill. |
 | HiRoute, llm-router | I2, I0 | Cheap turns go to the local model. The post splits Sonnet and Opus on a Claude bill. |
-| LEANN, OpenContext, ai-memory, opencode-mem, MemPalace | I1, I1, I1, I2, I1 | Stores with recall numbers. This post stores nothing. |
+| LEANN, OpenContext, ai-memory, opencode-mem, MemPalace | I1, I1, I1, I2, I1 | Memory stores with their own probe numbers. This post stores nothing. |
 | Jamon Holmgren agentic setup | I1 | One public workflow post. The process kit already covers it. |
 | Grok CLI bootstrap | I3 | Skills install is the prompt library. |
 
