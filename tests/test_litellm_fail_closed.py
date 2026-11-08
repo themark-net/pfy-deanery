@@ -8,6 +8,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "eval/integrate/litellm/run-on-main.sh"
+CANONICAL = ROOT / "eval/integrate/litellm/receipt.json"
+
+
+def _canonical_bytes():
+    if CANONICAL.is_file():
+        return CANONICAL.read_bytes()
+    return None
 
 
 class TestLitellmFailClosed(unittest.TestCase):
@@ -20,6 +27,7 @@ class TestLitellmFailClosed(unittest.TestCase):
         self.assertIn("exit", lowered)
 
     def test_marker_and_non_ancestor_write_nothing(self):
+        before = _canonical_bytes()
         with tempfile.TemporaryDirectory() as tmp:
             dest = Path(tmp) / "receipt.json"
             marker = Path(tmp) / "marker"
@@ -55,9 +63,10 @@ class TestLitellmFailClosed(unittest.TestCase):
             self.assertNotEqual(blocked.returncode, 0, blocked.stderr)
             self.assertIn("not an ancestor", blocked.stderr)
             self.assertFalse(dest.exists())
-            self.assertFalse((ROOT / "eval/integrate/litellm/receipt.json").exists())
+            self.assertEqual(_canonical_bytes(), before)
 
     def test_probe_stays_off_ollama_and_fails_closed(self):
+        before = _canonical_bytes()
         with tempfile.TemporaryDirectory() as tmp:
             bindir = Path(tmp) / "bin"
             bindir.mkdir()
@@ -131,7 +140,7 @@ class TestLitellmFailClosed(unittest.TestCase):
             self.assertNotIn("\n", doc["tool_version"])
             self.assertNotIn("11434", log.read_text(encoding="utf-8"))
             self.assertIn("127.0.0.1:11435/v1/models", log.read_text(encoding="utf-8"))
-            self.assertFalse((ROOT / "eval/integrate/litellm/receipt.json").exists())
+            self.assertEqual(_canonical_bytes(), before)
 
     def _run(self, env, dest):
         return subprocess.run(

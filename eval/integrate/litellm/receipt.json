@@ -1,0 +1,11 @@
+{
+  "slug": "litellm",
+  "run_kind": "pipeline",
+  "main_sha": "ed8a6aa6a8af8e1cb6644cf73dc8ed22406728f7",
+  "run_id": "litellm-ed8a6aa6a8af-2026-11-08T21:35:26Z",
+  "started": "2026-11-08T21:35:26Z",
+  "finished": "2026-11-08T21:35:26Z",
+  "outcome": "ok",
+  "tool_version": "1.108.3",
+  "did": "Read-only GET http://127.0.0.1:11435/v1/models on the already running OpenAI-compatible proxy returned HTTP 200 and 1 model ids. No completion."
+}

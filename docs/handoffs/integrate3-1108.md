@@ -40,10 +40,31 @@ Receipt on `d6088a477cf79b27c681c358ff0812d91e93c87f`: outcome ok. One plan, ali
 
 ## LiteLLM
 
-## LiteLLM
+Wiring was already on main (`eval/integrate/litellm/run-on-main.sh`, commit `8a35fd5e` and later). This run installed a real proxy. It is not a stand-in.
 
-Pending. No `pfy-litellm-local.service` yet. The receipt script probes an already listening proxy on `127.0.0.1:11435` or `127.0.0.1:4000`.
+- Package: `litellm[proxy]` 1.108.3 in `/home/mark/.cache/pfy/tools/litellm/venv`
+- Service: `pfy-litellm-local.service` (systemd user, enabled)
+- Listen: `127.0.0.1:11435`
+- Config: `/home/mark/.cache/pfy/tools/litellm/config.yaml`
+- Model name: `local-coder`, upstream `ollama/qwen2.5-coder:1.5b` at `http://127.0.0.1:11434`
+- No cloud provider and no API key. `general_settings.dangerously_permit_weak_or_unset_master_key` is true so the loopback proxy can answer the receipt's unauthenticated `GET /v1/models`. LiteLLM 1.108.3 refuses to boot otherwise.
+- `GET /v1/models` returned HTTP 200 and 1 id, `local-coder`. `ollama ps` was empty before and after that GET. The models list did not load a model.
+- Completion was not run. A completion would load `qwen2.5-coder:1.5b`. That load is not approved. The completion check is parked pending GPU approval. The receipt says `No completion.`
+
+Receipt on `ed8a6aa6a8af8e1cb6644cf73dc8ed22406728f7`: outcome ok, `tool_version` 1.108.3. `PFY_LITELLM_LANE_MARKER` pointed at a missing integrate3 path so the stale integrate2 marker did not block the run. The integrate2 marker was left in place.
+
+`scripts/catalog_apply_verdict.py` printed `PROMOTE I3 readonly_proxy_models_status threshold=200 value_gate=pass modularity_gate=pass` and changed only `integration_stage` from I2 to I3. `tier_ceiling` stayed I3. The rubric metric is the models status. This promotion is that measurement on the real proxy, not a compile check.
+
+`tests/test_litellm_fail_closed.py` now compares the committed receipt bytes before and after a refused run and a stubbed probe. A receipt that is already on main stays. A run that rewrites it still fails.
+
+Factory questions for the already-landed probe:
+
+1. What triggers it? An operator runs the script while the proxy is already listening on 11435 or 4000, and `HEAD` is an ancestor of `origin/main`.
+2. What does it do, and which services does it read and write? It reads `GET /v1/models` from the loopback proxy and writes the receipt. It does not call Ollama for that probe. The proxy, when asked for a completion, would read Ollama. This run did not ask.
+3. What does it trigger next? `scripts/catalog_apply_verdict.py`, which promoted the stage to I3.
+4. Where does a human re-enter? Before a completion or any other call that loads a model, and before any cloud key is added to the proxy config.
+5. What stops two runs doing the same work? `PFY_LITELLM_LANE_MARKER`. A marker whose pid is not an ancestor of this process exits 2.
 
 ## Strata
 
-Parked for this run. Do not start, stop, or download Strata. The earlier apply refusal stands: proposed I3 is above the evidence tier the checker allows, and the card stays I2.
+Parked for this run. Do not start, stop, or download Strata. The earlier apply refusal stands: proposed I3 is above the evidence tier the checker allows, and the card stays I2. The card text names a GPU run. No receipt was attempted.
