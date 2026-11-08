@@ -167,6 +167,7 @@ def measure(root: Path) -> dict:
         "custom_missing": missing,
         "local_base_url_backends": local,
         "local_base_url_count": len(local),
+        "local_base_url_targets": sorted(LOCAL_TARGETS),
         "openai_api_provider_backends": openai_api,
         "openai_api_provider_count": len(openai_api),
         "provider_set_count": len(providers),

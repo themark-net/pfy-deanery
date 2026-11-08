@@ -67,6 +67,7 @@ class ProbeTest(unittest.TestCase):
             self.assertEqual(doc["default_backend_count"], 4)
             self.assertEqual(doc["local_base_url_backends"], ["hermes", "codex"])
             self.assertEqual(doc["local_base_url_count"], 2)
+            self.assertEqual(doc["local_base_url_targets"], ["openai-api", "tokenrouter"])
             self.assertEqual(doc["custom_missing"], ["qoder"])
             self.assertEqual(doc["custom_by_target"]["google"], ["gemini"])
             self.assertEqual(doc["openai_api_provider_backends"], ["hermes"])

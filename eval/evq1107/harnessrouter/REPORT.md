@@ -70,7 +70,7 @@ The 21 provider sets are the 15 custom `openai-api` rows plus pi, dsh, opencode,
 | Weight files (`.gguf`, `.safetensors`, `.onnx`, `.pt`, `.pth`, or any file >= 20 MB) | 0 |
 | Engines added | 0 |
 
-Names are in `eval/evq1107/harnessrouter/results.json`. The 15 `openai-api` rows are the ones that match a chat-completions base URL. The 8 `tokenrouter` rows also carry a caller base URL. Codex's comment in the wiring says that target speaks the OpenAI Responses API. This probe did not send either shape to a stub.
+Names are in `eval/evq1107/harnessrouter/results.json`. `local_base_url_count` is 23 because `local_base_url_targets` is `openai-api` and `tokenrouter` together. The 15 `openai-api` rows are the ones that match a chat-completions base URL. The 8 `tokenrouter` rows also carry a caller base URL. Codex's comment in the wiring says that target speaks the OpenAI Responses API. This probe did not send either shape to a stub.
 
 ## Live boot
 

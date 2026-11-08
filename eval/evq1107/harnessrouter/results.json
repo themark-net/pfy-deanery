@@ -88,6 +88,10 @@
     "zeroclaw"
   ],
   "local_base_url_count": 23,
+  "local_base_url_targets": [
+    "openai-api",
+    "tokenrouter"
+  ],
   "openai_api_provider_backends": [
     "hermes",
     "pi",
