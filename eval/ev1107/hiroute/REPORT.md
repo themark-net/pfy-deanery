@@ -22,6 +22,8 @@ Trial `HOME` and `XDG_*` point at `~/.cache/pfy/tools/hiroute/home`. `XDG_RUNTIM
 
 The published alias is `hiroute-eval-difficulty-route`. Economy binding is `qwen2.5-coder:7b-instruct`. Primary binding is the loopback stub `premium-stub`. The decision service is a custom endpoint with no auth header: `http://127.0.0.1:44564/v1/decisions`. HiRoute selects economy when P(simple) is at least 0.8.
 
+The adapter passes HiRoute's own instructions and level criteria to the 7B and asks for one JSON object. It asks for at least 0.9 on the single best level so a clear judgment clears the 0.8 threshold. It does not override that choice with keywords. All 20 replies parsed. Trivial prompts came back simple 1.0. Hard prompts came back complex 0.9. The adapter refuses to start unless the model lock is held, and the probe stops it before the lock is released.
+
 CLIProxyAPI is in the install and was not configured as a subscription proxy. No paid key and no hosted judge.
 
 HiRoute 0.3.1 rejects a non-null `system_fingerprint` on a chat completion. Ollama 0.30.8 sends `fp_ollama`. A loopback shim on `127.0.0.1:44565` strips that field, fixes `usage.total_tokens`, and forwards `/v1/chat/completions` to `127.0.0.1:11434`. The economy source was updated to that shim before the locked run. The shim log shows 10 responses, all HTTP 200, model `qwen2.5-coder:7b-instruct`.

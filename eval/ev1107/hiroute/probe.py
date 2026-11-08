@@ -224,13 +224,12 @@ def wait_for_memory(need):
 
 def kill_ours_on(port):
     shown = subprocess.run(["ss", "-ltnp"], check=False, capture_output=True, text=True)
-    pids = set(re.findall(r"pid=(\d+)", shown.stdout or ""))
-    # ss mixes every listener. Match the port line only.
+    pids = []
+    needle = "127.0.0.1:%d" % port
     for line in (shown.stdout or "").splitlines():
-        if "127.0.0.1:%d" % port not in line:
+        if needle not in line:
             continue
-        for pid in re.findall(r"pid=(\d+)", line):
-            pids = {pid}
+        pids.extend(re.findall(r"pid=(\d+)", line))
     for pid in pids:
         cwd = os.readlink("/proc/%s/cwd" % pid) if Path("/proc/%s/cwd" % pid).exists() else ""
         if cwd != str(ROOT):
