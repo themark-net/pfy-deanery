@@ -10,7 +10,7 @@
     "PMQA and Security gate"
   ],
   "potential": "low",
-  "next_gate": "Stay I1. Do not wire a gate. Overlap tied a rename-aware git intersection and was slower. Both reviewer roles set to N/A reached done with 0 reviewer runs. Reopen only if a later ticket runs PMQA and Security as separate read-only agents and shows must-fix findings our review bots miss, and that ticket grills wiring first. Live start stays skipped until tmux or herdr exists and the executor is not the doctor default (codex).",
+  "next_gate": "Stay I1. Do not wire a gate. Overlap tied a rename-aware git intersection and was slower. Both reviewer roles set to N/A reached done, and the aggregate view listed 0 runs. Reopen only if a later ticket runs PMQA and Security as separate read-only agents and shows must-fix findings our review bots miss, and that ticket grills wiring first. Live start stays skipped until tmux or herdr exists and the executor is not the doctor default (codex).",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",

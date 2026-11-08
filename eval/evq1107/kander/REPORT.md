@@ -1,6 +1,6 @@
 # Kander evq1107
 
-Verdict: STAY I1. Pinned kander 0.9.5 ran offline under a redirected HOME. On four throwaway branch pairs built from files in this repo, `check overlap` matched a rename-aware git path intersection 4/4 (0.1104s vs 0.0142s). On merge `0bbfecf7` in this repo it matched 2/2 paths (0.1618s vs 0.0126s). A destination-only intersection missed the rename pair (3/4). Five premature `move done` attempts were blocked 5/5. Close failed twice when PMQA was required and no reviewer had run. Both roles set to N/A reached done with 0 reviewer processes and 0 extra worktrees. The 3 hour `./pfy build` timeout and the two pregate FAILs were not changed. Nothing was wired into a gate.
+Verdict: STAY I1. Pinned kander 0.9.5 ran offline under a redirected HOME. On four throwaway branch pairs built from files in this repo, `check overlap` matched a rename-aware git path intersection 4/4 (0.1104s vs 0.0142s). On merge `0bbfecf7` in this repo it matched 2/2 paths (0.1618s vs 0.0126s). A destination-only intersection missed the rename pair (3/4). Five premature `move done` attempts were blocked 5/5. Close failed twice when PMQA was required and no reviewer had run. Both roles set to N/A reached done. Each aggregate view listed 0 runs, and the probe did not call `start`. Worktrees stayed at 1. The 3 hour `./pfy build` timeout and the two pregate FAILs were not changed. Nothing was wired into a gate.
 
 ## Catalog comparison
 
@@ -98,7 +98,7 @@ Throwaway files copied from this repo: `sources/entries/117-kander.md`, `data/st
 | rename overlap | `sources/entries/117-kander.md` | same | none | 0.0291s | 0.0038s |
 | this repo merge `0bbfecf7` | `.gitignore`, `examples/x-intake-local/smoke.py` | same | same | 0.1618s | 0.0126s |
 
-Fixture total: kander 0.1104s, git 0.0142s. Agreement with the rename-aware intersection: 4/4, plus the merge. Agreement with a destination-only intersection: 3/4. Kander status was `pass` on the disjoint pair (exit 0) and `action-required` on the other four (exit 1). `action-required` does not lock either branch.
+Fixture total: kander 0.1104s, git 0.0142s. The git column times both the rename-aware diffs and the destination-only diffs, so a single intersection is a fraction of that and the gap is at least this wide. Agreement with the rename-aware intersection: 4/4, plus the merge. Agreement with a destination-only intersection: 3/4. Kander status was `pass` on the disjoint pair (exit 0) and `action-required` on the other four (exit 1). `action-required` does not lock either branch.
 
 | Done attempt | Result |
 | --- | --- |
@@ -112,7 +112,7 @@ Fixture total: kander 0.1104s, git 0.0142s. Agreement with the rename-aware inte
 | close, both roles `N/A`, 0 runs | exit 0 |
 | `move done --result completed` after that N/A close | exit 0, card in `done/` |
 
-Reviewer processes started: 0. Git worktrees in the fixture: 1 before the board commands and 1 after. Product `kanban/` stayed absent. Product `.git/info/exclude` was unchanged. Real `~/.agents/kander` and `~/.config/kander` stayed absent. Gap B closed: 0.
+Aggregate `runs` length: 0 on every close. The probe did not call `start`, `pick`, `orchestrate`, or the reviewer-agent form of `kander review`. Git worktrees in the fixture: 1 before the board commands and 1 after. The `reviewer_processes` field in `results.json` records that choice. It is not a process listing. Product `kanban/` stayed absent. Product `.git/info/exclude` was unchanged. Real `~/.agents/kander` and `~/.config/kander` stayed absent. Gap B closed: 0.
 
 Live agent start, pick, orchestrate, and the reviewer-agent form of `kander review`: SKIPPED. This lane is offline, `/usr/bin/tmux` is absent, and doctor defaulted the executor and both reviewers to codex.
 
@@ -144,7 +144,7 @@ Modularity passes, and the tree is under 50 MB. The ticket promotes to I2 only w
 
 | Risk | How it fails | Recovery |
 | --- | --- | --- |
-| N/A waiver | Both roles set to `N/A` reach done with 0 reviewer processes | Do not treat a sealed N/A plan as a review pass. Keep the Tester and Reviewer bots. |
+| N/A waiver | Both roles set to `N/A` reach done with 0 runs in the aggregate view | Do not treat a sealed N/A plan as a review pass. Keep the Tester and Reviewer bots. |
 | Doctor default is codex | The first `doctor` sets the executor and both reviewers to codex, a hosted CLI | A later trial must set the agent explicitly and stay offline. This lane did not start one. |
 | Writes on the real HOME | `doctor` rewrites `~/.agents/kander` and `~/.config/kander` | Set `HOME` and the XDG dirs under the cache. The probe checked the real paths stayed absent. |
 | `init` writes the repo | `kanban/` plus a line in `.git/info/exclude` | Throwaway git dir only. This worktree's exclude was unchanged. |
