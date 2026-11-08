@@ -1,0 +1,890 @@
+{
+  "src": "/home/mark/.cache/pfy/tools/anti-slop/src",
+  "commit": "388cbe3b6c37d5175b9f460015bb092ef9e34894",
+  "versions": {
+    "files": {
+      "VERSION": "3.2.20",
+      "package.json": "3.2.20",
+      "cli/package.json": "3.2.20"
+    },
+    "agree": true,
+    "version": "3.2.20"
+  },
+  "sha256": {
+    "antislop.md": "1b32f1295b2eef2a9f9c9609bf2de6e71408bb41ca424731753c7f66e011c6e7",
+    "skills/antislop/VERSION": "ce6ddda39d58fbf68b3810aa75fe22894936f20c1e62c901ae455e0bab5138df",
+    "contrast-check.py": "619cdf3da8b27f87d8e4049b4acecfe1a559b234ab2aa9cf09447c28745c3075"
+  },
+  "rules": {
+    "defined": 38,
+    "ids": [
+      "R-02",
+      "R-03",
+      "R-17",
+      "R-18",
+      "R-23",
+      "R-24",
+      "R-25",
+      "R-26",
+      "R-27",
+      "R-28",
+      "R-32",
+      "R-33",
+      "R-34",
+      "R-35",
+      "R-36",
+      "R-37",
+      "R-38",
+      "R-01",
+      "R-04",
+      "R-06",
+      "R-07",
+      "R-08",
+      "R-09",
+      "R-10",
+      "R-12",
+      "R-13",
+      "R-14",
+      "R-19",
+      "R-22",
+      "R-05",
+      "R-11",
+      "R-15",
+      "R-16",
+      "R-20",
+      "R-21",
+      "R-29",
+      "R-30",
+      "R-31"
+    ],
+    "executable_rule_ids": [
+      "R-02",
+      "R-25"
+    ],
+    "executable_count": 2,
+    "phrases": [
+      "Get Started",
+      "Learn More",
+      "Try Now",
+      "Explore",
+      "Discover",
+      "AI Powered",
+      "Next Generation",
+      "Revolutionary",
+      "Seamless",
+      "Cutting Edge",
+      "Intelligent",
+      "Ultimate",
+      "Powerful",
+      "Effortless"
+    ],
+    "comment_snippets": 37,
+    "ban_em": true,
+    "ban_en": true,
+    "check_repo_reads_argv": false
+  },
+  "context": {
+    "files": [
+      {
+        "path": "/home/mark/.cache/pfy/tools/anti-slop/src/antislop.md",
+        "bytes": 57655,
+        "chars_div_4": 14386,
+        "rel": "antislop.md"
+      },
+      {
+        "path": "/home/mark/.cache/pfy/tools/anti-slop/src/skills/antislop/SKILL.md",
+        "bytes": 57827,
+        "chars_div_4": 14429,
+        "rel": "skills/antislop/SKILL.md"
+      },
+      {
+        "path": "/home/mark/.cache/pfy/tools/anti-slop/src/skills/antislop-code/SKILL.md",
+        "bytes": 8944,
+        "chars_div_4": 2232,
+        "rel": "skills/antislop-code/SKILL.md"
+      },
+      {
+        "path": "/home/mark/.cache/pfy/tools/anti-slop/src/skills/antislop-copywriting/SKILL.md",
+        "bytes": 25419,
+        "chars_div_4": 6347,
+        "rel": "skills/antislop-copywriting/SKILL.md"
+      },
+      {
+        "path": "/home/mark/.cache/pfy/tools/anti-slop/src/skills/antislop-human/SKILL.md",
+        "bytes": 11051,
+        "chars_div_4": 2762,
+        "rel": "skills/antislop-human/SKILL.md"
+      },
+      {
+        "path": "/home/mark/.cache/pfy/tools/anti-slop/src/skills/antislop-layoutmobile/SKILL.md",
+        "bytes": 16378,
+        "chars_div_4": 4094,
+        "rel": "skills/antislop-layoutmobile/SKILL.md"
+      },
+      {
+        "path": "/home/mark/.cache/pfy/tools/anti-slop/src/skills/antislop-ui/SKILL.md",
+        "bytes": 26844,
+        "chars_div_4": 6707,
+        "rel": "skills/antislop-ui/SKILL.md"
+      }
+    ],
+    "skill_bytes": 146463,
+    "skill_chars_div_4": 36571,
+    "ours": [
+      {
+        "path": "/home/mark/DEVELOP/pfy-mentat/tmp/evq/wt/anti-slop/bootstrap/grok-cli/skills/karpathy-guidelines/SKILL.md",
+        "bytes": 2518,
+        "chars_div_4": 626,
+        "rel": "bootstrap/grok-cli/skills/karpathy-guidelines/SKILL.md"
+      },
+      {
+        "path": "/home/mark/DEVELOP/pfy-mentat/tmp/evq/wt/anti-slop/bootstrap/grok-cli/skills/ui-is-the-app-design-in-loop/SKILL.md",
+        "bytes": 3248,
+        "chars_div_4": 806,
+        "rel": "bootstrap/grok-cli/skills/ui-is-the-app-design-in-loop/SKILL.md"
+      },
+      {
+        "path": "/home/mark/DEVELOP/pfy-mentat/tmp/evq/wt/anti-slop/bootstrap/grok-cli/skills-external/ponytail/ponytail/SKILL.md",
+        "bytes": 6707,
+        "chars_div_4": 1671,
+        "rel": "bootstrap/grok-cli/skills-external/ponytail/ponytail/SKILL.md"
+      }
+    ],
+    "ponytail_pack_bytes": 17214
+  },
+  "lexical": {
+    "passes_agree": true,
+    "fixtures": {
+      "files": 5,
+      "files_with_hits": 2,
+      "em_dash": 1,
+      "en_dash": 0,
+      "phrase_hits": {
+        "Get Started": 1,
+        "Learn More": 0,
+        "Try Now": 0,
+        "Explore": 0,
+        "Discover": 0,
+        "AI Powered": 1,
+        "Next Generation": 0,
+        "Revolutionary": 0,
+        "Seamless": 1,
+        "Cutting Edge": 0,
+        "Intelligent": 0,
+        "Ultimate": 0,
+        "Powerful": 0,
+        "Effortless": 0
+      },
+      "single_word_hits": 1,
+      "multi_word_hits": 2,
+      "comment_hits": {
+        "// Initialize the variable": 1,
+        "// Step 1: Validate input": 1,
+        "// Main logic": 1
+      },
+      "comment_hit_total": 3,
+      "areas": {
+        "clean.js": {
+          "files": 1,
+          "files_with_hits": 0,
+          "em_dash": 0,
+          "en_dash": 0,
+          "single_word_hits": 0,
+          "multi_word_hits": 0
+        },
+        "clean.md": {
+          "files": 1,
+          "files_with_hits": 0,
+          "em_dash": 0,
+          "en_dash": 0,
+          "single_word_hits": 0,
+          "multi_word_hits": 0
+        },
+        "python_comment.py": {
+          "files": 1,
+          "files_with_hits": 0,
+          "em_dash": 0,
+          "en_dash": 0,
+          "single_word_hits": 0,
+          "multi_word_hits": 0
+        },
+        "slop.js": {
+          "files": 1,
+          "files_with_hits": 1,
+          "em_dash": 0,
+          "en_dash": 0,
+          "single_word_hits": 0,
+          "multi_word_hits": 0
+        },
+        "slop.md": {
+          "files": 1,
+          "files_with_hits": 1,
+          "em_dash": 1,
+          "en_dash": 0,
+          "single_word_hits": 1,
+          "multi_word_hits": 2
+        }
+      },
+      "phrase_top": {
+        "Get Started": [
+          {
+            "path": "slop.md",
+            "n": 1
+          }
+        ],
+        "AI Powered": [
+          {
+            "path": "slop.md",
+            "n": 1
+          }
+        ],
+        "Seamless": [
+          {
+            "path": "slop.md",
+            "n": 1
+          }
+        ]
+      },
+      "examples": [
+        {
+          "path": "slop.js",
+          "line": 1,
+          "kind": "comment",
+          "label": "// Main logic"
+        },
+        {
+          "path": "slop.js",
+          "line": 3,
+          "kind": "comment",
+          "label": "// Initialize the variable"
+        },
+        {
+          "path": "slop.js",
+          "line": 5,
+          "kind": "comment",
+          "label": "// Step 1: Validate input"
+        },
+        {
+          "path": "slop.md",
+          "line": 1,
+          "kind": "em_dash",
+          "label": "em_dash"
+        },
+        {
+          "path": "slop.md",
+          "line": 2,
+          "kind": "phrase",
+          "label": "Get Started"
+        },
+        {
+          "path": "slop.md",
+          "line": 2,
+          "kind": "phrase",
+          "label": "AI Powered"
+        },
+        {
+          "path": "slop.md",
+          "line": 2,
+          "kind": "phrase",
+          "label": "Seamless"
+        }
+      ]
+    },
+    "fixture_files": [
+      {
+        "name": "clean.js",
+        "files": 1,
+        "files_with_hits": 0,
+        "em_dash": 0,
+        "en_dash": 0,
+        "phrase_hits": {
+          "Get Started": 0,
+          "Learn More": 0,
+          "Try Now": 0,
+          "Explore": 0,
+          "Discover": 0,
+          "AI Powered": 0,
+          "Next Generation": 0,
+          "Revolutionary": 0,
+          "Seamless": 0,
+          "Cutting Edge": 0,
+          "Intelligent": 0,
+          "Ultimate": 0,
+          "Powerful": 0,
+          "Effortless": 0
+        },
+        "single_word_hits": 0,
+        "multi_word_hits": 0,
+        "comment_hits": {},
+        "comment_hit_total": 0,
+        "areas": {
+          "clean.js": {
+            "files": 1,
+            "files_with_hits": 0,
+            "em_dash": 0,
+            "en_dash": 0,
+            "single_word_hits": 0,
+            "multi_word_hits": 0
+          }
+        },
+        "phrase_top": {},
+        "examples": []
+      },
+      {
+        "name": "clean.md",
+        "files": 1,
+        "files_with_hits": 0,
+        "em_dash": 0,
+        "en_dash": 0,
+        "phrase_hits": {
+          "Get Started": 0,
+          "Learn More": 0,
+          "Try Now": 0,
+          "Explore": 0,
+          "Discover": 0,
+          "AI Powered": 0,
+          "Next Generation": 0,
+          "Revolutionary": 0,
+          "Seamless": 0,
+          "Cutting Edge": 0,
+          "Intelligent": 0,
+          "Ultimate": 0,
+          "Powerful": 0,
+          "Effortless": 0
+        },
+        "single_word_hits": 0,
+        "multi_word_hits": 0,
+        "comment_hits": {},
+        "comment_hit_total": 0,
+        "areas": {
+          "clean.md": {
+            "files": 1,
+            "files_with_hits": 0,
+            "em_dash": 0,
+            "en_dash": 0,
+            "single_word_hits": 0,
+            "multi_word_hits": 0
+          }
+        },
+        "phrase_top": {},
+        "examples": []
+      },
+      {
+        "name": "python_comment.py",
+        "files": 1,
+        "files_with_hits": 0,
+        "em_dash": 0,
+        "en_dash": 0,
+        "phrase_hits": {
+          "Get Started": 0,
+          "Learn More": 0,
+          "Try Now": 0,
+          "Explore": 0,
+          "Discover": 0,
+          "AI Powered": 0,
+          "Next Generation": 0,
+          "Revolutionary": 0,
+          "Seamless": 0,
+          "Cutting Edge": 0,
+          "Intelligent": 0,
+          "Ultimate": 0,
+          "Powerful": 0,
+          "Effortless": 0
+        },
+        "single_word_hits": 0,
+        "multi_word_hits": 0,
+        "comment_hits": {},
+        "comment_hit_total": 0,
+        "areas": {
+          "python_comment.py": {
+            "files": 1,
+            "files_with_hits": 0,
+            "em_dash": 0,
+            "en_dash": 0,
+            "single_word_hits": 0,
+            "multi_word_hits": 0
+          }
+        },
+        "phrase_top": {},
+        "examples": []
+      },
+      {
+        "name": "slop.js",
+        "files": 1,
+        "files_with_hits": 1,
+        "em_dash": 0,
+        "en_dash": 0,
+        "phrase_hits": {
+          "Get Started": 0,
+          "Learn More": 0,
+          "Try Now": 0,
+          "Explore": 0,
+          "Discover": 0,
+          "AI Powered": 0,
+          "Next Generation": 0,
+          "Revolutionary": 0,
+          "Seamless": 0,
+          "Cutting Edge": 0,
+          "Intelligent": 0,
+          "Ultimate": 0,
+          "Powerful": 0,
+          "Effortless": 0
+        },
+        "single_word_hits": 0,
+        "multi_word_hits": 0,
+        "comment_hits": {
+          "// Initialize the variable": 1,
+          "// Step 1: Validate input": 1,
+          "// Main logic": 1
+        },
+        "comment_hit_total": 3,
+        "areas": {
+          "slop.js": {
+            "files": 1,
+            "files_with_hits": 1,
+            "em_dash": 0,
+            "en_dash": 0,
+            "single_word_hits": 0,
+            "multi_word_hits": 0
+          }
+        },
+        "phrase_top": {},
+        "examples": [
+          {
+            "path": "slop.js",
+            "line": 1,
+            "kind": "comment",
+            "label": "// Main logic"
+          },
+          {
+            "path": "slop.js",
+            "line": 3,
+            "kind": "comment",
+            "label": "// Initialize the variable"
+          },
+          {
+            "path": "slop.js",
+            "line": 5,
+            "kind": "comment",
+            "label": "// Step 1: Validate input"
+          }
+        ]
+      },
+      {
+        "name": "slop.md",
+        "files": 1,
+        "files_with_hits": 1,
+        "em_dash": 1,
+        "en_dash": 0,
+        "phrase_hits": {
+          "Get Started": 1,
+          "Learn More": 0,
+          "Try Now": 0,
+          "Explore": 0,
+          "Discover": 0,
+          "AI Powered": 1,
+          "Next Generation": 0,
+          "Revolutionary": 0,
+          "Seamless": 1,
+          "Cutting Edge": 0,
+          "Intelligent": 0,
+          "Ultimate": 0,
+          "Powerful": 0,
+          "Effortless": 0
+        },
+        "single_word_hits": 1,
+        "multi_word_hits": 2,
+        "comment_hits": {},
+        "comment_hit_total": 0,
+        "areas": {
+          "slop.md": {
+            "files": 1,
+            "files_with_hits": 1,
+            "em_dash": 1,
+            "en_dash": 0,
+            "single_word_hits": 1,
+            "multi_word_hits": 2
+          }
+        },
+        "phrase_top": {
+          "Get Started": [
+            {
+              "path": "slop.md",
+              "n": 1
+            }
+          ],
+          "AI Powered": [
+            {
+              "path": "slop.md",
+              "n": 1
+            }
+          ],
+          "Seamless": [
+            {
+              "path": "slop.md",
+              "n": 1
+            }
+          ]
+        },
+        "examples": [
+          {
+            "path": "slop.md",
+            "line": 1,
+            "kind": "em_dash",
+            "label": "em_dash"
+          },
+          {
+            "path": "slop.md",
+            "line": 2,
+            "kind": "phrase",
+            "label": "Get Started"
+          },
+          {
+            "path": "slop.md",
+            "line": 2,
+            "kind": "phrase",
+            "label": "AI Powered"
+          },
+          {
+            "path": "slop.md",
+            "line": 2,
+            "kind": "phrase",
+            "label": "Seamless"
+          }
+        ]
+      }
+    ],
+    "repo": {
+      "files": 656,
+      "files_with_hits": 446,
+      "em_dash": 1862,
+      "en_dash": 332,
+      "phrase_hits": {
+        "Get Started": 0,
+        "Learn More": 0,
+        "Try Now": 0,
+        "Explore": 2,
+        "Discover": 369,
+        "AI Powered": 0,
+        "Next Generation": 1,
+        "Revolutionary": 1,
+        "Seamless": 0,
+        "Cutting Edge": 0,
+        "Intelligent": 0,
+        "Ultimate": 2,
+        "Powerful": 6,
+        "Effortless": 0
+      },
+      "single_word_hits": 380,
+      "multi_word_hits": 1,
+      "comment_hits": {},
+      "comment_hit_total": 0,
+      "areas": {
+        ".grok/skills": {
+          "files": 48,
+          "files_with_hits": 39,
+          "em_dash": 376,
+          "en_dash": 33,
+          "single_word_hits": 4,
+          "multi_word_hits": 0
+        },
+        "AGENTS.md": {
+          "files": 1,
+          "files_with_hits": 1,
+          "em_dash": 17,
+          "en_dash": 1,
+          "single_word_hits": 2,
+          "multi_word_hits": 0
+        },
+        "bootstrap/grok-cli": {
+          "files": 49,
+          "files_with_hits": 40,
+          "em_dash": 385,
+          "en_dash": 38,
+          "single_word_hits": 2,
+          "multi_word_hits": 0
+        },
+        "docs": {
+          "files": 482,
+          "files_with_hits": 342,
+          "em_dash": 1002,
+          "en_dash": 257,
+          "single_word_hits": 364,
+          "multi_word_hits": 1
+        },
+        "pfylib": {
+          "files": 21,
+          "files_with_hits": 1,
+          "em_dash": 1,
+          "en_dash": 0,
+          "single_word_hits": 0,
+          "multi_word_hits": 0
+        },
+        "scripts": {
+          "files": 55,
+          "files_with_hits": 23,
+          "em_dash": 81,
+          "en_dash": 3,
+          "single_word_hits": 8,
+          "multi_word_hits": 0
+        }
+      },
+      "phrase_top": {
+        "Explore": [
+          {
+            "path": "docs/ops/AUTONOMOUS-DECISIONS-2026-10-17-pr284-followups.md",
+            "n": 1
+          },
+          {
+            "path": "scripts/grill_ticket.py",
+            "n": 1
+          }
+        ],
+        "Discover": [
+          {
+            "path": "docs/ops/RUN-LOG-mvp-ci-cover-1031.md",
+            "n": 17
+          },
+          {
+            "path": "docs/ops/RUN-LOG-mvp3-review-retry.md",
+            "n": 13
+          },
+          {
+            "path": "docs/ops/RUN-LOG-mvp-integrate-1031.md",
+            "n": 12
+          },
+          {
+            "path": "docs/ops/RUN-LOG-hermes-wire.md",
+            "n": 10
+          },
+          {
+            "path": "docs/ops/RUN-LOG-pr284-followups.md",
+            "n": 10
+          }
+        ],
+        "Next Generation": [
+          {
+            "path": "docs/scoring-summary.md",
+            "n": 1
+          }
+        ],
+        "Revolutionary": [
+          {
+            "path": "docs/scoring-summary.md",
+            "n": 1
+          }
+        ],
+        "Ultimate": [
+          {
+            "path": ".grok/skills/marketing-council/references/advisors/russell-brunson.md",
+            "n": 1
+          },
+          {
+            "path": "bootstrap/grok-cli/skills/marketing-council/references/advisors/russell-brunson.md",
+            "n": 1
+          }
+        ],
+        "Powerful": [
+          {
+            "path": ".grok/skills/marketing-council/references/advisors/rory-sutherland.md",
+            "n": 1
+          },
+          {
+            "path": "bootstrap/grok-cli/skills/marketing-council/references/advisors/rory-sutherland.md",
+            "n": 1
+          },
+          {
+            "path": "docs/evaluation/autonomous-ai-companies-rubric.md",
+            "n": 1
+          },
+          {
+            "path": "docs/evaluation/knowledge-graph-cluster-overlap.md",
+            "n": 1
+          },
+          {
+            "path": "docs/ops/voice-agent-runner.md",
+            "n": 1
+          }
+        ]
+      },
+      "examples": [
+        {
+          "path": ".grok/skills/adr/SKILL.md",
+          "line": 13,
+          "kind": "em_dash",
+          "label": "em_dash"
+        },
+        {
+          "path": ".grok/skills/adr/SKILL.md",
+          "line": 23,
+          "kind": "em_dash",
+          "label": "em_dash"
+        },
+        {
+          "path": ".grok/skills/adr/SKILL.md",
+          "line": 27,
+          "kind": "em_dash",
+          "label": "em_dash"
+        },
+        {
+          "path": ".grok/skills/adr/SKILL.md",
+          "line": 38,
+          "kind": "em_dash",
+          "label": "em_dash"
+        },
+        {
+          "path": ".grok/skills/adr/SKILL.md",
+          "line": 49,
+          "kind": "em_dash",
+          "label": "em_dash"
+        },
+        {
+          "path": ".grok/skills/adr/SKILL.md",
+          "line": 55,
+          "kind": "em_dash",
+          "label": "em_dash"
+        },
+        {
+          "path": ".grok/skills/adr/SKILL.md",
+          "line": 62,
+          "kind": "en_dash",
+          "label": "en_dash"
+        },
+        {
+          "path": ".grok/skills/adr/SKILL.md",
+          "line": 70,
+          "kind": "em_dash",
+          "label": "em_dash"
+        },
+        {
+          "path": ".grok/skills/adr/SKILL.md",
+          "line": 77,
+          "kind": "em_dash",
+          "label": "em_dash"
+        },
+        {
+          "path": ".grok/skills/adr/references/template.md",
+          "line": 16,
+          "kind": "en_dash",
+          "label": "en_dash"
+        },
+        {
+          "path": ".grok/skills/agent-loops/PORT.md",
+          "line": 1,
+          "kind": "em_dash",
+          "label": "em_dash"
+        },
+        {
+          "path": ".grok/skills/agent-loops/PORT.md",
+          "line": 3,
+          "kind": "em_dash",
+          "label": "em_dash"
+        }
+      ]
+    }
+  },
+  "upstream": {
+    "check_repo": {
+      "status": "ok",
+      "ok": true,
+      "exit": 0,
+      "summary": "all 13 checks passed",
+      "lines": [
+        "ok   every manifest is valid JSON",
+        "ok   no em dash outside the R-02 carve-out",
+        "ok   every rule has a Delivery Gate item",
+        "ok   skills cite only rules that exist",
+        "ok   the version agrees everywhere",
+        "ok   every skill has usable frontmatter",
+        "ok   every skill is registered everywhere",
+        "ok   each rule sits in the gate block its tier implies",
+        "ok   every manifest path resolves",
+        "ok   every doc link resolves",
+        "ok   every URL in a community file resolves",
+        "ok   both contrast implementations use the same formula",
+        "ok   the skill index in the guide is current",
+        "all 13 checks passed"
+      ],
+      "seconds": 0.0359
+    },
+    "contrast_selftest": {
+      "status": "ok",
+      "ok": true,
+      "exit": 0,
+      "summary": "selftest: 8 reference pairs OK",
+      "lines": [
+        "selftest: 8 reference pairs OK"
+      ],
+      "seconds": 0.0118
+    },
+    "contrast_pairs": [
+      {
+        "status": "fail",
+        "ok": false,
+        "exit": 1,
+        "summary": "large text  (3.0:1): PASS",
+        "lines": [
+          "ratio: 4.48:1",
+          "normal text (4.5:1): FAIL",
+          "large text  (3.0:1): PASS"
+        ],
+        "seconds": 0.0112,
+        "pair": [
+          "#FFFFFF",
+          "#777777"
+        ]
+      },
+      {
+        "status": "ok",
+        "ok": true,
+        "exit": 0,
+        "summary": "large text  (3.0:1): PASS",
+        "lines": [
+          "ratio: 21.00:1",
+          "normal text (4.5:1): PASS",
+          "large text  (3.0:1): PASS"
+        ],
+        "seconds": 0.0125,
+        "pair": [
+          "#000000",
+          "#FFFFFF"
+        ]
+      }
+    ]
+  },
+  "catalog_keyword_hits": [
+    {
+      "file": "open-steps.json",
+      "name": "Open Steps",
+      "stage": "I0",
+      "words": [
+        "baseline"
+      ]
+    },
+    {
+      "file": "ponytail-skills-pack.json",
+      "name": "ponytail (skills pack)",
+      "stage": "I1",
+      "words": [
+        "yagni"
+      ]
+    },
+    {
+      "file": "skill-up.json",
+      "name": "skill-up",
+      "stage": "I3",
+      "words": [
+        "baseline"
+      ]
+    },
+    {
+      "file": "taste-skill.json",
+      "name": "taste-skill",
+      "stage": "I0",
+      "words": [
+        "slop"
+      ]
+    }
+  ],
+  "seconds": 1.924
+}

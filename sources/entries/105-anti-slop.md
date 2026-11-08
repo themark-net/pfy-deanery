@@ -20,4 +20,4 @@
 | Every-session prompt | Default asks During/After each session, which stalls unattended runs | Pin the mode in the lane prompt; don't use the global settings file |
 | Upstream churn | Skill names or frontmatter change | Smoke FAILs on frontmatter; pin the checked commit |
 
-- **Status**: Cataloged I0. Verified on the Grok Bot box; not installed on nimo.
+- **Status**: STAY I0 (eval/evq1107/anti-slop/VERDICT, 2026-11-07). Pin `388cbe3b6c37d5175b9f460015bb092ef9e34894` is v3.2.20, one commit after tag v3.2.20. Not installed into a harness.
