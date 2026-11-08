@@ -1,0 +1,8 @@
+{
+  "metric": "wired_offline_atg_compile_check",
+  "threshold": 1,
+  "value_gate": "pass",
+  "modularity_gate": "pass",
+  "proposed_stage": "I3",
+  "note": "Apply refused: above-ceiling: proposed I3 is above allowed I2 (evidence I2: notes, pin, record, probe artifact; tier_ceiling I2 agrees). The card bytes stay unchanged. Proposed I3 stays on this verdict."
+}
