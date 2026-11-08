@@ -14,17 +14,35 @@
     "#rag"
   ],
   "catalog_github": "https://github.com/langchain-ai/langgraph",
+  "pin": "e5e37b5d70dbfd93c7006bd90a658c6179a95946",
+  "license": "MIT",
+  "package_version": "1.2.20",
+  "checkpoint_version": "4.3.1",
+  "prebuilt_version": "1.1.1",
+  "cli_version": "0.4.42",
+  "notes_doc": "eval/evq1107/langgraph-langchain/REPORT.md",
   "posture": [],
-  "evidence": [],
+  "evidence": [
+    "pin:e5e37b5d70dbfd93c7006bd90a658c6179a95946",
+    "eval/evq1107/langgraph-langchain/REPORT.md",
+    "eval/evq1107/langgraph-langchain/VERDICT"
+  ],
   "tier_ceiling": "I1",
-  "uses": "Graph orchestration. Our loops already cover the operator path.",
+  "uses": "Stateful agent graphs with superstep checkpoints. Reference read only. Gap B stays the pfy build timeout. Our loops already cover the operator path.",
   "features": [
-    "stateful graphs"
+    "stateful graphs",
+    "superstep checkpoints",
+    "pending writes"
   ],
   "potential": "low",
-  "next_gate": "Stay I1.",
+  "next_gate": "Stay I1 reference. Re-open only to copy one pattern name into docs/ops/loop-engineering.md, with no install and no code copy. Gap B stays the pfy build timeout. No gate wiring. Not a Feature GO.",
   "handoff_by": "llm",
   "non_goals": [
-    "orchestration runtime"
+    "orchestration runtime",
+    "install",
+    "code copy",
+    "gate wiring",
+    "langsmith",
+    "feature_go"
   ]
 }
