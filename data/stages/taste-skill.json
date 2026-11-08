@@ -17,7 +17,7 @@
   ],
   "potential": "medium",
   "next_gate": "Stay I2. Do not wire a gate. The I1 ceiling stays. Reopen only if gui/operator/src-tauri/target has a pfy-operator binary and a later ticket grills an allow list for palette-terracotta and no-title, or keeps lint --app as the only floor. The eyebrow mutant stays a WARN in app mode.",
-  "tier_ceiling": "I1",
+  "tier_ceiling": "I3",
   "non_goals": [
     "feature_go",
     "catalog_hold_70_75",
@@ -39,5 +39,17 @@
   "self_pipeline": {
     "status": "not_applicable",
     "reason": "Advisory probe only in eval/evq1107/taste-skill/REPORT.md. App-mode lint was not applied to pregate or CI. Inspect failed the current operator page. Not a gate."
-  }
+  },
+  "ceiling_history": [
+    {
+      "from": "I1",
+      "to": "I3",
+      "by": "catalog_loop",
+      "date": "2026-11-08",
+      "reason": "value_gate and modularity_gate passed and risk_class is none",
+      "evidence": [
+        "eval/integrate/taste-skill/VERDICT.json"
+      ]
+    }
+  ]
 }

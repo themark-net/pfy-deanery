@@ -17,7 +17,7 @@
   "evidence": [
     "make:smoke-repowise"
   ],
-  "tier_ceiling": "I1",
+  "tier_ceiling": "I3",
   "uses": "Context packing probe. Overlaps codebase-memory.",
   "features": [
     "token context"
@@ -27,5 +27,17 @@
   "handoff_by": "llm",
   "non_goals": [
     "primary code memory"
+  ],
+  "ceiling_history": [
+    {
+      "from": "I1",
+      "to": "I3",
+      "by": "catalog_loop",
+      "date": "2026-11-08",
+      "reason": "value_gate and modularity_gate passed and risk_class is none",
+      "evidence": [
+        "eval/integrate/repowise/VERDICT.json"
+      ]
+    }
   ]
 }

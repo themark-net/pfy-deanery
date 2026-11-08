@@ -25,7 +25,7 @@
     "pin:6c5828f3e49f962385aeb3ad033ecac5adc22878",
     "npm:opencode-mem@2.41.1"
   ],
-  "tier_ceiling": "I1",
+  "tier_ceiling": "I3",
   "uses": "Memory plugin for the OpenCode worker. A new process searched 8 of 8 stored salts that rg does not find in this repo.",
   "features": [
     "local turso vector store",
@@ -42,5 +42,17 @@
     "hosted embeddings",
     "web ui",
     "catalog_hold_70_75"
+  ],
+  "ceiling_history": [
+    {
+      "from": "I1",
+      "to": "I3",
+      "by": "catalog_loop",
+      "date": "2026-11-08",
+      "reason": "value_gate and modularity_gate passed and risk_class is none",
+      "evidence": [
+        "eval/integrate/opencode-mem/VERDICT.json"
+      ]
+    }
   ]
 }

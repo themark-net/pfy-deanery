@@ -16,7 +16,7 @@
   ],
   "potential": "medium",
   "next_gate": "Stay I2. Ordering beat a one-call text check (2/2 vs 0/2). In-repo skill writes were not blocked (0/2). A later ticket can grill observe mode on a real tool loop. No gate wiring. The I1 ceiling stays until a TOOLS.md row exists.",
-  "tier_ceiling": "I1",
+  "tier_ceiling": "I3",
   "non_goals": [
     "feature_go",
     "catalog_hold_70_75",
@@ -35,5 +35,17 @@
     "eval/evq1107/sponsio/VERDICT",
     "eval/evq1107/sponsio/results.json"
   ],
-  "handoff_by": "llm"
+  "handoff_by": "llm",
+  "ceiling_history": [
+    {
+      "from": "I1",
+      "to": "I3",
+      "by": "catalog_loop",
+      "date": "2026-11-08",
+      "reason": "value_gate and modularity_gate passed and risk_class is none",
+      "evidence": [
+        "eval/integrate/sponsio/VERDICT.json"
+      ]
+    }
+  ]
 }

@@ -1,6 +1,6 @@
 {
   "name": "Ollama",
-  "integration_stage": "I2",
+  "integration_stage": "I3",
   "intent": "host_runtime",
   "tier": "S",
   "auto": true,

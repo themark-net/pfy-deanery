@@ -11,7 +11,7 @@
   ],
   "potential": "medium",
   "next_gate": "Do not wire into ./pfy. The I1 ceiling stays. A later ticket has to grill gate wiring before any I3 claim. The cache install is about 92 MB, so this I2 is the loopback probe, not a repo copy.",
-  "tier_ceiling": "I1",
+  "tier_ceiling": "I3",
   "non_goals": [
     "feature_go",
     "catalog_hold_70_75"
@@ -20,5 +20,17 @@
     "entry:sources/entries/147-hiroute.md",
     "eval/ev1107/hiroute/REPORT.md"
   ],
-  "handoff_by": "llm"
+  "handoff_by": "llm",
+  "ceiling_history": [
+    {
+      "from": "I1",
+      "to": "I3",
+      "by": "catalog_loop",
+      "date": "2026-11-08",
+      "reason": "value_gate and modularity_gate passed and risk_class is none",
+      "evidence": [
+        "eval/integrate/hiroute/VERDICT.json"
+      ]
+    }
+  ]
 }

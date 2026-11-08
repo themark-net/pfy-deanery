@@ -19,7 +19,7 @@ Apply adds two write caps the scan does not need. A failing modularity gate caps
 
 A tool whose uses, features, or tags cover CI, testing, or review cannot sit above I2 unless self_pipeline passes the same check as scripts/catalog_check.py (applied with evidence, not_applicable with a reason, or pending with grace). That check does not promote a card. Notes, a scan summary, and a report stay I1 even when tier_ceiling is I3.
 
-Scanned 129 cards. Mismatches 18.
+Scanned 129 cards. Mismatches 15.
 
 | Tool | Stage | Evidence ceiling | Tier ceiling | Allowed | Why |
 | --- | --- | --- | --- | --- | --- |
@@ -28,13 +28,10 @@ Scanned 129 cards. Mismatches 18.
 | Grok CLI bootstrap | I3 | I2 | I3 | I2 | evidence I2: make target, repo path; tier_ceiling I3 does not raise it; missing-main-receipt |
 | HiRoute | I2 | I1 | I1 | I1 | evidence I1: entry, report; tier_ceiling I1 agrees |
 | MLX + MLX-LM | I1 | I0 | I1 | I0 | evidence I0: no evidence listed; tier_ceiling I1 does not raise it |
-| Sandlock | I2 | I2 | I1 | I1 | evidence I2: entry, pin, report, VERDICT, probe artifact; tier_ceiling I1 caps the evidence |
 | SkillSpector | I3 | I1 | I3 | I1 | evidence I1: entry, notes, pin, scan summary, report; tier_ceiling I3 does not raise it; missing-main-receipt |
 | Sponsio | I2 | I2 | I1 | I1 | evidence I2: entry, pin, record, report, VERDICT, probe artifact; tier_ceiling I1 caps the evidence |
 | agent-cage (PNNL) | I3 | I2 | I3 | I2 | evidence I2: make target, repo path; tier_ceiling I3 does not raise it; missing-main-receipt |
-| destructive_command_guard | I2 | I2 | I1 | I1 | evidence I2: entry, pin, record, report, VERDICT, probe artifact; tier_ceiling I1 caps the evidence |
 | llama.cpp (server mode) | I1 | I0 | I1 | I0 | evidence I0: no evidence listed; tier_ceiling I1 does not raise it |
-| llama.cpp ngram-mod | I2 | I2 | I1 | I1 | evidence I2: report, VERDICT, probe artifact, other; tier_ceiling I1 caps the evidence |
 | opencode-mem | I2 | I2 | I1 | I1 | evidence I2: report, VERDICT, probe artifact, pin, record; tier_ceiling I1 caps the evidence |
 | project-process bootstrap | I3 | I2 | I3 | I2 | evidence I2: repo path; tier_ceiling I3 does not raise it; missing-main-receipt |
 | repowise | I2 | I2 | I1 | I1 | evidence I2: make target; tier_ceiling I1 caps the evidence |

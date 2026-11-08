@@ -13,7 +13,7 @@
   ],
   "potential": "medium",
   "next_gate": "Stay I2. Do not wire a gate from this lane. Next proof is a check that does not treat Grok's omitted tool-result placeholder as a repeated result, and a separate ticket if this should sit on an eval receipt.",
-  "tier_ceiling": "I2",
+  "tier_ceiling": "I3",
   "non_goals": [
     "feature_go",
     "catalog_hold_70_75",
@@ -28,5 +28,17 @@
     "eval/ev1107/neatroots/VERDICT",
     "eval/ev1107/neatroots/check-results.json"
   ],
-  "handoff_by": "llm"
+  "handoff_by": "llm",
+  "ceiling_history": [
+    {
+      "from": "I2",
+      "to": "I3",
+      "by": "catalog_loop",
+      "date": "2026-11-08",
+      "reason": "value_gate and modularity_gate passed and risk_class is none",
+      "evidence": [
+        "eval/integrate/neatroots/VERDICT.json"
+      ]
+    }
+  ]
 }

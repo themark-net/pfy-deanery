@@ -17,7 +17,7 @@
   ],
   "potential": "medium",
   "next_gate": "Stay I2. A later ticket can add a caller for the pinned cache binary with -c and -t strict, strip one trailing newline when the pipe must be <= the budget, and skip --grep when the cap is hard. The derived receipt kept row id 2500 in 0 preview modes. jq remains the row lookup. H1's with/without harness score stays on skill-up. No gate wiring from this lane.",
-  "tier_ceiling": "I2",
+  "tier_ceiling": "I3",
   "non_goals": [
     "feature_go",
     "catalog_hold_70_75",
@@ -35,5 +35,17 @@
     "tarball_sha256:90f5880efcacd16000e12e6f461e7e486ea56636d2f67243de2a65160006ac58",
     "binary_sha256:1a5920a7088db2f2eaf3e53c588fb5133b020a4b9aa417631977e16ead136422"
   ],
-  "handoff_by": "llm"
+  "handoff_by": "llm",
+  "ceiling_history": [
+    {
+      "from": "I2",
+      "to": "I3",
+      "by": "catalog_loop",
+      "date": "2026-11-08",
+      "reason": "value_gate and modularity_gate passed and risk_class is none",
+      "evidence": [
+        "eval/integrate/headson/VERDICT.json"
+      ]
+    }
+  ]
 }
