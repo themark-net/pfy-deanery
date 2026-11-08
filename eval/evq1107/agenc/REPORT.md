@@ -30,7 +30,7 @@ Leave the daemon, the phone remote, the Ledger path, the channel gateway, and th
 
 ## Catalog comparison
 
-Same job: a daemon coding agent for build lanes and checks. Gap B in `docs/eval/TOOLSET-RANKING.md` (2026-11-07) is the unproven `./pfy build` path. AgenC is on the 2026-10-06 skip-or-hold list and outside entries 137 to 167. That section says none of those entries close gap B. Auto-Company (I1) extracts company-daemon patterns and skips the runtime. Continue.dev (I1) is an IDE client held as reference. The local worker is OpenCode through `./pfy build --local`.
+Same job: a daemon coding agent for build lanes and checks. Gap B in `docs/eval/TOOLSET-RANKING.md` (2026-11-07) is the unproven `./pfy build` path. No entry from 137 to 167 closes it. AgenC is older than that range and sits on the 2026-10-06 skip-or-hold list. Auto-Company (I1) already keeps the persona extract in operator docs, and the company daemon stays off the operator path. Continue.dev (I1) is an IDE client held as reference. The local worker is OpenCode through `./pfy build --local`.
 
 | Card | Stage | How AgenC compares |
 | --- | --- | --- |
