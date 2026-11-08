@@ -4,7 +4,7 @@ STAY I1 reference: HTML-to-MP4 does not build the operator window. Apache-2.0. D
 
 ## What it is
 
-Hyperframes (heygen-com/hyperframes) turns HTML, CSS, and media into an MP4. An agent writes a composition. The CLI seeks each frame in headless Chrome and encodes with FFmpeg. Timing sits on `data-start` and `data-duration`. The same frame index seeks the same picture: no wall clock, no unseeded random, no fetch during the render. README requirements are Node.js 22+ and FFmpeg. Docker can pin Chromium, fonts, and FFmpeg. The CLI also offers cloud, AWS Lambda, and GCP Cloud Run. Studio is a desktop app. Some skills call HeyGen. License is Apache-2.0 (root LICENSE, copyright 2026 HeyGen, Inc.; `@hyperframes/cli` license field).
+Hyperframes (heygen-com/hyperframes) turns HTML, CSS, and media into an MP4. An agent writes a composition. The CLI seeks each frame in headless Chrome and encodes with FFmpeg. Timing sits on `data-start` and `data-duration`. On one machine the same frame index seeks the same picture: no wall clock, no unseeded random, no fetch during the render. Across machines a local render can still shift by a pixel. README requirements are Node.js 22+ and FFmpeg. Docker can pin Chromium, fonts, and FFmpeg. The CLI also offers cloud, AWS Lambda, and GCP Cloud Run. Studio is a desktop app. Some skills call HeyGen. License is Apache-2.0 (root LICENSE, copyright 2026 HeyGen, Inc.; `@hyperframes/cli` license field).
 
 ## Pin and command
 
@@ -14,16 +14,16 @@ Hyperframes (heygen-com/hyperframes) turns HTML, CSS, and media into an MP4. An 
 | Commit | 2026-11-08 04:46:46 +0000. `fix(studio): a menu row's highlight is rounder than its panel (#7395)` |
 | Tag | `v0.9.22` is `26956ea1f4c855e80cfdd1677c1e02e15fbf088d` at 2026-11-08 01:18:54 +0000 (`chore: release v0.9.22`). This pin is 2026-11-08 04:46:46 +0000. CLI `package.json` still says `0.9.22`. |
 | Time | `git fetch` 0.63 s. Checkout of the blobs was not timed. No upstream script ran. |
-| Size | `du -sb --exclude=.git` 331781011 bytes. With `.git`, 405422695. 9876 files. |
+| Size | `du -sb --exclude=.git` 331781011 bytes. With `.git`, 405422695 after the pin checkout, 405839815 after the tag fetch. 9876 files. |
 | Cache | `~/.cache/pfy/tools/hyperframes/src`. Not committed. |
 
-`HOME`, `XDG_CONFIG_HOME`, `XDG_CACHE_HOME`, and `TMPDIR` were under that cache. `GIT_CONFIG_GLOBAL` and `GIT_CONFIG_SYSTEM` were `/dev/null`. Command: `git init`, remote `https://github.com/heygen-com/hyperframes.git`, `git fetch --depth 1 --filter=blob:none origin ab785e9c5c59e9542593e49b93f9547cb2665b44`, `git checkout --detach FETCH_HEAD`.
+`HOME`, `XDG_CONFIG_HOME`, `XDG_CACHE_HOME`, `TMPDIR`, and `npm_config_cache` were under that cache. `GIT_CONFIG_GLOBAL` and `GIT_CONFIG_SYSTEM` were `/dev/null`. Command: `git init`, remote `https://github.com/heygen-com/hyperframes.git`, `git fetch --depth 1 --filter=blob:none origin ab785e9c5c59e9542593e49b93f9547cb2665b44`, `git checkout --detach FETCH_HEAD`.
 
 ## Ideas, and the pfy file each would touch
 
 1. Ask for one frame instead of recording live playback. A still of the operator page is already the BugPatrol pixel compare (`eval/evq1107/bugpatrol/REPORT.md`). The missing window is `docs/HANDOFF-headless-1105.md`. Do not add a video renderer.
 2. Keep timing in HTML attributes, not a component tree the model must learn. Touch `docs/design/DESKTOP-SPEC.md`. The operator page is already HTML in `gui/operator/frontend`. A camera timeline is a different product.
-3. A small core skill set, with the rest on demand. Touch `docs/build-dropins/skill-discovery.md`. That drop-in already forbids loading fetched skills. Do not run `npx skills add` or `npx hyperframes skills update`. The core skill starts an events beacon.
+3. A small core skill set, with the rest on demand. Touch `docs/build-dropins/skill-discovery.md`. That drop-in already forbids loading fetched skills. Do not run `npx skills add` or `npx hyperframes skills update`. The core skill tells the agent to run an events beacon once.
 4. A design spec rewritten for a frame (`frame.md` in the README). Touch `docs/design/README.md` only if a later ticket asks for a promo film. The operator design pack is the product UI.
 
 ## Catalog comparison
