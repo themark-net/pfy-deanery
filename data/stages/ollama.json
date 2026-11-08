@@ -17,7 +17,8 @@
   "catalog_github": "https://github.com/ollama/ollama",
   "posture": [],
   "evidence": [
-    "make:smoke-litellm-ollama"
+    "make:smoke-litellm-ollama",
+    "receipt:eval/integrate/ollama/receipt.json"
   ],
   "tier_ceiling": "I3",
   "uses": "Local OpenAI-compatible server. Named pfy start ollama checks health and the default model.",
