@@ -1,0 +1,11 @@
+{
+  "slug": "opencode-mem",
+  "run_kind": "pipeline",
+  "main_sha": "5c4d2ad3a520595a13a6bd1e412ba3bdf8e11bdc",
+  "run_id": "opencode-mem-5c4d2ad3a520-20261108T201429Z",
+  "started": "2026-11-08T20:14:26Z",
+  "finished": "2026-11-08T20:14:29Z",
+  "outcome": "ok",
+  "tool_version": "2.41.1",
+  "did": "Ran the offline probe in a temp HOME and searched 8 of 8 stored salts."
+}
