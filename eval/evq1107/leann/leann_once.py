@@ -93,6 +93,10 @@ def run(passages_path: Path, questions_path: Path, index_dir: Path, out_path: Pa
                 continue
             if path.name == passages_path.name and path.resolve() == passages_path.resolve():
                 continue
+            # Harness files (cm-*.json, adapter.json) sit in this directory
+            # after a rerun. Only the build products are the index.
+            if not path.name.startswith("catalog"):
+                continue
             produced.append(path)
         index_bytes = sum(path.stat().st_size for path in produced)
         files = [

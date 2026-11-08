@@ -91,7 +91,9 @@ Index files under the probe dir, excluding the harness `passages.jsonl`:
 
 Backend hnsw, `is_recompute` true, `is_compact` true, model `sentence-transformers/all-MiniLM-L6-v2`, dim 384. A naive float32 matrix would be 216 * 384 * 4 = 331776 bytes. No produced file is that matrix. `embedding_matrix_stored` is false. The sqlite file is 372736 bytes, which is larger than 80% of the naive matrix, and the probe ignores sqlite, jsonl, idx, txt, and json when it makes that call.
 
-Savings versus the naive matrix, using the whole bundle: (331776 - 620548) / 331776 = -0.8704. The graph file alone is 16582 / 331776, which is 95.00% smaller than the matrix. Dropping the sqlite still leaves 247812 bytes of graph plus passage store, above the 190529 raw bytes. The entry's 97% figure (201 GB to 6 GB, 60 million chunks) was not measured here.
+Savings versus the naive matrix, using the whole bundle: (331776 - 620548) / 331776 = -0.8704. The graph file alone is 16582 bytes. That is 95.00% smaller than the 331776-byte matrix (16582 / 331776 = 0.0500). Dropping the sqlite still leaves 247812 bytes of graph plus passage store, above the 190529 raw bytes. The entry's 97% figure (201 GB to 6 GB, 60 million chunks) was not measured here.
+
+The scored index directory started empty. `index_bytes` sums files whose names start with `catalog`. Harness files in that directory are not part of the index. The six rows above are the whole listing from the scored run.
 
 `compression_beats_raw` is false: 620548 > 190529.
 
