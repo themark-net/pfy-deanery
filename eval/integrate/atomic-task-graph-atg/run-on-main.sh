@@ -12,7 +12,9 @@
 #
 # Prefer the wired offline check in tests/test_atg_compile_bench.py.
 # Call the model only when that check is unavailable and the model is
-# already loaded. No download. No ollama pull. A timeout is not a pass.
+# already loaded. The model command is examples/atg-compile/bench.py
+# under scripts/model_lock.sh. A caller-supplied shell command is not
+# accepted. No download. No ollama pull. A timeout is not a pass.
 # Missing checkout, missing model, error, or timeout: exit nonzero and
 # write no receipt.
 
@@ -24,6 +26,11 @@ if [ "$#" -ne 1 ] || [ -z "${1:-}" ]; then
 fi
 
 receipt=$1
+# Resolve before cd. A relative path is the caller's path, not the repo root.
+case "$receipt" in
+  /*) ;;
+  *) receipt=$PWD/$receipt ;;
+esac
 
 # Injected lane marker. Absent means this receipt run is the lane already
 # in progress, not a second start. Do not create the owner path.
@@ -89,6 +96,8 @@ else
 fi
 
 model_name=${ATG_MODEL:-qwen3.6:35b}
+base_url=${ATG_BASE_URL:-http://127.0.0.1:11434}
+base_url=${base_url%/}
 model_cmd=()
 bench_out=
 
@@ -98,36 +107,26 @@ if [ "$mode" = "model" ]; then
     loaded=1
   elif [ "${ATG_MODEL_LOADED:-}" = "0" ]; then
     loaded=0
-  elif command -v ollama >/dev/null 2>&1; then
-    # Read-only process list. Do not pull, run, stop, or restart Ollama.
-    if timeout 5s ollama ps 2>/dev/null | grep -F -- "$model_name" >/dev/null; then
-      loaded=1
+  elif [ "$base_url" = "http://127.0.0.1:11434" ] \
+    && command -v ollama >/dev/null 2>&1 \
+    && command -v ss >/dev/null 2>&1; then
+    # Query only when the port is already listening. A connect can
+    # socket-activate the daemon. Do not pull, run, stop, or restart.
+    if ss -ltnH 'sport = :11434' 2>/dev/null | grep -q .; then
+      if timeout 5s ollama ps 2>/dev/null | grep -F -- "$model_name" >/dev/null; then
+        loaded=1
+      fi
     fi
   fi
   if [ "$loaded" != "1" ]; then
     printf '%s\n' "model is not loaded" >&2
     exit 1
   fi
-  if [ -n "${ATG_MODEL_CMD:-}" ]; then
-    model_cmd=(sh -c "$ATG_MODEL_CMD")
-    did="Ran one model call under scripts/model_lock.sh because the offline check was unavailable. No download and no ollama pull."
-  else
-    if [ -z "${ATG_REPO:-}" ] || [ ! -d "$ATG_REPO" ]; then
-      printf '%s\n' "ATG checkout is missing" >&2
-      exit 1
-    fi
-    bench_out=$(mktemp)
-    model_cmd=(
-      python3 "$root/examples/atg-compile/bench.py"
-      --limit 1
-      --case-timeout 60
-      --health-timeout 2
-      --receipt "$bench_out"
-      --atg-repo "$ATG_REPO"
-      --model "$model_name"
-    )
-    did="Ran one atg-compile case against the already-loaded model under scripts/model_lock.sh. No download and no ollama pull."
+  if [ -z "${ATG_REPO:-}" ] || [ ! -d "$ATG_REPO" ]; then
+    printf '%s\n' "ATG checkout is missing" >&2
+    exit 1
   fi
+  did="Ran one atg-compile case against the already-loaded model under scripts/model_lock.sh. No download and no ollama pull."
 fi
 
 started=$(date -u +%Y-%m-%dT%H:%M:%SZ)
@@ -152,6 +151,20 @@ cleanup() {
   fi
 }
 trap cleanup EXIT
+
+if [ "$mode" = "model" ]; then
+  bench_out=$(mktemp)
+  model_cmd=(
+    python3 "$root/examples/atg-compile/bench.py"
+    --limit 1
+    --case-timeout 60
+    --health-timeout 2
+    --receipt "$bench_out"
+    --atg-repo "$ATG_REPO"
+    --model "$model_name"
+    --base-url "$base_url"
+  )
+fi
 
 set +e
 if [ "$mode" = "offline" ]; then
