@@ -12,7 +12,9 @@ version, host class). Host class is nimo (self-hosted or this lab) or ubuntu
 check exits 0 on a recorded PASS for this key. A full PASS also satisfies an
 affected or structural check. An affected PASS does not satisfy --need full.
 A corrupt file, a FAIL, a dirty worktree, or a different tree is a miss.
-record writes only a PASS, atomically. A dirty worktree is not recorded.
+record writes only a PASS, atomically. A dirty worktree is not recorded:
+the command prints "not recorded: dirty worktree" and exits 0. A non-PASS
+still exits 1 and writes nothing. check still exits 1 on a dirty tree.
 """
 from __future__ import annotations
 
@@ -218,8 +220,10 @@ def cmd_record(root: Path, args: argparse.Namespace) -> int:
         print("not recorded: affected and full need a receipt with rc 0", file=sys.stderr)
         return 1
     if worktree_dirty(root):
+        # Skip, do not fail. A passing suite stays green. The file is not written,
+        # so a later clean check cannot skip tests that ran against other files.
         print("not recorded: dirty worktree")
-        return 1
+        return 0
     ident = identity(root)
     payload = {
         "key": ident["key"],

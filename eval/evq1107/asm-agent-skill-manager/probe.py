@@ -3,8 +3,10 @@
 
 Measures whether a planted SKILL.md is blocked before it is copied into a
 project skills directory, and whether one clean skill lands in two provider
-dirs. The child env is a redirected home under the tool cache. No hosted
-model and no registry fetch.
+dirs. The child env is a redirected home under the tool cache. The cache
+is $XDG_CACHE_HOME/pfy/tools/asm-agent-skill-manager, or
+$HOME/.cache/pfy/tools/asm-agent-skill-manager when XDG_CACHE_HOME is unset.
+No hosted model and no registry fetch.
 """
 
 from __future__ import annotations
@@ -21,15 +23,22 @@ from pathlib import Path
 
 OUT_DIR = Path(__file__).resolve().parent
 FIXTURES = OUT_DIR / "fixtures"
-CACHE = Path("/home/mark/.cache/pfy/tools/asm-agent-skill-manager")
-ASM = Path(
-    os.environ.get(
-        "ASM_BIN",
-        str(CACHE / "prefix" / "node_modules" / ".bin" / "asm"),
-    )
-)
-TARBALL = CACHE / "agent-skill-manager-2.24.0.tgz"
-WORK = CACHE / "tmp" / "asm-probe"
+
+
+def cache_dir() -> Path:
+    """Tool files under XDG_CACHE_HOME, or $HOME/.cache when that is unset."""
+    xdg = os.environ.get("XDG_CACHE_HOME", "").strip()
+    base = Path(xdg) if xdg else Path.home() / ".cache"
+    return base / "pfy" / "tools" / "asm-agent-skill-manager"
+
+
+def asm_bin() -> Path:
+    override = os.environ.get("ASM_BIN", "").strip()
+    if override:
+        return Path(override)
+    return cache_dir() / "prefix" / "node_modules" / ".bin" / "asm"
+
+
 PIN_SHA256 = "78fde253af3e216098a6d471dd90341d4aace1bc839816d1080a6fc1432661dd"
 CATEGORIES = ("Shell commands", "Code execution", "Credentials", "External URLs")
 PLANTED_CATEGORIES = ("Shell commands", "Credentials", "External URLs")
@@ -63,13 +72,14 @@ def snap(paths: list[Path]) -> dict[str, tuple[int, int] | None]:
 
 def child_env() -> dict[str, str]:
     # Minimal env so a host credential is not passed through.
+    root = cache_dir()
     return {
-        "HOME": str(CACHE / "home"),
-        "XDG_CONFIG_HOME": str(CACHE / "config"),
-        "XDG_CACHE_HOME": str(CACHE / "cache"),
-        "TMPDIR": str(CACHE / "tmp"),
-        "npm_config_cache": str(CACHE / "npm"),
-        "npm_config_userconfig": str(CACHE / "npmrc"),
+        "HOME": str(root / "home"),
+        "XDG_CONFIG_HOME": str(root / "config"),
+        "XDG_CACHE_HOME": str(root / "cache"),
+        "TMPDIR": str(root / "tmp"),
+        "npm_config_cache": str(root / "npm"),
+        "npm_config_userconfig": str(root / "npmrc"),
         "PATH": "/usr/bin:/bin",
         "LANG": "C.UTF-8",
         "CI": "1",
@@ -83,7 +93,7 @@ def child_env() -> dict[str, str]:
 def run(args: list[str], cwd: Path) -> tuple[int, str, str, float]:
     started = time.perf_counter()
     proc = subprocess.run(
-        [str(ASM), *args],
+        [str(asm_bin()), *args],
         cwd=cwd,
         env=child_env(),
         text=True,
@@ -179,27 +189,30 @@ def install_record(source: Path, provider: str, cwd: Path) -> dict:
 
 
 def main() -> int:
-    for path in (CACHE / "home", CACHE / "config", CACHE / "cache", CACHE / "tmp"):
+    root = cache_dir()
+    work = root / "tmp" / "asm-probe"
+    tarball = root / "agent-skill-manager-2.24.0.tgz"
+    for path in (root / "home", root / "config", root / "cache", root / "tmp"):
         path.mkdir(parents=True, exist_ok=True)
-    if WORK.exists():
-        shutil.rmtree(WORK)
-    WORK.mkdir(parents=True)
+    if work.exists():
+        shutil.rmtree(work)
+    work.mkdir(parents=True)
     before = snap(watched_paths())
     results: dict = {
-        "asm_bin": str(ASM),
+        "asm_bin": str(asm_bin()),
         "tarball_sha256_ok": False,
         "binary_version": "",
     }
-    if not ASM.is_file():
+    if not asm_bin().is_file():
         results["error"] = "asm binary missing"
         (OUT_DIR / "results.json").write_text(json.dumps(results, indent=2) + "\n", encoding="utf-8")
         return 2
-    if TARBALL.is_file():
-        digest = hashlib.sha256(TARBALL.read_bytes()).hexdigest()
+    if tarball.is_file():
+        digest = hashlib.sha256(tarball.read_bytes()).hexdigest()
         results["tarball_sha256"] = digest
         results["tarball_sha256_ok"] = digest == PIN_SHA256
 
-    code, out, err, wall = run(["--version"], WORK)
+    code, out, err, wall = run(["--version"], work)
     version_text = (out + err).strip()
     results["binary_version_raw"] = version_text
     results["version_wall_s"] = round(wall, 4)
@@ -213,7 +226,7 @@ def main() -> int:
     clean = FIXTURES / "clean"
     local_code, local_out, local_err, local_wall = run(
         ["audit", "security", str(planted), "--json", "--no-color"],
-        WORK,
+        work,
     )
     local_payload = last_json(local_out)
     results["local_audit_before_copy"] = {
@@ -224,7 +237,7 @@ def main() -> int:
         "stdout_tail": local_out.strip().splitlines()[-1] if local_out.strip() else "",
     }
 
-    planted_proj = WORK / "planted-proj"
+    planted_proj = work / "planted-proj"
     planted_proj.mkdir()
     planted_install = install_record(planted, "grok", planted_proj)
     # Same rule as landed: an empty receipt must not read a SKILL.md from cwd.
@@ -262,7 +275,7 @@ def main() -> int:
         "tokens_named": [token for token in PLANTED_TOKENS if token in blob or token in audit_err],
     }
 
-    clean_proj = WORK / "clean-proj"
+    clean_proj = work / "clean-proj"
     clean_proj.mkdir()
     grok = install_record(clean, "grok", clean_proj)
     opencode = install_record(clean, "opencode", clean_proj)

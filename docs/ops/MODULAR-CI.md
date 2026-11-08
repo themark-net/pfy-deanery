@@ -87,7 +87,7 @@ Files live in `${PFY_TEST_CACHE:-$HOME/.cache/pfy/test-pass}/<key>.json`.
 
 Inside GitHub Actions the host class comes from `RUNNER_ENVIRONMENT`. `PFY_HOST_CLASS` cannot point a hosted runner at the nimo cache. Outside Actions the default is `nimo`, and `PFY_HOST_CLASS=nimo|ubuntu` is how tests pick a class.
 
-A stored `full` PASS satisfies `check --need structural` and `--need affected`. An `affected` PASS does not satisfy `--need full`. Only `result: PASS` is written. A corrupt file, a dirty tree, or a mismatched tree, config, Python, or host class is a miss.
+A stored `full` PASS satisfies `check --need structural` and `--need affected`. An `affected` PASS does not satisfy `--need full`. Only `result: PASS` is written. A dirty worktree is not written: `record` prints `not recorded: dirty worktree` and exits 0, so a passing suite stays green. `check` still treats a dirty tree as a miss and exits 1. A non-PASS exits 1 and writes nothing. A corrupt file, or a mismatched tree, config, Python, or host class, is a miss.
 
 Ubuntu CI never reads this cache. Nimo and a local pregate share it only when they are the same user, the same Python, and the same tree.
 

@@ -87,7 +87,7 @@ STUB = textwrap.dedent(
 
 
 class ProbeScoreTests(unittest.TestCase):
-    def _run(self, refuse: bool = False, empty_path: bool = False) -> dict:
+    def _run(self, refuse: bool = False, empty_path: bool = False, cache_mode: str = "xdg") -> dict:
         with tempfile.TemporaryDirectory() as tmp:
             dest = Path(tmp) / "lane"
             shutil.copytree(
@@ -110,6 +110,24 @@ class ProbeScoreTests(unittest.TestCase):
                 )
             env = os.environ.copy()
             env["ASM_BIN"] = str(stub)
+            home = Path(tmp) / "home"
+            xdg = Path(tmp) / "xdg-cache"
+            home.mkdir()
+            xdg.mkdir()
+            (Path(tmp) / "xdg-config").mkdir()
+            env["HOME"] = str(home)
+            env["XDG_CONFIG_HOME"] = str(Path(tmp) / "xdg-config")
+            if cache_mode == "home":
+                env.pop("XDG_CACHE_HOME", None)
+                cache = home / ".cache" / "pfy" / "tools" / "asm-agent-skill-manager"
+            else:
+                env["XDG_CACHE_HOME"] = str(xdg)
+                cache = xdg / "pfy" / "tools" / "asm-agent-skill-manager"
+            # The old probe always mkdir'd this login path. A hosted runner
+            # has no /home/mark. Missing stays missing. An existing dir must
+            # not be rewritten.
+            hard = Path("/home/mark/.cache/pfy/tools/asm-agent-skill-manager/tmp/asm-probe")
+            before = hard.stat().st_mtime_ns if hard.exists() else None
             proc = subprocess.run(
                 [sys.executable, str(dest / "probe.py")],
                 cwd=Path(tmp) if empty_path else ROOT,
@@ -118,8 +136,20 @@ class ProbeScoreTests(unittest.TestCase):
                 capture_output=True,
                 timeout=30,
             )
-            self.assertEqual(proc.returncode, 0, proc.stderr)
+            after = hard.stat().st_mtime_ns if hard.exists() else None
+            self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
+            self.assertEqual(before, after)
+            self.assertTrue((cache / "tmp" / "asm-probe").is_dir(), proc.stderr + proc.stdout)
+            if cache_mode != "home":
+                self.assertFalse(
+                    (home / ".cache" / "pfy" / "tools" / "asm-agent-skill-manager").exists()
+                )
             return json.loads((dest / "results.json").read_text(encoding="utf-8"))
+
+    def test_cache_uses_home_when_xdg_cache_home_is_unset(self) -> None:
+        data = self._run(cache_mode="home")
+        self.assertEqual(data["high_risk_blocked"], "0/1")
+        self.assertTrue(data["real_homes_unchanged"])
 
     def test_copied_high_risk_is_not_a_block_and_a_refusal_is(self) -> None:
         copied = self._run(refuse=False)

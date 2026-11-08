@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+import shlex
 import shutil
 import subprocess
 import tempfile
@@ -143,6 +144,82 @@ class TestCacheTests(unittest.TestCase):
         miss = self._run("check", "--need", "structural")
         self.assertEqual(miss.returncode, 1)
         self.assertIn("corrupt", miss.stdout)
+
+    def test_dirty_worktree_skips_record_and_the_suite_stays_green(self) -> None:
+        # A passing suite must stay green when recording is skipped.
+        # The cache file from a clean PASS must be left as it was.
+        first = self._run("record", "--mode", "structural")
+        self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
+        files = list(self.cache.glob("*.json"))
+        self.assertEqual(len(files), 1)
+        original = files[0].read_text(encoding="utf-8")
+        (self.repo / "README.md").write_text("dirty\n", encoding="utf-8")
+        script = (
+            "set -euo pipefail\n"
+            "python3 "
+            + shlex.quote(str(CACHE))
+            + " --root "
+            + shlex.quote(str(self.repo))
+            + " record --mode structural\n"
+        )
+        proc = subprocess.run(
+            ["bash", "-c", script],
+            cwd=self.repo,
+            env=self.env,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertIn("not recorded: dirty worktree", proc.stdout + proc.stderr)
+        self.assertEqual(files[0].read_text(encoding="utf-8"), original)
+        # The nimo G0 call: selection plus a passing receipt, under set -e.
+        sel = self.tmp / "selection.json"
+        sel.write_text(
+            json.dumps({"mode": "affected", "modules": ["tests.test_leaf"]}),
+            encoding="utf-8",
+        )
+        g0 = (
+            "set -euo pipefail\n"
+            "python3 "
+            + shlex.quote(str(CACHE))
+            + " --root "
+            + shlex.quote(str(self.repo))
+            + " record --selection "
+            + shlex.quote(str(sel))
+            + " --receipt "
+            + shlex.quote(self._receipt(0))
+            + "\n"
+        )
+        passed = subprocess.run(
+            ["bash", "-c", g0],
+            cwd=self.repo,
+            env=self.env,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(passed.returncode, 0, passed.stdout + passed.stderr)
+        self.assertIn("not recorded: dirty worktree", passed.stdout + passed.stderr)
+        self.assertEqual(files[0].read_text(encoding="utf-8"), original)
+        miss = self._run("check", "--need", "structural")
+        self.assertEqual(miss.returncode, 1, miss.stdout + miss.stderr)
+        self.assertIn("dirty worktree", miss.stdout + miss.stderr)
+        failed = self._run(
+            "record",
+            "--mode",
+            "affected",
+            "--result",
+            "FAIL",
+            "--receipt",
+            self._receipt(1),
+        )
+        self.assertNotEqual(failed.returncode, 0)
+        self.assertIn("only PASS", failed.stdout + failed.stderr)
+        self.assertEqual(list(self.cache.glob("*.json")), files)
+        self.assertEqual(files[0].read_text(encoding="utf-8"), original)
+        (self.repo / "README.md").write_text("one\n", encoding="utf-8")
+        hit = self._run("check", "--need", "structural")
+        self.assertEqual(hit.returncode, 0, hit.stdout + hit.stderr)
+        self.assertIn("HIT ", hit.stdout)
 
 
 if __name__ == "__main__":
