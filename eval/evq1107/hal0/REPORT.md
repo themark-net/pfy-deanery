@@ -24,7 +24,7 @@ git -C "$CACHE/src" checkout --detach 60bcf6f77dc81c5e13692e4fde712db5eb3285ea
 
 1. One `/v1` in front of named capability slots, each pinned to a device. Touch `docs/adr/0014-pluggable-local-inference-spine.md`. That ADR already picks one OpenAI base URL: FreeToken, then llama-swap or llama-server, then Ollama.
 2. Their leaderboard cites `qwen3.6-35b-a3b-crown` at 84.4 tok/s decode and 873 tok/s prefill (f16, ROCm 7.2.4, their box) and NPU `gemma3:1b` at about 38.6 tok/s in about 2 GB. Our ROCm 7.1 llama.cpp row is 57.2 tok/s decode in `docs/dogfood/LOCAL-BENCH-5-RUNTIMES.md`. Re-measure with `examples/local-bench/bench.py` before a host decision. Their claim, not reproduced here.
-3. `hal0 doctor` is a read-only preflight. `./pfy status` already reports ready, partial, stub, or missing (`docs/design/pfy-launcher.md`). Their Strix Halo doc says a Vulkan lane can emit invalid tokens while `hal0 doctor` stays green.
+3. The README presents bare `hal0 doctor` as a pre-flight. `perms --fix` and `ports --fix` write. `./pfy status` already reports ready, partial, stub, or missing (`docs/design/pfy-launcher.md`). Their Strix Halo doc says a Vulkan lane can emit invalid tokens while `hal0 doctor` stays green. This lane ran no doctor command.
 4. Live model steps already take `scripts/model_lock.sh`. Leave the installer, systemd units, FastFlowLM `.deb`, Hermes bundle, and OpenWebUI on `:3001` unused.
 
 ## Catalog comparison
@@ -58,7 +58,7 @@ Modularity, all 4 for a local copy: the README was enough to stay, the unit is a
 | LAN-open API | The installer seeds `HAL0_BIND_HOST=0.0.0.0`. Auth stays off until `hal0 auth require on`. OpenWebUI `:3001` uses `WEBUI_AUTH=False` and sits outside that switch. | Do not install. A later ticket would bind loopback first. |
 | Port and memory | `:8080` and GTT contend with llama-server and Ollama | Keep both. `scripts/model_lock.sh` stays the live-model lock. |
 | Leaderboard optimism | 84.4 tok/s is their ROCm 7.2.4 table, not a nimo receipt | Re-measure with `examples/local-bench/bench.py`. |
-| Pin drift | `main` is 426 commits past v1.4.0 | The card pins `60bcf6f77dc81c5e13692e4fde712db5eb3285ea`. |
+| Pin drift | hal0 `main` is 426 commits past v1.4.0 | The card pins `60bcf6f77dc81c5e13692e4fde712db5eb3285ea`. |
 
 ## Next gate
 
