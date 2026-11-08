@@ -250,6 +250,7 @@ def verdict_lines(repo: Path) -> dict:
         "mempalace": repo / "eval" / "evq1107" / "mempalace" / "VERDICT",
         "ai-memory": repo / "eval" / "evq1107" / "ai-memory" / "VERDICT",
         "opencode-mem": repo / "eval" / "evq1107" / "opencode-mem" / "VERDICT",
+        "kenfold": repo / "eval" / "evq1107" / "kenfold" / "VERDICT",
     }
     out = {}
     for name, path in names.items():

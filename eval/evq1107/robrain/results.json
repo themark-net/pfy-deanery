@@ -40,7 +40,7 @@
       "passed": true,
       "tail": "2 \u2713\ns02       d102           1 \u2713       1 \u2713\ns03       d103           1 \u2713       4 \u2713\ns04       d104           1 \u2713      18 \u2717\ns05       d105           1 \u2713       1 \u2713\ns06       d106           1 \u2713       7 \u2717\ns07       d107           1 \u2713       4 \u2713\ns08       d108           1 \u2713       1 \u2713\ns09       d109           1 \u2713       6 \u2717\ns10       d110           1 \u2713       1 \u2713\n\nveto recall@5: 1.00 with files known (gate: \u2265 0.80) \u00b7 0.70 without\n\n(offline run \u2014 add --live with an LLM key for the behavioral layer)\n\n\u2713 PASS\n",
       "exit": 0,
-      "ms": 40.4
+      "ms": 46.1
     },
     "lifecycle": {
       "recall": {
@@ -52,7 +52,7 @@
       "passed": true,
       "tail": "er 5-signal composite scoring (top-5 injected)\n\"files known\" = the agent is editing files the decision touched; \"no files\" = semantic + recency + approval only\nscenario  veto   files known  no files\nsL1       L102           1 \u2713       3 \u2713\nsL2       L104           1 \u2713       4 \u2713\nsL3       L106           1 \u2713       1 \u2713\nsL4       L108           1 \u2713       1 \u2713\n\nveto recall@5: 1.00 with files known (gate: \u2265 0.80) \u00b7 1.00 without\n\n(offline run \u2014 add --live with an LLM key for the behavioral layer)\n\n\u2713 PASS\n",
       "exit": 0,
-      "ms": 30.7
+      "ms": 34.6
     }
   },
   "upstream_pin_ok": true,
@@ -139,7 +139,7 @@
         "rank_nofiles": 1
       }
     ],
-    "ms": 31.6,
+    "ms": 33.7,
     "exit": 0
   },
   "overlap_decision": {
@@ -489,6 +489,17 @@
       "uses": "Reference for a supervised review loop and final-answer memory. Not an install."
     },
     {
+      "file": "kenfold.json",
+      "name": "Kenfold",
+      "integration_stage": "I1",
+      "hits": [
+        "memory",
+        "pgvector",
+        "postgres"
+      ],
+      "uses": "Shared memory for several agent CLIs over MCP. The 2026-11-07 probe recalled 8 of 8 copied tokens from a second agent and 0 of 8 facts already in this repo, and it graded 0 with/without cases."
+    },
+    {
       "file": "leann.json",
       "name": "LEANN",
       "integration_stage": "I1",
@@ -523,7 +534,7 @@
       "hits": [
         "memory"
       ],
-      "uses": "Self-rewriting agent. Interesting pattern, unsafe as a runtime."
+      "uses": "Reference read of a self-rewriting Python agent. The mutation-safety note is eval/evq1107/mue-x/REPORT.md. Unsafe as a runtime."
     },
     {
       "file": "opencode-mem.json",
@@ -560,7 +571,8 @@
     "leann": "STAY I1: index bundle 620548 bytes is larger than 190529 raw passage bytes, and the CPU cache install is 1.63 GB with torch and MiniLM weights, so the 50 MB I2 gate fails.",
     "mempalace": "STAY I1 top-1 8/8 beat a word walk 6/8 and wing leaks were 0/8, but the work tree is 68560448 bytes and the MiniLM onnx file is 90387606 bytes",
     "ai-memory": "STAY I1 pasted search 8/8, repo facts 0/8, claim-once 8/8, 0 graded with/without cases",
-    "opencode-mem": "PROMOTE I2 restart search recalled 8 of 8 salts absent from the repo (rg 0 of 8); a damaged shard did not rebuild"
+    "opencode-mem": "PROMOTE I2 restart search recalled 8 of 8 salts absent from the repo (rg 0 of 8); a damaged shard did not rebuild",
+    "kenfold": "STAY I1 stdio recall 8/8 copied tokens, 0/8 repo facts, 0 graded with/without cases"
   },
   "bytes": {
     "checkout": 304388021,
@@ -574,5 +586,5 @@
   "beats_adr_text": false,
   "beats_decision_overlap": false,
   "home_unchanged": true,
-  "ms": 1169.0
+  "ms": 1190.1
 }

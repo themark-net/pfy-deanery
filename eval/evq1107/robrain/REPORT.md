@@ -10,7 +10,7 @@ The card was already I0. This probe does not earn I1, I2, or I3. No TOOLS.md row
 
 The job is decision memory: store a rejected option and surface it before a later task repeats it. The lane gap is H1 (a repeatable with/without score, plus memory and context). H1 is that harness2 showed no gain and there is no score to re-measure it, or to compare pfy with a plain Build run. The 2026-11-07 ranking gives that score to skill-up. The same ranking puts MemPalace and RoBrain on a post-MVP memory row, not on H1.
 
-`eval/evq1107/robrain/probe.py` reads `uses`, `features`, and tags for the words memory, veto, pgvector, postgres, embedding, and embeddings. 15 other cards matched. The list is `cards` in `results.json`. Batch-1 under `eval/ev1107/` has no RoBrain trial. `eval/catchup-1107/` has no RoBrain trial. skill-up, harness2, neatroots, and eval-harness do not match those words. ai-memory does not either (its uses line is a wiki and a mailbox). Their stages are in the table.
+`eval/evq1107/robrain/probe.py` reads `uses`, `features`, and tags for the words memory, veto, pgvector, postgres, embedding, and embeddings. 16 other cards matched. The list is `cards` in `results.json`. Batch-1 under `eval/ev1107/` has no RoBrain trial. `eval/catchup-1107/` has no RoBrain trial. skill-up, harness2, neatroots, and eval-harness do not match those words. ai-memory does not either (its uses line is a wiki and a mailbox). Their stages are in the table.
 
 | Card | Stage | What it already covers | How RoBrain compares |
 | --- | --- | --- | --- |
@@ -22,6 +22,7 @@ The job is decision memory: store a rejected option and surface it before a late
 | MemPalace | I1 | Verbatim excerpts. Top-1 8/8 against a word walk 6/8. Stayed I1. Work tree 68560448 bytes, MiniLM onnx 90387606 bytes. | A different question. It beat a word walk on excerpts it had mined. This ranker lost to ADR text on rejected options. |
 | ai-memory | I1 | Pasted search 8/8, repo facts 0/8, claim-once 8/8. The word scan misses this card. | A wiki and a mailbox. It does not rank a rejected option that is already in an ADR. |
 | opencode-mem | I2 | Restart search recalled 8/8 salts that are not in the repo. rg found 0/8. A notes file found the same 8. | Session facts that were never committed. The vetoes in this probe are already in `docs/adr`. |
+| Kenfold | I1 | Stdio memory for several CLIs. Recall 8/8 copied tokens, 0/8 facts already in this repo. The probe started rootless Postgres and pgvector. Graded with/without cases: 0. | A paste between agents. It missed facts already in the repo. This probe's vetoes are already in `docs/adr`, and Postgres stayed skipped. |
 | OpenContext | I1 | Note store. Its probe was 8/8 copied notes and 0/8 repo facts. | A note file. This probe did not beat ADR text. |
 | LEANN | I1 | Compressed RAG. Not our code memory. | A passage index. This probe did not build one. |
 | Memvid | I1 | Video-backed memory. No current job. | Different store. Not run. |
@@ -51,9 +52,9 @@ The job is decision memory: store a rejected option and surface it before a late
 | Checkout bytes | 304388021, from `results.json`. |
 | `node_modules` bytes | 295415802. `@robrain/vetobench` depends on `mem0ai`, so the frozen install pulls it. The offline bench does not import it. |
 | Source without `.git` or `node_modules` | 6767744 bytes. |
-| Upstream default suite | exit 0, 40.4 ms, 10 rows, recall 1.00 with files known and 0.70 without, offline, PASS. |
-| Upstream lifecycle suite | exit 0, 30.7 ms, 4 rows, recall 1.00 and 1.00, offline, PASS. |
-| ADR rank call | 31.6 ms. |
+| Upstream default suite | exit 0, 46.1 ms, 10 rows, recall 1.00 with files known and 0.70 without, offline, PASS. |
+| Upstream lifecycle suite | exit 0, 34.6 ms, 4 rows, recall 1.00 and 1.00, offline, PASS. |
+| ADR rank call | 33.7 ms. |
 
 `HOME`, `XDG_CONFIG_HOME`, `XDG_CACHE_HOME`, `XDG_DATA_HOME`, `TMPDIR`, and `COREPACK_HOME` for the install pointed under `~/.cache/pfy/tools/robrain/`. The probe child env was a fresh map with those homes under `probe-home`, plus `PATH` limited to the node directory and `/usr/bin:/bin`. The parent env was not inherited. No API key was set. `~/.robrain` and `~/.mem0` were absent before the probe and after it (`home_unchanged` true). `~/.npm` was not touched (mtime 2026-08-23).
 
@@ -96,7 +97,7 @@ Not run: `robrain up`, `robrain install`, `robrain init-project`, `--live`, the 
 | `beats_adr_text` | false |
 | Graded with/without harness cases | 0 |
 | Postgres + pgvector | SKIPPED |
-| Probe wall | 1169.0 ms (includes the checkout byte walk) |
+| Probe wall | 1190.1 ms (includes the checkout byte walk) |
 | Real home directories changed | no |
 
 No-files ranks (`vetoRank`, then decision-text overlap, then ADR-text overlap):
