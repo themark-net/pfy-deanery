@@ -24,4 +24,4 @@
 | Provider keys in a trial | "Any provider" pulls a hosted account into this repo | Stay at I0. A trial needs its own checkout and Mark's GO |
 | Pin drift | A newer tag replaces `v1.2.10` on `main` | The smoke checks this tag's asset digest, not floating `main` |
 
-- **Status**: Cataloged I0. Metadata matched on nimo. The GUI was not launched (exit 2). Next step, if any: none until someone wants a desktop trial outside this repo. No Feature GO.
+- **Status**: STAY I0 reference (read 2026-11-07). Pin `ab766e8fbb436584dcf0f299740e79d559b8ed31` is tag v1.2.10, Apache-2.0. No install and no code copy. The GUI was not launched (entry smoke exit 2). Gap B stays the pfy build timeout. Receipt: `eval/evq1107/emdash/REPORT.md`. No Feature GO.

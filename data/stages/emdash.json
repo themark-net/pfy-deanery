@@ -4,16 +4,34 @@
   "intent": "awareness",
   "entry": "sources/entries/158-emdash.md",
   "github": "https://github.com/generalaction/emdash",
-  "uses": "Parallel agents GUI, one worktree each.",
+  "pin": "ab766e8fbb436584dcf0f299740e79d559b8ed31",
+  "license": "Apache-2.0",
+  "uses": "Desktop app that runs coding-agent CLIs, one git worktree per task. Reference read only.",
+  "features": [
+    "one worktree per task",
+    "host-authoritative workspace registry",
+    "provider CLI detect",
+    "ssh remote hosts"
+  ],
   "potential": "low",
-  "next_gate": "Comparison only.",
+  "next_gate": "Stay I0 reference. Re-open only for a desktop trial outside this repo, where writing agent home configs is allowed. The 2026-11-07 read did not install or launch the AppImage. Pin ab766e8 is tag v1.2.10. Gap B is still the pfy build timeout. No gate wiring. Not a Feature GO.",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",
-    "catalog_hold_70_75"
+    "catalog_hold_70_75",
+    "install",
+    "appimage",
+    "code_copy",
+    "gate_wiring",
+    "hook_install",
+    "grok_home"
   ],
   "evidence": [
-    "entry:sources/entries/158-emdash.md"
+    "entry:sources/entries/158-emdash.md",
+    "pin:ab766e8fbb436584dcf0f299740e79d559b8ed31",
+    "tag:v1.2.10",
+    "eval/evq1107/emdash/REPORT.md",
+    "eval/evq1107/emdash/VERDICT"
   ],
   "handoff_by": "llm"
 }
