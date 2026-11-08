@@ -1,7 +1,7 @@
 {
   "name": "OpenClaude-Portable",
-  "integration_stage": "I1",
-  "intent": "catalog_default",
+  "integration_stage": "I0",
+  "intent": "awareness",
   "tier": "A",
   "auto": true,
   "catalog_tier": "A",
@@ -12,17 +12,32 @@
     "#folder-based"
   ],
   "catalog_github": "https://github.com/techjarves/OpenClaude-Portable",
+  "pin": "b3660fda34333d759b7e76ccb62b0a2aa076bb66",
+  "license": "MIT",
   "posture": [],
-  "evidence": [],
+  "evidence": [
+    "pin:b3660fda34333d759b7e76ccb62b0a2aa076bb66",
+    "eval/evq1107/openclaude-portable/REPORT.md",
+    "eval/evq1107/openclaude-portable/VERDICT"
+  ],
   "tier_ceiling": "I1",
-  "uses": "A portable Claude folder. We already point at the official installer.",
+  "uses": "USB folder that downloads official Claude Code and a private Node. The Claude slot already points at the official installer. Reference read only.",
   "features": [
-    "portable folder"
+    "folder-local Claude runtime",
+    "nine provider profiles",
+    "localhost dashboard token",
+    "pinned Node and Claude packages"
   ],
   "potential": "low",
-  "next_gate": "Stay I1.",
+  "next_gate": "Stay I0 reference. Re-open only if a later ticket asks to replace the official installer in data/harnesses.json. This read does not. Pin b3660fda is main on 2026-09-12. Gap B stays the pfy build timeout. No install, no engine download, no gate. Not a Feature GO.",
   "handoff_by": "llm",
   "non_goals": [
-    "second Claude install path"
+    "second Claude install path",
+    "feature_go",
+    "install",
+    "code_copy",
+    "gate_wiring",
+    "engine download",
+    "plaintext key store"
   ]
 }
