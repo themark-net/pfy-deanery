@@ -26,6 +26,7 @@ class DispatchedMarkerTest(unittest.TestCase):
                 path.write_text(fake)
                 path.chmod(path.stat().st_mode | stat.S_IEXEC)
             env = os.environ.copy()
+            env["PFY_MODEL_LOCK"] = str(td / "model.lock")
             env["PATH"] = str(bindir) + os.pathsep + env.get("PATH", "")
             try:
                 result = subprocess.run(

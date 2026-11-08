@@ -90,6 +90,7 @@ class SandlockLaneHookTest(unittest.TestCase):
             grok.chmod(grok.stat().st_mode | stat.S_IEXEC)
             env = os.environ.copy()
             env["PFY_DCG_DISABLE"] = "1"
+            env["PFY_MODEL_LOCK"] = str(td / "model.lock")
             env["PATH"] = str(bindir) + os.pathsep + env.get("PATH", "")
             (clone / "tmp").mkdir(exist_ok=True)
             (clone / "tmp" / "TICKET-hookslug.md").write_text("hook ticket\n")
