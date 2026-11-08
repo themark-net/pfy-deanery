@@ -39,7 +39,7 @@ Beats what we have: no.
 | gitleaks | 8.21.2. Archive sha256 `5bc41815076e6ed6ef8fbecc9d9b75bcae31f39029ceb55da08086315316e3ba` matches `toolchain.json`. Installed binary sha256 `50b742abd7daad8bbddb6301f3017efb680632d9a5b3b4d8f137b3aac250e359` matches the file inside that archive. |
 | ruff | 0.8.4. Archive sha256 `c4e6591ae1bb4f15c09c9022b7bfc57e1c3a567acdc9cd76021cd1304b5868c3` matches `toolchain.json`. Installed binary sha256 `ce7b99797145b43d23b732d6050fbbd62e4f9059663cf24218810598753dfb90` matches the file inside that archive. |
 | bandit | 1.9.4 (`bandit --version`). |
-| install | prefix `du -sb` 15332053 bytes. Scanner home `du -sb` 523828358 bytes (about 524MB). ZFS `du -sh` on that home was 270M. |
+| install | prefix `du -sb` 15332053 bytes. Scanner home `du -sb` 523828358 bytes (about 524MB). ZFS `du -sh` on that home was 270M. `results.json` `tools_dir_bytes` is 549091308. The probe sums `stat().st_size`, which follows symlinks. `du -sb` does not follow them, so the two figures differ by the linked targets. Both are far above 50MB. |
 
 `init` was not run. No account and no key.
 
@@ -60,7 +60,7 @@ node /home/mark/.npm-global/lib/node_modules/npm/bin/npm-cli.js install \
 python3 eval/evq1107/openqodex/probe.py "$PWD" > eval/evq1107/openqodex/results.json
 ```
 
-The scored `results.json` is the second probe (tools already installed). `review --agent` took 4.461s and exited 0. The block-threshold rerun took 4.393s. `scan --block-on-severity major` took 4.251s. Finalize calls were 0.125s to 0.140s. No model lock. `ollama` was not called.
+The scored `results.json` is the second probe (tools already installed). `review --agent` took 4.461s and exited 0. The block-threshold rerun took 4.393s. `scan --block-on-severity major` took 4.251s. Finalize calls were 0.125s to 0.14s. No model lock. `ollama` was not called.
 
 The first probe, same command, also installed the four scanners (`installing semgrep 1.94.0`, `gitleaks 8.21.2`, `ruff 0.8.4`, `bandit 1.9.4` on stderr) in 13.234s. Its planted token was `ghp_` plus 36 copies of one letter. Gitleaks reported no candidate. That plant is not what `probe.py` writes now. The scored plant is `ghp_` plus 36 hex characters from a fixed sha256, and it is redacted in `results.json`.
 
