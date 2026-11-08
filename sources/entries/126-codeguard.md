@@ -20,4 +20,4 @@
 | Attribution | Rule text reused without credit | CC-BY-4.0: credit CoSAI and link the release when quoting |
 | Two live repos | The superseded `project-codeguard/rules` repo drifts from the CoSAI one | Use the cosai-oasis URL and a pinned commit or tag |
 
-- **Status**: Cataloged I0. Read on the Grok Bot box; not installed on nimo.
+- **Status**: Stayed I0 after the 2026-11-07 evq1107 probe (pin `41160d54980bab0618165485ade3cfd2ade93288`, pyproject `1.5.0`). Offline prefix pass caught the planted `ghp_` token and missed `shell=True`, a Python secret log, and a fetched-skill prompt injection. SARIF reviewer not run (host-agent instructions, no model). Not an H2 install gate. Not wired into a gate. No Feature GO.

@@ -1,0 +1,40 @@
+{
+  "name": "CodeGuard",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/126-codeguard.md",
+  "github": "https://github.com/cosai-oasis/project-codeguard",
+  "notes_doc": "eval/evq1107/codeguard/REPORT.md",
+  "pin": "41160d54980bab0618165485ade3cfd2ade93288",
+  "uses": "Secure-coding rule text a host agent can read during generation or review. Not an install gate and not an offline scanner.",
+  "features": [
+    "108 markdown rules",
+    "IDE translators",
+    "credential prefix list",
+    "host-agent SARIF instructions"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I0. Potential is low, so I2 does not apply. A later probe can argue I2 only if an offline run emits SARIF that catches shell=True and a Python secret written to a log, with no hosted model. That still would not replace SkillSpector as the H2 copy check. No gate wiring.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "pregate or CI gate",
+    "drop rules into this repo",
+    "hosted inspect eval",
+    "MCP server",
+    "replace SkillSpector"
+  ],
+  "evidence": [
+    "entry:sources/entries/126-codeguard.md",
+    "pin:41160d54980bab0618165485ade3cfd2ade93288",
+    "eval/evq1107/codeguard/REPORT.md",
+    "eval/evq1107/codeguard/VERDICT",
+    "eval/evq1107/codeguard/results.json"
+  ],
+  "handoff_by": "llm",
+  "self_pipeline": {
+    "status": "not_applicable",
+    "reason": "Advisory probe only in eval/evq1107/codeguard/REPORT.md. The SARIF reviewer was not run. Not applied to pregate or CI."
+  }
+}

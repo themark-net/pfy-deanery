@@ -1,0 +1,245 @@
+{
+  "pin": "41160d54980bab0618165485ade3cfd2ade93288",
+  "version": "1.5.0",
+  "license": "CC-BY-4.0",
+  "tree_bytes_excluding_git": 2314802,
+  "rules": {
+    "core": 23,
+    "owasp": 85
+  },
+  "skill": {
+    "name": "codeguard",
+    "description_chars": 218,
+    "codeguard_version": "1.5.0"
+  },
+  "applicability": {
+    "always_apply": 3,
+    "python": 58,
+    "shell": 12,
+    "javascript": 91,
+    "empty_languages": 3
+  },
+  "recognition": {
+    "rule": "codeguard-1-hardcoded-credentials",
+    "prefixes": [
+      "AKIA",
+      "AGPA",
+      "AIDA",
+      "AROA",
+      "AIPA",
+      "ANPA",
+      "ANVA",
+      "ASIA",
+      "sk_live_",
+      "pk_live_",
+      "sk_test_",
+      "pk_test_",
+      "AIza",
+      "ghp_",
+      "gho_",
+      "ghu_",
+      "ghs_",
+      "ghr_"
+    ],
+    "url_prefixes": [
+      "mongodb://"
+    ],
+    "private_key_block": true,
+    "skipped_broad_or_unparsed": [
+      "eyJ"
+    ],
+    "warning_sign_tokens_not_scanned": [
+      "password",
+      "secret",
+      "key",
+      "token",
+      "auth"
+    ],
+    "continuation_alnum": 8
+  },
+  "literals_in_rules": {
+    "shell=True": 0,
+    "subprocess": 0,
+    "session_token": 0,
+    "SKILL.md": 0,
+    "do not install": 0,
+    "prompt injection": 1,
+    "AF_UNIX": 0,
+    "pid reuse": 0,
+    "pidfile": 0,
+    "tempfile": 0
+  },
+  "logging_rule_languages": [
+    "c",
+    "javascript"
+  ],
+  "prompt_injection_rules": [
+    "codeguard-0-mcp-security"
+  ],
+  "backtick_overlap": {
+    "shell_line": [],
+    "log_line": []
+  },
+  "seconds": 2.0534,
+  "sarif_py_files": [
+    "src/artifact_targets.py"
+  ],
+  "plants": {
+    "control_source": "pfylib/__init__.py",
+    "control_sha256": "e4463127db9075040d0de87f2d0912708a00e24ae988f39222577978d237d8c0",
+    "per_file": {
+      "control.py": {
+        "hit_count": 0,
+        "prefixes": []
+      },
+      "runner.py": {
+        "hit_count": 0,
+        "prefixes": []
+      },
+      "session.py": {
+        "hit_count": 0,
+        "prefixes": []
+      },
+      "tokenstore.py": {
+        "hit_count": 1,
+        "prefixes": [
+          "ghp_"
+        ]
+      },
+      "skill/SKILL.md": {
+        "hit_count": 0,
+        "prefixes": []
+      },
+      "skill/helper.py": {
+        "hit_count": 0,
+        "prefixes": []
+      }
+    },
+    "token_prefix_only": "ghp_",
+    "token_chars_after_prefix": 36
+  },
+  "repo_scan": {
+    "files": 2025,
+    "hit_count": 13,
+    "by_prefix": {
+      "AKIA": 6,
+      "sk_live_": 1,
+      "private-key-block": 5,
+      "ghp_": 1
+    },
+    "by_area": {
+      "tests": 13
+    },
+    "examples": [
+      {
+        "path": "tests/test_pfy_build_cloud.py",
+        "line": 2212,
+        "prefix": "AKIA",
+        "area": "tests"
+      },
+      {
+        "path": "tests/test_pfy_build_cloud.py",
+        "line": 2213,
+        "prefix": "sk_live_",
+        "area": "tests"
+      },
+      {
+        "path": "tests/test_pfy_build_cloud.py",
+        "line": 2216,
+        "prefix": "private-key-block",
+        "area": "tests"
+      },
+      {
+        "path": "tests/test_review_quality_replay.py",
+        "line": 68,
+        "prefix": "AKIA",
+        "area": "tests"
+      },
+      {
+        "path": "tests/test_review_quality_replay.py",
+        "line": 69,
+        "prefix": "AKIA",
+        "area": "tests"
+      },
+      {
+        "path": "tests/test_mut_cloud2_survivors.py",
+        "line": 275,
+        "prefix": "private-key-block",
+        "area": "tests"
+      },
+      {
+        "path": "tests/test_mvp_1031_receipt.py",
+        "line": 233,
+        "prefix": "private-key-block",
+        "area": "tests"
+      },
+      {
+        "path": "tests/test_harness2_local_propose.py",
+        "line": 51,
+        "prefix": "private-key-block",
+        "area": "tests"
+      },
+      {
+        "path": "tests/test_pfy_build_local.py",
+        "line": 591,
+        "prefix": "ghp_",
+        "area": "tests"
+      },
+      {
+        "path": "tests/test_pfy_build_local.py",
+        "line": 592,
+        "prefix": "AKIA",
+        "area": "tests"
+      },
+      {
+        "path": "tests/test_pfy_build_local.py",
+        "line": 1844,
+        "prefix": "AKIA",
+        "area": "tests"
+      },
+      {
+        "path": "tests/test_pfy_build_local.py",
+        "line": 1845,
+        "prefix": "AKIA",
+        "area": "tests"
+      },
+      {
+        "path": "tests/test_pfy_build_local.py",
+        "line": 1846,
+        "prefix": "private-key-block",
+        "area": "tests"
+      }
+    ],
+    "seconds": 1.7895
+  },
+  "tools": {
+    "validator": {
+      "exit": 0,
+      "seconds": 0.0459,
+      "passed": 108,
+      "failed": 0,
+      "warnings": 0
+    },
+    "converter": {
+      "exit": 0,
+      "seconds": 0.1261,
+      "dist_files": 581,
+      "dist_bytes": 2703755,
+      "tail": "All conversions successful"
+    }
+  },
+  "skipped": [
+    {
+      "part": "sarif-reviewer",
+      "reason": "sources/agents/codeguard-reviewer/AGENT.md is host-agent instructions. No Python file writes SARIF. This lane does not call a model."
+    },
+    {
+      "part": "codeguard-inspect",
+      "reason": "evaluations/codeguard-inspect needs Docker, a Codex CLI, and an OpenAI or Azure key. Not started."
+    },
+    {
+      "part": "mcp-server",
+      "reason": "src/codeguard-mcp serves the 23 core rules as MCP tool text. It does not scan a tree. Not started."
+    }
+  ]
+}
