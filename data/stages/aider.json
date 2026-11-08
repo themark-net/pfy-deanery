@@ -14,18 +14,31 @@
     "#headless"
   ],
   "catalog_github": "https://github.com/paul-gauthier/aider",
+  "pin": "aider-chat==0.86.2 253f0368b873ba30d8ee26e463718f0c03614ddf",
+  "notes_doc": "eval/evq1107/aider/REPORT.md",
   "posture": [],
-  "evidence": [],
+  "evidence": [
+    "eval/evq1107/aider/REPORT.md",
+    "eval/evq1107/aider/VERDICT",
+    "eval/evq1107/aider/results.json",
+    "pin:aider-chat==0.86.2",
+    "wheel sha256 64f6a0c66c9f4633ad9f479bca3e64ebcba02b9da03c6b604b74a44736b2416e",
+    "tag v0.86.2 253f0368b873ba30d8ee26e463718f0c03614ddf"
+  ],
   "tier_ceiling": "I1",
-  "uses": "Git-native terminal editor. Overlaps OpenCode and Grok.",
+  "uses": "Git-native terminal editor with a local model. The 2026-11-07 probe committed 1 of 1 edits on a 2-line fixture in 7.6536 s. Overlaps OpenCode and ./pfy build --local. The pfy build timeout stayed open.",
   "features": [
     "git edits",
-    "headless"
+    "headless",
+    "auto-commit"
   ],
-  "potential": "medium",
-  "next_gate": "Stay I1 unless headless git edit is a gap the current CLIs miss.",
+  "potential": "low",
+  "next_gate": "Stay I1. 1 of 1 commits in 7.6536 s on a 2-line file with qwen2.5-coder:7b-instruct. Venv du -sb is 568274598 bytes, over the 50 MB copy bar. Context length on that load was 8560. Gap B stayed 0. Re-open only if a later ticket shows a headless git edit that ./pfy build --local cannot do, on a repo-sized diff, with an install under 50 MB. No gate wiring. Not a Feature GO.",
   "handoff_by": "llm",
   "non_goals": [
-    "second primary coding CLI"
+    "second primary coding CLI",
+    "gate_wiring",
+    "hosted_model",
+    "feature_go"
   ]
 }
