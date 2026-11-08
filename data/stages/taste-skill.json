@@ -1,19 +1,43 @@
 {
   "name": "taste-skill",
-  "integration_stage": "I0",
-  "intent": "awareness",
+  "integration_stage": "I2",
+  "intent": "ad_hoc_probe",
   "entry": "sources/entries/143-taste-skill.md",
   "github": "https://github.com/Leonxlnx/taste-skill",
-  "uses": "Design slop lint plus browser layout check.",
-  "potential": "low",
-  "next_gate": "Design gate for operator UI after the Tauri window is built.",
+  "notes_doc": "eval/evq1107/taste-skill/REPORT.md",
+  "pin": "6010f91a9935f1c167dfc500fb1a475681892e6b",
+  "version": "v2.1.4",
+  "license": "MIT",
+  "uses": "Offline design lint and a seeded app draw for the operator page. The 2026-11-07 probe, app mode, found 0 FAIL on gui/operator/frontend/index.html and 4 FAIL on a planted page. Default mode found 4 FAIL on that same file. Inspect found 2 FAIL on the live page. Tauri binaries: 0.",
+  "features": [
+    "app-mode lint",
+    "seeded draw",
+    "headless inspect",
+    "exit codes 0 1 2"
+  ],
+  "potential": "medium",
+  "next_gate": "Stay I2. Do not wire a gate. The I1 ceiling stays. Reopen only if gui/operator/src-tauri/target has a pfy-operator binary and a later ticket grills an allow list for palette-terracotta and no-title, or keeps lint --app as the only floor. The eyebrow mutant stays a WARN in app mode.",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",
-    "catalog_hold_70_75"
+    "catalog_hold_70_75",
+    "gate_wiring",
+    "npx skills add or a harness skill copy",
+    "asset image download",
+    "replace assay click pass",
+    "tauri build"
   ],
   "evidence": [
-    "entry:sources/entries/143-taste-skill.md"
+    "entry:sources/entries/143-taste-skill.md",
+    "pin:6010f91a9935f1c167dfc500fb1a475681892e6b",
+    "version:v2.1.4",
+    "eval/evq1107/taste-skill/REPORT.md",
+    "eval/evq1107/taste-skill/VERDICT",
+    "eval/evq1107/taste-skill/results.json"
   ],
-  "handoff_by": "llm"
+  "handoff_by": "llm",
+  "self_pipeline": {
+    "status": "not_applicable",
+    "reason": "Advisory probe only in eval/evq1107/taste-skill/REPORT.md. App-mode lint was not applied to pregate or CI. Inspect failed the current operator page. Not a gate."
+  }
 }

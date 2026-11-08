@@ -25,4 +25,4 @@
 | Draw memory leak | History in `~/.taste-skill` steers another project's draw | Per-project `TASTE_SKILL_HISTORY`; the smoke watches `~/.taste-skill` |
 | Chrome missing or old Node | inspect can't run | The smoke exits 2 with the reason; lint and draw still usable |
 
-- **Status**: Cataloged I0. Smoke PASS on the Grok Bot box; not staged on nimo. Possible eval-auto trial as a Design gate on one operator UI (see the handoff).
+- **Status**: Probe on nimo 2026-11-07, PROMOTE I2. App-mode lint 0 FAIL on the operator page and 4 FAIL on a planted page. Inspect 2 FAIL on that page. Tauri binaries 0. See eval/evq1107/taste-skill/VERDICT. Not wired into a gate.

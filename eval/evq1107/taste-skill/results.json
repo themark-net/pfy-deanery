@@ -1,0 +1,690 @@
+{
+  "pin": "6010f91a9935f1c167dfc500fb1a475681892e6b",
+  "expect_pin": "6010f91a9935f1c167dfc500fb1a475681892e6b",
+  "node": "/usr/bin/node",
+  "node_version": "v22.23.0",
+  "chrome": "/usr/bin/google-chrome",
+  "src_bytes_no_git": 3083290,
+  "script_sha256": {
+    "lint.mjs": "05f2fae2f56fc051b539cdbacb43a6f78fbbfb9644bb74aa11be472ff12dcaf5",
+    "draw.mjs": "6c2047d207d2400d3b099956dfe2ac306203b614246e66bc8760212a7f797dbf",
+    "inspect.mjs": "9482c546288d4d5c738a915905959e99394551ec27bc202ed443af12a02bd1f7"
+  },
+  "tauri_bins": [],
+  "operator_html": "gui/operator/frontend/index.html",
+  "operator_lines_over_2000": 0,
+  "lint": {
+    "smoke_slop": {
+      "parse": true,
+      "files": 1,
+      "fail_n": 6,
+      "warn_n": 1,
+      "fail_ids": {
+        "gradient": 1,
+        "eyebrow": 1,
+        "purple": 1,
+        "emoji": 1,
+        "lorem": 1,
+        "hairline": 1
+      },
+      "warn_ids": {
+        "copy": 1
+      },
+      "samples": [
+        {
+          "level": "FAIL",
+          "id": "gradient",
+          "line": 1,
+          "match": "linear-gradient("
+        },
+        {
+          "level": "FAIL",
+          "id": "eyebrow",
+          "line": 1,
+          "match": "class=\"eyebrow"
+        },
+        {
+          "level": "FAIL",
+          "id": "purple",
+          "line": 1,
+          "match": "#6366f1"
+        },
+        {
+          "level": "FAIL",
+          "id": "emoji",
+          "line": 1,
+          "match": "\ud83d\ude80"
+        },
+        {
+          "level": "FAIL",
+          "id": "lorem",
+          "line": 1,
+          "match": "Lorem ipsum"
+        },
+        {
+          "level": "FAIL",
+          "id": "hairline",
+          "line": 1,
+          "match": "<hr"
+        },
+        {
+          "level": "WARN",
+          "id": "copy",
+          "line": 1,
+          "match": "Unlock"
+        }
+      ],
+      "rc": 1,
+      "seconds": 0.0198
+    },
+    "smoke_clean": {
+      "parse": true,
+      "files": 1,
+      "fail_n": 0,
+      "warn_n": 0,
+      "fail_ids": {},
+      "warn_ids": {},
+      "samples": [],
+      "rc": 0,
+      "seconds": 0.0204
+    },
+    "missing": {
+      "parse": false,
+      "fail_n": null,
+      "warn_n": null,
+      "fail_ids": {},
+      "warn_ids": {},
+      "samples": [],
+      "stdout_tail": "",
+      "stderr_tail": "Not found: /home/mark/.cache/pfy/tools/taste-skill/tmp/probe/no-such-dir\n",
+      "rc": 2,
+      "seconds": 0.0165
+    },
+    "operator_html": {
+      "parse": true,
+      "files": 1,
+      "fail_n": 4,
+      "warn_n": 8,
+      "fail_ids": {
+        "hairline": 2,
+        "shadow": 1,
+        "mono": 1
+      },
+      "warn_ids": {
+        "h-screen": 1,
+        "outlined-box": 6,
+        "em-dash": 1
+      },
+      "samples": [
+        {
+          "level": "WARN",
+          "id": "h-screen",
+          "line": 4,
+          "match": "height:100vh"
+        },
+        {
+          "level": "FAIL",
+          "id": "hairline",
+          "line": 5,
+          "match": "border-right:1px"
+        },
+        {
+          "level": "WARN",
+          "id": "outlined-box",
+          "line": 7,
+          "match": "border:1px solid"
+        },
+        {
+          "level": "WARN",
+          "id": "outlined-box",
+          "line": 9,
+          "match": "border:1px solid"
+        },
+        {
+          "level": "WARN",
+          "id": "outlined-box",
+          "line": 25,
+          "match": "border:1px solid"
+        },
+        {
+          "level": "FAIL",
+          "id": "shadow",
+          "line": 26,
+          "match": "box-shadow:"
+        },
+        {
+          "level": "FAIL",
+          "id": "hairline",
+          "line": 33,
+          "match": "border-bottom:1px"
+        },
+        {
+          "level": "WARN",
+          "id": "outlined-box",
+          "line": 35,
+          "match": "border:1px solid"
+        },
+        {
+          "level": "FAIL",
+          "id": "mono",
+          "line": 37,
+          "match": "font-family:ui-monospace,monospace"
+        },
+        {
+          "level": "WARN",
+          "id": "outlined-box",
+          "line": 38,
+          "match": "border:1px solid"
+        },
+        {
+          "level": "WARN",
+          "id": "outlined-box",
+          "line": 52,
+          "match": "border:1px solid"
+        },
+        {
+          "level": "WARN",
+          "id": "em-dash",
+          "line": 0,
+          "match": "13 em dashes"
+        }
+      ],
+      "rc": 1,
+      "seconds": 0.032
+    },
+    "operator_html_app": {
+      "parse": true,
+      "files": 1,
+      "fail_n": 0,
+      "warn_n": 3,
+      "fail_ids": {},
+      "warn_ids": {
+        "shadow": 1,
+        "mono": 1,
+        "em-dash": 1
+      },
+      "samples": [
+        {
+          "level": "WARN",
+          "id": "shadow",
+          "line": 26,
+          "match": "box-shadow:"
+        },
+        {
+          "level": "WARN",
+          "id": "mono",
+          "line": 37,
+          "match": "font-family:ui-monospace,monospace"
+        },
+        {
+          "level": "WARN",
+          "id": "em-dash",
+          "line": 0,
+          "match": "13 em dashes"
+        }
+      ],
+      "rc": 0,
+      "seconds": 0.035
+    },
+    "operator_dir_app": {
+      "parse": true,
+      "files": 7,
+      "fail_n": 0,
+      "warn_n": 3,
+      "fail_ids": {},
+      "warn_ids": {
+        "shadow": 1,
+        "mono": 1,
+        "em-dash": 1
+      },
+      "samples": [
+        {
+          "level": "WARN",
+          "id": "shadow",
+          "line": 26,
+          "match": "box-shadow:"
+        },
+        {
+          "level": "WARN",
+          "id": "mono",
+          "line": 37,
+          "match": "font-family:ui-monospace,monospace"
+        },
+        {
+          "level": "WARN",
+          "id": "em-dash",
+          "line": 0,
+          "match": "27 em dashes"
+        }
+      ],
+      "rc": 0,
+      "seconds": 0.036
+    },
+    "planted_slop": {
+      "parse": true,
+      "files": 1,
+      "fail_n": 6,
+      "warn_n": 2,
+      "fail_ids": {
+        "gradient": 1,
+        "purple": 1,
+        "eyebrow": 1,
+        "emoji": 1,
+        "lorem": 1,
+        "hairline": 1
+      },
+      "warn_ids": {
+        "copy": 1,
+        "cta-copy": 1
+      },
+      "samples": [
+        {
+          "level": "FAIL",
+          "id": "gradient",
+          "line": 5,
+          "match": "linear-gradient("
+        },
+        {
+          "level": "FAIL",
+          "id": "purple",
+          "line": 5,
+          "match": "#6366f1"
+        },
+        {
+          "level": "FAIL",
+          "id": "eyebrow",
+          "line": 7,
+          "match": "class=\"eyebrow"
+        },
+        {
+          "level": "FAIL",
+          "id": "emoji",
+          "line": 8,
+          "match": "\ud83d\ude80"
+        },
+        {
+          "level": "WARN",
+          "id": "copy",
+          "line": 8,
+          "match": "Unlock"
+        },
+        {
+          "level": "FAIL",
+          "id": "lorem",
+          "line": 9,
+          "match": "Lorem ipsum"
+        },
+        {
+          "level": "FAIL",
+          "id": "hairline",
+          "line": 10,
+          "match": "<hr"
+        },
+        {
+          "level": "WARN",
+          "id": "cta-copy",
+          "line": 11,
+          "match": ">Get started<"
+        }
+      ],
+      "rc": 1,
+      "seconds": 0.0218
+    },
+    "planted_slop_app": {
+      "parse": true,
+      "files": 1,
+      "fail_n": 4,
+      "warn_n": 2,
+      "fail_ids": {
+        "gradient": 1,
+        "purple": 1,
+        "emoji": 1,
+        "lorem": 1
+      },
+      "warn_ids": {
+        "eyebrow": 1,
+        "copy": 1
+      },
+      "samples": [
+        {
+          "level": "FAIL",
+          "id": "gradient",
+          "line": 5,
+          "match": "linear-gradient("
+        },
+        {
+          "level": "FAIL",
+          "id": "purple",
+          "line": 5,
+          "match": "#6366f1"
+        },
+        {
+          "level": "WARN",
+          "id": "eyebrow",
+          "line": 7,
+          "match": "class=\"eyebrow"
+        },
+        {
+          "level": "FAIL",
+          "id": "emoji",
+          "line": 8,
+          "match": "\ud83d\ude80"
+        },
+        {
+          "level": "WARN",
+          "id": "copy",
+          "line": 8,
+          "match": "Unlock"
+        },
+        {
+          "level": "FAIL",
+          "id": "lorem",
+          "line": 9,
+          "match": "Lorem ipsum"
+        }
+      ],
+      "rc": 1,
+      "seconds": 0.0224
+    },
+    "planted_clean": {
+      "parse": true,
+      "files": 1,
+      "fail_n": 0,
+      "warn_n": 0,
+      "fail_ids": {},
+      "warn_ids": {},
+      "samples": [],
+      "rc": 0,
+      "seconds": 0.0205
+    },
+    "planted_clean_app": {
+      "parse": true,
+      "files": 1,
+      "fail_n": 0,
+      "warn_n": 0,
+      "fail_ids": {},
+      "warn_ids": {},
+      "samples": [],
+      "rc": 0,
+      "seconds": 0.0239
+    },
+    "eyebrow": {
+      "parse": true,
+      "files": 1,
+      "fail_n": 1,
+      "warn_n": 0,
+      "fail_ids": {
+        "eyebrow": 1
+      },
+      "warn_ids": {},
+      "samples": [
+        {
+          "level": "FAIL",
+          "id": "eyebrow",
+          "line": 14,
+          "match": "class=\"eyebrow"
+        }
+      ],
+      "rc": 1,
+      "seconds": 0.0219
+    },
+    "eyebrow_app": {
+      "parse": true,
+      "files": 1,
+      "fail_n": 0,
+      "warn_n": 1,
+      "fail_ids": {},
+      "warn_ids": {
+        "eyebrow": 1
+      },
+      "samples": [
+        {
+          "level": "WARN",
+          "id": "eyebrow",
+          "line": 14,
+          "match": "class=\"eyebrow"
+        }
+      ],
+      "rc": 0,
+      "seconds": 0.0246
+    }
+  },
+  "separation_app": 4,
+  "draw": {
+    "options_equal": true,
+    "options_bytes": 1199,
+    "options_asked": 3,
+    "options_got": 2,
+    "option_ids": [
+      "true-black-flat",
+      "data-terminal"
+    ],
+    "options_wrote_history": false,
+    "fresh_agree": true,
+    "fresh": [
+      {
+        "seed": 7,
+        "style": "true-black-flat",
+        "shell": "ruled-t-frame",
+        "screens": [
+          {
+            "name": "overview",
+            "pattern": "deploy-health-lead"
+          },
+          {
+            "name": "list",
+            "pattern": "table-filter-bar"
+          },
+          {
+            "name": "settings",
+            "pattern": "settings-with-usage"
+          }
+        ]
+      },
+      {
+        "seed": 7,
+        "style": "true-black-flat",
+        "shell": "ruled-t-frame",
+        "screens": [
+          {
+            "name": "overview",
+            "pattern": "deploy-health-lead"
+          },
+          {
+            "name": "list",
+            "pattern": "table-filter-bar"
+          },
+          {
+            "name": "settings",
+            "pattern": "settings-with-usage"
+          }
+        ]
+      }
+    ],
+    "fresh_seconds": [
+      0.0228,
+      0.0255
+    ],
+    "shared_changed": true,
+    "shared": [
+      {
+        "seed": 7,
+        "style": "true-black-flat",
+        "shell": "ruled-t-frame",
+        "screens": [
+          {
+            "name": "overview",
+            "pattern": "deploy-health-lead"
+          },
+          {
+            "name": "list",
+            "pattern": "table-filter-bar"
+          },
+          {
+            "name": "settings",
+            "pattern": "settings-with-usage"
+          }
+        ]
+      },
+      {
+        "seed": 7,
+        "style": "data-terminal",
+        "shell": "icon-rail",
+        "screens": [
+          {
+            "name": "overview",
+            "pattern": "platform-overview-tray"
+          },
+          {
+            "name": "list",
+            "pattern": "table-filter-bar"
+          },
+          {
+            "name": "settings",
+            "pattern": "settings-with-usage"
+          }
+        ]
+      }
+    ],
+    "shared_history_entries": 2
+  },
+  "inspect": {
+    "status": "ran",
+    "operator_app": {
+      "parse": true,
+      "files": null,
+      "fail_n": 2,
+      "warn_n": 2,
+      "fail_ids": {
+        "palette-terracotta": 1,
+        "no-title": 1
+      },
+      "warn_ids": {
+        "unused-canvas": 1,
+        "panel-void": 1
+      },
+      "samples": [
+        {
+          "level": "FAIL",
+          "id": "palette-terracotta",
+          "line": null,
+          "match": ""
+        },
+        {
+          "level": "WARN",
+          "id": "unused-canvas",
+          "line": null,
+          "match": ""
+        },
+        {
+          "level": "WARN",
+          "id": "panel-void",
+          "line": null,
+          "match": ""
+        },
+        {
+          "level": "FAIL",
+          "id": "no-title",
+          "line": null,
+          "match": ""
+        }
+      ],
+      "rc": 1,
+      "seconds": 3.8481,
+      "shots": 2,
+      "shot_bytes": 148039
+    },
+    "planted_slop_app": {
+      "parse": true,
+      "files": null,
+      "fail_n": 4,
+      "warn_n": 2,
+      "fail_ids": {
+        "emoji": 1,
+        "gradient": 1,
+        "edge-text": 1,
+        "placeholder-data": 1
+      },
+      "warn_ids": {
+        "hero-void": 1,
+        "unused-canvas": 1
+      },
+      "samples": [
+        {
+          "level": "FAIL",
+          "id": "emoji",
+          "line": null,
+          "match": ""
+        },
+        {
+          "level": "FAIL",
+          "id": "gradient",
+          "line": null,
+          "match": ""
+        },
+        {
+          "level": "WARN",
+          "id": "hero-void",
+          "line": null,
+          "match": ""
+        },
+        {
+          "level": "FAIL",
+          "id": "edge-text",
+          "line": null,
+          "match": ""
+        },
+        {
+          "level": "WARN",
+          "id": "unused-canvas",
+          "line": null,
+          "match": ""
+        },
+        {
+          "level": "FAIL",
+          "id": "placeholder-data",
+          "line": null,
+          "match": ""
+        }
+      ],
+      "rc": 1,
+      "seconds": 3.057,
+      "shots": 2,
+      "shot_bytes": 30020
+    },
+    "planted_clean_app": {
+      "parse": true,
+      "files": null,
+      "fail_n": 0,
+      "warn_n": 2,
+      "fail_ids": {},
+      "warn_ids": {
+        "hero-void": 1,
+        "unused-canvas": 1
+      },
+      "samples": [
+        {
+          "level": "WARN",
+          "id": "hero-void",
+          "line": null,
+          "match": ""
+        },
+        {
+          "level": "WARN",
+          "id": "unused-canvas",
+          "line": null,
+          "match": ""
+        }
+      ],
+      "rc": 0,
+      "seconds": 3.0813,
+      "shots": 2,
+      "shot_bytes": 25100
+    }
+  },
+  "home_leak": false,
+  "login_taste_before": null,
+  "login_taste_after": null,
+  "profiles_left": [],
+  "seconds": 10.4468
+}
