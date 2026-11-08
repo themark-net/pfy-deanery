@@ -1,0 +1,40 @@
+{
+  "name": "Overtime",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/112-overtime.md",
+  "github": "https://github.com/ukanwat/overtime",
+  "notes_doc": "eval/evq1107/overtime/REPORT.md",
+  "pin": "fc215d4e90cd95fa6b64c39268bb49490cba7ca1",
+  "package": "@ukanwat/overtime@0.5.3",
+  "license": "MIT",
+  "uses": "Wake and budget layer for an ACP coding agent whose folder outlives one process. The 2026-11-07 probe did not close the pfy build timeout.",
+  "features": [
+    "agent folder",
+    "ACP custom backend",
+    "daemon watch",
+    "daily budget"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I0. Stub resume was 1/1 and the third spawn was 0, with a planted watch at 4 runs and 0 ACP starts. Usable backends for this stack were 0. The npm prefix is 322459712 bytes, over the 50 MB copy bar. Re-open only if a later ticket has a Grok or local OpenCode ACP backend that needs no account and no model lock, and that ticket shows a build lane still going after the parent process exits. No gate wiring. Not a Feature GO.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "gate_wiring",
+    "daemon_install",
+    "claude_login",
+    "codex_login",
+    "primary_runtime",
+    "hosted_model"
+  ],
+  "evidence": [
+    "entry:sources/entries/112-overtime.md",
+    "pin:fc215d4e90cd95fa6b64c39268bb49490cba7ca1",
+    "package:@ukanwat/overtime@0.5.3",
+    "eval/evq1107/overtime/REPORT.md",
+    "eval/evq1107/overtime/VERDICT",
+    "eval/evq1107/overtime/results.json"
+  ],
+  "handoff_by": "llm"
+}

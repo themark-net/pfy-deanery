@@ -1,0 +1,195 @@
+{
+  "pin": "0.5.3",
+  "git_head": "fc215d4e90cd95fa6b64c39268bb49490cba7ca1",
+  "github_v0_5_9": "c4a5725c21c785b6bd014e164678fa70c04026f1",
+  "npm_latest_seen": "0.7.1",
+  "node": "v22.23.0",
+  "agent": "gapb",
+  "version": "0.5.3",
+  "license": "MIT",
+  "tarball_bytes": 217972,
+  "tarball_sha512_b64": "7TRVkwud4AcYvW4Wwgem3gegB1z+t6Kl3ggI/4MRwZFmNs2dUACapjnrR7uZrNHqBj1VzLKcOqvGpy4P4C6owg==",
+  "tarball_integrity_ok": true,
+  "prefix_bytes": 322459712,
+  "steps": [
+    {
+      "version": {
+        "args": [
+          "--version"
+        ],
+        "code": 0,
+        "seconds": 0.0944,
+        "stderr": "",
+        "killed": null
+      }
+    },
+    {
+      "new": {
+        "args": [
+          "new",
+          "gapb"
+        ],
+        "code": 0,
+        "seconds": 0.3118,
+        "stderr": "",
+        "killed": null
+      }
+    },
+    {
+      "set": {
+        "args": [
+          "set",
+          "gapb",
+          "backend=stub",
+          "budget=1",
+          "tokens=10",
+          "protect=/home/mark/.cache/pfy/tools/overtime/probe-run/protected"
+        ],
+        "code": 0,
+        "seconds": 0.1202,
+        "stderr": "",
+        "killed": null
+      }
+    },
+    {
+      "reset_budget": {
+        "args": [
+          "set",
+          "gapb",
+          "budget=1"
+        ],
+        "code": 0,
+        "seconds": 0.0975,
+        "stderr": "",
+        "killed": null
+      }
+    },
+    {
+      "send1": {
+        "args": [
+          "send",
+          "gapb",
+          "ping one"
+        ],
+        "code": 0,
+        "seconds": 0.0972,
+        "stderr": "",
+        "killed": null
+      }
+    },
+    {
+      "stop_after_turn1": {
+        "args": null,
+        "code": 0,
+        "seconds": null,
+        "stderr": "",
+        "killed": false
+      }
+    },
+    {
+      "send2": {
+        "args": [
+          "send",
+          "gapb",
+          "ping two"
+        ],
+        "code": 0,
+        "seconds": 0.3067,
+        "stderr": "",
+        "killed": null
+      }
+    },
+    {
+      "send3": {
+        "args": [
+          "send",
+          "gapb",
+          "ping three"
+        ],
+        "code": 0,
+        "seconds": 0.0958,
+        "stderr": "",
+        "killed": null
+      }
+    }
+  ],
+  "settings_after_set": {
+    "backend": "stub",
+    "dailyBudgetUsd": 1,
+    "dailyTokenBudget": 10,
+    "protect": [
+      "/home/mark/.cache/pfy/tools/overtime/probe-run/protected"
+    ]
+  },
+  "agent_md_edit_adopted": true,
+  "budget_after_edit": 999,
+  "budget_after_reset": 1,
+  "turn1_seconds": 0.2507,
+  "turn1_ok": true,
+  "turn1_state": {
+    "status": "new",
+    "mainSessionId": "stub-session-1",
+    "mainSessionBackend": "stub",
+    "lastError": null,
+    "failures": 0
+  },
+  "turn1_methods": [
+    "initialize",
+    "session/new",
+    "session/prompt"
+  ],
+  "turn1_starts": 1,
+  "protect_writes": {
+    "allow": {
+      "path": "/home/mark/.cache/pfy/tools/overtime/probe-run/outside/ok.txt",
+      "ok": true,
+      "error": null
+    },
+    "deny": {
+      "path": "/home/mark/.cache/pfy/tools/overtime/probe-run/protected/no.txt",
+      "ok": false,
+      "error": "EROFS"
+    }
+  },
+  "folder_after_stop": true,
+  "session_id_after_stop": "stub-session-1",
+  "turn2_seconds": 0.2505,
+  "turn2_ok": true,
+  "turn2_methods": [
+    "initialize",
+    "session/load",
+    "session/prompt"
+  ],
+  "turn2_starts": 1,
+  "load_session_ids": [
+    "stub-session-1"
+  ],
+  "resumed_same_session": true,
+  "turn2_state": {
+    "status": "new",
+    "mainSessionId": "stub-session-1",
+    "lastError": null
+  },
+  "usage_rows": 2,
+  "usage_usd": 2.0,
+  "usage_tokens": 24,
+  "turn3_starts": 0,
+  "turn3_state": {
+    "status": "paused",
+    "pauseReason": "budget",
+    "lastError": null
+  },
+  "budget_blocked_third_spawn": true,
+  "watch": {
+    "ls_code": 0,
+    "seconds": 4.1404,
+    "runs": 4,
+    "acp_starts": 0,
+    "stop_code": 0
+  },
+  "real_overtime_before": false,
+  "real_overtime_after": false,
+  "gap_b_closed": 0,
+  "grok_builtin_backend": 0,
+  "seconds": 19.6075
+}
