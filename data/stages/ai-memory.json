@@ -1,0 +1,45 @@
+{
+  "name": "ai-memory",
+  "integration_stage": "I1",
+  "intent": "staged_evaluation",
+  "entry": "sources/entries/132-ai-memory.md",
+  "github": "https://github.com/akitaonrails/ai-memory",
+  "pin": "52020da90131a5afea70a114a01e44a8e67b44f3",
+  "release": "v3.1.1",
+  "tarball_sha256": "d055aef2989eeceb08da7a2db3533d9389a689058c57b5f8a03d5f4439225a2d",
+  "binary_sha256": "be9f539cbaaa8c583dd94a58c3817c35321f3d887e8195df91bf74f9c5eefa4b",
+  "uses": "Git-backed wiki and a claim-once mailbox. The 2026-11-07 probe recalled 8 of 8 pasted notes and 0 of 8 facts already in this repo, claimed 8 of 8 handoffs once, and scored 0 with/without harness cases.",
+  "features": [
+    "loopback wiki search",
+    "claim-once mailbox",
+    "git checkpoints in the data dir"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1. On 2026-11-07 pasted search was 8/8, facts already in this repo were 0/8 (rg 8/8), claim-once was 8/8 with the 9th pop empty, and graded with/without cases were 0. Reopen only if a later bake-off beats rg on repo facts and Brigade's exclusive claim without setup. Do not wire a gate.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "setup",
+    "user_service",
+    "hooks",
+    "mcp_registration",
+    "embeddings",
+    "team_server",
+    "gate_wiring",
+    "feature_go",
+    "catalog_hold_70_75",
+    "read_root_token",
+    "replace_skill_up",
+    "replace_codebase_memory"
+  ],
+  "evidence": [
+    "entry:sources/entries/132-ai-memory.md",
+    "eval/evq1107/ai-memory/REPORT.md",
+    "eval/evq1107/ai-memory/VERDICT",
+    "eval/evq1107/ai-memory/results.json",
+    "pin 52020da90131a5afea70a114a01e44a8e67b44f3",
+    "release v3.1.1",
+    "tarball_sha256:d055aef2989eeceb08da7a2db3533d9389a689058c57b5f8a03d5f4439225a2d",
+    "binary_sha256:be9f539cbaaa8c583dd94a58c3817c35321f3d887e8195df91bf74f9c5eefa4b"
+  ],
+  "handoff_by": "llm"
+}

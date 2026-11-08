@@ -27,4 +27,4 @@
 | Duplicate claim | Two bots take one handoff | The smoke FAILs if a second pop returns the message |
 | Server down | CLI calls fail, bots lose memory | Bots must carry on without it; health-check `/healthz` before use |
 
-- **Status**: Cataloged I0. Smoke PASS on the Grok Bot box; not staged on nimo.
+- **Status**: Staged I1 on 2026-11-07 after the nimo probe (pasted search 8/8, repo facts 0/8, claim-once 8/8, 0 graded cases). Not I2. See eval/evq1107/ai-memory/VERDICT.

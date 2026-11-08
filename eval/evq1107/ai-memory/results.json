@@ -1,0 +1,502 @@
+{
+  "pin": {
+    "version_text": "ai-memory 3.1.1",
+    "version_ok": true,
+    "expect_version": "3.1.1",
+    "tag": "v3.1.1",
+    "commit": "52020da90131a5afea70a114a01e44a8e67b44f3",
+    "tarball_sha256": "d055aef2989eeceb08da7a2db3533d9389a689058c57b5f8a03d5f4439225a2d",
+    "binary_sha256": "be9f539cbaaa8c583dd94a58c3817c35321f3d887e8195df91bf74f9c5eefa4b",
+    "binary_sha256_computed": "be9f539cbaaa8c583dd94a58c3817c35321f3d887e8195df91bf74f9c5eefa4b",
+    "binary_sha256_match": true,
+    "binary_bytes": 47832680,
+    "tarball_uncompressed_bytes": 48284491
+  },
+  "embedding_provider": "none",
+  "server_healthy": true,
+  "skipped": false,
+  "skip_reason": "",
+  "init_rc": 0,
+  "commands": [
+    "init",
+    "serve",
+    "write-page",
+    "write-page",
+    "write-page",
+    "write-page",
+    "write-page",
+    "write-page",
+    "write-page",
+    "write-page",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "read-page",
+    "message send",
+    "write-page",
+    "message send",
+    "message send",
+    "message send",
+    "message send",
+    "message send",
+    "message send",
+    "message send",
+    "message send",
+    "message pop",
+    "message pop",
+    "message pop",
+    "message pop",
+    "message pop",
+    "message pop",
+    "message pop",
+    "message pop",
+    "message pop",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "commit",
+    "serve",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search",
+    "search"
+  ],
+  "forbidden_commands_called": [],
+  "sensitive_filenames": [
+    "auth-header",
+    "auth-token",
+    "auth-tokens/default"
+  ],
+  "home_before": [
+    {
+      "rel": ".local/share/ai-memory",
+      "exists": false
+    },
+    {
+      "rel": ".config/ai-memory",
+      "exists": false
+    },
+    {
+      "rel": ".local/bin/ai-memory",
+      "exists": false
+    }
+  ],
+  "timings_ms": {
+    "init_ms": 7.2,
+    "health_ms": 108.0,
+    "write_ms": 106.8,
+    "search_novel_ms": 86.5,
+    "search_miss_ms": 80.3,
+    "search_repo_ms": 83.4,
+    "rg_ms": 159.0,
+    "send_ms": 145.1,
+    "pop_ms": 87.5,
+    "restart_health_ms": 51.1,
+    "total_ms": 1199.6
+  },
+  "novel_hits": 8,
+  "novel_n": 8,
+  "nonsense_misses": 8,
+  "nonsense_n": 8,
+  "search_miss_ok": true,
+  "search_errors": 0,
+  "repo_search_hits": 0,
+  "repo_n": 8,
+  "read_back_ok": true,
+  "rg_repo_hits": 8,
+  "rg_novel_hits": 0,
+  "rg_skipped": false,
+  "unseen_send_rc": 1,
+  "unseen_send_said_404": true,
+  "send_recovered": true,
+  "sends_ok": 8,
+  "claims": 8,
+  "unique_claims": 8,
+  "duplicate_claims": 0,
+  "states_claimed": 8,
+  "ninth_empty": true,
+  "notices": 8,
+  "notices_say_untrusted": 8,
+  "untrusted_ok": true,
+  "claim_once_ok": true,
+  "restart_hits": 8,
+  "restart_agreement": 8,
+  "scoped_cross_hits": 0,
+  "global_cross_hits": 8,
+  "wiki_files_with_mark": 8,
+  "write_ok": 8,
+  "h1_graded_cases": 0,
+  "score_delta": null,
+  "restart_healthy": true,
+  "git": {
+    "commits": 10,
+    "tracked": 13,
+    "sensitive_tracked": 0
+  },
+  "commit_rc": 0,
+  "pop_errors": 0,
+  "seed_rc": 0,
+  "home_after": [
+    {
+      "rel": ".local/share/ai-memory",
+      "exists": false
+    },
+    {
+      "rel": ".config/ai-memory",
+      "exists": false
+    },
+    {
+      "rel": ".local/bin/ai-memory",
+      "exists": false
+    }
+  ],
+  "home_unchanged": true,
+  "catalog": {
+    "word_matches": [
+      {
+        "name": "Agent Beacon",
+        "stage": "I0",
+        "file": "agent-beacon.json",
+        "words": [
+          "memory"
+        ]
+      },
+      {
+        "name": "Auto-Company",
+        "stage": "I1",
+        "file": "auto-company.json",
+        "words": [
+          "memory"
+        ]
+      },
+      {
+        "name": "Brigade",
+        "stage": "I0",
+        "file": "brigade.json",
+        "words": [
+          "claim"
+        ]
+      },
+      {
+        "name": "Chroma (or LanceDB)",
+        "stage": "I0",
+        "file": "chroma-or-lancedb.json",
+        "words": [
+          "memory",
+          "rag"
+        ]
+      },
+      {
+        "name": "codebase-memory-mcp",
+        "stage": "I2",
+        "file": "codebase-memory-mcp.json",
+        "words": [
+          "memory",
+          "rag"
+        ]
+      },
+      {
+        "name": "Graphify",
+        "stage": "I0",
+        "file": "graphify.json",
+        "words": [
+          "memory"
+        ]
+      },
+      {
+        "name": "Grok CLI bootstrap",
+        "stage": "I3",
+        "file": "grok-cli-bootstrap.json",
+        "words": [
+          "memory"
+        ]
+      },
+      {
+        "name": "Harness Score",
+        "stage": "I0",
+        "file": "harness-score.json",
+        "words": [
+          "context"
+        ]
+      },
+      {
+        "name": "Hermes Agent (feedback loops)",
+        "stage": "I1",
+        "file": "hermes-agent-feedback-loops.json",
+        "words": [
+          "memory"
+        ]
+      },
+      {
+        "name": "imcodes",
+        "stage": "I0",
+        "file": "imcodes.json",
+        "words": [
+          "memory"
+        ]
+      },
+      {
+        "name": "Kolibri-1",
+        "stage": "I0",
+        "file": "kolibri-1.json",
+        "words": [
+          "context"
+        ]
+      },
+      {
+        "name": "Laguna S 2.1",
+        "stage": "I1",
+        "file": "laguna-s-2-1.json",
+        "words": [
+          "context"
+        ]
+      },
+      {
+        "name": "LangGraph (LangChain)",
+        "stage": "I1",
+        "file": "langgraph-langchain.json",
+        "words": [
+          "rag"
+        ]
+      },
+      {
+        "name": "LEANN",
+        "stage": "I1",
+        "file": "leann.json",
+        "words": [
+          "memory",
+          "rag"
+        ]
+      },
+      {
+        "name": "MemPalace",
+        "stage": "I0",
+        "file": "mempalace.json",
+        "words": [
+          "memory"
+        ]
+      },
+      {
+        "name": "Memvid",
+        "stage": "I1",
+        "file": "memvid.json",
+        "words": [
+          "memory",
+          "rag"
+        ]
+      },
+      {
+        "name": "MUE-X",
+        "stage": "I1",
+        "file": "mue-x.json",
+        "words": [
+          "memory"
+        ]
+      },
+      {
+        "name": "opencode-mem",
+        "stage": "I1",
+        "file": "opencode-mem.json",
+        "words": [
+          "memory"
+        ]
+      },
+      {
+        "name": "OpenContext",
+        "stage": "I1",
+        "file": "opencontext.json",
+        "words": [
+          "context"
+        ]
+      },
+      {
+        "name": "repowise",
+        "stage": "I2",
+        "file": "repowise.json",
+        "words": [
+          "memory",
+          "context"
+        ]
+      },
+      {
+        "name": "RoBrain",
+        "stage": "I0",
+        "file": "robrain.json",
+        "words": [
+          "memory"
+        ]
+      },
+      {
+        "name": "TeaQL Agent Kit",
+        "stage": "I0",
+        "file": "teaql-agent-kit.json",
+        "words": [
+          "context"
+        ]
+      }
+    ],
+    "named": [
+      {
+        "file": "skill-up.json",
+        "present": true,
+        "name": "skill-up",
+        "stage": "I3",
+        "uses": "Grade a with-skill run against a no-skill baseline. The same cases can score a pfy run against a plain Build run."
+      },
+      {
+        "file": "harness2.json",
+        "present": true,
+        "name": "harness2",
+        "stage": "I1",
+        "uses": "Local harness edit trial on the 48-case decision set, sandboxed OpenCode, own llama-server."
+      },
+      {
+        "file": "harness-score.json",
+        "present": true,
+        "name": "Harness Score",
+        "stage": "I0",
+        "uses": "Offline L0-L4 grade of repo harness files: context, skills, hooks, sensors, CI, and hygiene."
+      },
+      {
+        "file": "eval-harness-pfy.json",
+        "present": true,
+        "name": "eval-harness (pfy)",
+        "stage": "I1",
+        "uses": "First-party structural and integration ladder."
+      },
+      {
+        "file": "neatroots.json",
+        "present": true,
+        "name": "neatroots",
+        "stage": "I2",
+        "uses": "Offline rule checks for loops, repeated tool calls, and error streaks on saved agent traces."
+      },
+      {
+        "file": "codebase-memory-mcp.json",
+        "present": true,
+        "name": "codebase-memory-mcp",
+        "stage": "I2",
+        "uses": "Primary code-graph MCP and the code-graph toolset."
+      },
+      {
+        "file": "opencode-mem.json",
+        "present": true,
+        "name": "opencode-mem",
+        "stage": "I1",
+        "uses": "Memory plugin for the OpenCode worker."
+      },
+      {
+        "file": "mempalace.json",
+        "present": true,
+        "name": "MemPalace",
+        "stage": "I0",
+        "uses": "Verbatim local memory with scoped search."
+      },
+      {
+        "file": "memvid.json",
+        "present": true,
+        "name": "Memvid",
+        "stage": "I1",
+        "uses": "Video-backed memory. No job in the current operator path."
+      },
+      {
+        "file": "opencontext.json",
+        "present": true,
+        "name": "OpenContext",
+        "stage": "I1",
+        "uses": "Personal context store and oc CLI. The 2026-11-07 probe recalled 8 of 8 copied notes and 0 of 8 facts already in this repo, and it scored 0 with/without harness cases."
+      },
+      {
+        "file": "leann.json",
+        "present": true,
+        "name": "LEANN",
+        "stage": "I1",
+        "uses": "Compressed RAG for local text. The 2026-11-07 probe stored a 16582-byte HNSW graph against a 331776-byte float32 matrix, and the full index was 620548 bytes on 190529 bytes of passages. The CPU cache install is about 1.63 GB. Not our code memory."
+      },
+      {
+        "file": "hermes-agent-feedback-loops.json",
+        "present": true,
+        "name": "Hermes Agent (feedback loops)",
+        "stage": "I1",
+        "uses": "Feedback-loop pattern ported as a skill. Not the Hermes runtime."
+      },
+      {
+        "file": "robrain.json",
+        "present": true,
+        "name": "RoBrain",
+        "stage": "I0",
+        "uses": "Decision memory with vetoes."
+      },
+      {
+        "file": "agent-beacon.json",
+        "present": true,
+        "name": "Agent Beacon",
+        "stage": "I0",
+        "uses": "Copy a committed Grok session into a local JSONL, then store a lesson a person types. Scoring one trace calls hosted TypeSafe Jev."
+      },
+      {
+        "file": "repowise.json",
+        "present": true,
+        "name": "repowise",
+        "stage": "I2",
+        "uses": "Context packing probe. Overlaps codebase-memory."
+      },
+      {
+        "file": "graphify.json",
+        "present": true,
+        "name": "Graphify",
+        "stage": "I0",
+        "uses": "Tree-sitter graph for a per-file review. Trialed on pfy diffs. Not the code memory we run."
+      },
+      {
+        "file": "chroma-or-lancedb.json",
+        "present": true,
+        "name": "Chroma (or LanceDB)",
+        "stage": "I0",
+        "uses": "Vector store. Code memory is already chosen."
+      }
+    ],
+    "cass_memory_card": false,
+    "cass_memory_entry": true
+  },
+  "models_files": 0,
+  "data_bytes": 1158637
+}
