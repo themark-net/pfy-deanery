@@ -1,0 +1,11 @@
+{
+  "slug": "taste-skill",
+  "run_kind": "pipeline",
+  "main_sha": "80c22e6a9b75b8f3e77739b9c2ca4778bc1799bd",
+  "run_id": "taste-skill-80c22e6a9b75-2026-11-08T20:45:34Z",
+  "started": "2026-11-08T20:45:34Z",
+  "finished": "2026-11-08T20:45:34Z",
+  "outcome": "ok",
+  "tool_version": "v2.1.4",
+  "did": "Ran pinned taste-skill lint.mjs --app on gui/operator/frontend/index.html. Exit 0. FAIL 0. WARN 3."
+}
