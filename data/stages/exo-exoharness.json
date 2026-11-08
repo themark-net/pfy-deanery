@@ -4,10 +4,28 @@
   "intent": "pattern_extract_self_mod",
   "pin": "372602d1b553af06e9843e19f31fa8a7f749ab6e",
   "github": "https://github.com/exoharness/exo",
+  "license": "MIT",
   "notes_doc": "docs/ops/exo-self-mod-patterns.md",
+  "evidence": [
+    "eval/evq1107/exo-exoharness/REPORT.md",
+    "eval/evq1107/exo-exoharness/VERDICT",
+    "notes_doc:docs/ops/exo-self-mod-patterns.md",
+    "pin:372602d1b553af06e9843e19f31fa8a7f749ab6e"
+  ],
+  "uses": "Reference read of a full agent harness for recursive self-improvement: an append-only event log, sandbox snapshot and rewind, and a guarded rebuild. Patterns already live in docs/ops/exo-self-mod-patterns.md. It does not move the pfy build timeout.",
+  "features": [
+    "append-only event log that survives sandbox rewind",
+    "filesystem snapshot and rewind",
+    "rebuild_and_restart through a host guardian",
+    "skill artifacts with name and description loaded first"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I1 reference. Re-open only if a later ticket grills a lab copy under an operator GO, with Docker and no hosted key, and leaves default_harness on grok. Do not wire a gate. Not a Feature GO.",
   "non_goals": [
     "primary_runtime",
     "unattended_full_RSI",
-    "subtree_embed"
+    "subtree_embed",
+    "gate_wiring",
+    "hosted_api_key"
   ]
 }
