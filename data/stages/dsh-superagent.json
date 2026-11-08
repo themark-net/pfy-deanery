@@ -4,16 +4,38 @@
   "intent": "design_reference",
   "entry": "sources/entries/154-dsh-superagent.md",
   "github": "https://github.com/deepseek-ai/dsh-superagent-prototype",
-  "uses": "Authorization and attention design docs.",
+  "pin": "6337fc823ce20251c8de8085948165c81aaa701e",
+  "package": "dsh-superagent@0.1.0",
+  "license": "MIT",
+  "notes_doc": "eval/evq1107/dsh-superagent/REPORT.md",
+  "uses": "Authorization and attention design for one GitHub repository. Reference read only. It does not run a build lane.",
+  "features": [
+    "allowed list per source",
+    "mandate records policy version",
+    "observe records would-accept",
+    "subscription is context only",
+    "panel lists what needs a person"
+  ],
   "potential": "low",
-  "next_gate": "ADR note only; no runtime trial.",
+  "next_gate": "Stay I0 reference. The file mapping is eval/evq1107/dsh-superagent/REPORT.md. Re-open only if Mark asks for an ADR that cites docs/000-philosophy.md and docs/002-authorization.md at pin 6337fc823ce20251c8de8085948165c81aaa701e. No DSH install, no agent GitHub account, no Feishu bot, no runtime trial. Gap B stays the pfy build timeout. Not a Feature GO.",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",
-    "catalog_hold_70_75"
+    "catalog_hold_70_75",
+    "dsh_install",
+    "agent_github_account",
+    "feishu",
+    "danger_full_access",
+    "code_copy",
+    "gate_wiring",
+    "runtime_trial"
   ],
   "evidence": [
-    "entry:sources/entries/154-dsh-superagent.md"
+    "entry:sources/entries/154-dsh-superagent.md",
+    "pin:6337fc823ce20251c8de8085948165c81aaa701e",
+    "package:dsh-superagent@0.1.0",
+    "eval/evq1107/dsh-superagent/REPORT.md",
+    "eval/evq1107/dsh-superagent/VERDICT"
   ],
   "handoff_by": "llm"
 }
