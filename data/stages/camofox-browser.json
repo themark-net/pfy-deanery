@@ -15,16 +15,42 @@
   ],
   "catalog_github": "https://github.com/jo-inc/camofox-browser",
   "posture": [],
-  "evidence": [],
+  "evidence": [
+    "entry:sources/entries/071-camofox-browser.md",
+    "pin:39c82094013480b373df6600d44c7f036f58356e",
+    "eval/evq1107/camofox-browser/REPORT.md",
+    "eval/evq1107/camofox-browser/VERDICT"
+  ],
   "tier_ceiling": "I1",
-  "uses": "Stealth browser for agents. Browser automation is not core.",
+  "uses": "Stealth browser server for agents. Reference read only. It does not build the operator window.",
   "features": [
-    "fingerprint browser"
+    "accessibility snapshot with element refs",
+    "one cookie jar per user id",
+    "MCP client of the REST server",
+    "idle browser shutdown"
   ],
   "potential": "low",
-  "next_gate": "Stay I1.",
+  "next_gate": "Stay I1 reference. Re-open only as an external binary at pin 39c82094013480b373df6600d44c7f036f58356e, bind 127.0.0.1, telemetry off, no cookie import, no VNC, profile dir under the cache, and a grill before any run. Gap W stays the Tauri operator window. Catalog 70-75 stays HOLD. Not a Feature GO.",
   "handoff_by": "llm",
   "non_goals": [
-    "browser-use as core"
-  ]
+    "browser-use as core",
+    "feature_go",
+    "catalog_hold_70_75",
+    "install",
+    "npm_install",
+    "camoufox_download",
+    "code_copy",
+    "gate_wiring",
+    "cookie_import",
+    "vnc",
+    "telemetry",
+    "mcp_registration"
+  ],
+  "entry": "sources/entries/071-camofox-browser.md",
+  "github": "https://github.com/jo-inc/camofox-browser",
+  "pin": "39c82094013480b373df6600d44c7f036f58356e",
+  "license": "MIT",
+  "package": "@askjo/camofox-browser@1.18.1",
+  "mcp_package": "@askjo/camofox-browser-mcp@1.18.1",
+  "notes_doc": "eval/evq1107/camofox-browser/REPORT.md"
 }
