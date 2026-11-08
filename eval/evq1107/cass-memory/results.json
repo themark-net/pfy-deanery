@@ -1,0 +1,993 @@
+{
+  "pin_commit": "229a312b696aa347d1e2c491d3d466c925716dc0",
+  "pin_sha256": "06e1563881f8bb1225cf7036068252ef210f242704a27f8ce32518b822181bd7",
+  "version_expect": "0.5.0",
+  "binary": "/home/mark/.cache/pfy/tools/cass-memory/bin/cass-memory-linux-x64",
+  "binary_bytes": 124601824,
+  "sha256": "06e1563881f8bb1225cf7036068252ef210f242704a27f8ce32518b822181bd7",
+  "sha256_ok": true,
+  "skip_sha": false,
+  "ran": true,
+  "h1_graded_cases": 0,
+  "history": {
+    "status": "ran",
+    "reason": "",
+    "rules_extracted": 0,
+    "dry_run_added": 0,
+    "reflect_rc": 0,
+    "reflect_ms": 124.8,
+    "reflect_parse_ok": true,
+    "dry_run_rc": 0,
+    "dry_run_parse_ok": true,
+    "sha256_in_extracted": false,
+    "llm_skipped": true,
+    "llm_binaries_blocked": [
+      "claude"
+    ],
+    "blocked": [
+      "cass",
+      "cass",
+      "cass",
+      "cass",
+      "cass",
+      "cass",
+      "cass",
+      "cass",
+      "cass",
+      "cass",
+      "cass",
+      "cass",
+      "cass",
+      "cass",
+      "cass",
+      "cass",
+      "claude",
+      "claude",
+      "claude"
+    ],
+    "cass_available": false,
+    "isolate_net": true
+  },
+  "version": "0.5.0",
+  "init_ok": true,
+  "init_ms": 95.0,
+  "cass_available": false,
+  "doctor": {
+    "parse_ok": true,
+    "rc": 0,
+    "ms": 147.2,
+    "overall": "unhealthy",
+    "cass_status": "fail",
+    "cass_message": "CASS binary missing (cass CLI not found)"
+  },
+  "added": [
+    {
+      "name": "pin",
+      "marker": "CMK_PIN",
+      "parse_ok": true,
+      "rc": 0,
+      "ms": 112.8,
+      "id": "b-mw7cyk5q-vlh4r1"
+    },
+    {
+      "name": "fixtures",
+      "marker": "CMK_FIX",
+      "parse_ok": true,
+      "rc": 0,
+      "ms": 110.8,
+      "id": "b-mw7cyk8s-k57l03"
+    },
+    {
+      "name": "spell",
+      "marker": "CMK_SPELL",
+      "parse_ok": true,
+      "rc": 0,
+      "ms": 120.6,
+      "id": "b-mw7cykc4-o8a2j5"
+    },
+    {
+      "name": "auth",
+      "marker": "CMK_AUTH",
+      "parse_ok": true,
+      "rc": 0,
+      "ms": 117.8,
+      "id": "b-mw7cykff-w63x5b"
+    },
+    {
+      "name": "home",
+      "marker": "CMK_HOME",
+      "parse_ok": true,
+      "rc": 0,
+      "ms": 130.8,
+      "id": "b-mw7cykj0-nhxowa"
+    },
+    {
+      "name": "trading",
+      "marker": "CMK_TRADE",
+      "parse_ok": true,
+      "rc": 0,
+      "ms": 118.5,
+      "id": "b-mw7cykmc-occmim"
+    },
+    {
+      "name": "check",
+      "marker": "CMK_CHK",
+      "parse_ok": true,
+      "rc": 0,
+      "ms": 119.5,
+      "id": "b-mw7cykpn-an6jft"
+    },
+    {
+      "name": "registry",
+      "marker": "CMK_REG",
+      "parse_ok": true,
+      "rc": 0,
+      "ms": 123.2,
+      "id": "b-mw7cykt2-sewekc"
+    },
+    {
+      "name": "plant",
+      "marker": "CMK_PLANT",
+      "parse_ok": true,
+      "rc": 0,
+      "ms": 129.6,
+      "id": "b-mw7cykwn-2i4cpl"
+    }
+  ],
+  "queries": [
+    {
+      "name": "pin",
+      "marker": "CMK_PIN",
+      "rc": 0,
+      "ms": 162.8,
+      "parse_ok": true,
+      "timeout": false,
+      "hit": true,
+      "recalled": true,
+      "rank": 0,
+      "returned": 1,
+      "top_has_marker": true,
+      "top_marker": "CMK_PIN",
+      "top_score": 5.493,
+      "ranked": [
+        {
+          "marker": "CMK_PIN",
+          "score": 5.493
+        }
+      ],
+      "seen_markers": [
+        "CMK_PIN"
+      ],
+      "semantic_mode": "keyword"
+    },
+    {
+      "name": "fixtures",
+      "marker": "CMK_FIX",
+      "rc": 0,
+      "ms": 162.7,
+      "parse_ok": true,
+      "timeout": false,
+      "hit": true,
+      "recalled": true,
+      "rank": 0,
+      "returned": 1,
+      "top_has_marker": true,
+      "top_marker": "CMK_FIX",
+      "top_score": 8.192,
+      "ranked": [
+        {
+          "marker": "CMK_FIX",
+          "score": 8.192
+        }
+      ],
+      "seen_markers": [
+        "CMK_FIX"
+      ],
+      "semantic_mode": "keyword"
+    },
+    {
+      "name": "spell",
+      "marker": "CMK_SPELL",
+      "rc": 0,
+      "ms": 155.6,
+      "parse_ok": true,
+      "timeout": false,
+      "hit": true,
+      "recalled": true,
+      "rank": 0,
+      "returned": 1,
+      "top_has_marker": true,
+      "top_marker": "CMK_SPELL",
+      "top_score": 10,
+      "ranked": [
+        {
+          "marker": "CMK_SPELL",
+          "score": 10
+        }
+      ],
+      "seen_markers": [
+        "CMK_SPELL"
+      ],
+      "semantic_mode": "keyword"
+    },
+    {
+      "name": "auth",
+      "marker": "CMK_AUTH",
+      "rc": 0,
+      "ms": 167.0,
+      "parse_ok": true,
+      "timeout": false,
+      "hit": false,
+      "recalled": true,
+      "rank": 1,
+      "returned": 3,
+      "top_has_marker": false,
+      "top_marker": "CMK_TRADE",
+      "top_score": 1.142,
+      "ranked": [
+        {
+          "marker": "CMK_TRADE",
+          "score": 1.142
+        },
+        {
+          "marker": "CMK_AUTH",
+          "score": 1.097
+        },
+        {
+          "marker": "CMK_SPELL",
+          "score": 0.714
+        }
+      ],
+      "seen_markers": [
+        "CMK_SPELL",
+        "CMK_AUTH",
+        "CMK_TRADE"
+      ],
+      "semantic_mode": "keyword"
+    },
+    {
+      "name": "home",
+      "marker": "CMK_HOME",
+      "rc": 0,
+      "ms": 159.3,
+      "parse_ok": true,
+      "timeout": false,
+      "hit": true,
+      "recalled": true,
+      "rank": 0,
+      "returned": 2,
+      "top_has_marker": true,
+      "top_marker": "CMK_HOME",
+      "top_score": 4.28,
+      "ranked": [
+        {
+          "marker": "CMK_HOME",
+          "score": 4.28
+        },
+        {
+          "marker": "CMK_TRADE",
+          "score": 1.017
+        }
+      ],
+      "seen_markers": [
+        "CMK_HOME",
+        "CMK_TRADE"
+      ],
+      "semantic_mode": "keyword"
+    },
+    {
+      "name": "trading",
+      "marker": "CMK_TRADE",
+      "rc": 0,
+      "ms": 156.1,
+      "parse_ok": true,
+      "timeout": false,
+      "hit": true,
+      "recalled": true,
+      "rank": 0,
+      "returned": 1,
+      "top_has_marker": true,
+      "top_marker": "CMK_TRADE",
+      "top_score": 7.978,
+      "ranked": [
+        {
+          "marker": "CMK_TRADE",
+          "score": 7.978
+        }
+      ],
+      "seen_markers": [
+        "CMK_TRADE"
+      ],
+      "semantic_mode": "keyword"
+    },
+    {
+      "name": "check",
+      "marker": "CMK_CHK",
+      "rc": 0,
+      "ms": 149.9,
+      "parse_ok": true,
+      "timeout": false,
+      "hit": true,
+      "recalled": true,
+      "rank": 0,
+      "returned": 2,
+      "top_has_marker": true,
+      "top_marker": "CMK_CHK",
+      "top_score": 4.446,
+      "ranked": [
+        {
+          "marker": "CMK_CHK",
+          "score": 4.446
+        },
+        {
+          "marker": "CMK_REG",
+          "score": 2.325
+        }
+      ],
+      "seen_markers": [
+        "CMK_CHK",
+        "CMK_REG"
+      ],
+      "semantic_mode": "keyword"
+    },
+    {
+      "name": "registry",
+      "marker": "CMK_REG",
+      "rc": 0,
+      "ms": 147.0,
+      "parse_ok": true,
+      "timeout": false,
+      "hit": true,
+      "recalled": true,
+      "rank": 0,
+      "returned": 3,
+      "top_has_marker": true,
+      "top_marker": "CMK_REG",
+      "top_score": 8.233,
+      "ranked": [
+        {
+          "marker": "CMK_REG",
+          "score": 8.233
+        },
+        {
+          "marker": "CMK_CHK",
+          "score": 3.617
+        },
+        {
+          "marker": "CMK_TRADE",
+          "score": 2.406
+        }
+      ],
+      "seen_markers": [
+        "CMK_TRADE",
+        "CMK_CHK",
+        "CMK_REG"
+      ],
+      "semantic_mode": "keyword"
+    }
+  ],
+  "repeat": [
+    {
+      "name": "pin",
+      "marker": "CMK_PIN",
+      "rc": 0,
+      "ms": 165.9,
+      "parse_ok": true,
+      "timeout": false,
+      "hit": true,
+      "recalled": true,
+      "rank": 0,
+      "returned": 1,
+      "top_has_marker": true,
+      "top_marker": "CMK_PIN",
+      "top_score": 5.493,
+      "ranked": [
+        {
+          "marker": "CMK_PIN",
+          "score": 5.493
+        }
+      ],
+      "seen_markers": [
+        "CMK_PIN"
+      ],
+      "semantic_mode": "keyword"
+    },
+    {
+      "name": "fixtures",
+      "marker": "CMK_FIX",
+      "rc": 0,
+      "ms": 156.2,
+      "parse_ok": true,
+      "timeout": false,
+      "hit": true,
+      "recalled": true,
+      "rank": 0,
+      "returned": 1,
+      "top_has_marker": true,
+      "top_marker": "CMK_FIX",
+      "top_score": 8.192,
+      "ranked": [
+        {
+          "marker": "CMK_FIX",
+          "score": 8.192
+        }
+      ],
+      "seen_markers": [
+        "CMK_FIX"
+      ],
+      "semantic_mode": "keyword"
+    },
+    {
+      "name": "spell",
+      "marker": "CMK_SPELL",
+      "rc": 0,
+      "ms": 156.8,
+      "parse_ok": true,
+      "timeout": false,
+      "hit": true,
+      "recalled": true,
+      "rank": 0,
+      "returned": 1,
+      "top_has_marker": true,
+      "top_marker": "CMK_SPELL",
+      "top_score": 10,
+      "ranked": [
+        {
+          "marker": "CMK_SPELL",
+          "score": 10
+        }
+      ],
+      "seen_markers": [
+        "CMK_SPELL"
+      ],
+      "semantic_mode": "keyword"
+    },
+    {
+      "name": "auth",
+      "marker": "CMK_AUTH",
+      "rc": 0,
+      "ms": 158.8,
+      "parse_ok": true,
+      "timeout": false,
+      "hit": false,
+      "recalled": true,
+      "rank": 1,
+      "returned": 3,
+      "top_has_marker": false,
+      "top_marker": "CMK_TRADE",
+      "top_score": 1.142,
+      "ranked": [
+        {
+          "marker": "CMK_TRADE",
+          "score": 1.142
+        },
+        {
+          "marker": "CMK_AUTH",
+          "score": 1.097
+        },
+        {
+          "marker": "CMK_SPELL",
+          "score": 0.714
+        }
+      ],
+      "seen_markers": [
+        "CMK_SPELL",
+        "CMK_AUTH",
+        "CMK_TRADE"
+      ],
+      "semantic_mode": "keyword"
+    },
+    {
+      "name": "home",
+      "marker": "CMK_HOME",
+      "rc": 0,
+      "ms": 161.4,
+      "parse_ok": true,
+      "timeout": false,
+      "hit": true,
+      "recalled": true,
+      "rank": 0,
+      "returned": 2,
+      "top_has_marker": true,
+      "top_marker": "CMK_HOME",
+      "top_score": 4.28,
+      "ranked": [
+        {
+          "marker": "CMK_HOME",
+          "score": 4.28
+        },
+        {
+          "marker": "CMK_TRADE",
+          "score": 1.017
+        }
+      ],
+      "seen_markers": [
+        "CMK_HOME",
+        "CMK_TRADE"
+      ],
+      "semantic_mode": "keyword"
+    },
+    {
+      "name": "trading",
+      "marker": "CMK_TRADE",
+      "rc": 0,
+      "ms": 155.8,
+      "parse_ok": true,
+      "timeout": false,
+      "hit": true,
+      "recalled": true,
+      "rank": 0,
+      "returned": 1,
+      "top_has_marker": true,
+      "top_marker": "CMK_TRADE",
+      "top_score": 7.978,
+      "ranked": [
+        {
+          "marker": "CMK_TRADE",
+          "score": 7.978
+        }
+      ],
+      "seen_markers": [
+        "CMK_TRADE"
+      ],
+      "semantic_mode": "keyword"
+    },
+    {
+      "name": "check",
+      "marker": "CMK_CHK",
+      "rc": 0,
+      "ms": 145.6,
+      "parse_ok": true,
+      "timeout": false,
+      "hit": true,
+      "recalled": true,
+      "rank": 0,
+      "returned": 2,
+      "top_has_marker": true,
+      "top_marker": "CMK_CHK",
+      "top_score": 4.446,
+      "ranked": [
+        {
+          "marker": "CMK_CHK",
+          "score": 4.446
+        },
+        {
+          "marker": "CMK_REG",
+          "score": 2.325
+        }
+      ],
+      "seen_markers": [
+        "CMK_CHK",
+        "CMK_REG"
+      ],
+      "semantic_mode": "keyword"
+    },
+    {
+      "name": "registry",
+      "marker": "CMK_REG",
+      "rc": 0,
+      "ms": 152.0,
+      "parse_ok": true,
+      "timeout": false,
+      "hit": true,
+      "recalled": true,
+      "rank": 0,
+      "returned": 3,
+      "top_has_marker": true,
+      "top_marker": "CMK_REG",
+      "top_score": 8.233,
+      "ranked": [
+        {
+          "marker": "CMK_REG",
+          "score": 8.233
+        },
+        {
+          "marker": "CMK_CHK",
+          "score": 3.617
+        },
+        {
+          "marker": "CMK_TRADE",
+          "score": 2.406
+        }
+      ],
+      "seen_markers": [
+        "CMK_TRADE",
+        "CMK_CHK",
+        "CMK_REG"
+      ],
+      "semantic_mode": "keyword"
+    }
+  ],
+  "playbook_queries": 8,
+  "playbook_top1": 7,
+  "playbook_recall": 8,
+  "bad_json_queries": 0,
+  "agreement": 8,
+  "overlap_top1": 8,
+  "top1_delta": -1,
+  "distractor_leaks": 0,
+  "semantic_mode": "keyword",
+  "repo_needles": [
+    {
+      "needle": "write-guard-mcp",
+      "rg_hit": true,
+      "playbook_hit": false,
+      "parse_ok": true,
+      "ms": 151.1
+    },
+    {
+      "needle": "smoke-codebase-memory",
+      "rg_hit": true,
+      "playbook_hit": false,
+      "parse_ok": true,
+      "ms": 150.1
+    },
+    {
+      "needle": "self_pipeline",
+      "rg_hit": true,
+      "playbook_hit": false,
+      "parse_ok": true,
+      "ms": 148.2
+    },
+    {
+      "needle": "best-effort-and-bot-budget-build-max",
+      "rg_hit": true,
+      "playbook_hit": false,
+      "parse_ok": true,
+      "ms": 148.0
+    },
+    {
+      "needle": "prefer-behavior-and-fail-recover-tests",
+      "rg_hit": true,
+      "playbook_hit": false,
+      "parse_ok": true,
+      "ms": 148.9
+    },
+    {
+      "needle": "eval-structural",
+      "rg_hit": true,
+      "playbook_hit": false,
+      "parse_ok": true,
+      "ms": 154.6
+    },
+    {
+      "needle": "codebase-memory-mcp",
+      "rg_hit": true,
+      "playbook_hit": false,
+      "parse_ok": true,
+      "ms": 151.9
+    },
+    {
+      "needle": "integration-stages.md",
+      "rg_hit": true,
+      "playbook_hit": false,
+      "parse_ok": true,
+      "ms": 145.4
+    }
+  ],
+  "repo_rg_hits": 8,
+  "repo_playbook_hits": 0,
+  "deprecation": {
+    "id": "b-mw7cykwn-2i4cpl",
+    "mark_ok": true,
+    "states": [
+      "candidate",
+      "candidate",
+      "deprecated"
+    ],
+    "last_state": "deprecated",
+    "removed_from_context": true,
+    "context_parse_ok": true,
+    "context_ms": 146.1
+  },
+  "usage": {
+    "parse_ok": true,
+    "today": 0,
+    "total": 0
+  },
+  "catalog_overlap": [
+    {
+      "name": "Agent Beacon",
+      "slug": "agent-beacon",
+      "stage": "I0",
+      "uses": "Copy a committed Grok session into a local JSONL, then store a lesson a person types. Scoring one trace calls hosted TypeSafe Jev.",
+      "words": [
+        "memory",
+        "session"
+      ],
+      "h1_neighbor": false
+    },
+    {
+      "name": "agentplay",
+      "slug": "agentplay",
+      "stage": "I0",
+      "uses": "Session replay map.",
+      "words": [
+        "session"
+      ],
+      "h1_neighbor": false
+    },
+    {
+      "name": "Auto-Company",
+      "slug": "auto-company",
+      "stage": "I1",
+      "uses": "Company-daemon patterns worth extracting. Not a runtime to adopt.",
+      "words": [
+        "memory"
+      ],
+      "h1_neighbor": false
+    },
+    {
+      "name": "Axon",
+      "slug": "axon",
+      "stage": "I1",
+      "uses": "Local call-graph impact for a per-file review. Trialed on pfy diffs. Not a test selector.",
+      "words": [
+        "memory"
+      ],
+      "h1_neighbor": false
+    },
+    {
+      "name": "cass-memory",
+      "slug": "cass-memory",
+      "stage": "I0",
+      "uses": "Procedural playbook. The 2026-11-07 probe extracted 0 rules from one session and put the right hand-added rule first on 7 of 8 queries.",
+      "words": [
+        "memory",
+        "playbook",
+        "procedural",
+        "session"
+      ],
+      "h1_neighbor": false
+    },
+    {
+      "name": "Chroma (or LanceDB)",
+      "slug": "chroma-or-lancedb",
+      "stage": "I0",
+      "uses": "Vector store. Code memory is already chosen.",
+      "words": [
+        "memory"
+      ],
+      "h1_neighbor": false
+    },
+    {
+      "name": "codebase-memory-mcp",
+      "slug": "codebase-memory-mcp",
+      "stage": "I2",
+      "uses": "Primary code-graph MCP and the code-graph toolset.",
+      "words": [
+        "memory"
+      ],
+      "h1_neighbor": false
+    },
+    {
+      "name": "eval-harness (pfy)",
+      "slug": "eval-harness-pfy",
+      "stage": "I1",
+      "uses": "First-party structural and integration ladder.",
+      "words": [],
+      "h1_neighbor": true
+    },
+    {
+      "name": "Graphify",
+      "slug": "graphify",
+      "stage": "I0",
+      "uses": "Tree-sitter graph for a per-file review. Trialed on pfy diffs. Not the code memory we run.",
+      "words": [
+        "memory"
+      ],
+      "h1_neighbor": false
+    },
+    {
+      "name": "Grok CLI bootstrap",
+      "slug": "grok-cli-bootstrap",
+      "stage": "I3",
+      "uses": "Operator env, skills install, cage Grok sessions.",
+      "words": [
+        "memory"
+      ],
+      "h1_neighbor": false
+    },
+    {
+      "name": "Harness Score",
+      "slug": "harness-score",
+      "stage": "I0",
+      "uses": "Offline L0-L4 grade of repo harness files: context, skills, hooks, sensors, CI, and hygiene.",
+      "words": [],
+      "h1_neighbor": true
+    },
+    {
+      "name": "harness2",
+      "slug": "harness2",
+      "stage": "I1",
+      "uses": "Local harness edit trial on the 48-case decision set, sandboxed OpenCode, own llama-server.",
+      "words": [],
+      "h1_neighbor": true
+    },
+    {
+      "name": "Hermes Agent (feedback loops)",
+      "slug": "hermes-agent-feedback-loops",
+      "stage": "I1",
+      "uses": "Feedback-loop pattern ported as a skill. Not the Hermes runtime.",
+      "words": [
+        "memory"
+      ],
+      "h1_neighbor": false
+    },
+    {
+      "name": "imcodes",
+      "slug": "imcodes",
+      "stage": "I0",
+      "uses": "Reference for a supervised review loop and final-answer memory. Not an install.",
+      "words": [
+        "memory"
+      ],
+      "h1_neighbor": false
+    },
+    {
+      "name": "LEANN",
+      "slug": "leann",
+      "stage": "I1",
+      "uses": "Compressed RAG for local text. The 2026-11-07 probe stored a 16582-byte HNSW graph against a 331776-byte float32 matrix, and the full index was 620548 bytes on 190529 bytes of passages. The CPU cache install is about 1.63 GB. Not our code m",
+      "words": [
+        "memory"
+      ],
+      "h1_neighbor": false
+    },
+    {
+      "name": "MemPalace",
+      "slug": "mempalace",
+      "stage": "I0",
+      "uses": "Verbatim local memory with scoped search.",
+      "words": [
+        "memory"
+      ],
+      "h1_neighbor": false
+    },
+    {
+      "name": "Memvid",
+      "slug": "memvid",
+      "stage": "I1",
+      "uses": "Video-backed memory. No job in the current operator path.",
+      "words": [
+        "memory"
+      ],
+      "h1_neighbor": false
+    },
+    {
+      "name": "MUE-X",
+      "slug": "mue-x",
+      "stage": "I1",
+      "uses": "Self-rewriting agent. Interesting pattern, unsafe as a runtime.",
+      "words": [
+        "memory"
+      ],
+      "h1_neighbor": false
+    },
+    {
+      "name": "neatroots",
+      "slug": "neatroots",
+      "stage": "I2",
+      "uses": "Offline rule checks for loops, repeated tool calls, and error streaks on saved agent traces.",
+      "words": [],
+      "h1_neighbor": true
+    },
+    {
+      "name": "Open Steps",
+      "slug": "open-steps",
+      "stage": "I0",
+      "uses": "One-shot stop nag when the git fingerprint changes. A second stop exits 0 with no report file. It does not see a 3 hour build timeout or a parked pregate failure.",
+      "words": [
+        "session"
+      ],
+      "h1_neighbor": false
+    },
+    {
+      "name": "opencode-mem",
+      "slug": "opencode-mem",
+      "stage": "I1",
+      "uses": "Memory plugin for the OpenCode worker.",
+      "words": [
+        "memory"
+      ],
+      "h1_neighbor": false
+    },
+    {
+      "name": "OpenContext",
+      "slug": "opencontext",
+      "stage": "I1",
+      "uses": "Personal context store and oc CLI. The 2026-11-07 probe recalled 8 of 8 copied notes and 0 of 8 facts already in this repo, and it scored 0 with/without harness cases.",
+      "words": [
+        "memory"
+      ],
+      "h1_neighbor": false
+    },
+    {
+      "name": "OpenLore",
+      "slug": "openlore",
+      "stage": "I1",
+      "uses": "Local breaking-change label for a review of module-level Python exports. Trialed on this repo. The suite selector stays scripts/test_select.py.",
+      "words": [
+        "memory"
+      ],
+      "h1_neighbor": false
+    },
+    {
+      "name": "repowise",
+      "slug": "repowise",
+      "stage": "I2",
+      "uses": "Context packing probe. Overlaps codebase-memory.",
+      "words": [
+        "memory"
+      ],
+      "h1_neighbor": false
+    },
+    {
+      "name": "RoBrain",
+      "slug": "robrain",
+      "stage": "I0",
+      "uses": "Decision memory with vetoes.",
+      "words": [
+        "memory"
+      ],
+      "h1_neighbor": false
+    },
+    {
+      "name": "skill-up",
+      "slug": "skill-up",
+      "stage": "I3",
+      "uses": "Grade a with-skill run against a no-skill baseline. The same cases can score a pfy run against a plain Build run.",
+      "words": [],
+      "h1_neighbor": true
+    },
+    {
+      "name": "Tree-sitter Analyzer",
+      "slug": "tree-sitter-analyzer",
+      "stage": "I1",
+      "uses": "Local change-impact map for a per-file review. Trialed on pfy diffs. Not a test selector.",
+      "words": [
+        "memory"
+      ],
+      "h1_neighbor": false
+    }
+  ],
+  "skipped_commands": [
+    "diary",
+    "validate",
+    "audit",
+    "hook",
+    "update",
+    "doctor --fix",
+    "serve"
+  ],
+  "real_home_before": {
+    "cass-memory": {
+      "exists": false,
+      "entries": 0
+    },
+    "cache-cass-memory": {
+      "exists": false,
+      "entries": 0
+    },
+    "cass": {
+      "exists": false,
+      "entries": 0
+    }
+  },
+  "real_home_after": {
+    "cass-memory": {
+      "exists": false,
+      "entries": 0
+    },
+    "cache-cass-memory": {
+      "exists": false,
+      "entries": 0
+    },
+    "cass": {
+      "exists": false,
+      "entries": 0
+    }
+  },
+  "real_home_changed": false,
+  "wall_ms": 6440.8
+}

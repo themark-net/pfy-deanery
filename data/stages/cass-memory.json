@@ -1,0 +1,43 @@
+{
+  "name": "cass-memory",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/108-cass-memory.md",
+  "github": "https://github.com/Dicklesworthstone/cass_memory_system",
+  "pin": "229a312b696aa347d1e2c491d3d466c925716dc0",
+  "release": "v0.5.0",
+  "binary_sha256": "06e1563881f8bb1225cf7036068252ef210f242704a27f8ce32518b822181bd7",
+  "binary_bytes": 124601824,
+  "uses": "Procedural playbook. The 2026-11-07 probe extracted 0 rules from one session and put the right hand-added rule first on 7 of 8 queries.",
+  "features": [
+    "keyword playbook search",
+    "harmful-mark deprecation",
+    "session reflect needs cass or a local CLI"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I0. Re-open only if a later pin extracts at least one rule from eval/evq1107/cass-memory/rules.json session_lines with no network, no claude binary, and no API key, and top-1 on those 8 queries beats token overlap. The linux binary is 124601824 bytes, so it is not an in-repo I2 copy. Do not wire a gate.",
+  "tier_ceiling": "I1",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "cm_hook",
+    "cm_update",
+    "cm_doctor_fix",
+    "cass_install",
+    "paid_provider",
+    "anthropic_or_openai_lanes",
+    "index_real_sessions",
+    "gate_wiring",
+    "replace_agents_md"
+  ],
+  "evidence": [
+    "entry:sources/entries/108-cass-memory.md",
+    "eval/evq1107/cass-memory/REPORT.md",
+    "eval/evq1107/cass-memory/VERDICT",
+    "eval/evq1107/cass-memory/results.json",
+    "pin:229a312b696aa347d1e2c491d3d466c925716dc0",
+    "release:v0.5.0",
+    "sha256:06e1563881f8bb1225cf7036068252ef210f242704a27f8ce32518b822181bd7"
+  ],
+  "handoff_by": "llm"
+}

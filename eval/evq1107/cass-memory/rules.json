@@ -1,0 +1,81 @@
+{
+  "rules": [
+    {
+      "name": "pin",
+      "marker": "CMK_PIN",
+      "category": "pin",
+      "content": "Pin the cass-memory linux binary by sha256 before executing it. CMK_PIN",
+      "query": "verify the sha256 of the cass-memory linux binary before it runs"
+    },
+    {
+      "name": "fixtures",
+      "marker": "CMK_FIX",
+      "category": "fixtures",
+      "content": "Keep eval fixtures as small text under the evq1107 directory. CMK_FIX",
+      "query": "where should small text eval fixtures live under evq1107"
+    },
+    {
+      "name": "spell",
+      "marker": "CMK_SPELL",
+      "category": "copy",
+      "content": "Spell the product name Gom Jabbar in operator sentences. CMK_SPELL",
+      "query": "how should operator sentences spell Gom Jabbar"
+    },
+    {
+      "name": "auth",
+      "marker": "CMK_AUTH",
+      "category": "secrets",
+      "content": "Do not commit auth.json or any API key value. CMK_AUTH",
+      "query": "which secret file named auth.json must stay uncommitted"
+    },
+    {
+      "name": "home",
+      "marker": "CMK_HOME",
+      "category": "install",
+      "content": "Redirect TMPDIR and HOME before a tool writes its own dot directory. CMK_HOME",
+      "query": "which env vars to redirect so a tool dot directory stays out of the real HOME"
+    },
+    {
+      "name": "trading",
+      "marker": "CMK_TRADE",
+      "category": "trading",
+      "content": "Leave trading code untouched while LIVE_HARD_OFF stays true. CMK_TRADE",
+      "query": "what must stay untouched in trading code while LIVE_HARD_OFF is true"
+    },
+    {
+      "name": "check",
+      "marker": "CMK_CHK",
+      "category": "catalog",
+      "content": "When one stage card changes, run catalog_check before the lane ends. CMK_CHK",
+      "query": "which check command runs before the lane ends after a stage card change"
+    },
+    {
+      "name": "registry",
+      "marker": "CMK_REG",
+      "category": "catalog",
+      "content": "When one stage card changes, leave the shared registry json untouched. CMK_REG",
+      "query": "which shared registry json stays untouched when one stage card changes"
+    }
+  ],
+  "distractor": {
+    "name": "plant",
+    "marker": "CMK_PLANT",
+    "category": "office",
+    "content": "Water the office plant every Friday morning. CMK_PLANT",
+    "query": "friday office plant watering"
+  },
+  "repo_needles": [
+    "write-guard-mcp",
+    "smoke-codebase-memory",
+    "self_pipeline",
+    "best-effort-and-bot-budget-build-max",
+    "prefer-behavior-and-fail-recover-tests",
+    "eval-structural",
+    "codebase-memory-mcp",
+    "integration-stages.md"
+  ],
+  "session_lines": [
+    "{\"type\":\"user\",\"content\":\"Please remember this rule: Pin the cass-memory linux binary by sha256 before executing it.\"}",
+    "{\"type\":\"assistant\",\"content\":\"Noted. I will not call a paid model.\"}"
+  ]
+}
