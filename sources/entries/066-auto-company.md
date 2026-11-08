@@ -13,4 +13,4 @@
   3. Cluster 5 in scoring-summary.md
   4. TOOLS.md company section + data/tools.json v0.4.3
   Integration posture: **extract patterns** (named personas, consensus.md baton, Munger pre-mortem, forbidden-action table, squad formation, cycle gates) into Grok skills / AGENTS.md — do **not** adopt as primary operator runtime without ADR (aligns ADR-0010).
-- **Status**: Processed and cataloged under Autonomous AI Companies; S-tier company pattern source
+- **Status**: STAY I1 reference (read 2026-11-07). Pin `211baad12b08d25c75b10ade86ed301098be69b2` is package 3.0.0, MIT. Both GitHub URLs resolve to that commit. Patterns already in `docs/ops/auto-company-patterns.md` (T-0055). No install, no daemon, no code copy. Gap B is unchanged. Receipt: `eval/evq1107/auto-company/REPORT.md`. No Feature GO.

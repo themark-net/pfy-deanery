@@ -15,19 +15,36 @@
     "#local-first"
   ],
   "catalog_github": "https://github.com/MaxMiksa/Auto-Company",
-  "posture": [],
-  "evidence": [],
+  "posture": [
+    "pattern_only"
+  ],
+  "evidence": [
+    "entry:sources/entries/066-auto-company.md",
+    "pin:211baad12b08d25c75b10ade86ed301098be69b2",
+    "eval/evq1107/auto-company/REPORT.md",
+    "eval/evq1107/auto-company/VERDICT"
+  ],
   "tier_ceiling": "I3",
-  "uses": "Company-daemon patterns worth extracting. Not a runtime to adopt.",
+  "uses": "Persona and consensus-file patterns. The extract already sits in operator docs. A company daemon stays off the operator path.",
   "features": [
     "personas",
     "consensus baton",
     "pre-mortem gate"
   ],
-  "potential": "medium",
-  "next_gate": "Extract a pattern into a skill, or stay I1.",
+  "potential": "low",
+  "next_gate": "Stay I1 reference. The extract is docs/ops/auto-company-patterns.md (T-0055). Re-open only if a later ticket shows this pin contradicts that note, and that ticket still leaves the daemon out. No install, no gate. Gap B stays the pfy build timeout. Not a Feature GO.",
   "handoff_by": "llm",
   "non_goals": [
-    "company daemon as primary runtime"
-  ]
+    "company daemon as primary runtime",
+    "feature_go",
+    "catalog_hold_70_75",
+    "install",
+    "code_copy",
+    "gate_wiring"
+  ],
+  "entry": "sources/entries/066-auto-company.md",
+  "github": "https://github.com/MaxMiksa/Auto-Company",
+  "pin": "211baad12b08d25c75b10ade86ed301098be69b2",
+  "license": "MIT",
+  "package_version": "3.0.0"
 }
