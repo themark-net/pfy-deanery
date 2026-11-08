@@ -9,6 +9,7 @@ model and no registry fetch.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import pwd
@@ -31,6 +32,7 @@ TARBALL = CACHE / "agent-skill-manager-2.24.0.tgz"
 WORK = CACHE / "tmp" / "asm-probe"
 PIN_SHA256 = "78fde253af3e216098a6d471dd90341d4aace1bc839816d1080a6fc1432661dd"
 CATEGORIES = ("Shell commands", "Code execution", "Credentials", "External URLs")
+PLANTED_CATEGORIES = ("Shell commands", "Credentials", "External URLs")
 PLANTED_TOKENS = ("bash -c", "child_process", "API_KEY=", "https://example.invalid")
 
 
@@ -152,15 +154,23 @@ def install_record(source: Path, provider: str, cwd: Path) -> dict:
     payload = last_json(out)
     if not isinstance(payload, dict):
         payload = {}
-    dest = Path(str(payload.get("path") or ""))
-    skill_md = dest / "SKILL.md"
+    raw_path = payload.get("path")
+    # An empty receipt path must not become ".", or a SKILL.md in the
+    # working directory would count as a landed install.
+    if isinstance(raw_path, str) and raw_path:
+        skill_md = Path(raw_path) / "SKILL.md"
+        landed = skill_md.is_file()
+        path_text = raw_path
+    else:
+        landed = False
+        path_text = ""
     text = out + "\n" + err
     return {
         "exit": code,
         "wall_s": round(wall, 4),
         "success": payload.get("success"),
-        "path": str(dest) if dest.parts else "",
-        "landed": skill_md.is_file(),
+        "path": path_text,
+        "landed": landed,
         "risk": risk_label(text),
         "categories": categories(text),
         "resolution_source": payload.get("resolutionSource"),
@@ -185,8 +195,6 @@ def main() -> int:
         (OUT_DIR / "results.json").write_text(json.dumps(results, indent=2) + "\n", encoding="utf-8")
         return 2
     if TARBALL.is_file():
-        import hashlib
-
         digest = hashlib.sha256(TARBALL.read_bytes()).hexdigest()
         results["tarball_sha256"] = digest
         results["tarball_sha256_ok"] = digest == PIN_SHA256
@@ -219,9 +227,14 @@ def main() -> int:
     planted_proj = WORK / "planted-proj"
     planted_proj.mkdir()
     planted_install = install_record(planted, "grok", planted_proj)
-    planted_md = Path(planted_install["path"]) / "SKILL.md"
+    # Same rule as landed: an empty receipt must not read a SKILL.md from cwd.
+    if planted_install["landed"]:
+        planted_md = Path(planted_install["path"]) / "SKILL.md"
+    else:
+        planted_md = None
     planted_install["planted_tokens_present"] = {
-        token: file_has(planted_md, token) for token in PLANTED_TOKENS
+        token: planted_md is not None and file_has(planted_md, token)
+        for token in PLANTED_TOKENS
     }
     # A block is a refused copy. A landed file is not a block. A missing file
     # counts only when the CLI itself exits non-zero or reports success false.
@@ -258,9 +271,9 @@ def main() -> int:
     safe_providers = sum(1 for row in (grok, opencode) if row["landed"] and row["risk"] == "safe")
     results["providers_landed"] = f"{landed_providers}/2"
     results["clean_safe"] = f"{safe_providers}/2"
-    preview_named = len(planted_install["categories"])
+    preview_named = sum(1 for name in PLANTED_CATEGORIES if name in planted_install["categories"])
     results["preview_categories"] = f"{preview_named}/3"
-    if planted_install["landed"]:
+    if planted_install["landed"] and planted_install["risk"] == "high":
         results["high_risk_blocked"] = "0/1"
     elif planted_install["blocked"]:
         results["high_risk_blocked"] = "1/1"

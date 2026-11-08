@@ -19,7 +19,7 @@ The job is gap H2 from the 2026-11-07 ranking: skill and tool discovery has no i
 | CodeGuard | I0 | Secure-coding rule text. The card says it is not an install gate. | No copy command. |
 | repository-harness | I0 | Install a repository map and four skills beside an existing AGENTS.md. | Installs a known pack. It does not label a fetched SKILL.md. |
 | write-guard-mcp | I3 | Write mediation above the cage mount. | A runtime guard. |
-| destructive_command_guard | I1 | Blocks destructive shell commands. | Matches command text. The planted line is a string in a fixture. |
+| destructive_command_guard | I2 | Blocks destructive shell commands. | Matches command text. The planted line is a string in a fixture. |
 | agent-cage (PNNL) | I3 | Isolated lab for Grok. | The lab boundary. |
 | Bumblebee | I2 | Advisory lockfile and MCP config scan. | Other files. |
 
@@ -29,7 +29,7 @@ Beats what we have: no.
 
 ## Verdict
 
-STAY I1. `asm install --yes` copied 1/1 high-risk skills (0 blocked) in 0.0613 s. The same preview named 3/3 planted categories. `audit security` on the installed copy returned safe, 0 files, 0 lines, exit 0, in 0.042 s. A local-path audit before the copy scanned nothing (exit 1, 0.035 s). One clean skill landed in 2/2 project provider dirs. Nothing is wired into a gate.
+STAY I1. `asm install --yes` copied 1/1 high-risk skills (0 blocked) in 0.0519 s. The same preview named 3/3 planted categories. `audit security` on the installed copy returned safe, 0 files, 0 lines, exit 0, in 0.0361 s. A local-path audit before the copy scanned nothing (exit 1, 0.0356 s). One clean skill landed in 2/2 project provider dirs. Nothing is wired into a gate.
 
 `STAY I1 0/1 high-risk skills blocked, audit read 0 files, 2/2 project copies landed`
 
@@ -75,14 +75,14 @@ The planted body contains `bash -c`, `child_process`, `API_KEY=` with a fake mar
 
 | Step | Exit | Wall | Result |
 |------|-----:|-----:|--------|
-| `asm --version` | 0 | 0.0355 s | `asm v2.23.0 (6cb9272)` |
-| `audit security` on the planted directory, before any copy | 1 | 0.035 s | scanned false. The error says the path was not found as an installed skill. |
-| `install` planted, `-p grok -s project -y --json` | 0 | 0.0613 s | success true, risk high, categories Shell commands, Credentials, External URLs (3/3). File landed. All 4 planted tokens still in the copy. blocked false. `resolutionSource` is `github`. |
-| `audit security planted --json` from that project | 0 | 0.042 s | verdict safe, totalFiles 0, totalLines 0, reason "No suspicious patterns detected." 0/4 tokens named. |
-| `install` clean, `-p grok -s project -y` | 0 | 0.0516 s | risk safe, landed |
-| `install` clean, `-p opencode -s project -y` | 0 | 0.052 s | risk safe, landed |
+| `asm --version` | 0 | 0.0397 s | `asm v2.23.0 (6cb9272)` |
+| `audit security` on the planted directory, before any copy | 1 | 0.0356 s | scanned false. The error says the path was not found as an installed skill. |
+| `install` planted, `-p grok -s project -y --json` | 0 | 0.0519 s | success true, risk high, categories Shell commands, Credentials, External URLs (3/3). File landed. All 4 planted tokens still in the copy. blocked false. `resolutionSource` is `github`. |
+| `audit security planted --json` from that project | 0 | 0.0361 s | verdict safe, totalFiles 0, totalLines 0, reason "No suspicious patterns detected." 0/4 tokens named. |
+| `install` clean, `-p grok -s project -y` | 0 | 0.0431 s | risk safe, landed |
+| `install` clean, `-p opencode -s project -y` | 0 | 0.0482 s | risk safe, landed |
 
-`high_risk_blocked` is 0/1. `providers_landed` is 2/2. `clean_safe` is 2/2. `real_homes_unchanged` is true for `~/.grok/skills`, `~/.claude`, `~/.codex/skills`, and `~/.config/opencode` (mtime and size before and after).
+`high_risk_blocked` is 0/1 only when the copy lands and the preview risk is high. An empty receipt path does not count as landed, and it does not count as a block unless the CLI exits non-zero or reports success false. `providers_landed` is 2/2. `clean_safe` is 2/2. `real_homes_unchanged` is true for `~/.grok/skills`, `~/.claude`, `~/.codex/skills`, and `~/.config/opencode` (mtime and size before and after).
 
 The install preview is what named the three categories. The JSON receipt has `success: true` and no risk field. `--yes` is the agent path from the entry, and it still copied the high-risk file. The published dist skips `SKILL.md` and every `.md` file inside `audit security`, which is why that command scanned 0 files on a skill whose only file is `SKILL.md`.
 
@@ -91,7 +91,7 @@ The install preview is what named the three categories. The JSON receipt has `su
 Value gate is 2 of 4. I3 needs 3, plus a repeatable script and `self_pipeline`. This lane does not wire a gate.
 
 1. Gap fill. Not met. SkillSpector already reads a skill before copy. This install copies a high-risk SKILL.md, and `audit security` calls that file safe.
-2. Operator leverage. Not met. Two project copies, 0.0516 s and 0.052 s, do not replace the Grok skills install. The safety label does not stop the copy.
+2. Operator leverage. Not met. Two project copies, 0.0431 s and 0.0482 s, do not replace the Grok skills install. The safety label does not stop the copy.
 3. Evidence. Met. The probe exited 0 offline on the pinned tarball.
 4. Blast radius. Met. MIT, no weights, no account, cache path, repo copy is text. The prefix is over the I2 size bar and under a multi-GB weight.
 
