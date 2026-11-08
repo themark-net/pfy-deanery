@@ -1,5 +1,5 @@
 {
-  "metric": "destructive commands denied by the wired guard",
+  "metric": "evq1107 probe denied 12 destructive commands; this lane wires the guard",
   "threshold": 12,
   "value_gate": "pass",
   "modularity_gate": "pass",

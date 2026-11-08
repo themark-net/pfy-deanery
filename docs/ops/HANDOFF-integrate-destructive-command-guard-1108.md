@@ -61,3 +61,9 @@ Grok's own tool shell is inside the grok process. This lane does not install a h
 `python3 -m unittest` on `tests.test_dcg_fail_safe`, `tests.test_dcg_opt_out`, `tests.test_dcg_modular_ci`, `tests.test_dcg_no_double_work`, `tests.test_dcg_timeout`, `tests.test_dcg_receipt_fixture`, `tests.test_dcg_lane_hook`, `tests.test_integrate_lane_dispatched`, `tests.test_integrate_lane_land`. Pass. `python3 scripts/catalog_check.py` PASS. `python3 scripts/check_no_encoded_payloads.py` PASS.
 
 `run-on-main.sh` was run on a fixture repo. Diverged `HEAD` exits nonzero and writes no file. `HEAD` equal to `origin/main` writes a receipt and does not execute `rm`.
+
+## Self-review
+
+Reviewed the diff against `origin/main`. The first VERDICT metric said the wired guard denied 12 commands. The evq1107 probe did that. This lane did not re-run those 12. The metric now names the probe and the wiring. The threshold stays 12 because that is the probe count.
+
+Left as documented limits. A missing `guard.sh` fails open with a loud line. A missing binary still denies the built-in list. Argv is joined with spaces for the dcg posix parser. The receipt is written after the push and is not committed, so it is not in the landed SHA. Grok's inner tool shell is not classified. `catalog_apply_verdict.py` still refuses I3 because `tier_ceiling` is I1. The card bytes stay the same.
