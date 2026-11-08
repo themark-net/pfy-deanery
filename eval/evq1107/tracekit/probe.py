@@ -323,7 +323,51 @@ def decide_pack(pack_name: str, policy_path: Path, cli: Path, export: bool) -> d
         shutil.rmtree(work, ignore_errors=True)
 
 
-def main() -> int:
+def score_main(path: Path) -> int:
+    """Print block counts for a decision file. Does not import or run tracekit."""
+    if not path.is_file():
+        print("score file missing: " + str(path), file=sys.stderr)
+        return 2
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        print("score file unreadable: " + type(exc).__name__, file=sys.stderr)
+        return 2
+    rows = doc.get("rows") if isinstance(doc, dict) else None
+    if not isinstance(rows, list):
+        print("score file has no rows", file=sys.stderr)
+        return 2
+    summary = tally(rows, "h2_load")
+    receipt = {"decisions": [{"id": row.get("id"), "decision": row.get("decision")} for row in rows]}
+    edited = json.loads(json.dumps(receipt))
+    flipped = False
+    for row in edited["decisions"]:
+        if isinstance(row, dict) and row.get("decision") == "deny":
+            row["decision"] = "allow"
+            flipped = True
+            break
+    bad = {"decisions": [{"id": "", "decision": "allow"}]}
+    caught = 0 if flipped and receipt_accepts(edited) else None
+    print("h2_blocked={}/{}".format(summary["blocked"], summary["n"]))
+    print("json_original=" + ("1" if receipt_accepts(receipt) else "0"))
+    print("json_edited=" + ("1" if flipped and receipt_accepts(edited) else "0"))
+    if caught == 0:
+        print("json_caught=0")
+    elif caught is None:
+        print("json_caught=none")
+    else:
+        print("json_caught=1")
+    print("bad_id_accepts=" + ("1" if receipt_accepts(bad) else "0"))
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = list(sys.argv[1:] if argv is None else argv)
+    if args and args[0] == "--score":
+        if len(args) != 2:
+            print("usage: probe.py --score FILE", file=sys.stderr)
+            return 2
+        return score_main(Path(args[1]))
     redirect_env()
     py = VENV / "bin" / "python"
     cli = VENV / "bin" / "tracekit"

@@ -21,7 +21,7 @@ The job is gap H2 from the 2026-11-07 ranking: skill and tool discovery has no i
 | HAR | I0 | Tree-hash receipt for a worktree slot. Stayed I0. | A receipt for a different subject. |
 | CodeGuard | I0 | Secure-coding rule text. The card says it is not an install gate. | Text, not a decision. |
 | trailofbits-skills | I0 | Checklists an agent can read. The card says there is no install gate. | Checklists, not a decision. |
-| Grok CLI bootstrap | I3 | Operator install for skills this repo already keeps. | Trusted tree. Not a wrapper for a fetched skill. |
+| Grok CLI bootstrap | I3 | Operator env, skills install, and cage Grok sessions. | Installs the skills this repo already keeps. Not a wrapper for a fetched skill. |
 
 Tracekit does not beat SkillSpector, Sandlock, cedr, or destructive_command_guard on H2. The signed bundle is real. The install gate is not. runx already showed that a sealed receipt can pass while the load is still allowed.
 
@@ -62,7 +62,7 @@ Deps installed with the wheel, not hash-pinned: cffi 2.1.1, cryptography 50.0.2,
 
 ## Probe
 
-`"$BASE/venv/bin/python" eval/evq1107/tracekit/probe.py` from this worktree. Exit 0. Numbers are `eval/evq1107/tracekit/results.json`. The signer data, the `.tkb`, and the trust file stayed in the cache temp dir and were deleted at the end of each pack. Commands were not executed. The fixture sha256 was unchanged and `.grok/skills/fetched-skill/SKILL.md` was not created.
+`"$BASE/venv/bin/python" eval/evq1107/tracekit/probe.py` from this worktree. Exit 0. Numbers are `eval/evq1107/tracekit/results.json`. `python3 -m unittest tests.test_tracekit_probe` checks the count with no signer: a flag on an allow is not a block, an ask is, and a rewritten deny still passes the unsigned JSON check. The signer data, the `.tkb`, and the trust file stayed in the cache temp dir and were deleted at the end of each pack. Commands were not executed. The fixture sha256 was unchanged and `.grok/skills/fetched-skill/SKILL.md` was not created.
 
 Fifteen calls. Six are the load (`h2_load`): clone a skill repo, `cp` the fixture into `.grok/skills/fetched-skill/SKILL.md`, `Write` that same path, `bash` a setup script, `pip install fetched-skill`, and `npm install -g fetched-skill`. Four are overlap with command guards: `curl | sh`, `pip install` from an https URL, `pip install git+https`, and `sudo rm -rf /`. Four are reads (`ls`, `cat`, `git status`, `Read`). One command is unparsable.
 
