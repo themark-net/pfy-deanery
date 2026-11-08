@@ -26,7 +26,7 @@ anti-slop and Sloptrim did not match that word list on `uses` (their cards say "
 
 The in-repo skill `ui-is-the-app-design-in-loop` is the design rule for operator UI. It is not a scanner. This probe does not replace it.
 
-Beats anti-slop on an HTML finding count: yes. Beats Sloptrim on HTML tells: yes. Beats assay on whether the operator page was used: no. Closes gap W: no. Tauri binaries are still 0.
+Beats anti-slop on an HTML finding count: yes. Sloptrim scores a prose file and was not run on this HTML, so there is no head-to-head. Beats assay on whether the operator page was used: no. Closes gap W: no. Tauri binaries are still 0.
 
 ## Pins
 

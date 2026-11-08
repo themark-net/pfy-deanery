@@ -437,7 +437,7 @@ def main(argv: list[str] | None = None) -> int:
         long_lines = sum(1 for line in operator_html.read_text(encoding="utf-8", errors="replace").splitlines() if len(line) > 2000)
 
     body = {
-        "pin": pin or args.expect_pin,
+        "pin": pin,
         "expect_pin": args.expect_pin,
         "node": args.node,
         "node_version": version["stdout"].strip(),
