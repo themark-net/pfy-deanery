@@ -1,0 +1,116 @@
+{
+  "as_of": "2026-11-07T00:00:00Z",
+  "note": "Ten re-proposals of rejected options already written in docs/adr. Decision and rationale text is shortened from those files. historical_relevance is 0.5 on every row and reviewed_at is set, so those two signals do not separate ranks.",
+  "scenarios": [
+    {
+      "id": "s01",
+      "veto_decision_id": "d010",
+      "trap": "direct",
+      "task": "Make AgenC the primary operator interface and the default host runtime.",
+      "files_in_scope": ["docs/adr/0010-reject-agenc-as-primary-runtime.md"],
+      "rejected_option": "AgenC as primary despite the TUI pain",
+      "rejected_markers": ["agenc"],
+      "accepted_markers": ["grok"],
+      "source": "docs/adr/0010-reject-agenc-as-primary-runtime.md"
+    },
+    {
+      "id": "s02",
+      "veto_decision_id": "d010",
+      "trap": "implicit",
+      "task": "Add a second daily coding interface that stays signed in beside the main CLI, with its own login and its own approval prompts.",
+      "files_in_scope": ["docs/adr/0010-reject-agenc-as-primary-runtime.md"],
+      "rejected_option": "Dual-primary Grok plus AgenC",
+      "rejected_markers": ["dual-primary"],
+      "accepted_markers": ["grok"],
+      "source": "docs/adr/0010-reject-agenc-as-primary-runtime.md"
+    },
+    {
+      "id": "s03",
+      "veto_decision_id": "d003",
+      "trap": "direct",
+      "task": "Vendor every useful upstream tool into this repo as a git subtree.",
+      "files_in_scope": ["docs/adr/0003-default-pinned-commit-tracking.md"],
+      "rejected_option": "Subtree everything useful",
+      "rejected_markers": ["subtree"],
+      "accepted_markers": ["pinned"],
+      "source": "docs/adr/0003-default-pinned-commit-tracking.md"
+    },
+    {
+      "id": "s04",
+      "veto_decision_id": "d003",
+      "trap": "implicit",
+      "task": "Follow each upstream default branch with no recorded commit so the pipelines always build the latest code.",
+      "files_in_scope": ["docs/adr/0003-default-pinned-commit-tracking.md"],
+      "rejected_option": "Floating main only with no pins",
+      "rejected_markers": ["floating"],
+      "accepted_markers": ["pinned"],
+      "source": "docs/adr/0003-default-pinned-commit-tracking.md"
+    },
+    {
+      "id": "s05",
+      "veto_decision_id": "d002",
+      "trap": "direct",
+      "task": "Switch the primary CLI to Continue.dev.",
+      "files_in_scope": ["docs/adr/0002-grok-cli-primary-interface.md"],
+      "rejected_option": "Continue.dev or Aider as primary",
+      "rejected_markers": ["continue"],
+      "accepted_markers": ["grok"],
+      "source": "docs/adr/0002-grok-cli-primary-interface.md"
+    },
+    {
+      "id": "s06",
+      "veto_decision_id": "d005",
+      "trap": "direct",
+      "task": "Move the ADR store and the TODO store to Confluence.",
+      "files_in_scope": ["docs/adr/0005-light-process-framework-not-heavy-tools.md"],
+      "rejected_option": "Confluence or Linear as the sole ADR and TODO store",
+      "rejected_markers": ["confluence"],
+      "accepted_markers": ["markdown"],
+      "source": "docs/adr/0005-light-process-framework-not-heavy-tools.md"
+    },
+    {
+      "id": "s07",
+      "veto_decision_id": "d007",
+      "trap": "implicit",
+      "task": "Run the edit policy in the operator account and stop wrapping the agent in a lab container.",
+      "files_in_scope": ["docs/adr/0007-write-guard-mcp-layer.md"],
+      "rejected_option": "Host-only write-guard without a container",
+      "rejected_markers": ["host-only"],
+      "accepted_markers": ["agent-cage"],
+      "source": "docs/adr/0007-write-guard-mcp-layer.md"
+    },
+    {
+      "id": "s08",
+      "veto_decision_id": "d009",
+      "trap": "direct",
+      "task": "Clone garrytan/gstack into this repo and install the raw skill tree.",
+      "files_in_scope": ["docs/adr/0009-skill-port-hybrid-strategy.md"],
+      "rejected_option": "Full gstack embed",
+      "rejected_markers": ["gstack"],
+      "accepted_markers": ["hybrid"],
+      "source": "docs/adr/0009-skill-port-hybrid-strategy.md"
+    },
+    {
+      "id": "s09",
+      "veto_decision_id": "d011",
+      "trap": "implicit",
+      "task": "Stand up a third always-on bot service with its own terminal UI and its own daemon, beside the monitor surface and the worker surface.",
+      "files_in_scope": ["docs/adr/0011-hybrid-operator-surfaces-grok-opencode-ollama.md"],
+      "rejected_option": "Hermes Agent as a third primary runtime",
+      "rejected_markers": ["hermes"],
+      "accepted_markers": ["monitor"],
+      "source": "docs/adr/0011-hybrid-operator-surfaces-grok-opencode-ollama.md"
+    },
+    {
+      "id": "s10",
+      "veto_decision_id": "d014",
+      "trap": "direct",
+      "task": "Make vLLM the default local engine on this machine.",
+      "files_in_scope": ["docs/adr/0014-pluggable-local-inference-spine.md"],
+      "rejected_option": "vLLM as the default",
+      "rejected_markers": ["vllm"],
+      "accepted_markers": ["pluggable"],
+      "source": "docs/adr/0014-pluggable-local-inference-spine.md"
+    }
+  ]
+}

@@ -1,0 +1,251 @@
+[
+  {
+    "id": "d001",
+    "decision": "Keep multi-file ADRs under docs/adr, with DESIGN, TODO, and open questions as separate logs.",
+    "rationale": "Chat history drops pivots and rejected options. A single giant decision log does not scale for this catalog, and the filesystem stays the offline source of truth.",
+    "rejected": [
+      {"option": "Single-file docs/DECISIONS.md only", "reason": "Fine for a tiny repo. This catalog needs multi-file ADRs."},
+      {"option": "Chat or session memory only", "reason": "Not reviewable in PRs and not reliable across agents."},
+      {"option": "GitHub Issues as the sole ADR and TODO store", "reason": "Optional mirror later, not the source of truth."}
+    ],
+    "files_affected": ["docs/adr/0001-process-docs-and-adr-layout.md"],
+    "created_at": "2026-07-11T00:00:00Z",
+    "reviewed_at": "2026-07-11T00:00:00Z",
+    "historical_relevance": 0.5,
+    "source": "docs/adr/0001-process-docs-and-adr-layout.md"
+  },
+  {
+    "id": "d002",
+    "decision": "Grok CLI stays the primary operator interface. The bootstrap replays skills and MCP for that CLI.",
+    "rationale": "The repo goals already name Grok CLI as primary, and the current skills and MCP wiring live there.",
+    "rejected": [
+      {"option": "Agent-agnostic-only repo with no preferred CLI", "reason": "Delays a working operator path."},
+      {"option": "Continue.dev or Aider as primary", "reason": "Strong catalog candidates, not where the skills and MCP wiring live."},
+      {"option": "Custom greenfield agent harness first", "reason": "High cost before catalog value."}
+    ],
+    "files_affected": ["docs/adr/0002-grok-cli-primary-interface.md"],
+    "created_at": "2026-07-11T00:00:00Z",
+    "reviewed_at": "2026-07-11T00:00:00Z",
+    "historical_relevance": 0.5,
+    "source": "docs/adr/0002-grok-cli-primary-interface.md"
+  },
+  {
+    "id": "d003",
+    "decision": "Track upstream tools by pinned commit. Do not vendor their history into this repo by default.",
+    "rationale": "Pins stay scriptable and the tree stays small. Subtree embeds are rare and need an explicit checklist.",
+    "rejected": [
+      {"option": "Subtree everything useful", "reason": "Unbounded growth, a poor default for large runtimes."},
+      {"option": "Floating main only with no pins", "reason": "Pipelines are not reproducible."},
+      {"option": "Submodules for all tools", "reason": "Still noisy for entries operators never edit."}
+    ],
+    "files_affected": ["docs/adr/0003-default-pinned-commit-tracking.md"],
+    "created_at": "2026-07-11T00:00:00Z",
+    "reviewed_at": "2026-07-11T00:00:00Z",
+    "historical_relevance": 0.5,
+    "source": "docs/adr/0003-default-pinned-commit-tracking.md"
+  },
+  {
+    "id": "d004",
+    "decision": "Ship a first-party bootstrap at bootstrap/grok-cli that replays skills and a surgical config merge.",
+    "rationale": "Operator customizations must replay on a new machine. Do not store secrets in the repo.",
+    "rejected": [
+      {"option": "Document-only setup with README steps and no scripts", "reason": "Drifts and is hard to re-run."},
+      {"option": "Subtree the whole ponytail or codebase-memory repos", "reason": "Oversized versus a skills snapshot."},
+      {"option": "Publish skills only to a separate skills repo", "reason": "Extra hop."}
+    ],
+    "files_affected": ["docs/adr/0004-first-party-grok-bootstrap-package.md"],
+    "created_at": "2026-07-11T00:00:00Z",
+    "reviewed_at": "2026-07-11T00:00:00Z",
+    "historical_relevance": 0.5,
+    "source": "docs/adr/0004-first-party-grok-bootstrap-package.md"
+  },
+  {
+    "id": "d005",
+    "decision": "Use the light in-repo process docs and the project-process skill, not a heavy knowledge platform.",
+    "rationale": "Markdown covers ADR, TODO, and open questions for agents. The catalog stays lean.",
+    "rejected": [
+      {"option": "Replace the process with adr-tools only", "reason": "Numbers files, and misses DESIGN, TODO, and open questions."},
+      {"option": "Confluence or Linear as the sole ADR and TODO store", "reason": "Poor offline agent read path."},
+      {"option": "log4brains or a full AKM platform", "reason": "Overhead without a measured need."},
+      {"option": "Chat memory only", "reason": "Already rejected for process history."}
+    ],
+    "files_affected": ["docs/adr/0005-light-process-framework-not-heavy-tools.md"],
+    "created_at": "2026-07-11T00:00:00Z",
+    "reviewed_at": "2026-07-11T00:00:00Z",
+    "historical_relevance": 0.5,
+    "source": "docs/adr/0005-light-process-framework-not-heavy-tools.md"
+  },
+  {
+    "id": "d006",
+    "decision": "Keep named deployment profiles and an env registry instead of one hard-coded stack.",
+    "rationale": "Profiles make local, balanced, and max-performance explicit. The registry is what machines check.",
+    "rejected": [
+      {"option": "A single hard-coded stack in the README only", "reason": "Not machine-checkable."},
+      {"option": "One git branch per profile", "reason": "Unmaintainable."},
+      {"option": "Secrets committed inside docker-compose files", "reason": "Unsafe."}
+    ],
+    "files_affected": ["docs/adr/0006-deployment-profiles.md"],
+    "created_at": "2026-07-12T00:00:00Z",
+    "reviewed_at": "2026-07-12T00:00:00Z",
+    "historical_relevance": 0.5,
+    "source": "docs/adr/0006-deployment-profiles.md"
+  },
+  {
+    "id": "d007",
+    "decision": "Keep write-guard as an MCP policy layer and keep agent-cage as the container.",
+    "rationale": "A shell can bypass MCP, so the container stays required. The YAML policy and audit log match the cage.",
+    "rejected": [
+      {"option": "Stock filesystem MCP only", "reason": "No audit and no secret globs."},
+      {"option": "Replace the cage with a different sandbox product", "reason": "Duplicates network and OS work."},
+      {"option": "Host-only write-guard without a container", "reason": "Weaker for network and package installs."}
+    ],
+    "files_affected": ["docs/adr/0007-write-guard-mcp-layer.md"],
+    "created_at": "2026-07-12T00:00:00Z",
+    "reviewed_at": "2026-07-12T00:00:00Z",
+    "historical_relevance": 0.5,
+    "source": "docs/adr/0007-write-guard-mcp-layer.md"
+  },
+  {
+    "id": "d008",
+    "decision": "One-shot work writes a definition of done and checks a lab or a waived cage before cloud spend.",
+    "rationale": "Cheap local iteration comes first. Stop conditions block an infinite loop.",
+    "rejected": [
+      {"option": "Always ask until the spec is fully written", "reason": "High friction for mechanical delivery."},
+      {"option": "Unlimited YOLO with no lab", "reason": "Unsafe."},
+      {"option": "Cloud-first on every run", "reason": "Expensive and against the local-first goal."}
+    ],
+    "files_affected": ["docs/adr/0008-one-shot-workflow.md"],
+    "created_at": "2026-07-12T00:00:00Z",
+    "reviewed_at": "2026-07-12T00:00:00Z",
+    "historical_relevance": 0.5,
+    "source": "docs/adr/0008-one-shot-workflow.md"
+  },
+  {
+    "id": "d009",
+    "decision": "Port skills by a hybrid rule: first-party where we must enforce the process, path snapshots or docs otherwise.",
+    "rationale": "A full embed of a large upstream skill tree drifts. Raw gstack install is blocked.",
+    "rejected": [
+      {"option": "All first-party ports", "reason": "Rewriting large trees."},
+      {"option": "All path snapshots", "reason": "No owned process glue."},
+      {"option": "Docs-only for every skill", "reason": "Leaves installable value behind."},
+      {"option": "Full gstack embed", "reason": "Huge surface and the wrong default."}
+    ],
+    "files_affected": ["docs/adr/0009-skill-port-hybrid-strategy.md"],
+    "created_at": "2026-07-12T00:00:00Z",
+    "reviewed_at": "2026-07-12T00:00:00Z",
+    "historical_relevance": 0.5,
+    "source": "docs/adr/0009-skill-port-hybrid-strategy.md"
+  },
+  {
+    "id": "d010",
+    "decision": "Do not use AgenC as the primary operator interface. Grok CLI stays primary and agent-cage stays the lab.",
+    "rationale": "The AgenC trial failed the daily UX and auth tests. Two primaries would mean two logins and two prompt styles.",
+    "rejected": [
+      {"option": "AgenC as primary despite the TUI pain", "reason": "Permanent training tax."},
+      {"option": "Dual-primary Grok plus AgenC", "reason": "Two auth surfaces and two TUIs."},
+      {"option": "Delete every AgenC mention", "reason": "Loses the re-eval trail."},
+      {"option": "Immediate full port of AgenC features", "reason": "YAGNI."}
+    ],
+    "files_affected": ["docs/adr/0010-reject-agenc-as-primary-runtime.md"],
+    "created_at": "2026-07-12T00:00:00Z",
+    "reviewed_at": "2026-07-12T00:00:00Z",
+    "historical_relevance": 0.5,
+    "source": "docs/adr/0010-reject-agenc-as-primary-runtime.md"
+  },
+  {
+    "id": "d011",
+    "decision": "Keep two surfaces. Grok is the monitor and OpenCode plus a local engine is the worker. Do not add a third primary runtime.",
+    "rationale": "Skills stay one markdown source of truth. A third TUI and daemon repeats the same class of risk as a second primary.",
+    "rejected": [
+      {"option": "OpenCode becomes the sole primary", "reason": "Drops the Grok subscription path."},
+      {"option": "Grok-only forever", "reason": "Ignores local cost and latency."},
+      {"option": "Hermes Agent as a third primary runtime", "reason": "Another TUI and daemon."},
+      {"option": "Duplicate skill trees per CLI", "reason": "Drift."}
+    ],
+    "files_affected": ["docs/adr/0011-hybrid-operator-surfaces-grok-opencode-ollama.md"],
+    "created_at": "2026-07-25T00:00:00Z",
+    "reviewed_at": "2026-07-25T00:00:00Z",
+    "historical_relevance": 0.5,
+    "source": "docs/adr/0011-hybrid-operator-surfaces-grok-opencode-ollama.md"
+  },
+  {
+    "id": "d012",
+    "decision": "Expose onboard, stage, and ship. Keep each harness behind a small adapter instead of embedding it.",
+    "rationale": "The product surface is three verbs. Full harness installers stay out until an adapter is ready.",
+    "rejected": [
+      {"option": "Only document make help", "reason": "Failed the simplicity test."},
+      {"option": "Subtree-embed every harness", "reason": "Bloat."},
+      {"option": "Force a single harness forever", "reason": "Against the catalog mission."},
+      {"option": "Silent no-op stubs", "reason": "Hides work."}
+    ],
+    "files_affected": ["docs/adr/0012-simple-harness-agnostic-launch.md"],
+    "created_at": "2026-07-31T00:00:00Z",
+    "reviewed_at": "2026-07-31T00:00:00Z",
+    "historical_relevance": 0.5,
+    "source": "docs/adr/0012-simple-harness-agnostic-launch.md"
+  },
+  {
+    "id": "d013",
+    "decision": "Optional operator TUIs stay optional. Preference is measured in use, and agent-cage stays the lab.",
+    "rationale": "A silent edit of the AgenC rejection would erase history. Isolation for a marketplace tool does not replace the cage.",
+    "rejected": [
+      {"option": "Silent amendment of the AgenC rejection", "reason": "Loses history."},
+      {"option": "Making AgenC co-primary or the default", "reason": "No empirical win yet."},
+      {"option": "Deleting the original trial notes", "reason": "Loses receipts."}
+    ],
+    "files_affected": ["docs/adr/0013-optional-operator-tuis-empirical-preference.md"],
+    "created_at": "2026-07-27T00:00:00Z",
+    "reviewed_at": "2026-07-27T00:00:00Z",
+    "historical_relevance": 0.5,
+    "source": "docs/adr/0013-optional-operator-tuis-empirical-preference.md"
+  },
+  {
+    "id": "d014",
+    "decision": "Local inference is a pluggable spine. The host may use more than one engine, and this repo does not vendor an engine.",
+    "rationale": "One engine name blocks the others. Cluster serving is not the laptop default.",
+    "rejected": [
+      {"option": "Ollama as the only engine", "reason": "Blocks the other local paths."},
+      {"option": "Shimmy as the named X engine", "reason": "The owner named a different engine."},
+      {"option": "FreeToken as the only engine", "reason": "Not the whole GGUF path."},
+      {"option": "llama.cpp direct as the only engine", "reason": "No hot swap."},
+      {"option": "vLLM as the default", "reason": "Cluster serving, not laptop-first."},
+      {"option": "Vendor any engine", "reason": "Against the pin rule."}
+    ],
+    "files_affected": ["docs/adr/0014-pluggable-local-inference-spine.md"],
+    "created_at": "2026-08-24T00:00:00Z",
+    "reviewed_at": "2026-08-24T00:00:00Z",
+    "historical_relevance": 0.5,
+    "source": "docs/adr/0014-pluggable-local-inference-spine.md"
+  },
+  {
+    "id": "d015",
+    "decision": "data/tools.json stays a slim subset. It does not have to mirror every TOOLS.md row.",
+    "rationale": "A full rewrite of the catalog blocks the launch work. Every JSON name must still appear in TOOLS.md.",
+    "rejected": [
+      {"option": "Restore JSON until it matches every TOOLS.md row", "reason": "A catalog rewrite."},
+      {"option": "Delete tools.json", "reason": "Breaks readers that already open it."},
+      {"option": "Silent dual source of truth", "reason": "Agents treat a count mismatch as a bug."}
+    ],
+    "files_affected": ["docs/adr/0015-catalog-json-slim-subset.md"],
+    "created_at": "2026-08-24T00:00:00Z",
+    "reviewed_at": "2026-08-24T00:00:00Z",
+    "historical_relevance": 0.5,
+    "source": "docs/adr/0015-catalog-json-slim-subset.md"
+  },
+  {
+    "id": "d016",
+    "decision": "The Jev lane is a typed decision API with a local forms model as the default attach. A missing cloud key does not fail the smoke.",
+    "rationale": "A transcript pane would mis-state the product. Confidence is a margin chip, not a correctness percent.",
+    "rejected": [
+      {"option": "A chat UI for Jev", "reason": "The product is a decision API."},
+      {"option": "Browser-use as the core", "reason": "Not the coding-session job."},
+      {"option": "The mini model as the primary local attach", "reason": "The forms model is the default."},
+      {"option": "Require the TypeSafe key for smoke", "reason": "The default smoke runs without that key."}
+    ],
+    "files_affected": ["docs/adr/0016-jev-decision-layer.md"],
+    "created_at": "2026-09-18T00:00:00Z",
+    "reviewed_at": "2026-09-18T00:00:00Z",
+    "historical_relevance": 0.5,
+    "source": "docs/adr/0016-jev-decision-layer.md"
+  }
+]

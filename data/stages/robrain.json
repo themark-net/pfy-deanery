@@ -4,16 +4,34 @@
   "intent": "awareness",
   "entry": "sources/entries/155-robrain.md",
   "github": "https://github.com/adelinamart/robrain",
-  "uses": "Decision memory with vetoes.",
-  "potential": "medium",
-  "next_gate": "Post-MVP; needs Postgres + pgvector.",
+  "pin": "2.5.0 ac53011016e5f7dd42bae9c00c1a9b7d207a68b8",
+  "license": "Apache-2.0",
+  "uses": "Decision memory with a structured rejected list. The 2026-11-07 offline probe put the veto row in the top 5 on 8 of 10 ADR re-proposals when no file was in scope. Token overlap on the ADR text put it in the top 5 on 10 of 10.",
+  "features": [
+    "offline hash embedder recall",
+    "structured rejected list on a decision row",
+    "postgres and pgvector stack needs an embedding provider"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I0. Re-open only if a later pin puts the veto row in the top 5 on all 10 tasks in eval/evq1107/robrain/scenarios.json with no files in scope, beats token overlap on that text (10/10 here), and runs with no API key and no local model. The cache install is 304388021 bytes, so this is not an in-repo copy. Do not wire a gate.",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",
-    "catalog_hold_70_75"
+    "catalog_hold_70_75",
+    "docker_stack",
+    "perception",
+    "robrain_install",
+    "init_project",
+    "live_bench",
+    "gate_wiring",
+    "replace_adr_files"
   ],
   "evidence": [
-    "entry:sources/entries/155-robrain.md"
+    "entry:sources/entries/155-robrain.md",
+    "eval/evq1107/robrain/REPORT.md",
+    "eval/evq1107/robrain/VERDICT",
+    "eval/evq1107/robrain/results.json",
+    "pin:ac53011016e5f7dd42bae9c00c1a9b7d207a68b8"
   ],
   "handoff_by": "llm"
 }

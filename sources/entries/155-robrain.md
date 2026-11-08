@@ -26,4 +26,4 @@
 | Key or cloud leakage | Default provider path uses Anthropic and OpenAI; cloud mode sends data to Rory Plans | Fully-local mode only, against a local endpoint on nimo, after Mark's GO |
 | Benchmark overreach | Offline recall is a hash-embedder floor; behavioral numbers are upstream's | Treat as a harness, not proof; score our own scenarios before any wiring |
 
-- **Status**: Cataloged I0. Smoke PASS on the Grok Bot box with a staged `/tmp` clone; exit 2 by default (not staged). **Eval-auto trial candidate** after the MVP: write 10 VetoBench-style trap scenarios from pfy-mentat's own rejected approaches (from handoff docs), then score RoBrain against MemPalace (149) through VetoBench's adapter interface, offline layer first, then `--live` with a local model.
+- **Status**: STAY I0 after eval/evq1107/robrain (2026-11-07). Offline VetoBench at `ac53011016e5f7dd42bae9c00c1a9b7d207a68b8` matched the pinned recall (1.00 / 0.70, lifecycle 1.00 / 1.00). On 10 ADR re-proposals, hash recall@5 with no files in scope was 8/10 and token overlap on the same ADR text was 10/10. Postgres + pgvector was SKIPPED (embedding key or local model). No `--live` run.
