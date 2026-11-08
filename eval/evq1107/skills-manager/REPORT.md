@@ -8,7 +8,7 @@ skills-manager-cli (Sun Yongshen, npm `skills-manager-cli`) is one home hub (`~/
 
 ## License and pin
 
-MIT, Copyright (c) 2026 Sun Yongshen. Pin `fae0bb864a8b96c1d0ca6278a6b7062e62992a36`, commit 2026-10-27T03:20:24Z, package `2026.10.27-1`, Node `>=20`. This host is Node v22.23.0. Cache `~/.cache/pfy/tools/skills-manager/src` (not committed): 330 worktree files, 2478511 bytes without `.git`, 3610963 bytes with it. Fetch and checkout 0.591 s. No pnpm, no npm, no upstream script. `dist/` is absent, so the published bin was not built. The 2026-11-02 smoke PASS (version, help, `list --home`) was not re-run.
+MIT, Copyright (c) 2026 Sun Yongshen. Pin `fae0bb864a8b96c1d0ca6278a6b7062e62992a36`, commit 2026-10-27T03:20:24Z, package `2026.10.27-1`, Node `>=20`. This host is Node v22.23.0. Cache `~/.cache/pfy/tools/skills-manager/src` (not committed): 330 worktree files, 2478511 bytes without `.git`, 3610963 bytes with it. That sequence took 0.591 s. No pnpm, no npm, no upstream script. `dist/` is absent, so the published bin was not built. The 2026-11-02 smoke PASS (version, help, `list --home`) was not re-run.
 
 ```bash
 CACHE=~/.cache/pfy/tools/skills-manager
@@ -59,9 +59,9 @@ Modularity (all 4 for I2): docs were enough, so local code is not required. The 
 
 | Risk | How it fails | How we recover |
 | --- | --- | --- |
-| No-arg npx | Mounts the manager skill into every detected agent home | Do not run it. The smoke never bootstraps. |
+| No-arg npx | On a non-TTY, mounts the manager skill into every detected agent home | Do not run it. The smoke never bootstraps. |
 | Second hub | `~/.skills-manager` drifts from `bootstrap/grok-cli/skills/` | Keep the repo tree as the source (ADR-0009). |
-| High findings still install | Default `audit security` exits 0 when highs exist | H2 stays `scripts/pfy_skill_scan.py`. |
+| Audit exits 0 | Default `audit security` exits 0 when a high finding exists | H2 stays `scripts/pfy_skill_scan.py`. |
 | Empty scan | `audit security --home` on a missing hub creates it and exits 0 (upstream docs/CLI.md) | Do not point a check at that command. |
 | Unread scanner | `builtin-v1` is a README claim | Stay I0. A later ticket must beat SkillSpector on a planted skill. |
 
