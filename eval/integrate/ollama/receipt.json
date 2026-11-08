@@ -1,0 +1,11 @@
+{
+  "slug": "ollama",
+  "run_kind": "pipeline",
+  "main_sha": "ccafccc104d052a72736b2b5cc9b31d5d44e9459",
+  "run_id": "ollama-ccafccc104d0-20261108T201354Z",
+  "started": "2026-11-08T20:13:54Z",
+  "finished": "2026-11-08T20:13:54Z",
+  "outcome": "ok",
+  "tool_version": "0.30.8",
+  "did": "GET http://127.0.0.1:11434/api/version returned HTTP 200."
+}
