@@ -191,6 +191,41 @@ class TestSelectTests(unittest.TestCase):
         self.assertIn("tests.test_other", data["modules"])
         self.assertNotIn("tests.test_leaf", data["modules"])
 
+    def test_stage_card_selects_the_assembly_test_only(self) -> None:
+        # The assembly test does not embed the card path. A card edit must
+        # still run that module, and must not run the rest of the suite.
+        # The names are split so this file is not a string hit for the real
+        # assembler module.
+        card = "widget" + ".json"
+        assembly = "test_stage_" + "registry.py"
+        _write(
+            self.tmp / "pfylib" / ("stage_" + "registry.py"),
+            "def load_stages(root):\n    return {}\n",
+        )
+        _write(
+            self.tmp / "tests" / assembly,
+            "def test_load():\n    assert True\n",
+        )
+        _write(
+            self.tmp / "data" / "stages" / card,
+            '{"name": "Widget", "integration_stage": "I1"}\n',
+        )
+        _write(self.tmp / "data" / "notes.json", '{"ok": true}\n')
+        _commit_all(self.tmp, "cards")
+        _write(
+            self.tmp / "data" / "stages" / card,
+            '{"name": "Widget", "integration_stage": "I2"}\n',
+        )
+        _commit_all(self.tmp, "edit card")
+        data = _select(self.tmp)
+        self.assertEqual(data["mode"], "affected", data["reason"])
+        self.assertEqual(data["modules"], ["tests." + "test_stage_registry"])
+        _write(self.tmp / "data" / "notes.json", '{"ok": false}\n')
+        _commit_all(self.tmp, "notes")
+        data = _select(self.tmp)
+        self.assertEqual(data["mode"], "structural", data["reason"])
+        self.assertEqual(data["modules"], [])
+
 
 if __name__ == "__main__":
     unittest.main()

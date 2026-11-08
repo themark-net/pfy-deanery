@@ -52,7 +52,7 @@ Still in place, on purpose:
 
 Risky paths match case-insensitively: kalshi, polymarket, trading, paper, LIVE_HARD_OFF, deploy, release, publish, wrangler, secret, token, `.dev.vars`, auth. A docs file whose name contains one of those words is `full`. That is the safe direction.
 
-A changed data file under `sources/` or `data/` that a test mentions by path or by a specific basename is `affected`, and those tests are added.
+A changed data file under `sources/` or `data/` that a test mentions by path or by a specific basename is `affected`, and those tests are added. A file under `data/stages/` also selects `tests.test_stage_registry`, because that module checks every card and does not name each filename. The selection stays `affected`. It is not a `core_globs` entry, so a catalog note does not run the whole suite. `pfylib/stage_registry.py` still selects the tests that import it.
 
 ## One suite in pregate, plus the sandbox re-run
 

@@ -1,14 +1,17 @@
-"""Stage cards are one file per tool. The assembled document matches the old monolith.
+"""Stage cards are one file per tool. The assembled document matches those files.
 
-Fail: two lanes edit the same stage file, a slug clash is silent, or the
-monolith returns.
-Recovery: each new tool is its own path, a clash names both tools, and
-catalog validation rejects the monolith.
+Fail: the assembler drops a field, a missing git history shrinks the check
+to a few sample stages, two lanes edit the same stage file, a slug clash is
+silent, or the monolith returns.
+Recovery: compare every card, including integration_stage and tier_ceiling,
+with no git lookup. Each new tool is its own path, a clash names both tools,
+and catalog validation rejects the monolith.
 """
 from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -28,60 +31,17 @@ ROOT = Path(__file__).resolve().parents[1]
 LEGACY = "data/tool_integration_stages.json"
 
 
-def _legacy_monolith() -> dict | None:
-    try:
-        rev = subprocess.check_output(
-            ["git", "-C", str(ROOT), "log", "-1", "--format=%H", "--", LEGACY],
-            text=True,
-            stderr=subprocess.DEVNULL,
-        ).strip()
-    except (OSError, subprocess.CalledProcessError):
-        return None
-    if not rev:
-        return None
-    for spec in (f"{rev}:{LEGACY}", f"{rev}^:{LEGACY}"):
-        try:
-            blob = subprocess.check_output(
-                ["git", "-C", str(ROOT), "show", spec],
-                stderr=subprocess.DEVNULL,
-            )
-        except (OSError, subprocess.CalledProcessError):
+def _card_bodies(root: Path) -> dict:
+    """Card objects as JSON on disk. Independent of load_stages."""
+    directory = root / "data" / "stages"
+    tools: dict = {}
+    for path in sorted(directory.glob("*.json")):
+        if path.name == "_registry.json":
             continue
-        try:
-            data = json.loads(blob)
-        except json.JSONDecodeError:
-            continue
-        if isinstance(data, dict) and isinstance(data.get("tools"), dict):
-            return data
-    return None
-
-
-def _without_self_pipeline(tools: dict) -> dict:
-    out = {}
-    for name, card in tools.items():
-        if isinstance(card, dict) and "self_pipeline" in card:
-            card = {key: value for key, value in card.items() if key != "self_pipeline"}
-        out[name] = card
-    return out
-
-
-def _with_snapshot_evidence(got_tools: dict, expected_tools: dict) -> dict:
-    """Appended evidence is later work. The snapshot tokens must stay in front."""
-    out = {}
-    for name, card in got_tools.items():
-        exp = expected_tools.get(name)
-        if isinstance(card, dict) and isinstance(exp, dict):
-            got_ev = card.get("evidence")
-            exp_ev = exp.get("evidence")
-            if (
-                isinstance(got_ev, list)
-                and isinstance(exp_ev, list)
-                and got_ev[: len(exp_ev)] == exp_ev
-            ):
-                card = dict(card)
-                card["evidence"] = exp_ev
-        out[name] = card
-    return out
+        data = json.loads(path.read_text(encoding="utf-8"))
+        name = data["name"]
+        tools[name] = {key: value for key, value in data.items() if key != "name"}
+    return tools
 
 
 def _git_env() -> dict[str, str]:
@@ -105,28 +65,66 @@ def _git(cwd: Path, args: list[str], env: dict[str, str]) -> None:
 
 
 class StageRegistryTests(unittest.TestCase):
-    def test_assembled_document_matches_legacy_monolith(self):
-        got = load_stages(ROOT)
-        registry = json.loads((ROOT / "data" / "stages" / "_registry.json").read_text(encoding="utf-8"))
+    def test_assembled_document_matches_card_files(self):
+        doc = load_stages(ROOT)
+        registry_path = ROOT / "data" / "stages" / "_registry.json"
+        registry = json.loads(registry_path.read_text(encoding="utf-8"))
         self.assertNotIn("last_updated", registry)
-        expected = _legacy_monolith()
-        if expected is None:
-            self.assertGreaterEqual(len(got["tools"]), 85)
-            self.assertEqual(got.get("version"), "1.3")
-            self.assertEqual(got["tools"]["Kolibri-1"]["integration_stage"], "I0")
-            self.assertEqual(got["tools"]["Atomic Task Graph (ATG)"]["integration_stage"], "I2")
-            self.assertEqual(got["tools"]["Pipecat"]["integration_stage"], "I0")
-            self.assertIn("last_updated", got)
-            return
-        # self_pipeline and evidence lines appended after the split are later
-        # card fields. The snapshot tokens stay, in front, or this fails.
-        comparable = _with_snapshot_evidence(
-            _without_self_pipeline(got["tools"]), expected["tools"]
-        )
-        self.assertEqual(comparable, expected["tools"])
-        rest_got = {key: value for key, value in got.items() if key != "tools"}
-        rest_expected = {key: value for key, value in expected.items() if key != "tools"}
-        self.assertEqual(rest_got, rest_expected)
+        self.assertFalse((ROOT / LEGACY).exists())
+        cards = _card_bodies(ROOT)
+        self.assertEqual(set(doc["tools"]), set(cards))
+        for name, body in cards.items():
+            self.assertEqual(doc["tools"][name], body)
+        for key, value in registry.items():
+            self.assertEqual(doc.get(key), value)
+        if "last_updated" in doc:
+            self.assertRegex(str(doc["last_updated"]), r"^\d{4}-\d{2}-\d{2}$")
+
+    def test_card_edit_is_visible_without_git_history(self):
+        # A depth-1 checkout cannot see the retired monolith. The check still
+        # has to read every card. A stage or ceiling edit on a copy must show
+        # up, and the repo cards must stay as they are.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            dest = root / "data" / "stages"
+            shutil.copytree(ROOT / "data" / "stages", dest)
+            self.assertFalse((root / ".git").exists())
+            repo_before = {
+                path.name: path.read_bytes()
+                for path in (ROOT / "data" / "stages").glob("*.json")
+            }
+            self.assertEqual(load_stages(root)["tools"], _card_bodies(root))
+            paths = sorted(p for p in dest.glob("*.json") if p.name != "_registry.json")
+            target = paths[0]
+            sibling = paths[1]
+            target_data = json.loads(target.read_text(encoding="utf-8"))
+            sibling_data = json.loads(sibling.read_text(encoding="utf-8"))
+            original_stage = target_data.get("integration_stage")
+            flipped = "I0" if original_stage != "I0" else "I1"
+            original_ceiling = target_data.get("tier_ceiling")
+            flipped_ceiling = "I4" if original_ceiling != "I4" else "I3"
+            target_data["integration_stage"] = flipped
+            target_data["tier_ceiling"] = flipped_ceiling
+            target.write_text(
+                json.dumps(target_data, indent=2, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
+            changed = load_stages(root)
+            edited = {key: value for key, value in target_data.items() if key != "name"}
+            self.assertEqual(changed["tools"][target_data["name"]], edited)
+            self.assertEqual(
+                changed["tools"][sibling_data["name"]].get("integration_stage"),
+                sibling_data.get("integration_stage"),
+            )
+            self.assertEqual(
+                changed["tools"][sibling_data["name"]].get("tier_ceiling"),
+                sibling_data.get("tier_ceiling"),
+            )
+            repo_after = {
+                path.name: path.read_bytes()
+                for path in (ROOT / "data" / "stages").glob("*.json")
+            }
+            self.assertEqual(repo_after, repo_before)
 
     def test_dump_prints_the_assembled_document(self):
         proc = subprocess.run(

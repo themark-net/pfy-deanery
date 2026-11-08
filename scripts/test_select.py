@@ -141,6 +141,16 @@ def under_catalog_data(rel: str) -> bool:
     return rel.startswith("data/") or rel.startswith("sources/")
 
 
+# The assembly test reads every card. It does not embed each filename, so a
+# basename search misses it. Selecting this one module keeps a card edit off
+# mode full.
+STAGE_ASSEMBLY_TEST = "tests/test_stage_registry.py"
+
+
+def is_stage_card_path(rel: str) -> bool:
+    return rel.startswith("data/stages/") and rel.endswith(".json")
+
+
 class Graph:
     def __init__(self, root: Path) -> None:
         self.root = root
@@ -452,6 +462,8 @@ def select(root: Path, changes: list[dict[str, str]], config: dict, graph: Graph
         if is_structural_path(rel, config):
             if under_catalog_data(rel):
                 refs = string_refs(rel, graph.sources)
+                if is_stage_card_path(rel) and STAGE_ASSEMBLY_TEST in graph.files:
+                    refs.add(STAGE_ASSEMBLY_TEST)
                 if refs:
                     structural_only = False
                     selected |= refs
