@@ -1,0 +1,11 @@
+{
+  "slug": "sponsio",
+  "run_kind": "pipeline",
+  "main_sha": "f9e49ecdc296da7b7a6509e801b6efe8f3369757",
+  "run_id": "sponsio-f9e49ecdc296-2026-11-08T20:26:09Z",
+  "started": "2026-11-08T20:26:09Z",
+  "finished": "2026-11-08T20:26:09Z",
+  "outcome": "ok",
+  "tool_version": "sponsio 0.2.0a17",
+  "did": "Checked one fixture exec call with the pinned wheel in a temp env. The destructive command was denied."
+}
