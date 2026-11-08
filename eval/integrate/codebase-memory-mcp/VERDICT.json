@@ -1,0 +1,8 @@
+{
+  "metric": "smoke_exit",
+  "threshold": 0,
+  "value": 0,
+  "value_gate": "pass",
+  "modularity_gate": "pass",
+  "proposed_stage": "I3"
+}

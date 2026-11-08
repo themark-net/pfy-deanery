@@ -17,7 +17,8 @@
   "evidence": [
     "make:smoke-codebase-memory",
     "toolset",
-    "shadow:docs/ops/CBM-SHADOW-1107.md"
+    "shadow:docs/ops/CBM-SHADOW-1107.md",
+    "receipt:eval/integrate/codebase-memory-mcp/receipt.json"
   ],
   "tier_ceiling": "I3",
   "uses": "Primary code-graph MCP and the code-graph toolset.",
