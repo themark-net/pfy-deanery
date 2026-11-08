@@ -9,21 +9,22 @@
     "hedge_agree": 14,
     "ollama_first": 20,
     "policy_agree": 20,
-    "secret_ok": 4,
-    "secret_rows": 4,
+    "pattern_rows_ok": 4,
+    "pattern_rows": 4,
+    "pii_production_caller": false,
     "real_state_absent": true,
     "provider_keys_dropped": 0,
     "direct_execution_env": "false",
-    "warmup_ms": 58.7,
-    "classify_median_ms": 0.194,
-    "classify_sum_ms": 3.716,
-    "classify_max_ms": 0.276,
+    "warmup_ms": 46.444,
+    "classify_median_ms": 0.144,
+    "classify_sum_ms": 2.7,
+    "classify_max_ms": 0.199,
     "low_signal_on_timed_pass": 11,
     "counter_low_signal": 22,
     "counter_total": 40,
     "demo": {
       "exit": 0,
-      "ms": 58.9,
+      "ms": 50.0,
       "prints_table": true,
       "tail": [
         "",
@@ -49,7 +50,7 @@
       "policy_agree": true,
       "route": "economy",
       "route_ok": true,
-      "classify_ms": 0.185,
+      "classify_ms": 0.145,
       "chain": [
         "ollama/qwen2.5-coder:7b-instruct"
       ],
@@ -72,7 +73,7 @@
       "policy_agree": true,
       "route": "economy",
       "route_ok": true,
-      "classify_ms": 0.175,
+      "classify_ms": 0.134,
       "chain": [
         "ollama/qwen2.5-coder:7b-instruct"
       ],
@@ -95,7 +96,7 @@
       "policy_agree": true,
       "route": "economy",
       "route_ok": true,
-      "classify_ms": 0.135,
+      "classify_ms": 0.094,
       "chain": [
         "ollama/qwen2.5-coder:7b-instruct"
       ],
@@ -118,7 +119,7 @@
       "policy_agree": true,
       "route": "economy",
       "route_ok": true,
-      "classify_ms": 0.127,
+      "classify_ms": 0.091,
       "chain": [
         "ollama/qwen2.5-coder:7b-instruct"
       ],
@@ -141,7 +142,7 @@
       "policy_agree": true,
       "route": "economy",
       "route_ok": true,
-      "classify_ms": 0.169,
+      "classify_ms": 0.121,
       "chain": [
         "ollama/qwen2.5-coder:7b-instruct"
       ],
@@ -164,7 +165,7 @@
       "policy_agree": true,
       "route": "economy",
       "route_ok": true,
-      "classify_ms": 0.127,
+      "classify_ms": 0.092,
       "chain": [
         "ollama/qwen2.5-coder:7b-instruct"
       ],
@@ -187,7 +188,7 @@
       "policy_agree": true,
       "route": "economy",
       "route_ok": true,
-      "classify_ms": 0.174,
+      "classify_ms": 0.136,
       "chain": [
         "ollama/qwen2.5-coder:7b-instruct"
       ],
@@ -210,7 +211,7 @@
       "policy_agree": true,
       "route": "economy",
       "route_ok": true,
-      "classify_ms": 0.127,
+      "classify_ms": 0.091,
       "chain": [
         "ollama/qwen2.5-coder:7b-instruct"
       ],
@@ -233,7 +234,7 @@
       "policy_agree": true,
       "route": "economy",
       "route_ok": true,
-      "classify_ms": 0.164,
+      "classify_ms": 0.117,
       "chain": [
         "ollama/qwen2.5-coder:7b-instruct"
       ],
@@ -256,7 +257,7 @@
       "policy_agree": true,
       "route": "economy",
       "route_ok": true,
-      "classify_ms": 0.125,
+      "classify_ms": 0.09,
       "chain": [
         "ollama/qwen2.5-coder:7b-instruct"
       ],
@@ -279,7 +280,7 @@
       "policy_agree": true,
       "route": "primary",
       "route_ok": true,
-      "classify_ms": 0.235,
+      "classify_ms": 0.167,
       "chain": [
         "ollama/qwen2.5-coder:7b-instruct",
         "claude/claude-sonnet-4-6"
@@ -303,7 +304,7 @@
       "policy_agree": true,
       "route": "primary",
       "route_ok": true,
-      "classify_ms": 0.276,
+      "classify_ms": 0.199,
       "chain": [
         "ollama/qwen2.5-coder:7b-instruct",
         "claude/claude-sonnet-4-6"
@@ -327,7 +328,7 @@
       "policy_agree": true,
       "route": "economy",
       "route_ok": false,
-      "classify_ms": 0.244,
+      "classify_ms": 0.174,
       "chain": [
         "ollama/qwen2.5-coder:7b-instruct"
       ],
@@ -350,7 +351,7 @@
       "policy_agree": true,
       "route": "economy",
       "route_ok": false,
-      "classify_ms": 0.205,
+      "classify_ms": 0.151,
       "chain": [
         "ollama/qwen2.5-coder:7b-instruct"
       ],
@@ -373,7 +374,7 @@
       "policy_agree": true,
       "route": "economy",
       "route_ok": false,
-      "classify_ms": 0.204,
+      "classify_ms": 0.146,
       "chain": [
         "ollama/qwen2.5-coder:7b-instruct"
       ],
@@ -396,7 +397,7 @@
       "policy_agree": true,
       "route": "primary",
       "route_ok": true,
-      "classify_ms": 0.222,
+      "classify_ms": 0.161,
       "chain": [
         "ollama/qwen2.5-coder:7b-instruct",
         "claude/claude-sonnet-4-6"
@@ -420,7 +421,7 @@
       "policy_agree": true,
       "route": "economy",
       "route_ok": false,
-      "classify_ms": 0.207,
+      "classify_ms": 0.154,
       "chain": [
         "ollama/qwen2.5-coder:7b-instruct"
       ],
@@ -443,7 +444,7 @@
       "policy_agree": true,
       "route": "economy",
       "route_ok": false,
-      "classify_ms": 0.207,
+      "classify_ms": 0.146,
       "chain": [
         "ollama/qwen2.5-coder:7b-instruct"
       ],
@@ -466,7 +467,7 @@
       "policy_agree": true,
       "route": "primary",
       "route_ok": true,
-      "classify_ms": 0.204,
+      "classify_ms": 0.146,
       "chain": [
         "ollama/qwen2.5-coder:7b-instruct",
         "claude/claude-sonnet-4-6"
@@ -490,7 +491,7 @@
       "policy_agree": true,
       "route": "economy",
       "route_ok": false,
-      "classify_ms": 0.205,
+      "classify_ms": 0.143,
       "chain": [
         "ollama/qwen2.5-coder:7b-instruct"
       ],

@@ -255,7 +255,47 @@ def cache_bytes():
         return None
 
 
+def block_real_state():
+    """Refuse to create the operator state directory from this process.
+
+    storage/service.py builds StorageService at import. That creates
+    the state directory and audit.db. A package walk on the venv
+    interpreter, with the operator HOME and no LLM_ROUTER_HOME, did that.
+    The probe redirects HOME before it imports the package. This is the
+    backstop for any later import in this same process.
+    """
+    real = REAL_STATE
+
+    def hits(path):
+        if isinstance(path, int):
+            return False
+        try:
+            resolved = Path(path).resolve()
+        except (OSError, RuntimeError, TypeError, ValueError):
+            return False
+        return resolved == real or real in resolved.parents
+
+    raw_mkdir = os.mkdir
+    raw_makedirs = os.makedirs
+
+    def mkdir(path, mode=0o777, *, dir_fd=None):
+        if hits(path):
+            raise SystemExit("refusing to create %s" % path)
+        return raw_mkdir(path, mode, dir_fd=dir_fd)
+
+    def makedirs(name, mode=0o777, exist_ok=False):
+        if hits(name):
+            raise SystemExit("refusing to create %s" % name)
+        return raw_makedirs(name, mode, exist_ok)
+
+    os.mkdir = mkdir
+    os.makedirs = makedirs
+
+
 def offline():
+    if REAL_STATE.exists():
+        raise SystemExit("operator state exists at %s; not running" % REAL_STATE)
+    block_real_state()
     import llm_router
 
     if getattr(llm_router, "__version__", "") != PIN:
@@ -269,7 +309,7 @@ def offline():
     hedge_agree = sum(1 for row in rows if row["hedge_agree"])
     ollama_first = sum(1 for row in rows if row["chain_leads_ollama"])
     policy_agree = sum(1 for row in rows if row["policy_agree"])
-    secret_ok = sum(1 for row in secrets if row["expect_fire"] == row["fires"])
+    pattern_rows_ok = sum(1 for row in secrets if row["expect_fire"] == row["fires"])
     summary = {
         "version": PIN,
         "wheel_sha256": wheel_sha256(),
@@ -280,8 +320,9 @@ def offline():
         "hedge_agree": hedge_agree,
         "ollama_first": ollama_first,
         "policy_agree": policy_agree,
-        "secret_ok": secret_ok,
-        "secret_rows": len(secrets),
+        "pattern_rows_ok": pattern_rows_ok,
+        "pattern_rows": len(secrets),
+        "pii_production_caller": False,
         "real_state_absent": not REAL_STATE.exists(),
         "provider_keys_dropped": int(os.environ.get("PFY_LLM_ROUTER_KEYS_DROPPED") or "0"),
         "direct_execution_env": os.environ.get("LLM_ROUTER_DIRECT_EXECUTION"),
@@ -296,8 +337,10 @@ def offline():
     (HERE / "results.json").write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     print("route %d/20 hedge %d/20 ollama_first %d/20 median %.3f ms" % (
         route_ok, hedge_agree, ollama_first, timing["classify_median_ms"]))
-    print("secrets %d/%d demo %s real_state_absent %s" % (
-        secret_ok, len(secrets), demo["exit"], summary["real_state_absent"]))
+    print("patterns %d/%d demo %s real_state_absent %s" % (
+        pattern_rows_ok, len(secrets), demo["exit"], summary["real_state_absent"]))
+    if REAL_STATE.exists():
+        raise SystemExit("operator state appeared during the offline probe")
 
 
 def mem_available_bytes():
