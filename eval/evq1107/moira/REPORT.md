@@ -6,7 +6,7 @@ The job is a build lane that stops on a real done-condition. Gap B is the 2026-1
 
 | Tool | Stage | What that card covers | How Moira compares |
 |------|-------|----------------------|--------------------|
-| Finn Loop / 8 exits | I1 | Exit card and loop types. Already the orchestration toolset. | The skill file names 8/8 exits and mentions `inputSchema` 0 times. A checker that only accepts the word "done" accepted 18/18 claims. Moira rejected 8/8 bad shapes and stopped 4/4 honest reports. The 4 lies finished in Moira too. |
+| Finn Loop / 8 exits | I1 | Exit card and loop types. Already the orchestration toolset. | The skill file names 8/8 exits and mentions `inputSchema` 0 times. A checker that only accepts the word "done" accepted 18/18 claims. Moira rejected 8/8 bad shapes and stopped 3/3 FAIL reports. The 4 lies finished in Moira too. |
 | Rulora | I1 | Loop counters and output validators. Host still decides when a build lane stops. Native on 2 of 8 exits. The 3 hour stream stays active. | Moira also has no host clock. Elapsed 10 with pregate PASS finished. |
 | Festival | I1 | Filesystem plan and checklist gates. The 2026-11-07 probe did not close the timeout. | Different surface. This probe also left the under-reported lane on `done`. |
 | Open Steps | I0 | One stop nag. It does not see a 3 hour timeout or a parked pregate FAIL. | Moira does not see them either unless the agent writes them into the step. |
@@ -23,7 +23,7 @@ Moira does not beat the exit card, Rulora, or Festival on gap B. The part that m
 
 ## Verdict
 
-STAY I1. Schema rejected 8/8 bad shapes. The condition stopped 4/4 honest reports (1 park, 3 timeout). 4/4 schema-valid lies routed to `done`. Two completion strings on the same FAIL payload both routed to `park` (0 of 2 strings changed the route). Nothing is wired into a gate.
+STAY I1. Schema rejected 8/8 bad shapes. The condition stopped 3/3 FAIL reports (1 park, 2 timeout). A fake PASS with elapsed 10801 timed out 1/1. 4/4 schema-valid lies routed to `done`. Two completion strings on the same FAIL payload both routed to `park` (0 of 2 strings changed the route). Nothing is wired into a gate.
 
 ## Pin
 
@@ -62,7 +62,7 @@ ln -sfn "$BASE/nm/node_modules/@mcp-moira/shared" "$BASE/src/node_modules/@mcp-m
 
 ## Probe
 
-`python3 eval/evq1107/moira/probe.py --out eval/evq1107/moira/results.json` from this worktree. Exit 0. Numbers are `eval/evq1107/moira/results.json`. Wall clock 0.15656 s. The 18 calls inside the engine took 14036.883 us. Child env is `PATH`, cache `HOME`, `XDG_*`, `TMPDIR`, `LANG`, `MOIRA_SRC`, and `NODE_NO_WARNINGS=1`.
+`python3 eval/evq1107/moira/probe.py --out eval/evq1107/moira/results.json` from this worktree. Exit 0. Numbers are `eval/evq1107/moira/results.json`. Wall clock 0.138232 s. The 18 calls inside the engine took 13029.791 us. Child env is `PATH`, cache `HOME`, `XDG_*`, `TMPDIR`, `LANG`, `MOIRA_SRC`, and `NODE_NO_WARNINGS=1`.
 
 The engine call is `SchemaValidator.enforceStrictSchema`, then `SchemaValidator.validate`, then `routeNode` when the schema accepts an object. That is the path `AgentDirectiveHandler` uses after a step payload arrives. The handler itself was not constructed. The completion string is placed on the node object passed to `routeNode`. The schema object we sent did not set `additionalProperties`. The engine set it to false.
 
@@ -72,7 +72,8 @@ Fixture, not read from the agent: pregate `FAIL`, elapsed `10800` seconds (3 hou
 |-------|--------|
 | Malformed rejected (empty, bad enum, string elapsed, extra field, missing `goal_met`, negative elapsed, 10.5, prose string) | 8/8 |
 | Schema-valid lies routed to `done` (PASS at 10s, PASS at 10799s, `goal_met` false, `fail_count` 2 with PASS at 10s) | 4/4 |
-| Honest reports not `done` (FAIL at 1000s parks; FAIL at 10800s, PASS at 10801s, and FAIL at 10801s take timeout) | 4/4 |
+| FAIL reports not `done` (FAIL at 1000s parks; FAIL at 10800s and FAIL at 10801s take timeout) | 3/3 |
+| Fake PASS with elapsed 10801 | timeout 1/1 |
 | Completion string `pregate is PASS` vs `pregate is FAIL` on the same FAIL payload | both `park` (0/2 changed the route) |
 | Prose check: the claim text is the word `done` | accepted 18/18 |
 | `agent-loops` skill | 8/8 exit names present, 0 `inputSchema` mentions |

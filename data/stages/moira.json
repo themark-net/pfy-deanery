@@ -15,7 +15,7 @@
     "offline"
   ],
   "potential": "low",
-  "next_gate": "Stay I1. Schema rejected 8/8 bad shapes and the condition stopped 4/4 honest reports. 4/4 schema-valid lies still finished, and the completion string changed 0/2 routes. Re-open only if a later pin checks that string against a host clock and a host pregate result, and a lie that says PASS with a short elapsed no longer finishes. No gate wiring. The I1 ceiling stays until a TOOLS.md row exists.",
+  "next_gate": "Stay I1. Schema rejected 8/8 bad shapes and the condition stopped 3/3 FAIL reports. A fake PASS with elapsed over the cap timed out 1/1. 4/4 schema-valid lies with a short elapsed still finished, and the completion string changed 0/2 routes. Re-open only if a later pin checks that string against a host clock and a host pregate result, and a lie that says PASS with a short elapsed no longer finishes. No gate wiring. The I1 ceiling stays until a TOOLS.md row exists.",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",

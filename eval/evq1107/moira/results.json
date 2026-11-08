@@ -9,8 +9,8 @@
     "fail_count": 2,
     "wall_cap_s": 10800
   },
-  "wall_s": 0.15656,
-  "engine_elapsed_us": 14036.883,
+  "wall_s": 0.138232,
+  "engine_elapsed_us": 13029.791,
   "ajv": "8.20.0",
   "engine": "SchemaValidator.validate+routeNode",
   "skill": {
@@ -29,8 +29,12 @@
       "n": 4
     },
     "honest_not_done": {
-      "hit": 4,
-      "n": 4
+      "hit": 3,
+      "n": 3
+    },
+    "clock_beats_fake_pass": {
+      "hit": 1,
+      "n": 1
     },
     "completion_string_changed": false,
     "completion_string_n": 2,
@@ -199,8 +203,8 @@
       "error": ""
     },
     {
-      "id": "honest-clock-beats-pass",
-      "group": "honest",
+      "id": "clock-beats-pass",
+      "group": "clock",
       "valid": true,
       "output": "timeout",
       "expect_valid": true,
