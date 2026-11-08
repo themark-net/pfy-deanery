@@ -71,7 +71,7 @@ Green, same env, after the fix:
 - `python3 -m unittest tests.test_test_cache tests.test_asm_agent_skill_manager_probe`: 7 tests, OK, 1.516s.
 - Login `asm-probe` mtime stayed `1794145113839863291`.
 
-`scripts/test_cache.py` is a `core_globs` entry, so `test_select` on this commit is mode `full`. The one post-commit run is recorded at the bottom of this file after it finishes. Temps for the local runs were under this worktree `tmp/cifix-tests`.
+`scripts/test_cache.py` is a `core_globs` entry, so `test_select` on `1794a8ce` is mode `full` (259 modules, same list as `scripts/run_tests.py --list`). Temps for the local runs were under this worktree `tmp/cifix-tests`. The two changed modules were also run with `HOME` and `XDG_CACHE_HOME` under that temp dir before the full list. The full list used the normal `HOME`, which is how G0 runs.
 
 ## Limitations
 
@@ -84,4 +84,8 @@ Green, same env, after the fix:
 
 ## Post-commit selection run
 
-Pending in this draft until `python3 scripts/test_select.py --base origin/main --head HEAD` and one `python3 scripts/run_tests.py` on that module list. Temps under `tmp/cifix-tests`.
+On `1794a8ce`:
+
+- `python3 scripts/test_select.py --base origin/main --head HEAD` mode `full`, reason `core glob scripts/test_cache.py: scripts/test_cache.py`, 259 modules.
+- `python3 scripts/test_select.py --structural-checks --selection tmp/cifix-tests/selection.json` passed markdown links, `catalog_check.py`, `smoke_contract_lint.py`, `check_no_encoded_payloads.py`, and `./pfy help`.
+- `TMPDIR=$PWD/tmp/cifix-tests python3 scripts/run_tests.py --receipt tmp/cifix-tests/receipt.json` ran those 259 modules once. `jobs=16`, `seconds=502.239`, `skips=19`, `rc=1`. The only failure is `tests.test_stage_registry` (`test_assembled_document_matches_legacy_monolith`). `tests.test_asm_agent_skill_manager_probe` and `tests.test_test_cache` passed. This commit does not change `data/`, `pfylib/`, or `tests/test_stage_registry.py`. The legacy blob is the last commit of `data/tool_integration_stages.json`, which this commit does not touch. Stage cards were left unchanged. That failure is not one of the two ticket fixes.
