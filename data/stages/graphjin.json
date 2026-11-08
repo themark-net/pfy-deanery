@@ -1,0 +1,41 @@
+{
+  "name": "GraphJin",
+  "integration_stage": "I0",
+  "intent": "watch",
+  "entry": "sources/entries/104-graphjin.md",
+  "github": "https://github.com/dosco/graphjin",
+  "pin": "v3.21.6 b8c6bbbafcd95c8ae99bb71eee88508b95a97414",
+  "binary_sha256": "e6f0fd88f99b07e8036ba7db76f24f0fceab697935559d154e823b5951f46805",
+  "tarball_sha256": "48c9bebb2b6f6496ac5a749d293f78a40279dcc2e2675dfab4b641c79e417ebc",
+  "uses": "Governed GraphQL and MCP over a local file tree and a sqlite database. Trialed as a read-only view for a per-file review. CodeSQL did not start on the pinned binary.",
+  "features": [
+    "local file table",
+    "sqlite read_only veto",
+    "saved-query allow-list",
+    "mcp stdio"
+  ],
+  "potential": "low",
+  "next_gate": "Stay I0. A later build has to ship CodeSQL in a binary under 50 MB, name the functions in this slice, and beat codebase-memory on a review count. The 2026-11-07 binary is 162586808 bytes and skipped the code source at startup. Do not wire a gate.",
+  "tier_ceiling": "I0",
+  "non_goals": [
+    "server-side agent",
+    "hosted oauth",
+    "product database",
+    "docker or deb install",
+    "replace codebase-memory",
+    "replace write-guard",
+    "pregate or CI gate"
+  ],
+  "evidence": [
+    "entry:sources/entries/104-graphjin.md",
+    "eval/evq1107/graphjin/REPORT.md",
+    "eval/evq1107/graphjin/VERDICT",
+    "eval/evq1107/graphjin/results.json",
+    "pin v3.21.6 b8c6bbbafcd95c8ae99bb71eee88508b95a97414 binary sha256 e6f0fd88f99b07e8036ba7db76f24f0fceab697935559d154e823b5951f46805 tarball sha256 48c9bebb2b6f6496ac5a749d293f78a40279dcc2e2675dfab4b641c79e417ebc"
+  ],
+  "handoff_by": "llm",
+  "self_pipeline": {
+    "status": "not_applicable",
+    "reason": "Report-only probe in eval/evq1107/graphjin/REPORT.md. CodeSQL was skipped at startup. The file list matched 6 of 6 copied paths and did not name a review test. Not wired into a gate."
+  }
+}

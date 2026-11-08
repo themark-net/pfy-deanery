@@ -1,0 +1,248 @@
+{
+  "pin": {
+    "version": "v3.21.6",
+    "commit": "b8c6bbbafcd95c8ae99bb71eee88508b95a97414",
+    "binary_sha256": "e6f0fd88f99b07e8036ba7db76f24f0fceab697935559d154e823b5951f46805",
+    "binary_sha_matches_entry": true,
+    "tarball_sha256": "48c9bebb2b6f6496ac5a749d293f78a40279dcc2e2675dfab4b641c79e417ebc",
+    "binary_bytes": 162586808
+  },
+  "slice": [
+    "scripts/catalog_check.py",
+    "pfylib/stage_registry.py",
+    "examples/x-intake-local/smoke_103_105.py",
+    "data/stages/write-guard-mcp.json",
+    "data/stages/codebase-memory-mcp.json",
+    "sources/entries/104-graphjin.md"
+  ],
+  "code": {
+    "label": "code",
+    "startup_s": 0.202,
+    "listen": "cgo-enabled build",
+    "up": false,
+    "log_line": "21:18:11 WRN > Database 'repo_code' connection failed: codesql requires a cgo-enabled build with bundled tree-sitter grammars. Skipping."
+  },
+  "files_no_db": {
+    "label": "files-no-db",
+    "startup_s": 0.202,
+    "listen": "graphql",
+    "up": true,
+    "files_error": "database not found: default",
+    "files_listed": 0,
+    "files_size_match": 0,
+    "content": {
+      "error": "database not found: default",
+      "rows": 0,
+      "text_bytes": 0,
+      "disk_bytes": 788,
+      "match": false
+    },
+    "file_insert": {
+      "error": "database not found: default",
+      "body": "{\"errors\": [{\"message\": \"database not found: default\"}]}",
+      "says_read_only": false
+    },
+    "slice_unchanged": true,
+    "new_slice_files": []
+  },
+  "files_ro": {
+    "label": "files-ro",
+    "startup_s": 0.202,
+    "listen": "graphql",
+    "up": true,
+    "files_error": "",
+    "files_listed": 6,
+    "files_size_match": 6,
+    "content": {
+      "error": "",
+      "rows": 1,
+      "text_bytes": 788,
+      "disk_bytes": 788,
+      "match": true
+    },
+    "file_insert": {
+      "error": "",
+      "body": "{\"data\": {\"repo_files\": []}}",
+      "says_read_only": false
+    },
+    "notes": {
+      "read_rows": [
+        [
+          1,
+          "alpha"
+        ],
+        [
+          2,
+          "beta"
+        ]
+      ],
+      "read_error": "",
+      "insert": {
+        "error": "mutations blocked: table app.notes is read-only",
+        "has_errors": true,
+        "says_read_only": true
+      },
+      "update": {
+        "error": "mutations blocked: table app.notes is read-only",
+        "has_errors": true,
+        "says_read_only": true
+      },
+      "delete": {
+        "error": "mutations blocked: table app.notes is read-only",
+        "has_errors": true,
+        "says_read_only": true
+      }
+    },
+    "db_rows": [
+      [
+        1,
+        "alpha"
+      ],
+      [
+        2,
+        "beta"
+      ]
+    ],
+    "slice_unchanged": true,
+    "new_slice_files": []
+  },
+  "control": {
+    "label": "control",
+    "startup_s": 0.202,
+    "listen": "graphql",
+    "up": true,
+    "files_error": "",
+    "files_listed": 6,
+    "files_size_match": 6,
+    "content": {
+      "error": "",
+      "rows": 1,
+      "text_bytes": 788,
+      "disk_bytes": 788,
+      "match": true
+    },
+    "file_insert": {
+      "error": "",
+      "body": "{\"data\": {\"repo_files\": []}}",
+      "says_read_only": false
+    },
+    "notes": {
+      "read_rows": [
+        [
+          1,
+          "alpha"
+        ],
+        [
+          2,
+          "beta"
+        ]
+      ],
+      "read_error": "",
+      "insert": {
+        "error": "",
+        "has_errors": false,
+        "says_read_only": false
+      },
+      "update": {
+        "error": "",
+        "has_errors": false,
+        "says_read_only": false
+      },
+      "delete": {
+        "error": "",
+        "has_errors": false,
+        "says_read_only": false
+      }
+    },
+    "db_rows": [
+      [
+        1,
+        "x"
+      ],
+      [
+        3,
+        "evil"
+      ]
+    ],
+    "slice_unchanged": true,
+    "new_slice_files": []
+  },
+  "production": {
+    "label": "prod",
+    "startup_s": 0.201,
+    "listen": "graphql",
+    "up": true,
+    "files_error": "invalid query or fragment name: ",
+    "files_listed": 0,
+    "files_size_match": 0,
+    "content": {
+      "error": "invalid query or fragment name: ",
+      "rows": 0,
+      "text_bytes": 0,
+      "disk_bytes": 788,
+      "match": false
+    },
+    "file_insert": {
+      "error": "invalid query or fragment name: ",
+      "body": "{\"errors\": [\"invalid query or fragment name: \"]}",
+      "says_read_only": false
+    },
+    "notes": {
+      "read_rows": [
+        [
+          1,
+          "alpha"
+        ],
+        [
+          2,
+          "beta"
+        ]
+      ],
+      "read_error": "",
+      "adhoc_error": "unknown graphql query: adhoc",
+      "adhoc_rows": 0,
+      "adhoc_refused": true
+    },
+    "db_rows": [
+      [
+        1,
+        "alpha"
+      ],
+      [
+        2,
+        "beta"
+      ]
+    ],
+    "saved_repo_files": {
+      "count": 6,
+      "error": ""
+    },
+    "slice_unchanged": true,
+    "new_slice_files": []
+  },
+  "mcp": {
+    "status": "ran",
+    "used": "line",
+    "line": {
+      "framing": "line",
+      "initialize_ok": true,
+      "tools": [
+        "execute_graphql",
+        "execute_saved_query",
+        "get_current_config",
+        "graphql_help",
+        "query_catalog",
+        "validate_config",
+        "validate_where_clause"
+      ],
+      "query_tool": "execute_graphql",
+      "file_count": 6,
+      "mutate_says_read_only": true,
+      "mutate_message": "mutations blocked: table app.notes is read-only",
+      "update_tool_present": false,
+      "ok": true,
+      "stderr_tail": "21:18:12\u001b[32m \u001b[0m\u001b[32mINF\u001b[0m\u001b[32m \u001b[0m\u001b[1m\u001b[32m>\u001b[0m\u001b[0m\u001b[32m \u001b[0mManaged artifact store ready: /home/mark/.cache/pfy/tools/graphjin/probe/score/files-ro/config/.graphjin/artifacts.sqlite3\n21:18:12\u001b[32m \u001b[0m\u001b[32mINF\u001b[0m\u001b[32m \u001b[0m\u001b[1m\u001b[32m>\u001b[0m\u001b[0m\u001b[32m \u001b[0mUsing in-memory response cache (no Redis ...(truncated)"
+    }
+  },
+  "elapsed_s": 1.362
+}
