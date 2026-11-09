@@ -12,6 +12,7 @@ The product surface `./pfy` does onboard, stage, and ship. The catalog lifecycle
 - Integrate dispatch checks that the card is I2, the slug is not excluded, and no park file exists before it writes `tmp/integrate/<slug>.dispatched`. Closed in `0dee24d93ba1ac865fc876ef6dd4bc66313f0224`.
 - Supersede candidacy compares coverage levels on the four suite parts (track, catalog, evaluate, integrate). Integrate is the local-first part. A part counts only at partial or full. none does not count. A bare part-name list exits 2. recheck_days and the watchlist shape are unchanged. Closed in `1cd339ed0093f9a76dfa00c32da8c401565ba34b`.
 - Intake `--write-card` records evidence from the source: the repo URL, a license when a local tree states one, a pin SHA when the source or a local git HEAD has one, and one README claim. No network. `integration_stage` stays I0. `tier_ceiling` is I1 when that list is non-empty, so `catalog_apply_verdict.py` can allow I1. A bare name stays `evidence: []` and `tier_ceiling: I0`. Apply does not invent evidence. Empty source, duplicate, and `./pfy catalog nosuch` are unchanged. Closed in `d0312047a1150aa7b0d78be4fa36631bc7fa1673`.
+- Browse lists a stage card that is not an Active Catalog row. Intake still does not write `TOOLS.md`, `data/tools.json`, or `sources/`. Documented rows keep their table name, category, and github. The card's `integration_stage` is shown and not written. An I0 card stays incomplete, so ask still SKIPs. Auto-Company (other heading) and LiveKit (no table row) are listed. A stage file that is not valid JSON hides card stages until that file is removed; the table names stay. Empty source, duplicate, and `./pfy catalog nosuch` are unchanged. Closed in `cdf64e46b1890699fd627bf0e0820363fcbad4dc`.
 - README "Using the catalog" names the five commands. `./pfy help` says `pfy eval` is the product structural gate and names `scripts/eval_lane.sh` and `scripts/catalog_intake_dedupe.py`. The command name `pfy eval` is unchanged.
 
 While this walk was open, `origin/main` also landed `cec3b3de` (excluded slugs refused before a ceiling check; lane test selection is `origin/main...HEAD`; taste-skill, repowise, and opencode-mem tests expect the I3 cap the loop already wrote) and `5683af53` (I1 static eval for LocalHarness and Cartographer, value gate fail, both stay I1). This lane did not re-raise ATG. `atomic-task-graph-atg` stays on `eval/catalog-queue/exclusions.tsv`.
@@ -20,13 +21,7 @@ While this walk was open, `origin/main` also landed `cec3b3de` (excluded slugs r
 
 Item 1 (intake evidence, a new card cannot leave I0) is closed. See Closed in this pass.
 
-### 2. Catalog: a new card is invisible in `./pfy catalog`
-
-At `02ad875`, `./pfy catalog` printed `PASS catalog · 54 tools`. `catalog_check.py` printed `tools_md=55 stage_cards=55 stage_only=74`. After `--write-card` for `https://github.com/charmbracelet/gum`, check still passed and `stage_only=75`, including gum. Browse still did not list gum. The parser keeps the Active Catalog table and drops stage-only cards. Auto-Company sits under another heading, so browse never sees that row either.
-
-Intake does not triple-write. It does not touch `TOOLS.md`, `data/tools.json`, or `sources/`. `/catalog-docs` is a separate step. A new user who catalogs a tool and then runs `./pfy catalog` will not see it.
-
-`python3 scripts/catalog_intake_dedupe.py` on litellm printed `duplicate litellm data/stages/litellm.json`. An empty source prints `empty slug` and exits 1. `./pfy catalog nosuch` exits 2. Those are by design.
+Item 2 (a new stage card is invisible in `./pfy catalog`) is closed. See Closed in this pass.
 
 ### 3. Find: `./pfy eval` is still the product gate
 
