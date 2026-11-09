@@ -154,7 +154,7 @@ Keep skill surface area honest. Hermes archives unused agent-created skills
 3. **Archive** (prefer over silent delete for agent-created skills):
    - Move to `bootstrap/grok-cli/skills/_archive/<name>-YYYYMMDD/` **or**
      `.grok/skills/_archive/` for project-only, **or**
-   - Mark frontmatter / PORT: `status: archived` and remove from active install list
+   - Set frontmatter / PORT: `status: archived` and remove from active install list
 4. **Pin list** — optional short `PINNED.md` or note in `manifest.json` purpose
    field; critical skills must not be auto-archived.
 5. **Consolidate** — if two skills share 80% steps, keep one entrypoint with modes.

@@ -1,8 +1,9 @@
 """The public-paths guard fails on private operator material and passes clean trees.
 
 How this fails: a planted needs-mark.tsv, handoff, new docs/ops note, stray
-.tsv queue, or employer name outside agent-cage attribution exits 0, so a lane
-can publish operator history again. Or the real tree fails, so pregate blocks
+.tsv queue, employer name outside agent-cage attribution, eval trace, .jsonl
+or .log, prose eval report, /home/<user> path, or the owner's name exits 0,
+so a lane can publish operator history again. Or the real tree fails, so pregate blocks
 every change.
 Recover: put the private glob or rule back in scripts/check_public_paths.py,
 or move the flagged file to PFY_OPS_ROOT.
@@ -19,6 +20,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 GUARD = ROOT / "scripts" / "check_public_paths.py"
 EMP = "PN" + "NL"
+OWNER = "Ma" + "rk"
 
 
 def _git(repo: Path, *args: str) -> None:
@@ -96,6 +98,50 @@ class PublicPathsGuardTests(unittest.TestCase):
     def test_project_templates_are_product_code(self) -> None:
         self._write("bootstrap/project-process/templates/docs/open-questions/README.md", "template\n")
         self.assertEqual(_run(self.repo).returncode, 0)
+
+    def test_eval_traces_logs_and_prose_reports_fail(self) -> None:
+        for rel in ("eval/ev/x/traces/session-a.json", "eval/ev/x/results.jsonl",
+                    "eval/integrate/x/receipt.log", "eval/evq/x/REPORT.md", "eval/integrate/x/notes.md"):
+            self._write(rel, "{}\n")
+        proc = _run(self.repo)
+        self.assertEqual(proc.returncode, 1, proc.stdout)
+        for want in ("traces/session-a.json: trace", "results.jsonl: .jsonl log", "receipt.log: .log",
+                     "evq/x/REPORT.md: prose report", "x/notes.md: prose report"):
+            self.assertIn(want, proc.stdout)
+
+    def test_eval_structured_outputs_and_fixture_inputs_pass(self) -> None:
+        for rel in ("eval/evq/x/VERDICT", "eval/evq/x/results.json", "eval/integrate/x/receipt.json",
+                    "eval/evq/x/probe.py", "eval/ev/x/fixtures/prompts.jsonl"):
+            self._write(rel, "{}\n")
+        proc = _run(self.repo)
+        self.assertEqual(proc.returncode, 0, proc.stdout)
+
+    def test_home_user_path_fails(self) -> None:
+        self._write("eval/evq/x/results.json", '{"bin": "/home/%s/.local/bin/tool"}\n' % OWNER.lower())
+        self._write("tests/test_x.py", 'P = "/home/someone/DEVELOP/x"\n')
+        proc = _run(self.repo)
+        self.assertEqual(proc.returncode, 1, proc.stdout)
+        self.assertIn("eval/evq/x/results.json:1: absolute /home/<user> path", proc.stdout)
+        self.assertIn("tests/test_x.py:1: absolute /home/<user> path", proc.stdout)
+
+    def test_home_placeholders_and_cage_user_pass(self) -> None:
+        self._write("docs/z.md", "Use $HOME/.cache/pfy, ~/DEVELOP, /home/agent in the cage, "
+                    "and ${HOME}/.cache/pfy/tools/x/home/.local/bin.\n")
+        self.assertEqual(_run(self.repo).returncode, 0, _run(self.repo).stdout)
+
+    def test_owner_name_fails_in_text(self) -> None:
+        self._write("sources/entries/1-x.md", "Needs %s's GO.\n" % OWNER)
+        self._write("scripts/x.py", '# release stays with %s\n' % OWNER)
+        proc = _run(self.repo)
+        self.assertEqual(proc.returncode, 1, proc.stdout)
+        self.assertIn("sources/entries/1-x.md:1: owner name", proc.stdout)
+        self.assertIn("scripts/x.py:1: owner name", proc.stdout)
+
+    def test_owner_name_allowed_as_verb_and_in_license(self) -> None:
+        self._write("docs/w.md", "%s the wet sign. %s it binary. markdown, needs-mark, MARK_DIR.\n" % (OWNER, OWNER))
+        self._write("LICENSE", "Copyright 2026 %s\n" % OWNER)
+        proc = _run(self.repo)
+        self.assertEqual(proc.returncode, 0, proc.stdout)
 
     def test_real_tree_passes(self) -> None:
         proc = subprocess.run([sys.executable, str(GUARD)], cwd=ROOT, capture_output=True, text=True, timeout=120)
