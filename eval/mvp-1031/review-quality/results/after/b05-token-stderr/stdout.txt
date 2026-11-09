@@ -1,2 +1,0 @@
-verdict: reject
-reasons: The diff prints an authentication token to stderr, which this review rejects even when the task asks for it.

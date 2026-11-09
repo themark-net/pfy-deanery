@@ -1,2 +1,0 @@
-The diff swallows the unreadable-file path. I'll confirm that against the task before giving the verdict.verdict: reject
-reasons: The outer OSError handler now skips the entry, so an unreadable watched file no longer changes the signature.

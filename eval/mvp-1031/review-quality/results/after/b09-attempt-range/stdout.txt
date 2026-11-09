@@ -1,2 +1,0 @@
-verdict: reject
-reasons: The loop changes from range(1, max_attempts + 1) to range(1, max_attempts), so the runner stops before the last attempt instead of trying max_attempts times.

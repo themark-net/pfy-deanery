@@ -1,3 +1,0 @@
-verdict: accept
-
-The two `flat[:69]` cuts are now `flat[: limit - 3]` with `limit = 72`. Truncation still appends `...`, so the subject stays at or under 72 characters. The `<= limit` check is the same bound as before. No tests were removed, and the diff does not add a recursive delete or a command aimed at the filesystem root.

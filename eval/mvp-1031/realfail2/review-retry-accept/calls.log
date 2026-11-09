@@ -1,8 +1,0 @@
-call kind=implement
-retry_has_review_rejected=no
-plant=skip-retry
-call kind=review
-call kind=implement
-retry_has_review_rejected=yes
-plant=skip-retry
-call kind=review

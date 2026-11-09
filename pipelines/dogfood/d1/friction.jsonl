@@ -1,1 +1,0 @@
-{"ts": 1791183492.9919271, "step": "grok -p", "failure": "invalid value 'text' for --output-format; valid: plain|json|streaming-json|streaming-messages-json", "recovery": "retry with --output-format plain"}

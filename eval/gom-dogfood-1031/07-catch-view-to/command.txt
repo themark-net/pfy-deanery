@@ -1,7 +1,0 @@
-start_utc 2026-10-31T23:35:34Z
-cmd ./pfy build <task.txt> --repo /home/mark/DEVELOP/jobbar-master/tmp/gom-dogfood-1031-scratch/clones/07-catch-view-to --base 541ff95df2ad40433cfb2187f084b934cfa31df1 --test-cmd <below> --receipt-dir /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/eval/gom-dogfood-1031/07-catch-view-to --retries 1 --timeout 900 --keep-worktree
-test_cmd env JOURNAL_DB_PATH=./tmp/catch-view-to-journal.db USE_OLLAMA=false PYTHONDONTWRITEBYTECODE=1 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/tmp/gom-venv/bin/python -m pytest -q -p no:cacheprovider tests/test_catch_view_to.py
-base 541ff95df2ad40433cfb2187f084b934cfa31df1
-exit 0
-wall_s 112
-end_utc 2026-10-31T23:37:26Z

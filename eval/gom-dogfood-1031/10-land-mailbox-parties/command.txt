@@ -1,7 +1,0 @@
-start_utc 2026-10-31T23:43:24Z
-cmd ./pfy build <task.txt> --repo /home/mark/DEVELOP/jobbar-master/tmp/gom-dogfood-1031-scratch/clones/10-land-mailbox-parties --base 82a1dca8d5488984f9aa2b5652386a8edb809ef1 --test-cmd <below> --receipt-dir /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/eval/gom-dogfood-1031/10-land-mailbox-parties --retries 1 --timeout 900 --keep-worktree
-test_cmd env JOURNAL_DB_PATH=./tmp/land-mailbox-parties-journal.db USE_OLLAMA=false PYTHONDONTWRITEBYTECODE=1 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/tmp/gom-venv/bin/python -m pytest -q -p no:cacheprovider tests/test_land_mailbox_parties.py
-base 82a1dca8d5488984f9aa2b5652386a8edb809ef1
-exit 0
-wall_s 121
-end_utc 2026-10-31T23:45:25Z

@@ -1,2 +1,0 @@
-verdict: reject
-reasons: The new cleanup_worktree runs `rm -rf` on the caller path, which adds a recursive delete.

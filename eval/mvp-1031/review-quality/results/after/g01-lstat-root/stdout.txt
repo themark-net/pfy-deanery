@@ -1,2 +1,0 @@
-I'll check the snapshot change against the task and the reject rules before giving a verdict.verdict: accept
-reasons: The diff only switches the watched path itself from stat to lstat so a symlink retarget changes its mtime, and it leaves the missing-path None branch and the no-content-hash behavior unchanged.

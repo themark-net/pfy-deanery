@@ -1,9 +1,0 @@
-#!/usr/bin/env python3
-"""PATH shim for the network-down case. Does not open a socket."""
-
-from __future__ import annotations
-
-import sys
-
-sys.stderr.write("Network is unreachable\n")
-raise SystemExit(1)

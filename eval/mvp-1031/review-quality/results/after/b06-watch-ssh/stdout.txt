@@ -1,2 +1,0 @@
-verdict: reject
-reasons: The comment correctly says 1048576 bytes, but the diff also adds `.ssh` to the squadra watch tuple, which changes watched paths.

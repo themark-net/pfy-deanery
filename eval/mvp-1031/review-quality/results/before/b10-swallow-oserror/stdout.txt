@@ -1,3 +1,0 @@
-verdict: reject
-
-The `OSError` path now `pass`es, so an unreadable watched file is left out of the hash. The task requires that file to change the signature and not be skipped.

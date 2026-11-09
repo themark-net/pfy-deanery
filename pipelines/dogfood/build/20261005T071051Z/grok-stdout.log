@@ -1,7 +1,0 @@
-I'll update the jev-decision skill and add one operate-or-FAIL test that goes red if the `./pfy build -p` preference or the exit-3 escalate contract disappears. First I'm reading the SoT skill, any mirror, and the existing skill tests.The SoT skill has the locks and no headless wrap or exit contract. There is no `.grok/skills/jev-decision` mirror, so I’ll update only the SoT and add one contract test that reads that file.Updated `bootstrap/grok-cli/skills/jev-decision/SKILL.md` and added `tests/test_jev_decision_skill.py`.
-
-The SoT skill now prefers `./pfy build -p "<prompt>"` over bare `grok -p` for headless pfy-mentat slices, names the receipt path `pipelines/dogfood/build/`, and documents `./pfy decision route` as **0** ready, **3** escalate (conf low is valid, not broken, no silent auto-act), **1** fail. Existing locks stay: CUA-S1-FORMS primary, TypeSafe optional, cite #230 only, catalog 70–75 HOLD. No `.grok/skills/jev-decision/SKILL.md` mirror exists, so none was added.
-
-`python3 -m unittest tests.test_jev_decision_skill` passed, and `verify_skills.py` passed. Deleting the prefer line, the receipt path, or the exit-contract line each makes that test fail. Not committed.
-
-If the prefer line or the exit-3 contract is dropped, bots either skip the wrap or treat conf-low as a crash. Put those lines back. The test windows are tight (`prefer` … `./pfy build -p` … `grok -p`, and `0`/`3`/`1` next to ready/escalate/not broken/fail), so an equivalent rephrase that spreads those words out will also go red until the wording or the windows are aligned.

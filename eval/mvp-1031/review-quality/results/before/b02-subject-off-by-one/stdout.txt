@@ -1,3 +1,0 @@
-The truncation change can push the subject past 72 characters. I'll confirm that against the function before giving a verdict.verdict: reject
-
-`commit_subject` slices 72 characters and then appends `"..."`, so a truncated subject can be 75 characters. A last-word trim does not keep it at or under 72 when the first 72 characters have no space, or when the last space sits past index 69. The slice has to leave room for the ellipsis (69 + `"..."`).

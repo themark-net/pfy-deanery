@@ -1,7 +1,0 @@
-start_utc 2026-10-31T23:45:59Z
-cmd ./pfy build <task.txt> --repo /home/mark/DEVELOP/jobbar-master/tmp/gom-dogfood-1031-scratch/clones/11-land-recipients --base 3ad836aa63996b0de6c0d74af43ef6be3d427889 --test-cmd <below> --receipt-dir /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/eval/gom-dogfood-1031/11-land-recipients --retries 1 --timeout 900 --keep-worktree
-test_cmd env JOURNAL_DB_PATH=./tmp/land-recipients-journal.db USE_OLLAMA=false PYTHONDONTWRITEBYTECODE=1 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/tmp/gom-venv/bin/python -m pytest -q -p no:cacheprovider tests/test_land_recipients.py
-base 3ad836aa63996b0de6c0d74af43ef6be3d427889
-exit 0
-wall_s 81
-end_utc 2026-10-31T23:47:20Z

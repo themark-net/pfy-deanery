@@ -1,1 +1,0 @@
-PASS ok branch=cloud/create-right-py-whose-only-line-is-side-20261031T225954017419Z receipt=/home/mark/DEVELOP/pfy-mentat/tmp/mvp-realfail3-1031/eval/mvp-1031/realfail3/two-builds/right/receipt.json

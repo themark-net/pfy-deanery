@@ -181,3 +181,33 @@ pipelines/smoke/pi-harness/
 pipelines/smoke/localharness/
 pipelines/smoke/cartographer/
 pipelines/smoke/agent-manager/
+
+# Private operator material lives in the pfy-mentat-ops checkout (PFY_OPS_ROOT).
+# These paths moved there on 2026-11-09. scripts/check_public_paths.py also
+# fails a commit that adds them, since .gitignore does not stop git add -f.
+eval/catalog-queue/needs-mark.tsv
+docs/HANDOFF-*.md
+docs/PENDING-HANDOFF.md
+docs/ops/HANDOFF-*
+docs/ops/AUTONOMOUS-DECISIONS-*
+docs/ops/RUN-LOG-*
+docs/ops/integrate/tickets/
+docs/plans/
+docs/handoffs/
+docs/research/
+docs/build-dropins/
+docs/dogfood/
+docs/open-questions/
+docs/automation/*handoff*
+eval/mvp-1031/
+eval/mvp2/
+eval/mvp3/
+eval/dogfood2-1031/
+eval/gom-dogfood-1031/
+eval/selfhost-1031/
+eval/selfhost2-1031/
+eval/mutation-1031/
+eval/stop-2026-11-08/
+eval/local-build/live-*.md
+pipelines/dogfood/build/
+pipelines/dogfood/d1/

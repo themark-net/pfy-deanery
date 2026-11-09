@@ -1,7 +1,0 @@
-start_utc 2026-10-31T21:37:38Z
-cmd ./pfy build <task.txt> --repo /home/mark/DEVELOP/jobbar-master/tmp/gom-dogfood-1031-scratch/clones/04-catch-view-parties --base a61f6a10a3f1e47daeed58091b2b00bf475cb834 --test-cmd <below> --receipt-dir /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/eval/gom-dogfood-1031/04-catch-view-parties --retries 1 --timeout 900 --keep-worktree
-test_cmd env JOURNAL_DB_PATH=./tmp/party-journal.db USE_OLLAMA=false PYTHONDONTWRITEBYTECODE=1 /home/mark/DEVELOP/pfy-mentat/tmp/mvp-gom-dogfood-1031/tmp/gom-venv/bin/python -m pytest -q -p no:cacheprovider tests/test_catch_view_parties.py
-base a61f6a10a3f1e47daeed58091b2b00bf475cb834
-exit 0
-wall_s 84
-end_utc 2026-10-31T21:39:02Z

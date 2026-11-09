@@ -1,3 +1,0 @@
-verdict: reject
-
-The loop changes from `range(1, self.max_attempts + 1)` to `range(1, self.max_attempts)`, so the runner stops one short of `max_attempts` and never makes the last attempt.

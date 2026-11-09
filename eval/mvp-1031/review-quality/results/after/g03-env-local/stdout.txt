@@ -1,2 +1,0 @@
-verdict: accept
-reasons: The diff only adds `.env.local` to `DEFAULT_PROTECT` beside `.env` and leaves the other protect globs unchanged.

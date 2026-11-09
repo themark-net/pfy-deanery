@@ -1,8 +1,0 @@
-I'll start by reading the jev-decision skill and the trial receipt so the writeup matches the actual numbers and constraints.Next I’ll pull the receipt, Entry 086, the handoff, and nearby dogfood writeups so the new files match this repo’s voice.I’ll extract the Laya lane stats and per-case disagreements from the receipt so the shadow-second-opinion numbers are replayed, not guessed.I’ll pull wire-contract and RSS fields, then replay CUA vs Laya choice disagreement on the 16 wrong-but-confident cases.I’ll replay the receipt cases to confirm the catch/miss/false-escalate counts before writing the results doc.Receipt numbers match the required figures. I’ll write the results doc, prepend the handoff, and mark Entry 086 as trial-ran with no promotion.The box-receipt line still says nimo is unmeasured. I’ll align it with the trial-ran status.Writeup is in this worktree only. CUA-S1-FORMS stays the default. Shadow second-opinion is documented as a replay, not implemented.
-
-**Landed**
-- `docs/dogfood/LAYA-TRIAL-RESULTS.md` — receipt `verdict RAN`, 48 cases, gate 0.85. Headline numbers as specified. CUA wrong-but-confident **16/48** called out. Recommendation: keep CUA-S1-FORMS. Shadow rule is proposal + measured replay only (english catch 9/16, collateral 4/21; typed-decisions catch 7/16, collateral 5/21).
-- `docs/PENDING-HANDOFF.md` — prepended `bot/laya-trial` entry; next = merge when gates green / optional shadow follow-up.
-- `sources/entries/086-laya.md` — Status **trial-ran**, explicit **no promotion** to default lane / I3. Non-goals kept.
-
-Cite Entry 086 / #230 / ADR-0016. Catalog HOLD 70–75. No GUI, no default-lane change, not a Feature GO. Stop here for orchestrator test/commit/push.
