@@ -40,6 +40,16 @@ GENERIC_BASENAMES = {
     "Makefile",
     "setup.py",
     "conftest.py",
+    # One file per tool. The full path still selects a test that names it.
+    # The basename would select every verdict or receipt test in the tree.
+    "VERDICT.json",
+    "receipt.json",
+}
+# Same two names. An unreferenced artifact stays structural. It must not
+# take mode full just because no test has mentioned this tool yet.
+PER_TOOL_ARTIFACTS = {
+    "VERDICT.json",
+    "receipt.json",
 }
 STRUCTURAL_SKIP_PREFIXES = ("tests/",)
 
@@ -467,6 +477,15 @@ def select(root: Path, changes: list[dict[str, str]], config: dict, graph: Graph
                 if refs:
                     structural_only = False
                     selected |= refs
+            continue
+        # A new tool's VERDICT.json or receipt.json is not named by any test
+        # yet. Matching the basename would pull in every other tool's tests.
+        # Naming this path still selects that test. No name stays structural.
+        if rel.rsplit("/", 1)[-1] in PER_TOOL_ARTIFACTS:
+            refs = string_refs(rel, graph.sources)
+            if refs:
+                structural_only = False
+                selected |= refs
             continue
         structural_only = False
         refs = string_refs(rel, graph.sources)

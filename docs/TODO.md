@@ -35,6 +35,8 @@ Branch `bot/mvp-local-build`. Not a Feature GO. Catalog HOLD 70-75 stays. Handof
 
 Not a Feature GO. Catalog HOLD 70-75 stays. One cloud `./pfy build` on the mvp-1031 fixture PASSed on `bot/mvp-integrate-1031` (checker exit 0, receipt [eval/mvp-1031/demo-receipt.json](../eval/mvp-1031/demo-receipt.json), fixture commit `ebef4238a7eff8f938747623f7920b3fde74e586`). Handoff: [HANDOFF-mvp-integrate-1031.md](ops/HANDOFF-mvp-integrate-1031.md).
 
+Fresh-clone gap list from lane mvp-gaps-1108: [MVP-GAPS-1108.md](ops/MVP-GAPS-1108.md). The walk is find, catalog, eval, integrate, promote. Small browse and test-select fixes landed with that note. Leftovers stay in the gap list. Not a Feature GO. Catalog HOLD 70-75 stays.
+
 
 ## G8 — Simple harness-agnostic launch (2026-07-31)
 

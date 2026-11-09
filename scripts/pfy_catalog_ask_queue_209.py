@@ -238,7 +238,10 @@ def parse_tools_md(text):
         head = cols[0].lower()
         if head in ("tool", "") or set(head) <= set("-: "):
             continue
-        name = _strip_md(cols[0])
+        raw_name = cols[0].strip()
+        bold = re.match(r"\*\*([^*]+)\*\*(.*)", raw_name)
+        short = bold.group(1).strip() if bold else ""
+        name = _strip_md(raw_name)
         if not name:
             continue
         category = _strip_md(cols[1] if len(cols) > 1 else "")
@@ -250,6 +253,7 @@ def parse_tools_md(text):
         item = {
             "id": _slug(name),
             "name": name,
+            "short": short,
             "category": category,
             "github": github,
             "notes": notes,
@@ -340,11 +344,25 @@ def merge_catalog(md_items, json_items, stages):
                 elif not merged.get(k):
                     merged[k] = v
             by_id[key] = merged
+    # A parenthetical display name ("adr-tools (optional)") does not slug to
+    # the card. Alias the bold name so the card still attaches. The alias is
+    # not a second row.
+    aliases = {}
+    for item in by_id.values():
+        short = (item.get("short") or "").strip()
+        if not short:
+            continue
+        sk = _slug(short)
+        if sk and sk not in by_id and sk not in aliases:
+            aliases[sk] = item
     for key, extra in stages.items():
         cur = by_id.get(key)
         if cur is None:
+            cur = aliases.get(key)
+        if cur is None:
             continue
-        if extra.get("stage") and not cur.get("stage"):
+        # The stage card is the lifecycle. tools.json can lag (I2 vs I3).
+        if extra.get("stage"):
             cur["stage"] = extra["stage"]
         if extra.get("github") and not cur.get("github"):
             cur["github"] = extra["github"]

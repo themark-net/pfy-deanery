@@ -226,6 +226,50 @@ class TestSelectTests(unittest.TestCase):
         self.assertEqual(data["mode"], "structural", data["reason"])
         self.assertEqual(data["modules"], [])
 
+    def test_new_verdict_does_not_select_other_tools(self) -> None:
+        # Fail: a new eval/evals/gum/VERDICT.json selects every test that
+        # contains the basename, so the eval lane runs unrelated verdict
+        # tests and parks. Recovery: the basename is generic. A test that
+        # names this path still runs. A verdict nobody names does not force
+        # the full suite. Same for receipt.json.
+        _write(
+            self.tmp / "tests" / "test_any_verdict.py",
+            'PATH = "VERDICT.json"\n\ndef test_any():\n    assert PATH\n',
+        )
+        _write(
+            self.tmp / "tests" / "test_gum_verdict.py",
+            'PATH = "eval/evals/gum/VERDICT.json"\n\ndef test_gum():\n    assert PATH\n',
+        )
+        _write(
+            self.tmp / "tests" / "test_any_receipt.py",
+            'PATH = "receipt.json"\n\ndef test_any():\n    assert PATH\n',
+        )
+        _write(
+            self.tmp / "tests" / "test_gum_receipt.py",
+            'PATH = "eval/integrate/gum/receipt.json"\n\ndef test_gum():\n    assert PATH\n',
+        )
+        _commit_all(self.tmp, "artifact tests")
+        _write(self.tmp / "eval" / "evals" / "gum" / "VERDICT.json", "{}\n")
+        _commit_all(self.tmp, "gum verdict")
+        data = _select(self.tmp)
+        self.assertEqual(data["mode"], "affected", data["reason"])
+        self.assertEqual(data["modules"], ["tests.test_gum_verdict"])
+        _write(self.tmp / "eval" / "evals" / "other" / "VERDICT.json", "{}\n")
+        _commit_all(self.tmp, "other verdict")
+        data = _select(self.tmp)
+        self.assertEqual(data["mode"], "structural", data["reason"])
+        self.assertEqual(data["modules"], [])
+        _write(self.tmp / "eval" / "integrate" / "gum" / "receipt.json", "{}\n")
+        _commit_all(self.tmp, "gum receipt")
+        data = _select(self.tmp)
+        self.assertEqual(data["mode"], "affected", data["reason"])
+        self.assertEqual(data["modules"], ["tests.test_gum_receipt"])
+        _write(self.tmp / "eval" / "integrate" / "other" / "receipt.json", "{}\n")
+        _commit_all(self.tmp, "other receipt")
+        data = _select(self.tmp)
+        self.assertEqual(data["mode"], "structural", data["reason"])
+        self.assertEqual(data["modules"], [])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -102,6 +102,21 @@ Rejections are logged with short, explicit reasons. There is no silent ignoring 
 | Taxonomy & rubric | [CATEGORIZATION.md](CATEGORIZATION.md) — Stage 0 + weighted stages → 0–100 → S/A/B/C |
 | Work queue | [docs/TODO.md](docs/TODO.md) — deeper eval and integration work |
 
+### Lifecycle (track, catalog, eval, integrate, promote)
+
+`./pfy catalog` browses the Active Catalog table. It does not add a tool. `./pfy eval` is the product structural gate (`make eval-integration-change`), not a catalog verdict.
+
+| Step | Command |
+|------|---------|
+| Find or dedupe | `python3 scripts/catalog_intake_dedupe.py "<source>"` |
+| Write an I0 card | same command with `--write-card` |
+| Eval toward I2 | `scripts/eval_lane.sh --slug <slug>` (calls Grok, then fast-forwards `main`) |
+| Integrate I2 to I3 | `scripts/integrate_lane.sh --slug <slug>` (same) |
+| Apply a verdict | `python3 scripts/catalog_apply_verdict.py` |
+| Raise a ceiling | `python3 scripts/catalog_auto_raise.py` |
+
+Skills: `catalog-intake-dedupe`, `catalog-eval-lane`, `catalog-integrate-lane`, `catalog-apply-and-ceiling`, `catalog-loop-operator`. Do not run the lane scripts against `origin` from a test. Pass `--root` and `--state`.
+
 **Default tracking:** pinned commit + shallow clone (`data/tools.json`). Rare subtree only if [SUBTREES.md](SUBTREES.md) criteria are met.
 
 **Catalog triple-write rule:** every processed tool seed must update `sources/x-posts.md` (if social/paper) **and** `TOOLS.md` **and** `data/tools.json` (JSON must parse). `/catalog-docs seed` or `/catalog-docs audit` enforces this.
