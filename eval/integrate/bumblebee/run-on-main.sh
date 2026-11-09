@@ -4,7 +4,7 @@
 # Usage: eval/integrate/bumblebee/run-on-main.sh RECEIPT.json
 #
 # The lane marker is $BUMBLEBEE_LANE_MARKER, or
-# $HOME/DEVELOP/pfy-mentat/tmp/integrate2/bumblebee.dispatched.
+# tmp/integrate2/bumblebee.dispatched in the main checkout (the git common dir's parent).
 # First admission creates that marker and continues. A second start exits 2
 # and writes no receipt.
 #
@@ -35,7 +35,15 @@ if [ "${receipt#/}" = "$receipt" ]; then
   receipt="$PWD/$receipt"
 fi
 
-marker=${BUMBLEBEE_LANE_MARKER:-$HOME/DEVELOP/pfy-mentat/tmp/integrate2/bumblebee.dispatched}
+marker=${BUMBLEBEE_LANE_MARKER:-}
+if [ -z "$marker" ]; then
+  common=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)
+  if [ -z "$common" ]; then
+    printf '%s\n' "no git checkout for the lane marker" >&2
+    exit 2
+  fi
+  marker="${common%/.git}/tmp/integrate2/bumblebee.dispatched"
+fi
 if [ "${marker#/}" = "$marker" ]; then
   marker="$PWD/$marker"
 fi
