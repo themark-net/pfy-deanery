@@ -267,6 +267,7 @@ review="$MARK_DIR/${SLUG}-review.prompt"
   printf '%s\n' "$skill_reads"
   printf '%s\n' "Follow those skills, then tmp/TICKET-${SLUG}.md."
   printf '%s\n' "Ticket path: $ticket"
+  printf '%s\n' "Write notes, traces, and raw logs under tmp/ops/eval/integrate/${SLUG}/ (gitignored; the lane moves them to the private ops checkout). Commit only code, tests, VERDICT.json, and receipts, with no home paths or names."
   printf '\n'
   cat "$ticket"
 } > "$impl"
@@ -289,6 +290,14 @@ fi
 if [ -n "$(git -C "$WT" status --porcelain)" ]; then
   park_exit "dirty worktree after grok"
 fi
+
+# Operator records (prose report, traces, raw logs) go to the private ops
+# checkout. Public keeps the scrubbed VERDICT, receipt, probe, and fixtures.
+if ! python3 "$SCRIPT_DIR/lane_ops_sync.py" --worktree "$WT" --subdir "eval/integrate/${SLUG}" --label "integrate ${SLUG}" >"$MARK_DIR/${SLUG}.ops" 2>&1; then
+  cat "$MARK_DIR/${SLUG}.ops" >&2 || true
+  park_exit "public guard failed"
+fi
+progress "$SLUG ops $(tail -n 1 "$MARK_DIR/${SLUG}.ops" 2>/dev/null)"
 
 sanity() {
   local rel suffix changed

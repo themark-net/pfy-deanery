@@ -19,6 +19,7 @@ Use this for an I2 card whose ceiling is already I3 or I4 and which has no recei
 
 - Wiring committed on a fast-forward of the worktree SHA to `origin/main`.
 - A receipt at `eval/integrate/<slug>/receipt.json` from a run on main.
+- Notes, traces, and raw logs under `tmp/ops/eval/integrate/<slug>/`, synced to `$PFY_OPS_ROOT` by `scripts/lane_ops_sync.py`. Never commit them under `eval/`.
 - The driver runs `scripts/catalog_apply_verdict.py`. A refusal is recorded. The card is not hand-edited.
 - This lane does not raise `tier_ceiling` and does not demote `integration_stage`.
 

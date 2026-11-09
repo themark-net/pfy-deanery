@@ -136,7 +136,11 @@ def _pin_scratch(repo: Path) -> Path:
 
 
 def _summary_dir(repo: Path, stamp: str) -> Path:
-    base = repo / "pipelines" / "dogfood" / "build-local-eval"
+    """Run summaries are operator records: the ops checkout when PFY_OPS_ROOT
+    is set, else the gitignored pipelines/dogfood/build-local-eval/ here."""
+    ops = os.environ.get("PFY_OPS_ROOT", "").strip()
+    rel = Path("pipelines") / "dogfood" / "build-local-eval"
+    base = (Path(ops).expanduser() / rel) if ops else (repo / rel)
     path = base / stamp
     suffix = 1
     while path.exists():

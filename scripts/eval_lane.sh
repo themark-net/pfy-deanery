@@ -195,7 +195,10 @@ else
 # Eval ticket: ${SLUG}
 
 Write eval/evals/${SLUG}/VERDICT.json that matches docs/ops/VERDICT.schema.json.
-Write eval/evals/${SLUG}/REPORT.md.
+Write the prose report to tmp/ops/eval/evals/${SLUG}/REPORT.md. Put traces and raw logs
+under tmp/ops/eval/evals/${SLUG}/ too. tmp/ is gitignored; the lane moves them to the
+private ops checkout. Commit only VERDICT.json, receipts, probes, and fixtures, with no
+home paths or names in them.
 Do not hand-edit integration_stage or tier_ceiling.
 ${skill_reads}Follow those skills, then tmp/TICKET-${SLUG}.md.
 EOF
@@ -283,6 +286,14 @@ fi
 if [ -n "$(git -C "$WT" status --porcelain)" ]; then
   park_exit "dirty worktree after grok"
 fi
+
+# Operator records (prose report, traces, raw logs) go to the private ops
+# checkout. Public keeps the scrubbed VERDICT, receipt, probe, and fixtures.
+if ! python3 "$SCRIPT_DIR/lane_ops_sync.py" --worktree "$WT" --subdir "eval/evals/${SLUG}" --label "eval ${SLUG}" >"$MARK_DIR/${SLUG}.ops" 2>&1; then
+  cat "$MARK_DIR/${SLUG}.ops" >&2 || true
+  park_exit "public guard failed"
+fi
+progress "$SLUG ops $(tail -n 1 "$MARK_DIR/${SLUG}.ops" 2>/dev/null)"
 
 sanity() {
   local rel suffix changed

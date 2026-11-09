@@ -232,6 +232,7 @@ class EvalRunnerTests(unittest.TestCase):
                 "PFY_BOT_OPENCODE",
                 "PFY_MEMINFO_FILE",
                 "LOCAL_OPENAI_BASE_URL",
+                "PFY_OPS_ROOT",
             ):
                 env.pop(key, None)
         env.update(

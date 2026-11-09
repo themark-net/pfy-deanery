@@ -20,7 +20,7 @@ This driver is not `./pfy eval`. `./pfy eval` is the product structural gate (`m
 ## Outputs
 
 - `eval/evals/<slug>/VERDICT.json` matching `docs/ops/VERDICT.schema.json`
-- `eval/evals/<slug>/REPORT.md`
+- `eval/evals/<slug>/REPORT.md` is not public. Write it, traces, and raw logs under `tmp/ops/eval/evals/<slug>/`. `scripts/lane_ops_sync.py` copies them to `$PFY_OPS_ROOT` and commits them there, moves any committed record out, scrubs home paths and names from public outputs, and parks the lane if `scripts/check_public_paths.py` still fails.
 - The driver, not the Build, runs `scripts/catalog_apply_verdict.py` before land.
 - A missing card is created at I0 by `pfylib.stage_registry.write_tool`.
 
