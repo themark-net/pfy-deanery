@@ -25,7 +25,7 @@
   "evidence": [
     "entry:sources/entries/172-cartographer.md",
     "pin:f96e5d9f7b0ae8506ce5470e35372546a70ea292",
-    "eval/evals/cartographer/REPORT.md",
+    "ops:eval/evals/cartographer/REPORT.md",
     "eval/evals/cartographer/VERDICT.json"
   ],
   "tier_ceiling": "I1",

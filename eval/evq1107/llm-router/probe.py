@@ -95,7 +95,7 @@ def wheel_sha256():
 
 def load_prompts():
     rows = []
-    for line in (HERE / "prompts.jsonl").read_text(encoding="utf-8").splitlines():
+    for line in (HERE / "fixtures" / "prompts.jsonl").read_text(encoding="utf-8").splitlines():
         line = line.strip()
         if line:
             rows.append(json.loads(line))

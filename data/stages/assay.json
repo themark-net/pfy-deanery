@@ -29,7 +29,7 @@
     "entry:sources/entries/116-assay.md",
     "pin:29bb1331c9b53bd1cd323eeb9dbc351f04187c1c",
     "version:0.3.0",
-    "eval/evq1107/assay/REPORT.md",
+    "ops:eval/evq1107/assay/REPORT.md",
     "eval/evq1107/assay/VERDICT",
     "eval/evq1107/assay/results.json"
   ],

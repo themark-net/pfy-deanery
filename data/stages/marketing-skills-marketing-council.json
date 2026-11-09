@@ -17,7 +17,7 @@
   "evidence": [
     "path:bootstrap/grok-cli/skills/marketing-council",
     "pin:5139746081be40a975316a0a11d8bcf61fae8fe4",
-    "eval/evq1107/marketing-skills-marketing-council/REPORT.md",
+    "ops:eval/evq1107/marketing-skills-marketing-council/REPORT.md",
     "eval/evq1107/marketing-skills-marketing-council/VERDICT"
   ],
   "tier_ceiling": "I1",
@@ -41,5 +41,5 @@
   "pin": "5139746081be40a975316a0a11d8bcf61fae8fe4",
   "license": "MIT",
   "package_version": "2.8.7",
-  "notes_doc": "eval/evq1107/marketing-skills-marketing-council/REPORT.md"
+  "notes_doc": "ops:eval/evq1107/marketing-skills-marketing-council/REPORT.md"
 }

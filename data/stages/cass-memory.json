@@ -32,7 +32,7 @@
   ],
   "evidence": [
     "entry:sources/entries/108-cass-memory.md",
-    "eval/evq1107/cass-memory/REPORT.md",
+    "ops:eval/evq1107/cass-memory/REPORT.md",
     "eval/evq1107/cass-memory/VERDICT",
     "eval/evq1107/cass-memory/results.json",
     "pin:229a312b696aa347d1e2c491d3d466c925716dc0",

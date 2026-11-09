@@ -24,4 +24,4 @@
 | Paid DeepSeek keys | Default provider path wants a hosted key | Local-only trial only with Mark's GO |
 | Pin drift | `studio-v2.57.0` is replaced | Smoke checks this tag's asset digest |
 
-- **Status**: STAY I0 reference (nimo read 2026-11-07). Pin `737a181c49367a7a153c71889c168638fcfc0ba3` (`studio-v2.57.0`). MIT. Docs only, no install, no script run. Default provider is the DeepSeek API. Gap L stays with Ollama, llama-server, LiteLLM, and Strata. Report: `eval/evq1107/reasonix/REPORT.md`. Not a Feature GO.
+- **Status**: STAY I0 reference (nimo read 2026-11-07). Pin `737a181c49367a7a153c71889c168638fcfc0ba3` (`studio-v2.57.0`). MIT. Docs only, no install, no script run. Default provider is the DeepSeek API. Gap L stays with Ollama, llama-server, LiteLLM, and Strata. Report: `ops:eval/evq1107/reasonix/REPORT.md`. Not a Feature GO.

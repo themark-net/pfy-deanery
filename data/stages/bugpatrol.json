@@ -23,7 +23,7 @@
   ],
   "evidence": [
     "entry:sources/entries/103-bugpatrol.md",
-    "eval/evq1107/bugpatrol/REPORT.md",
+    "ops:eval/evq1107/bugpatrol/REPORT.md",
     "eval/evq1107/bugpatrol/VERDICT",
     "eval/evq1107/bugpatrol/results.json",
     "pin bugpatrol 0.3.0 tarball sha256 2bb646a0f9a6c7402ebaddb7004f2461104a9760cf970d38310e57af2bc0fc0b gitHead efd3a087321d58946f999ac53f7e20b68a89a83d"

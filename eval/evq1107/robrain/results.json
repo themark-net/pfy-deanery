@@ -534,7 +534,7 @@
       "hits": [
         "memory"
       ],
-      "uses": "Reference read of a self-rewriting Python agent. The mutation-safety note is eval/evq1107/mue-x/REPORT.md. Unsafe as a runtime."
+      "uses": "Reference read of a self-rewriting Python agent. The mutation-safety note is ops:eval/evq1107/mue-x/REPORT.md. Unsafe as a runtime."
     },
     {
       "file": "opencode-mem.json",

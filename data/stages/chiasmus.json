@@ -11,7 +11,7 @@
     "impact analysis"
   ],
   "potential": "low",
-  "next_gate": "Stay I1 unless a later pin qualifies Python names by file and a repeat of eval/ev1107/chiasmus/REPORT.md beats codebase-memory or names a skipped test that imports the change. The 0.1.40 install is 86 MB, over the 50 MB I2 copy limit, so a win still stays cached.",
+  "next_gate": "Stay I1 unless a later pin qualifies Python names by file and a repeat of ops:eval/ev1107/chiasmus/REPORT.md beats codebase-memory or names a skipped test that imports the change. The 0.1.40 install is 86 MB, over the 50 MB I2 copy limit, so a win still stays cached.",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",
@@ -20,11 +20,11 @@
   ],
   "evidence": [
     "entry:sources/entries/140-chiasmus.md",
-    "eval/ev1107/chiasmus/REPORT.md"
+    "ops:eval/ev1107/chiasmus/REPORT.md"
   ],
   "handoff_by": "llm",
   "self_pipeline": {
     "status": "not_applicable",
-    "reason": "Report-only comparison in eval/ev1107/chiasmus/REPORT.md. Impact agrees with test_select on 3/10 commits. codebase-memory agrees on 5/10. No extra test imports the change. Not wired into a gate."
+    "reason": "Report-only comparison in ops:eval/ev1107/chiasmus/REPORT.md. Impact agrees with test_select on 3/10 commits. codebase-memory agrees on 5/10. No extra test imports the change. Not wired into a gate."
   }
 }

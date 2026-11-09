@@ -22,7 +22,7 @@
   ],
   "evidence": [
     "entry:sources/entries/144-gitai.md",
-    "eval/evq1107/gitai/REPORT.md",
+    "ops:eval/evq1107/gitai/REPORT.md",
     "eval/evq1107/gitai/VERDICT",
     "eval/evq1107/gitai/results.json",
     "pin v0.3.1 commit 914e481ef057ca7b9dc9a5a7338d96bca16790e1 tag object 173a281aa5594d2c347c9bdb2178f699b5a66a47"

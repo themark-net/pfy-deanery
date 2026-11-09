@@ -1,9 +1,0 @@
-{
-  "children": [],
-  "error": "Couldn't create session",
-  "input": "",
-  "name": "build-pk2-attempt0",
-  "output": "Couldn't create session: Invalid params: \"additionalDirectories is not supported: a session works only in its cwd\"\nError: Couldn't create session: Invalid params: \"additionalDirectories is not supported: a session works only in its cwd\"\n\nsha256:46505fafeeeea8eeba0cd40522dce2b6337e2c1b603c67c976720ceda1126880",
-  "project": "pfy-grok",
-  "status": "ERROR"
-}

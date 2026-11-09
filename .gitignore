@@ -211,3 +211,6 @@ eval/stop-2026-11-08/
 eval/local-build/live-*.md
 pipelines/dogfood/build/
 pipelines/dogfood/d1/
+
+# Runtime lane locks
+eval/**/.run.lock

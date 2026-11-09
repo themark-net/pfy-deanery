@@ -26,4 +26,4 @@
 | Host GitHub token | Outside demo mode Muxin runs the host `gh` (hard-coded paths, even off PATH) and reads Mark's token | Trial only as a user with no `gh` login |
 | Young project | 0.x release; tool names change | Binary sha pin; re-check the tool list on bump |
 
-- **Status**: STAY I0 reference (read 2026-11-07). Pin `d45f3e480e6523febe81ed51061261b92714b3c9` is release v0.6.0, Apache-2.0. Fleet desktop and SSH MCP. Off the pfy build path. No install, no binary run. Prior demo smoke stays the box record. Receipt: `eval/evq1107/muxin/REPORT.md`. No Feature GO.
+- **Status**: STAY I0 reference (read 2026-11-07). Pin `d45f3e480e6523febe81ed51061261b92714b3c9` is release v0.6.0, Apache-2.0. Fleet desktop and SSH MCP. Off the pfy build path. No install, no binary run. Prior demo smoke stays the box record. Receipt: `ops:eval/evq1107/muxin/REPORT.md`. No Feature GO.

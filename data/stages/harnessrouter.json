@@ -23,7 +23,7 @@
   ],
   "evidence": [
     "entry:sources/entries/123-harnessrouter.md",
-    "eval/evq1107/harnessrouter/REPORT.md",
+    "ops:eval/evq1107/harnessrouter/REPORT.md",
     "eval/evq1107/harnessrouter/VERDICT",
     "eval/evq1107/harnessrouter/results.json"
   ],

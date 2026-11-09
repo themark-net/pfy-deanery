@@ -18,7 +18,7 @@
   "evidence": [
     "pin:b3660fda34333d759b7e76ccb62b0a2aa076bb66",
     "entry:sources/x-posts.md",
-    "eval/evq1107/openclaude-portable/REPORT.md",
+    "ops:eval/evq1107/openclaude-portable/REPORT.md",
     "eval/evq1107/openclaude-portable/VERDICT"
   ],
   "tier_ceiling": "I1",

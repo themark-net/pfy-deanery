@@ -21,4 +21,4 @@
 | Disk and Node footprint | 1.7 GB prefix, Node 22 needed | Stage under `tmp/`, delete the prefix after a trial |
 | Overlap with code-graph tools | Two indexes doing the same job | Trial against codebase-memory-mcp on the same tasks before keeping both |
 
-- **Status**: STAY I1. nimo probe 2026-11-07: module-level contract 4/4, 0 false breaks on 10 commits, method break missed, prefix 708 MB. See eval/evq1107/openlore/REPORT.md.
+- **Status**: STAY I1. nimo probe 2026-11-07: module-level contract 4/4, 0 false breaks on 10 commits, method break missed, prefix 708 MB. See ops:eval/evq1107/openlore/REPORT.md.

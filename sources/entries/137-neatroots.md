@@ -26,4 +26,4 @@
 | Installer side effects | `install.sh` writes `~/.neatroots`, `~/.local/bin` and agent MCP configs | Unpack the release bundle under `tmp/` instead; the smoke watches `~/.neatroots` |
 | Hosted model slips in | `neatroots llm use anthropic` sends run content out | Keep `neatroots llm local`; never log in to a provider |
 
-- **Status**: I2 ad-hoc probe on nimo (2026-11-07). `neatroots check` 0.2.9 ran offline with 13 library rules, exit 1 in 1.864s, on 11 exported runs. Real signals: a 3-call `read_file` error streak, and `grep` called 3 times with the same arguments and the same "No matches found" result. Driver build logs have no tool calls. Receipt: `eval/ev1107/neatroots/REPORT.md`. Not a gate. Not a Feature GO.
+- **Status**: I2 ad-hoc probe on nimo (2026-11-07). `neatroots check` 0.2.9 ran offline with 13 library rules, exit 1 in 1.864s, on 11 exported runs. Real signals: a 3-call `read_file` error streak, and `grep` called 3 times with the same arguments and the same "No matches found" result. Driver build logs have no tool calls. Receipt: `ops:eval/ev1107/neatroots/REPORT.md`. Not a gate. Not a Feature GO.

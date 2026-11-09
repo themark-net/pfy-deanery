@@ -18,7 +18,7 @@
   "version": "2.0.140",
   "posture": [],
   "evidence": [
-    "eval/evq1107/memvid/REPORT.md",
+    "ops:eval/evq1107/memvid/REPORT.md",
     "eval/evq1107/memvid/VERDICT",
     "pin:e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813"
   ],

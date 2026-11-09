@@ -31,7 +31,7 @@
     "entry:sources/entries/118-moira.md",
     "pin:b66b537a0465194d8806fa638776237d8cf853c5",
     "release:v6.0.0",
-    "eval/evq1107/moira/REPORT.md",
+    "ops:eval/evq1107/moira/REPORT.md",
     "eval/evq1107/moira/VERDICT",
     "eval/evq1107/moira/results.json"
   ],

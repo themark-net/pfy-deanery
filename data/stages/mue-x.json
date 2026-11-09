@@ -27,12 +27,12 @@
   "evidence": [
     "notes_doc:docs/ops/mue-x-patterns.md",
     "entry:sources/entries/067-mue-x.md",
-    "eval/evq1107/mue-x/REPORT.md",
+    "ops:eval/evq1107/mue-x/REPORT.md",
     "eval/evq1107/mue-x/VERDICT",
     "pin:c7038448abb340b23d03af0fd095cefbfbbcadd9"
   ],
   "tier_ceiling": "I1",
-  "uses": "Reference read of a self-rewriting Python agent. The mutation-safety note is eval/evq1107/mue-x/REPORT.md. Unsafe as a runtime.",
+  "uses": "Reference read of a self-rewriting Python agent. The mutation-safety note is ops:eval/evq1107/mue-x/REPORT.md. Unsafe as a runtime.",
   "features": [
     "ast mutation",
     "memory layers",
@@ -40,7 +40,7 @@
     "llm rewrite pipeline"
   ],
   "potential": "low",
-  "next_gate": "Stay I1. The mutation-safety note is eval/evq1107/mue-x/REPORT.md. Do not run evolve. A later smoke needs an operator GO and must not rewrite this repo. No gate wiring.",
+  "next_gate": "Stay I1. The mutation-safety note is ops:eval/evq1107/mue-x/REPORT.md. Do not run evolve. A later smoke needs an operator GO and must not rewrite this repo. No gate wiring.",
   "handoff_by": "llm",
   "non_goals": [
     "unattended self-modify",

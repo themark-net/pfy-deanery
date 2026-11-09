@@ -29,7 +29,7 @@
   "evidence": [
     "entry:sources/entries/167-teaql-agent-kit.md",
     "pin:92c79101f725655d5356078938742bd633f341a2",
-    "eval/evq1107/teaql-agent-kit/REPORT.md",
+    "ops:eval/evq1107/teaql-agent-kit/REPORT.md",
     "eval/evq1107/teaql-agent-kit/VERDICT"
   ],
   "handoff_by": "llm"

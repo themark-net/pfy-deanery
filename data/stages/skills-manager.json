@@ -29,7 +29,7 @@
     "entry:sources/entries/159-skills-manager.md",
     "pin:fae0bb864a8b96c1d0ca6278a6b7062e62992a36",
     "npm:skills-manager-cli@2026.10.27-1",
-    "eval/evq1107/skills-manager/REPORT.md",
+    "ops:eval/evq1107/skills-manager/REPORT.md",
     "eval/evq1107/skills-manager/VERDICT"
   ],
   "handoff_by": "llm"

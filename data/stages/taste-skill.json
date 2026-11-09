@@ -4,7 +4,7 @@
   "intent": "ad_hoc_probe",
   "entry": "sources/entries/143-taste-skill.md",
   "github": "https://github.com/Leonxlnx/taste-skill",
-  "notes_doc": "eval/evq1107/taste-skill/REPORT.md",
+  "notes_doc": "ops:eval/evq1107/taste-skill/REPORT.md",
   "pin": "6010f91a9935f1c167dfc500fb1a475681892e6b",
   "version": "v2.1.4",
   "license": "MIT",
@@ -31,14 +31,14 @@
     "entry:sources/entries/143-taste-skill.md",
     "pin:6010f91a9935f1c167dfc500fb1a475681892e6b",
     "version:v2.1.4",
-    "eval/evq1107/taste-skill/REPORT.md",
+    "ops:eval/evq1107/taste-skill/REPORT.md",
     "eval/evq1107/taste-skill/VERDICT",
     "eval/evq1107/taste-skill/results.json"
   ],
   "handoff_by": "llm",
   "self_pipeline": {
     "status": "not_applicable",
-    "reason": "Advisory probe only in eval/evq1107/taste-skill/REPORT.md. App-mode lint was not applied to pregate or CI. Inspect failed the current operator page. Not a gate."
+    "reason": "Advisory probe only in ops:eval/evq1107/taste-skill/REPORT.md. App-mode lint was not applied to pregate or CI. Inspect failed the current operator page. Not a gate."
   },
   "ceiling_history": [
     {

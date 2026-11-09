@@ -7,7 +7,7 @@
   "pin": "3e1ea87e6718fdfdb24365b2184fbd1daa9f94f8",
   "license": "MIT",
   "license_note": "Root LICENSE is MIT (INK Content, Inc., 2025). Root, runtime, and middleware package.json license fields say ISC. The app field is empty.",
-  "notes_doc": "eval/evq1107/smythos-studio/REPORT.md",
+  "notes_doc": "ops:eval/evq1107/smythos-studio/REPORT.md",
   "uses": "Visual drag-and-drop agent workspace plus a MySQL and Redis runtime. Reference read only. The pfy build timeout stays where it is.",
   "features": [
     "component graph",
@@ -34,7 +34,7 @@
   "evidence": [
     "entry:sources/entries/081-smythos-studio.md",
     "pin:3e1ea87e6718fdfdb24365b2184fbd1daa9f94f8",
-    "eval/evq1107/smythos-studio/REPORT.md",
+    "ops:eval/evq1107/smythos-studio/REPORT.md",
     "eval/evq1107/smythos-studio/VERDICT"
   ],
   "handoff_by": "llm"

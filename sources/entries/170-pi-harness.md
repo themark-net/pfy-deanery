@@ -23,4 +23,4 @@
 | Desktop app on headless nimo | no display | Trial on a desktop host or skip |
 | Pin drift | `main` moves fast | Smoke checks this SHA |
 
-- **Status**: STAY I0 reference (read 2026-11-08). Pin `5b6ec2318d6741e444bfe8a640432be052e509fc` is tag v2.3.23, AGPL-3.0-only. No install and no code copy. H1 stays with skill-up. Receipt: `eval/evq1107/pi-harness/REPORT.md`. No Feature GO.
+- **Status**: STAY I0 reference (read 2026-11-08). Pin `5b6ec2318d6741e444bfe8a640432be052e509fc` is tag v2.3.23, AGPL-3.0-only. No install and no code copy. H1 stays with skill-up. Receipt: `ops:eval/evq1107/pi-harness/REPORT.md`. No Feature GO.

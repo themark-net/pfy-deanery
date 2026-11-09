@@ -1,9 +1,0 @@
-{
-  "children": [],
-  "error": "[FAIL]",
-  "input": "",
-  "name": "pregate-pk1-0",
-  "output": "[PASS] lint: filemode, launchers, encoded payloads, smoke_contract, catalog, workflow image pin\n[PASS] ci-parity: bwrap hidden; runtime-dir tests pin auto_unsafe=False and pass\n[PASS] gate-hash: tests/ and gate files match HEAD; no committed gate-file change vs base\n[PASS] ubuntu-parity: full unittest discover with bwrap hidden (mirrors the pinned ubuntu-24.04 G0 job)\npregate: SIGTERM received; st...[truncated]\nsha256:e109ac6e768926660cda2e7a2c10be1fecd2855b1a5b7f28b5a4747cfa968720",
-  "project": "pfy-grok",
-  "status": "ERROR"
-}

@@ -4,7 +4,7 @@
   "intent": "awareness",
   "entry": "sources/entries/105-anti-slop.md",
   "github": "https://github.com/miqdadbadjuber/anti-slop",
-  "notes_doc": "eval/evq1107/anti-slop/REPORT.md",
+  "notes_doc": "ops:eval/evq1107/anti-slop/REPORT.md",
   "pin": "388cbe3b6c37d5175b9f460015bb092ef9e34894",
   "uses": "SKILL.md prompt pack that asks an agent to filter generic UI, copy, and code comments. Not a with/without scorer and not a page scanner.",
   "features": [
@@ -29,13 +29,13 @@
   "evidence": [
     "entry:sources/entries/105-anti-slop.md",
     "pin:388cbe3b6c37d5175b9f460015bb092ef9e34894",
-    "eval/evq1107/anti-slop/REPORT.md",
+    "ops:eval/evq1107/anti-slop/REPORT.md",
     "eval/evq1107/anti-slop/VERDICT",
     "eval/evq1107/anti-slop/results.json"
   ],
   "handoff_by": "llm",
   "self_pipeline": {
     "status": "not_applicable",
-    "reason": "Advisory probe only in eval/evq1107/anti-slop/REPORT.md. The phrase pass was not applied to pregate or CI. The pack was not installed into a harness."
+    "reason": "Advisory probe only in ops:eval/evq1107/anti-slop/REPORT.md. The phrase pass was not applied to pregate or CI. The pack was not installed into a harness."
   }
 }

@@ -20,14 +20,14 @@
   "release_tag": "v0.9.22",
   "release_commit": "26956ea1f4c855e80cfdd1677c1e02e15fbf088d",
   "entry": "sources/entries/070-hyperframes.md",
-  "notes_doc": "eval/evq1107/hyperframes/REPORT.md",
+  "notes_doc": "ops:eval/evq1107/hyperframes/REPORT.md",
   "posture": [],
   "evidence": [
     "entry:sources/entries/070-hyperframes.md",
     "pin:ab785e9c5c59e9542593e49b93f9547cb2665b44",
     "cli:0.9.22",
     "tag:v0.9.22",
-    "eval/evq1107/hyperframes/REPORT.md",
+    "ops:eval/evq1107/hyperframes/REPORT.md",
     "eval/evq1107/hyperframes/VERDICT"
   ],
   "tier_ceiling": "I3",

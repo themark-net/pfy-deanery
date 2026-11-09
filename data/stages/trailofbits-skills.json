@@ -4,7 +4,7 @@
   "intent": "awareness",
   "entry": "sources/entries/125-trailofbits-skills.md",
   "github": "https://github.com/trailofbits/skills",
-  "notes_doc": "eval/evq1107/trailofbits-skills/REPORT.md",
+  "notes_doc": "ops:eval/evq1107/trailofbits-skills/REPORT.md",
   "pin": "5c99c03fb8a9ea568432ecbcba5d86e9f4ac2bf0",
   "uses": "Security review checklists an agent can read. This probe scanned the pack before any copy and tried one checklist on a risky diff. Not an install gate.",
   "features": [
@@ -27,13 +27,13 @@
     "entry:sources/entries/125-trailofbits-skills.md",
     "pin:5c99c03fb8a9ea568432ecbcba5d86e9f4ac2bf0",
     "tree:0d0c608ca7c7fe1c174c72f200c95c454fd24f83",
-    "eval/evq1107/trailofbits-skills/REPORT.md",
+    "ops:eval/evq1107/trailofbits-skills/REPORT.md",
     "eval/evq1107/trailofbits-skills/VERDICT",
     "eval/evq1107/trailofbits-skills/results.json"
   ],
   "handoff_by": "llm",
   "self_pipeline": {
     "status": "not_applicable",
-    "reason": "Advisory probe only in eval/evq1107/trailofbits-skills/REPORT.md. The pack is not on pregate or CI. SkillSpector remains the install check."
+    "reason": "Advisory probe only in ops:eval/evq1107/trailofbits-skills/REPORT.md. The pack is not on pregate or CI. SkillSpector remains the install check."
   }
 }

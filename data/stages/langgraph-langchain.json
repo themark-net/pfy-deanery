@@ -20,11 +20,11 @@
   "checkpoint_version": "4.3.1",
   "prebuilt_version": "1.1.1",
   "cli_version": "0.4.42",
-  "notes_doc": "eval/evq1107/langgraph-langchain/REPORT.md",
+  "notes_doc": "ops:eval/evq1107/langgraph-langchain/REPORT.md",
   "posture": [],
   "evidence": [
     "pin:e5e37b5d70dbfd93c7006bd90a658c6179a95946",
-    "eval/evq1107/langgraph-langchain/REPORT.md",
+    "ops:eval/evq1107/langgraph-langchain/REPORT.md",
     "eval/evq1107/langgraph-langchain/VERDICT"
   ],
   "tier_ceiling": "I1",

@@ -18,7 +18,7 @@
   "license": "Open WebUI License (SPDX NOASSERTION)",
   "posture": [],
   "evidence": [
-    "eval/evq1107/open-webui/REPORT.md",
+    "ops:eval/evq1107/open-webui/REPORT.md",
     "eval/evq1107/open-webui/VERDICT",
     "pin:c38885a1a737da4968f157092f304f3b5481d0bf",
     "tag:v0.13.0"

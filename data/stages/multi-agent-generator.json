@@ -4,7 +4,7 @@
   "intent": "design_reference",
   "github": "https://github.com/aakriti1318/multi-agent-generator",
   "entry": "sources/entries/079-multi-agent-generator.md",
-  "notes_doc": "eval/evq1107/multi-agent-generator/REPORT.md",
+  "notes_doc": "ops:eval/evq1107/multi-agent-generator/REPORT.md",
   "pin": "2bf55b5a665340295ab8d3fc28e684cbc9256c06",
   "license": "MIT",
   "version": "1.0.0",
@@ -38,7 +38,7 @@
     "entry:sources/entries/079-multi-agent-generator.md",
     "notes_doc:sources/entries/079-multi-agent-generator.md",
     "pin:2bf55b5a665340295ab8d3fc28e684cbc9256c06",
-    "eval/evq1107/multi-agent-generator/REPORT.md",
+    "ops:eval/evq1107/multi-agent-generator/REPORT.md",
     "eval/evq1107/multi-agent-generator/VERDICT"
   ],
   "tier_ceiling": "I0",

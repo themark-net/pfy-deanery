@@ -4,7 +4,7 @@
   "intent": "staged_evaluation",
   "entry": "sources/entries/124-squadra.md",
   "github": "https://github.com/dagoSte/squadra",
-  "notes_doc": "eval/evq1107/squadra/REPORT.md",
+  "notes_doc": "ops:eval/evq1107/squadra/REPORT.md",
   "pin": "5081a06ae054bc80072d8109ee2ef088b52513c3",
   "release": "v3.10.1",
   "tag_object": "acd9e6d6099903e5fd128eb0906f061a4e72e88e",
@@ -33,7 +33,7 @@
     "entry:sources/entries/124-squadra.md",
     "pin:5081a06ae054bc80072d8109ee2ef088b52513c3",
     "release:v3.10.1",
-    "eval/evq1107/squadra/REPORT.md",
+    "ops:eval/evq1107/squadra/REPORT.md",
     "eval/evq1107/squadra/VERDICT",
     "eval/evq1107/squadra/results.json"
   ],

@@ -16,6 +16,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 HERE = Path(__file__).resolve().parent
+# Raw per-prompt logs are operator records. They go to the private ops checkout
+# (PFY_OPS_ROOT), or to gitignored tmp/ops when it is unset.
+_OPS = os.environ.get("PFY_OPS_ROOT", "").strip()
+LOGS = (Path(_OPS).expanduser() if _OPS else ROOT / "tmp" / "ops") / "eval" / "ev1107" / "hiroute"
 CACHE = Path("/home/mark/.cache/pfy/tools/hiroute")
 GRANT = CACHE / "grant.token"
 DIAG = CACHE / "home/.local/state/hiroute/diagnostics/daemon/current.jsonl"
@@ -28,7 +32,7 @@ GIB = 1024 ** 3
 
 def load_prompts():
     rows = []
-    for line in (HERE / "prompts.jsonl").read_text(encoding="utf-8").splitlines():
+    for line in (HERE / "fixtures" / "prompts.jsonl").read_text(encoding="utf-8").splitlines():
         line = line.strip()
         if line:
             rows.append(json.loads(line))
@@ -316,7 +320,7 @@ def phase_hedge():
             "hedge_reason": decided.get("reason"),
         })
         print("%s hedge %s" % (prompt["id"], decided.get("lane")))
-    (HERE / "hedge.jsonl").write_text(
+    (LOGS / "hedge.jsonl").write_text(
         "".join(json.dumps(row) + "\n" for row in rows),
         encoding="utf-8",
     )
@@ -418,7 +422,7 @@ def phase_live():
     if busy:
         summary = summarize([], meta)
         (HERE / "summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
-        (HERE / "results.jsonl").write_text("", encoding="utf-8")
+        (LOGS / "results.jsonl").write_text("", encoding="utf-8")
         print(summary["verdict"])
         return
     proc = start_adapter(keep)
@@ -427,7 +431,7 @@ def phase_live():
         base = gateway()
         token = grant()
         hedge = {}
-        hedge_path = HERE / "hedge.jsonl"
+        hedge_path = LOGS / "hedge.jsonl"
         if hedge_path.is_file():
             for line in hedge_path.read_text(encoding="utf-8").splitlines():
                 if line.strip():
@@ -436,7 +440,7 @@ def phase_live():
         for prompt in load_prompts():
             row = run_one(base, token, prompt, timeout=120, hedge_lane=hedge.get(prompt["id"]))
             rows.append(row)
-            (HERE / "results.jsonl").write_text(
+            (LOGS / "results.jsonl").write_text(
                 "".join(json.dumps(item) + "\n" for item in rows),
                 encoding="utf-8",
             )
@@ -472,6 +476,7 @@ def phase_wire():
 
 
 def main():
+    LOGS.mkdir(parents=True, exist_ok=True)
     phase = sys.argv[1] if len(sys.argv) > 1 else "live"
     if phase == "hedge":
         phase_hedge()

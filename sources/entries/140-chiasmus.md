@@ -26,4 +26,4 @@
 | Solver blow-up | A big input exhausts Z3's 2 GiB WASM heap or the stack | It returns an error and replaces the child; cap inputs and set `CHIASMUS_SOLVER_JOB_TIMEOUT_MS` |
 | Native module drift | A new version drops a prebuild and needs `make` | Pin the version; `--ignore-scripts` and check the language you need still parses |
 
-- **Status**: Trialed on nimo 2026-11-07. STAY I1. Impact agrees with test_select on 3/10 commits (codebase-memory 5/10). Not wired into test selection. See eval/ev1107/chiasmus/REPORT.md.
+- **Status**: Trialed on nimo 2026-11-07. STAY I1. Impact agrees with test_select on 3/10 commits (codebase-memory 5/10). Not wired into test selection. See ops:eval/ev1107/chiasmus/REPORT.md.

@@ -23,7 +23,7 @@
   ],
   "evidence": [
     "entry:sources/entries/107-har.md",
-    "eval/evq1107/har/REPORT.md",
+    "ops:eval/evq1107/har/REPORT.md",
     "eval/evq1107/har/VERDICT",
     "eval/evq1107/har/numbers.json"
   ],

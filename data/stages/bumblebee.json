@@ -18,7 +18,7 @@
   "evidence": [
     "notes_doc:docs/ops/bumblebee-mcp-scan.md",
     "pin:cc57710eeaf685e7b89924a36c8583cad0a378fe",
-    "eval/ev1107/bumblebee/REPORT.md",
+    "ops:eval/ev1107/bumblebee/REPORT.md",
     "eval/ev1107/bumblebee/VERDICT",
     "scripts/pfy_mcp_scan.py"
   ],

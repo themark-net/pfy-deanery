@@ -33,7 +33,7 @@
   ],
   "evidence": [
     "entry:sources/entries/132-ai-memory.md",
-    "eval/evq1107/ai-memory/REPORT.md",
+    "ops:eval/evq1107/ai-memory/REPORT.md",
     "eval/evq1107/ai-memory/VERDICT",
     "eval/evq1107/ai-memory/results.json",
     "pin 52020da90131a5afea70a114a01e44a8e67b44f3",

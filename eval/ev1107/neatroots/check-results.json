@@ -1,13 +1,13 @@
 {
   "runs": [
     {
-      "file": "eval/ev1107/neatroots/traces/build-pk1.json",
+      "file": "ops:eval/ev1107/neatroots/traces/build-pk1.json",
       "trace_id": "c4bda4ea4030ef174399de1707a0929b",
       "root_name": "build-pk1",
       "findings": []
     },
     {
-      "file": "eval/ev1107/neatroots/traces/build-pk2-attempt0.json",
+      "file": "ops:eval/ev1107/neatroots/traces/build-pk2-attempt0.json",
       "trace_id": "01178dd49a30e7addb487a64d7d0c7a7",
       "root_name": "build-pk2-attempt0",
       "findings": [
@@ -24,25 +24,25 @@
       ]
     },
     {
-      "file": "eval/ev1107/neatroots/traces/build-pk2.json",
+      "file": "ops:eval/ev1107/neatroots/traces/build-pk2.json",
       "trace_id": "ad0bfc440a7f3ac084da808441562ada",
       "root_name": "build-pk2",
       "findings": []
     },
     {
-      "file": "eval/ev1107/neatroots/traces/build-pk3.json",
+      "file": "ops:eval/ev1107/neatroots/traces/build-pk3.json",
       "trace_id": "821c3eb033f2d36c282a73a8ef06809a",
       "root_name": "build-pk3",
       "findings": []
     },
     {
-      "file": "eval/ev1107/neatroots/traces/build-pkr.json",
+      "file": "ops:eval/ev1107/neatroots/traces/build-pkr.json",
       "trace_id": "7e41422d5decde4236024019cb5ef5ed",
       "root_name": "build-pkr",
       "findings": []
     },
     {
-      "file": "eval/ev1107/neatroots/traces/driver-cu.json",
+      "file": "ops:eval/ev1107/neatroots/traces/driver-cu.json",
       "trace_id": "5008011e0e0160583b03ecc8e149b961",
       "root_name": "driver-cu",
       "findings": [
@@ -59,7 +59,7 @@
       ]
     },
     {
-      "file": "eval/ev1107/neatroots/traces/pregate-combo-0.json",
+      "file": "ops:eval/ev1107/neatroots/traces/pregate-combo-0.json",
       "trace_id": "c30600320ac54779b1cd2c4b991f2332",
       "root_name": "pregate-combo-0",
       "findings": [
@@ -76,7 +76,7 @@
       ]
     },
     {
-      "file": "eval/ev1107/neatroots/traces/pregate-pk1-0.json",
+      "file": "ops:eval/ev1107/neatroots/traces/pregate-pk1-0.json",
       "trace_id": "5c1f6c3abce6abe0a59ea95e0e5b2603",
       "root_name": "pregate-pk1-0",
       "findings": [
@@ -93,7 +93,7 @@
       ]
     },
     {
-      "file": "eval/ev1107/neatroots/traces/session-cloud-help-streak.json",
+      "file": "ops:eval/ev1107/neatroots/traces/session-cloud-help-streak.json",
       "trace_id": "2d39231f131220272baccd9710b11201",
       "root_name": "cloud-help-streak",
       "findings": [
@@ -114,7 +114,7 @@
       ]
     },
     {
-      "file": "eval/ev1107/neatroots/traces/session-local-build-grep.json",
+      "file": "ops:eval/ev1107/neatroots/traces/session-local-build-grep.json",
       "trace_id": "b00f56f8e4fcffed2018ca9526579803",
       "root_name": "local-build-grep",
       "findings": [
@@ -148,7 +148,7 @@
       ]
     },
     {
-      "file": "eval/ev1107/neatroots/traces/session-mvp2-local-build.json",
+      "file": "ops:eval/ev1107/neatroots/traces/session-mvp2-local-build.json",
       "trace_id": "91f5a0a3f9a8a438efb9895a30084e2f",
       "root_name": "mvp2-local-build",
       "findings": [

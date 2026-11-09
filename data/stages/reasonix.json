@@ -30,7 +30,7 @@
   "evidence": [
     "entry:sources/entries/164-reasonix.md",
     "pin:737a181c49367a7a153c71889c168638fcfc0ba3",
-    "eval/evq1107/reasonix/REPORT.md",
+    "ops:eval/evq1107/reasonix/REPORT.md",
     "eval/evq1107/reasonix/VERDICT"
   ],
   "handoff_by": "llm"

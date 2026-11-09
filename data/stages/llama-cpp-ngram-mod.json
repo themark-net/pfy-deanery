@@ -3,7 +3,7 @@
   "integration_stage": "I3",
   "intent": "speed_probe",
   "github": "https://github.com/ggerganov/llama.cpp",
-  "notes_doc": "eval/evq1107/llama-cpp-ngram-mod/REPORT.md",
+  "notes_doc": "ops:eval/evq1107/llama-cpp-ngram-mod/REPORT.md",
   "next_gate": "Stay I2. Leave the flag off the product llama-server path until a mixed prompt set, not only in-context copies, still clears 1.15x with identical greedy outputs. No gate wiring in this lane.",
   "catalog_tier": "A",
   "catalog_overall": "89",
@@ -16,7 +16,7 @@
   "catalog_github": "https://github.com/ggerganov/llama.cpp",
   "posture": [],
   "evidence": [
-    "eval/evq1107/llama-cpp-ngram-mod/REPORT.md",
+    "ops:eval/evq1107/llama-cpp-ngram-mod/REPORT.md",
     "eval/evq1107/llama-cpp-ngram-mod/VERDICT",
     "eval/evq1107/llama-cpp-ngram-mod/results.json",
     "median decode 185.59 tok/s vs 39.37 tok/s with the flag off (4.71x), 5/5 identical",

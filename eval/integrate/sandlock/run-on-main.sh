@@ -123,7 +123,7 @@ doc = {
     "outcome": "ok",
     "tool_version": os.environ["RECEIPT_VERSION"],
     "did": os.environ["RECEIPT_DID"],
-    "log_path": "eval/integrate/sandlock/notes.md",
+    "log_path": "ops:eval/integrate/sandlock/notes.md",
 }
 Path(os.environ["RECEIPT_PATH"]).write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
 PY

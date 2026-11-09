@@ -24,4 +24,4 @@
 | Landing semantics | An auto-landed change passes `verify.command` but is wrong | Keep Tester/Reviewer gating main; gitai only for worker branches |
 | Untested smoke | The stub-tested checks miss a real quickstart detail | First nimo run is a hand run; fix the smoke then |
 
-- **Status**: STAY I1 after the 2026-11-07 nimo probe. Pin v0.3.1 at `914e481ef057ca7b9dc9a5a7338d96bca16790e1` built as Gitaly 0.3.1. Eight disjoint lands all landed (117.9 ms, 1 attempt each) against plain git 1/8 on the first push and 36 pushes (436.0 ms). A same-line edit still conflicts. Not wired. See `eval/evq1107/gitai/REPORT.md`.
+- **Status**: STAY I1 after the 2026-11-07 nimo probe. Pin v0.3.1 at `914e481ef057ca7b9dc9a5a7338d96bca16790e1` built as Gitaly 0.3.1. Eight disjoint lands all landed (117.9 ms, 1 attempt each) against plain git 1/8 on the first push and 36 pushes (436.0 ms). A same-line edit still conflicts. Not wired. See `ops:eval/evq1107/gitai/REPORT.md`.

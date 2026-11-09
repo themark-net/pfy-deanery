@@ -28,7 +28,7 @@
     "entry:sources/entries/128-harness-score.md",
     "pin:70a0ecc1aa907faf1f7a99a919eb88122f9a328d",
     "tarball_sha256:816c6362704e73111801cfce3861a189c2494868d0a95b4aa7883ca29a0b94c2",
-    "eval/evq1107/harness-score/REPORT.md",
+    "ops:eval/evq1107/harness-score/REPORT.md",
     "eval/evq1107/harness-score/VERDICT",
     "eval/evq1107/harness-score/summary.json"
   ],

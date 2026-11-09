@@ -8,5 +8,5 @@
   "outcome": "ok",
   "tool_version": "sandlock 0.8.9",
   "did": "Sandboxed one local fixture install and one fixture tool run. Both commands exited 0.",
-  "log_path": "eval/integrate/sandlock/notes.md"
+  "log_path": "ops:eval/integrate/sandlock/notes.md"
 }

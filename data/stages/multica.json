@@ -21,7 +21,7 @@
   "evidence": [
     "entry:sources/x-posts.md",
     "pin:2a48ffa2aa734a4a362c2c52a786cd98a20bcef6",
-    "eval/evq1107/multica/REPORT.md",
+    "ops:eval/evq1107/multica/REPORT.md",
     "eval/evq1107/multica/VERDICT"
   ],
   "tier_ceiling": "I1",
@@ -52,5 +52,5 @@
   "pin": "2a48ffa2aa734a4a362c2c52a786cd98a20bcef6",
   "license": "modified Apache-2.0",
   "license_note": "Apache-2.0 plus a ban on hosted or embedded commercial use without a written license, a frontend logo lock, and a clause that lets the producer tighten terms. Not MIT. Copy no source.",
-  "notes_doc": "eval/evq1107/multica/REPORT.md"
+  "notes_doc": "ops:eval/evq1107/multica/REPORT.md"
 }

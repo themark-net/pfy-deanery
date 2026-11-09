@@ -24,7 +24,7 @@
   ],
   "evidence": [
     "entry:sources/entries/121-tree-sitter-analyzer.md",
-    "eval/evq1107/tree-sitter-analyzer/REPORT.md",
+    "ops:eval/evq1107/tree-sitter-analyzer/REPORT.md",
     "eval/evq1107/tree-sitter-analyzer/VERDICT",
     "eval/evq1107/tree-sitter-analyzer/results.json",
     "pin tree-sitter-analyzer==2.2.0 wheel sha256 678ac7708e238c578ca11fb3433b200a007d14ba954f3eb79d8913c552ba1203 tag v2.2.0 a1656acde0d1065f7670c4d041f81a0e344ef6d7"
@@ -32,6 +32,6 @@
   "handoff_by": "llm",
   "self_pipeline": {
     "status": "not_applicable",
-    "reason": "Report-only comparison in eval/evq1107/tree-sitter-analyzer/REPORT.md. Change-impact agrees with test_select on 5/10 commits, the same count as codebase-memory. Not wired into a gate."
+    "reason": "Report-only comparison in ops:eval/evq1107/tree-sitter-analyzer/REPORT.md. Change-impact agrees with test_select on 5/10 commits, the same count as codebase-memory. Not wired into a gate."
   }
 }

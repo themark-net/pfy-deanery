@@ -20,7 +20,7 @@
   "posture": [
     "reference_only"
   ],
-  "notes_doc": "eval/evq1107/jamon-holmgren-agentic-setup/REPORT.md",
+  "notes_doc": "ops:eval/evq1107/jamon-holmgren-agentic-setup/REPORT.md",
   "uses": "One public setup checklist. Reference read only. The process kit and AGENTS.md already hold the patterns. Gap B stays the pfy build timeout.",
   "features": [
     "AGENTS.md router note",
@@ -43,7 +43,7 @@
   "evidence": [
     "entry:sources/x-posts.md",
     "post:2076001786700394610",
-    "eval/evq1107/jamon-holmgren-agentic-setup/REPORT.md",
+    "ops:eval/evq1107/jamon-holmgren-agentic-setup/REPORT.md",
     "eval/evq1107/jamon-holmgren-agentic-setup/VERDICT"
   ],
   "handoff_by": "llm"

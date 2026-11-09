@@ -23,7 +23,7 @@
     "notes_doc:docs/ops/claude-codex-quality-hooks.md",
     "entry:sources/entries/076-claude-codex-settings.md",
     "pin:0574bbbae11bd710f063abe62cf2c1b5b6d157c4",
-    "eval/evq1107/claude-codex-settings/REPORT.md",
+    "ops:eval/evq1107/claude-codex-settings/REPORT.md",
     "eval/evq1107/claude-codex-settings/VERDICT"
   ],
   "tier_ceiling": "I1",

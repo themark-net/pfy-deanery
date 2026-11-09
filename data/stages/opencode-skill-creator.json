@@ -27,7 +27,7 @@
     "pin:opencode-skill-creator@0.3.6",
     "tarball_sha256:eef1b5e9f9b9a77d744c39eade57a11a8233062ab50e812824c094fb8f627deb",
     "peer:@opencode-ai/plugin@1.19.5",
-    "eval/ev1107/osc/REPORT.md",
+    "ops:eval/ev1107/osc/REPORT.md",
     "eval/ev1107/osc/results.json"
   ],
   "handoff_by": "llm"

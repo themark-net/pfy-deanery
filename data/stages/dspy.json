@@ -14,7 +14,7 @@
     "#reasoning"
   ],
   "catalog_github": "https://github.com/stanfordnlp/dspy",
-  "notes_doc": "eval/ev1107/dspy/REPORT.md",
+  "notes_doc": "ops:eval/ev1107/dspy/REPORT.md",
   "posture": [],
   "evidence": [
     "eval/ev1107/dspy/receipt.json",

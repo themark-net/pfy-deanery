@@ -11,7 +11,7 @@
 - **Extracted Repos / Tools**: https://github.com/jeonjw85/kenfold · https://github.com/jeonjw85/kenfold/blob/v0.1.1/compose.yaml · https://github.com/jeonjw85/kenfold/blob/main/docs/deploy.md
 - **TOOLS.md Link**: None. No TOOLS.md row and no `data/tools.json` row.
 - **Smoke**: `python3 examples/x-intake-local/smoke_119_121.py --entry kenfold`. Needs `$KENFOLD_DIR` or `tmp/kenfold` at tag v0.1.1 (`$KENFOLD_REF` overrides) and docker with compose; brings up only postgres + kenfold, probes `/healthz`, `/readyz`, a keyless `/mcp` (must be 401) and `kenfold healthcheck`, then `compose down -v`. Mints no key and writes no memory. Receipt: `pipelines/smoke/kenfold/latest.json`. **Compose happy path has still not run.** The 2026-11-07 lane used stdio and rootless podman; see Status.
-- **Status**: evq1107 2026-11-07 STAY I1. Stdio recall 8/8 copied tokens across two agents (agreement 8/8), 0/8 facts already in this repo, 0 graded with/without cases. A secret fixture was rejected and not echoed. No API key. Report: eval/evq1107/kenfold/REPORT.md.
+- **Status**: evq1107 2026-11-07 STAY I1. Stdio recall 8/8 copied tokens across two agents (agreement 8/8), 0/8 facts already in this repo, 0 graded with/without cases. A secret fixture was rejected and not echoed. No API key. Report: ops:eval/evq1107/kenfold/REPORT.md.
 - **Non-goals**: No agent wired to Kenfold, no API key created, no remote/OAuth exposure.
 - **How this fails / how we recover**:
 

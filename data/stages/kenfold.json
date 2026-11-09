@@ -35,7 +35,7 @@
   ],
   "evidence": [
     "entry:sources/entries/120-kenfold.md",
-    "eval/evq1107/kenfold/REPORT.md",
+    "ops:eval/evq1107/kenfold/REPORT.md",
     "eval/evq1107/kenfold/VERDICT",
     "eval/evq1107/kenfold/results.json",
     "pin dfc18f9f1a7be98c5af8c0e7e1cbf566c37d51af",

@@ -17,7 +17,7 @@
 | Risk | How it fails | Recovery |
 |------|----------------|----------|
 | `.ast-cache/` committed by accident | Cache shows up in a diff | Audit only throwaway worktrees; gitignore `.ast-cache/` if it is ever run in a real checkout |
-| Claimed advantage doesn't show on our repos | Name-only and TSA score the same | The 2026-11-07 probe on a shared clone scored 52 genuine name-only mis-wires and 0 TSA mis-wires on 62559 edges. Change-impact still agreed with test_select on 5/10 commits, tied with codebase-memory. Report `eval/evq1107/tree-sitter-analyzer/REPORT.md` |
+| Claimed advantage doesn't show on our repos | Name-only and TSA score the same | The 2026-11-07 probe on a shared clone scored 52 genuine name-only mis-wires and 0 TSA mis-wires on 62559 edges. Change-impact still agreed with test_select on 5/10 commits, tied with codebase-memory. Report `ops:eval/evq1107/tree-sitter-analyzer/REPORT.md` |
 | Unpinned installer | `curl | bash` pulls a moving `uv` | Pinned `pip install` in a venv only |
 
-- **Status**: STAY I1 after the 2026-11-07 nimo probe. Pin PyPI 2.2.0, tag v2.2.0 commit a1656acde0d1065f7670c4d041f81a0e344ef6d7, wheel sha256 678ac7708e238c578ca11fb3433b200a007d14ba954f3eb79d8913c552ba1203. Change-impact agreed with test_select on 5/10 commits, the same count as codebase-memory and ahead of chiasmus at 3/10. The allocated venv is 173 MB, over the 50 MB I2 copy limit. Not a gate. No Feature GO. Report `eval/evq1107/tree-sitter-analyzer/REPORT.md`.
+- **Status**: STAY I1 after the 2026-11-07 nimo probe. Pin PyPI 2.2.0, tag v2.2.0 commit a1656acde0d1065f7670c4d041f81a0e344ef6d7, wheel sha256 678ac7708e238c578ca11fb3433b200a007d14ba954f3eb79d8913c552ba1203. Change-impact agreed with test_select on 5/10 commits, the same count as codebase-memory and ahead of chiasmus at 3/10. The allocated venv is 173 MB, over the 50 MB I2 copy limit. Not a gate. No Feature GO. Report `ops:eval/evq1107/tree-sitter-analyzer/REPORT.md`.

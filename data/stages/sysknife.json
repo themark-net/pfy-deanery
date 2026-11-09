@@ -7,7 +7,7 @@
   "pin": "1b3aab98b878128a267368cd47b51c921cd31219",
   "release": "v0.30.0",
   "license": "MIT",
-  "notes_doc": "eval/evq1107/sysknife/REPORT.md",
+  "notes_doc": "ops:eval/evq1107/sysknife/REPORT.md",
   "uses": "Typed approval-gated Linux admin. The model names an action and the daemon builds the command. Reference read only.",
   "features": [
     "typed action name",
@@ -36,7 +36,7 @@
     "entry:sources/entries/157-sysknife.md",
     "pin:1b3aab98b878128a267368cd47b51c921cd31219",
     "release:v0.30.0",
-    "eval/evq1107/sysknife/REPORT.md",
+    "ops:eval/evq1107/sysknife/REPORT.md",
     "eval/evq1107/sysknife/VERDICT"
   ],
   "handoff_by": "llm"

@@ -25,7 +25,7 @@
   ],
   "evidence": [
     "entry:sources/entries/129-openlore.md",
-    "eval/evq1107/openlore/REPORT.md",
+    "ops:eval/evq1107/openlore/REPORT.md",
     "eval/evq1107/openlore/VERDICT",
     "eval/evq1107/openlore/results.json",
     "pin openlore@3.3.1 integrity sha512-iDg86/Vt+hxSUgBek1Dh2sG0D+DGSyXqD9OGjerko2nf2mHCcyccCC2hiWsEDg1lnP6cScJ4P6Yya/Ef6nrd7g== tag v3.3.1 f33d3b2fbcd34380dfcb5925d966eccd080c2383"
@@ -33,6 +33,6 @@
   "handoff_by": "llm",
   "self_pipeline": {
     "status": "not_applicable",
-    "reason": "Report-only probe in eval/evq1107/openlore/REPORT.md. Module-level contract 4/4. The same one-file diff matched test_select on 3 tests. A method break was not flagged. Not applied to pregate or CI."
+    "reason": "Report-only probe in ops:eval/evq1107/openlore/REPORT.md. Module-level contract 4/4. The same one-file diff matched test_select on 3 tests. A method break was not flagged. Not applied to pregate or CI."
   }
 }

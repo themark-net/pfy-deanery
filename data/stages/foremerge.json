@@ -23,7 +23,7 @@
   ],
   "evidence": [
     "entry:sources/entries/097-foremerge.md",
-    "eval/evq1107/foremerge/REPORT.md",
+    "ops:eval/evq1107/foremerge/REPORT.md",
     "eval/evq1107/foremerge/VERDICT",
     "eval/evq1107/foremerge/results.json"
   ],

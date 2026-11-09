@@ -28,7 +28,7 @@
     "entry:sources/entries/100-repository-harness.md",
     "pin:harness-v0.1.10",
     "sha256:68b6a51e40cd8e229f1f056c2aa5ea93de7934f746dcf8dd38e3b7d9dd4ee397",
-    "eval/evq1107/repository-harness/REPORT.md",
+    "ops:eval/evq1107/repository-harness/REPORT.md",
     "eval/evq1107/repository-harness/VERDICT",
     "eval/evq1107/repository-harness/results.json"
   ],

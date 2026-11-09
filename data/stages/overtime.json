@@ -4,7 +4,7 @@
   "intent": "awareness",
   "entry": "sources/entries/112-overtime.md",
   "github": "https://github.com/ukanwat/overtime",
-  "notes_doc": "eval/evq1107/overtime/REPORT.md",
+  "notes_doc": "ops:eval/evq1107/overtime/REPORT.md",
   "pin": "fc215d4e90cd95fa6b64c39268bb49490cba7ca1",
   "package": "@ukanwat/overtime@0.5.3",
   "license": "MIT",
@@ -32,7 +32,7 @@
     "entry:sources/entries/112-overtime.md",
     "pin:fc215d4e90cd95fa6b64c39268bb49490cba7ca1",
     "package:@ukanwat/overtime@0.5.3",
-    "eval/evq1107/overtime/REPORT.md",
+    "ops:eval/evq1107/overtime/REPORT.md",
     "eval/evq1107/overtime/VERDICT",
     "eval/evq1107/overtime/results.json"
   ],

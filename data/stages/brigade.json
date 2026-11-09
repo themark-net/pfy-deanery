@@ -23,7 +23,7 @@
   ],
   "evidence": [
     "entry:sources/entries/110-brigade.md",
-    "eval/evq1107/brigade/REPORT.md",
+    "ops:eval/evq1107/brigade/REPORT.md",
     "eval/evq1107/brigade/VERDICT",
     "eval/evq1107/brigade/summary.json",
     "pin brigade-cli==0.27.0 wheel sha256 ac63094d379459338adde3be6dc49d54d928d5a06663342dec71eee975fed8c1 commit 2e008c24e6636a7db9b64059b7576f4523492abe"

@@ -9,7 +9,7 @@
   "release_tag": "v0.2.1",
   "release_commit": "f1aaf69582c50645de257f3da859fb6a03ddaa5e",
   "license": "AGPL-3.0-only",
-  "notes_doc": "eval/evq1107/kanzo/REPORT.md",
+  "notes_doc": "ops:eval/evq1107/kanzo/REPORT.md",
   "uses": "Local kanban and MCP on one SQLite folder. Reference read only. The pfy build timeout stays where it is.",
   "features": [
     "one data folder",
@@ -40,7 +40,7 @@
     "crate:0.2.1",
     "release_tag:v0.2.1",
     "release_commit:f1aaf69582c50645de257f3da859fb6a03ddaa5e",
-    "eval/evq1107/kanzo/REPORT.md",
+    "ops:eval/evq1107/kanzo/REPORT.md",
     "eval/evq1107/kanzo/VERDICT"
   ],
   "handoff_by": "llm"

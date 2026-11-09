@@ -4,7 +4,7 @@
   "intent": "awareness",
   "entry": "sources/entries/126-codeguard.md",
   "github": "https://github.com/cosai-oasis/project-codeguard",
-  "notes_doc": "eval/evq1107/codeguard/REPORT.md",
+  "notes_doc": "ops:eval/evq1107/codeguard/REPORT.md",
   "pin": "41160d54980bab0618165485ade3cfd2ade93288",
   "uses": "Secure-coding rule text a host agent can read during generation or review. Not an install gate and not an offline scanner.",
   "features": [
@@ -28,13 +28,13 @@
   "evidence": [
     "entry:sources/entries/126-codeguard.md",
     "pin:41160d54980bab0618165485ade3cfd2ade93288",
-    "eval/evq1107/codeguard/REPORT.md",
+    "ops:eval/evq1107/codeguard/REPORT.md",
     "eval/evq1107/codeguard/VERDICT",
     "eval/evq1107/codeguard/results.json"
   ],
   "handoff_by": "llm",
   "self_pipeline": {
     "status": "not_applicable",
-    "reason": "Advisory probe only in eval/evq1107/codeguard/REPORT.md. The SARIF reviewer was not run. Not applied to pregate or CI."
+    "reason": "Advisory probe only in ops:eval/evq1107/codeguard/REPORT.md. The SARIF reviewer was not run. Not applied to pregate or CI."
   }
 }

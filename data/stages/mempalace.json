@@ -29,7 +29,7 @@
   ],
   "evidence": [
     "entry:sources/entries/149-mempalace.md",
-    "eval/evq1107/mempalace/REPORT.md",
+    "ops:eval/evq1107/mempalace/REPORT.md",
     "eval/evq1107/mempalace/VERDICT",
     "eval/evq1107/mempalace/results.json",
     "pin 84582fb055a6429261f9c779da86c0561ec80adc",

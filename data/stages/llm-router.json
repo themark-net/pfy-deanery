@@ -21,7 +21,7 @@
   ],
   "evidence": [
     "entry:sources/entries/122-llm-router.md",
-    "eval/evq1107/llm-router/REPORT.md",
+    "ops:eval/evq1107/llm-router/REPORT.md",
     "eval/evq1107/llm-router/VERDICT",
     "eval/evq1107/llm-router/results.json"
   ],

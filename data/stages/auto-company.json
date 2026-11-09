@@ -21,7 +21,7 @@
   "evidence": [
     "entry:sources/entries/066-auto-company.md",
     "pin:211baad12b08d25c75b10ade86ed301098be69b2",
-    "eval/evq1107/auto-company/REPORT.md",
+    "ops:eval/evq1107/auto-company/REPORT.md",
     "eval/evq1107/auto-company/VERDICT"
   ],
   "tier_ceiling": "I3",

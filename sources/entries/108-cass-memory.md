@@ -22,4 +22,4 @@
 | No session history | `cass` missing, so reflect finds no sessions | Expected at I0; a trial needs `cass` staged under `tmp/` too |
 | Alpha churn | 0.x changes JSON shape or the deprecation threshold | Smoke FAILs with a reason; binary pinned by sha256 |
 
-- **Status**: evq1107 2026-11-07 STAY I0. Offline on nimo at v0.5.0 (`229a312b696a`, sha256 matches). One session extracted 0 rules. Hand-playbook top-1 was 7/8 against token overlap 8/8. Repo facts were 0/8 in the playbook and 8/8 in the tree. Spend 0. No TOOLS.md row. Report: eval/evq1107/cass-memory/REPORT.md.
+- **Status**: evq1107 2026-11-07 STAY I0. Offline on nimo at v0.5.0 (`229a312b696a`, sha256 matches). One session extracted 0 rules. Hand-playbook top-1 was 7/8 against token overlap 8/8. Repo facts were 0/8 in the playbook and 8/8 in the tree. Spend 0. No TOOLS.md row. Report: ops:eval/evq1107/cass-memory/REPORT.md.

@@ -19,7 +19,7 @@
   "posture": [],
   "evidence": [
     "path:bootstrap/continue",
-    "eval/evq1107/continue-dev/REPORT.md",
+    "ops:eval/evq1107/continue-dev/REPORT.md",
     "eval/evq1107/continue-dev/VERDICT",
     "pin:5522c6f44ca0ac3528b37244818fbfa39b5af470"
   ],

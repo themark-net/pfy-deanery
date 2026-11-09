@@ -30,7 +30,7 @@
     "entry:sources/entries/158-emdash.md",
     "pin:ab766e8fbb436584dcf0f299740e79d559b8ed31",
     "tag:v1.2.10",
-    "eval/evq1107/emdash/REPORT.md",
+    "ops:eval/evq1107/emdash/REPORT.md",
     "eval/evq1107/emdash/VERDICT"
   ],
   "handoff_by": "llm"

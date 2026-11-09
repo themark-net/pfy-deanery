@@ -4,7 +4,7 @@
   "intent": "staged_eval",
   "entry": "sources/entries/115-openqodex.md",
   "github": "https://github.com/openqodex/openqodex",
-  "notes_doc": "eval/evq1107/openqodex/REPORT.md",
+  "notes_doc": "ops:eval/evq1107/openqodex/REPORT.md",
   "uses": "Scanner candidates on changed lines, then a model-free check that a raised finding cites a real scanner token. Not the review gate.",
   "features": [
     "changed-line scanner candidates",
@@ -23,7 +23,7 @@
   ],
   "evidence": [
     "entry:sources/entries/115-openqodex.md",
-    "eval/evq1107/openqodex/REPORT.md",
+    "ops:eval/evq1107/openqodex/REPORT.md",
     "eval/evq1107/openqodex/VERDICT",
     "eval/evq1107/openqodex/results.json",
     "pin openqodex@0.12.0 tag v0.12.0 9c4d516a15954ba3ed648fe1177038c92fb8f884"
@@ -31,6 +31,6 @@
   "handoff_by": "llm",
   "self_pipeline": {
     "status": "not_applicable",
-    "reason": "Advisory probe only in eval/evq1107/openqodex/REPORT.md. Default finalize exits 0 on major findings. Not applied to pregate or CI."
+    "reason": "Advisory probe only in ops:eval/evq1107/openqodex/REPORT.md. Default finalize exits 0 on major findings. Not applied to pregate or CI."
   }
 }

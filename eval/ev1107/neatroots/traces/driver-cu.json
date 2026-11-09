@@ -1,9 +1,0 @@
-{
-  "children": [],
-  "error": "error:",
-  "input": "",
-  "name": "driver-cu",
-  "output": "driver.sh: line 71: /home/mark/DEVELOP/pfy-mentat/tmp/catchup-1107/tmp/push.log: No such file or directory\nAuto-merging data/tool_integration_stages.json\nCONFLICT (content): Merge conflict in data/tool_integration_stages.json\nerror: could not apply 347a5e3... skillspector: advisory static scan and I3 card\nhint: Resolve all conflicts manually, mark them as resolved with\nhint: \"git add/rm <conflicte...[truncated]\nsha256:25dad2f3fb881d33fc0db5909a79b41a7b989887c79ccd61470763570b683c14",
-  "project": "pfy-grok",
-  "status": "ERROR"
-}

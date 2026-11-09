@@ -15,10 +15,10 @@
   ],
   "catalog_github": "https://github.com/paul-gauthier/aider",
   "pin": "aider-chat==0.86.2 253f0368b873ba30d8ee26e463718f0c03614ddf",
-  "notes_doc": "eval/evq1107/aider/REPORT.md",
+  "notes_doc": "ops:eval/evq1107/aider/REPORT.md",
   "posture": [],
   "evidence": [
-    "eval/evq1107/aider/REPORT.md",
+    "ops:eval/evq1107/aider/REPORT.md",
     "eval/evq1107/aider/VERDICT",
     "eval/evq1107/aider/results.json",
     "pin:aider-chat==0.86.2",

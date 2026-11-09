@@ -26,4 +26,4 @@
 | Prototype churn | Upstream says the code is research quality and differs from their internal version | Pin the commit; re-read the docs before borrowing any rule |
 | Flaky upstream test | The Feishu malformed-line test fails on timing | Smoke records it as a warning; any other failure FAILs |
 
-- **Status**: STAY I0 reference (read 2026-11-07). Pin `6337fc823ce20251c8de8085948165c81aaa701e` is package 0.1.0, MIT. No install, no script, no code copy. Smoke stayed the entry's exit-2 default; this lane did not re-run it. Gap B stays the pfy build timeout. Receipt: `eval/evq1107/dsh-superagent/REPORT.md`. No Feature GO.
+- **Status**: STAY I0 reference (read 2026-11-07). Pin `6337fc823ce20251c8de8085948165c81aaa701e` is package 0.1.0, MIT. No install, no script, no code copy. Smoke stayed the entry's exit-2 default; this lane did not re-run it. Gap B stays the pfy build timeout. Receipt: `ops:eval/evq1107/dsh-superagent/REPORT.md`. No Feature GO.

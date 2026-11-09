@@ -13,7 +13,7 @@
   ],
   "evidence": [
     "pin:b026de60c0fc5438f53faffb5cd7f43f84ed3267",
-    "eval/evq1107/claude-code-unified-agents/REPORT.md",
+    "ops:eval/evq1107/claude-code-unified-agents/REPORT.md",
     "eval/evq1107/claude-code-unified-agents/VERDICT",
     "docs/ops/unified-agents-recipes.md",
     "pipelines/eval/unified-agents-eval.latest.md"

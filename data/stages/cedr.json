@@ -4,7 +4,7 @@
   "intent": "staged_eval",
   "entry": "sources/entries/168-cedr.md",
   "github": "https://github.com/Sheernox/cedr",
-  "notes_doc": "eval/evq1107/cedr/REPORT.md",
+  "notes_doc": "ops:eval/evq1107/cedr/REPORT.md",
   "pin": "9cf2683e54a60e2f36f6f11fe715a7906e711597",
   "release": "v0.10.0",
   "tarball_sha256": "2bd8d14ef4456c36f2ded6e481953ea013b9c200fc093d39aed92bda44a2e634",
@@ -33,7 +33,7 @@
     "entry:sources/entries/168-cedr.md",
     "pin:9cf2683e54a60e2f36f6f11fe715a7906e711597",
     "release:v0.10.0",
-    "eval/evq1107/cedr/REPORT.md",
+    "ops:eval/evq1107/cedr/REPORT.md",
     "eval/evq1107/cedr/VERDICT",
     "eval/evq1107/cedr/results.json"
   ],

@@ -21,7 +21,7 @@
   "catalog_github": "https://github.com/npryce/adr-tools",
   "posture": [],
   "evidence": [
-    "eval/evq1107/adr-tools/REPORT.md",
+    "ops:eval/evq1107/adr-tools/REPORT.md",
     "eval/evq1107/adr-tools/VERDICT",
     "pin:b3279baf9be2207d1a4f4bbd608fd0b591c72aee",
     "notes_doc:docs/ops/adr-tools-companion.md"
@@ -34,6 +34,6 @@
     "toc and link graph"
   ],
   "potential": "low",
-  "next_gate": "Stay I1 reference. Receipt: eval/evq1107/adr-tools/REPORT.md. The adr skill and project-process already keep docs/adr. Re-open only if a later ticket shows agents stopped writing that tree and still leaves the GPL scripts out of the repo. No install, no gate. Gap B stays the pfy build timeout. Not a Feature GO.",
+  "next_gate": "Stay I1 reference. Receipt: ops:eval/evq1107/adr-tools/REPORT.md. The adr skill and project-process already keep docs/adr. Re-open only if a later ticket shows agents stopped writing that tree and still leaves the GPL scripts out of the repo. No install, no gate. Gap B stays the pfy build timeout. Not a Feature GO.",
   "handoff_by": "llm"
 }

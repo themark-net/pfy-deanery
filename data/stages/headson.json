@@ -28,7 +28,7 @@
   ],
   "evidence": [
     "entry:sources/entries/133-headson.md",
-    "eval/evq1107/headson/REPORT.md",
+    "ops:eval/evq1107/headson/REPORT.md",
     "eval/evq1107/headson/VERDICT",
     "eval/evq1107/headson/results.json",
     "pin headson-v0.17.1 26ccc98d9e90150ff4c2d9a7299f7ad85544cd23",

@@ -16,7 +16,7 @@
     "docs_only"
   ],
   "evidence": [
-    "eval/evq1107/awesome-hermes-skills/REPORT.md",
+    "ops:eval/evq1107/awesome-hermes-skills/REPORT.md",
     "eval/evq1107/awesome-hermes-skills/VERDICT",
     "pin:9fb166c3548ca7befb579c525991255bb6daac83"
   ],

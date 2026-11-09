@@ -29,7 +29,7 @@
   "evidence": [
     "entry:sources/entries/171-localharness.md",
     "pin:5af7511ce8f8f799f74de877698e4c4aec0dec45",
-    "eval/evals/localharness/REPORT.md",
+    "ops:eval/evals/localharness/REPORT.md",
     "eval/evals/localharness/VERDICT.json"
   ],
   "tier_ceiling": "I1",

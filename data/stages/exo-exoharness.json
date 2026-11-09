@@ -7,7 +7,7 @@
   "license": "MIT",
   "notes_doc": "docs/ops/exo-self-mod-patterns.md",
   "evidence": [
-    "eval/evq1107/exo-exoharness/REPORT.md",
+    "ops:eval/evq1107/exo-exoharness/REPORT.md",
     "eval/evq1107/exo-exoharness/VERDICT",
     "notes_doc:docs/ops/exo-self-mod-patterns.md",
     "pin:372602d1b553af06e9843e19f31fa8a7f749ab6e"

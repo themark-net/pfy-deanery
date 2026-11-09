@@ -21,7 +21,7 @@
     "reference_only"
   ],
   "evidence": [
-    "eval/evq1107/chroma-or-lancedb/REPORT.md",
+    "ops:eval/evq1107/chroma-or-lancedb/REPORT.md",
     "eval/evq1107/chroma-or-lancedb/VERDICT",
     "pin:11f3c7435e71024aa0a2b53710a28d3289d922d1",
     "tag:1.5.9",

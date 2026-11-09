@@ -21,7 +21,7 @@
   "tarball_sha256": "78fde253af3e216098a6d471dd90341d4aace1bc839816d1080a6fc1432661dd",
   "git_head": "10d9bac8ce34e4b2f4ea55c81166bb2777edb2a9",
   "binary": "asm v2.23.0 (6cb9272)",
-  "notes_doc": "eval/evq1107/asm-agent-skill-manager/REPORT.md",
+  "notes_doc": "ops:eval/evq1107/asm-agent-skill-manager/REPORT.md",
   "posture": [],
   "evidence": [
     "entry:sources/entries/075-asm-agent-skill-manager.md",
@@ -29,7 +29,7 @@
     "tarball_sha256:78fde253af3e216098a6d471dd90341d4aace1bc839816d1080a6fc1432661dd",
     "git_head:10d9bac8ce34e4b2f4ea55c81166bb2777edb2a9",
     "binary:asm v2.23.0 (6cb9272)",
-    "eval/evq1107/asm-agent-skill-manager/REPORT.md",
+    "ops:eval/evq1107/asm-agent-skill-manager/REPORT.md",
     "eval/evq1107/asm-agent-skill-manager/VERDICT",
     "eval/evq1107/asm-agent-skill-manager/results.json"
   ],

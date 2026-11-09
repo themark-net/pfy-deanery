@@ -17,7 +17,7 @@
     "entry:sources/x-posts.md Entry 041",
     "pin:665fcd8fc62cb5941e0484ddab012419f146523d",
     "release:v0.16.0",
-    "eval/evq1107/destructive-command-guard/REPORT.md",
+    "ops:eval/evq1107/destructive-command-guard/REPORT.md",
     "eval/evq1107/destructive-command-guard/VERDICT",
     "eval/evq1107/destructive-command-guard/results.json",
     "receipt:eval/integrate/destructive-command-guard/receipt.json"
@@ -44,7 +44,7 @@
     "feature_go",
     "catalog_hold_70_75"
   ],
-  "notes_doc": "eval/evq1107/destructive-command-guard/REPORT.md",
+  "notes_doc": "ops:eval/evq1107/destructive-command-guard/REPORT.md",
   "pin": "665fcd8fc62cb5941e0484ddab012419f146523d",
   "release": "v0.16.0",
   "tarball_sha256": "e7d860eba7f99cb5d5535b00942196aae3d6ca22ec049491d74c97aab556b642",

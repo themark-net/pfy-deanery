@@ -17,7 +17,7 @@
   "evidence": [
     "path:bootstrap/grok-cli/skills-external/ponytail",
     "pin:8e69b4a55f735e1319999064f82786b838cb3d7b",
-    "eval/evq1107/ponytail-skills-pack/REPORT.md",
+    "ops:eval/evq1107/ponytail-skills-pack/REPORT.md",
     "eval/evq1107/ponytail-skills-pack/VERDICT",
     "eval/evq1107/ponytail-skills-pack/results.json"
   ],
@@ -39,6 +39,6 @@
     "upstream hooks, MCP, and benchmarks",
     "replace SkillSpector"
   ],
-  "notes_doc": "eval/evq1107/ponytail-skills-pack/REPORT.md",
+  "notes_doc": "ops:eval/evq1107/ponytail-skills-pack/REPORT.md",
   "pin": "8e69b4a55f735e1319999064f82786b838cb3d7b"
 }

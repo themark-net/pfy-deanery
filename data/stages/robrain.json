@@ -28,7 +28,7 @@
   ],
   "evidence": [
     "entry:sources/entries/155-robrain.md",
-    "eval/evq1107/robrain/REPORT.md",
+    "ops:eval/evq1107/robrain/REPORT.md",
     "eval/evq1107/robrain/VERDICT",
     "eval/evq1107/robrain/results.json",
     "pin:ac53011016e5f7dd42bae9c00c1a9b7d207a68b8"

@@ -7,7 +7,7 @@
   "pin": "d45f3e480e6523febe81ed51061261b92714b3c9",
   "release": "v0.6.0",
   "license": "Apache-2.0",
-  "notes_doc": "eval/evq1107/muxin/REPORT.md",
+  "notes_doc": "ops:eval/evq1107/muxin/REPORT.md",
   "uses": "Fleet desktop and MCP. Machines are reached with host ssh, then Muxin's agent. Reference read only. Off the pfy build path.",
   "features": [
     "demo machines",
@@ -33,7 +33,7 @@
     "entry:sources/entries/145-muxin.md",
     "pin:d45f3e480e6523febe81ed51061261b92714b3c9",
     "tag:v0.6.0",
-    "eval/evq1107/muxin/REPORT.md",
+    "ops:eval/evq1107/muxin/REPORT.md",
     "eval/evq1107/muxin/VERDICT"
   ],
   "handoff_by": "llm"

@@ -23,7 +23,7 @@
   ],
   "evidence": [
     "entry:sources/entries/113-festival.md",
-    "eval/evq1107/festival/REPORT.md",
+    "ops:eval/evq1107/festival/REPORT.md",
     "eval/evq1107/festival/VERDICT",
     "eval/evq1107/festival/results.json"
   ],

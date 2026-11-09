@@ -4,7 +4,7 @@
   "intent": "staged_eval",
   "entry": "sources/entries/165-egm.md",
   "github": "https://github.com/google/elephant-goldfish-model",
-  "notes_doc": "eval/ev1107/egm/REPORT.md",
+  "notes_doc": "ops:eval/ev1107/egm/REPORT.md",
   "uses": "Fresh-eyes spec review before Build starts.",
   "features": [
     "elephant draft from a ticket and cited excerpts",
@@ -22,11 +22,11 @@
   ],
   "evidence": [
     "entry:sources/entries/165-egm.md",
-    "eval/ev1107/egm/REPORT.md",
+    "ops:eval/ev1107/egm/REPORT.md",
     "eval/ev1107/egm/VERDICT",
-    "eval/ev1107/egm/runs/fix.json",
-    "eval/ev1107/egm/runs/handoff.json",
-    "eval/ev1107/egm/runs/slice1.json",
+    "ops:eval/ev1107/egm/runs/fix.json",
+    "ops:eval/ev1107/egm/runs/handoff.json",
+    "ops:eval/ev1107/egm/runs/slice1.json",
     "pin 7bd119c plugin 0.1.1; three reviews in 135.2s parallel; STAY I1"
   ],
   "handoff_by": "llm"

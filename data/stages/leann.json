@@ -20,7 +20,7 @@
   "license": "MIT",
   "evidence": [
     "sources/x-posts.md Entry 052",
-    "eval/evq1107/leann/REPORT.md",
+    "ops:eval/evq1107/leann/REPORT.md",
     "eval/evq1107/leann/VERDICT",
     "eval/evq1107/leann/results.json",
     "pin v0.3.9 07796bd7e40f2d5f3a4be9e45adf1f62a68481fd",

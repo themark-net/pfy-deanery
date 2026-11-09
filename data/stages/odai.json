@@ -33,7 +33,7 @@
     "entry:sources/entries/166-odai.md",
     "pin:ce7a999843ca42ecd84778561cb0ac7642c5648e",
     "skill:0.7.1",
-    "eval/evq1107/odai/REPORT.md",
+    "ops:eval/evq1107/odai/REPORT.md",
     "eval/evq1107/odai/VERDICT"
   ],
   "handoff_by": "llm"

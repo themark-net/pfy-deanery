@@ -31,7 +31,7 @@
     "entry:sources/entries/170-pi-harness.md",
     "pin:5b6ec2318d6741e444bfe8a640432be052e509fc",
     "tag:v2.3.23",
-    "eval/evq1107/pi-harness/REPORT.md",
+    "ops:eval/evq1107/pi-harness/REPORT.md",
     "eval/evq1107/pi-harness/VERDICT"
   ],
   "handoff_by": "llm"

@@ -28,7 +28,7 @@
   ],
   "evidence": [
     "entry:sources/entries/104-graphjin.md",
-    "eval/evq1107/graphjin/REPORT.md",
+    "ops:eval/evq1107/graphjin/REPORT.md",
     "eval/evq1107/graphjin/VERDICT",
     "eval/evq1107/graphjin/results.json",
     "pin v3.21.6 b8c6bbbafcd95c8ae99bb71eee88508b95a97414 binary sha256 e6f0fd88f99b07e8036ba7db76f24f0fceab697935559d154e823b5951f46805 tarball sha256 48c9bebb2b6f6496ac5a749d293f78a40279dcc2e2675dfab4b641c79e417ebc"
@@ -36,6 +36,6 @@
   "handoff_by": "llm",
   "self_pipeline": {
     "status": "not_applicable",
-    "reason": "Report-only probe in eval/evq1107/graphjin/REPORT.md. CodeSQL was skipped at startup. The file list matched 6 of 6 copied paths and did not name a review test. Not wired into a gate."
+    "reason": "Report-only probe in ops:eval/evq1107/graphjin/REPORT.md. CodeSQL was skipped at startup. The file list matched 6 of 6 copied paths and did not name a review test. Not wired into a gate."
   }
 }

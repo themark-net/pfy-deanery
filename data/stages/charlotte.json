@@ -22,7 +22,7 @@
   ],
   "evidence": [
     "entry:sources/entries/142-charlotte.md",
-    "eval/evq1107/charlotte/REPORT.md",
+    "ops:eval/evq1107/charlotte/REPORT.md",
     "eval/evq1107/charlotte/VERDICT",
     "eval/evq1107/charlotte/results.json",
     "pin npm @ticktockbent/charlotte@0.8.0 tarball sha256 b6a94defc8ea1d42cf5e89110cf32d77c22cd5fa7fb992db23621e04ec333eec gitHead 208f6727467993d857ff1e527a470b6877b3ff97"

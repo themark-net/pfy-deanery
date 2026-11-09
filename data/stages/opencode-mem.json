@@ -19,7 +19,7 @@
   "tarball_sha256": "142d404aea2add4ffbe1742862e912ddfd109e8b0e7533b73de8adf132ecf883",
   "posture": [],
   "evidence": [
-    "eval/evq1107/opencode-mem/REPORT.md",
+    "ops:eval/evq1107/opencode-mem/REPORT.md",
     "eval/evq1107/opencode-mem/VERDICT",
     "eval/evq1107/opencode-mem/results.json",
     "pin:6c5828f3e49f962385aeb3ad033ecac5adc22878",

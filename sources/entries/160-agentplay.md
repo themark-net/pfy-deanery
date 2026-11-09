@@ -25,4 +25,4 @@
 | The map is not a real session | `import` accepts a hand-built document | Treat the pass as a CLI check. A transcript reader for `~/.grok` is still missing |
 | Timeout | The install or a command exceeds the bound | Exit 2. `kill_on_exit` SIGKILLs the process group |
 
-- **Status**: STAY I0 reference. Pin `ff5f83e37063a38ec55ab7dd2b0fcdc435f4a72c` (v0.2.6) read only. Smoke PASS on nimo remains version, help, and one synthetic map. No Grok Build reader. `fix` can write Claude instruction files, and `autotune on` writes `~/.claude/settings.json`, so this lane did not run the tool. Report: `eval/evq1107/agentplay/REPORT.md`. No Feature GO.
+- **Status**: STAY I0 reference. Pin `ff5f83e37063a38ec55ab7dd2b0fcdc435f4a72c` (v0.2.6) read only. Smoke PASS on nimo remains version, help, and one synthetic map. No Grok Build reader. `fix` can write Claude instruction files, and `autotune on` writes `~/.claude/settings.json`, so this lane did not run the tool. Report: `ops:eval/evq1107/agentplay/REPORT.md`. No Feature GO.

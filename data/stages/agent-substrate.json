@@ -8,7 +8,7 @@
   "release": "v0.4.0",
   "release_commit": "756c2a53741121e728f4cc3066c8a19e575b4919",
   "license": "Apache-2.0",
-  "notes_doc": "eval/evq1107/agent-substrate/REPORT.md",
+  "notes_doc": "ops:eval/evq1107/agent-substrate/REPORT.md",
   "uses": "Checkpoint and restore one process that was started under runsc. The 2026-11-07 probe did not move the pfy build timeout.",
   "features": [
     "runsc checkpoint",
@@ -37,7 +37,7 @@
     "release_commit:756c2a53741121e728f4cc3066c8a19e575b4919",
     "runsc:release-20260824.0-120-g727c8c389c36-dirty",
     "tarball_sha256:d547d81401461fd1c679c5c4fa0a6c2b8ef7dc3c22ce23c9e25dcc4c69cfd06f",
-    "eval/evq1107/agent-substrate/REPORT.md",
+    "ops:eval/evq1107/agent-substrate/REPORT.md",
     "eval/evq1107/agent-substrate/VERDICT",
     "eval/evq1107/agent-substrate/results.json"
   ],

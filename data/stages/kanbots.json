@@ -20,7 +20,7 @@
   "posture": [],
   "evidence": [
     "entry:sources/entries/078-kanbots.md",
-    "eval/evq1107/kanbots/REPORT.md",
+    "ops:eval/evq1107/kanbots/REPORT.md",
     "eval/evq1107/kanbots/VERDICT",
     "eval/evq1107/kanbots/results.json",
     "pin main 7b256a024e65268d359ab3286e6c5d2c3d63a072",

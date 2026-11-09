@@ -4,7 +4,7 @@
   "intent": "staged_eval",
   "entry": "sources/entries/106-rulora.md",
   "github": "https://github.com/Buffalo2024/Rulora",
-  "notes_doc": "eval/evq1107/rulora/REPORT.md",
+  "notes_doc": "ops:eval/evq1107/rulora/REPORT.md",
   "uses": "Bounded loop counters and output validators with no model. Host still decides when a Build lane stops.",
   "features": [
     "loop counters",
@@ -23,7 +23,7 @@
   ],
   "evidence": [
     "entry:sources/entries/106-rulora.md",
-    "eval/evq1107/rulora/REPORT.md",
+    "ops:eval/evq1107/rulora/REPORT.md",
     "eval/evq1107/rulora/VERDICT",
     "eval/evq1107/rulora/results.json",
     "pin @rulora/core@0.1.0-alpha.4 commit 7b09de37dddcfb608b727bda26fe9396828ddc82"

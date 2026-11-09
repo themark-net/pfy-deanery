@@ -97,7 +97,7 @@ class SandlockRunOnMainTest(unittest.TestCase):
             self.assertTrue(body["run_id"].startswith("sandlock-"))
             self.assertEqual(body["outcome"], "ok")
             self.assertEqual(body["tool_version"], "sandlock-bin")
-            self.assertEqual(body["log_path"], "eval/integrate/sandlock/notes.md")
+            self.assertEqual(body["log_path"], "ops:eval/integrate/sandlock/notes.md")
             self.assertIn("fixture", body["did"])
             self.assertNotIn("unsandboxed", body["did"])
             stage = cache / "stage" / "out.txt"

@@ -18,7 +18,7 @@
   "evidence": [
     "entry:sources/entries/071-camofox-browser.md",
     "pin:39c82094013480b373df6600d44c7f036f58356e",
-    "eval/evq1107/camofox-browser/REPORT.md",
+    "ops:eval/evq1107/camofox-browser/REPORT.md",
     "eval/evq1107/camofox-browser/VERDICT"
   ],
   "tier_ceiling": "I1",
@@ -52,5 +52,5 @@
   "license": "MIT",
   "package": "@askjo/camofox-browser@1.18.1",
   "mcp_package": "@askjo/camofox-browser-mcp@1.18.1",
-  "notes_doc": "eval/evq1107/camofox-browser/REPORT.md"
+  "notes_doc": "ops:eval/evq1107/camofox-browser/REPORT.md"
 }

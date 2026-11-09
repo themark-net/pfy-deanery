@@ -23,4 +23,4 @@
 | Fast release churn | v1.25.4, v1.26.0, v1.26.1 in two days; CLI flags move | `smolvm-bin` sha pinned; smoke FAILs with the step that broke |
 | Memory pressure | 8 GiB default per VM during a local-model benchmark | `--mem` lower for smoke-sized work; don't run during benchmarks |
 
-- **Status**: STAY I1 (evq1107, 2026-11-07). v1.26.1 booted on nimo: 3/3 host filesystem escapes blocked in 3.0446 s, guest kernel 6.12.95 vs host 7.0.0-38-generic. Allocated cache 203328512 bytes, so I2 stays closed. Does not beat Sandlock. No gate wiring. See eval/evq1107/smolvm/REPORT.md.
+- **Status**: STAY I1 (evq1107, 2026-11-07). v1.26.1 booted on nimo: 3/3 host filesystem escapes blocked in 3.0446 s, guest kernel 6.12.95 vs host 7.0.0-38-generic. Allocated cache 203328512 bytes, so I2 stays closed. Does not beat Sandlock. No gate wiring. See ops:eval/evq1107/smolvm/REPORT.md.

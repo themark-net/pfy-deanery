@@ -202,6 +202,23 @@ def _notes_doc_on_disk(item: str) -> bool:
     return path.is_file()
 
 
+def _ops_evidence(item: str) -> bool:
+    """ops:REL or notes_doc:ops:REL names a note in the private ops checkout.
+
+    The public tree cannot see that file, so the reference is kept as is. REL
+    must be relative and stay inside the checkout.
+    """
+    rel = item
+    if rel.startswith("notes_doc:"):
+        rel = rel.split(":", 1)[1]
+    if not rel.startswith("ops:"):
+        return False
+    rel = rel[len("ops:"):]
+    if not rel or rel.startswith("/") or ".." in Path(rel).parts:
+        return False
+    return True
+
+
 def _methods_label() -> Path:
     """Relative when the methods file sits in this repo; absolute when a caller points it outside."""
     if METHODS_PATH.is_relative_to(ROOT):
@@ -218,7 +235,9 @@ def evidence_for(name: str, card: dict, makefile: str, toolset_names: set[str]) 
     if path and (ROOT / path).exists():
         found.append("path:%s" % path)
     doc = card.get("notes_doc")
-    if isinstance(doc, str) and _notes_doc_on_disk("notes_doc:%s" % doc):
+    if isinstance(doc, str) and (
+        _notes_doc_on_disk("notes_doc:%s" % doc) or _ops_evidence("notes_doc:%s" % doc)
+    ):
         found.append("notes_doc:%s" % doc)
     if card.get("pin"):
         found.append("pin")
@@ -229,6 +248,7 @@ def evidence_for(name: str, card: dict, makefile: str, toolset_names: set[str]) 
         for item in prior:
             if isinstance(item, str) and item not in found and (
                 _receipt_on_disk(item) or _sha_evidence(item) or _notes_doc_on_disk(item)
+                or _ops_evidence(item)
             ):
                 found.append(item)
     return found

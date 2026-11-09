@@ -18,7 +18,7 @@
     "pattern_only"
   ],
   "evidence": [
-    "eval/evq1107/gstack/REPORT.md",
+    "ops:eval/evq1107/gstack/REPORT.md",
     "eval/evq1107/gstack/VERDICT",
     "pin:7c9df1c568a9ea745508f679a329332b2c338063"
   ],

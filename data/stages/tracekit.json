@@ -4,7 +4,7 @@
   "intent": "awareness",
   "entry": "sources/entries/141-tracekit.md",
   "github": "https://github.com/Cygnux-Labs/Tracekit",
-  "notes_doc": "eval/evq1107/tracekit/REPORT.md",
+  "notes_doc": "ops:eval/evq1107/tracekit/REPORT.md",
   "pin": "a94af452db0862ceb990c079fff17b6fed223ad3",
   "release": "v1.4.1",
   "wheel_sha256": "2166ceba02d451cdca52c922617e0c5b14c44936efeaf3c651cec89dfcf2aa60",
@@ -32,7 +32,7 @@
     "entry:sources/entries/141-tracekit.md",
     "pin:a94af452db0862ceb990c079fff17b6fed223ad3",
     "release:v1.4.1",
-    "eval/evq1107/tracekit/REPORT.md",
+    "ops:eval/evq1107/tracekit/REPORT.md",
     "eval/evq1107/tracekit/VERDICT",
     "eval/evq1107/tracekit/results.json"
   ],

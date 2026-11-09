@@ -41,7 +41,7 @@
   ],
   "evidence": [
     "eval/catchup-1107/skill-up/summary.json",
-    "eval/catchup-1107/skill-up/REPORT.md",
+    "ops:eval/catchup-1107/skill-up/REPORT.md",
     "entry:sources/entries/146-skill-up.md"
   ],
   "handoff_by": "llm",

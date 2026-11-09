@@ -25,7 +25,7 @@
   ],
   "evidence": [
     "entry:sources/entries/083-mco.md",
-    "eval/evq1107/mco/REPORT.md",
+    "ops:eval/evq1107/mco/REPORT.md",
     "eval/evq1107/mco/VERDICT",
     "eval/evq1107/mco/results.json"
   ],

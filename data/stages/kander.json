@@ -21,7 +21,7 @@
   ],
   "evidence": [
     "entry:sources/entries/117-kander.md",
-    "eval/evq1107/kander/REPORT.md",
+    "ops:eval/evq1107/kander/REPORT.md",
     "eval/evq1107/kander/VERDICT",
     "eval/evq1107/kander/results.json",
     "pin kander 0.9.5 binary sha256 3a5f8979f94fc1325dbcf9aa30e73831d1db907302c13b5273362313c327e254 commit 590f1ced69af6e144bf78f43eee01fa050734b3c"

@@ -4,7 +4,7 @@
   "intent": "staged_evaluation",
   "entry": "sources/entries/114-sloptrim.md",
   "github": "https://github.com/seyedehsanhadi/sloptrim",
-  "notes_doc": "eval/evq1107/sloptrim/REPORT.md",
+  "notes_doc": "ops:eval/evq1107/sloptrim/REPORT.md",
   "pin": "38dbb7cb4e97de0b9bf157903c95bdcab016dda2",
   "uses": "Offline 0-100 score for AI-writing patterns in a prose file. The 2026-11-07 probe separated a planted page by 66 points. It did not score the house em dash rule or the ', not ' form.",
   "features": [
@@ -28,13 +28,13 @@
   "evidence": [
     "entry:sources/entries/114-sloptrim.md",
     "pin:38dbb7cb4e97de0b9bf157903c95bdcab016dda2",
-    "eval/evq1107/sloptrim/REPORT.md",
+    "ops:eval/evq1107/sloptrim/REPORT.md",
     "eval/evq1107/sloptrim/VERDICT",
     "eval/evq1107/sloptrim/results.json"
   ],
   "handoff_by": "llm",
   "self_pipeline": {
     "status": "not_applicable",
-    "reason": "Advisory probe only in eval/evq1107/sloptrim/REPORT.md. The score was not applied to this repo's pipeline. Not a gate."
+    "reason": "Advisory probe only in ops:eval/evq1107/sloptrim/REPORT.md. The score was not applied to this repo's pipeline. Not a gate."
   }
 }

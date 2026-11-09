@@ -30,7 +30,7 @@
   ],
   "evidence": [
     "entry:sources/entries/080-opencontext.md",
-    "eval/evq1107/opencontext/REPORT.md",
+    "ops:eval/evq1107/opencontext/REPORT.md",
     "eval/evq1107/opencontext/VERDICT",
     "eval/evq1107/opencontext/results.json",
     "pin 0649e7134346f6f5038a9b29cc5c824ae6a54f3f",

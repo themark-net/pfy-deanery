@@ -7,7 +7,7 @@
   "pin": "60bcf6f77dc81c5e13692e4fde712db5eb3285ea",
   "release": "v1.4.0",
   "license": "Apache-2.0",
-  "notes_doc": "eval/evq1107/hal0/REPORT.md",
+  "notes_doc": "ops:eval/evq1107/hal0/REPORT.md",
   "uses": "Packaged OpenAI-compatible inference appliance for a Strix Halo box. Reference read only. Ollama and llama-server already cover that path.",
   "features": [
     "openai-compatible /v1",
@@ -40,7 +40,7 @@
     "entry:sources/entries/130-hal0.md",
     "pin:60bcf6f77dc81c5e13692e4fde712db5eb3285ea",
     "release:v1.4.0",
-    "eval/evq1107/hal0/REPORT.md",
+    "ops:eval/evq1107/hal0/REPORT.md",
     "eval/evq1107/hal0/VERDICT"
   ],
   "handoff_by": "llm"

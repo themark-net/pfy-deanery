@@ -25,7 +25,7 @@
   "evidence": [
     "path:bootstrap/agenc",
     "notes_doc:docs/ops/agenc-reeval-stance.md",
-    "eval/evq1107/agenc/REPORT.md",
+    "ops:eval/evq1107/agenc/REPORT.md",
     "eval/evq1107/agenc/VERDICT",
     "pin:126ee5b793a6aaa8edbbd9c0cbdbead5bcb938f1"
   ],

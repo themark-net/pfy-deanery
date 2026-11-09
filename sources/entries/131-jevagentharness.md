@@ -26,4 +26,4 @@
 | Non-commercial weights | AgentDecision models used in a paid offer | Keep them on Mark's own work; use rules or Laya for anything sold |
 | Prompt text in logs | A later version logs states | The smoke FAILs if the task text shows up in the logs |
 
-- **Status**: STAY I1. Smoke PASS on the Grok Bot box at this pin. Nimo probe 2026-11-07 (`eval/evq1107/jevagentharness/REPORT.md`): first-call route 4/4, 0 strong calls saved, routed wall 2.037s vs strong-only 1.55s (1.314x). No gate.
+- **Status**: STAY I1. Smoke PASS on the Grok Bot box at this pin. Nimo probe 2026-11-07 (`ops:eval/evq1107/jevagentharness/REPORT.md`): first-call route 4/4, 0 strong calls saved, routed wall 2.037s vs strong-only 1.55s (1.314x). No gate.

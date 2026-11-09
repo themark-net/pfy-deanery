@@ -32,7 +32,7 @@
     "entry:sources/entries/160-agentplay.md",
     "pin:ff5f83e37063a38ec55ab7dd2b0fcdc435f4a72c",
     "version:0.2.6",
-    "eval/evq1107/agentplay/REPORT.md",
+    "ops:eval/evq1107/agentplay/REPORT.md",
     "eval/evq1107/agentplay/VERDICT"
   ],
   "handoff_by": "llm"

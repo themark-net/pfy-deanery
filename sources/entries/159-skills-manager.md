@@ -25,4 +25,4 @@
 | Cache lands in the real home | npm uses `~/.npm` | `npm_config_cache`, `HOME`, and `TMPDIR` are the scratch dir. The receipt records those paths |
 | Network or time box | The package and its tree exceed the limit | Exit 2 with the timeout or the npm error. Do not retry without a bound |
 
-- **Status**: STAY I0 reference (read 2026-11-07). Pin `fae0bb864a8b96c1d0ca6278a6b7062e62992a36`, MIT, package `2026.10.27-1`. The 2026-11-02 smoke PASS (version, help, `list --home`) stands. This lane did not bootstrap or distribute. Not an H2 install gate. See `eval/evq1107/skills-manager/REPORT.md`. No Feature GO.
+- **Status**: STAY I0 reference (read 2026-11-07). Pin `fae0bb864a8b96c1d0ca6278a6b7062e62992a36`, MIT, package `2026.10.27-1`. The 2026-11-02 smoke PASS (version, help, `list --home`) stands. This lane did not bootstrap or distribute. Not an H2 install gate. See `ops:eval/evq1107/skills-manager/REPORT.md`. No Feature GO.

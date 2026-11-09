@@ -32,7 +32,7 @@ DERIVED_LAST_ID = DERIVED_ROWS - 1
 
 REPO_FILES = (
     "pipelines/dogfood/local-bench/receipt.json",
-    "eval/ev1107/neatroots/traces/session-local-build-grep.json",
+    "eval/ev1107/neatroots/check-results.json",
     "docs/ops/grill-samples/TICKET-pk2.md.grill.json",
     "data/decision-gates/laya-trial.cases.v0.json",
     ".github/workflows/eval-structural.yml",

@@ -29,7 +29,7 @@
   "evidence": [
     "entry:sources/entries/131-jevagentharness.md",
     "pin:f2932199e1ef1d9f089b51d39430c87be0f560b5",
-    "eval/evq1107/jevagentharness/REPORT.md",
+    "ops:eval/evq1107/jevagentharness/REPORT.md",
     "eval/evq1107/jevagentharness/VERDICT",
     "eval/evq1107/jevagentharness/results.json"
   ],
