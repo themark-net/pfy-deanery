@@ -9,7 +9,7 @@ The product surface `./pfy` does onboard, stage, and ship. The catalog lifecycle
 - Browse joins a parenthetical TOOLS.md name to the stage card. `adr-tools (optional)` showed a blank stage because the slug was `adr-tools-optional` and the card is `adr-tools`. The bold name is an alias, not a second row.
 - Browse shows the stage card when `data/tools.json` lags. `codebase-memory-mcp` was I2 in the json file and I3 on the card. The json file is still I2. Browse now shows I3. Do not hand-edit `integration_stage`.
 - `scripts/test_select.py` treats `VERDICT.json` and `receipt.json` as one file per tool. A test that names the full path still runs. A new artifact that nobody names stays structural and does not force the full suite. Before this, a stub eval of `gum` selected 22 modules (`tmp/mvp-gaps-1108/tmp/sandbox-eval/evalstate/gum-select.json`) and parked with `run_tests failed`.
-- README "Using the catalog" names the five commands. `./pfy help` still does not. That line is gap 3.
+- README "Using the catalog" names the five commands. `./pfy help` says `pfy eval` is the product structural gate and names `scripts/eval_lane.sh` and `scripts/catalog_intake_dedupe.py`. The command name `pfy eval` is unchanged.
 
 While this walk was open, `origin/main` also landed `cec3b3de` (excluded slugs refused before a ceiling check; lane test selection is `origin/main...HEAD`; taste-skill, repowise, and opencode-mem tests expect the I3 cap the loop already wrote) and `5683af53` (I1 static eval for LocalHarness and Cartographer, value gate fail, both stay I1). This lane did not re-raise ATG. `atomic-task-graph-atg` stays on `eval/catalog-queue/exclusions.tsv`.
 
@@ -33,9 +33,9 @@ Intake does not triple-write. It does not touch `TOOLS.md`, `data/tools.json`, o
 
 `python3 scripts/catalog_intake_dedupe.py` on litellm printed `duplicate litellm data/stages/litellm.json`. An empty source prints `empty slug` and exits 1. `./pfy catalog nosuch` exits 2. Those are by design.
 
-### 3. Find: `./pfy help` still points at the wrong eval
+### 3. Find: `./pfy eval` is still the product gate
 
-README now names the lifecycle scripts. `./pfy help` still has one line, `pfy eval | ship`, and does not say that `pfy eval` is the product gate. Renaming `./pfy eval` is not a small fix. A help-line clarification is the remaining small part of this gap.
+`./pfy help` now says that line is the product structural gate, and it names `scripts/eval_lane.sh` and `scripts/catalog_intake_dedupe.py`. Renaming `./pfy eval` is not a small fix. The command still runs `make eval-integration-change`.
 
 `python3 scripts/supersede_check.py --parts track,catalog,evaluate,integrate` printed `supersede_candidate: true`. The check counts parts. It does not read the source. Two or more parts are enough. A one-part list is not a candidate.
 

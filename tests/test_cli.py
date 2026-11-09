@@ -161,6 +161,16 @@ class DispatcherTests(_Tmp):
         self.assertIn("pfy toolset matrix", p.stdout)
         self.assertIn("pfy hedge decide", p.stdout)
 
+    def test_pfy_help_separates_product_eval_from_catalog_eval(self):
+        # Fail: `pfy eval` reads as the catalog verdict lane, so a new user
+        # runs the product gate. Recovery: help names the product gate and
+        # the catalog scripts.
+        p = self._pfy("help")
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertIn("not a catalog verdict", p.stdout)
+        self.assertIn("scripts/eval_lane.sh", p.stdout)
+        self.assertIn("scripts/catalog_intake_dedupe.py", p.stdout)
+
     def test_python_m_pfylib_entry(self):
         p = subprocess.run([sys.executable, "-m", "pfylib", "toolset", "validate", "--json"], cwd=ROOT, capture_output=True, text=True, timeout=60)
         self.assertEqual(p.returncode, 0, p.stderr)

@@ -225,7 +225,10 @@ pfy — simple setup & launch for the pfy-mentat stack
   pfy start [harness]     no name: same as bare pfy. named: exec that harness after inference/stage
   pfy bot "prompt"        one-shot local bot. PFY_BOT_INTERFACE=hermes opts in. Default is opencode.
   pfy stage [--lab]       env-stage; --lab optional personal cage lab (doctor→setup→up-mcp)
-  pfy eval | ship
+  pfy eval | ship          product structural gate and product ship.
+                          pfy eval is not a catalog verdict. Catalog eval is
+                          scripts/eval_lane.sh. Intake is
+                          scripts/catalog_intake_dedupe.py
   pfy endpoint              print FreeToken-first live OpenAI-compat base (one line)
   pfy doctor               FreeToken-first one-shot health (detect+endpoint+tok/vram)
   pfy smoke                FreeToken-first models list + one chat smoke
