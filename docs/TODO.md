@@ -1,42 +1,7 @@
 # TODO — next steps
 
 **Purpose:** Single ordered work queue for humans and agents.  
-**Design:** [DESIGN.md](DESIGN.md) · **ADRs:** [adr/](adr/README.md) · **Open questions:** [OPEN_QUESTIONS.md](OPEN_QUESTIONS.md) · **Parked (naming, repo split):** [plans/PARKED-naming-and-split.md](plans/PARKED-naming-and-split.md)
-
-## Harness² local (H1, 2026-10-20)
-
-Branch `bot/h1-harness2`. Not a Feature GO. Catalog HOLD 70-75 stays. Run log: [RUN-LOG-harness2-local.md](ops/RUN-LOG-harness2-local.md).
-
-| ID | Item | Status |
-|----|------|--------|
-| H1-1 | Pinned local stage (`examples/harness2-local`) | done (stage re-run exit 0, 8 tests OK) |
-| H1-2 | Network-limited sandbox | done (sandbox module is 40 tests after 2c; N1 N2 N5 PASS) |
-| H1-2b | Final-gate should-fixes | done (2b.1-2b.2 committed; 2b.3-2b.5 already in item 2; 2b.6 citation) |
-| H1-2c | Tester FAIL of 902e04f (idle, sbun, watchdog, mutant tests) | done (40 sandbox tests; full suite 520 OK, skipped=4) |
-| H1-3 | 48-case adapter and driver | done (`3260e0228cee5344578bfad2a26076ef43bb03ec`, 8 tests OK) |
-| H1-4 | Surface map and write allow-list | done (`475f34ddc8736969db253e3ed654fd85f8bbaea1`, 5 tests OK) |
-| H1-5 | Proposal branch, never merges | done (`4bd065de7a2366149dac47f4c9cf964e31e65f20`, 20 tests OK) |
-| H1-6 | Live llama-server run | done (gain 0, receipt `c26ad1a`, no proposal branch) |
-| H1-7 | Docs and catalog row | done (Entry 136 I1, tier C, overall 59) |
-
-
-## MVP local build (2026-10-26)
-
-Branch `bot/mvp-local-build`. Not a Feature GO. Catalog HOLD 70-75 stays. Handoff: [HANDOFF-pfy-local-build-mvp.md](ops/HANDOFF-pfy-local-build-mvp.md). MVP-2 trial branch `bot/mvp2-trial`. Report: [eval/mvp2/REPORT.md](../eval/mvp2/REPORT.md).
-
-| ID | Item | Status |
-|----|------|--------|
-| MVP-1 | Headless `./pfy build --local` plus the offline coding eval | done after fix 2 (Tester FAIL at 42fcc229 closed on `bot/mvp-local-build`; live 8/8 on `qwen3.6:35b`, 617.949 s, stamp `20261027T070700973123Z`, sandbox `bwrap-unshare-net`; stub cheater scores 0; fix-1 8/8 was stamp `20261027T031008578576Z`) |
-| MVP-2 | Use `pfy build --local` for a real build-only task from this file, and compare with cloud Build on cost and pass rate | done on `bot/mvp2-trial` (historical branch name; the report now lives on main; gate local 5/6, cloud 6/6; review accept local 4/6, cloud 6/6; wall 1694 s vs 584 s; no-go as the default). Handoff: [HANDOFF-mvp2-trial.md](ops/HANDOFF-mvp2-trial.md) |
-| MVP-3 | Review-and-retry on `./pfy build --local`, then the six MVP-2 tasks locally | done as a measurement on `bot/mvp3-review-retry` (gate 5/6, loop accept 5/6, human accept 4/6, wall 3859.9 s; no-go as the default). Report: [eval/mvp3/REPORT.md](../eval/mvp3/REPORT.md). Handoff: [HANDOFF-mvp3-review-retry.md](ops/HANDOFF-mvp3-review-retry.md) |
-
-
-## MVP integrate (2026-10-31)
-
-Not a Feature GO. Catalog HOLD 70-75 stays. One cloud `./pfy build` on the mvp-1031 fixture PASSed on `bot/mvp-integrate-1031` (checker exit 0, receipt [eval/mvp-1031/demo-receipt.json](../eval/mvp-1031/demo-receipt.json), fixture commit `ebef4238a7eff8f938747623f7920b3fde74e586`). Handoff: [HANDOFF-mvp-integrate-1031.md](ops/HANDOFF-mvp-integrate-1031.md).
-
-Fresh-clone gap list from lane mvp-gaps-1108: [MVP-GAPS-1108.md](ops/MVP-GAPS-1108.md). The walk is find, catalog, eval, integrate, promote. Small browse and test-select fixes landed with that note. Leftovers stay in the gap list. Not a Feature GO. Catalog HOLD 70-75 stays.
-
+**Design:** [DESIGN.md](DESIGN.md) · **ADRs:** [adr/](adr/README.md) · **Open questions:** [OPEN_QUESTIONS.md](OPEN_QUESTIONS.md)
 
 ## G8 — Simple harness-agnostic launch (2026-07-31)
 
@@ -166,7 +131,7 @@ Active work is also tracked as issues: https://github.com/themark-net/pfy-mentat
 | T-0120 | P1 | done | Toolset × harness matrix + jev reference `plan()`/`apply()` | `data/toolsets.json` · `pfylib/`; stacked PRs on this branch |
 | T-0075 | P2 | done | ADR + OQ structural scorers | #5; tasks 006/007 |
 | T-0076 | P2 | done | Wire mattpocock to-spec/tdd checklist into structural or skill cross-links | #6; skill cross-links only; issue not closed |
-| T-0040 | P2 | done | Broader multi-CLI parity notes (Claude Code) | #8; docs/ops/multi-cli-parity.md; issue not closed |
+| T-0040 | P2 | done | Broader multi-CLI parity notes (Claude Code) | #8; a private ops note; issue not closed |
 | T-0007 | P3 | done | adr-tools companion docs | #15; docs/ops/adr-tools-companion.md |
 | T-0004 | P2 | done | ATG coupling I1 submodule-later | #22; docs/ops/atg-coupling.md. 2026-10-06 I2 probe at SHA 86d1b890 after a live pass. Not I3. |
 | T-0015 | P3 | done | Antigravity catalog-only skip install | #23; antigravity-catalog-posture.md |
@@ -194,8 +159,8 @@ Active work is also tracked as issues: https://github.com/themark-net/pfy-mentat
 | T-0082 | P1 | done | ADR-0011 hybrid Grok/OpenCode/Ollama + local-cloud-split ops + opencode adapter | `docs/adr/0011-…`; `docs/ops/local-cloud-split.md`; `bootstrap/opencode/` |
 | T-0080 | P1 | done | OpenCode + Ollama host smoke (skills + config + completion) | `make smoke-opencode-ollama`; `examples/opencode-ollama/`; opencode CLI optional |
 | T-0085 | P0 | done | Worker/monitor dual-session recipe | `make worker-stage`; `/worker-monitor` skill; `docs/ops/worker-monitor.md` |
-| T-0126 | P2 | done | Port founder standings into portable skills SoT | `prefer-behavior-and-fail-recover-tests`, `ui-is-the-app-design-in-loop`, `best-effort-and-bot-budget-build-max`; `docs/ops/port-bot-doctrine-to-pfy-sot.md`; catalog HOLD; no Feature GO; no issue |
-| T-0071 | P2 | done | Bumblebee coding-safety assist docs | `docs/ops/bumblebee-coding-safety.md` |
+| T-0126 | P2 | done | Port founder standings into portable skills SoT | `prefer-behavior-and-fail-recover-tests`, `ui-is-the-app-design-in-loop`, `best-effort-and-bot-budget-build-max`; a private ops note; catalog HOLD; no Feature GO; no issue |
+| T-0071 | P2 | done | Bumblebee coding-safety assist docs | a private ops note |
 | T-0072 | P2 | done | MUE-X pattern extract (no evolve) | `docs/ops/mue-x-patterns.md` |
 | T-0073 | P2 | done | LEANN/Memvid memory assist patterns | `docs/ops/memory-assist-patterns.md` |
 | T-0030 | P0 | done | Env registry + profiles | merged main |

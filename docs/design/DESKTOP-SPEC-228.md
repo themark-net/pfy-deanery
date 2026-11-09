@@ -207,7 +207,7 @@ Public endpoint labels only (https://gab.ai/docs/api): OpenAI-compatible `https:
 
 ## 10. Implementer DoD (binds #228)
 
-One PR from current main. Cite **#228 only**. Do not reopen **#76**. Catalog 70–75 HOLD. Prefer Grok Build on nimo. No Mark. See also `GAB-228-DEVBOT-HANDOFF.md`.
+One PR from current main. Cite **#228 only**. Do not reopen **#76**. Catalog 70–75 HOLD. Prefer Grok Build on nimo. No Mark. See also a private ops note.
 
 1. Cloud lane: Gab OpenAI-compatible attach/wizard — auto + pin-by-id; max/Plus + API key docs as FAIL next.
 2. Local ranking sync into existing recommend/try (#207): `/v1/models` → open-weight families → Ollama tags + size → fits/tight/won't-fit (nimo).

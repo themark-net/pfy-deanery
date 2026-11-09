@@ -10,11 +10,11 @@ Daily command:
 
 A PASS leaves a branch whose name starts with `cloud/`, one commit, and a receipt. The caller's branch and `git status` stay as they were. The runner does not push and does not open a PR.
 
-Measured verdict, read 2026-11-01T00:08:54Z: GO for this daily command. Line-by-line evidence is [VERDICT.md](../../eval/mvp-1031/VERDICT.md). The six-task bar on the integration tip is 6/6 twice ([sixtask-int](../../eval/mvp-1031/sixtask-int/REPORT.md)). The older six-task run was NO-GO because test edits were `tests-tampered` before `--writable-test` ([sixtask](../../eval/mvp-1031/sixtask/REPORT.md)). Selfhost runner PASS is 14/15 and human accept is 13/15 ([selfhost](../../eval/selfhost-1031/REPORT.md)).
+Measured verdict, read 2026-11-01T00:08:54Z: GO for this daily command. Line-by-line evidence is VERDICT.md. The six-task bar on the integration tip is 6/6 twice (sixtask-int). The older six-task run was NO-GO because test edits were `tests-tampered` before `--writable-test` (sixtask). Selfhost runner PASS is 14/15 and human accept is 13/15 (selfhost).
 
 ## What is not the daily command
 
-`./pfy build --local "<task>"` is the opt-in fallback for when a cloud receipt says `rate-limit`. The flag `--local` is opt-in and not the default. MVP-2 and MVP-3 measured local as NO-GO for the default (cloud 6/6 in 583.6 s; local loop 5/6 gate, 4/6 human accept, 3859.9 s). Cloud numbers are in [eval/mvp2/REPORT.md](../../eval/mvp2/REPORT.md) and [HANDOFF-mvp2-trial.md](HANDOFF-mvp2-trial.md). The MVP-3 local loop wall time is 3859.9 s ([eval/mvp3/REPORT.md](../../eval/mvp3/REPORT.md)). A rate limit does not auto-start `--local`. DevBot or Hermes runs the fallback later, under `flock ~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock`, only when the lane chooses it.
+`./pfy build --local "<task>"` is the opt-in fallback for when a cloud receipt says `rate-limit`. The flag `--local` is opt-in and not the default. MVP-2 and MVP-3 measured local as NO-GO for the default (cloud 6/6 in 583.6 s; local loop 5/6 gate, 4/6 human accept, 3859.9 s). Cloud numbers are in a private ops note and a private ops note. The MVP-3 local loop wall time is 3859.9 s (a private ops note). A rate limit does not auto-start `--local`. DevBot or Hermes runs the fallback later, under `flock ~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock`, only when the lane chooses it.
 
 `./pfy build -p "<prompt>"` stays the jev dogfood wrap (`scripts/pfy_build_p.py`, receipt.jsonl under `pipelines/dogfood/build/`). `-p` remains the jev dogfood wrap. Its exit codes and receipt path do not change. `./pfy build --prompt` and `./pfy build --prompt-file` stay on that same wrap. Any argv that contains `--local` stays on `scripts/pfy_build_local.py`.
 
@@ -118,7 +118,7 @@ The runner does not read `auth.json`. A rate limit does not auto-start `--local`
 
 ## Receipt rules
 
-Receipt text is redacted (token, bearer, AKIA, private-key blocks). A short fixture assignment such as `user_key=list-user` stays readable. An uppercase name such as `API_TOKEN`, a name that contains password or secret, and a value that mixes letters and digits are still replaced with `[redacted]`. A receipt that still contains those raw forms is a failed run. Do not paste a receipt that holds a live token into chat or into git. The demo copy that integration keeps is `eval/mvp-1031/demo-receipt.json` on the integrate branch, not a default receipt under `pipelines/dogfood/build-cloud/`.
+Receipt text is redacted (token, bearer, AKIA, private-key blocks). A short fixture assignment such as `user_key=list-user` stays readable. An uppercase name such as `API_TOKEN`, a name that contains password or secret, and a value that mixes letters and digits are still replaced with `[redacted]`. A receipt that still contains those raw forms is a failed run. Do not paste a receipt that holds a live token into chat or into git. The demo copy that integration keeps is a private ops note on the integrate branch, not a default receipt under `pipelines/dogfood/build-cloud/`.
 
 Pid file: `<repo>/tmp/cloud-build.pids.json`. Worktree: `/var/tmp/pfyb-<stamp>-<pid>` (mode 0700), or `$XDG_RUNTIME_DIR/pfyb-<stamp>-<pid>` when that directory is outside `/tmp` and `/run` and the harness2 socket still fits in 107 bytes, otherwise `~/.cache/pfyb-<stamp>-<pid>`. `PFY_BUILD_WORKTREE_ROOT` replaces that search. Removed when the run finishes unless `--keep-worktree`. Branch prefix: `cloud/`. The branch ref remains after the worktree is removed. The lock stays `<repo>/tmp/cloud-build.lock`.
 
@@ -138,12 +138,12 @@ Cloud stays the daily path ([ADR-0002](../adr/0002-grok-cli-primary-interface.md
 
 ## Demo 2026-10-31
 
-Copied from [eval/mvp-1031/REPORT.md](../../eval/mvp-1031/REPORT.md). One real cloud `./pfy build` from the integrate worktree. No `--local`. The task target was a temp fixture repo, not this checkout. The fixture test was red before the build (`add(2, 3)` returned 0).
+Copied from a private ops note. One real cloud `./pfy build` from the integrate worktree. No `--local`. The task target was a temp fixture repo, not this checkout. The fixture test was red before the build (`add(2, 3)` returned 0).
 
 Command:
 
 ```text
-bash eval/mvp-1031/init_fixture.sh "$PWD/tmp/mvp-fixture-repo"
+bash private ops notesinit_fixture.sh "$PWD/tmp/mvp-fixture-repo"
 ./pfy build "Make add return the sum of its two arguments so the fixture test passes." \
   --repo "$PWD/tmp/mvp-fixture-repo" \
   --base main \
@@ -157,8 +157,8 @@ bash eval/mvp-1031/init_fixture.sh "$PWD/tmp/mvp-fixture-repo"
 | Branch | `cloud/make-add-return-the-sum-of-its-two-argum-20261031T210933627529Z` |
 | Commit | `ebef4238a7eff8f938747623f7920b3fde74e586` |
 | Review verdict | accept |
-| Receipt path | `eval/mvp-1031/demo-receipt.json` |
+| Receipt path | a private ops note |
 
 Demo: PASS.
 
-The receipt checker in the report is `python3 eval/mvp-1031/check_receipt.py eval/mvp-1031/demo-receipt.json` with exit 0. `pushed` is false. The integrate branch stayed `bot/mvp-integrate-1031`.
+The receipt checker in the report is `python3 private ops notescheck_receipt.py a private ops note with exit 0. `pushed` is false. The integrate branch stayed `bot/mvp-integrate-1031`.

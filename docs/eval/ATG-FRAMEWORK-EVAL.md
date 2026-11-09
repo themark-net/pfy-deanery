@@ -63,4 +63,4 @@ No paid key is needed anywhere. Everything above runs on local models.
 
 ## (c) Recommended next step (Grok Build prompt)
 
-Run `docs/build-dropins/atg-framework.md`. It adds a stdlib OpenAI-compatible client (`ATG_BASE_URL`), a fail-and-recover test against a local fake server, and `examples/poc_suite.py` (localized repair vs global replan vs sequential, mock first), then runs the live step 1/2 when `ollama ps` is empty. Follow it with `docs/build-dropins/pfy-mentat.md` (catalog card refresh + `atg-compile` bench lane).
+Run a private ops note. It adds a stdlib OpenAI-compatible client (`ATG_BASE_URL`), a fail-and-recover test against a local fake server, and `examples/poc_suite.py` (localized repair vs global replan vs sequential, mock first), then runs the live step 1/2 when `ollama ps` is empty. Follow it with a private ops note (catalog card refresh + `atg-compile` bench lane).

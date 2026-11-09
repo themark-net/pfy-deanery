@@ -18,4 +18,4 @@ Stretch (only if 1–3 RAN and `MemAvailable` stays ≥ 8 GiB): `qwen3-coder-nex
 
 Fail closed: Ollama unreachable, or a requested model name missing from `/api/tags`. If a present model fails to load or stalls >30 min, it is dropped and the run continues. Unload is `keep_alive: 0`. Does not change BIOS, kernel cmdline, or sysctl.
 
-Receipt: `pipelines/dogfood/local-bench/receipt.json`. Results: [docs/dogfood/LOCAL-BENCH-RESULTS.md](../../docs/dogfood/LOCAL-BENCH-RESULTS.md).
+Receipt: `pipelines/dogfood/local-bench/receipt.json`. Results: a private ops note.

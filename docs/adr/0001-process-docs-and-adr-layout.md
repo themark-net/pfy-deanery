@@ -19,7 +19,7 @@ Adopt this process layout as source of truth:
 | ADRs (multi-file) | `docs/adr/README.md` + `docs/adr/NNNN-*.md` |
 | Central TODO | `docs/TODO.md` |
 | Open questions index | `docs/OPEN_QUESTIONS.md` |
-| Optional OQ detail / in-context notes | `docs/open-questions/OQ-NNNN-slug.md` and/or notes next to code/docs that **link to OQ IDs** |
+| Optional OQ detail / in-context notes | private ops notesOQ-NNNN-slug.md` and/or notes next to code/docs that **link to OQ IDs** |
 | Agent entrypoint | `AGENTS.md` |
 
 Rules:

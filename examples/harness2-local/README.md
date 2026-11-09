@@ -32,4 +32,4 @@ The tests use a bare repo under the worktree `tmp/propose-tests`.
 
 Held-out a1 and a2 were both 15/16, wrong-but-confident 1, parse_ok 1.0. The chain adopted an empty `LongTermMEMORY.md` at train-1 and did not change the tree again. Step c was 15/16. Gain 0. No proposal branch. Receipt: [pipelines/dogfood/harness2-local/receipt.json](../../pipelines/dogfood/harness2-local/receipt.json). Two calls truncated at `n_tokens` 32767. Context stayed 32768 (D25). Catalog row is I1, tier C, overall 59.
 
-The build spec is [docs/build-dropins/harness2-local.md](../../docs/build-dropins/harness2-local.md). The run log is [docs/ops/RUN-LOG-harness2-local.md](../../docs/ops/RUN-LOG-harness2-local.md).
+The build spec is a private ops note. The run log is a private ops note.

@@ -129,7 +129,7 @@
       {
         "name": "catalog-loop-operator",
         "origin": "first-party catalog pipeline (2026-11-08)",
-        "purpose": "STOP, QUOTA_STOP, needs-mark.tsv, loop.latest.json, and parked-lane retry"
+        "purpose": "STOP, QUOTA_STOP, the private needs-mark queue, loop.latest.json, and parked-lane retry"
       }
     ]
   },

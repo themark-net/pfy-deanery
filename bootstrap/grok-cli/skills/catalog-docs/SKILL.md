@@ -41,7 +41,7 @@ You are the **repository documentation skill** for this catalog only. Keep human
 | Grok operator env | `bootstrap/grok-cli/` |
 | Process scaffold | `bootstrap/project-process/` |
 | Container lab | `harness/agent-cage/` |
-| Integration plan | `docs/ops/plan-mobile-seed-integration.md` |
+| Integration plan | a private ops note |
 | Harness framework | `docs/ops/harness-integration-framework.md` |
 
 ## Modes

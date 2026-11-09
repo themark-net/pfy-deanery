@@ -1,6 +1,6 @@
 # pfy build quickstart
 
-One card for the daily command. Cloud Grok, review on, nothing pushed. The longer operator card is [pfy-build-daily.md](ops/pfy-build-daily.md). Line-by-line proof: [MVP-DOD-WALKTHROUGH.md](ops/MVP-DOD-WALKTHROUGH.md). Measured GO and the six PASS lines: [VERDICT.md](../eval/mvp-1031/VERDICT.md).
+One card for the daily command. Cloud Grok, review on, nothing pushed. The longer operator card is [pfy-build-daily.md](ops/pfy-build-daily.md). Line-by-line proof: MVP-DOD-WALKTHROUGH.md. Measured GO and the six PASS lines: VERDICT.md.
 
 Commands below were run from this worktree at `2026-10-31T21:21:27Z`. A fence tagged `bash runnable exit=N` is re-run by `tests/test_quickstart_commands.py`. A `text` fence is the output from that run.
 
@@ -98,7 +98,7 @@ Receipt fields from that file: `schema` `pfy-cloud-build/1`, `status` `DRY-RUN`,
 
 ## What PASS looks like
 
-Real demo receipt: [eval/mvp-1031/demo-receipt.json](../eval/mvp-1031/demo-receipt.json). Excerpt printed from that file:
+A PASS receipt has these fields:
 
 ```text
 schema pfy-cloud-build/1
@@ -119,7 +119,7 @@ worktree_removed True
 ```
 
 ```text
-$ python3 eval/mvp-1031/check_receipt.py eval/mvp-1031/demo-receipt.json
+$ python3 tests/fixtures/mvp_receipt/check_receipt.py <receipt.json>
 exit 0
 ```
 
@@ -130,7 +130,6 @@ The runner summary line on a PASS is `PASS ok branch=cloud/<slug>-<stamp> receip
 | Piece | Path |
 |-------|------|
 | Default receipt | `<repo>/pipelines/dogfood/build-cloud/<stamp>/receipt.json` |
-| Kept demo copy | `eval/mvp-1031/demo-receipt.json` |
 | Branch | `cloud/<slug>-<stamp>` in the `--repo` repo |
 | Worktree | `/var/tmp/pfyb-<stamp>-<pid>` (mode 0700), removed when the run finishes unless `--keep-worktree` |
 | Cloud pid file | `<repo>/tmp/cloud-build.pids.json` |
@@ -175,7 +174,7 @@ On a task repo, `rev-parse` the branch named in the receipt, then `git push orig
 | SIGKILL | next reap exits 0 | `ABORTED`, `reason` `no-receipt` | `./pfy build --reap` signals only pgids in `tmp/cloud-build.pids.json`. |
 | Timeout | 3 | `TIMEOUT`, `reason` `timeout`, no branch | Rerun with a longer `--timeout`. No commit. |
 
-A real rate-limit receipt on `origin/bot/mvp-realfail-1031` (`eval/mvp-1031/realfail/rate-limit/receipt.json`) has `recovery` `./pfy build --local rate-limit-sim`. That command was not run.
+A real rate-limit receipt has `recovery` `./pfy build --local rate-limit-sim`. That command was not run.
 
 Reap on a throwaway repo with no pid file:
 

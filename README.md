@@ -24,10 +24,9 @@ mentat          # same as ./pfy, from any directory
 
 `./pfy install` writes two POSIX launchers, `mentat` and `pfy`, so `mentat` from any directory behaves like `./pfy`. The default directory is `$HOME/.local/bin`. Pass `--prefix` for another directory (for example `/opt/pfy-mentat/bin`). If that directory is not writable, the command prints `sudo ./pfy install --prefix ...` and does not run sudo. If the directory is not on PATH, it prints the exact line to add to `~/.bashrc` or `~/.profile`. For the default directory that line is `export PATH="$HOME/.local/bin:$PATH"`. It does not edit those files. Remove the launchers with `./pfy install --uninstall` or `./pfy uninstall --launchers`.
 
-Headless (no GUI): `./pfy launch --headless`, then `./pfy launch status` and `./pfy launch stop`. Commands and open items: [docs/HANDOFF-headless-1105.md](docs/HANDOFF-headless-1105.md).
+Headless (no GUI): `./pfy launch --headless`, then `./pfy launch status` and `./pfy launch stop`.
 
 Daily build: [docs/QUICKSTART-pfy-build.md](docs/QUICKSTART-pfy-build.md).
-DoD walkthrough: [docs/ops/MVP-DOD-WALKTHROUGH.md](docs/ops/MVP-DOD-WALKTHROUGH.md).
 
 Bare `./pfy`, `./pfy up`, `./pfy start` with no name, and `./pfy board` do not start FreeToken, llama-swap, llama-server, or `ollama serve`. When the engine is down they print one line with the start command and open the window with the engine down. Opt in with `PFY_START_ENGINE=1`, `--start-engine`, or yes at the terminal prompt. `./pfy start <harness>` still starts the engine before that harness. `./pfy env` still starts it. `./pfy board` is the same window. Optional `./pfy board --open` is a browser hatch only (not the main path). Board is not a supervisor.
 
@@ -49,7 +48,7 @@ Headless cloud build. Review stays on. Nothing is pushed.
 
 - Repo: the git toplevel of the current directory. Pass `--repo DIR` to build a different repo. This is not "whatever directory contains the `pfy` script" unless that directory is the current one.
 - Base: `origin/main` when that ref exists, otherwise `HEAD`. Pass `--base REF` to pick another ref. A clone of one non-main branch often has no `origin/main`, so the base is `HEAD`.
-- Gate: `python3 -m unittest discover -s tests -t .`. In this repository that is the full suite. For a small task, pass `--repo` and `--test-cmd`. Worked example: [eval/mvp-1031/README.md](eval/mvp-1031/README.md).
+- Gate: `python3 -m unittest discover -s tests -t .`. In this repository that is the full suite. For a small task, pass `--repo` and `--test-cmd`. Worked example: `bash tests/fixtures/mvp_receipt/init_fixture.sh "$PWD/tmp/mvp-fixture-repo"` seeds a red fixture, and `tests/fixtures/mvp_receipt/check_receipt.py` checks the receipt.
 - One grok call waits up to 1200 seconds (`--timeout`). `--retries` defaults to 2, so 3 attempts. `--no-review` skips the review call.
 - `grok` must already be on `PATH` and logged in (`grok login`). This command does not read `auth.json` and does not load `.env`. It does not start a local model. `--local` is opt-in. `-p` is the jev dogfood wrap, not the daily command.
 - A PASS leaves branch `cloud/<slug>-<stamp>` and `pipelines/dogfood/build-cloud/<stamp>/receipt.json` in the target repo. The caller branch stays as it was. Nothing is pushed.
@@ -186,9 +185,9 @@ One-shot design: [docs/ops/one-shot-workflow.md](docs/ops/one-shot-workflow.md) 
 1. ~~Cage smokes + tool integrations~~ (done) — see `make help-platform`  
 2. Write-guard MCP implement — T-0031  
 3. Skill ports (mattpocock / marketing-council / gstack patterns) — T-0011  
-4. Eval harness prototype — T-0003 / [OQ-0002](docs/open-questions/OQ-0002-eval-harness-shape.md)  
+4. Eval harness prototype — T-0003 / OQ-0002  
 
-Plans: [docs/ops/plan-mobile-seed-integration.md](docs/ops/plan-mobile-seed-integration.md), [docs/ops/harness-integration-framework.md](docs/ops/harness-integration-framework.md).
+Plans: [docs/ops/harness-integration-framework.md](docs/ops/harness-integration-framework.md).
 
 ## Deploy runbook
 

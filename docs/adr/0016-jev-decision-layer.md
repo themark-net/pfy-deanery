@@ -39,7 +39,7 @@ Rejected alternatives:
 ## References
 
 - `scripts/pfy_jev_230.py`
-- `docs/design/JEV-230-DEVBOT-HANDOFF.md`
+- a private ops note
 - `docs/design/JEV-230-CUA-S1-FORMS-LOCK.md`
 - `docs/design/DESKTOP-SPEC.md`
 - `docs/ops/jev-230.md`

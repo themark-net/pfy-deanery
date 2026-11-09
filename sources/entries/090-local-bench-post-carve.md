@@ -1,6 +1,6 @@
 ### Entry 090: Local-inference bench 2 — post BIOS/GTT carve + GLM shortlist
 
-- **URL**: harness `examples/local-bench/bench.py` (path/`relative_to` fix). Results: [docs/dogfood/LOCAL-BENCH-2-RESULTS.md](../../docs/dogfood/LOCAL-BENCH-2-RESULTS.md). Cases: `data/decision-gates/laya-trial.cases.v0.json` (cite **#230** only).
+- **URL**: harness `examples/local-bench/bench.py` (path/`relative_to` fix). Results: a private ops note. Cases: `data/decision-gates/laya-trial.cases.v0.json` (cite **#230** only).
 - **Date**: 2026-10-05 / 2026-10-06 (nimo; Mark BIOS carve + TTM same evening)
 - **Source / Poster**: operator follow-up after Entry 089: remeasure under 16 GiB VRAM + ~96 GiB GTT (~107 GiB Linux RAM); research open MoE shortlist for ≤~90 GB weight budget with emphasis on Z.ai GLM Air / 5.x family; do not Feature GO.
 - **Summary / Key Claims**: After Mark lowered BIOS VRAM carve 64→16 GiB and raised `ttm.pages_limit` / `ttm.page_pool_size`, Linux sees ~107 GiB and GPU-addressable ~112 GiB. Re-ran `qwen3-coder:30b` and `glm-4.7-flash`; pulled and ran `qwen3.6:35b` (~22 GB Q4_K_M). Documented that **ollama.service `MemoryHigh=40G`** still blocks 51–73+ GB weights (coder-next, gpt-oss:120b, **GLM-4.5-Air Q4 ~68–73.5 GB**) despite GTT. GLM autopsy: 4.7-flash 39.6% was **typo/invented Choice keys**, not thinking-token JSON parse failure (48/48 `parse_ok`; typo-normalized ~54.2%). Full-size GLM-4.5/4.6 (~355B) and GLM-5.3-Flash (320B/18B; Q4 ~176–200 GB, Q2 ~106+ GB) do **not** fit ≤90 GB at a usable quant; no GLM-4.6-Air released. Catalog HOLD 70–75.

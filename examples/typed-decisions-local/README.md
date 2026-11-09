@@ -25,6 +25,6 @@ python3 examples/typed-decisions-local/trial.py
 python3 examples/typed-decisions-local/trial.py --shadow
 ```
 
-The trial binds `laya-serve` to `127.0.0.1` only and points the typesafe lane at it with `PFY_JEV_TYPESAFE_URL` (default `https://api.typesafe.ai/v1/systemone` is unchanged). Missing venv or server → exit 2 with a reason. Receipt: `pipelines/dogfood/laya-trial/receipt.json`. Results: `docs/dogfood/LAYA-TRIAL-RESULTS.md`.
+The trial binds `laya-serve` to `127.0.0.1` only and points the typesafe lane at it with `PFY_JEV_TYPESAFE_URL` (default `https://api.typesafe.ai/v1/systemone` is unchanged). Missing venv or server → exit 2 with a reason. Receipt: `pipelines/dogfood/laya-trial/receipt.json`. Results: a private ops note.
 
-`--shadow` keeps CUA-S1-FORMS as the decision, runs Laya **english** only on CUA-held cases, and escalates on choice disagreement. Receipt: `pipelines/dogfood/laya-shadow/receipt.json`. Results: `docs/dogfood/LAYA-SHADOW-RESULTS.md`. Flag `PFY_JEV_LAYA_SHADOW` stays off by default.
+`--shadow` keeps CUA-S1-FORMS as the decision, runs Laya **english** only on CUA-held cases, and escalates on choice disagreement. Receipt: `pipelines/dogfood/laya-shadow/receipt.json`. Results: a private ops note. Flag `PFY_JEV_LAYA_SHADOW` stays off by default.

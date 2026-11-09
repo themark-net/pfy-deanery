@@ -160,11 +160,11 @@ A tool whose uses cover CI, testing, or review cannot reach I3 until it has been
 
 ## Design-in-loop (UI is the app)
 
-Operator-facing UI follows **`ui-is-the-app-design-in-loop`**: design pack in `docs/design/` before product UI; never ask what we already know; levers stay on the current view. Lab bolts are allowed; product/dogfood UI needs a Design pass. Verbatim DoD paste line is in that skill. This slice adds no product UI. Ops: [docs/ops/port-bot-doctrine-to-pfy-sot.md](docs/ops/port-bot-doctrine-to-pfy-sot.md).
+Operator-facing UI follows **`ui-is-the-app-design-in-loop`**: design pack in `docs/design/` before product UI; never ask what we already know; levers stay on the current view. Lab bolts are allowed; product/dogfood UI needs a Design pass. Verbatim DoD paste line is in that skill. This slice adds no product UI. Ops: a private ops note.
 
 ## Gate path (BEST_EFFORT default)
 
-Docs, skills, and reversible dogfood follow **`best-effort-and-bot-budget-build-max`**: land on a named branch and PR; do not share an open founder Build checkout; no Feature GO from the port. Handoff: [docs/PENDING-HANDOFF.md](docs/PENDING-HANDOFF.md).
+Docs, skills, and reversible dogfood follow **`best-effort-and-bot-budget-build-max`**: land on a named branch and PR; do not share an open founder Build checkout; no Feature GO from the port.
 
 ### Verification, Benchmarks & Quality Gates
 - Agents must run and test their changes (build, targeted tests, end-to-end where applicable).

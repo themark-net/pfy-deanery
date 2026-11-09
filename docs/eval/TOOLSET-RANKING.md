@@ -4,7 +4,7 @@
 
 **Why:** 22 entries were cataloged between 2026-10-24 and 2026-11-06 and none was tested or built in. Mark approved a catch-up pass on 2026-11-07. This section ranks entries 137 to 167 by how soon each one closes a named pfy-mentat MVP gap. The 2026-10-06 ranking below is kept as history.
 
-**Read:** `sources/entries/137` to `167`, `docs/HANDOFF-mvp-1104.md`, `docs/HANDOFF-headless-1105.md`, `docs/PENDING-HANDOFF.md`, `docs/build-dropins/skill-discovery.md`, `data/tool_integration_stages.json`, and the Strata upstream repo (README, `docs/STRIX_HALO.md`, `docs/MODELS.md`, `docs/TERMINAL_LAUNCH.md`, release `v0.2.12` asset list).
+**Read:** `sources/entries/137` to `167`, a private ops note, a private ops note, a private ops note, a private ops note, `data/tool_integration_stages.json`, and the Strata upstream repo (README, `docs/STRIX_HALO.md`, `docs/MODELS.md`, `docs/TERMINAL_LAUNCH.md`, release `v0.2.12` asset list).
 
 ### MVP gaps used for ranking
 
@@ -51,7 +51,7 @@ Strata is an MIT local inference engine (C++, HIP, CUDA, Metal, SYCL) by Niko122
 ## 2026-10-06 ranking (history)
 
 **Scope:** what to integrate next, assuming **local models only on nimo** (Strix Halo, Ollama about 22 GB edge; `llama-server --no-mmap` edge ≥ 51 GB) and no paid keys besides Grok and Cursor. Active products: Leasegrid, pfy-mentat, Gom Jabbar (jobbar-master), Lotline, Practice Minder.
-**Read:** `TOOLS.md`, `data/tool_integration_stages.json`, `data/toolsets.json`, `sources/x-posts.md`, `sources/entries/066–092`, `docs/dogfood/LOCAL-BENCH-*`, `~/DEVELOP/_vendor/*` READMEs. Nothing was installed or run for this ranking.
+**Read:** `TOOLS.md`, `data/tool_integration_stages.json`, `data/toolsets.json`, `sources/x-posts.md`, `sources/entries/066–092`, private ops notesLOCAL-BENCH-*`, `~/DEVELOP/_vendor/*` READMEs. Nothing was installed or run for this ranking.
 
 ## Already integrated (not re-recommended)
 
@@ -71,7 +71,7 @@ codebase-memory-mcp (I2, `code-graph` toolset) · LiteLLM (I2 smoke) · Ollama (
 | 8 | **Bumblebee** | Read-only supply-chain + MCP-config scanner. Cheap cage probe that protects every vendored tool on this list | S | No | Catalog row only (Entry 069) |
 | 9 | **OpenLobster** | Go single binary, Ollama / OpenAI-compatible, MCP client, graph memory (file or Neo4j), Telegram and Slack channels. Candidate to replace `openclaw-gateway`, whose 128k-ctx GLM loads keep stalling benches. Ops value, not core | M | No (Ollama provider) | Vendored only (`_vendor/OpenLobster`, 2026-03-27) |
 | 10 | **LEANN** | Compressed local RAG over catalog + sources for `catalog-ask`, without a server vector DB | M | No | Catalog row only (Entry 052) |
-| 11 | **kanbots** | Kanban fan-out of CLIs into worktrees. Could drive the Build drop-ins in `docs/build-dropins/`. Overlaps `/agent-loops` | M | No | Stage 0 passed (npx). I1 |
+| 11 | **kanbots** | Kanban fan-out of CLIs into worktrees. Could drive the Build drop-ins in private ops notes. Overlaps `/agent-loops` | M | No | Stage 0 passed (npx). I1 |
 
 ### Skip or hold
 

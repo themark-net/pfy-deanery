@@ -1,7 +1,7 @@
 # Eval harness (OQ-0002 option 5 + v0.2)
 
 **Status:** T-0003 MVP + **T-0041 v0.2** + golden validate (#31) + ADR/OQ scorers (T-0075)  
-**Decision:** [OQ-0002](../../docs/open-questions/OQ-0002-eval-harness-shape.md) — **option 5**
+**Decision:** OQ-0002 — **option 5**
 
 | Tier / mode | Meaning | Command |
 |-------------|---------|---------|

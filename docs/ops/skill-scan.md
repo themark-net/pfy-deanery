@@ -39,7 +39,7 @@ GNU make turns a failing recipe into make exit 2. The script's own exit code is 
 
 `CAUTION` is not safe. Pass `--allow-caution` only after a person has read the receipt and accepted it. That flag is not the H2 copy rule below.
 
-H2 rule: a fetched skill may be copied into a skills dir only after `scripts/pfy_skill_scan.py` exits 0 on it. Fetched skills stay data until that check passes. The discovery drop-in (`docs/build-dropins/skill-discovery.md`) does not load them.
+H2 rule: a fetched skill may be copied into a skills dir only after `scripts/pfy_skill_scan.py` exits 0 on it. Fetched skills stay data until that check passes. The discovery drop-in (a private ops note) does not load them.
 
 This check stays advisory. Do not wire it into pregate, CI, or any existing gate. A blocking security gate needs Tester and Reviewer, which is a separate step.
 

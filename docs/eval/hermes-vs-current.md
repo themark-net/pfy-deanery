@@ -33,7 +33,7 @@ Against the prior run: the valid-rate gap closed. The latency gap did not surviv
 
 Not a Feature GO. No production wiring in that pass. Verdict: **NO-WIN**.
 
-Hermes (`AIAgent.run_conversation` at pin `ddabd3837862022a6053331fe3ba97cf9716b9e3`) beat `opencode run` 1.18.32 by 3.70 percentage points on task success (26/27 vs 25/27) and was much faster ([not like-for-like](HERMES-EVAL-HANDOFF.md#founder-decision-2026-10-20): thinking off on Hermes only, opencode CLI cold start, RSS excludes the model). That is short of the +10 point bar. Its bake-off valid tool-call rate was also 15.2 points worse. Wilson 95% intervals on task success overlap.
+Hermes (`AIAgent.run_conversation` at pin `ddabd3837862022a6053331fe3ba97cf9716b9e3`) beat `opencode run` 1.18.32 by 3.70 percentage points on task success (26/27 vs 25/27) and was much faster (not like-for-like: thinking off on Hermes only, opencode CLI cold start, RSS excludes the model). That is short of the +10 point bar. Its bake-off valid tool-call rate was also 15.2 points worse. Wilson 95% intervals on task success overlap.
 
 ## Method
 
@@ -109,7 +109,7 @@ Negatives passed on both arms (zero tool calls, expected text).
 
 ## What would have to change for a re-run
 
-The meta-tools-off re-run with matched thinking is the 2026-10-21 section at the top of this file. Prerequisites and the founder choice are in the [handoff](HERMES-EVAL-HANDOFF.md#founder-decision-2026-10-20).
+The meta-tools-off re-run with matched thinking is the 2026-10-21 section at the top of this file. Prerequisites and the founder choice are in the handoff.
 
 Item C (adapter plan) is skipped. A re-run is worth it only if the question changes. On this 27-task set both arms are already above 92%, and +10 points means about three more baseline misses. The intervals overlap.
 

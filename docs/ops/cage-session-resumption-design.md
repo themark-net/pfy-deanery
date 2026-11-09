@@ -156,7 +156,7 @@ Inside TUI: `/resume` still works once sessions are on the persisted mount.
 
 ## Session brief (this design session) for cage import
 
-See: [session-brief-2026-07-12-cage-resume.md](session-brief-2026-07-12-cage-resume.md)
+See: a private ops note
 
 ## References
 

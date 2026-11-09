@@ -7,7 +7,7 @@ description: Operate the catalog loop. Read loop.latest.json, stop with STOP or 
 
 Use this to run or stop one catalog tick, to read the status snapshot, or to retry a parked lane. The tick is `scripts/catalog_loop.sh`. Do not reimplement the queue walk, the caps, or the lock.
 
-A Build lane does not install systemd units and does not start the real loop. The operator does that after the units land. Install steps are in `docs/ops/HANDOFF-catalog-loop-1108.md`.
+A Build lane does not install systemd units and does not start the real loop. The operator does that after the units land. Install steps are in `ops/systemd/` (the unit files and their comments). Set `PFY_OPS_ROOT` for the loop unit, as `ops/systemd/catalog-loop.service` does.
 
 ## Inputs
 
@@ -30,7 +30,7 @@ A Build lane does not install systemd units and does not start the real loop. Th
 
 ## needs-mark.tsv
 
-Path: `eval/catalog-queue/needs-mark.tsv`.
+Path: `$PFY_OPS_ROOT/eval/catalog-queue/needs-mark.tsv`, in the private ops checkout. It is operator state and never goes in the public repo. The tick commits only that path there and pushes the ops repo. With `PFY_OPS_ROOT` unset, the tick writes `tmp/ops/eval/catalog-queue/needs-mark.tsv` in its worktree (gitignored) and commits nothing. `scripts/check_public_paths.py` fails a public commit that adds it.
 
 Columns: `slug`, `kind`, `reason`, `evidence`, `since`.
 
@@ -76,7 +76,7 @@ The tick runs `python3 scripts/supersede_check.py` in the loop worktree after re
 1. Read the `supersede-stop` row and the checker output.
 2. Decide adopt, adopt parts, or keep going. Record that on `data/supersede-watchlist.json`.
 3. A project that covers all four parts in full stays exit 1 until its verdict is `replace_us`.
-4. When the checker exits 0, the next tick rewrites `eval/catalog-queue/needs-mark.tsv` and does not put the stop row back.
+4. When the checker exits 0, the next tick rewrites the needs-mark queue and does not put the stop row back.
 5. This is not the `STOP` file. Do not delete `STATE/STOP` to clear a supersede stop.
 
 ## Retry
@@ -105,4 +105,4 @@ PFY_LOOP_NO_PUSH=1 scripts/catalog_loop.sh
 scripts/catalog_loop.sh
 ```
 
-The five software-factory questions for this pipeline are answered in `docs/ops/HANDOFF-catalog-loop-1108.md`.
+The five software-factory questions for this pipeline are answered in the private ops handoff for the catalog loop.

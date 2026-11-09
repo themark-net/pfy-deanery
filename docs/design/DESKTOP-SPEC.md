@@ -228,7 +228,7 @@ Public framing only: https://typesafe.ai/ (decisions not chat; calibrated confid
 
 ## 10. Implementer DoD (binds #230)
 
-One PR from current main. Cite **#230 only**. Do not reopen **#76**. Catalog 70–75 HOLD (HOLD exception = this slice). Prefer Grok Build on nimo. No Mark drip for default smoke. See also `JEV-230-DEVBOT-HANDOFF.md`.
+One PR from current main. Cite **#230 only**. Do not reopen **#76**. Catalog 70–75 HOLD (HOLD exception = this slice). Prefer Grok Build on nimo. No Mark drip for default smoke. See also a private ops note.
 
 1. Decision layer: typed Choice/Score API surface in wizard/Attach — not chat; honest confidence thresholding.
 2. Attach (a) optional TypeSafe key compaction/routing; (b) local CUA-S1-FORMS FreeToken-first on nimo.

@@ -3,7 +3,7 @@
 - **Date:** 2026-07-12
 - **Status:** Accepted
 - **Supersedes:** informal claims that AgenC is “primary host runtime” (bootstrap/integration READMEs, T-0044 narrative)
-- **Related:** [ADR-0002](0002-grok-cli-primary-interface.md) (Grok CLI primary — **affirmed**), [OQ-0005](../open-questions/OQ-0005-grok-in-cage-strategy.md)
+- **Related:** [ADR-0002](0002-grok-cli-primary-interface.md) (Grok CLI primary — **affirmed**), OQ-0005
 
 ## Context
 

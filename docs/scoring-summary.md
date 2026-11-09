@@ -167,7 +167,7 @@ Prior synthesis rows above remain historical context; this section is the 2026-0
 
 | What changed since July | Evidence already on this branch | What this pass did not do |
 |-------------------------|---------------------------------|---------------------------|
-| Hermes bake-off | Entry 134 on main. Meta-tools-off re-run was NO-WIN (2026-10-21). `PFY_BOT_INTERFACE=hermes` stays default-off. See [HERMES-EVAL-HANDOFF.md](eval/HERMES-EVAL-HANDOFF.md). | No rescore. No second bake-off. |
+| Hermes bake-off | Entry 134 on main. Meta-tools-off re-run was NO-WIN (2026-10-21). `PFY_BOT_INTERFACE=hermes` stays default-off. See a private ops note. | No rescore. No second bake-off. |
 | Voice reference class | Entries 150-152: [150-pipecat.md](../sources/entries/150-pipecat.md), 151 LiveKit, 152 freeapp. Stage-0 FAIL / I0. No TOOLS.md row. ADR-0012 primary path unchanged. | No install. The July line "T-0095 Stage 0 only" is historical. |
 | Stage cards | 52 TOOLS.md rows already have handoff judgments. No `integration_stage` letter changed. Kolibri-1 received only the deterministic fields already in its TOOLS.md cell. Stage stays I0. | `scripts/catalog_stage_eval.py --apply` was not run. It would drop the live ATG and harness2 receipts. Pipecat, LiveKit, Exo, and claude-code-unified-agents still have no judgment fields. None were invented. |
 | Laguna, asm, hooks, MUE-X | Entry 073 smoke not run (issue #25, T-0062 still todo). #26, #27, and #28 are pattern docs on main since 2026-07-30 (`7197200`, `57bc3d0`). | No quant pull. No npm install. No evolve lab. The July "asm when Node/lab ready" line is historical. HD #37 stays pattern-only. |

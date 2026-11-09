@@ -78,6 +78,6 @@ The summary line `selection: mode=... modules=...` is the diff `ubuntu-parity` r
 ## See also
 
 - [MODULAR-CI.md](MODULAR-CI.md)
-- [HANDOFF-pregate.md](HANDOFF-pregate.md)
-- [GATE-NOTES-fix2.md](GATE-NOTES-fix2.md)
-- [HANDOFF-pfy-local-build-mvp.md](HANDOFF-pfy-local-build-mvp.md)
+- a private ops note
+- a private ops note
+- a private ops note

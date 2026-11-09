@@ -40,7 +40,7 @@ python3 bootstrap/grok-cli/scripts/verify_skills.py --installed
 2. Row in `bootstrap/grok-cli/manifest.json` → `first_party_skills.skills`
 3. Mention in `bootstrap/grok-cli/README.md` skills table
 4. AGENTS.md router line if it is a process skill
-5. `PORT.md` states the org skill is a pointer when the pack is a doctrine port ([port-bot-doctrine-to-pfy-sot.md](port-bot-doctrine-to-pfy-sot.md))
+5. `PORT.md` states the org skill is a pointer when the pack is a doctrine port (a private ops note)
 6. `make smoke-grok-skills` green
 7. `./bootstrap/grok-cli/install.sh --skills-only` then `make smoke-grok-skills INSTALLED=1`
 

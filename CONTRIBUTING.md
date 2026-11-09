@@ -27,7 +27,7 @@ We prioritize practical, reproducible improvements in efficiency (tokens, latenc
 ### 3. Process & Documentation Changes
 
 - Architecture or major process shifts → create or update an ADR in `docs/adr/` (follow the template and include rejected alternatives).
-- Unsettled questions or experiments → open an item in `docs/open-questions/` and link from `docs/OPEN_QUESTIONS.md` and `docs/TODO.md`.
+- Unsettled questions or experiments → open an Issue. Maintainers track open questions privately and record answers as ADRs in `docs/adr/`.
 - Small improvements to docs, categorization, or bootstrap scripts are welcome via direct PR.
 
 ## Evaluation Standards
@@ -53,7 +53,7 @@ Be respectful, precise, and evidence-based. Negative or critical evaluations are
 
 ## Questions?
 
-Open an Issue or reference an existing open question in `docs/open-questions/`.
+Open an Issue.
 
 ---
 

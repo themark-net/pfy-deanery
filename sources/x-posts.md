@@ -130,7 +130,7 @@ Log of X (Twitter) posts used to seed or expand the tool catalog. Each entry inc
 - **Summary / Key Claims**: Docker-based sandbox giving agents a full Ubuntu environment while the operator controls network access via mitmproxy policy, TLS inspection, domain whitelist, audit logs. Native **MCP** overlay (`mcp-servers.yaml`, compose). CLI `agentcage up [--mcp]`, shell, policy, dashboard. Harness-agnostic (Claude Code, Cline, LangGraph, custom agents). Images are versionable for reproducible integration tests — primary path for testing catalog tools in isolation.
 - **Extracted Repos / Tools**: https://github.com/pnnl/agent-cage (pin develop `ea0cdb328683`). Related: https://github.com/cleatdev/cleat (Claude-focused Docker cage), https://github.com/chaserhkj/agent-cage (Podman/microVM Rust CLI).
 - **TOOLS.md Link**: agent-cage (PNNL) S-tier Pipeline row; wrapper `harness/agent-cage/`.
-- **Notes**: Aligns with prior multi-dev harness experience (containers + MCP; Make optional for OS branching). Prefer pnnl for MCP + policy + compose; optional Makefile wrapper for Linux/macOS/Windows(WSL) developer ergonomics.
+- **Notes**: Aligns with past multi-dev harness work (containers + MCP; Make optional for OS branching). Prefer agent-cage for MCP + policy + compose; optional Makefile wrapper for Linux/macOS/Windows(WSL) developer ergonomics.
 - **Status**: Processed and cataloged; harness package scaffolded under `harness/agent-cage/`
 
 ### Entry 012: Multica — Open-Source Managed Agents Platform (Human + AI Teammates)

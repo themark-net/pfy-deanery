@@ -3,7 +3,7 @@
   "integration_stage": "I0",
   "intent": "awareness_fit_gate_failed",
   "github": "https://huggingface.co/unsloth/DeepSeek-V4.1-Flash-1017-GGUF",
-  "notes_doc": "eval/mvp-1031/dsv4/REPORT.md",
+  "notes_doc": "sources/entries/153-deepseek-v4.1-flash-1017-gguf.md",
   "non_goals": [
     "download_on_nimo",
     "local_default",

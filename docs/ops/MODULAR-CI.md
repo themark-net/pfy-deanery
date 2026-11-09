@@ -133,4 +133,4 @@ The two green runs (496.98 s and 495.48 s, about 8.3 minutes) agreed: 171 module
 
 ## Scripts
 
-Usage for the three scripts is in [HANDOFF-fast-pipeline-1107.md](../HANDOFF-fast-pipeline-1107.md). Pregate flags are in [PREGATE.md](PREGATE.md).
+Usage for the three scripts is in a private ops note. Pregate flags are in [PREGATE.md](PREGATE.md).

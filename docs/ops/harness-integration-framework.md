@@ -55,7 +55,7 @@ One-shot DoD templates: [one-shot-example-dods.md](one-shot-example-dods.md).
 
 ## Related
 
-- [plan-mobile-seed-integration.md](plan-mobile-seed-integration.md)  
+- a private ops note  
 - [TODO.md](../TODO.md)  
 - [one-shot-example-dods.md](one-shot-example-dods.md)  
 

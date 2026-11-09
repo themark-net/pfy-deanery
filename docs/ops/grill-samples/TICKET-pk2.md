@@ -1,6 +1,6 @@
 # pk2: grill step before cutting any CI, pipeline or gate ticket (branch bot/grill-step-1107)
 
-Why: the 2026-11-03 trial (docs/ops/BUILD-GATE-TRIALS-1103.md, already committed on this branch by the driver from 31db5ff) showed a tools-off grill caught a real fail-open the exit test missed. We then never used it on pipeline changes, and the pipeline ran the full suite about 6 times per landing. Mark approved this on 2026-11-07.
+Why: the 2026-11-03 trial (a private ops note, already committed on this branch by the driver from 31db5ff) showed a tools-off grill caught a real fail-open the exit test missed. We then never used it on pipeline changes, and the pipeline ran the full suite about 6 times per landing. Mark approved this on 2026-11-07.
 
 Lanes and tickets are cut in two places: (1) sandcastle-grok (`src/lanes.mts`, tickets `{id,title,body,blockedBy[],exitTest{path,content}}`, batches/*.json), a local repo with a worktree for you at /home/mark/DEVELOP/pfy-mentat/tmp/pk-2/tmp/sc (inside this worktree's ignored tmp/, so it is in your cwd) on branch bot/grill-step-1107 (node_modules symlinked; commit there too, do not touch /home/mark/DEVELOP/sandcastle-grok itself), and (2) bot-written detached drivers that put a TICKET-<label>.md into a pfy-mentat worktree (see ~/DEVELOP/pfy-mentat/tmp/pk1107/lane.sh for the pattern; read only).
 
@@ -15,8 +15,8 @@ Lanes and tickets are cut in two places: (1) sandcastle-grok (`src/lanes.mts`, t
 2. **sandcastle-grok**: add an optional `--grill auto|off` (default auto) step in src/lanes.mts before a lane is cut: for tickets that touch CI, pipeline or gate files it calls `python3 <pfy-mentat checkout>/scripts/grill_ticket.py` (path configurable via env `PFY_MENTAT_DIR`, default ~/DEVELOP/pfy-mentat), merges the resulting exit tests into the ticket, and records the grill in the receipt (count, turns, cost). A grill failure blocks only that ticket with a clear reason; it never silently skips. Update README-INTEGRATION.md. Commit in the sandcastle worktree on bot/grill-step-1107 with a test or smoke run that proves the hook fires for a CI ticket and not for a plain one (use the fake grok).
 3. **Bot drivers**: document in docs/ops/GRILL-STEP.md how a coordinator bot runs the grill before writing a TICKET-<label>.md for any CI/pipeline/gate lane, with the exact command, and add it as a short rule line in docs/ops/loop-engineering.md or the most relevant existing ops doc (not AGENTS.md; another lane edits AGENTS.md).
 4. **Real run**: run the grill once for real on nimo against this lane's own ticket (it touches gate tooling) and against ~/DEVELOP/pfy-mentat/tmp/fp1107/TICKET-s3.md (read only; write outputs under docs/ops/grill-samples/ or tmp), report question count, behavior-changing answers, turns, wall time and cost in GRILL-STEP.md. No secrets.
-5. Keep docs/ops/BUILD-GATE-TRIALS-1103.md as committed (you may add a one-line pointer to GRILL-STEP.md at the end).
-6. Handoff: docs/ops/HANDOFF-grill-step-1107.md (what changed in both repos, commands, real-run numbers, risks).
+5. Keep a private ops note as committed (you may add a one-line pointer to GRILL-STEP.md at the end).
+6. Handoff: a private ops note (what changed in both repos, commands, real-run numbers, risks).
 
 ## Rules for every pk1107 lane
 - Commit on this branch in this worktree; do not push (the driver pushes). Clean `git status` at the end.

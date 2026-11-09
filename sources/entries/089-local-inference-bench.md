@@ -20,6 +20,6 @@
 | Host starved | MemAvailable collapses under the desktop | Stop further loads under 8 GiB; document |
 | Confidence as correctness | High-margin wrong JSON treated as a GO | Gate 0.85; wbc counted; CUA-S1-FORMS stays default |
 
-- **Status**: **I0 / trial-ran / no promotion**. Live on nimo 2026-10-06 (Ollama 0.30.8, ctx 2048, 48 cases, gate 0.85): qwen3-coder:30b **79.2% / 2.1% escalate / 10 wbc / 65 decode tok/s**; stretch qwen3-coder-next **83.3% / 18 tok/s**. CUA-S1-FORMS stays default. Results: [docs/dogfood/LOCAL-BENCH-RESULTS.md](../../docs/dogfood/LOCAL-BENCH-RESULTS.md). Receipt: `pipelines/dogfood/local-bench/receipt.json`. Not a Feature GO.
+- **Status**: **I0 / trial-ran / no promotion**. Live on nimo 2026-10-06 (Ollama 0.30.8, ctx 2048, 48 cases, gate 0.85): qwen3-coder:30b **79.2% / 2.1% escalate / 10 wbc / 65 decode tok/s**; stretch qwen3-coder-next **83.3% / 18 tok/s**. CUA-S1-FORMS stays default. Results: a private ops note. Receipt: `pipelines/dogfood/local-bench/receipt.json`. Not a Feature GO.
 
-- **Follow-up**: Entry [090](090-local-bench-post-carve.md) / [LOCAL-BENCH-2-RESULTS.md](../../docs/dogfood/LOCAL-BENCH-2-RESULTS.md) — post BIOS/GTT carve rebench + GLM shortlist (2026-10-05).
+- **Follow-up**: Entry [090](090-local-bench-post-carve.md) / LOCAL-BENCH-2-RESULTS.md — post BIOS/GTT carve rebench + GLM shortlist (2026-10-05).

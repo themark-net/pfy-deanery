@@ -1,6 +1,6 @@
 # Hermes bake-off (Entry 134)
 
-Stdlib harness that compares two tool-calling arms on the same tasks, the same model, and the same MCP server. Not a Feature GO. No gateway. `./pfy bot` can opt into Hermes with `PFY_BOT_INTERFACE=hermes`. The default stays opencode (`docs/plans/hermes-bot-interface.md`).
+Stdlib harness that compares two tool-calling arms on the same tasks, the same model, and the same MCP server. Not a Feature GO. No gateway. `./pfy bot` can opt into Hermes with `PFY_BOT_INTERFACE=hermes`. The default stays opencode (a private ops note).
 
 ## Arms
 
