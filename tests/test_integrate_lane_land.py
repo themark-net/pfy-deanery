@@ -34,6 +34,9 @@ STUBS = {
         "raise SystemExit(3)\n"
     ),
     "README": "fixture\n",
+    "data/stages/badtool.json": '{"name": "badtool", "integration_stage": "I2"}\n',
+    "data/stages/goodtool.json": '{"name": "goodtool", "integration_stage": "I2"}\n',
+    "data/stages/reviewstop.json": '{"name": "reviewstop", "integration_stage": "I2"}\n',
 }
 
 
@@ -206,6 +209,9 @@ class LaneLandTest(unittest.TestCase):
             root = Path(td)
             (root / "tmp").mkdir()
             (root / "tmp" / "STOP").write_text("stop\n")
+            card = root / "data" / "stages" / "stop-slug.json"
+            card.parent.mkdir(parents=True)
+            card.write_text('{"name": "stop-slug", "integration_stage": "I2"}\n')
             log = td / "calls.log"
             bindir = td / "bin"
             bindir.mkdir()

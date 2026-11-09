@@ -25,6 +25,7 @@ STUBS = {
     ),
     "scripts/run_tests.py": "#!/usr/bin/env python3\nraise SystemExit(0)\n",
     "README": "fixture\n",
+    "data/stages/dcghook.json": '{"name": "dcghook", "integration_stage": "I2"}\n',
 }
 
 

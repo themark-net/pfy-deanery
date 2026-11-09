@@ -1,17 +1,22 @@
 #!/bin/bash
 # Drive one I2-to-I3 integration lane. No pull requests.
 #
-# The first write is tmp/integrate/<slug>.dispatched. A second start exits 2
-# before fetch, worktree, grok, or push. Land with a fast-forward push of the
-# worktree SHA onto origin/main. Rebase and retry when origin/main is not an
-# ancestor of that SHA. Park instead of pushing when a step fails.
+# If tmp/integrate/<slug>.dispatched already exists, a second start exits 2
+# before fetch, worktree, grok, or push. Otherwise the stage card, the
+# exclusions file, and park files are read first. The marker is created only
+# when integration_stage is I2, the slug is not listed in
+# eval/catalog-queue/exclusions.tsv, and no <slug>.parked file exists.
+# A refusal writes no marker and deletes none. A lost race on the create
+# exits 2. Land with a fast-forward push of the worktree SHA onto origin/main.
+# Rebase and retry when origin/main is not an ancestor of that SHA. Park
+# instead of pushing when a later step fails.
 #
 #   scripts/integrate_lane.sh --slug <slug> [--root DIR] [--date MMDD] [--ticket FILE]
 #   scripts/integrate_lane.sh --dry-run --slug <slug> [--root DIR]
 #
-# --dry-run prints one line and exits before the dispatch marker, fetch, Grok,
-# and the push. It does not take the model lock. Do not run the default path
-# against the real origin from a test. Pass --root.
+# --dry-run prints one line and exits before the card check, the dispatch
+# marker, fetch, Grok, and the push. It does not take the model lock. Do not
+# run the default path against the real origin from a test. Pass --root.
 
 set -euo pipefail
 
@@ -101,10 +106,63 @@ PROGRESS="$MARK_DIR/progress.md"
 WT="$MARK_DIR/wt/${SLUG}"
 BRANCH="bot/integrate-${SLUG}-${DATE}"
 
-# Second start: no git and no grok.
+# Second start: no git and no grok. Leave the marker bytes alone.
 if [ -f "$MARKER" ]; then
   printf '%s\n' "already dispatched: $SLUG" >&2
   exit 2
+fi
+
+# Refuse before the marker. A miss writes nothing and deletes nothing.
+if ! python3 - "$ROOT" "$SLUG" "$MARK_DIR" "$DEFAULT_ROOT" <<'PY'
+import json
+import os
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+slug = sys.argv[2]
+mark_dir = Path(sys.argv[3])
+repo = sys.argv[4]
+sys.path.insert(0, repo)
+from scripts.catalog_eval_queue import QueueError, exclusion_reason
+
+
+def refuse(msg):
+    sys.stderr.write(msg + "\n")
+    raise SystemExit(1)
+
+
+card_path = root / "data" / "stages" / f"{slug}.json"
+if not card_path.is_file():
+    refuse(f"not I2: {slug} missing-card")
+try:
+    card = json.loads(card_path.read_text(encoding="utf-8"))
+except (OSError, UnicodeError, json.JSONDecodeError):
+    refuse(f"not I2: {slug} malformed-card")
+if not isinstance(card, dict):
+    refuse(f"not I2: {slug} malformed-card")
+stage = card.get("integration_stage")
+if stage != "I2":
+    shown = stage if isinstance(stage, str) else "missing"
+    refuse(f"not I2: {slug} stage={shown}")
+
+park_files = [mark_dir / f"{slug}.parked"]
+loop = os.environ.get("PFY_LOOP_STATE", "").strip()
+if loop:
+    park_files.append(Path(loop) / "integrate" / f"{slug}.parked")
+for path in park_files:
+    if path.is_file():
+        refuse(f"parked: {slug}")
+
+try:
+    reason = exclusion_reason(root, slug)
+except QueueError as exc:
+    refuse(f"excluded: {slug} {exc}")
+if reason:
+    refuse(f"excluded: {slug}")
+PY
+then
+  exit 1
 fi
 
 mkdir -p "$MARK_DIR"

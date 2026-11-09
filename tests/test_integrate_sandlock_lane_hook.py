@@ -52,7 +52,7 @@ class SandlockLaneHookTest(unittest.TestCase):
             verdict = script.parent / "VERDICT.json"
             verdict.write_text('{"proposed_stage": "I3"}\n')
             card = clone / "data" / "stages" / "hookslug.json"
-            card.parent.mkdir(parents=True)
+            card.parent.mkdir(parents=True, exist_ok=True)
             card.write_text('{"name": "hookslug", "integration_stage": "I2", "tier_ceiling": "I1"}\n')
             apply_py = clone / "scripts" / "catalog_apply_verdict.py"
             apply_py.write_text(textwrap.dedent("""\

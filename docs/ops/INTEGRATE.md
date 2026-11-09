@@ -38,16 +38,17 @@ Default `--date` is UTC `MMDD`. The branch is `bot/integrate-<slug>-<date>`. The
 
 Order:
 
-1. If `tmp/integrate/<slug>.dispatched` already exists, exit 2. No fetch, no worktree, no grok, no push.
-2. Create that marker with `noclobber` before any git or grok call.
-3. If `tmp/STOP` exists, write `<slug>.parked` with reason `STOP file` and exit 0.
-4. `git fetch origin`, then `git worktree add -b bot/integrate-<slug>-<date>`.
-5. `python3 scripts/catalog_check.py` in the worktree.
-6. `python3 scripts/grill_ticket.py` on the ticket.
-7. Headless Grok Build implement, then a self-review. Each is `grok --always-approve --output-format plain --prompt-file <prompt>`, up to 3 attempts.
-8. Sanity on files changed versus `origin/main`: `python3 -m py_compile` for Python, `bash -n` for shell, JSON parse, YAML parse. Then `catalog_check.py` and `check_no_encoded_payloads.py` again.
-9. Select tests from `git diff --name-only --diff-filter=ACMR origin/main...HEAD`, then `python3 scripts/test_select.py --paths` those files. An empty diff skips the runner. Do not use a two-dot diff against `origin/main` before the rebase. A behind lane would otherwise select main-only files and take mode full. Run the printed modules with `python3 scripts/run_tests.py`. No full suite, no shared lock.
-10. Land. See below.
+1. If `tmp/integrate/<slug>.dispatched` already exists, exit 2. No fetch, no worktree, no grok, no push. The marker bytes stay.
+2. Read `data/stages/<slug>.json`, `eval/catalog-queue/exclusions.tsv`, and `<slug>.parked`. Refuse when `integration_stage` is not I2, the slug is listed in the exclusions file, or a park file exists. A missing exclusions file is not a refusal. A malformed exclusions file is a refusal. When `PFY_LOOP_STATE` is set, `$PFY_LOOP_STATE/integrate/<slug>.parked` is a park file. A refusal writes no dispatch marker, writes no park file, and deletes nothing.
+3. Create the dispatch marker with `noclobber` before any git or grok call. A lost race exits 2.
+4. If `tmp/STOP` exists, write `<slug>.parked` with reason `STOP file` and exit 0.
+5. `git fetch origin`, then `git worktree add -b bot/integrate-<slug>-<date>`.
+6. `python3 scripts/catalog_check.py` in the worktree.
+7. `python3 scripts/grill_ticket.py` on the ticket.
+8. Headless Grok Build implement, then a self-review. Each is `grok --always-approve --output-format plain --prompt-file <prompt>`, up to 3 attempts.
+9. Sanity on files changed versus `origin/main`: `python3 -m py_compile` for Python, `bash -n` for shell, JSON parse, YAML parse. Then `catalog_check.py` and `check_no_encoded_payloads.py` again.
+10. Select tests from `git diff --name-only --diff-filter=ACMR origin/main...HEAD`, then `python3 scripts/test_select.py --paths` those files. An empty diff skips the runner. Do not use a two-dot diff against `origin/main` before the rebase. A behind lane would otherwise select main-only files and take mode full. Run the printed modules with `python3 scripts/run_tests.py`. No full suite, no shared lock.
+11. Land. See below.
 
 A failed step appends `tmp/integrate/progress.md`, writes `tmp/integrate/<slug>.parked` with the reason, and does not push. The dispatched marker stays, so a second start exits 2 until a person removes it.
 

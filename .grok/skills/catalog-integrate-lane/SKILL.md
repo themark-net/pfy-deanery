@@ -26,7 +26,7 @@ Use this for an I2 card whose ceiling is already I3 or I4 and which has no recei
 
 Under `<root>/tmp/integrate/`:
 
-- `<slug>.dispatched` with noclobber. Content starts as `pid`. A second start exits 2 before git or Grok.
+- `<slug>.dispatched` with noclobber. Content starts as `pid`. A second start exits 2 before git or Grok. Before that write, the driver refuses a card whose `integration_stage` is not I2, a slug listed in `eval/catalog-queue/exclusions.tsv`, or an existing `<slug>.parked` file. When `PFY_LOOP_STATE` is set, `$PFY_LOOP_STATE/integrate/<slug>.parked` counts. A refusal writes no marker and deletes none. `--dry-run` still exits before this check.
 - `<slug>.parked`, `<slug>.done`, `LANDED_<slug>`
 - `progress.md` with `skill=catalog-integrate-lane sha=<git hash-object of this file>`
 
