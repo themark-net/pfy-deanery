@@ -14,6 +14,7 @@ The product surface `./pfy` does onboard, stage, and ship. The catalog lifecycle
 - Intake `--write-card` records evidence from the source: the repo URL, a license when a local tree states one, a pin SHA when the source or a local git HEAD has one, and one README claim. No network. `integration_stage` stays I0. `tier_ceiling` is I1 when that list is non-empty, so `catalog_apply_verdict.py` can allow I1. A bare name stays `evidence: []` and `tier_ceiling: I0`. Apply does not invent evidence. Empty source, duplicate, and `./pfy catalog nosuch` are unchanged. Closed in `d0312047a1150aa7b0d78be4fa36631bc7fa1673`.
 - Browse lists a stage card that is not an Active Catalog row. Intake still does not write `TOOLS.md`, `data/tools.json`, or `sources/`. Documented rows keep their table name, category, and github. The card's `integration_stage` is shown and not written. An I0 card stays incomplete, so ask still SKIPs. Auto-Company (other heading) and LiveKit (no table row) are listed. A stage file that is not valid JSON hides card stages until that file is removed; the table names stay. Empty source, duplicate, and `./pfy catalog nosuch` are unchanged. Closed in `cdf64e46b1890699fd627bf0e0820363fcbad4dc`.
 - README "Using the catalog" names the five commands. `./pfy help` says `pfy eval` is the product structural gate and names `scripts/eval_lane.sh` and `scripts/catalog_intake_dedupe.py`. The command name `pfy eval` is unchanged.
+- `./pfy eval` stays the product structural gate (`make eval-integration-change`). It writes `pipelines/eval`. It does not call Grok and does not push `main`. Catalog verdicts stay `scripts/eval_lane.sh` (Grok, then a fast-forward of `main`). Help, the operator docs, the eval-lane skill, and `tests/test_cli.py` say that. One test runs `./pfy eval` with a stub `make` and checks the receipt was not written. The command was not renamed. Closed in `ed9616cc4338cdfb6b404ad004fa4835518c3ca6`.
 
 While this walk was open, `origin/main` also landed `cec3b3de` (excluded slugs refused before a ceiling check; lane test selection is `origin/main...HEAD`; taste-skill, repowise, and opencode-mem tests expect the I3 cap the loop already wrote) and `5683af53` (I1 static eval for LocalHarness and Cartographer, value gate fail, both stay I1). This lane did not re-raise ATG. `atomic-task-graph-atg` stays on `eval/catalog-queue/exclusions.tsv`.
 
@@ -23,9 +24,7 @@ Item 1 (intake evidence, a new card cannot leave I0) is closed. See Closed in th
 
 Item 2 (a new stage card is invisible in `./pfy catalog`) is closed. See Closed in this pass.
 
-### 3. Find: `./pfy eval` is still the product gate
-
-`./pfy help` now says that line is the product structural gate, and it names `scripts/eval_lane.sh` and `scripts/catalog_intake_dedupe.py`. Renaming `./pfy eval` is not a small fix. The command still runs `make eval-integration-change`.
+Item 3 (`./pfy eval` versus `scripts/eval_lane.sh`) is closed. See Closed in this pass. The command name is unchanged.
 
 The supersede parts-count finding is closed. See Closed in this pass. Closed in `1cd339ed0093f9a76dfa00c32da8c401565ba34b`.
 
@@ -35,7 +34,7 @@ The supersede parts-count finding is closed. See Closed in this pass. Closed in 
 
 The stub lane against a local bare (not GitHub) reached `test_select mode=affected modules=22` and parked `run_tests failed`. Origin was not updated. The selector fix above is the small part. `--dry-run --state DIR` now exits before the dispatch marker, Grok, and the push. It does not walk apply. The default path still fast-forwards `main`. Do not point a real lane at GitHub from a test.
 
-`./pfy eval` (the product gate) was not run. It writes under `pipelines/eval` and is a different command.
+`./pfy eval` (the product gate) was not run in the walk. It writes under `pipelines/eval` and is a different command. Help and `tests/test_cli.py` lock that split. Closed in `ed9616cc4338cdfb6b404ad004fa4835518c3ca6`.
 
 ### 5. Integrate: I2 guard closed, and the driver still pushes
 
