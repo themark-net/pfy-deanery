@@ -41,7 +41,7 @@ STUBS = {
 
 
 def git(repo, *args, env=None):
-    run_env = os.environ.copy()
+    run_env = {k: v for k, v in os.environ.items() if k != "PFY_OPS_ROOT"}  # never the real ops checkout
     run_env.update(
         {
             "GIT_AUTHOR_NAME": "Lane",
@@ -128,7 +128,7 @@ class LaneLandTest(unittest.TestCase):
             log = td / "grok.log"
             bindir = td / "bin"
             write_grok(bindir, log)
-            env = os.environ.copy()
+            env = {k: v for k, v in os.environ.items() if k != "PFY_OPS_ROOT"}  # never the real ops checkout
             env["PATH"] = str(bindir) + os.pathsep + env.get("PATH", "")
             env["PFY_MODEL_LOCK"] = str(td / "model.lock")
             before = subprocess.check_output(
@@ -220,7 +220,7 @@ class LaneLandTest(unittest.TestCase):
                 path = bindir / name
                 path.write_text(fake)
                 path.chmod(path.stat().st_mode | stat.S_IEXEC)
-            env = os.environ.copy()
+            env = {k: v for k, v in os.environ.items() if k != "PFY_OPS_ROOT"}  # never the real ops checkout
             env["PATH"] = str(bindir) + os.pathsep + env.get("PATH", "")
             result = subprocess.run(
                 ["bash", str(SCRIPT), "--root", str(root), "--slug", "stop-slug", "--date", "1108"],
@@ -265,7 +265,7 @@ class LaneLandTest(unittest.TestCase):
                 exit 0
             """))
             grok.chmod(grok.stat().st_mode | stat.S_IEXEC)
-            env = os.environ.copy()
+            env = {k: v for k, v in os.environ.items() if k != "PFY_OPS_ROOT"}  # never the real ops checkout
             env["PATH"] = str(bindir) + os.pathsep + env.get("PATH", "")
             env["PFY_MODEL_LOCK"] = str(td / "model.lock")
             before = subprocess.check_output(

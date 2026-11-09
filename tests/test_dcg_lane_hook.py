@@ -30,7 +30,7 @@ STUBS = {
 
 
 def git(repo, *args, env=None):
-    run_env = os.environ.copy()
+    run_env = {k: v for k, v in os.environ.items() if k != "PFY_OPS_ROOT"}  # never the real ops checkout
     run_env.update(
         {
             "GIT_AUTHOR_NAME": "Lane",
@@ -127,7 +127,7 @@ class LaneHookTest(unittest.TestCase):
             ).strip()
             (clone / "tmp").mkdir()
             (clone / "tmp" / "TICKET-dcghook.md").write_text("dcg hook ticket\n")
-            env = os.environ.copy()
+            env = {k: v for k, v in os.environ.items() if k != "PFY_OPS_ROOT"}  # never the real ops checkout
             env.pop("PFY_DCG_DISABLE", None)
             env["PFY_DCG_BIN"] = str(binary)
             env["PFY_MODEL_LOCK"] = str(td / "model.lock")

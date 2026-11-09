@@ -31,7 +31,7 @@ STUBS = {
 
 
 def git(repo, *args):
-    env = os.environ.copy()
+    env = {k: v for k, v in os.environ.items() if k != "PFY_OPS_ROOT"}  # never the real ops checkout
     env.update({
         "GIT_AUTHOR_NAME": "Lane",
         "GIT_AUTHOR_EMAIL": "lane@example.com",
@@ -96,7 +96,7 @@ def write_grok(path: Path, body: str) -> None:
 
 
 def lane_env(td: Path, grok: Path) -> dict:
-    env = os.environ.copy()
+    env = {k: v for k, v in os.environ.items() if k != "PFY_OPS_ROOT"}  # never the real ops checkout
     env.update({
         "PFY_GROK_BIN": str(grok),
         "PFY_MODEL_LOCK": str(td / "model.lock"),
@@ -185,7 +185,7 @@ class EvalLaneTest(unittest.TestCase):
             )
             git.chmod(git.stat().st_mode | stat.S_IEXEC)
             state = td / "evalstate"
-            env = os.environ.copy()
+            env = {k: v for k, v in os.environ.items() if k != "PFY_OPS_ROOT"}  # never the real ops checkout
             env["PATH"] = str(bindir) + os.pathsep + env.get("PATH", "")
             env["PFY_MODEL_LOCK"] = str(td / "model.lock")
             env["PFY_GROK_BIN"] = str(td / "missing-grok")

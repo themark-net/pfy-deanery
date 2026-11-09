@@ -88,7 +88,7 @@ class SandlockLaneHookTest(unittest.TestCase):
                 exit 0
             """))
             grok.chmod(grok.stat().st_mode | stat.S_IEXEC)
-            env = os.environ.copy()
+            env = {k: v for k, v in os.environ.items() if k != "PFY_OPS_ROOT"}  # never the real ops checkout
             env["PFY_DCG_DISABLE"] = "1"
             env["PFY_MODEL_LOCK"] = str(td / "model.lock")
             env["PATH"] = str(bindir) + os.pathsep + env.get("PATH", "")

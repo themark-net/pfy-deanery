@@ -128,7 +128,7 @@ class ExclusionHoldTest(unittest.TestCase):
             self.assertEqual(json.loads(open_card.read_text(encoding="utf-8"))["tier_ceiling"], "I3")
 
     def test_lane_selects_its_commits_not_main_only_files(self):
-        env = os.environ.copy()
+        env = {k: v for k, v in os.environ.items() if k != "PFY_OPS_ROOT"}  # never the real ops checkout
         env.update({
             "GIT_AUTHOR_NAME": "catalog-health",
             "GIT_AUTHOR_EMAIL": "catalog-health@localhost",

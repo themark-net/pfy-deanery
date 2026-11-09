@@ -27,7 +27,7 @@ class DispatchedMarkerTest(unittest.TestCase):
                 path = bindir / name
                 path.write_text(fake)
                 path.chmod(path.stat().st_mode | stat.S_IEXEC)
-            env = os.environ.copy()
+            env = {k: v for k, v in os.environ.items() if k != "PFY_OPS_ROOT"}  # never the real ops checkout
             env["PFY_MODEL_LOCK"] = str(td / "model.lock")
             env["PATH"] = str(bindir) + os.pathsep + env.get("PATH", "")
             try:
@@ -56,7 +56,7 @@ class DispatchedMarkerTest(unittest.TestCase):
                 path = bindir / name
                 path.write_text(fake)
                 path.chmod(path.stat().st_mode | stat.S_IEXEC)
-            env = os.environ.copy()
+            env = {k: v for k, v in os.environ.items() if k != "PFY_OPS_ROOT"}  # never the real ops checkout
             env["PFY_MODEL_LOCK"] = str(td / "model.lock")
             env["PATH"] = str(bindir) + os.pathsep + env.get("PATH", "")
             result = subprocess.run(
@@ -99,7 +99,7 @@ class I2BeforeMarkerTest(unittest.TestCase):
             if not path.exists():
                 path.write_text(fake)
                 path.chmod(path.stat().st_mode | stat.S_IEXEC)
-        env = os.environ.copy()
+        env = {k: v for k, v in os.environ.items() if k != "PFY_OPS_ROOT"}  # never the real ops checkout
         env.pop("PFY_LOOP_STATE", None)
         env.pop("PFY_LANE_FROM_LOOP", None)
         env["PFY_MODEL_LOCK"] = str(td / "model.lock")
@@ -312,7 +312,7 @@ class I2BeforeMarkerTest(unittest.TestCase):
                 encoding="utf-8",
             )
             git.chmod(git.stat().st_mode | stat.S_IEXEC)
-            env = os.environ.copy()
+            env = {k: v for k, v in os.environ.items() if k != "PFY_OPS_ROOT"}  # never the real ops checkout
             env["PATH"] = str(bindir) + os.pathsep + env.get("PATH", "")
             env["PFY_MODEL_LOCK"] = str(td / "model.lock")
             env.pop("PFY_LOOP_STATE", None)
