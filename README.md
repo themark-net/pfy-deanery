@@ -111,7 +111,7 @@ Rejections are logged with short, explicit reasons. There is no silent ignoring 
 | Find or dedupe | `python3 scripts/catalog_intake_dedupe.py "<source>"` |
 | Write an I0 card | same command with `--write-card` |
 | Eval toward I2 | `scripts/eval_lane.sh --slug <slug>` (calls Grok, then fast-forwards `main`). `--dry-run --state DIR` exits before Grok and the push |
-| Integrate I2 to I3 | `scripts/integrate_lane.sh --slug <slug>` (same) |
+| Integrate I2 to I3 | `scripts/integrate_lane.sh --slug <slug>` (same). `--dry-run` exits before Grok and the push |
 | Apply a verdict | `python3 scripts/catalog_apply_verdict.py` |
 | Raise a ceiling | `python3 scripts/catalog_auto_raise.py` |
 

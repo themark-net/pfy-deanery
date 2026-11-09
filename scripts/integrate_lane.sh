@@ -7,8 +7,11 @@
 # ancestor of that SHA. Park instead of pushing when a step fails.
 #
 #   scripts/integrate_lane.sh --slug <slug> [--root DIR] [--date MMDD] [--ticket FILE]
+#   scripts/integrate_lane.sh --dry-run --slug <slug> [--root DIR]
 #
-# Do not run this against the real origin from a test. Pass --root.
+# --dry-run prints one line and exits before the dispatch marker, fetch, Grok,
+# and the push. It does not take the model lock. Do not run the default path
+# against the real origin from a test. Pass --root.
 
 set -euo pipefail
 
@@ -35,6 +38,7 @@ ROOT=""
 SLUG=""
 DATE=""
 TICKET=""
+DRY=0
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -53,6 +57,10 @@ while [ $# -gt 0 ]; do
     --ticket)
       TICKET=${2:-}
       shift 2
+      ;;
+    --dry-run)
+      DRY=1
+      shift
       ;;
     *)
       printf '%s\n' "unknown arg: $1" >&2
@@ -78,6 +86,10 @@ fi
 if ! printf '%s\n' "$DATE" | grep -E -q '^[0-9]{4}$'; then
   printf '%s\n' "bad date: $DATE" >&2
   exit 1
+fi
+if [ "$DRY" = "1" ]; then
+  printf '%s\n' "dry-run slug=${SLUG} skip-grok skip-push"
+  exit 0
 fi
 
 MARK_DIR="$ROOT/tmp/integrate"

@@ -41,3 +41,32 @@ class DispatchedMarkerTest(unittest.TestCase):
                 marker.unlink(missing_ok=True)
             self.assertEqual(result.returncode, 2, result.stderr)
             self.assertFalse(log.exists(), "git or grok ran: " + log.read_text() if log.exists() else "")
+
+    def test_dry_run_skips_marker_grok_and_push(self):
+        script = ROOT / "scripts" / "integrate_lane.sh"
+        with tempfile.TemporaryDirectory() as td:
+            td = Path(td)
+            log = td / "calls.log"
+            bindir = td / "bin"
+            bindir.mkdir()
+            fake = "#!/bin/sh\nprintf '%s\\n' \"$0 $*\" >> " + str(log) + "\nexit 0\n"
+            for name in ("git", "grok"):
+                path = bindir / name
+                path.write_text(fake)
+                path.chmod(path.stat().st_mode | stat.S_IEXEC)
+            env = os.environ.copy()
+            env["PFY_MODEL_LOCK"] = str(td / "model.lock")
+            env["PATH"] = str(bindir) + os.pathsep + env.get("PATH", "")
+            result = subprocess.run(
+                ["bash", str(script), "--dry-run", "--slug", SLUG, "--root", str(td)],
+                cwd=td,
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+            self.assertIn("skip-grok", result.stdout)
+            self.assertIn("skip-push", result.stdout)
+            self.assertFalse((td / "tmp" / "integrate" / f"{SLUG}.dispatched").exists())
+            self.assertFalse(log.exists())

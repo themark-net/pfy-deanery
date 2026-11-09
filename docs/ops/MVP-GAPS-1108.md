@@ -49,7 +49,7 @@ The stub lane against a local bare (not GitHub) reached `test_select mode=affect
 
 ### 5. Integrate: not walked, and the driver will push
 
-The new gum card stayed I0, so integrate was not the next user step. `scripts/integrate_lane.sh` was not executed, not even against the local bare. The script creates `tmp/integrate/<slug>.dispatched` with noclobber before fetch, and it does not check that the card is I2 before that marker. A second start exits 2. It calls Grok and fast-forwards `main`. There is no dry run.
+The new gum card stayed I0, so integrate was not the next user step. `scripts/integrate_lane.sh` was not executed, not even against the local bare. The script creates `tmp/integrate/<slug>.dispatched` with noclobber before fetch, and it does not check that the card is I2 before that marker. A second start exits 2. It calls Grok and fast-forwards `main`. `--dry-run` now exits before that marker, Grok, and the push. The default path still fast-forwards `main`.
 
 `python3 scripts/integrate_intake.py` at the walk commit listed eight I2 cards already at ceiling I3, with no flag: headson, hiroute, neatroots, opencode-mem, repowise, sponsio, strata, taste-skill. bumblebee was flagged `tier_ceiling below I3: needs Mark`. This lane did not launch any of them. Do not launch them from a gap pass. Parked loop slugs stay parked. Do not start `catalog-loop.timer`. Do not remove another unit's markers.
 
