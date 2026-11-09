@@ -10,6 +10,7 @@ The product surface `./pfy` does onboard, stage, and ship. The catalog lifecycle
 - Browse shows the stage card when `data/tools.json` lags. `codebase-memory-mcp` was I2 in the json file and I3 on the card. The json file is still I2. Browse now shows I3. Do not hand-edit `integration_stage`.
 - `scripts/test_select.py` treats `VERDICT.json` and `receipt.json` as one file per tool. A test that names the full path still runs. A new artifact that nobody names stays structural and does not force the full suite. Before this, a stub eval of `gum` selected 22 modules (`tmp/mvp-gaps-1108/tmp/sandbox-eval/evalstate/gum-select.json`) and parked with `run_tests failed`.
 - Integrate dispatch checks that the card is I2, the slug is not excluded, and no park file exists before it writes `tmp/integrate/<slug>.dispatched`. Closed in `0dee24d93ba1ac865fc876ef6dd4bc66313f0224`.
+- Supersede candidacy compares coverage levels on the four suite parts (track, catalog, evaluate, integrate). Integrate is the local-first part. A part counts only at partial or full. none does not count. A bare part-name list exits 2. recheck_days and the watchlist shape are unchanged. Closed in `1cd339ed0093f9a76dfa00c32da8c401565ba34b`.
 - Intake `--write-card` records evidence from the source: the repo URL, a license when a local tree states one, a pin SHA when the source or a local git HEAD has one, and one README claim. No network. `integration_stage` stays I0. `tier_ceiling` is I1 when that list is non-empty, so `catalog_apply_verdict.py` can allow I1. A bare name stays `evidence: []` and `tier_ceiling: I0`. Apply does not invent evidence. Empty source, duplicate, and `./pfy catalog nosuch` are unchanged. Closed in `d0312047a1150aa7b0d78be4fa36631bc7fa1673`.
 - README "Using the catalog" names the five commands. `./pfy help` says `pfy eval` is the product structural gate and names `scripts/eval_lane.sh` and `scripts/catalog_intake_dedupe.py`. The command name `pfy eval` is unchanged.
 
@@ -31,7 +32,7 @@ Intake does not triple-write. It does not touch `TOOLS.md`, `data/tools.json`, o
 
 `./pfy help` now says that line is the product structural gate, and it names `scripts/eval_lane.sh` and `scripts/catalog_intake_dedupe.py`. Renaming `./pfy eval` is not a small fix. The command still runs `make eval-integration-change`.
 
-`python3 scripts/supersede_check.py --parts track,catalog,evaluate,integrate` printed `supersede_candidate: true`. The check counts parts. It does not read the source. Two or more parts are enough. A one-part list is not a candidate.
+The supersede parts-count finding is closed. See Closed in this pass. Closed in `1cd339ed0093f9a76dfa00c32da8c401565ba34b`.
 
 ### 4. Eval: the lane has no dry run and it fast-forwards main
 
