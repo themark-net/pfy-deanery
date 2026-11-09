@@ -64,7 +64,7 @@ Grok stays **default harness** (ADR-0002). Local **worker** uses `LOCAL_OPENAI_B
 - Replacing Grok’s own binary, auth, or marketplace plugins
 - Exhaustive “awesome list” coverage without scoring or pipeline value
 - Forcing a single commercial harness monoculture (G8: multi-slot, Grok default only)
-- Selling lab-IT / Entra Linux / MDM (PNNL/Battelle IP) from this repo
+- Using or selling any employer or client IP from this repo
 
 ---
 
