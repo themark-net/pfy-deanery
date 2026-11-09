@@ -146,6 +146,10 @@ class SupersedeRecheckLaneTest(unittest.TestCase):
             write_grok(grok, extra=False)
             proc, state = run_lane(td, clone, grok)
             self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
+            self.assertIn(
+                "dcg-fallback: guard.sh missing; built-in denylist not applied; command unchanged",
+                proc.stderr,
+            )
             after = subprocess.check_output(
                 ["git", "--git-dir", str(bare), "rev-parse", "main"], text=True
             ).strip()

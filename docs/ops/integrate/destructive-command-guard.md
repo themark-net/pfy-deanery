@@ -18,7 +18,7 @@ Before the guard: the driver has already created `tmp/integrate/<slug>.dispatche
 
 This is new wiring. write-guard stays the write mediator. It does not see the shell command. Sandlock and Sponsio stay on their own jobs.
 
-When this tool is not selected, `PFY_DCG_DISABLE=1` is the only opt-out. The command then runs and the guard prints `dcg-disabled`. A missing `guard.sh` prints `dcg-fallback` and keeps today's behavior for the driver command.
+When this tool is not selected, `PFY_DCG_DISABLE=1` is the only opt-out. The command then runs and the guard prints `dcg-disabled`. A missing `guard.sh` prints `dcg-fallback: guard.sh missing; built-in denylist not applied; command unchanged` and the command still runs. The built-in denylist is inside that script, so this case does not apply it. A missing dcg binary is the other case: `guard.sh` prints `dcg-fallback` and still denies the built-in list.
 
 ## How it fails safe
 

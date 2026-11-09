@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import stat
 import subprocess
 import tempfile
@@ -67,8 +68,11 @@ class DispatchedMarkerTest(unittest.TestCase):
                 timeout=10,
             )
             self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
-            self.assertIn("skip-grok", result.stdout)
-            self.assertIn("skip-push", result.stdout)
+            self.assertEqual(
+                result.stdout.strip(),
+                "dry-run slug=%s skip-card skip-marker skip-fetch skip-grok skip-apply skip-push"
+                % SLUG,
+            )
             self.assertFalse((td / "tmp" / "integrate" / f"{SLUG}.dispatched").exists())
             self.assertFalse(log.exists())
 
@@ -265,9 +269,76 @@ class I2BeforeMarkerTest(unittest.TestCase):
             disp, park = self._others(td)
             result = self._run(td, env, ["--dry-run"])
             self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
-            self.assertIn("skip-grok", result.stdout)
-            self.assertIn("skip-push", result.stdout)
+            self.assertEqual(
+                result.stdout.strip(),
+                "dry-run slug=%s skip-card skip-marker skip-fetch skip-grok skip-apply skip-push"
+                % GUARD,
+            )
             self.assertFalse((td / "data" / "stages" / f"{GUARD}.json").exists())
             self.assertFalse((td / "tmp" / "integrate" / f"{GUARD}.dispatched").exists())
             self.assertFalse(log.exists())
             self._same_others(disp, park)
+
+    def test_missing_guard_script_names_fall_open_and_still_runs_git(self):
+        """A missing guard.sh used to mention only ordinary commands.
+
+        Failure: the line hid that the built-in denylist was skipped, or
+        the miss returned with no line on the other lanes. Recovery: stderr
+        names the fall-open, git still runs, and a fetch failure parks.
+        The stub records fetch and does not see a push.
+        """
+        with tempfile.TemporaryDirectory() as raw:
+            td = Path(raw)
+            scripts = td / "driver" / "scripts"
+            scripts.mkdir(parents=True)
+            for name in ("integrate_lane.sh", "catalog_eval_queue.py"):
+                dest = scripts / name
+                shutil.copy2(ROOT / "scripts" / name, dest)
+                dest.chmod(dest.stat().st_mode | stat.S_IEXEC)
+            self.assertFalse((scripts / "integrations" / "dcg" / "guard.sh").exists())
+            work = td / "work"
+            card = work / "data" / "stages" / f"{GUARD}.json"
+            card.parent.mkdir(parents=True)
+            card.write_text(json.dumps({"name": GUARD, "integration_stage": "I2"}) + "\n")
+            ticket = work / "tmp" / f"TICKET-{GUARD}.md"
+            ticket.parent.mkdir(parents=True)
+            ticket.write_text("ticket\n")
+            log = td / "git.log"
+            bindir = td / "bin"
+            bindir.mkdir()
+            git = bindir / "git"
+            git.write_text(
+                "#!/bin/sh\nprintf '%s\\n' \"$*\" >> " + str(log) + "\nexit 1\n",
+                encoding="utf-8",
+            )
+            git.chmod(git.stat().st_mode | stat.S_IEXEC)
+            env = os.environ.copy()
+            env["PATH"] = str(bindir) + os.pathsep + env.get("PATH", "")
+            env["PFY_MODEL_LOCK"] = str(td / "model.lock")
+            env.pop("PFY_LOOP_STATE", None)
+            env.pop("PFY_DCG_DISABLE", None)
+            proc = subprocess.run(
+                [
+                    "bash", str(scripts / "integrate_lane.sh"),
+                    "--slug", GUARD,
+                    "--root", str(work),
+                    "--date", "1108",
+                ],
+                cwd=work,
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=20,
+            )
+            self.assertEqual(proc.returncode, 1, proc.stderr + proc.stdout)
+            self.assertIn(
+                "dcg-fallback: guard.sh missing; built-in denylist not applied; command unchanged",
+                proc.stderr,
+            )
+            self.assertIn("parked: git fetch failed", proc.stderr)
+            self.assertTrue(log.is_file(), proc.stderr)
+            recorded = log.read_text(encoding="utf-8")
+            self.assertIn("fetch", recorded)
+            self.assertNotIn("push", recorded)
+            self.assertTrue((work / "tmp" / "integrate" / f"{GUARD}.dispatched").is_file())
+            self.assertFalse((work / "tmp" / "integrate" / f"{GUARD}.done").exists())

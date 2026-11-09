@@ -57,6 +57,6 @@ scripts/integrate_lane.sh --slug <slug> [--date MMDD] [--ticket FILE]
 scripts/integrate_lane.sh --dry-run --slug <slug>
 ```
 
-`--dry-run` exits before the dispatch marker, Grok, and the push. It does not take the model lock.
+`--dry-run` prints one line, `skip-card skip-marker skip-fetch skip-grok skip-apply skip-push`, and exits before those steps. It does not take the model lock. The default path still fast-forwards `main`.
 
 The driver prompt names all five catalog skills: `catalog-intake-dedupe`, `catalog-eval-lane`, `catalog-integrate-lane`, `catalog-apply-and-ceiling`, and `catalog-loop-operator`. Read each `bootstrap/grok-cli/skills/<name>/SKILL.md`. Grok is wrapped in `scripts/model_lock.sh` so the lane holds `~/.cache/pfy/locks/local-model.lock`.

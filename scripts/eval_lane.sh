@@ -8,7 +8,8 @@
 #   scripts/eval_lane.sh --dry-run --slug <slug> --state DIR [--root DIR]
 #
 # --dry-run requires --state, prints one line, and exits before the dispatch
-# marker, fetch, Grok, and the push. It does not take the model lock.
+# marker, fetch, Grok, apply, and the push. It does not walk apply and it
+# does not take the model lock. The line names each skip.
 #
 # Worktree: STATE/eval/wt/<slug> cut from origin/main.
 # Branch: bot/eval-<slug>-<date>.
@@ -26,8 +27,12 @@ SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 DEFAULT_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 
 dcg_check() {
+  # Missing guard.sh cannot apply the built-in denylist, which lives in that
+  # file. Say so and let the command run. A missing dcg binary is different:
+  # guard.sh still denies that list.
   local guard="$SCRIPT_DIR/integrations/dcg/guard.sh"
   if [ ! -f "$guard" ]; then
+    printf '%s\n' "dcg-fallback: guard.sh missing; built-in denylist not applied; command unchanged" >&2
     return 0
   fi
   bash "$guard" "$@"
@@ -103,7 +108,7 @@ if [ "$DRY" = "1" ]; then
     printf '%s\n' "dry-run needs --state" >&2
     exit 1
   fi
-  printf '%s\n' "dry-run slug=${SLUG} state=${STATE_DIR} skip-grok skip-push"
+  printf '%s\n' "dry-run slug=${SLUG} state=${STATE_DIR} skip-marker skip-fetch skip-grok skip-apply skip-push"
   exit 0
 fi
 if [ -z "$STATE_DIR" ]; then

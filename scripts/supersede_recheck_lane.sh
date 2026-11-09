@@ -23,8 +23,12 @@ STALE="$MARK_DIR/stale.txt"
 GROK_BIN="${PFY_GROK_BIN:-grok}"
 
 dcg_check() {
+  # Missing guard.sh cannot apply the built-in denylist, which lives in that
+  # file. Say so and let the command run. A missing dcg binary is different:
+  # guard.sh still denies that list.
   local guard="$SCRIPT_DIR/integrations/dcg/guard.sh"
   if [ ! -f "$guard" ]; then
+    printf '%s\n' "dcg-fallback: guard.sh missing; built-in denylist not applied; command unchanged" >&2
     return 0
   fi
   bash "$guard" "$@"

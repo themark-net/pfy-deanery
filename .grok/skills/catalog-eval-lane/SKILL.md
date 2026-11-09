@@ -59,7 +59,7 @@ scripts/eval_lane.sh --slug <slug> [--date MMDD]
 scripts/eval_lane.sh --dry-run --slug <slug> --state DIR
 ```
 
-`--dry-run` requires `--state` and exits before the dispatch marker, Grok, and the push. It does not take the model lock.
+`--dry-run` requires `--state` and prints one line, `skip-marker skip-fetch skip-grok skip-apply skip-push`, then exits before those steps. It does not walk apply. It does not take the model lock. The default path still fast-forwards `main`.
 
 The Build writes the verdict and the report. It does not hand-edit `integration_stage` or `tier_ceiling`.
 

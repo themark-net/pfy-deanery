@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import stat
 import subprocess
 import tempfile
@@ -134,8 +135,11 @@ class EvalLaneTest(unittest.TestCase):
                 timeout=30,
             )
             self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
-            self.assertIn("skip-grok", proc.stdout)
-            self.assertIn("skip-push", proc.stdout)
+            self.assertEqual(
+                proc.stdout.strip(),
+                "dry-run slug=widget state=%s skip-marker skip-fetch skip-grok skip-apply skip-push"
+                % state,
+            )
             self.assertNotIn("called", proc.stderr)
             self.assertFalse((state / "widget.dispatched").exists())
             after = subprocess.check_output(
@@ -154,6 +158,64 @@ class EvalLaneTest(unittest.TestCase):
             self.assertEqual(missing.returncode, 1, missing.stdout)
             self.assertIn("dry-run needs --state", missing.stderr)
             self.assertFalse((state / "widget.dispatched").exists())
+
+    def test_missing_guard_script_names_fall_open_and_still_runs_git(self):
+        """A missing guard.sh used to return with no line.
+
+        Failure: the lane looks the same as a real allow, and the built-in
+        denylist is skipped with no trace. Recovery: stderr names that
+        fall-open, git still runs, and a fetch failure parks. The stub
+        records fetch and does not see a push.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            td = Path(tmp)
+            script_dir = td / "scripts"
+            script_dir.mkdir()
+            script = script_dir / "eval_lane.sh"
+            shutil.copy2(SCRIPT, script)
+            script.chmod(script.stat().st_mode | stat.S_IEXEC)
+            self.assertFalse((script_dir / "integrations" / "dcg" / "guard.sh").exists())
+            log = td / "git.log"
+            bindir = td / "bin"
+            bindir.mkdir()
+            git = bindir / "git"
+            git.write_text(
+                "#!/bin/sh\nprintf '%s\\n' \"$*\" >> " + str(log) + "\nexit 1\n",
+                encoding="utf-8",
+            )
+            git.chmod(git.stat().st_mode | stat.S_IEXEC)
+            state = td / "evalstate"
+            env = os.environ.copy()
+            env["PATH"] = str(bindir) + os.pathsep + env.get("PATH", "")
+            env["PFY_MODEL_LOCK"] = str(td / "model.lock")
+            env["PFY_GROK_BIN"] = str(td / "missing-grok")
+            env.pop("PFY_DCG_DISABLE", None)
+            env.pop("PFY_LOOP_STATE", None)
+            proc = subprocess.run(
+                [
+                    "bash", str(script),
+                    "--slug", "widget",
+                    "--root", str(td / "root"),
+                    "--state", str(state),
+                    "--date", "1108",
+                ],
+                cwd=td,
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=20,
+            )
+            self.assertEqual(proc.returncode, 1, proc.stderr + proc.stdout)
+            self.assertIn(
+                "dcg-fallback: guard.sh missing; built-in denylist not applied; command unchanged",
+                proc.stderr,
+            )
+            self.assertIn("parked: git fetch failed", proc.stderr)
+            self.assertTrue(log.is_file(), proc.stderr)
+            recorded = log.read_text(encoding="utf-8")
+            self.assertIn("fetch", recorded)
+            self.assertNotIn("push", recorded)
+            self.assertFalse((state / "widget.done").exists())
 
     def test_refusal_leaves_the_card_bytes_unchanged(self):
         with tempfile.TemporaryDirectory() as tmp:

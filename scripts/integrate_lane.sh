@@ -15,8 +15,9 @@
 #   scripts/integrate_lane.sh --dry-run --slug <slug> [--root DIR]
 #
 # --dry-run prints one line and exits before the card check, the dispatch
-# marker, fetch, Grok, and the push. It does not take the model lock. Do not
-# run the default path against the real origin from a test. Pass --root.
+# marker, fetch, Grok, apply, and the push. It does not take the model lock.
+# The line names each skip. Do not run the default path against the real
+# origin from a test. Pass --root.
 
 set -euo pipefail
 
@@ -26,9 +27,12 @@ DEFAULT_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 # dcg classifies argv and does not run it. Exit 126 denies.
 # sandlock and llama-cpp-ngram-mod add their own checks beside this one.
 dcg_check() {
+  # Missing guard.sh cannot apply the built-in denylist, which lives in that
+  # file. Say so and let the command run. A missing dcg binary is different:
+  # guard.sh still denies that list.
   local guard="$SCRIPT_DIR/integrations/dcg/guard.sh"
   if [ ! -f "$guard" ]; then
-    printf '%s\n' "dcg-fallback: guard.sh missing; ordinary commands unchanged" >&2
+    printf '%s\n' "dcg-fallback: guard.sh missing; built-in denylist not applied; command unchanged" >&2
     return 0
   fi
   bash "$guard" "$@"
@@ -93,7 +97,7 @@ if ! printf '%s\n' "$DATE" | grep -E -q '^[0-9]{4}$'; then
   exit 1
 fi
 if [ "$DRY" = "1" ]; then
-  printf '%s\n' "dry-run slug=${SLUG} skip-grok skip-push"
+  printf '%s\n' "dry-run slug=${SLUG} skip-card skip-marker skip-fetch skip-grok skip-apply skip-push"
   exit 0
 fi
 
