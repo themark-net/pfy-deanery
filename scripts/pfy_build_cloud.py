@@ -1067,7 +1067,7 @@ def _cm_map(worktree: Path, symbols: list[str]) -> str:
         "codebase-memory-mcp",
         [
             Path(cache_root) / "bin" / "codebase-memory-mcp",
-            Path("/home/mark/.local/bin/codebase-memory-mcp"),
+            (Path.home() / ".local/bin/codebase-memory-mcp"),
         ],
     )
     if binary is None:

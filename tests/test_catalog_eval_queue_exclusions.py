@@ -28,7 +28,7 @@ class TestQueueExclusions(unittest.TestCase):
             for slug in ("keep-me", "drop-me"):
                 (stages / (slug + ".json")).write_text(json.dumps(_card(slug)))
             exc = d / "exclusions.tsv"
-            exc.write_text("slug\treason\ndrop-me\tleft for Mark\n")
+            exc.write_text("slug\treason\ndrop-me\tleft for the operator\n")
             out = d / "queue.tsv"
             cmd = ["python3", str(SCRIPT), "--stages", str(stages), "--exclusions", str(exc), "--out", str(out)]
             ok = subprocess.run(cmd, capture_output=True, text=True)

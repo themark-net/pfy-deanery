@@ -12,7 +12,7 @@ unmarked is left alone.
 
 `--skills-dir` is applied only when SessionInput.variant is with_skill.
 OpenCode is pointed at that directory via a temp XDG config. It never reads
-Mark's ~/.config/opencode.
+The operator's ~/.config/opencode.
 
 If opencode is not on PATH, a single chat-completions call is used instead
 and final_message says so. That path cannot edit the workspace.

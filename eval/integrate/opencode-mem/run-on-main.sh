@@ -3,7 +3,7 @@
 # Write the receipt only when HEAD is an ancestor of origin/main and the probe exits 0.
 # Missing package, probe error, or a timeout writes no receipt.
 #
-# Extra lock: flock /home/mark/DEVELOP/pfy-mentat/tmp/integrate2/push.lock
+# Extra lock: flock $HOME/DEVELOP/pfy-mentat/tmp/integrate2/push.lock
 # The main push is a fast-forward under that flock. This script does not push.
 # That push flock is distinct from scripts/model_lock.sh. model_lock.sh wraps
 # only the probe, because the embedder is a local ONNX model. Do not pull a model.
@@ -12,7 +12,7 @@
 # or any real harness home.
 #
 # The lane marker is $OCM_LANE_MARKER, or
-# /home/mark/DEVELOP/pfy-mentat/tmp/integrate2/opencode-mem.dispatched.
+# $HOME/DEVELOP/pfy-mentat/tmp/integrate2/opencode-mem.dispatched.
 # A second start exits 2 and writes no receipt. The driver writes "pid <lane-pid>"
 # and still holds that file when it runs this script, so a marker whose pid is an
 # ancestor of this process is the admitted lane and the probe continues.
@@ -35,7 +35,7 @@ case "$receipt" in
   *) receipt=$PWD/$receipt ;;
 esac
 
-marker=${OCM_LANE_MARKER:-/home/mark/DEVELOP/pfy-mentat/tmp/integrate2/opencode-mem.dispatched}
+marker=${OCM_LANE_MARKER:-$HOME/DEVELOP/pfy-mentat/tmp/integrate2/opencode-mem.dispatched}
 
 marker_pid_is_ancestor() {
   local file=$1

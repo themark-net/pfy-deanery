@@ -13,7 +13,7 @@
 
 - Entry: `scripts/pfy_catalog_ask_queue_209.py` (`--selftest` / `--browse` / `--ask NAME` / `--queue NAME` / `--status`).
 - Callers: `./pfy catalog …` payload; board `catalog_ask` / `catalog_queue`; `POST /catalog/ask` `/catalog/queue`; Tools HTML+tk.
-- Invariants: no Env nav tab; no scores-only dump; HOLD 70-75 not auto-lifted; no Mark git/npm/CI; do not reopen #76. Unmatched stage cards are read from `data/stages/<slug>.json` (name, `integration_stage`, github). Browse does not write that file. Documented Active Catalog rows keep their table name, category, and github.
+- Invariants: no Env nav tab; no scores-only dump; HOLD 70-75 not auto-lifted; no operator git/npm/CI; do not reopen #76. Unmatched stage cards are read from `data/stages/<slug>.json` (name, `integration_stage`, github). Browse does not write that file. Documented Active Catalog rows keep their table name, category, and github.
 - Issue **#209** only.
 
 ## Architecture link

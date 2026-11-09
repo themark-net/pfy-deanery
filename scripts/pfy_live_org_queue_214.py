@@ -5,7 +5,7 @@ Queue for org creates a REAL GitHub issue on themark-net/pfy-mentat with
 Design->DevBot DoD (operate-or-FAIL, no mock success). Refresh status via
 gh/api and paint open/closed/PR on Tools (or Loop). Honest SKIP/FAIL if
 auth/connector missing or entry HOLD. Do not auto-lift catalog 70-75.
-No Mark git/npm/CI. LIVE_HARD_OFF: no live catalog writes.
+No operator git/npm/CI. LIVE_HARD_OFF: no live catalog writes.
 
 Extends pfy_catalog_ask_queue_209 (browse/gates). Selftest never spams
 issues: FAIL without auth, PASS with stub create_fn, optional live dry-run
@@ -211,7 +211,7 @@ def org_issue_body(item):
         "HOLD/incomplete. Do **not** auto-lift catalog PRs/entries 70\u201375.\n"
         "3. One integration at a time. Cite %s only. Do not reopen #76. "
         "#198 parked. LIVE_HARD_OFF.\n"
-        "4. **No Mark git/npm/CI chore** \u2014 DevBot owns the branch, tests, "
+        "4. **No operator git/npm/CI chore** \u2014 DevBot owns the branch, tests, "
         "and launcher gates (`bash -n scripts/pfy`; `py_compile` on "
         "scripts/pfy-board.py + scripts/pfy-gui.py; no encoded payloads).\n"
         "5. Tools (or Loop) shows queued items + status (open/closed/PR).\n\n"
@@ -819,7 +819,7 @@ def cmd_selftest():
         def create_ok(title, body):
             created.append((title, body))
             blob = title + "\n" + body
-            check("No Mark" in blob or "no Mark" in blob.lower(), "issue forbids Mark git/npm/CI")
+            check("No operator" in blob or "no operator" in blob.lower(), "issue forbids operator git/npm/CI")
             check("70" in body and "HOLD" in body, "issue keeps 70-75 HOLD")
             check("#214" in body, "issue cites #214")
             check("#209" not in body.split("70")[0] or "#214" in body, "live queue cites #214")

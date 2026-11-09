@@ -10,7 +10,7 @@
 - **Findings**:
   - Pin is the git commit on `main`; workspace version stays `0.0.0` (monorepo).
   - Runtime enforcement depends on each host adapter; logos do not imply every governance feature is active (upstream caveat).
-  - Do not npm-install or copy skills into Mark's agent homes from the smoke.
+  - Do not npm-install or copy skills into the operator's agent homes from the smoke.
 - **Extracted Repos / Tools**: https://github.com/teaql/teaql-agent-kit · package `packages/agent-context-kit`
 - **TOOLS.md Link**: None yet. I0 awareness. No TOOLS.md row, no `data/tools.json` row.
 - **Smoke**: `python3 examples/x-intake-local/smoke_167.py`. Commit-metadata only. Pins `$TEAQL_COMMIT`. Fetches via `$TEAQL_FETCH_BIN` or stdlib GitHub commits API. Does not install. Receipt: `pipelines/smoke/teaql-agent-kit/latest.json`. Tests: `python3 -m unittest tests.test_x_intake_smoke_167` (7 stub tests).

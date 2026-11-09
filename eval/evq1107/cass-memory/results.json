@@ -2,7 +2,7 @@
   "pin_commit": "229a312b696aa347d1e2c491d3d466c925716dc0",
   "pin_sha256": "06e1563881f8bb1225cf7036068252ef210f242704a27f8ce32518b822181bd7",
   "version_expect": "0.5.0",
-  "binary": "/home/mark/.cache/pfy/tools/cass-memory/bin/cass-memory-linux-x64",
+  "binary": "$HOME/.cache/pfy/tools/cass-memory/bin/cass-memory-linux-x64",
   "binary_bytes": 124601824,
   "sha256": "06e1563881f8bb1225cf7036068252ef210f242704a27f8ce32518b822181bd7",
   "sha256_ok": true,

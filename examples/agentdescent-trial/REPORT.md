@@ -49,4 +49,4 @@ invents names ("AI Tool Registry") and the program lives as DSPy JSON (`dspy_pro
   Every child's temp HOME was empty afterwards. These numbers come from the first harness version (cce6e2c), which
   only watched `~/.agentdescent`; the current guard (also `~/.cache/agentdescent`, `~/.dspy_cache`, `~/.cache/dspy`,
   `~/.ollama`, by content) was added after the run and the trial was not rerun. No bwrap: children had network egress. `apply` was never run; AgentDescent's target was a copy in `tmp/`.
-- Peak whole-host memory 79 GiB (includes Mark's other processes), under the 85 GiB cap. No lock-up.
+- Peak whole-host memory 79 GiB (includes the operator's other processes), under the 85 GiB cap. No lock-up.

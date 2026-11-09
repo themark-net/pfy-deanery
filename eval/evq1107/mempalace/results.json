@@ -163,10 +163,10 @@
   "version_ok": true,
   "init_exit": 0,
   "init_seconds": 0.97,
-  "init_target": "/home/mark/.cache/pfy/tools/mempalace/probe-work/corpus",
+  "init_target": "$HOME/.cache/pfy/tools/mempalace/probe-work/corpus",
   "mine_targets": [
-    "/home/mark/.cache/pfy/tools/mempalace/probe-work/corpus/handoff",
-    "/home/mark/.cache/pfy/tools/mempalace/probe-work/corpus/ranking"
+    "$HOME/.cache/pfy/tools/mempalace/probe-work/corpus/handoff",
+    "$HOME/.cache/pfy/tools/mempalace/probe-work/corpus/ranking"
   ],
   "mine_retries": 0,
   "mine_seconds": 2.755,

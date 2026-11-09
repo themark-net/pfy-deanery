@@ -2,7 +2,7 @@
   {
     "id": "glm-air-nommap-load",
     "model": "GLM-4.5-Air Q4 (72857521088-byte GGUF; ollama blob still named -partial but size==registry)",
-    "conditions": "MemAvailable ~77\u219215.7 GiB min; swap peaked 8.0/8 during load; peak RSS 68.6 GiB; GTT ~0.37; load~183s to healthy; concurrent: Mark ROCm apt install?, grok PID left alone",
+    "conditions": "MemAvailable ~77\u219215.7 GiB min; swap peaked 8.0/8 during load; peak RSS 68.6 GiB; GTT ~0.37; load~183s to healthy; concurrent: the operator ROCm apt install?, grok PID left alone",
     "recovery": "Became healthy; swap drained during bench; server stopped after 48 cases",
     "quality": "parse_ok 0/48, accuracy 0%, escalate 100% \u2014 Choice JSON not produced (likely thinking/chat-template); memory path WORKS; not stronger than qwen3.6:35b / coder-next on #230 gate"
   },

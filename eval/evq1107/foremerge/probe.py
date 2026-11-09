@@ -18,7 +18,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[3]
 OUT = Path(__file__).resolve().parent / "results.json"
 # HOME is redirected into the cache for this lane, so do not use Path.home().
-CACHE = Path(os.environ.get("PFY_FOREMERGE_CACHE", "/home/mark/.cache/pfy/tools/foremerge"))
+CACHE = Path(os.environ.get("PFY_FOREMERGE_CACHE", str(Path.home() / ".cache/pfy/tools/foremerge")))
 BIN = Path(os.environ.get("FOREMERGE_BIN", CACHE / "unpack" / "foremerge"))
 TARBALL = CACHE / "dl" / "foremerge-v0.5.1-x86_64-unknown-linux-gnu.tar.gz"
 SHA_FILE = CACHE / "dl" / "foremerge-v0.5.1-x86_64-unknown-linux-gnu.tar.gz.sha256"

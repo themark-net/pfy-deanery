@@ -12,7 +12,7 @@ Coding sessions need a decision API beside Gab cloud (`model=auto`) and local re
 ## Decision
 
 - Attach a **typed Choice/Score** decision layer (not chat) on Loop/Attach.
-- **Primary local** attach is **CUA-S1-FORMS** (https://github.com/trycua/cua; Mark-free nimo smoke).
+- **Primary local** attach is **CUA-S1-FORMS** (https://github.com/trycua/cua; operator-free nimo smoke).
 - **TypeSafe Jev** (`jev-1.13.0`, `POST https://api.typesafe.ai/v1/systemone`) is **optional cloud**. Missing key → FAIL+next (or switch CUA-S1-FORMS). Never required for default smoke.
 - **mini-jev** is a teaching fallback only.
 - Confidence gate default **~0.85**. Below gate → visible FAIL / escalate. No silent auto-act.
@@ -27,7 +27,7 @@ Rejected alternatives:
 1. **Chat UI for Jev** — Jev is a decision API; a transcript pane lies about the product.
 2. **Browser-use / Jev Ultrafast as core** — not the coding-session value (compaction + routing middleware).
 3. **mini-jev as primary local** — additive lock names CUA-S1-FORMS (~706K / ~2.8MB, form-fill specialist) as the FreeToken/local attach.
-4. **Require TypeSafe key for smoke** — Mark drip; default smoke must run on nimo without ops.
+4. **Require TypeSafe key for smoke** — operator drip; default smoke must run on nimo without ops.
 5. **Equate decision with Gab `auto` or local recommend** — three different surfaces.
 
 ## Consequences

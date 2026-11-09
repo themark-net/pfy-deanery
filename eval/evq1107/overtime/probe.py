@@ -16,14 +16,14 @@ from pathlib import Path
 
 OUT = Path(__file__).resolve().parent
 STUB = OUT / "stub_acp.mjs"
-CACHE = Path("/home/mark/.cache/pfy/tools/overtime")
+CACHE = (Path.home() / ".cache/pfy/tools/overtime")
 PREFIX = CACHE / "prefix"
 PKG = PREFIX / "node_modules/@ukanwat/overtime"
 BIN = PKG / "dist/bin.js"
 NODE = "/usr/bin/node"
 RUN = CACHE / "probe-run"
 OT_HOME = CACHE / "home/overtime"
-REAL_OT = Path("/home/mark/overtime")
+REAL_OT = (Path.home() / "overtime")
 AGENT = "gapb"
 TARBALL = CACHE / "dl/overtime-0.5.3.tgz"
 WANT_SHA512 = "7TRVkwud4AcYvW4Wwgem3gegB1z+t6Kl3ggI/4MRwZFmNs2dUACapjnrR7uZrNHqBj1VzLKcOqvGpy4P4C6owg=="

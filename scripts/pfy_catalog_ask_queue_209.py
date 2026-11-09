@@ -7,7 +7,7 @@ A stage card that is not already one of those rows is listed too, so intake
 --write-card is visible without a TOOLS.md write. integration_stage is read
 only. Ask attached TUI to implement for next launch writes
 a concrete prompt/artifact (paste or auto-handoff) -- operate-or-FAIL.
-Queue for org opens a GitHub issue with Design->DevBot DoD (no Mark
+Queue for org opens a GitHub issue with Design->DevBot DoD (no operator
 git/npm/CI). Honest SKIP/FAIL if no harness attached or entry HOLD/incomplete.
 Do not auto-lift catalog 70-75. One integration at a time. Show queued status.
 
@@ -626,7 +626,7 @@ def implement_prompt(item, attached):
         "Do not auto-lift catalog 70-75.\n"
         "3. Do not reopen #76. #198 parked. LIVE_HARD_OFF "
         "(no live catalog writes).\n"
-        "4. No Mark git/npm/CI chore. Prefer helper + existing `./pfy` / board.\n"
+        "4. No operator git/npm/CI chore. Prefer helper + existing `./pfy` / board.\n"
         "5. Leave queued status visible. `bash -n scripts/pfy` PASS "
         "if the launcher changes.\n\n"
         "Paste this prompt into the attached TUI, or rely on auto-handoff "
@@ -666,7 +666,7 @@ def org_issue_body(item):
         "HOLD/incomplete. Do **not** auto-lift catalog PRs/entries 70\u201375.\n"
         "3. One integration at a time. Cite %s only. Do not reopen #76. "
         "#198 parked. LIVE_HARD_OFF.\n"
-        "4. **No Mark git/npm/CI chore** \u2014 DevBot owns the branch, tests, "
+        "4. **No operator git/npm/CI chore** \u2014 DevBot owns the branch, tests, "
         "and launcher gates (`bash -n scripts/pfy`; no encoded payloads).\n"
         "5. Show queued items/status on Tools. No Env nav tab.\n\n"
         "## Operator constraints\n"
@@ -1289,7 +1289,7 @@ def cmd_selftest():
 
         def create_ok(title, body):
             created.append((title, body))
-            check("No Mark" in body or "No Mark" in title or "no Mark" in body.lower() or "No Mark git" in body, "issue forbids Mark git/npm/CI")
+            check("No operator" in body or "No operator" in title or "no operator" in body.lower() or "No operator git" in body, "issue forbids operator git/npm/CI")
             check("70" in body and "HOLD" in body, "issue keeps 70-75 HOLD")
             check("#214" in body, "issue cites #214")
             check("Design" in body, "issue Design DoD")

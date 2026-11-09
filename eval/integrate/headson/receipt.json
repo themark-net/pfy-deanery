@@ -2,7 +2,7 @@
   "slug": "headson",
   "run_kind": "pipeline",
   "main_sha": "f34c3c1e4a295c13036522fe2df5843899bba0de",
-  "log_path": "/home/mark/DEVELOP/pfy-mentat/tmp/integrate2/wt/headson/tmp/tmp.aO4QnYY23w",
+  "log_path": "$HOME/DEVELOP/pfy-mentat/tmp/integrate2/wt/headson/tmp/tmp.aO4QnYY23w",
   "started": "2026-11-08T19:33:10Z",
   "finished": "2026-11-08T19:33:10Z",
   "outcome": "pass",

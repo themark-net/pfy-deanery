@@ -6,7 +6,7 @@ Fold into implement NOW (tip not yet READY).
 
 **CUA-S1-FORMS** (~706K / ~2.8MB; claimed <1GB RAM; form-fill specialist).
 - Repo: https://github.com/trycua/cua
-- Nimo smoke: CUA-S1-FORMS **without Mark ops**
+- Nimo smoke: CUA-S1-FORMS **without operator ops**
 - This is the **primary** FreeToken/local decision attach (replaces/supersedes mini-jev-as-primary; mini-jev may remain fallback/teaching path if useful)
 
 ## Optional cloud

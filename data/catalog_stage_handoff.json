@@ -602,7 +602,7 @@
       "feature_go",
       "primary runtime"
     ],
-    "next_gate": "PASS make smoke-kolibri1 with verified GGUF, then consider I1; Vulkan/GPU needs Mark approval."
+    "next_gate": "PASS make smoke-kolibri1 with verified GGUF, then consider I1; Vulkan/GPU needs operator approval."
   },
   "harness2": {
     "potential": "medium",

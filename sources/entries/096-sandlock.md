@@ -15,7 +15,7 @@
 
 | Risk | How it fails | Recovery |
 |------|----------------|----------|
-| Old kernel | nimo below 6.12, Landlock ABI too low | Smoke exits 2 with the kernel string; kernel change needs Mark's approval, so it stays a catalog entry |
+| Old kernel | nimo below 6.12, Landlock ABI too low | Smoke exits 2 with the kernel string; kernel change needs the operator's approval, so it stays a catalog entry |
 | False sense of safety | Shared kernel; a kernel bug escapes the sandbox | Treat it as blast-radius reduction for our own agents, not a boundary for hostile code |
 | Breaks tools | Too-tight profile makes Build or ROCm calls fail (GPU device nodes, /proc) | Use `sandlock learn` on a known-good run to draft the profile; keep an unsandboxed fallback |
 

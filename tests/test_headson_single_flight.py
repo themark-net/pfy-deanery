@@ -6,7 +6,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "eval" / "integrate" / "headson" / "run-on-main.sh"
-REAL_MARKER = Path("/home/mark/DEVELOP/pfy-mentat/tmp/integrate2/headson.dispatched")
+REAL_MARKER = (Path.home() / "DEVELOP/pfy-mentat/tmp/integrate2/headson.dispatched")
 
 
 def _run(marker: Path | None, receipt: Path):
@@ -30,7 +30,7 @@ class TestHeadsonSingleFlight(unittest.TestCase):
     def test_second_start_exits_2_without_new_lock(self):
         script = Path("eval/integrate/headson/run-on-main.sh").read_text()
         self.assertIn(
-            "/home/mark/DEVELOP/pfy-mentat/tmp/integrate2/headson.dispatched",
+            "$HOME/DEVELOP/pfy-mentat/tmp/integrate2/headson.dispatched",
             script,
         )
         self.assertIn("exit 2", script)

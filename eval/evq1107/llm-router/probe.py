@@ -24,14 +24,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 HERE = Path(__file__).resolve().parent
-CACHE = Path("/home/mark/.cache/pfy/tools/llm-router")
+CACHE = (Path.home() / ".cache/pfy/tools/llm-router")
 VENV_PY = CACHE / "venv/bin/python"
 WHEEL = CACHE / "wheels/llm_routing-15.4.0-py3-none-any.whl"
 WHEEL_SHA256 = "72938a98e11bb75311b741afc6a1337f38ef712b891dba319160be1712cf6a41"
 PIN = "15.4.0"
 MODEL = "qwen2.5-coder:7b-instruct"
 GIB = 1024 ** 3
-REAL_STATE = Path("/home/mark/.llm-router")
+REAL_STATE = (Path.home() / ".llm-router")
 KEY_ENV = (
     "OPENAI_API_KEY",
     "GEMINI_API_KEY",

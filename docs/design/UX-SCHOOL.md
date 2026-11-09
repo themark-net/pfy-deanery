@@ -12,7 +12,7 @@
 
 A visible control must operate what it offers, or the window must show **FAIL**. Silent no-op is FAIL.
 
-**#230 decision layer (school add):** Jev is a **decision API** (typed Choice/Score), not chat. Confidence is a certainty **margin**, not a correctness %. Paint decision active vs Gab/Grok cloud vs local with honesty chip `decision ≠ gab auto ≠ local`. Core value = coding-session context compaction + model/tool middleware — not browser-use demo. Prefer local **CUA-S1-FORMS** FreeToken-first smoke on nimo without Mark (mini-jev teaching fallback).
+**#230 decision layer (school add):** Jev is a **decision API** (typed Choice/Score), not chat. Confidence is a certainty **margin**, not a correctness %. Paint decision active vs Gab/Grok cloud vs local with honesty chip `decision ≠ gab auto ≠ local`. Core value = coding-session context compaction + model/tool middleware — not browser-use demo. Prefer local **CUA-S1-FORMS** FreeToken-first smoke on nimo without the operator (mini-jev teaching fallback).
 
 
 ---
@@ -97,7 +97,7 @@ Also binds (do not score as extra essays): consistency (same IA on Tauri / tk / 
 
 ## 5. FAIL checklist (Design Bot scores a PR)
 
-Score each row **PASS / FAIL / N/A**. One FAIL fails the PR. Window-opens stays Reviewer. Cite **#230** only. Do not implement. Decision layer: not chat; conf margin ≠ correctness; `decision ≠ gab auto ≠ local`; Mark-free mini-jev smoke; no Env tab.
+Score each row **PASS / FAIL / N/A**. One FAIL fails the PR. Window-opens stays Reviewer. Cite **#230** only. Do not implement. Decision layer: not chat; conf margin ≠ correctness; `decision ≠ gab auto ≠ local`; operator-free mini-jev smoke; no Env tab.
 
 1. **Leftover listener.** If `:8765` / `PFY_BOARD_PORT` is already serving foreign or old HTML, do not load it. Bind current frontend or replace the occupant. Kill/lsof/open-Chrome copy to the operator = FAIL.
 2. **Silent no-op / start via CLI.** Any visible control (sidebar, Launch env, Attach grok, Attach opencode, Run stage, Refresh status, Copy stub one-liner) either performs the offered action or shows FAIL in-window. Silent Launch env (no PASS/FAIL/SKIP paint) = FAIL. Missing **Launch env** on Loop = FAIL. **start via CLI** as a control or label = FAIL. Fetch throw / unbound JS / missing `/start` that leaves chrome unchanged = FAIL.

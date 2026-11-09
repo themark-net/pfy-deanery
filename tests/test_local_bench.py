@@ -66,7 +66,7 @@ class ParseChoiceTests(unittest.TestCase):
     def test_rss_sampler_ignores_grok_exe(self):
         # Fail: matching argv text tagged the parent grok PID as the ollama runner.
         # Recover: key off /proc/<pid>/exe only.
-        self.assertFalse(bench.is_ollama_exe("/home/mark/.local/bin/grok"))
+        self.assertFalse(bench.is_ollama_exe("$HOME/.local/bin/grok"))
         self.assertTrue(bench.is_ollama_exe("/usr/local/bin/ollama"))
         self.assertTrue(bench.is_ollama_exe("/usr/local/lib/ollama/llama-server"))
 
@@ -340,7 +340,7 @@ class RunnerRssTests(unittest.TestCase):
         """ollama-user llama-server: /proc/pid/exe is EACCES; argv0 still identifies it."""
         self.assertTrue(bench.is_ollama_exe("/usr/local/lib/ollama/llama-server"))
         self.assertTrue(bench.is_ollama_exe("/usr/local/bin/ollama"))
-        self.assertFalse(bench.is_ollama_exe("/home/mark/.local/bin/grok"))
+        self.assertFalse(bench.is_ollama_exe("$HOME/.local/bin/grok"))
 
     def test_eacces_exe_falls_back_to_argv0_and_recovers_stats(self):
         """Fail closed on unreadable exe, then recover RSS via argv0/comm (Entry 092 / #273 nit)."""

@@ -353,7 +353,7 @@ def main() -> int:
         })
     finished = add([str(FEST), "promote", "--json", "--no-commit"], festival)
 
-    real = Path("/home/mark")
+    real = Path.home()
     sizes = {name: (CACHE / "unpack" / name).stat().st_size for name in ("fest", "camp", "festival")}
     payload = {
         "seconds_total": round(time.perf_counter() - t_all, 3),

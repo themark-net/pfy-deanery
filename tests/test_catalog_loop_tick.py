@@ -100,7 +100,7 @@ def build_repo(td: Path, cards: dict[str, dict]) -> Path:
         (stages / f"{slug}.json").write_text(json.dumps(body, indent=2) + "\n", encoding="utf-8")
     queue = seed / "eval" / "catalog-queue"
     queue.mkdir(parents=True)
-    (queue / "exclusions.tsv").write_text("slug\treason\nzz-mark\tneeds Mark\n", encoding="utf-8")
+    (queue / "exclusions.tsv").write_text("slug\treason\nzz-mark\tneeds the operator\n", encoding="utf-8")
     # Match the real repo: lane tickets live under tmp/ and must not look like catalog output.
     (seed / ".gitignore").write_text("tmp/\n", encoding="utf-8")
     verdict = seed / "eval" / "evals" / "aa-raise" / "VERDICT.json"

@@ -71,7 +71,7 @@ The tick runs `python3 scripts/supersede_check.py` in the loop worktree after re
 - Exit 1: no-reinvention STOP. Append one `needs-mark.tsv` row with kind `supersede-stop`. The slug is the project id named in the checker output, or `supersede-watch` when it names none. Set `supersede` to `stop` and `status` to `stopped`. Launch nothing this tick, including the recheck. A later tick that still exits 1 does not append a second row for the same slug.
 - Any other exit, including 124: `status` is `error`. Launch nothing. Do not write a supersede-stop row. The tick exits 0. Regeneration failures and a failed `systemd-run` still exit nonzero.
 
-### How Mark clears it
+### How the operator clears it
 
 1. Read the `supersede-stop` row and the checker output.
 2. Decide adopt, adopt parts, or keep going. Record that on `data/supersede-watchlist.json`.

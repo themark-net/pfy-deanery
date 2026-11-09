@@ -26,7 +26,7 @@ tdd, code-review, to-spec, implement, retro, grilling, grill-me, software-factor
 
 ## Install
 
-Grok `[skills].paths` points at this directory on Mark's checkout. That path is not copied into `~/.grok/skills`. Do not edit `~/.grok/config.toml` and do not run `install.sh` just to refresh this pin.
+Grok `[skills].paths` points at this directory on the operator's checkout. That path is not copied into `~/.grok/skills`. Do not edit `~/.grok/config.toml` and do not run `install.sh` just to refresh this pin.
 
 Worktree Builds load these skills from `.grok/skills/<name>`. `grilling`, `tdd`, `code-review`, and `to-spec` are relative symlinks into this directory. `implement`, `retro`, `grill-me`, and `software-factory` are thin pointers: upstream sets `disable-model-invocation`, and a symlink of that file stays out of the Grok Build skill list. Each pointer tells the model to follow the vendored file. `to-spec` stays a symlink, so the same flag hides it from that list. `pipeline-retro` is first-party under `.grok/skills/pipeline-retro/` and is not part of this snapshot.
 

@@ -26,7 +26,7 @@ TAG_COMMIT = "a94af452db0862ceb990c079fff17b6fed223ad3"
 
 ROOT = Path(__file__).resolve().parents[3]
 OUT = Path(__file__).resolve().parent / "results.json"
-BASE = Path(os.environ.get("TRACEKIT_BASE", "/home/mark/.cache/pfy/tools/tracekit"))
+BASE = Path(os.environ.get("TRACEKIT_BASE", str(Path.home() / ".cache/pfy/tools/tracekit")))
 VENV = Path(os.environ.get("TRACEKIT_VENV", str(BASE / "venv")))
 WHEEL = BASE / "wheels" / "tracekit_ai-1.4.1-py3-none-any.whl"
 

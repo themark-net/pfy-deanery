@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "eval/integrate/opencode-mem/run-on-main.sh"
-REAL_MARKER = Path("/home/mark/DEVELOP/pfy-mentat/tmp/integrate2/opencode-mem.dispatched")
+REAL_MARKER = (Path.home() / "DEVELOP/pfy-mentat/tmp/integrate2/opencode-mem.dispatched")
 
 
 def _git(root: Path, *args: str) -> None:
@@ -88,7 +88,7 @@ class OpenCodeMemSingleFlightTest(unittest.TestCase):
         mv_at = text.find('mv "$tmp" "$receipt"')
         self.assertGreater(mv_at, 0)
         self.assertLess(text.find("exit 2"), mv_at)
-        self.assertIn("/home/mark/DEVELOP/pfy-mentat/tmp/integrate2/push.lock", text)
+        self.assertIn("$HOME/DEVELOP/pfy-mentat/tmp/integrate2/push.lock", text)
         self.assertNotRegex(text, r">\s*\"\$receipt\"")
 
     def test_usage_exits_2_without_a_receipt_path(self):

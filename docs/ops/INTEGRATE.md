@@ -18,7 +18,7 @@ python3 scripts/integrate_intake.py
 python3 scripts/integrate_intake.py --json
 ```
 
-Same cards, same bytes. A ceiling of I0, I1, I2, blank, or any value other than I3 or I4 is flagged `tier_ceiling below I3: needs Mark`. Do not change the ceiling in the lane. Ask Mark before a ticket for a flagged card.
+Same cards, same bytes. A ceiling of I0, I1, I2, blank, or any value other than I3 or I4 is flagged `tier_ceiling below I3: needs the operator`. Do not change the ceiling in the lane. Ask the operator before a ticket for a flagged card.
 
 ## Ticket template
 
@@ -132,9 +132,9 @@ Exit 0 means the scan finished. Mismatches are flags, not demotions. Cards alrea
 
 ## Human re-entry
 
-Mark raises a `tier_ceiling`. This process does not.
+The operator raises a `tier_ceiling`. This process does not.
 
-Mark decides whether a flagged I3 or I4 card should be demoted. The scan does not write the card.
+The operator decides whether a flagged I3 or I4 card should be demoted. The scan does not write the card.
 
 A person removes `tmp/integrate/<slug>.dispatched` after reading `<slug>.parked` when a retry is wanted.
 

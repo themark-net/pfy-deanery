@@ -10,14 +10,14 @@
 # A worktree-only diff is not the receipt.
 #
 # A second start that finds
-# /home/mark/DEVELOP/pfy-mentat/tmp/integrate2/neatroots.dispatched
+# $HOME/DEVELOP/pfy-mentat/tmp/integrate2/neatroots.dispatched
 # exits 2 and writes no receipt, unless that marker's pid is an ancestor of
 # this process. The driver writes "pid <lane-pid>" and still holds the marker
 # when it runs this one-argument receipt call, so that admitted lane continues.
 # This script does not create or remove the marker.
 #
 # The main push is one flock fast-forward. The extra lock is
-# /home/mark/DEVELOP/pfy-mentat/tmp/integrate2/neatroots.push.lock.
+# $HOME/DEVELOP/pfy-mentat/tmp/integrate2/neatroots.push.lock.
 # This script does not take that lock. The check lock is the fixture file
 # only (flock).
 #
@@ -27,7 +27,7 @@
 
 set -euo pipefail
 
-MARKER=${PFY_NEATROOTS_LANE_MARKER:-/home/mark/DEVELOP/pfy-mentat/tmp/integrate2/neatroots.dispatched}
+MARKER=${PFY_NEATROOTS_LANE_MARKER:-$HOME/DEVELOP/pfy-mentat/tmp/integrate2/neatroots.dispatched}
 
 if [ "$#" -ne 1 ] || [ -z "${1:-}" ]; then
   printf '%s\n' "usage: eval/integrate/neatroots/run-on-main.sh RECEIPT.json" >&2

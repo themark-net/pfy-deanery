@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parents[3]
 OUT_DEFAULT = Path(__file__).resolve().parent / "results.json"
 FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures"
 # Absolute path on purpose. A redirected HOME must not hide the pin.
-DEFAULT_SRC = Path("/home/mark/.cache/pfy/tools/sloptrim/src")
+DEFAULT_SRC = (Path.home() / ".cache/pfy/tools/sloptrim/src")
 
 # Fixed list so a second run scores the same files. Ten have no em dash in
 # a pre-pass count. Ten are long docs that already use them.

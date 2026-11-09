@@ -35,7 +35,7 @@ ROOT = Path(__file__).resolve().parents[2]
 CASES_REL = Path("data/decision-gates/laya-trial.cases.v0.json")
 RECEIPT_REL = Path("pipelines/dogfood/laya-trial/receipt.json")
 SHADOW_RECEIPT_REL = Path("pipelines/dogfood/laya-shadow/receipt.json")
-SHARED_TRIAL_ROOT = Path("/home/mark/DEVELOP/pfy-mentat/tmp/laya-trial")
+SHARED_TRIAL_ROOT = (Path.home() / "DEVELOP/pfy-mentat/tmp/laya-trial")
 DEFAULT_VENV = ROOT / ".venv-laya" / "bin" / "python"
 DEFAULT_HF = ROOT / ".hf-cache"
 DEFAULT_HOST = "127.0.0.1"
@@ -172,7 +172,7 @@ def serve_bin(py: Path) -> Path:
 def require_venv(py: Path) -> str | None:
     if not os.access(py, os.X_OK):
         return (
-            "no Laya venv at %s. Operator: /home/mark/.local/bin/python3.11 -m venv "
+            "no Laya venv at %s. Operator: ~/.local/bin/python3.11 -m venv "
             "~/DEVELOP/pfy-mentat/tmp/laya-trial/.venv-laya && "
             ".venv-laya/bin/python -m pip install torch --index-url https://download.pytorch.org/whl/cpu && "
             ".venv-laya/bin/python -m pip install 'laya[serve]' (inside this worktree only)"

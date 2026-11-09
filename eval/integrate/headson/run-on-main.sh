@@ -3,11 +3,11 @@
 # Write the receipt only when HEAD is an ancestor of origin/main and the preview exits 0.
 # Missing binary, bad output, or timeout: exit nonzero and write no receipt.
 #
-# The driver flock on /home/mark/DEVELOP/pfy-mentat/tmp/integrate2/push.lock
+# The driver flock on $HOME/DEVELOP/pfy-mentat/tmp/integrate2/push.lock
 # serializes the fast-forward. This script does not take that lock and does not create the lane marker.
 #
 # The lane marker is $HSON_LANE_MARKER, or
-# /home/mark/DEVELOP/pfy-mentat/tmp/integrate2/headson.dispatched.
+# $HOME/DEVELOP/pfy-mentat/tmp/integrate2/headson.dispatched.
 # A second start exits 2 and writes no receipt. The driver writes "pid <lane-pid>"
 # and still holds that file when it runs this script, so a marker whose pid is an
 # ancestor of this process is the admitted lane and the preview continues.
@@ -26,7 +26,7 @@ if [ "${receipt#/}" = "$receipt" ]; then
   receipt="$PWD/$receipt"
 fi
 
-marker=${HSON_LANE_MARKER:-/home/mark/DEVELOP/pfy-mentat/tmp/integrate2/headson.dispatched}
+marker=${HSON_LANE_MARKER:-$HOME/DEVELOP/pfy-mentat/tmp/integrate2/headson.dispatched}
 
 marker_pid_is_ancestor() {
   local file=$1

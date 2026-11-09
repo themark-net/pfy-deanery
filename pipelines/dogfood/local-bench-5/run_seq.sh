@@ -1,6 +1,6 @@
 #!/bin/bash
 set -euo pipefail
-cd /home/mark/DEVELOP/pfy-mentat/tmp/local-bench-5
+cd $HOME/DEVELOP/pfy-mentat/tmp/local-bench-5
 Q36="/usr/share/ollama/.ollama/models/blobs/sha256-d372de8e934898a59e6ccfabc3368474711384d8f1fd4d22d87a3f0a45400cdc"
 AIR="/usr/share/ollama/.ollama/models/blobs/sha256-a6a5f1eb99191da97aebe69aed2d53aa07c03236c082b9e5dfc1f6301cc88f16-partial"
 echo "=== qwen36 rocm-noreason $(date -Iseconds) ==="

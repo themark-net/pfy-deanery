@@ -44,7 +44,7 @@ Host nimo, 2026-11-07. Last 10 first-parent commits of `origin/main`, each again
 `python3 scripts/cbm_shadow.py --report`:
 
 ```text
-log: /home/mark/.cache/pfy/cbm-shadow/selections.jsonl
+log: $HOME/.cache/pfy/cbm-shadow/selections.jsonl
 invocation: codebase-memory-mcp cli detect_changes --project pfy-mentat-cbm-shadow --scope tests --since <base-sha> --depth 2
 records: 10
 agreement: 5/10 records (5/10 with a cbm answer)

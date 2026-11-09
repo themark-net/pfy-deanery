@@ -1,6 +1,6 @@
 {
   "seconds_total": 0.553,
-  "festival_final": "/home/mark/.cache/pfy/tools/festival/home/campaigns/probe/festivals/active/gap-b-resume-GB0001",
+  "festival_final": "$HOME/.cache/pfy/tools/festival/home/campaigns/probe/festivals/active/gap-b-resume-GB0001",
   "markers_scaffold": 38,
   "markers_before_second_fill": 50,
   "markers_after_fill": 0,
@@ -146,7 +146,7 @@
         "--name",
         "record the park",
         "--path",
-        "/home/mark/.cache/pfy/tools/festival/home/campaigns/probe/festivals/planning/gap-b-resume-GB0001/001_IMPLEMENT"
+        "$HOME/.cache/pfy/tools/festival/home/campaigns/probe/festivals/planning/gap-b-resume-GB0001/001_IMPLEMENT"
       ],
       "rc": 0,
       "seconds": 0.017,
@@ -161,7 +161,7 @@
         "--json",
         "--skip-markers",
         "--path",
-        "/home/mark/.cache/pfy/tools/festival/home/campaigns/probe/festivals/planning/gap-b-resume-GB0001/001_IMPLEMENT/01_record_the_park",
+        "$HOME/.cache/pfy/tools/festival/home/campaigns/probe/festivals/planning/gap-b-resume-GB0001/001_IMPLEMENT/01_record_the_park",
         "--name",
         "record timeout",
         "--name",
@@ -194,7 +194,7 @@
       "cmd": [
         "validate",
         "--json",
-        "/home/mark/.cache/pfy/tools/festival/home/campaigns/probe/festivals/planning/gap-b-resume-GB0001"
+        "$HOME/.cache/pfy/tools/festival/home/campaigns/probe/festivals/planning/gap-b-resume-GB0001"
       ],
       "rc": 0,
       "seconds": 0.016,

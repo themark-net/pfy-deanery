@@ -247,14 +247,14 @@ pfy — simple setup & launch for the pfy-mentat stack
   pfy models gab-pull <tag> [--confirm] [--opt-in-huge]  gated ollama pull from Gab sync
   pfy catalog             usable catalog browse subset (not scores-only) (#209)
   pfy catalog ask [name]  ask attached TUI to implement for next launch
-  pfy catalog queue [name] queue GitHub issue Design→DevBot (no Mark git/npm/CI)
+  pfy catalog queue [name] queue GitHub issue Design→DevBot (no operator git/npm/CI)
   pfy catalog status      queued catalog items
   pfy launch [--headless]   Launch session; headless with --headless or no display
   pfy launch status|stop    recorded headless session only
   pfy launch lane|toolset|harness|decision|review|compose
   pfy decision            Jev-style typed Choice/Score (#230; CUA-S1-FORMS local)
   pfy decision off|cua-s1-forms|typesafe|mini-jev
-  pfy decision smoke      Mark-free CUA-S1-FORMS Choice (no TypeSafe key)
+  pfy decision smoke      operator-free CUA-S1-FORMS Choice (no TypeSafe key)
   pfy build "<task>"      daily cloud build: worktree, cloud Grok, gate, review,
                           commit on cloud/<slug>-<stamp> (no push, no PR);
                           receipt under pipelines/dogfood/build-cloud/;

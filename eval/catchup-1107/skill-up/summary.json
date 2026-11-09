@@ -83,7 +83,7 @@
         }
       },
       "junit": true,
-      "result": "/home/mark/DEVELOP/pfy-mentat/tmp/cu-skillup/tmp/skill-up-reports/iteration-1/result.json"
+      "result": "$HOME/DEVELOP/pfy-mentat/tmp/cu-skillup/tmp/skill-up-reports/iteration-1/result.json"
     },
     {
       "iteration": 2,
@@ -157,7 +157,7 @@
         }
       },
       "junit": true,
-      "result": "/home/mark/DEVELOP/pfy-mentat/tmp/cu-skillup/tmp/skill-up-reports/iteration-2/result.json"
+      "result": "$HOME/DEVELOP/pfy-mentat/tmp/cu-skillup/tmp/skill-up-reports/iteration-2/result.json"
     }
   ],
   "pass_rates": {
@@ -196,11 +196,11 @@
   "flake_rate": 0.0,
   "error_count": 0,
   "graded_count": 20,
-  "binary": "/home/mark/DEVELOP/pfy-mentat/tmp/cu-skillup/tmp/skill-up/skill-up",
+  "binary": "$HOME/DEVELOP/pfy-mentat/tmp/cu-skillup/tmp/skill-up/skill-up",
   "binary_sha256": "5b1bdd0a30f57653c8f6a3a679e992b29982fe18709b2556d53a6f9ea1c85ab6",
   "skill_up_exit": 0,
-  "log": "/home/mark/DEVELOP/pfy-mentat/tmp/cu-skillup/tmp/skill-up-reports/skill-up.log",
-  "output_dir": "/home/mark/DEVELOP/pfy-mentat/tmp/cu-skillup/tmp/skill-up-reports",
+  "log": "$HOME/DEVELOP/pfy-mentat/tmp/cu-skillup/tmp/skill-up-reports/skill-up.log",
+  "output_dir": "$HOME/DEVELOP/pfy-mentat/tmp/cu-skillup/tmp/skill-up-reports",
   "memory": "MemAvailable 87031072 KiB",
   "decision": "PROMOTE",
   "decision_reason": "baseline with_skill [1.0, 1.0] without_skill [1.0, 1.0] flake 0/10"

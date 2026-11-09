@@ -1,5 +1,5 @@
 # User unit. No sudo. Does not start a bot or a model.
-# The 2026-11-08 04:17 run used Mark's checkout as WorkingDirectory and ExecStart.
+# The 2026-11-08 04:17 run used the operator's checkout as WorkingDirectory and ExecStart.
 # python3 exited 2: can't open file .../DEVELOP/pfy-mentat/scripts/catalog_counts.py.
 # That checkout stays untouched. WorkingDirectory is the home directory.
 # ExecStart sets GIT_DIR on the main repo and does not cd into that checkout.

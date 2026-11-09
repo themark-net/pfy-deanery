@@ -22,7 +22,7 @@
     "ollama_memory_high_bytes": 91268055040,
     "ollama_memory_max": "infinity",
     "ollama_version": "0.30.8",
-    "note": "Mark raised MemoryHigh 40G\u219285G. Slice aborted further big loads after host lockup ~11:05pm PT; concurrent atg-framework Grok Build left alone."
+    "note": "The operator raised MemoryHigh 40G\u219285G. Slice aborted further big loads after host lockup ~11:05pm PT; concurrent atg-framework Grok Build left alone."
   },
   "baselines_entry090": {
     "qwen3.6:35b": {
@@ -170,7 +170,7 @@
       "status": "SKIP \u2014 deferred: host contention; pull not completed; would need ~25+73 GiB clear margin and likely OLLAMA_LOAD_TIMEOUT raise."
     }
   ],
-  "interference_note": "openclaw-gateway (pid observed) loaded glm-4.7-flash at num_ctx=128000 during earlier attempts, competing with benches. Concurrent Mark Grok Build on atg-framework near completion \u2014 left undisturbed.",
+  "interference_note": "openclaw-gateway (pid observed) loaded glm-4.7-flash at num_ctx=128000 during earlier attempts, competing with benches. Concurrent the operator Grok Build on atg-framework near completion \u2014 left undisturbed.",
   "mark_approvals_needed": [
     "Add Environment=OLLAMA_LOAD_TIMEOUT=30m (or similar) to ollama.service drop-in + daemon-reload + restart, then rebench coder-next / gpt-oss / GLM-4.5-Air one-at-a-time with MemAvailable floor 16 GiB.",
     "Pause openclaw-gateway (or lower its ctx) during big local benches."

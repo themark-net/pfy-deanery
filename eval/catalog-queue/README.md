@@ -50,7 +50,7 @@ Every `*.json` in the stages directory is a row, except names that start with `_
 
 The header is `slug`, then `reason`, separated by a tab. Each later row needs a non-empty reason. A slug with no card stays in this file so the reason is not lost. An empty reason, a bad header, or a duplicate slug fails the run and does not create or replace `queue.tsv`.
 
-The seed reasons come from the Nov 7 exclusion list (needs Mark's GO, blocked on Hermes, paid gateway, account manager, Vulkan approval, upstream smoke that exits 2, Apple Silicon only, GGUF over the pull cap, methodology notes with no tool, and first-party or already-in-use cards).
+The seed reasons come from the Nov 7 exclusion list (needs the operator's GO, blocked on Hermes, paid gateway, account manager, Vulkan approval, upstream smoke that exits 2, Apple Silicon only, GGUF over the pull cap, methodology notes with no tool, and first-party or already-in-use cards).
 
 ## Failure
 

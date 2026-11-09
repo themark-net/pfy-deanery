@@ -5,8 +5,8 @@
     "npm_version": "2.41.1",
     "tarball_sha256": "142d404aea2add4ffbe1742862e912ddfd109e8b0e7533b73de8adf132ecf883",
     "tarball_sha1": "5e285c025f956c0c2036aac16de3986d38dc309a",
-    "checkout": "/home/mark/.cache/pfy/tools/opencode-mem/src/opencode-mem",
-    "tarball": "/home/mark/.cache/pfy/tools/opencode-mem/npm/opencode-mem-2.41.1.tgz",
+    "checkout": "$HOME/.cache/pfy/tools/opencode-mem/src/opencode-mem",
+    "tarball": "$HOME/.cache/pfy/tools/opencode-mem/npm/opencode-mem-2.41.1.tgz",
     "checkout_head": "6c5828f3e49f962385aeb3ad033ecac5adc22878",
     "checkout_matches": true,
     "tarball_bytes": 611949,
@@ -36,7 +36,7 @@
   "corrupt_ms": 93.0,
   "corrupt": {
     "ok": false,
-    "error": "failed to open database /home/mark/.cache/pfy/tools/opencode-mem/run/data/projects/project_94f30b5f90fb12f4_shard_0.db: File is not a database; failed to open database /home/mark/.cache/pfy/tools/opencode-mem/run/data/projects/project_94f30b5f90fb12f4_shard_0.db: File is not a database",
+    "error": "failed to open database $HOME/.cache/pfy/tools/opencode-mem/run/data/projects/project_94f30b5f90fb12f4_shard_0.db: File is not a database; failed to open database $HOME/.cache/pfy/tools/opencode-mem/run/data/projects/project_94f30b5f90fb12f4_shard_0.db: File is not a database",
     "damaged": [
       "project_94f30b5f90fb12f4_shard_0.db"
     ]
@@ -247,7 +247,7 @@
       "command": "store",
       "tag": "opencode_project_94f30b5f90fb12f4",
       "model": "Xenova/nomic-embed-text-v1",
-      "storage": "/home/mark/.cache/pfy/tools/opencode-mem/run/data",
+      "storage": "$HOME/.cache/pfy/tools/opencode-mem/run/data",
       "warmup_ms": 688,
       "warm_error": null,
       "removed": [],
@@ -309,7 +309,7 @@
       "command": "recall",
       "tag": "opencode_project_94f30b5f90fb12f4",
       "model": "Xenova/nomic-embed-text-v1",
-      "storage": "/home/mark/.cache/pfy/tools/opencode-mem/run/data",
+      "storage": "$HOME/.cache/pfy/tools/opencode-mem/run/data",
       "warmup_ms": 721,
       "warm_error": null,
       "list_count": 8,
@@ -383,7 +383,7 @@
       "damaged": [
         "project_94f30b5f90fb12f4_shard_0.db"
       ],
-      "error": "failed to open database /home/mark/.cache/pfy/tools/opencode-mem/run/data/projects/project_94f30b5f90fb12f4_shard_0.db: File is not a database; failed to open database /home/mark/.cache/pfy/tools/opencode-mem/run/data/projects/project_94f30b5f90fb12f4_shard_0.db: File is not a database",
+      "error": "failed to open database $HOME/.cache/pfy/tools/opencode-mem/run/data/projects/project_94f30b5f90fb12f4_shard_0.db: File is not a database; failed to open database $HOME/.cache/pfy/tools/opencode-mem/run/data/projects/project_94f30b5f90fb12f4_shard_0.db: File is not a database",
       "rows": [],
       "ms": 93.0
     }

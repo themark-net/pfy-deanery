@@ -7,7 +7,7 @@ class TestLitellmSingleFlight(unittest.TestCase):
         script = Path("eval/integrate/litellm/run-on-main.sh")
         text = script.read_text(encoding="utf-8")
         self.assertIn(
-            "/home/mark/DEVELOP/pfy-mentat/tmp/integrate2/litellm.dispatched",
+            "$HOME/DEVELOP/pfy-mentat/tmp/integrate2/litellm.dispatched",
             text,
         )
         self.assertIn("exit 2", text)

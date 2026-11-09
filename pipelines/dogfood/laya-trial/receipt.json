@@ -4,7 +4,7 @@
   "entry": "086",
   "started": "2026-10-06T02:47:20Z",
   "host": "nimo",
-  "worktree": "/home/mark/DEVELOP/pfy-mentat/tmp/laya-trial",
+  "worktree": "$HOME/DEVELOP/pfy-mentat/tmp/laya-trial",
   "branch": "bot/laya-trial",
   "gate": 0.85,
   "cases_file": "data/decision-gates/laya-trial.cases.v0.json",
@@ -14,7 +14,7 @@
   "default_lane_unchanged": true,
   "typesafe_url_default": "https://api.typesafe.ai/v1/systemone",
   "typesafe_url_override": "http://127.0.0.1:8765/v1/systemone",
-  "python": "/home/mark/DEVELOP/pfy-mentat/tmp/laya-trial/.venv-laya/bin/python",
+  "python": "$HOME/DEVELOP/pfy-mentat/tmp/laya-trial/.venv-laya/bin/python",
   "recommendation": "keep CUA-S1-FORMS as the default decision lane (no measured win on this set)",
   "lanes": {
     "cua-s1-forms": {
@@ -2837,14 +2837,14 @@
         }
       }
     },
-    "log": "/home/mark/DEVELOP/pfy-mentat/tmp/laya-trial/pipelines/dogfood/laya-trial/laya-serve.log",
+    "log": "$HOME/DEVELOP/pfy-mentat/tmp/laya-trial/pipelines/dogfood/laya-trial/laya-serve.log",
     "env": {
       "LAYA_HOST": "127.0.0.1",
       "LAYA_PORT": 8765,
       "LAYA_DEVICE": "cpu",
       "LAYA_MODELS": "english,typed-decisions",
       "LAYA_JEV_STRICT": "1",
-      "HF_HOME": "/home/mark/DEVELOP/pfy-mentat/tmp/laya-trial/.hf-cache"
+      "HF_HOME": "$HOME/DEVELOP/pfy-mentat/tmp/laya-trial/.hf-cache"
     },
     "peak_rss_kb_at_health": 3752020,
     "hwm_kb_at_health": 4568580

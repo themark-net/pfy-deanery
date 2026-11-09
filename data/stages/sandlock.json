@@ -15,8 +15,8 @@
   "potential": "medium",
   "next_gate": "Stay I2. The I1 ceiling stays until a TOOLS.md row exists. A later ticket can grill one installer wrapper that hands the stage directory to SkillSpector. No gate wiring in this lane.",
   "tier_ceiling": "I3",
-  "rationale": "Mark approval 2026-11-08 10:03am PT. Raise tier_ceiling only. Catalog tier A still computes I1. catalog_stage_eval.py keeps a higher existing ceiling.",
-  "provenance": "Mark approval 2026-11-08 10:03am PT",
+  "rationale": "operator approval 2026-11-08 10:03am PT. Raise tier_ceiling only. Catalog tier A still computes I1. catalog_stage_eval.py keeps a higher existing ceiling.",
+  "provenance": "operator approval 2026-11-08 10:03am PT",
   "non_goals": [
     "replace SkillSpector content checks",
     "replace agent-cage",

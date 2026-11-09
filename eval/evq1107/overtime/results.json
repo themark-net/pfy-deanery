@@ -43,7 +43,7 @@
           "backend=stub",
           "budget=1",
           "tokens=10",
-          "protect=/home/mark/.cache/pfy/tools/overtime/probe-run/protected"
+          "protect=$HOME/.cache/pfy/tools/overtime/probe-run/protected"
         ],
         "code": 0,
         "seconds": 0.1202,
@@ -118,7 +118,7 @@
     "dailyBudgetUsd": 1,
     "dailyTokenBudget": 10,
     "protect": [
-      "/home/mark/.cache/pfy/tools/overtime/probe-run/protected"
+      "$HOME/.cache/pfy/tools/overtime/probe-run/protected"
     ]
   },
   "agent_md_edit_adopted": true,
@@ -141,12 +141,12 @@
   "turn1_starts": 1,
   "protect_writes": {
     "allow": {
-      "path": "/home/mark/.cache/pfy/tools/overtime/probe-run/outside/ok.txt",
+      "path": "$HOME/.cache/pfy/tools/overtime/probe-run/outside/ok.txt",
       "ok": true,
       "error": null
     },
     "deny": {
-      "path": "/home/mark/.cache/pfy/tools/overtime/probe-run/protected/no.txt",
+      "path": "$HOME/.cache/pfy/tools/overtime/probe-run/protected/no.txt",
       "ok": false,
       "error": "EROFS"
     }

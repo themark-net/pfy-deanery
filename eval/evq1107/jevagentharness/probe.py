@@ -381,7 +381,7 @@ CMDS = [
 
 def run_session(base: str, model: str, session: str, outputs: list[str], token: str) -> dict:
     system = "You are a coding agent in the pfy-mentat repo. Use tool results. Reply with only the integration_stage token."
-    user = "Read data/stages/ollama.json and reply with only its integration_stage token. Mark %s." % MARKER
+    user = "Read data/stages/ollama.json and reply with only its integration_stage token. The operator %s." % MARKER
     messages: list[dict] = [
         {"role": "system", "content": system},
         {"role": "user", "content": user},

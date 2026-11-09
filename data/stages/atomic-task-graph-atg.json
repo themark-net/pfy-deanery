@@ -18,7 +18,7 @@
     "self-promote past I2",
     "I3 after negative result",
     "auto-raise to I3",
-    "ALFWorld until Mark reopens ATG"
+    "ALFWorld until the operator reopens ATG"
   ],
   "catalog_tier": "A",
   "catalog_overall": "82",
@@ -52,7 +52,7 @@
   "gates": {
     "gap_fill": "partial — compile, parallel waves, freeze, and localized repair are not a first-party pfy skill; LangGraph overlaps run-a-DAG",
     "operator_leverage": "no — the live probe does not shorten the default pipeline",
-    "evidence": "2026-10-06 live atg-compile on Ollama qwen3.6:35b exited 0: 2/10 valid DAGs, 2/10 sink-correct, repairs 0, wall 478s. The I2 score (2/10 valid, 2/10 sink-correct) was taken at 86d1b890 on build/atg-finish and has not been re-run at the main pin 543e778. Offline pytest 40 passed, 1 deselected. coder-next not loaded (memory gate). STOPPED 2026-11-08 16:21 PT (Mark): negative result on the live localized-repair bar (atg-framework item 1, six sessions on qwen2.5:14b and qwen3.6:35b). Best arm 10/12; best localized 9/12 (qwen3.6:35b session 5) with 23 model calls vs replan 10/12 with 16 and sequential 10/12 with 12. The paper's localized-repair advantage did not reproduce. Items 2 to 4 cancelled. Do NOT promote to I3. The integrate receipt never included a real model call (offline atg-compile only). Write-up ae4891a; handoff 31fda31; stop docs f42a4fc on themark-net/atg-framework. Catalog exclusion: eval/catalog-queue/exclusions.tsv.",
+    "evidence": "2026-10-06 live atg-compile on Ollama qwen3.6:35b exited 0: 2/10 valid DAGs, 2/10 sink-correct, repairs 0, wall 478s. The I2 score (2/10 valid, 2/10 sink-correct) was taken at 86d1b890 on build/atg-finish and has not been re-run at the main pin 543e778. Offline pytest 40 passed, 1 deselected. coder-next not loaded (memory gate). STOPPED 2026-11-08 16:21 PT (the operator): negative result on the live localized-repair bar (atg-framework item 1, six sessions on qwen2.5:14b and qwen3.6:35b). Best arm 10/12; best localized 9/12 (qwen3.6:35b session 5) with 23 model calls vs replan 10/12 with 16 and sequential 10/12 with 12. The paper's localized-repair advantage did not reproduce. Items 2 to 4 cancelled. Do NOT promote to I3. The integrate receipt never included a real model call (offline atg-compile only). Write-up ae4891a; handoff 31fda31; stop docs f42a4fc on themark-net/atg-framework. Catalog exclusion: eval/catalog-queue/exclusions.tsv.",
     "blast_radius": "yes, while it stays off primary orchestration, the cage, and eval-harness"
   },
   "uses": "Callable compile, parallel tool waves, freeze, and localized repair via a pinned checkout. Independent reimplementation of Zhang et al. (2026), arXiv:2607.01942. Not official ATG code.",
@@ -62,7 +62,7 @@
     "openai-compat-client"
   ],
   "potential": "measured-probe",
-  "next_gate": "STOPPED 2026-11-08. Stay I2. Do NOT promote to I3. Mark recorded a negative result and cancelled further ATG finish work. See stop note on this card and exclusions.tsv.",
+  "next_gate": "STOPPED 2026-11-08. Stay I2. Do NOT promote to I3. The operator recorded a negative result and cancelled further ATG finish work. See stop note on this card and exclusions.tsv.",
   "handoff_by": "llm",
-  "stop_reason": "STOPPED 2026-11-08 16:21 PT (Mark): negative result on the live localized-repair bar (atg-framework item 1, six sessions on qwen2.5:14b and qwen3.6:35b). Best arm 10/12; best localized 9/12 (qwen3.6:35b session 5) with 23 model calls vs replan 10/12 with 16 and sequential 10/12 with 12. The paper's localized-repair advantage did not reproduce. Items 2 to 4 cancelled. Do NOT promote to I3. The integrate receipt never included a real model call (offline atg-compile only). Write-up ae4891a; handoff 31fda31; stop docs f42a4fc on themark-net/atg-framework. Catalog exclusion: eval/catalog-queue/exclusions.tsv."
+  "stop_reason": "STOPPED 2026-11-08 16:21 PT (the operator): negative result on the live localized-repair bar (atg-framework item 1, six sessions on qwen2.5:14b and qwen3.6:35b). Best arm 10/12; best localized 9/12 (qwen3.6:35b session 5) with 23 model calls vs replan 10/12 with 16 and sequential 10/12 with 12. The paper's localized-repair advantage did not reproduce. Items 2 to 4 cancelled. Do NOT promote to I3. The integrate receipt never included a real model call (offline atg-compile only). Write-up ae4891a; handoff 31fda31; stop docs f42a4fc on themark-net/atg-framework. Catalog exclusion: eval/catalog-queue/exclusions.tsv."
 }

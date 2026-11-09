@@ -13,7 +13,7 @@ Decision API, **not chat**. Cite **#230** only. Do not reopen #76. Catalog 70–
 
 ## Locks
 
-- **Primary local:** CUA-S1-FORMS (https://github.com/trycua/cua). Mark-free smoke.
+- **Primary local:** CUA-S1-FORMS (https://github.com/trycua/cua). operator-free smoke.
 - **Optional cloud:** TypeSafe Jev `jev-1.13.0`. Key missing → FAIL+next or switch local.
 - **Fallback only:** mini-jev.
 - Confidence = calibrated **margin** (`conf ok` / `conf low`). Gate ~0.85. No silent auto-act.

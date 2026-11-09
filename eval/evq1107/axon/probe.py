@@ -19,7 +19,7 @@ from pathlib import Path
 
 WT = Path(__file__).resolve().parents[3]
 OUT = Path(__file__).resolve().parent
-BASE = Path("/home/mark/.cache/pfy/tools/axon")
+BASE = (Path.home() / ".cache/pfy/tools/axon")
 CHIASMUS = WT / "eval" / "ev1107" / "chiasmus" / "results.json"
 TSA = WT / "eval" / "evq1107" / "tree-sitter-analyzer" / "results.json"
 CLONE = BASE / "probe" / "repo"
@@ -366,7 +366,7 @@ def fixture_main(repo: Path, out: Path) -> int:
 def home_flags() -> dict[str, str]:
     flags = {}
     for rel in (".axon", ".cache/axon", ".config/axon"):
-        flags[rel] = "present" if Path("/home/mark", rel).exists() else "absent"
+        flags[rel] = "present" if Path.home().joinpath(rel).exists() else "absent"
     return flags
 
 

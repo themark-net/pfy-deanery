@@ -6,7 +6,7 @@
   "github": "https://github.com/yetone/magpie",
   "uses": "One gateway config for every agent.",
   "potential": "low",
-  "next_gate": "Rewrites agent configs; needs Mark GO. After Strata.",
+  "next_gate": "Rewrites agent configs; needs the operator GO. After Strata.",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",

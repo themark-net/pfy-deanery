@@ -192,14 +192,14 @@
     "pregate_fails_cleared": 0
   },
   "real_home_before": {
-    "/home/mark/.local/state/squadra": false,
-    "/home/mark/.cache/squadra": false,
-    "/home/mark/.squadra": false
+    "$HOME/.local/state/squadra": false,
+    "$HOME/.cache/squadra": false,
+    "$HOME/.squadra": false
   },
   "real_home_after": {
-    "/home/mark/.local/state/squadra": false,
-    "/home/mark/.cache/squadra": false,
-    "/home/mark/.squadra": false
+    "$HOME/.local/state/squadra": false,
+    "$HOME/.cache/squadra": false,
+    "$HOME/.squadra": false
   },
   "real_home_untouched": true,
   "problems": []

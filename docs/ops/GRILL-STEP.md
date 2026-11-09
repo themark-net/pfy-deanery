@@ -1,6 +1,6 @@
 # Grill step (before a CI, pipeline, or gate ticket)
 
-A coordinator bot runs this before it writes `TICKET-<label>.md`, and sandcastle-grok runs it before a lane is cut, when the ticket touches CI, pipeline, or gate files. Tools stay off. The turn cap is 12 for the question call and the coordinator call together. The coordinator (not Mark) accepts or overrides each recommended answer. Answers that change behavior are written into the ticket as exit tests before Build, and the agent does not edit them.
+A coordinator bot runs this before it writes `TICKET-<label>.md`, and sandcastle-grok runs it before a lane is cut, when the ticket touches CI, pipeline, or gate files. Tools stay off. The turn cap is 12 for the question call and the coordinator call together. The coordinator (not the operator) accepts or overrides each recommended answer. Answers that change behavior are written into the ticket as exit tests before Build, and the agent does not edit them.
 
 The trigger list lives in one place: `TRIGGER_GLOBS` and `TEXT_NEEDLES` in `scripts/grill_ticket.py`. It covers `.github/workflows/**`, `ci/**`, `pipelines/**`, `scripts/pregate*`, `scripts/run_tests.py`, `scripts/test_select.py`, `scripts/test_cache.py`, `scripts/*gate*`, `scripts/model_lock.sh`, Makefile CI/test targets, `docs/ops/MODULAR-CI.md`, and `docs/ops/PREGATE.md`. Anything else prints `no grill needed` and exits 0.
 

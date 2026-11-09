@@ -18,7 +18,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 OUT = Path(__file__).resolve().parent / "results.json"
-CACHE = Path("/home/mark/.cache/pfy/tools/openlore")
+CACHE = (Path.home() / ".cache/pfy/tools/openlore")
 PREFIX = CACHE / "prefix"
 CLI = PREFIX / "node_modules" / "openlore" / "dist" / "cli" / "index.js"
 CLONE = CACHE / "probe" / "repo"
@@ -432,8 +432,8 @@ def main() -> int:
     }
     watched = {}
     for label, path in (
-        ("real_openlore", Path("/home/mark/.openlore")),
-        ("real_pi", Path("/home/mark/.pi/agent/extensions")),
+        ("real_openlore", (Path.home() / ".openlore")),
+        ("real_pi", (Path.home() / ".pi/agent/extensions")),
     ):
         watched[label] = path.exists()
     doc["watched_before"] = watched
@@ -666,8 +666,8 @@ def main() -> int:
 
     watched_after = {}
     for label, path in (
-        ("real_openlore", Path("/home/mark/.openlore")),
-        ("real_pi", Path("/home/mark/.pi/agent/extensions")),
+        ("real_openlore", (Path.home() / ".openlore")),
+        ("real_pi", (Path.home() / ".pi/agent/extensions")),
     ):
         watched_after[label] = path.exists()
     doc["watched_after"] = watched_after

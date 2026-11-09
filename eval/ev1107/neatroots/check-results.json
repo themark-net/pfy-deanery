@@ -107,7 +107,7 @@
           ],
           "params": {
             "tool": "read_file",
-            "error": "Error: /home/mark/DEVELOP/pfy-mentat/tmp/mvp-intfix-1031/docs/ops/HANDOFF-mvp-intfix-1031.md does not exist.",
+            "error": "Error: $HOME/DEVELOP/pfy-mentat/tmp/mvp-intfix-1031/docs/ops/HANDOFF-mvp-intfix-1031.md does not exist.",
             "count": "3"
           }
         }
@@ -129,8 +129,8 @@
           "params": {
             "tool": "grep",
             "count": "3",
-            "args": "{\"path\":\"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-local-build/docs/ops/AUTONOMOUS-DECISIONS-2026-10-26.md\",\"pattern\":\"\\u20…",
-            "result": "<workspace_result workspace_path=\"/home/mark/DEVELOP/pfy-mentat/tmp/mvp-local-build\">\nNo matches found\n</workspace_resu…"
+            "args": "{\"path\":\"$HOME/DEVELOP/pfy-mentat/tmp/mvp-local-build/docs/ops/AUTONOMOUS-DECISIONS-2026-10-26.md\",\"pattern\":\"\\u20…",
+            "result": "<workspace_result workspace_path=\"$HOME/DEVELOP/pfy-mentat/tmp/mvp-local-build\">\nNo matches found\n</workspace_resu…"
           }
         },
         {
@@ -166,7 +166,7 @@
           "params": {
             "tool": "read_file",
             "count": "6",
-            "args": "{\"target_file\":\"/home/mark/DEVELOP/pfy-mentat/tmp/mvp2/tmp/mvp2-runs/logs/all-local.stdout\"}\nsha256:3096c53db43fc90a2b0…",
+            "args": "{\"target_file\":\"$HOME/DEVELOP/pfy-mentat/tmp/mvp2/tmp/mvp2-runs/logs/all-local.stdout\"}\nsha256:3096c53db43fc90a2b0…",
             "result": "[Tool result omitted — too old]\nsha256:3b43f2f1bd52ea12d4ef6353fb68dcc8b3d3d14c0a39c8aaed0bcc8c8cacc8d5"
           }
         },

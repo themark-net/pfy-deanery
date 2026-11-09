@@ -52,10 +52,10 @@
   "acceptance_checks": [
     "File docs/ops/integration-stages.md exists and mentions I1 staged evaluation and I2 <50 MB",
     "File docs/ops/local-model-storage-and-eval.md exists and mentions 250 GB",
-    "docs/open-questions/OQ-0003-first-subtree-candidate.md Status answered",
-    "docs/open-questions/OQ-0004-atg-prototype-relationship.md Status answered",
-    "docs/open-questions/OQ-0007-antigravity-need.md Status answered",
-    "docs/open-questions/OQ-0008-colibri-weights-ok.md Status answered",
+    "OQ-0003 (first-subtree-candidate) is answered in the private ops notes",
+    "OQ-0004 (atg-prototype-relationship) is answered in the private ops notes",
+    "OQ-0007 (antigravity-need) is answered in the private ops notes",
+    "OQ-0008 (colibri-weights-ok) is answered in the private ops notes",
     "data/golden-tasks/GT-0001-oq-batch-integration-stages.json exists"
   ],
   "source_session": "2026-07-30 Grok OQ batch walkthrough",

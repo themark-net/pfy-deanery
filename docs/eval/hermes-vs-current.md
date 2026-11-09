@@ -2,7 +2,7 @@
 
 ## Re-run 2026-10-21 (meta tools off, matched thinking)
 
-Not a Feature GO. Verdict: **NO-WIN**. The tie does not block the bot-interface flag. Mark already chose Hermes for the interface. The flag stays off unless `PFY_BOT_INTERFACE=hermes`.
+Not a Feature GO. Verdict: **NO-WIN**. The tie does not block the bot-interface flag. The operator already chose Hermes for the interface. The flag stays off unless `PFY_BOT_INTERFACE=hermes`.
 
 Receipt: `pipelines/dogfood/hermes-bakeoff/results-rerun.json`. The 2026-10-19 file `results.json` is unchanged. Same 27 labels. Local Ollama `qwen3.6:35b` only. Pin `ddabd383`. opencode 1.18.32.
 

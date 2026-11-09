@@ -17,7 +17,7 @@
 | Ops / module | `docs/ops/jev-230.md`, `docs/modules/jev-230.md` | Documents optional key |
 | Design locks | `docs/design/JEV-230-*.md` | — |
 | Implementation | `scripts/pfy_jev_230.py` (~1.1k LOC) | **Only if** `TYPESAFE_API_KEY` set; raw `POST https://api.typesafe.ai/v1/systemone` via `urllib` (**no** `typesafe-sdk` import) |
-| CLI | `./pfy decision` (`smoke` / `route` / `compact` / `queue` / path toggles) | Smoke = CUA-S1-FORMS, Mark-free |
+| CLI | `./pfy decision` (`smoke` / `route` / `compact` / `queue` / path toggles) | Smoke = CUA-S1-FORMS, operator-free |
 | Toolset | `data/toolsets.json` id `jev` (`catalog_tool: null` by design) | Lane local = CUA / mini-jev; cloud = TypeSafe |
 | Skills (SoT) | `bootstrap/grok-cli/skills/jev-decision/SKILL.md` | Points at optional cloud + official TypeSafe skill |
 | Applied skill | `./pfy toolset apply jev --harness grok` → `GROK_HOME/skills/pfy-jev-decision` | Local |
@@ -32,7 +32,7 @@
 | Asset | Where | Notes |
 |-------|-------|-------|
 | `org-spinny-decide` package | `~/DEVELOP/org-spinny-decide` → `themark-net/org-spinny-decide` | Ollama Choice gates (`push_hold`, `nimo_yield`, `pm_route`); README: **Not cloud TypeSafe** |
-| Org agent skill | `/home/box/agent-data/workflows/org-spinny-decide/SKILL.md` | Same: **No cloud TypeSafe** |
+| Org agent skill | `$HOME/agent-data/workflows/org-spinny-decide/SKILL.md` | Same: **No cloud TypeSafe** |
 | Bot coordination | `bots-coordinate-build-and-cursor-execute` | Explicitly: use org-spinny-decide for cheap gates; heavy implement → Grok Build / Cursor |
 | Grok Build | `use-grok-build-on-nimo` | Headless: `~/.local/bin/grok -p … --cwd <worktree> --always-approve` |
 | nimo Grok skills | `~/.grok/skills/jev-decision`, `pfy-jev-decision` | Present; Pfy apply path |
@@ -60,7 +60,7 @@
 
 ## 1. Decision map (org pipeline → keep-in-code vs Jev vs LLM)
 
-Pipeline reminder: bots coordinate (PM / DevBot / Tester / Reviewer / CEO) → heavy implement = Grok Build headless on nimo → gates = Tester PASS + Reviewer PASS + green CI → pinned squash merge (no Mark ask). **Feature GO stays human.**
+Pipeline reminder: bots coordinate (PM / DevBot / Tester / Reviewer / CEO) → heavy implement = Grok Build headless on nimo → gates = Tester PASS + Reviewer PASS + green CI → pinned squash merge (no operator ask). **Feature GO stays human.**
 
 **Hard rule:** Jev / spinny / `./pfy decision` **must never replace** Tester or Reviewer PASS outright. Shadow-log first; automate only the safest branch.
 
@@ -81,7 +81,7 @@ Pipeline reminder: bots coordinate (PM / DevBot / Tester / Reviewer / CEO) → h
 
 1. **Shadow:** log `{gate, state_hash, choice, confidence, engine, would_auto}` beside current behavior; current path still acts.  
 2. **Safest auto:** only branches that today already auto-act on deterministic code (e.g. hold on `known_red`) and where shadow agreement ≥ threshold for N days.  
-3. **TypeSafe cloud:** off until a key exists; then one smoke + shadow parallel to CUA/Ollama — never block Mark-free path.
+3. **TypeSafe cloud:** off until a key exists; then one smoke + shadow parallel to CUA/Ollama — never block operator-free path.
 
 ---
 

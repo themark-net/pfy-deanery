@@ -56,4 +56,4 @@ Registry: [bootstrap/env/REGISTRY.md](../../bootstrap/env/REGISTRY.md).
 - Fake PASS when auth is missing
 - Spam issues from `--selftest`
 - `LIVE_HARD_OFF`: no live catalog writes / no TOOLS.md triple-write from this path
-- No Mark git/npm/CI chore
+- No operator git/npm/CI chore

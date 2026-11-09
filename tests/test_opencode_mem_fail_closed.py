@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "eval/integrate/opencode-mem/run-on-main.sh"
-REAL_MARKER = Path("/home/mark/DEVELOP/pfy-mentat/tmp/integrate2/opencode-mem.dispatched")
+REAL_MARKER = (Path.home() / "DEVELOP/pfy-mentat/tmp/integrate2/opencode-mem.dispatched")
 HOME_DIRS = (
     ".config/opencode",
     ".opencode",

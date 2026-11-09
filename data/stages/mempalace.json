@@ -15,7 +15,7 @@
     "hybrid cosine and bm25"
   ],
   "potential": "medium",
-  "next_gate": "Stay I1. Re-open I2 only if a pin keeps top-1 above 6 of 8 on these eight questions, keeps wing leaks at 0, and both the work tree and the embedder are under 50 MB. A same-question run against cass-memory (108) and ai-memory (132) is still open. cass-memory was not executed (license rider; Mark decides before a trial). Do not wire a gate.",
+  "next_gate": "Stay I1. Re-open I2 only if a pin keeps top-1 above 6 of 8 on these eight questions, keeps wing leaks at 0, and both the work tree and the embedder are under 50 MB. A same-question run against cass-memory (108) and ai-memory (132) is still open. cass-memory was not executed (license rider; the operator decides before a trial). Do not wire a gate.",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",

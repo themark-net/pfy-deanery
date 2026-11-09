@@ -4,7 +4,7 @@
     "jah_version": "jah 0.1.0",
     "pyproject_sha256": "72b18f8e7741b213f5688b9b05b8cfaf41dc7f6bed6a85e910089a6ff6d43a83",
     "src_bytes_without_git": 32616355,
-    "jah_bin": "/home/mark/.cache/pfy/tools/jevagentharness/venv/bin/jah"
+    "jah_bin": "$HOME/.cache/pfy/tools/jevagentharness/venv/bin/jah"
   },
   "offline": {
     "up": true,

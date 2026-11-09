@@ -3,8 +3,8 @@
   "started": "2026-10-04T23:30:56-0700",
   "host": "nimo",
   "checks": [],
-  "backend": "llama.cpp-kolibri1-patch:cpu /home/mark/DEVELOP/pfy-mentat/tmp/models/Kolibri-1-Q3_K_S-GGUF/Kolibri-1-Q3_K_S.gguf",
-  "reason": "GGUF incomplete: 2107084459/33870242400 bytes (6.2%) at /home/mark/DEVELOP/pfy-mentat/tmp/models/Kolibri-1-Q3_K_S-GGUF/Kolibri-1-Q3_K_S.gguf. Official FP8 weights need >=2x A100 80GB / 1x H200 (no NVIDIA GPU here). Run examples/kolibri1-llamacpp/download.sh",
+  "backend": "llama.cpp-kolibri1-patch:cpu $HOME/DEVELOP/pfy-mentat/tmp/models/Kolibri-1-Q3_K_S-GGUF/Kolibri-1-Q3_K_S.gguf",
+  "reason": "GGUF incomplete: 2107084459/33870242400 bytes (6.2%) at $HOME/DEVELOP/pfy-mentat/tmp/models/Kolibri-1-Q3_K_S-GGUF/Kolibri-1-Q3_K_S.gguf. Official FP8 weights need >=2x A100 80GB / 1x H200 (no NVIDIA GPU here). Run examples/kolibri1-llamacpp/download.sh",
   "exit_code": 2,
   "verdict": "FAIL_NO_BACKEND"
 }

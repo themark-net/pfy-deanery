@@ -7,7 +7,7 @@ class OllamaRunOnMainLockTest(unittest.TestCase):
         script = Path("eval/integrate/ollama/run-on-main.sh")
         text = script.read_text(encoding="utf-8")
         self.assertIn("scripts/model_lock.sh", text)
-        self.assertIn("/home/mark/DEVELOP/pfy-mentat/tmp/integrate2/ollama.dispatched", text)
+        self.assertIn("$HOME/DEVELOP/pfy-mentat/tmp/integrate2/ollama.dispatched", text)
         self.assertIn("flock", text)
         self.assertNotIn("ollama pull", text)
         self.assertNotIn("systemctl", text)

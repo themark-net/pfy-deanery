@@ -96,7 +96,7 @@
       "warn_ids": {},
       "samples": [],
       "stdout_tail": "",
-      "stderr_tail": "Not found: /home/mark/.cache/pfy/tools/taste-skill/tmp/probe/no-such-dir\n",
+      "stderr_tail": "Not found: $HOME/.cache/pfy/tools/taste-skill/tmp/probe/no-such-dir\n",
       "rc": 2,
       "seconds": 0.0165
     },

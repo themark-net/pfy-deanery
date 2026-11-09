@@ -9,7 +9,7 @@
 - **Verified on the Grok Bot box** (2026-11-05): smoke not run against live GitHub in this PR authoring pass; stub tests cover the metadata path. On nimo, expect exit 2 with `FAIL_CANNOT_RUN_HERE` when the release JSON matches and the AppImage is not launched.
 - **Findings**:
   - Pin is the Linux AppImage only. Control and DSV41 HIP tarballs are recorded as related assets, not as this smoke's pin.
-  - Strix Halo is named in upstream docs for DeepSeek; that is their claim, not a measurement on Mark's machine.
+  - Strix Halo is named in upstream docs for DeepSeek; that is their claim, not a measurement on the operator's machine.
   - A matching release is still exit 2. Exit 0 would mean the AppImage ran. It did not.
   - The 2026-11-07 catch-up is separate from this smoke. It installed terminal v0.2.12 under gitignored tmp/, served Qwen3.6 UD-Q4_K_XL on gfx1151, and stayed I2 on decode speed. It did not run the AppImage or DeepSeek. Weights were not committed.
 - **Extracted Repos / Tools**: https://github.com/Niko1221/Strata · release `v0.2.11` · related HIP DeepSeek packs under the same release

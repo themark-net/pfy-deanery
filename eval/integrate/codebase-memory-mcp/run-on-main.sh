@@ -3,14 +3,14 @@
 # The receipt is written only after that check and the fixture smoke exit 0.
 #
 # A second start that finds
-# /home/mark/DEVELOP/pfy-mentat/tmp/integrate2/codebase-memory-mcp.dispatched
+# $HOME/DEVELOP/pfy-mentat/tmp/integrate2/codebase-memory-mcp.dispatched
 # exits 2 and writes no receipt, unless that marker's pid is an ancestor of
 # this process. The driver writes "pid <lane-pid>" and still holds the marker
 # when it runs the one-argument receipt call, so that admitted lane continues.
 # This script does not create or remove the marker.
 #
 # The main push is one flock fast-forward on
-# /home/mark/DEVELOP/pfy-mentat/tmp/integrate2/push.lock.
+# $HOME/DEVELOP/pfy-mentat/tmp/integrate2/push.lock.
 # This script does not take that lock. The smoke lock is the fixture
 # directory only (flock). No model call.
 #
@@ -22,7 +22,7 @@
 
 set -euo pipefail
 
-MARKER=${PFY_CBM_LANE_MARKER:-/home/mark/DEVELOP/pfy-mentat/tmp/integrate2/codebase-memory-mcp.dispatched}
+MARKER=${PFY_CBM_LANE_MARKER:-$HOME/DEVELOP/pfy-mentat/tmp/integrate2/codebase-memory-mcp.dispatched}
 
 if [ "$#" -ne 1 ] || [ -z "${1:-}" ]; then
   printf '%s\n' "usage: eval/integrate/codebase-memory-mcp/run-on-main.sh RECEIPT_PATH" >&2

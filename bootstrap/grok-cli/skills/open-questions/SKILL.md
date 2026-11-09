@@ -36,7 +36,7 @@ Do not scatter open questions only in code comments or chat.
 |------|----------|
 | `list` / `scan` (default when asked for status) | Show open/tbd/blocked items sorted P0→P3; call out graph edges (Blocks / Blocked-by). |
 | `add` | Create new OQ with full fields; assign next ID. |
-| `answer` | Mark answered; write resolution + date; do not delete history. |
+| `answer` | The operator answered; write resolution + date; do not delete history. |
 | `promote` | Answered architectural item → run ADR skill process; set status `promoted-to-adr` + ADR id. |
 | `tbd` | Explicit park: status `tbd`, enough context for pickup. |
 

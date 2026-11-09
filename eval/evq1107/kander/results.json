@@ -21,7 +21,7 @@
     }
   },
   "tmux_on_path_usr_bin": false,
-  "fixture": "/home/mark/.cache/pfy/tools/kander/tmp/probe-20261108T032545Z/repo",
+  "fixture": "$HOME/.cache/pfy/tools/kander/tmp/probe-20261108T032545Z/repo",
   "refs": {
     "base": "1a00846e4df8591f02f29d9b422161826ac9c577",
     "lane_entry": "0918b6f00209b606c7d5b91f7806ef7432556eb2",

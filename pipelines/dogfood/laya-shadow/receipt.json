@@ -5,7 +5,7 @@
   "mode": "shadow",
   "started": "2026-10-06T03:25:39Z",
   "host": "nimo",
-  "worktree": "/home/mark/DEVELOP/pfy-mentat/tmp/laya-shadow",
+  "worktree": "$HOME/DEVELOP/pfy-mentat/tmp/laya-shadow",
   "branch": "bot/laya-shadow",
   "gate": 0.85,
   "cases_file": "data/decision-gates/laya-trial.cases.v0.json",
@@ -16,8 +16,8 @@
   "primary_local": "cua-s1-forms",
   "typesafe_url_default": "https://api.typesafe.ai/v1/systemone",
   "typesafe_url_override": "http://127.0.0.1:8765/v1/systemone",
-  "python": "/home/mark/DEVELOP/pfy-mentat/tmp/laya-trial/.venv-laya/bin/python",
-  "hf_home": "/home/mark/DEVELOP/pfy-mentat/tmp/laya-trial/.hf-cache",
+  "python": "$HOME/DEVELOP/pfy-mentat/tmp/laya-trial/.venv-laya/bin/python",
+  "hf_home": "$HOME/DEVELOP/pfy-mentat/tmp/laya-trial/.hf-cache",
   "recommendation": "Laya english shadow catches 9/16 CUA wrong-but-confident with 4/21 false-escalate; useful as opt-in, default stays off, not a lane swap",
   "lanes": {
     "cua-s1-forms": {
@@ -763,15 +763,15 @@
         }
       }
     },
-    "log": "/home/mark/DEVELOP/pfy-mentat/tmp/laya-shadow/pipelines/dogfood/laya-shadow/laya-serve.log",
+    "log": "$HOME/DEVELOP/pfy-mentat/tmp/laya-shadow/pipelines/dogfood/laya-shadow/laya-serve.log",
     "env": {
       "LAYA_HOST": "127.0.0.1",
       "LAYA_PORT": 8765,
       "LAYA_DEVICE": "cpu",
       "LAYA_MODELS": "english",
       "LAYA_JEV_STRICT": "1",
-      "HF_HOME": "/home/mark/DEVELOP/pfy-mentat/tmp/laya-trial/.hf-cache",
-      "HF_HUB_CACHE": "/home/mark/DEVELOP/pfy-mentat/tmp/laya-trial/.hf-cache"
+      "HF_HOME": "$HOME/DEVELOP/pfy-mentat/tmp/laya-trial/.hf-cache",
+      "HF_HUB_CACHE": "$HOME/DEVELOP/pfy-mentat/tmp/laya-trial/.hf-cache"
     },
     "peak_rss_kb_at_health": 2053400,
     "hwm_kb_at_health": 2867668

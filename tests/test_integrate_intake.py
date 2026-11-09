@@ -49,7 +49,7 @@ class IntakeTest(unittest.TestCase):
             rows = json.loads(first.stdout)
             self.assertEqual([row["slug"] for row in rows], ["low-ceiling", "open-tool"])
             by = {row["slug"]: row for row in rows}
-            self.assertEqual(by["low-ceiling"]["flag"], "tier_ceiling below I3: needs Mark")
+            self.assertEqual(by["low-ceiling"]["flag"], "tier_ceiling below I3: needs the operator")
             self.assertEqual(by["low-ceiling"]["tier_ceiling"], "I1")
             self.assertEqual(by["open-tool"]["flag"], "")
             for slug in cases:

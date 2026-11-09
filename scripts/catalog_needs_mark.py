@@ -11,7 +11,7 @@ Kinds: ceiling, gpu, pull-over-25gb, excluded, demotion-flag, parked, risky-clas
 
 Sources, in a stable order, deduped by slug+kind+reason:
   integrate intake flags (ceiling below I3 on an open I2 card)
-  exclusions.tsv reasons that say Mark, GPU, or 25 GB
+  exclusions.tsv reasons that say the operator, GPU, or 25 GB
   card text that the auto-raise classifier refuses (risky class, gpu, size, release)
   CEILING-MISMATCHES.md rows (demotion flags; the scan does not demote)
   parked lane markers (*.parked)
@@ -43,7 +43,7 @@ from scripts.ops_paths import NEEDS_MARK_REL, ops_path  # noqa: E402
 
 HEADER = ("slug", "kind", "reason", "evidence", "since")
 DATE_RE = re.compile(r"\b(\d{4}-\d{2}-\d{2})\b")
-MARK_RE = re.compile(r"\bmark\b", re.IGNORECASE)
+MARK_RE = re.compile(r"\b(mark|operator|maintainer)\b", re.IGNORECASE)
 SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 ROW_RE = re.compile(r"^\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*$")
 
@@ -210,7 +210,7 @@ def collect(
         elif blocked == "gpu":
             rows.append((slug, "gpu", "card text names a GPU run", evidence, "-"))
         elif blocked == "release-deploy":
-            rows.append((slug, "risky-class", "release or deploy stays with Mark", evidence, "-"))
+            rows.append((slug, "risky-class", "release or deploy stays with the operator", evidence, "-"))
         if risk in ("security", "live-money", "runtime-takeover", "unknown"):
             rows.append((slug, "risky-class", risk, evidence, "-"))
     rows.extend(_demotions(root, report, names))

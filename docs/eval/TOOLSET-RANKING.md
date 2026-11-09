@@ -2,7 +2,7 @@
 
 ## 2026-11-07 catch-up re-rank (entries 137 to 167)
 
-**Why:** 22 entries were cataloged between 2026-10-24 and 2026-11-06 and none was tested or built in. Mark approved a catch-up pass on 2026-11-07. This section ranks entries 137 to 167 by how soon each one closes a named pfy-mentat MVP gap. The 2026-10-06 ranking below is kept as history.
+**Why:** 22 entries were cataloged between 2026-10-24 and 2026-11-06 and none was tested or built in. The operator approved a catch-up pass on 2026-11-07. This section ranks entries 137 to 167 by how soon each one closes a named pfy-mentat MVP gap. The 2026-10-06 ranking below is kept as history.
 
 **Read:** `sources/entries/137` to `167`, a private ops note, a private ops note, a private ops note, a private ops note, `data/tool_integration_stages.json`, and the Strata upstream repo (README, `docs/STRIX_HALO.md`, `docs/MODELS.md`, `docs/TERMINAL_LAUNCH.md`, release `v0.2.12` asset list).
 
@@ -62,7 +62,7 @@ codebase-memory-mcp (I2, `code-graph` toolset) · LiteLLM (I2 smoke) · Ollama (
 | # | Candidate | Value for pfy-mentat (local-only) | Effort | API key? | Status |
 |---|---|---|---|---|---|
 | 1 | **llama-server `--no-mmap` lane** (llama.cpp server mode) | Only way to run `qwen3-coder-next` (83.3 % on #230, vs 79.2 % for qwen3.6). Make it a named lane in `pfylib/hedge.py` / `eval-lanes.json` with start/stop + health, not a bench-only script. It also gives atg-framework an OpenAI-compatible target | S–M | No | Built in a bench only (`pipelines/dogfood/local-bench-4/run_nommap_server.sh`). Not a lane |
-| 2 | **atg-framework (ATG)** | Typed DAG compile + localized repair for multi-step local loops. First use is a compile bench, then an opt-in `atg` loop kind. See [ATG-FRAMEWORK-EVAL.md](ATG-FRAMEWORK-EVAL.md) | M | No (Ollama / local) | STOPPED 2026-11-08 (Mark): negative live result. Localized repair did not beat full replan on model calls (best localized 9/12 @23 calls vs replan 10/12 @16). Do not promote to I3. Catalog exclusion set. Stop docs on atg-framework `f42a4fc`. |
+| 2 | **atg-framework (ATG)** | Typed DAG compile + localized repair for multi-step local loops. First use is a compile bench, then an opt-in `atg` loop kind. See [ATG-FRAMEWORK-EVAL.md](ATG-FRAMEWORK-EVAL.md) | M | No (Ollama / local) | STOPPED 2026-11-08 (the operator): negative live result. Localized repair did not beat full replan on model calls (best localized 9/12 @23 calls vs replan 10/12 @16). Do not promote to I3. Catalog exclusion set. Stop docs on atg-framework `f42a4fc`. |
 | 3 | **DSPy optimizers on the #230 decision bench** | Tune the prompt / few-shot set for `qwen3.6:35b` on the 48 cases with a held-out split. It may close the gap to coder-next without the 51 GB load. Gom Jabbar already uses DSPy | M | No (`ollama_chat/…` via LiteLLM) | Idea (TOOLS.md A-tier row, not integrated) |
 | 4 | **destructive_command_guard** | Guardrail for unattended local workers (`worker-monitor`, OpenCode + Ollama), next to write-guard. That matters more as bots hand bulk work to local models | S | No | Catalog row only (Entry 041) |
 | 5 | **opencode-mem** | Persistent memory for the **worker** surface (OpenCode + Ollama), which the Grok-side tools don't cover | S–M | No (local vector DB) | Catalog row only (Entry 049) |
@@ -80,5 +80,5 @@ Graphify, Ix, Axon (CM is primary) · Memvid · MUE-X and Exo (unsafe as runtime
 ## Per-product notes
 
 - **Gom Jabbar:** #3 (DSPy) moves routine identify/fit work to local models (ROADMAP item 7). #6 memory pattern for sticky answers.
-- **Leasegrid / Practice Minder / Lotline:** no tool on this list is on their critical path. They are founder-gated (RELEASE / Mark inputs). #4 and #8 protect the Build sessions that work on them.
+- **Leasegrid / Practice Minder / Lotline:** no tool on this list is on their critical path. They are founder-gated (RELEASE / the operator inputs). #4 and #8 protect the Build sessions that work on them.
 - **pfy-mentat:** do #1, then #2 (bench), then #3. That order raises local-model quality before adding loop machinery.

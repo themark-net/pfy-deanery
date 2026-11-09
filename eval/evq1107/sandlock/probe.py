@@ -23,7 +23,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 OUT_DIR = Path(__file__).resolve().parent
-CACHE = Path("/home/mark/.cache/pfy/tools/sandlock")
+CACHE = (Path.home() / ".cache/pfy/tools/sandlock")
 BIN = Path(os.environ.get("SANDLOCK_BIN", str(CACHE / "unpack" / "sandlock")))
 TARBALL = CACHE / "sandlock-x86_64-unknown-linux-gnu.tar.gz"
 RUNTIME = ROOT / "tmp" / "sandlock-probe"

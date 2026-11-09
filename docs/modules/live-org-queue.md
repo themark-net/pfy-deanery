@@ -22,7 +22,7 @@ Registry: [bootstrap/env/REGISTRY.md](../../bootstrap/env/REGISTRY.md).
 
 - Entry: `scripts/pfy_live_org_queue_214.py` (`--selftest` / `--queue NAME` / `--status` / `--dry-run`).
 - Callers: `./pfy catalog queue|status` (via `pfy_catalog_ask_queue_209.py` delegate); board `catalog_queue` / `catalog_status` / `catalog_fields`; `POST /catalog/queue`; Tools HTML+tk.
-- Invariants: no mock success; HOLD 70–75 not auto-lifted; no Mark git/npm/CI; do not reopen #76; selftest never creates live issues.
+- Invariants: no mock success; HOLD 70–75 not auto-lifted; no operator git/npm/CI; do not reopen #76; selftest never creates live issues.
 - Issue **#214** only.
 
 ## Architecture link

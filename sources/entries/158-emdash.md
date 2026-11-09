@@ -21,7 +21,7 @@
 |------|----------------|----------|
 | Smoke treated as a pass | A later edit turns a metadata match into exit 0 | Keep exit 2 while the reason says the GUI was not launched. The stub test checks that sentence |
 | Accidental 233 MB download | A script fetches the AppImage "to be sure" | The smoke reads the release JSON only. Do not add a download |
-| Provider keys in a trial | "Any provider" pulls a hosted account into this repo | Stay at I0. A trial needs its own checkout and Mark's GO |
+| Provider keys in a trial | "Any provider" pulls a hosted account into this repo | Stay at I0. A trial needs its own checkout and the operator's GO |
 | Pin drift | A newer tag replaces `v1.2.10` on `main` | The smoke checks this tag's asset digest, not floating `main` |
 
 - **Status**: STAY I0 reference (read 2026-11-07). Pin `ab766e8fbb436584dcf0f299740e79d559b8ed31` is tag v1.2.10, Apache-2.0. No install and no code copy. The GUI was not launched (entry smoke exit 2). Gap B stays the pfy build timeout. Receipt: `ops:eval/evq1107/emdash/REPORT.md`. No Feature GO.

@@ -1,4 +1,4 @@
-"""Refuse to start Hermes against Mark's real HERMES_HOME."""
+"""Refuse to start Hermes against the operator's real HERMES_HOME."""
 
 from __future__ import annotations
 

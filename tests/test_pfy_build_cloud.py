@@ -678,7 +678,7 @@ class CloudBuildRetryTests(unittest.TestCase):
         """A review reject whose retry does not finish stays review-rejected.
 
         dogfood2 row 07 ended TIMEOUT after a reject, with recovery that told
-        Mark to raise --timeout. The sleeper must still be killed inside the
+        the operator to raise --timeout. The sleeper must still be killed inside the
         run budget.
         """
         gate = _write_exe(

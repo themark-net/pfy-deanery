@@ -177,7 +177,7 @@ jobs:
           bash -n scripts/pfy
           python3 scripts/check_no_encoded_payloads.py
           ./pfy help
-      - name: Jev #230 CUA-S1-FORMS smoke (nimo, no Mark)
+      - name: Jev #230 CUA-S1-FORMS smoke (nimo, no operator)
         if: always() && !cancelled()
         run: |
           set -euo pipefail

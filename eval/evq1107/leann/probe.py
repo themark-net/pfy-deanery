@@ -19,8 +19,8 @@ from pathlib import Path
 ROOT_DEFAULT = Path(__file__).resolve().parents[3]
 ADAPTER = Path(__file__).resolve().parent / "leann_once.py"
 QUESTIONS_DEFAULT = Path(__file__).resolve().parent / "questions.json"
-LEANN_PY_DEFAULT = "/home/mark/.cache/pfy/tools/leann/venv/bin/python"
-CBM_CACHE_DEFAULT = "/home/mark/.cache/pfy/cbm-shadow/db"
+LEANN_PY_DEFAULT = str(Path.home() / ".cache/pfy/tools/leann/venv/bin/python")
+CBM_CACHE_DEFAULT = str(Path.home() / ".cache/pfy/cbm-shadow/db")
 CBM_PROJECT_DEFAULT = "pfy-mentat-cbm-shadow"
 
 DOCS = (

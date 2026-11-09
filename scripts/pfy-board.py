@@ -18,7 +18,7 @@ POST /wizard composes Loop launch wizard steps (#225). Decision toggle is wizard
 POST /launch Launch session: enterable TUI with composed env or FAIL+next (#225/#224). Applies enabled Loop modules first (pfylib.loop_paint).
 POST /module toggles a catalog toolset on Loop (stub modules cannot be enabled).
 POST /loop/task sets hedge task class bulk|interactive|hard.
-POST /decision/smoke Mark-free CUA-S1-FORMS Choice (#230).
+POST /decision/smoke operator-free CUA-S1-FORMS Choice (#230).
 POST /space-invaders runs session Space Invaders via Attach OpenCode (#155).
 """
 from __future__ import annotations
@@ -1083,7 +1083,7 @@ def _load_jev_230():
 
 
 def decision_smoke(path=None):
-    """Mark-free CUA-S1-FORMS (or mini-jev) Choice smoke. Cite #230."""
+    """operator-free CUA-S1-FORMS (or mini-jev) Choice smoke. Cite #230."""
     mod, err = _load_jev_230()
     if mod is None:
         return {"ok": False, "live": "FAIL", "copy": "FAIL decision -- module missing",

@@ -1,5 +1,5 @@
 {
-  "src": "/home/mark/.cache/pfy/tools/anti-slop/src",
+  "src": "$HOME/.cache/pfy/tools/anti-slop/src",
   "commit": "388cbe3b6c37d5175b9f460015bb092ef9e34894",
   "versions": {
     "files": {
@@ -86,43 +86,43 @@
   "context": {
     "files": [
       {
-        "path": "/home/mark/.cache/pfy/tools/anti-slop/src/antislop.md",
+        "path": "$HOME/.cache/pfy/tools/anti-slop/src/antislop.md",
         "bytes": 57655,
         "chars_div_4": 14386,
         "rel": "antislop.md"
       },
       {
-        "path": "/home/mark/.cache/pfy/tools/anti-slop/src/skills/antislop/SKILL.md",
+        "path": "$HOME/.cache/pfy/tools/anti-slop/src/skills/antislop/SKILL.md",
         "bytes": 57827,
         "chars_div_4": 14429,
         "rel": "skills/antislop/SKILL.md"
       },
       {
-        "path": "/home/mark/.cache/pfy/tools/anti-slop/src/skills/antislop-code/SKILL.md",
+        "path": "$HOME/.cache/pfy/tools/anti-slop/src/skills/antislop-code/SKILL.md",
         "bytes": 8944,
         "chars_div_4": 2232,
         "rel": "skills/antislop-code/SKILL.md"
       },
       {
-        "path": "/home/mark/.cache/pfy/tools/anti-slop/src/skills/antislop-copywriting/SKILL.md",
+        "path": "$HOME/.cache/pfy/tools/anti-slop/src/skills/antislop-copywriting/SKILL.md",
         "bytes": 25419,
         "chars_div_4": 6347,
         "rel": "skills/antislop-copywriting/SKILL.md"
       },
       {
-        "path": "/home/mark/.cache/pfy/tools/anti-slop/src/skills/antislop-human/SKILL.md",
+        "path": "$HOME/.cache/pfy/tools/anti-slop/src/skills/antislop-human/SKILL.md",
         "bytes": 11051,
         "chars_div_4": 2762,
         "rel": "skills/antislop-human/SKILL.md"
       },
       {
-        "path": "/home/mark/.cache/pfy/tools/anti-slop/src/skills/antislop-layoutmobile/SKILL.md",
+        "path": "$HOME/.cache/pfy/tools/anti-slop/src/skills/antislop-layoutmobile/SKILL.md",
         "bytes": 16378,
         "chars_div_4": 4094,
         "rel": "skills/antislop-layoutmobile/SKILL.md"
       },
       {
-        "path": "/home/mark/.cache/pfy/tools/anti-slop/src/skills/antislop-ui/SKILL.md",
+        "path": "$HOME/.cache/pfy/tools/anti-slop/src/skills/antislop-ui/SKILL.md",
         "bytes": 26844,
         "chars_div_4": 6707,
         "rel": "skills/antislop-ui/SKILL.md"
@@ -132,19 +132,19 @@
     "skill_chars_div_4": 36571,
     "ours": [
       {
-        "path": "/home/mark/DEVELOP/pfy-mentat/tmp/evq/wt/anti-slop/bootstrap/grok-cli/skills/karpathy-guidelines/SKILL.md",
+        "path": "$HOME/DEVELOP/pfy-mentat/tmp/evq/wt/anti-slop/bootstrap/grok-cli/skills/karpathy-guidelines/SKILL.md",
         "bytes": 2518,
         "chars_div_4": 626,
         "rel": "bootstrap/grok-cli/skills/karpathy-guidelines/SKILL.md"
       },
       {
-        "path": "/home/mark/DEVELOP/pfy-mentat/tmp/evq/wt/anti-slop/bootstrap/grok-cli/skills/ui-is-the-app-design-in-loop/SKILL.md",
+        "path": "$HOME/DEVELOP/pfy-mentat/tmp/evq/wt/anti-slop/bootstrap/grok-cli/skills/ui-is-the-app-design-in-loop/SKILL.md",
         "bytes": 3248,
         "chars_div_4": 806,
         "rel": "bootstrap/grok-cli/skills/ui-is-the-app-design-in-loop/SKILL.md"
       },
       {
-        "path": "/home/mark/DEVELOP/pfy-mentat/tmp/evq/wt/anti-slop/bootstrap/grok-cli/skills-external/ponytail/ponytail/SKILL.md",
+        "path": "$HOME/DEVELOP/pfy-mentat/tmp/evq/wt/anti-slop/bootstrap/grok-cli/skills-external/ponytail/ponytail/SKILL.md",
         "bytes": 6707,
         "chars_div_4": 1671,
         "rel": "bootstrap/grok-cli/skills-external/ponytail/ponytail/SKILL.md"

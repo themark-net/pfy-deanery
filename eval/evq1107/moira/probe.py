@@ -242,7 +242,7 @@ def parse_engine(stdout: str) -> dict | None:
 def default_runner() -> list[str]:
     node = os.environ.get(
         "MOIRA_NODE",
-        "/home/mark/.local/share/pfy-mentat/node/v25.9.0/bin/node",
+        str(Path.home() / ".local/share/pfy-mentat/node/v25.9.0/bin/node"),
     )
     tsx = os.environ.get(
         "MOIRA_TSX",

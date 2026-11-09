@@ -30,7 +30,7 @@
     }
   },
   "branch": null,
-  "bun": "/home/mark/DEVELOP/pfy-mentat/tmp/h1-harness2/examples/harness2-local/sbun",
+  "bun": "$HOME/DEVELOP/pfy-mentat/tmp/h1-harness2/examples/harness2-local/sbun",
   "chain_adopted": true,
   "code_sha": "fb2d5dce7ceb4ee62ed8a4ed7f082e630f39b30f",
   "ctx": 32768,
@@ -109,7 +109,7 @@
       "base_tree_sha256": "9144e9a58a02260be2e41e9a9ceacf2dee14239f604eedc0654f7a0c3e4b42fc",
       "final_label": "agg1",
       "kept_base": false,
-      "library_dir": "/home/mark/DEVELOP/pfy-mentat/tmp/h1-harness2/tmp/harness2-runs/library/agg/pfy-decisions",
+      "library_dir": "$HOME/DEVELOP/pfy-mentat/tmp/h1-harness2/tmp/harness2-runs/library/agg/pfy-decisions",
       "task_id": "train-1"
     },
     {
@@ -138,7 +138,7 @@
       "base_tree_sha256": "fb0796e748b717678a7b38d3ca7747cdcb1679e30c34eca2b3afa6033c1c0f30",
       "final_label": "agg1",
       "kept_base": false,
-      "library_dir": "/home/mark/DEVELOP/pfy-mentat/tmp/h1-harness2/tmp/harness2-runs/library/agg/pfy-decisions",
+      "library_dir": "$HOME/DEVELOP/pfy-mentat/tmp/h1-harness2/tmp/harness2-runs/library/agg/pfy-decisions",
       "task_id": "train-2"
     },
     {
@@ -167,7 +167,7 @@
       "base_tree_sha256": "fb0796e748b717678a7b38d3ca7747cdcb1679e30c34eca2b3afa6033c1c0f30",
       "final_label": "agg1",
       "kept_base": false,
-      "library_dir": "/home/mark/DEVELOP/pfy-mentat/tmp/h1-harness2/tmp/harness2-runs/library/agg/pfy-decisions",
+      "library_dir": "$HOME/DEVELOP/pfy-mentat/tmp/h1-harness2/tmp/harness2-runs/library/agg/pfy-decisions",
       "task_id": "train-3"
     },
     {
@@ -196,7 +196,7 @@
       "base_tree_sha256": "fb0796e748b717678a7b38d3ca7747cdcb1679e30c34eca2b3afa6033c1c0f30",
       "final_label": "agg1",
       "kept_base": false,
-      "library_dir": "/home/mark/DEVELOP/pfy-mentat/tmp/h1-harness2/tmp/harness2-runs/library/agg/pfy-decisions",
+      "library_dir": "$HOME/DEVELOP/pfy-mentat/tmp/h1-harness2/tmp/harness2-runs/library/agg/pfy-decisions",
       "task_id": "train-4"
     }
   ],

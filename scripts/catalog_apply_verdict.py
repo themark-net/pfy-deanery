@@ -87,7 +87,7 @@ INTENT_ALIASES = {
 
 REPORT_INTRO = """# Ceiling mismatches
 
-This scan does not change integration_stage. A flagged card stays where it is. Mark decides any demotion.
+This scan does not change integration_stage. A flagged card stays where it is. The operator decides any demotion.
 
 Allowed stage is the lower of the evidence ceiling and tier_ceiling when the card has one. tier_ceiling is a cap from the catalog tier and posture. It does not raise a card whose evidence is weaker.
 

@@ -20,8 +20,8 @@
 | Risk | How it fails | Recovery |
 |------|----------------|----------|
 | Smoke treated as a pass | Metadata match becomes exit 0 | Keep exit 2 while the reason says the archive was not run |
-| Agent edits a real repo | A trial points at Mark's tree | Stay at I0; any trial uses an isolated worktree under `tmp/` |
-| Paid DeepSeek keys | Default provider path wants a hosted key | Local-only trial only with Mark's GO |
+| Agent edits a real repo | A trial points at the operator's tree | Stay at I0; any trial uses an isolated worktree under `tmp/` |
+| Paid DeepSeek keys | Default provider path wants a hosted key | Local-only trial only with the operator's GO |
 | Pin drift | `studio-v2.57.0` is replaced | Smoke checks this tag's asset digest |
 
 - **Status**: STAY I0 reference (nimo read 2026-11-07). Pin `737a181c49367a7a153c71889c168638fcfc0ba3` (`studio-v2.57.0`). MIT. Docs only, no install, no script run. Default provider is the DeepSeek API. Gap L stays with Ollama, llama-server, LiteLLM, and Strata. Report: `ops:eval/evq1107/reasonix/REPORT.md`. Not a Feature GO.

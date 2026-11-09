@@ -182,7 +182,7 @@ OpenLore gets `TMPDIR` inside the temp dir and `OPENLORE_NO_UPDATE_NOTIFIER=1`. 
 Entries 135-136 (no smoke script; 134 is the Hermes entry, `sources/entries/134-hermes-agent.md`):
 
 Monid (135) is catalog-only. Every useful path needs an account, a key or spend, and its open connector engine
-still needs each vendor's own key, so there is nothing to smoke without Mark's OK. Harness² (136) has no script
+still needs each vendor's own key, so there is nothing to smoke without the operator's OK. Harness² (136) has no script
 here either: its own offline demo (`harness2-demo --k 2`, no model, no key) was run once on the Grok Bot box under
 bwrap with no network and a temp HOME, and the result is in the entry. A pinned smoke can come with an eval-auto trial.
 

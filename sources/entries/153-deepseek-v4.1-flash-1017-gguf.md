@@ -14,7 +14,7 @@
 - **Extracted Repos / Tools**: https://huggingface.co/unsloth/DeepSeek-V4.1-Flash-1017-GGUF
 - **TOOLS.md Link**: `DeepSeek-V4.1-Flash-1017 GGUF`, tier D, overall 42, stage I0. Not in `data/tools.json` (ADR-0015 slim subset; I1 is the stage that pins JSON).
 - **Smoke**: Not run. Fit gate stopped the lane before download.
-- **Non-goals**: No download on nimo, no local default, no Feature GO, no weights in git, no signal to Mark's Ollama.
+- **Non-goals**: No download on nimo, no local default, no Feature GO, no weights in git, no signal to the operator's Ollama.
 - **How this fails / how we recover**:
 
 | Risk | How it fails | Recovery |

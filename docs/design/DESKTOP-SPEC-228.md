@@ -3,7 +3,7 @@
 **Status:** Design for implementer. Curriculum: `UX-SCHOOL.md` dump-vs-app.
 **Ticket:** GitHub **#228** — cite that issue only on this PR. **#76 CLOSED** — do not reopen. Catalog **70–75 HOLD**. Ix **#198** parked. #225 wizard + Launch session stay. #207/#211 recommend/try stay the local surface.
 **Bar:** Gab cloud lane attach-usable; local recommend syncs Gab open-weight family signals → Ollama tags sized for nimo; honesty chips never equate Gab `auto` with local ranking. Product copy only. Title `pfy`. Operate-or-FAIL.
-**Host:** Linux first (nimo: ~64 GiB 8060S VRAM pool). Mark is not the CLI operator and is not the installer.
+**Host:** Linux first (nimo: ~64 GiB 8060S VRAM pool). The maintainer is not the CLI operator and is not the installer.
 **Not this bot:** Design Bot does not implement. Prefer Grok Build on nimo. Copy-reviews when PM pastes a PR URL.
 
 ---
@@ -207,7 +207,7 @@ Public endpoint labels only (https://gab.ai/docs/api): OpenAI-compatible `https:
 
 ## 10. Implementer DoD (binds #228)
 
-One PR from current main. Cite **#228 only**. Do not reopen **#76**. Catalog 70–75 HOLD. Prefer Grok Build on nimo. No Mark. See also a private ops note.
+One PR from current main. Cite **#228 only**. Do not reopen **#76**. Catalog 70–75 HOLD. Prefer Grok Build on nimo. No operator. See also a private ops note.
 
 1. Cloud lane: Gab OpenAI-compatible attach/wizard — auto + pin-by-id; max/Plus + API key docs as FAIL next.
 2. Local ranking sync into existing recommend/try (#207): `/v1/models` → open-weight families → Ollama tags + size → fits/tight/won't-fit (nimo).

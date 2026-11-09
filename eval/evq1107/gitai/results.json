@@ -14,7 +14,7 @@
       "unresolved": 0,
       "wall_ms": 436.0,
       "tip_files": 9,
-      "push_error": "To /home/mark/.cache/pfy/tools/gitai/tmp/probe-1895932/plain/disjoint.git\n ! [remote rejected] HEAD -> main (incorrect old value provided)\nerror: failed to push some refs to '/home/mark/.cache/pfy/tools/gitai/tmp/probe-1895932/plain/disjoint.git'",
+      "push_error": "To $HOME/.cache/pfy/tools/gitai/tmp/probe-1895932/plain/disjoint.git\n ! [remote rejected] HEAD -> main (incorrect old value provided)\nerror: failed to push some refs to '$HOME/.cache/pfy/tools/gitai/tmp/probe-1895932/plain/disjoint.git'",
       "case": "disjoint"
     },
     "same_line": {
@@ -26,7 +26,7 @@
       "unresolved": 0,
       "wall_ms": 23.7,
       "tip_files": 1,
-      "push_error": "To /home/mark/.cache/pfy/tools/gitai/tmp/probe-1895932/plain/same-line.git\n ! [remote rejected] HEAD -> main (incorrect old value provided)\nerror: failed to push some refs to '/home/mark/.cache/pfy/tools/gitai/tmp/probe-1895932/plain/same-line.git'",
+      "push_error": "To $HOME/.cache/pfy/tools/gitai/tmp/probe-1895932/plain/same-line.git\n ! [remote rejected] HEAD -> main (incorrect old value provided)\nerror: failed to push some refs to '$HOME/.cache/pfy/tools/gitai/tmp/probe-1895932/plain/same-line.git'",
       "case": "same-line"
     }
   },

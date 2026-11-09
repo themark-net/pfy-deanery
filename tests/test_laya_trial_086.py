@@ -65,7 +65,7 @@ class LayaTrialFailClosedTests(unittest.TestCase):
         self.assertIn("127.0.0.1:1", p.stdout)
 
     def test_shadow_no_start_fails_closed_and_writes_receipt(self):
-        py = Path(os.environ.get("LAYA_PYTHON") or "/home/mark/DEVELOP/pfy-mentat/tmp/laya-trial/.venv-laya/bin/python")
+        py = Path(os.environ.get("LAYA_PYTHON") or str(Path.home() / "DEVELOP/pfy-mentat/tmp/laya-trial/.venv-laya/bin/python"))
         if not os.access(py, os.X_OK):
             py = ROOT / ".venv-laya" / "bin" / "python"
         if not os.access(py, os.X_OK):

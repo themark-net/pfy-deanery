@@ -23,8 +23,8 @@
     "receipt:eval/integrate/llama-cpp-ngram-mod/receipt.json"
   ],
   "tier_ceiling": "I3",
-  "rationale": "Mark approval 2026-11-08 10:03am PT. Raise tier_ceiling only. Catalog tier A still computes I1. catalog_stage_eval.py keeps a higher existing ceiling.",
-  "provenance": "Mark approval 2026-11-08 10:03am PT",
+  "rationale": "operator approval 2026-11-08 10:03am PT. Raise tier_ceiling only. Catalog tier A still computes I1. catalog_stage_eval.py keeps a higher existing ceiling.",
+  "provenance": "operator approval 2026-11-08 10:03am PT",
   "uses": "Zero-weight n-gram draft on llama-server when the next tokens are already in the prompt.",
   "features": [
     "ngram-mod",

@@ -9,7 +9,7 @@
     "tarball_sha256": "b6a94defc8ea1d42cf5e89110cf32d77c22cd5fa7fb992db23621e04ec333eec",
     "tarball_sha1": "0e91783ac0496ca9ebac60eb2e573189c1af349d",
     "package_version": "0.8.0",
-    "server": "/home/mark/.cache/pfy/tools/charlotte/prefix/node_modules/@ticktockbent/charlotte/dist/index.js"
+    "server": "$HOME/.cache/pfy/tools/charlotte/prefix/node_modules/@ticktockbent/charlotte/dist/index.js"
   },
   "page_bytes": 17272,
   "frontend_bytes": 76470,

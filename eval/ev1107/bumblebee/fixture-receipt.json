@@ -1,6 +1,6 @@
 {
   "verdict": "FLAGGED",
-  "root": "/home/mark/DEVELOP/pfy-mentat/tmp/ev-bumblebee/tmp/bumblebee-fixture-home",
+  "root": "$HOME/DEVELOP/pfy-mentat/tmp/ev-bumblebee/tmp/bumblebee-fixture-home",
   "findings": [
     {
       "kind": "git-selector",

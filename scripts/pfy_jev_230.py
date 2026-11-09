@@ -2,7 +2,7 @@
 """Jev-style decision layer -- typed Choice/Score. Cite #230.
 
 Primary local attach: CUA-S1-FORMS (~706K / ~2.8MB form-fill specialist;
-https://github.com/trycua/cua). Mark-free nimo smoke. mini-jev is a
+https://github.com/trycua/cua). operator-free nimo smoke. mini-jev is a
 teaching fallback only. TypeSafe Jev is optional cloud (compaction /
 routing) with model jev-1.13.0 and ~0.85 confidence gate.
 
@@ -689,7 +689,7 @@ def mini_jev_choice(state, criteria, *, instructions=""):
 
 
 def typesafe_evaluate(state, questions, ROOT=None):
-    """Optional TypeSafe cloud. Key missing → FAIL+next (no Mark drip)."""
+    """Optional TypeSafe cloud. Key missing → FAIL+next (no operator drip)."""
     key = typesafe_key()
     if not key:
         return fail(
@@ -1210,7 +1210,7 @@ def selftest():
             check(CHIP_TYPESAFE_OPT in str(ts.get("chip_typesafe") or ""), "typesafe optional chip")
             check("CUA-S1-FORMS" in (ts.get("next_step") or ""), "fallback named in next")
 
-            # Primary local CUA-S1-FORMS Mark-free smoke
+            # Primary local CUA-S1-FORMS operator-free smoke
             loc = attach_usable(root, td, path="cua-s1-forms")
             check(loc.get("ok"), "CUA-S1-FORMS attach READY")
             check(loc.get("engine") == "cua-s1-forms", "engine cua-s1-forms")
@@ -1331,7 +1331,7 @@ def selftest():
         print("FAIL selftest · %d" % len(errors))
         return 1
     print(
-        "PASS selftest · CUA-S1-FORMS Choice · conf margin · honesty · Mark-free · #230"
+        "PASS selftest · CUA-S1-FORMS Choice · conf margin · honesty · operator-free · #230"
     )
     return 0
 

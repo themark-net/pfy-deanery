@@ -4,7 +4,7 @@
 - **Date**: 2026-11-05 (daily X intake)
 - **Source / Poster**: watch-list post by @DanKornas, https://x.com/DanKornas/status/2118266061862604931 (GitHub reply https://x.com/DanKornas/status/2118266240259310028)
 - **Summary / Key Claims** (upstream README; their claims except where marked verified): a local model gateway and configuration app. It edits each agent's own config so one list of providers (API keys, local models, or signed-in Claude/ChatGPT/Copilot/Gemini/Grok plans) feeds every agent. Optional prompt masking keeps secrets on the machine. Runs as menu-bar app, TUI, web UI, CLI, Docker, or Termux. Install script: `curl -fsSL https://usemagpie.ai/install.sh | sh` (not run here).
-- **Why it matters here**: pfy-mentat and the bot org already juggle Grok, Cursor, Hermes, and local Ollama endpoints. magpie is a routing layer candidate so harnesses share one provider list and fail over without rewriting each agent config. Catalog awareness; wiring it would touch agent configs and needs Mark's GO.
+- **Why it matters here**: pfy-mentat and the bot org already juggle Grok, Cursor, Hermes, and local Ollama endpoints. magpie is a routing layer candidate so harnesses share one provider list and fail over without rewriting each agent config. Catalog awareness; wiring it would touch agent configs and needs the operator's GO.
 - **Fit on nimo**: Metadata check fits. Running the CLI or desktop installer is out of this smoke (downloads, may rewrite agent configs under the real home). Smoke exits 2 after a matching pin and does not run the binary.
 - **Verified on the Grok Bot box** (2026-11-05): stub tests cover the metadata path. Live GitHub match expected to exit 2 with `FAIL_CANNOT_RUN_HERE`.
 - **Findings**:
@@ -21,7 +21,7 @@
 |------|----------------|----------|
 | Smoke treated as a pass | Metadata match becomes exit 0 | Keep exit 2 while the reason says the binary was not run |
 | Installer rewrites agent configs | `install.sh` edits Claude/Codex/OpenCode homes | Do not run the installer from this smoke |
-| Subscription sprawl | Providers want ChatGPT/Claude/Gemini logins | Stay at I0; local-only providers only if Mark GOs a trial |
+| Subscription sprawl | Providers want ChatGPT/Claude/Gemini logins | Stay at I0; local-only providers only if the operator GOs a trial |
 | Pin drift | `v0.1.3081` is replaced | Smoke checks this tag's asset digest |
 
 - **Status**: Cataloged I0. Metadata pin recorded. Binary not run (smoke designed for exit 2). Next step, if any: compare with HiRoute (147) and existing Ollama base URL wiring before any trial. No Feature GO.

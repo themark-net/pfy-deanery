@@ -6,7 +6,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = Path("eval/integrate/codebase-memory-mcp/run-on-main.sh")
-MARKER = "/home/mark/DEVELOP/pfy-mentat/tmp/integrate2/codebase-memory-mcp.dispatched"
+MARKER = "$HOME/DEVELOP/pfy-mentat/tmp/integrate2/codebase-memory-mcp.dispatched"
 
 
 class DoubleRunLockTest(unittest.TestCase):

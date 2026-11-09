@@ -24,7 +24,7 @@ BASE = Path.home() / ".cache" / "pfy" / "tools" / "tree-sitter-analyzer"
 # The lane redirects HOME before launch. Prefer the real cache when the
 # process HOME is already the tool home.
 if not (BASE / "venv" / "bin" / "tree-sitter-analyzer").is_file():
-    BASE = Path("/home/mark/.cache/pfy/tools/tree-sitter-analyzer")
+    BASE = (Path.home() / ".cache/pfy/tools/tree-sitter-analyzer")
 BIN = BASE / "venv" / "bin" / "tree-sitter-analyzer"
 MISWIRE = BASE / "venv" / "bin" / "miswire-audit"
 WHEEL = BASE / "src" / "tree_sitter_analyzer-2.2.0-py3-none-any.whl"
@@ -138,7 +138,7 @@ def du_bytes(path: Path) -> int | None:
 
 
 def home_stamps() -> dict[str, str]:
-    home = Path("/home/mark")
+    home = Path.home()
     found = {}
     for rel in (".tsa", ".cache/tree-sitter-analyzer", ".config/tree-sitter-analyzer"):
         path = home / rel

@@ -5,7 +5,7 @@
   "started": "2026-10-06T03:48:04Z",
   "finished": "2026-10-06T03:54:11Z",
   "host": "nimo",
-  "worktree": "/home/mark/DEVELOP/pfy-mentat/tmp/local-bench",
+  "worktree": "$HOME/DEVELOP/pfy-mentat/tmp/local-bench",
   "base_url": "http://127.0.0.1:11434",
   "ollama_version": "0.30.8",
   "gate": 0.85,
@@ -1624,7 +1624,7 @@
             "rss_kb": 93156,
             "hwm_kb": 117056,
             "name": "grok",
-            "cmd": "/home/mark/.local/bin/grok -p pfy build -p preamble (trimmed). Jev conf gate ~0.85 (PFY_JEV_CONF_GATE). No silent auto-act. ./pfy decision route exits: 0=proceed/ready, 3=escalate (conf low, valid), 1=broken. Receipt: pipelines/dogfood/buil",
+            "cmd": "$HOME/.local/bin/grok -p pfy build -p preamble (trimmed). Jev conf gate ~0.85 (PFY_JEV_CONF_GATE). No silent auto-act. ./pfy decision route exits: 0=proceed/ready, 3=escalate (conf low, valid), 1=broken. Receipt: pipelines/dogfood/buil",
             "is_runner": true
           }
         ]
@@ -3251,7 +3251,7 @@
             "rss_kb": 96908,
             "hwm_kb": 117056,
             "name": "grok",
-            "cmd": "/home/mark/.local/bin/grok -p pfy build -p preamble (trimmed). Jev conf gate ~0.85 (PFY_JEV_CONF_GATE). No silent auto-act. ./pfy decision route exits: 0=proceed/ready, 3=escalate (conf low, valid), 1=broken. Receipt: pipelines/dogfood/buil",
+            "cmd": "$HOME/.local/bin/grok -p pfy build -p preamble (trimmed). Jev conf gate ~0.85 (PFY_JEV_CONF_GATE). No silent auto-act. ./pfy decision route exits: 0=proceed/ready, 3=escalate (conf low, valid), 1=broken. Receipt: pipelines/dogfood/buil",
             "is_runner": true
           }
         ]
@@ -4875,7 +4875,7 @@
             "rss_kb": 37072,
             "hwm_kb": 117056,
             "name": "grok",
-            "cmd": "/home/mark/.local/bin/grok -p pfy build -p preamble (trimmed). Jev conf gate ~0.85 (PFY_JEV_CONF_GATE). No silent auto-act. ./pfy decision route exits: 0=proceed/ready, 3=escalate (conf low, valid), 1=broken. Receipt: pipelines/dogfood/buil",
+            "cmd": "$HOME/.local/bin/grok -p pfy build -p preamble (trimmed). Jev conf gate ~0.85 (PFY_JEV_CONF_GATE). No silent auto-act. ./pfy decision route exits: 0=proceed/ready, 3=escalate (conf low, valid), 1=broken. Receipt: pipelines/dogfood/buil",
             "is_runner": true
           }
         ]
@@ -6495,7 +6495,7 @@
             "rss_kb": 40644,
             "hwm_kb": 117056,
             "name": "grok",
-            "cmd": "/home/mark/.local/bin/grok -p pfy build -p preamble (trimmed). Jev conf gate ~0.85 (PFY_JEV_CONF_GATE). No silent auto-act. ./pfy decision route exits: 0=proceed/ready, 3=escalate (conf low, valid), 1=broken. Receipt: pipelines/dogfood/buil",
+            "cmd": "$HOME/.local/bin/grok -p pfy build -p preamble (trimmed). Jev conf gate ~0.85 (PFY_JEV_CONF_GATE). No silent auto-act. ./pfy decision route exits: 0=proceed/ready, 3=escalate (conf low, valid), 1=broken. Receipt: pipelines/dogfood/buil",
             "is_runner": true
           }
         ]

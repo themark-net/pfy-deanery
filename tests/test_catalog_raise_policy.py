@@ -119,7 +119,7 @@ class RaisePolicyTest(unittest.TestCase):
 
             exclusions = root / "eval" / "catalog-queue" / "exclusions.tsv"
             exclusions.parent.mkdir(parents=True, exist_ok=True)
-            exclusions.write_text("slug\treason\nzz-mark\tneeds Mark\n", encoding="utf-8")
+            exclusions.write_text("slug\treason\nzz-mark\tneeds the operator\n", encoding="utf-8")
             unset = {k: v for k, v in os.environ.items() if k != "PFY_OPS_ROOT"}
             needs = subprocess.run(
                 ["python3", str(NEEDS), "--root", str(root)],
@@ -136,7 +136,7 @@ class RaisePolicyTest(unittest.TestCase):
             self.assertIn("aa-money\trisky-class\tlive-money\t", text)
             self.assertIn("aa-take\trisky-class\truntime-takeover\t", text)
             self.assertIn("aa-unknown\trisky-class\tunknown\t", text)
-            self.assertIn("zz-mark\texcluded\tneeds Mark\t", text)
+            self.assertIn("zz-mark\texcluded\tneeds the operator\t", text)
             first = text
             second = subprocess.run(
                 ["python3", str(NEEDS), "--root", str(root)],

@@ -4,7 +4,7 @@
 # A completion is the only call wrapped by scripts/model_lock.sh.
 # This probe is not a completion, so it does not call that wrapper.
 #
-# Lane marker: /home/mark/DEVELOP/pfy-mentat/tmp/integrate2/litellm.dispatched
+# Lane marker: $HOME/DEVELOP/pfy-mentat/tmp/integrate2/litellm.dispatched
 # If that file exists and its recorded pid is not an ancestor of this
 # process, exit 2 before any probe or receipt write. The driver writes
 # "pid <lane-pid>" and still holds the marker when it runs this script,
@@ -12,7 +12,7 @@
 # and does not remove it.
 #
 # The main push is a fast-forward under one flock on
-# /home/mark/DEVELOP/pfy-mentat/tmp/integrate2/push.lock
+# $HOME/DEVELOP/pfy-mentat/tmp/integrate2/push.lock
 # (lane.sh holds that flock around the fast-forward). This script does not
 # take that lock and does not push.
 #
@@ -26,7 +26,7 @@
 
 set -euo pipefail
 
-MARKER=${PFY_LITELLM_LANE_MARKER:-/home/mark/DEVELOP/pfy-mentat/tmp/integrate2/litellm.dispatched}
+MARKER=${PFY_LITELLM_LANE_MARKER:-$HOME/DEVELOP/pfy-mentat/tmp/integrate2/litellm.dispatched}
 
 marker_pid_is_ancestor() {
   local file=$1

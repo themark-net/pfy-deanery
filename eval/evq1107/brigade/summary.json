@@ -55,19 +55,19 @@
   "product_brigade_before": false,
   "product_brigade_after": false,
   "real_home_before": {
-    "/home/mark/.brigade": 0,
-    "/home/mark/.config/brigade": 0,
-    "/home/mark/.cache/brigade": 0,
-    "/home/mark/.local/share/brigade": 0,
-    "/home/mark/.local/state/brigade": 0
+    "$HOME/.brigade": 0,
+    "$HOME/.config/brigade": 0,
+    "$HOME/.cache/brigade": 0,
+    "$HOME/.local/share/brigade": 0,
+    "$HOME/.local/state/brigade": 0
   },
   "real_home_after": {
-    "/home/mark/.brigade": 0,
-    "/home/mark/.config/brigade": 0,
-    "/home/mark/.cache/brigade": 0,
-    "/home/mark/.local/share/brigade": 0,
-    "/home/mark/.local/state/brigade": 0
+    "$HOME/.brigade": 0,
+    "$HOME/.config/brigade": 0,
+    "$HOME/.cache/brigade": 0,
+    "$HOME/.local/share/brigade": 0,
+    "$HOME/.local/state/brigade": 0
   },
   "update_notify_in_cache_home": false,
-  "throwaway": "/home/mark/.cache/pfy/tools/brigade/tmp/probe-20261108T025244Z/repo"
+  "throwaway": "$HOME/.cache/pfy/tools/brigade/tmp/probe-20261108T025244Z/repo"
 }

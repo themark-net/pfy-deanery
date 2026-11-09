@@ -1,5 +1,5 @@
 {
-  "pack": "/home/mark/.cache/pfy/tools/open-steps/src/repo",
+  "pack": "$HOME/.cache/pfy/tools/open-steps/src/repo",
   "pin": "4fa744ba8ea06ccf128a39853824c46ac391dd00",
   "worktree_clean_session": {
     "start_exit": 0,

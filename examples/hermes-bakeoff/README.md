@@ -61,7 +61,7 @@ Also report a Wilson 95% interval on each arm's task success. If the intervals o
 | Prefixed tool names | Hermes logs `mcp__bakeoff__*` and opencode logs `bakeoff_*` | Both prefixes are stored and scored as the short server name |
 | Rescore needs `./tmp` transcripts | A checkout without the old work dir cannot be scored | `--rescore` uses the committed results JSON and the task file only |
 | Margin just under +10 pp | A small edge is written up as a win | The rule is `>= +10 pp`. Just under is NO-WIN |
-| Hermes reads `~/.hermes` | Mark's home config or keys enter the run | The guard exits before import if `HERMES_HOME` is unset or under `~/.hermes` |
+| Hermes reads `~/.hermes` | The operator's home config or keys enter the run | The guard exits before import if `HERMES_HOME` is unset or under `~/.hermes` |
 | Context windows differ | One arm is faster because it saw less context | A refusal below 64k moves **both** arms to 65536 |
 | Agent RSS includes Ollama | The 22 GB model fails the 2 GiB gate | The sampler skips processes whose command is Ollama |
 

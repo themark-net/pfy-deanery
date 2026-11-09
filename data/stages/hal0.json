@@ -16,7 +16,7 @@
     "hal0 doctor and bench"
   ],
   "potential": "low",
-  "next_gate": "Stay I0 reference. No sudo install, no podman, no FastFlowLM deb, no port 8080 bind. Gap L stays with Ollama and llama-server. Re-open only if Mark approves a separate ticket. Not a Feature GO.",
+  "next_gate": "Stay I0 reference. No sudo install, no podman, no FastFlowLM deb, no port 8080 bind. Gap L stays with Ollama and llama-server. Re-open only if the operator approves a separate ticket. Not a Feature GO.",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",

@@ -1,7 +1,7 @@
 {
   "checkpoint": "cua-s1-form-v0",
   "repo": "https://github.com/trycua/cua",
-  "note": "CUA-S1-FORMS form-fill specialist fixture. Weights unpublished; this is the Mark-free smoke state. Cite #230.",
+  "note": "CUA-S1-FORMS form-fill specialist fixture. Weights unpublished; this is the operator-free smoke state. Cite #230.",
   "form_title": "Launch session",
   "document": [
     {"label": "model", "value": "qwen3-coder:30b"},

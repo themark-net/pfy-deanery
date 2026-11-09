@@ -5,7 +5,7 @@
   "started": "2026-10-06T07:53:13Z",
   "finished": "2026-10-06T07:54:13Z",
   "host": "nimo",
-  "worktree": "/home/mark/DEVELOP/pfy-mentat/tmp/local-bench-5",
+  "worktree": "$HOME/DEVELOP/pfy-mentat/tmp/local-bench-5",
   "base_url": "http://127.0.0.1:11434",
   "ollama_version": "0.30.8",
   "gate": 0.85,
@@ -23,7 +23,7 @@
   "default_lane_unchanged": true,
   "primary_local": "cua-s1-forms",
   "skip_models": [],
-  "skip_models_reason": "none — MemoryHigh raised to 85G by Mark (Entry 091); previously blocked models in scope",
+  "skip_models_reason": "none — MemoryHigh raised to 85G by the operator (Entry 091); previously blocked models in scope",
   "inventory": {
     "hostname": "nimo",
     "ollama_version": "0.30.8",

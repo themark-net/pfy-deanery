@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "eval/integrate/repowise/run-on-main.sh"
-MARKER = "/home/mark/DEVELOP/pfy-mentat/tmp/integrate2/repowise.dispatched"
+MARKER = "$HOME/DEVELOP/pfy-mentat/tmp/integrate2/repowise.dispatched"
 
 
 class TestRepowiseDoubleRun(unittest.TestCase):

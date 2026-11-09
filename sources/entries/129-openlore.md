@@ -17,7 +17,7 @@
 | Risk | How it fails | Recovery |
 |------|----------------|----------|
 | Silent partial index | `analyze` says OK, `orient` has nothing | Check `orient`/`status` output; keep `TMPDIR` writable |
-| Host config written | Hooks or MCP entries appear in Mark's real agent config | Never run `install`/`connect`/`setup` outside a temp HOME |
+| Host config written | Hooks or MCP entries appear in the operator's real agent config | Never run `install`/`connect`/`setup` outside a temp HOME |
 | Disk and Node footprint | 1.7 GB prefix, Node 22 needed | Stage under `tmp/`, delete the prefix after a trial |
 | Overlap with code-graph tools | Two indexes doing the same job | Trial against codebase-memory-mcp on the same tasks before keeping both |
 

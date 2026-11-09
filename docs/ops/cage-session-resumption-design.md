@@ -10,7 +10,7 @@ Today:
 
 - Cage mounts **only** `auth.json` into `/home/agent/.grok/`.
 - Conversation sessions live under `/home/agent/.grok/sessions/` **inside the container filesystem** (ephemeral relative to host intent — lost or orphaned on image recreate / container wipe).
-- Host Grok sessions live under `~/.grok/sessions/` keyed by **host** cwd (e.g. `/home/mark/DEVELOP/…`), not cage cwd (`/workspace/pfy-mentat`).
+- Host Grok sessions live under `~/.grok/sessions/` keyed by **host** cwd (e.g. `$HOME/DEVELOP/…`), not cage cwd (`/workspace/pfy-mentat`).
 - `make cage-workspace-sync` can refresh code, but **does not** preserve agent chat continuity.
 
 Operators need: **resume the same agent thread after re-entering the cage**, with **isolation per repo** so work on project A does not bleed into project B.

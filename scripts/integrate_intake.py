@@ -10,7 +10,7 @@ produce the same table and the same JSON. Ceilings are read and never written.
   python3 scripts/integrate_intake.py --stages data/stages --json
 
 A ceiling of I0, I1, I2, blank, or anything other than I3 or I4 sets flag to
-"tier_ceiling below I3: needs Mark". This script does not change that ceiling.
+"tier_ceiling below I3: needs the operator". This script does not change that ceiling.
 """
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 AT_I3 = frozenset({"I3", "I4"})
-FLAG = "tier_ceiling below I3: needs Mark"
+FLAG = "tier_ceiling below I3: needs the operator"
 
 
 class IntakeError(Exception):

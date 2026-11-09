@@ -26,11 +26,11 @@ class FsNavTests(unittest.TestCase):
             env["HOME"] = tmp
             env.pop("PFY_FS", None)
             env.pop("AGENTCAGE_DIR", None)
-            script = _chunk() + '\nROOT="/home/mark/DEVELOP/pfy-mentat"\nprint_fs_nav\nprintf "%s\\n" "$PFY_FS"\n'
+            script = _chunk() + '\nROOT="/srv/pfy-mentat"\nprint_fs_nav\nprintf "%s\\n" "$PFY_FS"\n'
             proc = subprocess.run(["bash", "-c", script], env=env, capture_output=True, text=True)
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
         self.assertIn("filesystem: direct", proc.stdout)
-        self.assertIn("root: /home/mark/DEVELOP/pfy-mentat", proc.stdout)
+        self.assertIn("root: /srv/pfy-mentat", proc.stdout)
         self.assertIn(f"{tmp}/.agentcage/workspace/pfy-mentat", proc.stdout)
         self.assertIn("make cage-code-sync", proc.stdout)
         self.assertTrue(proc.stdout.strip().endswith("direct"))

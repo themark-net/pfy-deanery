@@ -3,7 +3,7 @@
   "head": "ac53011016e5f7dd42bae9c00c1a9b7d207a68b8",
   "pin_match": true,
   "node": "/usr/bin/node",
-  "vetobench": "/home/mark/.cache/pfy/tools/robrain/src/robrain/packages/vetobench",
+  "vetobench": "$HOME/.cache/pfy/tools/robrain/src/robrain/packages/vetobench",
   "built": true,
   "corpus_rows": 16,
   "scenarios": 10,
@@ -24,9 +24,9 @@
       "lifecycle"
     ],
     [
-      "/home/mark/DEVELOP/pfy-mentat/tmp/evq/wt/robrain/eval/evq1107/robrain/rank.mjs",
-      "/home/mark/DEVELOP/pfy-mentat/tmp/evq/wt/robrain/eval/evq1107/robrain/corpus.json",
-      "/home/mark/DEVELOP/pfy-mentat/tmp/evq/wt/robrain/eval/evq1107/robrain/scenarios.json"
+      "$HOME/DEVELOP/pfy-mentat/tmp/evq/wt/robrain/eval/evq1107/robrain/rank.mjs",
+      "$HOME/DEVELOP/pfy-mentat/tmp/evq/wt/robrain/eval/evq1107/robrain/corpus.json",
+      "$HOME/DEVELOP/pfy-mentat/tmp/evq/wt/robrain/eval/evq1107/robrain/scenarios.json"
     ]
   ],
   "upstream": {

@@ -38,7 +38,7 @@ Explicitly marked as unknown until deployment. Initial catalog entries can leave
 
 ## Consequences
 
-- Mark ADR-0010 as Superseded by this ADR in the index.
+- Label ADR-0010 as Superseded by this ADR in the index.
 - Update TOOLS.md / data/tools.json AgenC entry: remove hard demotion language; note that the TUI is optional; flag preference score as pending empirical data; keep existing objective scores.
 - Update CATEGORIZATION.md with the new preference dimension and a note that local agent isolation / harness security is a distinct concern (agent-cage remains the primary scored example).
 - Bootstrap and hybrid surface notes may list AgenC as one selectable operator surface without making it the default.

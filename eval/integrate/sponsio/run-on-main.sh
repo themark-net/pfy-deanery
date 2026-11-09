@@ -7,13 +7,13 @@
 # Skill writes stay as they are when this script is not called.
 #
 # A second start that finds
-# /home/mark/DEVELOP/pfy-mentat/tmp/integrate2/sponsio.dispatched
+# $HOME/DEVELOP/pfy-mentat/tmp/integrate2/sponsio.dispatched
 # exits 2 and writes no receipt, unless that marker's pid is an ancestor of
 # this process. The driver writes "pid <lane-pid>" and still holds the marker
 # when it runs this script, so that admitted lane continues.
 # This script does not create the marker and does not push.
 #
-# extra lock: flock /home/mark/DEVELOP/pfy-mentat/tmp/integrate2/push.lock
+# extra lock: flock $HOME/DEVELOP/pfy-mentat/tmp/integrate2/push.lock
 # The main fast-forward uses that flock. This script does not take it.
 # The temp env is the only lock this script uses.
 #
@@ -70,7 +70,7 @@ if [ "${receipt#/}" = "$receipt" ]; then
   receipt="$PWD/$receipt"
 fi
 
-marker=${SPONSIO_LANE_MARKER:-/home/mark/DEVELOP/pfy-mentat/tmp/integrate2/sponsio.dispatched}
+marker=${SPONSIO_LANE_MARKER:-$HOME/DEVELOP/pfy-mentat/tmp/integrate2/sponsio.dispatched}
 if [ -e "$marker" ]; then
   if ! marker_pid_is_ancestor "$marker"; then
     printf '%s\n' "already dispatched: $marker" >&2
@@ -98,7 +98,7 @@ if [[ ! "$sha" =~ ^[0-9a-f]{40}$ ]]; then
   exit 1
 fi
 
-cache=${SPONSIO_CACHE:-/home/mark/.cache/pfy/tools/sponsio}
+cache=${SPONSIO_CACHE:-$HOME/.cache/pfy/tools/sponsio}
 wheel=${SPONSIO_WHEEL:-$cache/wheels/sponsio-0.2.0a17-py3-none-any.whl}
 expected=0e755cf9027da62051d3b05ec92a3557f34ec97aac142bc47704be16d86f0809
 if [ ! -f "$wheel" ]; then

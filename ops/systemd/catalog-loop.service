@@ -1,4 +1,4 @@
-# User unit. Does not start from Mark's checkout.
+# User unit. Does not start from the operator's checkout.
 # WorkingDirectory is the home directory.
 # ExecStart fetches origin and copies scripts/loop_worktree.sh from origin/main
 # into the runtime dir, then runs scripts/catalog_loop.sh in the loop worktree.

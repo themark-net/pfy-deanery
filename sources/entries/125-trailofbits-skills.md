@@ -2,7 +2,7 @@
 
 - **URL**: https://github.com/trailofbits/skills (**CC-BY-SA-4.0**, Markdown skills plus helper scripts; 44 plugins / 85 `SKILL.md` files; about 7,618 stars at this read; checked at commit `5c99c03fb8a9`, 2026-10-15)
 - **Date**: 2026-10-17 (dev-skills investigation: stop "rookie" systems and security mistakes in Build and bot output)
-- **Source / Poster**: Mark's dev-skills ask after leasegrid-c PRs #73 and #74; seen on X via @ai4cybersec, https://x.com/ai4cybersec/status/2110790103392210956, and a reviewer's use on LND PRs, https://x.com/iamflops/status/2047433185948995598
+- **Source / Poster**: the operator's dev-skills ask after leasegrid-c PRs #73 and #74; seen on X via @ai4cybersec, https://x.com/ai4cybersec/status/2110790103392210956, and a reviewer's use on LND PRs, https://x.com/iamflops/status/2047433185948995598
 - **Summary / Key Claims** (upstream README and skill frontmatter): Trail of Bits' audit playbook as Claude Code / Codex plugins. Covers smart-contract scanners, C/C++ and Rust review, supply-chain audit, YARA, zeroize audit, an Actions auditor for agent risks, and general skills: `property-based-testing` (Hypothesis, fast-check, proptest), `mutation-testing` (mewt/muton campaigns and surviving-mutant triage), `semgrep-rule-creator`, `variant-analysis` (find other instances of one root cause), `sharp-edges` (footgun APIs and configs), `differential-review` (security review of a diff with blast radius), `fp-check` (true/false-positive verdict with evidence), and `testing-handbook-skills` (atheris, AFL++, cargo-fuzz, sanitizers).
 - **Worth porting** (as a Grok `[skills].paths` pack, unmodified files plus attribution):
 

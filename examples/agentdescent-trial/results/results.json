@@ -509,7 +509,7 @@
   "first attempt failed: MIPROv2 needs optuna (not pulled by plain dspy); installed in the worktree venv and reran",
   "evolve first attempt failed at `plan` (ref config must be top-level keys, not under 'config'); fixed and reran. memory[] has one row per harness invocation (5: baseline, evolve-fail, evolve, dspy-fail, dspy).",
   "AgentDescent reported tokens=0: its openai_compatible counts usage only when a Usage object is passed in code, which a JSON spec cannot do. 36 model calls recorded.",
-  "max_used_GiB is whole-host usage including Mark's other processes; peak 79 GiB during the evolve invocation, under the 85 GiB cap. nimo did not lock up."
+  "max_used_GiB is whole-host usage including the operator's other processes; peak 79 GiB during the evolve invocation, under the 85 GiB cap. nimo did not lock up."
  ],
  "summary": {
   "heldout_n": 20,

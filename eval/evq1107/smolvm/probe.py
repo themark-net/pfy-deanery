@@ -24,7 +24,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 OUT_DEFAULT = Path(__file__).resolve().parent / "results.json"
-CACHE = Path("/home/mark/.cache/pfy/tools/smolvm")
+CACHE = (Path.home() / ".cache/pfy/tools/smolvm")
 DEFAULT_BIN = CACHE / "unpack" / "smolvm-1.26.1-linux-x86_64" / "smolvm"
 TARBALL = CACHE / "dl" / "smolvm-1.26.1-linux-x86_64.tar.gz"
 

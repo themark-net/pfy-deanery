@@ -23,7 +23,7 @@ class RecoveryLinesNameTheNextAction(unittest.TestCase):
 
     def test_no_recovery_line_is_addressed_to_a_person(self) -> None:
         for key, line in self.lines().items():
-            self.assertNotIn("Mark:", line, key)
+            self.assertNotRegex(line, r"(?i)\b(mark|operator):", key)
             self.assertFalse(line.lstrip().lower().startswith("mark"), (key, line))
 
     def test_every_recovery_line_names_a_next_action(self) -> None:

@@ -24,7 +24,7 @@
 ./pfy launch               # Loop wizard Launch session (#225/#224)
 ./pfy launch --headless    # detached session; ./pfy launch status|stop
 ./pfy launch compose       # honest lane + enabled-tool paint (#224)
-./pfy decision smoke       # #230 CUA-S1-FORMS typed Choice (Mark-free)
+./pfy decision smoke       # #230 CUA-S1-FORMS typed Choice (operator-free)
 ./pfy launch brief         # write in-session AGENTS/prompt card (#224)
 ./pfy context              # OpenContext oc prove (#205); FAIL if node/oc missing
 ./pfy code-graph           # Axon prove or codebase-memory equivalent (#215)
@@ -51,7 +51,7 @@ Root `./pfy` is a 100755 wrapper that execs `scripts/pfy`. Detector is invoked w
 
 **Toolset handoff + hedge (ADR-0017):** `toolset` / `hedge` verbs are a thin `exec python3 "$ROOT/pfylib/cli.py"` dispatch; all logic and tests live in `pfylib/`. +2 top-level verbs against T-0090's ≤3-lever target — the tension is OQ-0012's to resolve. [pfylib.md](pfylib.md).
 
-**Decision layer (#230):** Loop toggle `off | CUA-S1-FORMS | TypeSafe | mini-jev`. Typed Choice/Score; CUA-S1-FORMS is primary local (Mark-free smoke). TypeSafe key optional. Honesty `decision ≠ gab auto ≠ local`. [jev-230.md](jev-230.md).
+**Decision layer (#230):** Loop toggle `off | CUA-S1-FORMS | TypeSafe | mini-jev`. Typed Choice/Score; CUA-S1-FORMS is primary local (operator-free smoke). TypeSafe key optional. Honesty `decision ≠ gab auto ≠ local`. [jev-230.md](jev-230.md).
 
 **Launch wizard (#225) / session compose (#224) / Loop modules (T-0125):** Loop paints **LOCAL COMPUTE | CLOUD ORCHESTRATION** plus gathered catalog **MODULES**. Hedge chooses the lane; Launch session applies enabled modules into an enterable TUI (proof). Attach X is on the Attach tab. Window stay-open. HTML+tk. No Env nav tab. [launch-wizard.md](launch-wizard.md) · [session-compose.md](session-compose.md) · [pfylib.md](pfylib.md).
 

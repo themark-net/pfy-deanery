@@ -3,7 +3,7 @@
 #
 # Usage: eval/integrate/atomic-task-graph-atg/run-on-main.sh RECEIPT.json
 #
-# Lane marker: /home/mark/DEVELOP/pfy-mentat/tmp/integrate2/atomic-task-graph-atg.dispatched
+# Lane marker: $HOME/DEVELOP/pfy-mentat/tmp/integrate2/atomic-task-graph-atg.dispatched
 # A second start exits 2 when ATG_LANE_MARKER names that file and it exists.
 # This script does not create or write the owner-checkout marker.
 # The main fast-forward lands under one flock in the driver.

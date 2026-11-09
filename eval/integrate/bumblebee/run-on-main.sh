@@ -4,7 +4,7 @@
 # Usage: eval/integrate/bumblebee/run-on-main.sh RECEIPT.json
 #
 # The lane marker is $BUMBLEBEE_LANE_MARKER, or
-# /home/mark/DEVELOP/pfy-mentat/tmp/integrate2/bumblebee.dispatched.
+# $HOME/DEVELOP/pfy-mentat/tmp/integrate2/bumblebee.dispatched.
 # First admission creates that marker and continues. A second start exits 2
 # and writes no receipt.
 #
@@ -35,7 +35,7 @@ if [ "${receipt#/}" = "$receipt" ]; then
   receipt="$PWD/$receipt"
 fi
 
-marker=${BUMBLEBEE_LANE_MARKER:-/home/mark/DEVELOP/pfy-mentat/tmp/integrate2/bumblebee.dispatched}
+marker=${BUMBLEBEE_LANE_MARKER:-$HOME/DEVELOP/pfy-mentat/tmp/integrate2/bumblebee.dispatched}
 if [ "${marker#/}" = "$marker" ]; then
   marker="$PWD/$marker"
 fi

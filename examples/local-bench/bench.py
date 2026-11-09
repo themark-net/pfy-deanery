@@ -47,7 +47,7 @@ REQUIRED_MODELS = (
     "qwen3-coder:30b",
 )
 STRETCH_MODEL = "qwen3-coder-next:latest"
-SKIP_MODELS = ()  # Entry 091: Mark raised MemoryHigh to 85G; gpt-oss / Air in scope
+SKIP_MODELS = ()  # Entry 091: the operator raised MemoryHigh to 85G; gpt-oss / Air in scope
 BASELINES = {
     "cua-s1-forms": {
         "accuracy": 0.5625,
@@ -1125,7 +1125,7 @@ def main(argv=None) -> int:
         "default_lane_unchanged": True,
         "primary_local": "cua-s1-forms",
         "skip_models": list(SKIP_MODELS),
-        "skip_models_reason": "none — MemoryHigh raised to 85G by Mark (Entry 091); previously blocked models in scope",
+        "skip_models_reason": "none — MemoryHigh raised to 85G by the operator (Entry 091); previously blocked models in scope",
         "inventory": host_inv,
         "baselines": BASELINES,
         "models": models_out,

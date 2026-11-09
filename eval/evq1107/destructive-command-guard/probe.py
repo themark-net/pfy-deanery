@@ -20,7 +20,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 OUT_DIR = Path(__file__).resolve().parent
-CACHE = Path("/home/mark/.cache/pfy/tools/destructive-command-guard")
+CACHE = (Path.home() / ".cache/pfy/tools/destructive-command-guard")
 BIN = Path(os.environ.get("DCG_BIN", str(CACHE / "unpack" / "dcg")))
 TARBALL = CACHE / "dist" / "dcg-x86_64-unknown-linux-musl.tar.xz"
 CONFIG = OUT_DIR / "config.toml"

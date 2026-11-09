@@ -2,7 +2,7 @@
   "ok": true,
   "error": "",
   "pin": {
-    "detect_py": "/home/mark/.cache/pfy/tools/sloptrim/src/scripts/detect.py",
+    "detect_py": "$HOME/.cache/pfy/tools/sloptrim/src/scripts/detect.py",
     "detect_py_sha256": "057a19a7b483f0145f5b6d0d6bbfc9f8a6f9c8d2f1885ce8a76fcf9db9238e19",
     "commit": "38dbb7cb4e97de0b9bf157903c95bdcab016dda2",
     "commit_matches_entry": true,

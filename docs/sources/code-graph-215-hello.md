@@ -3,7 +3,7 @@
 **Host:** nimo  
 **When:** 2026-09-13 (local)  
 **Axon:** not installed (`pip install axoniq` would be next)  
-**Equivalent:** `/home/mark/.local/bin/codebase-memory-mcp`  
+**Equivalent:** `$HOME/.local/bin/codebase-memory-mcp`  
 **LIVE_HARD_OFF:** no Axon UI, no cloud embeddings, no catalog PR #75 merge.
 
 ## Fail-closed (neither path)
@@ -21,14 +21,14 @@ FAIL: axon missing
 
 ```text
 $ ./pfy code-graph
-PASS code-graph · path=codebase-memory (not axon) · /home/mark/.local/bin/codebase-memory-mcp
+PASS code-graph · path=codebase-memory (not axon) · $HOME/.local/bin/codebase-memory-mcp
   axon: missing
   next for Axon: pip install axoniq · ./pfy catalog ask axon
 handoff: Attach OpenCode|Grok inherit CODEBASE_MEMORY_MCP
 note: do not claim Axon; MCP stub is the live path
 export PFY_GRAPH_PATH="codebase-memory"
 export PFY_CODE_GRAPH="codebase-memory"
-export CODEBASE_MEMORY_MCP="/home/mark/.local/bin/codebase-memory-mcp"
+export CODEBASE_MEMORY_MCP="$HOME/.local/bin/codebase-memory-mcp"
 ```
 
 `./pfy axon` is an alias of `./pfy code-graph`.

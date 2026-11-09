@@ -1,6 +1,6 @@
 # #243 Loop UX journey — catalog modules + live local/cloud hedge
 
-**Cite:** GitHub **#243** only. Catalog **#70–#75** out. Do not reopen **#76**. No Mark ops.
+**Cite:** GitHub **#243** only. Catalog **#70–#75** out. Do not reopen **#76**. No operator ops.
 **Head:** `3cb788a6ed5f76c13da356b6cd9ece3b9945d15d` on `cursor/pr11-loop-local-cloud-ux-055e`
 **Base tip for work:** `main` @ `e797151c47e10e2667cf72b6bcaca0d1ea1c521d`
 **T:** T-0125

@@ -1,9 +1,9 @@
 # Design: `pfy` launcher — pick a harness, pick a model, install the catalog into it
 
 Status: **Proposed** (design only; no code in this PR) · 2026-10-12 · base `main` @ `a5c0362`
-Owner: Mark · Related: [0012-simple-harness-agnostic-launch.md](../adr/0012-simple-harness-agnostic-launch.md) (simple `./pfy`; the number 0012 is also used by `0012-voice-half-duplex-local-first.md`, so cite this filename), ADR-0014 (inference spine), "ADR-0017" (toolset × harness; cited in `pfylib/` but **not yet in `docs/adr/`**), `data/harnesses.json`, `data/toolsets.json`, `pfylib/toolsets.py`, `scripts/pfy_launch_wizard_225.py` (#225).
+Owner: the operator · Related: [0012-simple-harness-agnostic-launch.md](../adr/0012-simple-harness-agnostic-launch.md) (simple `./pfy`; the number 0012 is also used by `0012-voice-half-duplex-local-first.md`, so cite this filename), ADR-0014 (inference spine), "ADR-0017" (toolset × harness; cited in `pfylib/` but **not yet in `docs/adr/`**), `data/harnesses.json`, `data/toolsets.json`, `pfylib/toolsets.py`, `scripts/pfy_launch_wizard_225.py` (#225).
 
-> Mark: "an extremely good example of integrating skills and functionality to existing agents is [morluto/rea]. Figure out how to make pfy-mentat as easy as this to set up, or easier. The point of our repo is to add these types of tools such as rea but also additional ones. Think about how ollama lets you pick your harness."
+> The operator: "an extremely good example of integrating skills and functionality to existing agents is [morluto/rea]. Figure out how to make pfy-mentat as easy as this to set up, or easier. The point of our repo is to add these types of tools such as rea but also additional ones. Think about how ollama lets you pick your harness."
 
 ## 1. Problem
 
@@ -60,7 +60,7 @@ Plan: 9 writes, 3 backups, 1 external command (npx -y rea-agents@6.4.0 setup --c
 Apply? [y/N]
 ```
 
-## 6. Model sources (Mark pays for Grok and Cursor only)
+## 6. Model sources (the operator pays for Grok and Cursor only)
 
 | Source id | Meaning | Harnesses | How it is wired |
 |---|---|---|---|
@@ -199,4 +199,4 @@ DoD: from tag N, `pfy update` moves to N+1 and verifies `pfy --version`. A tampe
 - OQ: Which skill dir is the single SoT: `.grok/skills/` or a new `skills/`? (Recommendation: `skills/`, with the others generated.)
 - OQ: Write ADR-0017 properly (it is cited in `pfylib/` but missing from `docs/adr/`) and add ADR-0018 "pfy launcher: setup/launch/adapters/ledger", superseding parts of `docs/adr/0012-simple-harness-agnostic-launch.md` (number 0012 is also used by `0012-voice-half-duplex-local-first.md`).
 - OQ: Cursor CLI skills location. Is it a native skills dir or rules only? Verify against current Cursor CLI docs before Phase 3.
-- OQ: Is the minimum Ollama version with `launch` new enough on Mark's hosts to make delegation the default?
+- OQ: Is the minimum Ollama version with `launch` new enough on the operator's hosts to make delegation the default?

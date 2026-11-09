@@ -15,7 +15,7 @@
 
 | Risk | How it fails | Recovery |
 |------|----------------|----------|
-| Memory edge | Q2/IQ3 plus KV cache pushes nimo past the GTT budget and locks it up | Start at Q2_0 with a small context under the 85 GB limit; document any lockup in the bench doc as Mark asked (Entries 091-092) |
+| Memory edge | Q2/IQ3 plus KV cache pushes nimo past the GTT budget and locks it up | Start at Q2_0 with a small context under the 85 GB limit; document any lockup in the bench doc as the operator asked (Entries 091-092) |
 | Arch support | llama.cpp ROCm or Vulkan build on nimo predates the Qwen3.8 hybrid arch and refuses the GGUF | Record the build sha and error; try the other backend before calling it unsupported |
 | Low-bit quality | Loads fine but output degenerates like GLM-Air Q4 did | Score on the 48-case decision set before any promotion; keep `qwen3.6:35b` as default |
 | Hype numbers | Poster's benchmark claims don't reproduce | Only our own nimo receipts count |

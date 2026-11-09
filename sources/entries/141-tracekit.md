@@ -12,7 +12,7 @@
   - **A refused argument swap is a WARN, not a FAIL**: the bundle still verifies, and the mismatch sits in the `gaps` check. A gate must read `gaps`, not only the exit code.
   - A naive tamper that leaves the manifest alone is caught at `manifest`; re-hash the manifest and it is still caught, at `signatures` or `run chain`. That is the guarantee worth having.
   - `tracekit init` writes Claude Code hooks (`~/.claude/settings.json`) and `tracekit up`/`instrument()` start a dev signer under `~/.local/share/tracekit` and `$XDG_RUNTIME_DIR/tracekit`. On nimo point all of it at `tmp/` or don't use those commands.
-  - Dev mode is `isolation: same-user`: an agent running as Mark could read the signing key. Real evidence needs the signer under another user and a witness, which we don't run yet.
+  - Dev mode is `isolation: same-user`: an agent running as the operator could read the signing key. Real evidence needs the signer under another user and a witness, which we don't run yet.
 - **Extracted Repos / Tools**: https://github.com/Cygnux-Labs/Tracekit · https://pypi.org/project/tracekit-ai/ · https://www.npmjs.com/package/@cygnuxlabs/tracekit (TypeScript SDK) · https://github.com/Cygnux-Labs/Tracekit/wiki
 - **TOOLS.md Link**: None yet. I0 awareness. No TOOLS.md row, no `data/tools.json` row.
 - **Smoke**: `python3 examples/x-intake-local/smoke_140_142.py --entry tracekit`. Looks up `$TRACEKIT_VENV`, then `tmp/tracekit/venv`. Version pinned to 1.4.1 (`$TRACEKIT_VERSION`). The driver imports `tracekit.demo_server` helpers (internal API, hence the pin). Receipt: `pipelines/smoke/tracekit/latest.json`.

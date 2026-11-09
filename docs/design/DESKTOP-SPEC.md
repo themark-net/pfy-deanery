@@ -3,7 +3,7 @@
 **Status:** Design for implementer. Curriculum: `UX-SCHOOL.md` dump-vs-app.
 **Ticket:** GitHub **#230** — cite that issue only on this PR. **#76 CLOSED** — do not reopen. Catalog **70–75 HOLD**. HOLD exception = this slice only. #228 Gab cloud lane + local sync stay. #225 wizard + Launch session stay. #207/#211 recommend/try stay the local surface. Ix **#198** parked.
 **Bar:** Jev-style **decision layer** attach-usable (decision API, not chat); coding-session context compaction + model/tool choice middleware; wizard shows decision active vs Gab/Grok cloud; honesty chips never equate decision ≠ Gab `auto` ≠ local recommend. Product copy only. Title `pfy`. Operate-or-FAIL.
-**Host:** Linux first (nimo: ~64 GiB 8060S VRAM pool; machineId `5c5c138b-c5f6-4ba5-a8d0-fe204735e5cc`). Mark is not the CLI operator and is not the installer. No Mark drip unless TypeSafe key is required for a smoke path (prefer local CUA-S1-FORMS smoke without Mark).
+**Host:** Linux first (nimo: ~64 GiB 8060S VRAM pool; machineId `5c5c138b-c5f6-4ba5-a8d0-fe204735e5cc`). The maintainer is not the CLI operator and is not the installer. No operator drip unless TypeSafe key is required for a smoke path (prefer local CUA-S1-FORMS smoke without the operator).
 **Not this bot:** Design Bot does not implement. Prefer Grok Build on nimo after Design PASS. Copy-reviews when PM pastes a PR URL.
 
 ---
@@ -35,7 +35,7 @@ Honesty chips (not banners):
 - `conf low` / `conf ok` — threshold honesty (margin ≠ correctness claim)
 - `fits` / `tight` / `won't-fit` — nimo VRAM/RAM
 - `key missing` / `plus required` — Gab attach FAIL + next
-- `typesafe key optional` — cloud TypeSafe path optional; local CUA-S1-FORMS preferred for Mark-free smoke
+- `typesafe key optional` — cloud TypeSafe path optional; local CUA-S1-FORMS preferred for operator-free smoke
 
 ---
 
@@ -47,7 +47,7 @@ Honesty chips (not banners):
 | Confidence shown as “% correct” | Confidence is a **margin / certainty**; threshold per use — not a correctness guarantee |
 | Core demo = browser-use / Jev Ultrafast show | Core value = **coding-session context compaction** + **model/tool choice middleware** |
 | Wizard hides which layer is active | Must show decision vs Gab/Grok cloud vs local |
-| Smoke needs Mark ops / TypeSafe key only | Prefer local CUA-S1-FORMS on nimo **without Mark** (mini-jev teaching fallback) |
+| Smoke needs operator ops / TypeSafe key only | Prefer local CUA-S1-FORMS on nimo **without the operator** (mini-jev teaching fallback) |
 | Decision equated with Gab `auto` or local recommend | Three different surfaces; honesty chip required |
 
 ---
@@ -94,7 +94,7 @@ pfy
  [ Launch session ]
 ```
 
-Decision local (preferred Mark-free smoke):
+Decision local (preferred operator-free smoke):
 
 ```
  lane      local
@@ -118,7 +118,7 @@ Decision TypeSafe optional (key when present; never required for smoke):
 
 Attach path (secondary): same decision toggle + Gab/Grok endpoint; Loop shows attached + pid / last verb or FAIL. Decision middleware may compact session context and route model/tool choice before Launch.
 
-Docs labels (in-window next only): TypeSafe public docs if cloud path used; Gab Plus + API key for Gab lane. No private HTML scrape. No Mark drip for default smoke.
+Docs labels (in-window next only): TypeSafe public docs if cloud path used; Gab Plus + API key for Gab lane. No private HTML scrape. No operator drip for default smoke.
 
 ### 4b. Core value — compaction + routing middleware (not browser demo)
 
@@ -150,7 +150,7 @@ Decision middleware sits **above** recommend rows: may propose which tagged loca
 | `gab auto · cloud router` | Best on Gab = Intent Engine `model=auto` |
 | `local sync · family signal` | Gab open-weight families + hardware fit |
 | `decision ≠ gab auto ≠ local` | Three surfaces; never collapse them |
-| `typesafe key optional` | Cloud TypeSafe attach optional; local CUA-S1-FORMS smoke does not need Mark |
+| `typesafe key optional` | Cloud TypeSafe attach optional; local CUA-S1-FORMS smoke does not need the operator |
 
 Ban: “Jev chat”, “AI is X% sure this is correct”, equating decision with Gab auto or local recommend, browser-use as core value, consultant chrome, Env tab.
 
@@ -159,14 +159,14 @@ Ban: “Jev chat”, “AI is X% sure this is correct”, equating decision with
 | Path | When | Smoke |
 |------|------|-------|
 | **(a) TypeSafe optional** | `TYPESAFE_*` / documented key present → compaction/routing via TypeSafe Jev cloud | Optional; FAIL+next if toggled on without key |
-| **(b) local CUA-S1-FORMS** | FreeToken-first on nimo; ~706K / ~2.8MB form-fill specialist (`trycua/cua`) | **Preferred** Mark-free smoke |
+| **(b) local CUA-S1-FORMS** | FreeToken-first on nimo; ~706K / ~2.8MB form-fill specialist (`trycua/cua`) | **Preferred** operator-free smoke |
 | **(c) mini-jev** | Teaching fallback only | Not primary local |
 
 FreeToken-first local spine **unchanged** unless the mini-jev path is explicitly documented FreeToken-first (it should be).
 
 ### 4f. Not this PR
 
-- Catalog 70–75 lift; reopen #76; #198; Env tab; invent Gab-hosted GGUF; change FreeToken-first order (except explicit mini-jev FreeToken-first); Mark drip for default smoke; browser-use as core; chat UI for Jev
+- Catalog 70–75 lift; reopen #76; #198; Env tab; invent Gab-hosted GGUF; change FreeToken-first order (except explicit mini-jev FreeToken-first); operator drip for default smoke; browser-use as core; chat UI for Jev
 
 ---
 
@@ -180,7 +180,7 @@ FreeToken-first local spine **unchanged** unless the mini-jev path is explicitly
 - Auto-pull / silent pull of 405B-class
 - Scraping Gab / TypeSafe private HTML
 - Consultant chrome (adapter / nimo theology / honest-state / `pfy board` / `:8765`)
-- Env nav tab; fake green; requiring Mark for smoke
+- Env nav tab; fake green; requiring the operator for smoke
 - Implying local toolsets on Gab cloud lane
 
 ---
@@ -194,9 +194,9 @@ Score **PASS / FAIL / N/A**. Cite **#230** only. Launch is Tester.
 3. **Attach paths.** (a) TypeSafe key optional when present for compaction/routing; (b) local CUA-S1-FORMS FreeToken-first on nimo operates or FAIL (mini-jev fallback).
 4. **Core value.** Compaction + model/tool middleware visible; browser-use not painted as core.
 5. **Wizard clarity.** Chip or control shows decision active vs Gab/Grok cloud vs local.
-6. **Smoke.** CUA-S1-FORMS Choice on nimo without Mark ops (mini-jev teaching fallback).
+6. **Smoke.** CUA-S1-FORMS Choice on nimo without operator ops (mini-jev teaching fallback).
 7. **Honesty.** `decision ≠ gab auto ≠ local`. FreeToken-first spine hold. #225 Launch intact. No Env tab.
-8. **Not this slice.** Catalog 70–75; reopen #76; private scrape; Mark drip for default smoke.
+8. **Not this slice.** Catalog 70–75; reopen #76; private scrape; operator drip for default smoke.
 
 **PASS sketch:**
 
@@ -220,7 +220,7 @@ Engine recommend
 - Compaction middleware: session/tool context → typed decisions (fast-jev-compaction pattern as attach, not rewrite of product).
 - Routing middleware: Choice over model/tool with confidence gate.
 - Chips == live truth. Prefer Grok Build on nimo (`5c5c138b-c5f6-4ba5-a8d0-fe204735e5cc`).
-- Will not: private HTML scrape; chat UI for Jev; browser-use as core; reopen #76; lift catalog 70–75; Mark drip for default smoke; equate decision with Gab auto.
+- Will not: private HTML scrape; chat UI for Jev; browser-use as core; reopen #76; lift catalog 70–75; operator drip for default smoke; equate decision with Gab auto.
 
 Public framing only: https://typesafe.ai/ (decisions not chat; calibrated confidence); https://github.com/r-ms/mini-jev; https://github.com/tamaratran/fast-jev-compaction. Refs only — do not scrape private.
 
@@ -228,13 +228,13 @@ Public framing only: https://typesafe.ai/ (decisions not chat; calibrated confid
 
 ## 10. Implementer DoD (binds #230)
 
-One PR from current main. Cite **#230 only**. Do not reopen **#76**. Catalog 70–75 HOLD (HOLD exception = this slice). Prefer Grok Build on nimo. No Mark drip for default smoke. See also a private ops note.
+One PR from current main. Cite **#230 only**. Do not reopen **#76**. Catalog 70–75 HOLD (HOLD exception = this slice). Prefer Grok Build on nimo. No operator drip for default smoke. See also a private ops note.
 
 1. Decision layer: typed Choice/Score API surface in wizard/Attach — not chat; honest confidence thresholding.
 2. Attach (a) optional TypeSafe key compaction/routing; (b) local CUA-S1-FORMS FreeToken-first on nimo.
 3. Core: coding-session context compaction + model/tool choice middleware (not browser-use demo).
 4. Wizard clarity: decision active vs Gab/Grok cloud; honesty chip `decision ≠ gab auto ≠ local`.
-5. Smoke: CUA-S1-FORMS Choice on nimo without Mark ops (mini-jev teaching fallback).
+5. Smoke: CUA-S1-FORMS Choice on nimo without operator ops (mini-jev teaching fallback).
 6. FreeToken-first spine unchanged (unless mini-jev explicitly FreeToken-first). HTML + tk. Tester launch-pass. Reviewer + Design clear.
 
 Design Bot copy-reviews when PM pastes a PR URL. Do not implement.

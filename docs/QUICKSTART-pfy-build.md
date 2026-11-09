@@ -17,7 +17,7 @@ mentat help
 
 ```text
 $ command -v grok
-/home/mark/.local/bin/grok
+$HOME/.local/bin/grok
 exit 0
 $ timeout 15 grok --version
 grok 1.0.70 (f50904eaee6c) [stable]
@@ -90,7 +90,7 @@ Protected paths, which still need `--writable-test`, are the pregate gate-hash b
 On a branch whose HEAD is not `origin/main`, a dry-run without `--base` exits 2 and names `--base origin/main` or `--base HEAD`. The fence passes `--base HEAD`.
 
 ```text
-DRY-RUN dry-run branch=none receipt=/home/mark/DEVELOP/pfy-mentat/tmp/mvp-docs-final-1031/tmp/quickstart-dry-run/receipt.json
+DRY-RUN dry-run branch=none receipt=$HOME/DEVELOP/pfy-mentat/tmp/mvp-docs-final-1031/tmp/quickstart-dry-run/receipt.json
 exit 0
 ```
 
@@ -147,7 +147,7 @@ exit 0
 $ git -C tmp/qs-land-repo status --porcelain
 exit 0
 $ git -C tmp/qs-land-repo push origin cloud/qs-land
-To /home/mark/DEVELOP/pfy-mentat/tmp/mvp-docs-1031/tmp/qs-land-bare
+To $HOME/DEVELOP/pfy-mentat/tmp/mvp-docs-1031/tmp/qs-land-bare
  * [new branch]      cloud/qs-land -> cloud/qs-land
 exit 0
 $ git --git-dir=tmp/qs-land-bare rev-parse cloud/qs-land

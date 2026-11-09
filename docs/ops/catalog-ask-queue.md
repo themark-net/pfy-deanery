@@ -9,7 +9,7 @@ On **Tools** (HTML+tk) or CLI:
 ```bash
 ./pfy catalog                 # usable browse (name/stage/status/notes, not scores)
 ./pfy catalog ask <name>      # prompt/artifact for attached TUI, operate-or-FAIL
-./pfy catalog queue <name>    # GitHub issue Design->DevBot (no Mark git/npm/CI)
+./pfy catalog queue <name>    # GitHub issue Design->DevBot (no operator git/npm/CI)
 ./pfy catalog status          # queued items
 ```
 

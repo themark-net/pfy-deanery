@@ -20,7 +20,7 @@ HERE = Path(__file__).resolve().parent
 # (PFY_OPS_ROOT), or to gitignored tmp/ops when it is unset.
 _OPS = os.environ.get("PFY_OPS_ROOT", "").strip()
 LOGS = (Path(_OPS).expanduser() if _OPS else ROOT / "tmp" / "ops") / "eval" / "ev1107" / "hiroute"
-CACHE = Path("/home/mark/.cache/pfy/tools/hiroute")
+CACHE = (Path.home() / ".cache/pfy/tools/hiroute")
 GRANT = CACHE / "grant.token"
 DIAG = CACHE / "home/.local/state/hiroute/diagnostics/daemon/current.jsonl"
 GATEWAY_FILE = CACHE / "home/.local/state/hiroute/gateway-listener.json"

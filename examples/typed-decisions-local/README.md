@@ -17,9 +17,9 @@ Head-to-head vs the ADR-0016 CUA-S1-FORMS lane on `data/decision-gates/laya-tria
 
 ```bash
 # Reuse the trial venv + HF cache (do not copy weights into this worktree).
-export LAYA_PYTHON=/home/mark/DEVELOP/pfy-mentat/tmp/laya-trial/.venv-laya/bin/python
-export HF_HOME=/home/mark/DEVELOP/pfy-mentat/tmp/laya-trial/.hf-cache
-export HF_HUB_CACHE=/home/mark/DEVELOP/pfy-mentat/tmp/laya-trial/.hf-cache
+export LAYA_PYTHON=$HOME/DEVELOP/pfy-mentat/tmp/laya-trial/.venv-laya/bin/python
+export HF_HOME=$HOME/DEVELOP/pfy-mentat/tmp/laya-trial/.hf-cache
+export HF_HUB_CACHE=$HOME/DEVELOP/pfy-mentat/tmp/laya-trial/.hf-cache
 python3 examples/typed-decisions-local/trial.py --check
 python3 examples/typed-decisions-local/trial.py
 python3 examples/typed-decisions-local/trial.py --shadow

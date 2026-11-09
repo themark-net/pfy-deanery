@@ -23,7 +23,7 @@ from pathlib import Path
 
 WT = Path(__file__).resolve().parents[3]
 OUT = Path(__file__).resolve().parent
-BASE = Path("/home/mark/.cache/pfy/tools/graphify")
+BASE = (Path.home() / ".cache/pfy/tools/graphify")
 BIN = BASE / "venv" / "bin" / "graphify"
 PY = BASE / "venv" / "bin" / "python"
 WHEEL = BASE / "src" / "graphifyy-0.9.104-py3-none-any.whl"
@@ -327,7 +327,7 @@ def du_bytes(path: Path) -> int:
 
 
 def home_markers() -> dict[str, bool]:
-    home = Path("/home/mark")
+    home = Path.home()
     names = [".graphify", ".cache/graphify", ".config/graphify", ".local/share/graphify"]
     return {name: (home / name).exists() for name in names}
 

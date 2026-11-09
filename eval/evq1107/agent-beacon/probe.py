@@ -16,7 +16,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 OUT_DIR = Path(__file__).resolve().parent
 # Fixed cache path. A redirected HOME must not hide the binary.
-CACHE = Path("/home/mark/.cache/pfy/tools/agent-beacon")
+CACHE = (Path.home() / ".cache/pfy/tools/agent-beacon")
 BEACON = CACHE / "bin" / "beacon"
 WORK = CACHE / "probe-work"
 MARKERS = (

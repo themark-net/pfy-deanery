@@ -241,7 +241,7 @@
       "mutate_message": "mutations blocked: table app.notes is read-only",
       "update_tool_present": false,
       "ok": true,
-      "stderr_tail": "21:18:12\u001b[32m \u001b[0m\u001b[32mINF\u001b[0m\u001b[32m \u001b[0m\u001b[1m\u001b[32m>\u001b[0m\u001b[0m\u001b[32m \u001b[0mManaged artifact store ready: /home/mark/.cache/pfy/tools/graphjin/probe/score/files-ro/config/.graphjin/artifacts.sqlite3\n21:18:12\u001b[32m \u001b[0m\u001b[32mINF\u001b[0m\u001b[32m \u001b[0m\u001b[1m\u001b[32m>\u001b[0m\u001b[0m\u001b[32m \u001b[0mUsing in-memory response cache (no Redis ...(truncated)"
+      "stderr_tail": "21:18:12\u001b[32m \u001b[0m\u001b[32mINF\u001b[0m\u001b[32m \u001b[0m\u001b[1m\u001b[32m>\u001b[0m\u001b[0m\u001b[32m \u001b[0mManaged artifact store ready: $HOME/.cache/pfy/tools/graphjin/probe/score/files-ro/config/.graphjin/artifacts.sqlite3\n21:18:12\u001b[32m \u001b[0m\u001b[32mINF\u001b[0m\u001b[32m \u001b[0m\u001b[1m\u001b[32m>\u001b[0m\u001b[0m\u001b[32m \u001b[0mUsing in-memory response cache (no Redis ...(truncated)"
     }
   },
   "elapsed_s": 1.362

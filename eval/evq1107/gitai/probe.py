@@ -28,7 +28,7 @@ MAX_ROUNDS = 20
 PIN = "914e481ef057ca7b9dc9a5a7338d96bca16790e1"
 # HOME is redirected into the cache for the server, so Path.home() is not the
 # install root. The lane always installs under this user's cache directory.
-CACHE = Path(os.environ.get("GITAI_CACHE", "/home/mark/.cache/pfy/tools/gitai"))
+CACHE = Path(os.environ.get("GITAI_CACHE", str(Path.home() / ".cache/pfy/tools/gitai")))
 SRC = Path(os.environ.get("GITAI_SRC", CACHE / "src/git-ai"))
 BIN = SRC / "_build/bin"
 

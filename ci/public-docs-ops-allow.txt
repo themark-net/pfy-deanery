@@ -1,7 +1,7 @@
 # Reference docs allowed under docs/ops/ in the public repo. One path per line.
 # A new docs/ops file fails scripts/check_public_paths.py until it is listed here.
 # List only docs that explain how the product works. Handoffs, decision logs,
-# run logs, plans, and anything addressed to Mark or a bot go to PFY_OPS_ROOT.
+# run logs, plans, and anything addressed to the operator or a bot go to PFY_OPS_ROOT.
 docs/ops/CBM-SHADOW-1107.md
 docs/ops/DEPLOY.md
 docs/ops/GRILL-STEP.md

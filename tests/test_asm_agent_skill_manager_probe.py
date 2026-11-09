@@ -124,9 +124,9 @@ class ProbeScoreTests(unittest.TestCase):
                 env["XDG_CACHE_HOME"] = str(xdg)
                 cache = xdg / "pfy" / "tools" / "asm-agent-skill-manager"
             # The old probe always mkdir'd this login path. A hosted runner
-            # has no /home/mark. Missing stays missing. An existing dir must
+            # has no operator home. Missing stays missing. An existing dir must
             # not be rewritten.
-            hard = Path("/home/mark/.cache/pfy/tools/asm-agent-skill-manager/tmp/asm-probe")
+            hard = (Path.home() / ".cache/pfy/tools/asm-agent-skill-manager/tmp/asm-probe")
             before = hard.stat().st_mtime_ns if hard.exists() else None
             proc = subprocess.run(
                 [sys.executable, str(dest / "probe.py")],

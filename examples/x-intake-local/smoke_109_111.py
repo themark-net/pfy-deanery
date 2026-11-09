@@ -284,7 +284,7 @@ def smoke_smolvm(r: dict) -> int:
     if not r["kvm_rw"]:
         r["reason"] = ("no " + kvm if not r["kvm_present"] else
                        kvm + " is not read/write for this user (smolvm needs KVM; on Linux that is usually the "
-                       "`kvm` group, a system change that needs Mark's approval on nimo)")
+                       "`kvm` group, a system change that needs the operator's approval on nimo)")
         return 2
     real_home = Path.home()
     watched = [real_home / ".cache/smolvm", real_home / ".local/share/smolvm"]

@@ -25,7 +25,7 @@
     "clone": {
       "seconds": 0.137,
       "code": 0,
-      "stderr_tail": "Cloning into '/home/mark/.cache/pfy/tools/openlore/probe/repo'...\ndone.\n"
+      "stderr_tail": "Cloning into '$HOME/.cache/pfy/tools/openlore/probe/repo'...\ndone.\n"
     },
     "init": {
       "seconds": 0.257,
@@ -41,7 +41,7 @@
       "code": 0,
       "timed_out": false,
       "stderr_tail": "(node:1390204) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n",
-      "stdout_tail": " config files: not generated\n    Tip: Re-run with --ai-configs to generate CLAUDE.md, .cursorrules, AGENTS.md, etc.\n\n    ? Function index built [keyword+vocabulary] (2915 call-graph functions + 2429 test functions + 1683 signature-only symbols; 7027 indexed repo symbols); vocabulary partial, 53666 candidate input(s) omitted\n    ? Text line index built 257831 lines across 2483 files\n    ? Spec index skipped: Spec directory /home/mark/.cache/pfy/tools/openlore/probe/repo/openspec/specs exists but contains no spec.md files ? run 'openlore generate', or point openspecPath at your specs\n  Total time: 11.8s\n\n[ok] Ready for generation!\n\n  Next step: Run 'openlore generate' to create OpenSpec files\n",
+      "stdout_tail": " config files: not generated\n    Tip: Re-run with --ai-configs to generate CLAUDE.md, .cursorrules, AGENTS.md, etc.\n\n    ? Function index built [keyword+vocabulary] (2915 call-graph functions + 2429 test functions + 1683 signature-only symbols; 7027 indexed repo symbols); vocabulary partial, 53666 candidate input(s) omitted\n    ? Text line index built 257831 lines across 2483 files\n    ? Spec index skipped: Spec directory $HOME/.cache/pfy/tools/openlore/probe/repo/openspec/specs exists but contains no spec.md files ? run 'openlore generate', or point openspecPath at your specs\n  Total time: 11.8s\n\n[ok] Ready for generation!\n\n  Next step: Run 'openlore generate' to create OpenSpec files\n",
       "index": {
         "bytes": 93545740,
         "human": "13M"
@@ -69,7 +69,7 @@
           "STAGES_ROOT"
         ],
         "error": null,
-        "stderr_tail": "(node:1393906) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n[ok] Successfully validated directory: /home/mark/.cache/pfy/tools/openlore/probe/repo\n"
+        "stderr_tail": "(node:1393906) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n[ok] Successfully validated directory: $HOME/.cache/pfy/tools/openlore/probe/repo\n"
       },
       "by_name_hit": true,
       "by_phrase": {
@@ -85,7 +85,7 @@
           "test_stage_cards_stay_i0_and_catalog_rows_stay_absent"
         ],
         "error": null,
-        "stderr_tail": "(node:1394220) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n[ok] Successfully validated directory: /home/mark/.cache/pfy/tools/openlore/probe/repo\n"
+        "stderr_tail": "(node:1394220) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n[ok] Successfully validated directory: $HOME/.cache/pfy/tools/openlore/probe/repo\n"
       },
       "by_phrase_hit": true
     },
@@ -104,7 +104,7 @@
           "write_file"
         ],
         "error": null,
-        "stderr_tail": "(node:1394484) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n[ok] Successfully validated directory: /home/mark/.cache/pfy/tools/openlore/probe/repo\n"
+        "stderr_tail": "(node:1394484) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n[ok] Successfully validated directory: $HOME/.cache/pfy/tools/openlore/probe/repo\n"
       },
       "by_name_hit": true,
       "by_phrase": {
@@ -120,7 +120,7 @@
           "evidence_for"
         ],
         "error": null,
-        "stderr_tail": "(node:1394625) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n[ok] Successfully validated directory: /home/mark/.cache/pfy/tools/openlore/probe/repo\n"
+        "stderr_tail": "(node:1394625) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n[ok] Successfully validated directory: $HOME/.cache/pfy/tools/openlore/probe/repo\n"
       },
       "by_phrase_hit": true
     },
@@ -139,7 +139,7 @@
           "step_role"
         ],
         "error": null,
-        "stderr_tail": "(node:1394770) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n[ok] Successfully validated directory: /home/mark/.cache/pfy/tools/openlore/probe/repo\n"
+        "stderr_tail": "(node:1394770) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n[ok] Successfully validated directory: $HOME/.cache/pfy/tools/openlore/probe/repo\n"
       },
       "by_name_hit": true,
       "by_phrase": {
@@ -155,7 +155,7 @@
           "WHY"
         ],
         "error": null,
-        "stderr_tail": "(node:1394965) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n[ok] Successfully validated directory: /home/mark/.cache/pfy/tools/openlore/probe/repo\n"
+        "stderr_tail": "(node:1394965) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n[ok] Successfully validated directory: $HOME/.cache/pfy/tools/openlore/probe/repo\n"
       },
       "by_phrase_hit": true
     }

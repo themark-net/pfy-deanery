@@ -10,7 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "eval/integrate/atomic-task-graph-atg/run-on-main.sh"
-MARKER = Path("/home/mark/DEVELOP/pfy-mentat/tmp/integrate2/atomic-task-graph-atg.dispatched")
+MARKER = (Path.home() / "DEVELOP/pfy-mentat/tmp/integrate2/atomic-task-graph-atg.dispatched")
 
 
 class AtgSingleFlightTest(unittest.TestCase):

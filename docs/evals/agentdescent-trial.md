@@ -1,6 +1,6 @@
 # Handoff: AgentDescent eval-auto trial (Entry 119), 2026-10-15
 
-Approved by Mark as an eval-auto trial on nimo. Branch `eval/agentdescent-trial` off origin/main `7b5107d`,
+Approved by the operator as an eval-auto trial on nimo. Branch `eval/agentdescent-trial` off origin/main `7b5107d`,
 worktree `~/DEVELOP/pfy-mentat/tmp/agentdescent-trial`. Results: [REPORT.md](../../examples/agentdescent-trial/REPORT.md),
 [results.json](../../examples/agentdescent-trial/results/results.json).
 
@@ -65,7 +65,7 @@ earlier guard (`~/.agentdescent` names only, absent before and after); it was no
 - AgentDescent stopped after round 1 because its internal held-out (30% of train) hit 1.0 >= target 0.98, so this
   trial does not exercise multi-round merging.
 - MIPROv2 needs `optuna`, which plain `dspy` does not pull in; first DSPy attempt failed on that.
-- Peak host memory 79 GiB (whole host, including Mark's processes) during the evolve invocation. No lock-up.
+- Peak host memory 79 GiB (whole host, including the operator's processes) during the evolve invocation. No lock-up.
 
 ## Tester FAIL @ cce6e2c fixed
 

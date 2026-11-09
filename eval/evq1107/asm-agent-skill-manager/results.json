@@ -1,5 +1,5 @@
 {
-  "asm_bin": "/home/mark/.cache/pfy/tools/asm-agent-skill-manager/prefix/node_modules/.bin/asm",
+  "asm_bin": "$HOME/.cache/pfy/tools/asm-agent-skill-manager/prefix/node_modules/.bin/asm",
   "tarball_sha256_ok": true,
   "binary_version": "2.23.0",
   "tarball_sha256": "78fde253af3e216098a6d471dd90341d4aace1bc839816d1080a6fc1432661dd",
@@ -11,14 +11,14 @@
     "exit": 1,
     "wall_s": 0.0356,
     "scanned": false,
-    "stderr_tail": "Error: Skill \"/home/mark/DEVELOP/pfy-mentat/tmp/evq/wt/asm-agent-skill-manager/eval/evq1107/asm-agent-skill-manager/fixtures/planted\" not found. Use \"asm list\" to see installed skills.",
+    "stderr_tail": "Error: Skill \"$HOME/DEVELOP/pfy-mentat/tmp/evq/wt/asm-agent-skill-manager/eval/evq1107/asm-agent-skill-manager/fixtures/planted\" not found. Use \"asm list\" to see installed skills.",
     "stdout_tail": ""
   },
   "planted_install": {
     "exit": 0,
     "wall_s": 0.0519,
     "success": true,
-    "path": "/home/mark/.cache/pfy/tools/asm-agent-skill-manager/tmp/asm-probe/planted-proj/.grok/skills/planted",
+    "path": "$HOME/.cache/pfy/tools/asm-agent-skill-manager/tmp/asm-probe/planted-proj/.grok/skills/planted",
     "landed": true,
     "risk": "high",
     "categories": [
@@ -50,7 +50,7 @@
       "exit": 0,
       "wall_s": 0.0431,
       "success": true,
-      "path": "/home/mark/.cache/pfy/tools/asm-agent-skill-manager/tmp/asm-probe/clean-proj/.grok/skills/clean",
+      "path": "$HOME/.cache/pfy/tools/asm-agent-skill-manager/tmp/asm-probe/clean-proj/.grok/skills/clean",
       "landed": true,
       "risk": "safe",
       "categories": [],
@@ -61,7 +61,7 @@
       "exit": 0,
       "wall_s": 0.0482,
       "success": true,
-      "path": "/home/mark/.cache/pfy/tools/asm-agent-skill-manager/tmp/asm-probe/clean-proj/.opencode/skills/clean",
+      "path": "$HOME/.cache/pfy/tools/asm-agent-skill-manager/tmp/asm-probe/clean-proj/.opencode/skills/clean",
       "landed": true,
       "risk": "safe",
       "categories": [],

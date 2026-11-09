@@ -6,10 +6,10 @@
 #   bash eval/integrate/ollama/run-on-main.sh eval/integrate/ollama/receipt.json
 #
 # Lane marker (this script does not create, remove, or write it):
-#   /home/mark/DEVELOP/pfy-mentat/tmp/integrate2/ollama.dispatched
+#   $HOME/DEVELOP/pfy-mentat/tmp/integrate2/ollama.dispatched
 # A second start exits 2.
 # The main push is a fast-forward under one flock on
-#   /home/mark/DEVELOP/pfy-mentat/tmp/integrate2/push.lock
+#   $HOME/DEVELOP/pfy-mentat/tmp/integrate2/push.lock
 # This script does not take that flock. scripts/model_lock.sh wraps only the GET.
 #
 # HEAD must be an ancestor of origin/main (git merge-base --is-ancestor).

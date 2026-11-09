@@ -22,7 +22,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 OUT_DEFAULT = Path(__file__).resolve().parent / "results.json"
-CACHE = Path(os.environ.get("SPONSIO_CACHE", "/home/mark/.cache/pfy/tools/sponsio"))
+CACHE = Path(os.environ.get("SPONSIO_CACHE", str(Path.home() / ".cache/pfy/tools/sponsio")))
 PIN_VERSION = "0.2.0a17"
 PIN_COMMIT = "957cb5264f156b98208e48c17700addf3aa7c64e"
 PIN_WHEEL = "sponsio-0.2.0a17-py3-none-any.whl"
@@ -88,7 +88,7 @@ CASES: list[dict] = [
     {"id": "fs-skill-boot", "pack": "fs", "role": "skill_write_hole", "expect": [True],
      "steps": [{"tool": "write", "args": {"path": str(ROOT / "bootstrap/grok-cli/skills/evil/SKILL.md"), "content": "name: evil"}}]},
     {"id": "fs-skill-home", "pack": "fs", "role": "skill_write_outside", "expect": [False],
-     "steps": [{"tool": "write", "args": {"path": "/home/mark/.grok/skills/evil/SKILL.md", "content": "name: evil"}}]},
+     "steps": [{"tool": "write", "args": {"path": str(Path.home() / ".grok/skills/evil/SKILL.md"), "content": "name: evil"}}]},
     {"id": "fs-rel-write", "pack": "fs", "role": "relative_false_block", "expect": [False],
      "steps": [{"tool": "write", "args": {"path": "bootstrap/grok-cli/skills/evil/SKILL.md", "content": "name: evil"}}]},
     {"id": "fs-read-abs", "pack": "fs", "role": "read_ok", "expect": [True],

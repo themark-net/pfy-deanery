@@ -14,7 +14,7 @@
   "guest_net": false,
   "binary_sha256_expected": "62ed0353d664c2d6d78bd87ecf3213c64464003f51cb58506b87b187b1a6494a",
   "binary_sha256": "62ed0353d664c2d6d78bd87ecf3213c64464003f51cb58506b87b187b1a6494a",
-  "payload": "/home/mark/.cache/pfy/tools/smolvm/unpack/smolvm-1.26.1-linux-x86_64/smolvm-bin",
+  "payload": "$HOME/.cache/pfy/tools/smolvm/unpack/smolvm-1.26.1-linux-x86_64/smolvm-bin",
   "official_pin": true,
   "kvm_path": "/dev/kvm",
   "kvm_rw": true,
@@ -44,7 +44,7 @@
     "host-write-blocked",
     "cwd-hidden"
   ],
-  "stderr_tail": "sh: can't create /home/mark/.cache/pfy/tools/smolvm/probe-secret/host-sentinel.txt: nonexistent directory\n",
+  "stderr_tail": "sh: can't create $HOME/.cache/pfy/tools/smolvm/probe-secret/host-sentinel.txt: nonexistent directory\n",
   "tarball_bytes": 46763510,
   "cache_allocated_bytes": 203328512,
   "cache_apparent_bytes": 53981834227,

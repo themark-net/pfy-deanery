@@ -25,7 +25,7 @@ OUT = Path(__file__).resolve().parent
 CACHE = Path.home() / ".cache/pfy/tools/open-steps"
 PACK = CACHE / "src/repo"
 HOOKS = PACK / "hooks"
-REAL_STATE = Path("/home/mark/.claude/open-steps")
+REAL_STATE = (Path.home() / ".claude/open-steps")
 N_COMMITS = 30
 
 
