@@ -198,6 +198,17 @@ def load_exclusions(path: Path) -> dict[str, str]:
     return found
 
 
+def exclusion_reason(root: Path, slug: str) -> str:
+    """Reason from eval/catalog-queue/exclusions.tsv, or empty when the slug is absent.
+
+    A missing file means there is nothing to refuse. A malformed file raises QueueError.
+    """
+    path = root / "eval" / "catalog-queue" / "exclusions.tsv"
+    if not path.is_file():
+        return ""
+    return load_exclusions(path).get(slug, "")
+
+
 def load_cards(stages: Path) -> list[tuple[str, str, str, str, str, str]]:
     """Return rows (slug, mode, gap, entry, card, why), unsorted."""
     if not stages.is_dir():

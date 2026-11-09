@@ -136,7 +136,7 @@ class OpenCodeMemReceiptGateTest(unittest.TestCase):
         )
         self.assertEqual(CARD.read_bytes(), card_main)
         card = json.loads(card_main.decode("utf-8"))
-        self.assertEqual(card["tier_ceiling"], "I1")
+        self.assertEqual(card["tier_ceiling"], "I3")
         self.assertNotEqual(card["integration_stage"], "I3")
 
     def test_off_main_head_writes_no_receipt(self):

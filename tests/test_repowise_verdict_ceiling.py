@@ -18,8 +18,8 @@ class TestRepowiseVerdictCeiling(unittest.TestCase):
         card = Path("data/stages/repowise.json")
         if card.exists():
             data = json.loads(card.read_text())
-            ceiling = str(data.get("tier_ceiling", "I1"))
-            self.assertNotEqual(ceiling, "I3")
+            self.assertNotEqual(data.get("integration_stage"), "I3")
+            self.assertEqual(data.get("tier_ceiling"), "I3")
 
     def test_card_bytes_match_origin_main(self):
         card = ROOT / "data/stages/repowise.json"

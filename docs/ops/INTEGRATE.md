@@ -46,7 +46,7 @@ Order:
 6. `python3 scripts/grill_ticket.py` on the ticket.
 7. Headless Grok Build implement, then a self-review. Each is `grok --always-approve --output-format plain --prompt-file <prompt>`, up to 3 attempts.
 8. Sanity on files changed versus `origin/main`: `python3 -m py_compile` for Python, `bash -n` for shell, JSON parse, YAML parse. Then `catalog_check.py` and `check_no_encoded_payloads.py` again.
-9. `python3 scripts/test_select.py --base origin/main`. Run the printed modules with `python3 scripts/run_tests.py`. An empty module list skips the runner. No full suite, no shared lock.
+9. Select tests from `git diff --name-only --diff-filter=ACMR origin/main...HEAD`, then `python3 scripts/test_select.py --paths` those files. An empty diff skips the runner. Do not use a two-dot diff against `origin/main` before the rebase. A behind lane would otherwise select main-only files and take mode full. Run the printed modules with `python3 scripts/run_tests.py`. No full suite, no shared lock.
 10. Land. See below.
 
 A failed step appends `tmp/integrate/progress.md`, writes `tmp/integrate/<slug>.parked` with the reason, and does not push. The dispatched marker stays, so a second start exits 2 until a person removes it.

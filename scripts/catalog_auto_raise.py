@@ -26,6 +26,11 @@ Latest verdict
     eval/**/<slug>/VERDICT.json, last path in sorted order. Both gates must
     pass. The date defaults to America/Los_Angeles today, or --date, or
     PFY_LOOP_TODAY.
+
+Exclusions
+    A slug listed in eval/catalog-queue/exclusions.tsv is refused. The card
+    is not written. atomic-task-graph-atg stays on that list. Passing gates
+    do not raise it.
 """
 from __future__ import annotations
 
@@ -39,6 +44,9 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from scripts.catalog_eval_queue import QueueError, exclusion_reason  # noqa: E402
+
 STAGES = ("I0", "I1", "I2", "I3", "I4")
 RANK = {stage: index for index, stage in enumerate(STAGES)}
 RISK_ENUM = ("security", "live-money", "runtime-takeover", "none")
@@ -221,6 +229,11 @@ def raise_card(path: Path, root: Path, today: str, dry_run: bool) -> tuple[str, 
     if not isinstance(card, dict):
         raise RaiseError(f"malformed-card: {path.name}: top level is not an object")
     slug = path.stem
+    try:
+        if exclusion_reason(root, slug):
+            return "refuse", "excluded"
+    except QueueError as exc:
+        raise RaiseError(f"exclusions: {exc}") from exc
     verdict_path, verdict = latest_verdict(root, slug)
     action, reason = plan_card(card, verdict)
     if action != "raise":
@@ -332,6 +345,12 @@ def main(argv: list[str] | None = None) -> int:
             if not isinstance(card, dict):
                 print(f"skip\t{args.launch_check}\tmalformed-card")
                 return 0
+            try:
+                if exclusion_reason(root, args.launch_check):
+                    print(f"skip\t{args.launch_check}\texcluded")
+                    return 0
+            except QueueError as exc:
+                raise RaiseError(f"exclusions: {exc}") from exc
             blocked = block_reason(card)
             risk = classify_risk(card)
             if blocked:

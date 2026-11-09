@@ -30,6 +30,8 @@ Never demote. Never lower a ceiling. Never touch a card whose ceiling is already
 
 Skip when the gates fail or the verdict is missing. Refuse when the risk class is `security`, `live-money`, `runtime-takeover`, or `unknown`. Those rows belong in needs-mark.
 
+A slug listed in `eval/catalog-queue/exclusions.tsv` is refused by apply and by auto-raise, before the gate check. The card bytes stay as they were. Passing gates do not raise it. `atomic-task-graph-atg` stays on that list. Do not promote it and do not raise its ceiling.
+
 `risk_class` on the card wins when it is one of `security`, `live-money`, `runtime-takeover`, or `none`. An invalid or non-string value is `unknown`. With no field, classify tokens. No tokens is `unknown`. Two classes is `unknown`. One class is that class. Otherwise `none`.
 
 `risk_class: none` wins over keyword classes. It does not override a GPU hit, a pull over 25 GB, or a release or deploy hit. Those still need Mark and are not launched.

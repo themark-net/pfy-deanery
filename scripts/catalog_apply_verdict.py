@@ -12,8 +12,10 @@ proposed_stage.
 
 Apply writes integration_stage only when proposed_stage is within the allowed
 ceiling. Otherwise it exits nonzero, names the reason, and does not write the
-card. The same legal verdict applied twice leaves the card bytes unchanged the
-second time. Scan never writes a card.
+card. A slug listed in eval/catalog-queue/exclusions.tsv is refused before
+any ceiling check, including a stay at the current stage. The same legal
+verdict applied twice leaves the card bytes unchanged the second time. Scan
+never writes a card.
 
 Ceiling rule (same I0-I4 scale as docs/ops/integration-stages.md):
 
@@ -63,6 +65,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from pfylib.stage_registry import VALID_STAGES, load_stages, slug_for  # noqa: E402
+from scripts.catalog_eval_queue import QueueError, exclusion_reason  # noqa: E402
 
 STAGES = VALID_STAGES
 RANK = {stage: index for index, stage in enumerate(STAGES)}
@@ -531,6 +534,12 @@ def apply_stage(card_path: Path, target: str, repo_root: Path) -> str | None:
 
 def apply_verdict(card_path: Path, verdict_path: Path, one_line_path: Path | None) -> int:
     card = _read_object(card_path, "card")
+    slug = card_path.stem
+    try:
+        if exclusion_reason(ROOT, slug):
+            raise Refuse(f"excluded: {slug}")
+    except QueueError as exc:
+        raise Refuse(f"exclusions: {exc}") from exc
     verdict = parse_verdict(verdict_path)
     name = card.get("name") if isinstance(card.get("name"), str) and card.get("name").strip() else card_path.stem
     proposed = verdict["proposed_stage"]

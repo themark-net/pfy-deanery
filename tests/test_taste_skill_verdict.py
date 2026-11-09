@@ -18,7 +18,7 @@ class TestTasteSkillVerdict(unittest.TestCase):
             Path("data/stages/taste-skill.json").read_text(encoding="utf-8")
         )
         self.assertEqual(card["integration_stage"], "I2")
-        self.assertEqual(card["tier_ceiling"], "I1")
+        self.assertEqual(card["tier_ceiling"], "I3")
         evidence = card.get("evidence") or []
         self.assertFalse(
             any(isinstance(item, str) and item.strip().lower().startswith("receipt:") for item in evidence)

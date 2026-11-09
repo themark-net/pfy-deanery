@@ -322,10 +322,24 @@ progress "$SLUG sanity ok"
 ) || park_exit "encoded payload check failed"
 
 sel="$MARK_DIR/${SLUG}-select.json"
-(
-  cd "$WT"
-  python3 scripts/test_select.py --base origin/main
-) > "$sel" || park_exit "test_select failed"
+# Three-dot, not `git diff origin/main HEAD`. A lane that is behind main
+# must not select files that only changed on main (that forces mode full).
+if ! select_list=$(run_checked git -C "$WT" diff --name-only --diff-filter=ACMR origin/main...HEAD); then
+  park_exit "test_select failed"
+fi
+select_paths=()
+while IFS= read -r rel; do
+  [ -n "$rel" ] || continue
+  select_paths+=("$rel")
+done <<< "$select_list"
+if [ "${#select_paths[@]}" -eq 0 ]; then
+  printf '%s\n' '{"mode":"none","reason":"lane commits do not change files","modules":[],"changed":[],"source":"lane"}' > "$sel"
+else
+  (
+    cd "$WT"
+    python3 scripts/test_select.py --paths "${select_paths[@]}"
+  ) > "$sel" || park_exit "test_select failed"
+fi
 modules=()
 while IFS= read -r line; do
   [ -n "$line" ] || continue

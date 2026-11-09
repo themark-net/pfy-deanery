@@ -198,3 +198,11 @@ One manual tick used the service command from `WorkingDirectory=/home/mark` (`sy
 `catalog-loop.timer` is enabled. Next elapse was Sun 2026-11-08 14:01:58 PST. The installed unit's `WorkingDirectory` is `/home/mark`.
 
 `catalog-counts.timer` was already enabled. Its installed unit `WorkingDirectory` is `/home/mark`. `ExecStart` sets `GIT_DIR` on the main repo and runs `scripts/catalog_counts_publish.sh` through `scripts/loop_worktree.sh`. It does not use Mark's checkout as the working directory.
+
+## Health lane 2026-11-08 evening
+
+Ticks at 16:01, 17:00, and 18:02 PT exited 0. The 18:02 tick was `status=ok`, launched nothing, and left `needs-mark.tsv` unchanged (50 rows). `catalog-loop.timer` stays enabled.
+
+`scripts/catalog_apply_verdict.py` and `scripts/catalog_auto_raise.py` refuse a slug listed in `eval/catalog-queue/exclusions.tsv` before the gate check. `atomic-task-graph-atg` stays excluded. A passing integrate verdict does not raise it and does not change the card.
+
+`scripts/eval_lane.sh` and `scripts/integrate_lane.sh` select tests from `git diff origin/main...HEAD` via `test_select.py --paths`. A lane that is behind main no longer takes mode full from files that only changed on main. The taste-skill, repowise, and opencode-mem ceiling tests now expect the I3 cap the loop already wrote. Their stages stay off I3.
