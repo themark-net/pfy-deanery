@@ -12,7 +12,7 @@
 ### Phase 0: Triage & relevance gate
 - Local/self-hosted value, open source/reproducible, pipeline fit.
 - If the item is a full multi-agent **AI company** (org chart + personas + shared consensus + cycle autonomy), route to the **company rubric** instead of (or in addition to) the generic 1–5 table.
-- **Suite overlap:** mark which parts of our suite the tool covers (track, catalog, evaluate, integrate). Two or more parts makes it a supersede candidate: tag `#supersede-candidate` and add it to `data/supersede-watchlist.json` (`python3 scripts/supersede_check.py --parts ...`). All four in full is a stop-and-decide for Mark ([supersede-watch.md](ops/supersede-watch.md)).
+- **Suite overlap:** mark which parts of our suite the tool covers (track, catalog, evaluate, integrate) at none, partial, or full. Two or more parts at partial or full makes it a supersede candidate: tag `#supersede-candidate` and add it to `data/supersede-watchlist.json` (`python3 scripts/supersede_check.py --parts track=partial,catalog=partial`). A part name with no level is not coverage. All four in full is a stop-and-decide for Mark ([supersede-watch.md](ops/supersede-watch.md)).
 - Accept → Phase 1, Defer, or Reject.
 
 ### Phase 1: Initial cataloging

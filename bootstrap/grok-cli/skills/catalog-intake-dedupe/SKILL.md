@@ -43,18 +43,18 @@ Run the command once. If the line starts with `duplicate`, stop. Do not call `--
 
 ## Supersede intake hook
 
-When the source may cover track, catalog, evaluate, or integrate, ask the checker. Do not reimplement the part count.
+When the source may cover track, catalog, evaluate, or integrate, ask the checker. Do not reimplement the coverage comparison. Integrate is the local-first part. Pass levels (`none`, `partial`, `full`). A part name alone is not coverage.
 
 ```bash
-python3 scripts/supersede_check.py --parts track,catalog
+python3 scripts/supersede_check.py --parts track=partial,catalog=partial
 ```
 
-The command prints one JSON object with `supersede_candidate`. True means two or more of those parts. Tag the source `#supersede-candidate` and add a row to `data/supersede-watchlist.json`. A false result does not add a row. This command does not run the catalog loop.
+The command prints one JSON object with `coverage`, `parts` (the parts at partial or full), and `supersede_candidate`. True means real coverage on two or more suite parts. `none` does not count. A bare name list exits 2; add levels and rerun. Tag the source `#supersede-candidate` and add a row to `data/supersede-watchlist.json`. A false result does not add a row. This command does not run the catalog loop.
 
 ## Commands
 
 ```bash
 python3 scripts/catalog_intake_dedupe.py "<source>"
 python3 scripts/catalog_intake_dedupe.py "<source>" --write-card
-python3 scripts/supersede_check.py --parts track,catalog
+python3 scripts/supersede_check.py --parts track=partial,catalog=partial
 ```

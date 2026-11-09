@@ -18,10 +18,10 @@ Harnesses (Grok Build, OpenCode, Hermes, AgenC), skill packs and skill registrie
 ## Rules
 
 1. `data/supersede-watchlist.json` lists each near-match: repo, coverage per part (none, partial, full), verdict (`replace_us`, `adopt_part`, `watch`), reason, last check date.
-2. A project covering two or more parts, partial counting, is a **supersede candidate**. Each recheck reads its README and changelog again, not just the star count.
+2. A project covering two or more parts at `partial` or `full` is a **supersede candidate**. `none` does not count. A list of part names, with no levels, is not coverage. Each recheck reads its README and changelog again, not just the star count.
 3. A project at full on all four parts makes `scripts/supersede_check.py` fail with STOP. That goes to Mark as a real decision: stop and adopt, adopt parts, or keep going with a written reason. Never silently.
 4. `replace_us` needs all four parts full. Lower verdicts can adopt a part through the normal catalog path (stage card, I-stages).
-5. Intake and eval: when a new tool covers two or more parts, tag it `#supersede-candidate` in `sources/` and TOOLS.md and add it to the watchlist. `python3 scripts/supersede_check.py --parts track,catalog` gives the answer.
+5. Intake and eval: when a new tool covers two or more parts at `partial` or `full`, tag it `#supersede-candidate` in `sources/` and TOOLS.md and add it to the watchlist. `python3 scripts/supersede_check.py --parts track=partial,catalog=partial` gives the answer. A bare name list exits 2.
 6. Recheck every 30 days (`recheck_days`), or right away when a watched project ships a release that adds a part. Stale entries show in `supersede_check.py` output.
 
 ## Last check (2026-11-08)
