@@ -19,7 +19,7 @@ Apply adds two write caps the scan does not need. A failing modularity gate caps
 
 A tool whose uses, features, or tags cover CI, testing, or review cannot sit above I2 unless self_pipeline passes the same check as scripts/catalog_check.py (applied with evidence, not_applicable with a reason, or pending with grace). That check does not promote a card. Notes, a scan summary, and a report stay I1 even when tier_ceiling is I3.
 
-Scanned 129 cards. Mismatches 11.
+Scanned 131 cards. Mismatches 11.
 
 | Tool | Stage | Evidence ceiling | Tier ceiling | Allowed | Why |
 | --- | --- | --- | --- | --- | --- |
