@@ -16,6 +16,9 @@ The product surface `./pfy` does onboard, stage, and ship. The catalog lifecycle
 - README "Using the catalog" names the five commands. `./pfy help` says `pfy eval` is the product structural gate and names `scripts/eval_lane.sh` and `scripts/catalog_intake_dedupe.py`. The command name `pfy eval` is unchanged.
 - `./pfy eval` stays the product structural gate (`make eval-integration-change`). It writes `pipelines/eval`. It does not call Grok and does not push `main`. Catalog verdicts stay `scripts/eval_lane.sh` (Grok, then a fast-forward of `main`). Help, the operator docs, the eval-lane skill, and `tests/test_cli.py` say that. One test runs `./pfy eval` with a stub `make` and checks the receipt was not written. The command was not renamed. Closed in `ed9616cc4338cdfb6b404ad004fa4835518c3ca6`.
 - A temp catalog proves intake and browse together. `tests/test_catalog_fake_tool_e2e.py` builds a local git fixture, runs intake `--write-card`, refuses an I2 stub, applies I1 through `catalog_apply_verdict.py` with a stub `VERDICT.json`, and `./pfy catalog` lists that one card at I1. No network, no model, no GPU. The temp tree is removed inside the test. The real checkout is not written. Closed in `25040d36a2500532b5e562710d61172f75ccb927`.
+- Eval `--dry-run --slug <slug> --state DIR` prints one line: `skip-marker skip-fetch skip-grok skip-apply skip-push`. It exits before those steps. It does not walk apply. The default path still fast-forwards `main`. This pass did not point a lane at GitHub. Closed in `9a5e56c7b09b813fcdfdc16a6ce7175bac3b466e`.
+- A missing `scripts/integrations/dcg/guard.sh` prints `dcg-fallback: guard.sh missing; built-in denylist not applied; command unchanged` on the eval lane, the integrate lane, and the supersede recheck lane. The command still runs. A missing dcg binary is the other case: `guard.sh` prints `dcg-fallback` and still denies the built-in list. Closed in `9a5e56c7b09b813fcdfdc16a6ce7175bac3b466e`.
+- Integrate `--dry-run --slug <slug>` prints one line: `skip-card skip-marker skip-fetch skip-grok skip-apply skip-push`. It exits before the card check, the marker, fetch, Grok, apply, and the push. The I2 guard is unchanged. The default path still calls Grok and fast-forwards `main`. The eight I2 cards were not launched. Closed in `9a5e56c7b09b813fcdfdc16a6ce7175bac3b466e`.
 
 While this walk was open, `origin/main` also landed `cec3b3de` (excluded slugs refused before a ceiling check; lane test selection is `origin/main...HEAD`; taste-skill, repowise, and opencode-mem tests expect the I3 cap the loop already wrote) and `5683af53` (I1 static eval for LocalHarness and Cartographer, value gate fail, both stay I1). This lane did not re-raise ATG. `atomic-task-graph-atg` stays on `eval/catalog-queue/exclusions.tsv`.
 
@@ -31,23 +34,25 @@ Item 3 (`./pfy eval` versus `scripts/eval_lane.sh`) is closed. See Closed in thi
 
 The supersede parts-count finding is closed. See Closed in this pass. Closed in `1cd339ed0093f9a76dfa00c32da8c401565ba34b`.
 
-### 4. Eval: the lane has no dry run and it fast-forwards main
+### 4. Eval dry-run and the fast-forward
 
-`scripts/eval_lane.sh` fetches `origin`, cuts a worktree from `origin/main`, calls Grok through `scripts/model_lock.sh`, selects tests, applies, and pushes `refs/heads/main`. Tests must pass `--root` and `--state`. A walk must set `PFY_GROK_BIN` to a stub and `PFY_MODEL_LOCK` to a private file. This walk did that. It did not take `~/.cache/pfy/locks/local-model.lock`. The destructive-command guard stayed on. A missing guard binary falls open.
+Closed. See Closed in this pass. Closed in `9a5e56c7b09b813fcdfdc16a6ce7175bac3b466e`.
 
-The stub lane against a local bare (not GitHub) reached `test_select mode=affected modules=22` and parked `run_tests failed`. Origin was not updated. The selector fix above is the small part. `--dry-run --state DIR` now exits before the dispatch marker, Grok, and the push. It does not walk apply. The default path still fast-forwards `main`. Do not point a real lane at GitHub from a test.
+`--dry-run --state DIR` names every skip, including apply, and exits before them. The default path still fast-forwards `main`. That push was not changed. No real lane was pointed at GitHub.
 
-`./pfy eval` (the product gate) was not run in the walk. It writes under `pipelines/eval` and is a different command. Help and `tests/test_cli.py` lock that split. Closed in `ed9616cc4338cdfb6b404ad004fa4835518c3ca6`.
+A missing `guard.sh` is a visible fall-open: the built-in denylist is not applied, and the command still runs. A missing dcg binary still denies that list inside `guard.sh`. The earlier note that a missing guard binary falls open mixed those two cases.
 
-### 5. Integrate: I2 guard closed, and the driver still pushes
+### 5. Integrate dry-run and the fast-forward
 
-The new gum card stayed I0, so integrate was not the next user step. `scripts/integrate_lane.sh` was not executed against a real origin. Closed in `0dee24d93ba1ac865fc876ef6dd4bc66313f0224`: the driver reads the stage card, `eval/catalog-queue/exclusions.tsv`, and park files before `tmp/integrate/<slug>.dispatched`. A card that is not I2, an excluded slug, or an existing `<slug>.parked` file exits before that marker. When `PFY_LOOP_STATE` is set, `$PFY_LOOP_STATE/integrate/<slug>.parked` counts. A refusal writes nothing and deletes nothing. A second start still exits 2. `--dry-run` still exits before the check, the marker, Grok, and the push. The default path still calls Grok and fast-forwards `main`.
+Closed. See Closed in this pass. Closed in `9a5e56c7b09b813fcdfdc16a6ce7175bac3b466e`.
 
-`python3 scripts/integrate_intake.py` at the walk commit listed eight I2 cards already at ceiling I3, with no flag: headson, hiroute, neatroots, opencode-mem, repowise, sponsio, strata, taste-skill. bumblebee was flagged `tier_ceiling below I3: needs Mark`. This lane did not launch any of them. Do not launch them from a gap pass. Parked loop slugs stay parked. Do not start `catalog-loop.timer`. Do not remove another unit's markers.
+The I2 guard stays the check before `tmp/integrate/<slug>.dispatched`. `--dry-run` names every skip, including the card check and apply, and exits before them. The default path still calls Grok and fast-forwards `main`.
+
+`python3 scripts/integrate_intake.py` at the walk commit listed eight I2 cards already at ceiling I3, with no flag: headson, hiroute, neatroots, opencode-mem, repowise, sponsio, strata, taste-skill. bumblebee was flagged `tier_ceiling below I3: needs Mark`. This pass did not launch any of them. Parked loop slugs stay parked. Do not start `catalog-loop.timer`. Do not remove another unit's markers.
 
 ### 6. Track: no product ticket
 
-This lane's tracker is the lane ticket plus this file and the link in `docs/TODO.md`. No GitHub issue was filed. Trading, release, deploy, and secrets were not touched.
+Left for Mark. This lane's tracker is the lane ticket plus this file and the link in `docs/TODO.md`. No GitHub issue was filed. This pass did not file one. Trading, release, deploy, and secrets were not touched.
 
 ## What the walk ran
 
