@@ -13,6 +13,8 @@ import unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+from tests._ops import OPS, require  # noqa: E402
+
 def _bwrap_ok() -> bool:
     if not shutil.which("bwrap"):
         return False
@@ -572,6 +574,10 @@ def _drop_empty_dir(path: Path, existed: bool) -> None:
 
 class ScratchPathTests(unittest.TestCase):
     def test_trial_usage_creates_scratch_under_the_script_repo(self):
+        # The mvp3 trial harness is an internal eval run kept in the ops repo.
+        trial = OPS / "eval" / "mvp3" / "run_trial.py"
+        require(trial)
+        script_repo = trial.resolve().parents[2]
         base = ROOT / "tmp" / "local-build-eval-tests"
         base.mkdir(parents=True, exist_ok=True)
         decoy = Path(tempfile.mkdtemp(prefix="hostile-", dir=base))
@@ -580,11 +586,11 @@ class ScratchPathTests(unittest.TestCase):
         foreign = decoy / "pgs"
         cwd.mkdir()
         foreign.mkdir()
-        trial_scratch = ROOT / "tmp" / "mvp3-trial-tmp"
+        trial_scratch = script_repo / "tmp" / "mvp3-trial-tmp"
         existed = trial_scratch.exists()
         self.addCleanup(_drop_empty_dir, trial_scratch, existed)
         proc = subprocess.run(
-            ["python3", str(ROOT / "eval" / "mvp3" / "run_trial.py")],
+            ["python3", str(trial)],
             cwd=cwd,
             env={**os.environ, "TMPDIR": str(foreign), "PYTHONDONTWRITEBYTECODE": "1"},
             text=True,
@@ -599,7 +605,7 @@ class ScratchPathTests(unittest.TestCase):
         self.assertEqual(list(foreign.rglob("*")), [])
         main = _common_main()
         self.assertNotEqual(trial_scratch.resolve(), (main / "tmp" / "pgs").resolve())
-        self.assertEqual(trial_scratch.resolve().parts[: len((ROOT / "tmp").resolve().parts)], (ROOT / "tmp").resolve().parts)
+        self.assertEqual(trial_scratch.resolve().parts[: len((script_repo / "tmp").resolve().parts)], (script_repo / "tmp").resolve().parts)
 
     def test_eval_refuses_scratch_in_the_main_checkout(self):
         main = _common_main()

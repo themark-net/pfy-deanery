@@ -14,6 +14,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from tests._ops import OPS, require  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[1]
 
 # bot/mvp-selfhost2-1031 cherry-picked each cloud build with a readable
@@ -90,8 +92,15 @@ def stable_patch_id(repo: Path, sha: str) -> str:
     return out[0] if out else ""
 
 
-def built_by_problems(repo: Path, reworded: dict[str, str] | None = None) -> list[str]:
-    """Empty means every Built-by commit on HEAD points at a matching PASS receipt."""
+def built_by_problems(
+    repo: Path, reworded: dict[str, str] | None = None, receipts: Path | None = None
+) -> list[str]:
+    """Empty means every Built-by commit on HEAD points at a matching PASS receipt.
+
+    Receipts are read from `receipts` (default: the repo itself). Past run
+    receipts moved to the private ops checkout, so the live check reads OPS.
+    """
+    base = repo if receipts is None else receipts
     listed = _git(repo, ["log", "--format=%H", "--grep", TRAILER_PREFIX])
     if listed.returncode != 0:
         return ["git log failed: %s" % (listed.stderr or "").strip()]
@@ -108,7 +117,7 @@ def built_by_problems(repo: Path, reworded: dict[str, str] | None = None) -> lis
         if not rel or rel.startswith("/") or ".." in Path(rel).parts:
             problems.append("%s trailer path is missing or unsafe" % sha[:12])
             continue
-        path = repo / rel
+        path = base / rel
         if not path.is_file():
             problems.append("%s receipt missing: %s" % (sha[:12], rel))
             continue
@@ -151,7 +160,8 @@ def _commit(repo: Path, message: str) -> None:
 
 class SelfhostBuiltByTests(unittest.TestCase):
     def test_this_branch_has_no_bad_built_by_trailer(self) -> None:
-        problems = built_by_problems(ROOT)
+        require(OPS / "eval" / "selfhost-1031")
+        problems = built_by_problems(ROOT, receipts=OPS)
         self.assertEqual(problems, [], "\n".join(problems))
 
     def test_runner_subject_matches_the_cloud_runner(self) -> None:

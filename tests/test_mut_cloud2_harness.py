@@ -12,9 +12,15 @@ import importlib.util
 import unittest
 from pathlib import Path
 
+from tests._ops import OPS, require  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[1]
-HARNESS = ROOT / "eval" / "mutation-1031" / "cloud" / "run_mutants.py"
+HARNESS = OPS / "eval" / "mutation-1031" / "cloud" / "run_mutants.py"
 RUNNER = ROOT / "scripts" / "pfy_build_cloud.py"
+
+
+def setUpModule() -> None:
+    require(HARNESS)
 
 
 def load_harness():

@@ -14,10 +14,16 @@ import subprocess
 import unittest
 from pathlib import Path
 
+from tests._ops import OPS, require  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[1]
-HARNESS = ROOT / "eval" / "mutation-1031" / "cloud" / "run_mutants.py"
+HARNESS = OPS / "eval" / "mutation-1031" / "cloud" / "run_mutants.py"
 RUNNER = ROOT / "scripts" / "pfy_build_cloud.py"
 FIXTURES = ROOT / "tmp" / "mutation-1031" / "cloud" / "fixtures"
+
+
+def setUpModule() -> None:
+    require(HARNESS)
 
 
 def load_harness():
@@ -127,7 +133,7 @@ class HarnessBehaviorTests(unittest.TestCase):
         self.assertNotEqual(missed["status"], "survived")
 
     def test_clone_outside_source_tmp_is_refused(self) -> None:
-        dest = ROOT / "eval" / "mutation-1031" / "cloud" / "not-a-clone"
+        dest = OPS / "eval" / "mutation-1031" / "cloud" / "not-a-clone"
         row = self.mod.evaluate(
             src=ROOT,
             dest=dest,

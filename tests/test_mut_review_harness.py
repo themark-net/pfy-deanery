@@ -14,14 +14,17 @@ import subprocess
 import unittest
 from pathlib import Path
 
+from tests._ops import OPS, present, require  # noqa: E402
+
 
 REPO = Path(__file__).resolve().parents[1]
 RUNNER = REPO / "scripts" / "pfy_build_local.py"
 SCRATCH = REPO / "tmp" / "mutation-1031" / "harness-tests"
+HARNESS = OPS / "eval" / "mutation-1031" / "review" / "run_mutants.py"
 
 
 def _load():
-    path = REPO / "eval" / "mutation-1031" / "review" / "run_mutants.py"
+    path = HARNESS
     spec = importlib.util.spec_from_file_location("review_mutants_under_test", path)
     if spec is None or spec.loader is None:
         raise RuntimeError("cannot load run_mutants")
@@ -30,7 +33,11 @@ def _load():
     return mod
 
 
-MUT = _load()
+MUT = _load() if present(HARNESS) else None
+
+
+def setUpModule() -> None:
+    require(HARNESS)
 
 
 def _git(cwd, *args):
