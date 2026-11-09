@@ -1,0 +1,25 @@
+{
+  "metric": "distinct_memory_job",
+  "threshold": 1,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I1",
+  "intent": "staged_evaluation",
+  "pin": "f96e5d9f7b0ae8506ce5470e35372546a70ea292",
+  "neighbors_replaced": 0,
+  "runs": 0,
+  "supersede": {
+    "coverage": {
+      "track": "none",
+      "catalog": "none",
+      "evaluate": "none",
+      "integrate": "partial"
+    },
+    "checker": {
+      "parts": ["integrate"],
+      "supersede_candidate": false
+    },
+    "watchlist_row": false,
+    "why": "A git wiki is not the catalog suite. One partial part is not a supersede candidate. No watchlist row. It does not replace codebase-memory-mcp or opencode-mem."
+  }
+}

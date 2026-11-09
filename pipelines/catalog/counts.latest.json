@@ -1,7 +1,7 @@
 {
-  "card_count": 129,
-  "cards_sha256": "98feb8143f566f54b423eaf071793ed38862e622744c7d3e77df187eb117aeb3",
-  "coverage": "129 tools registered",
+  "card_count": 131,
+  "cards_sha256": "10f39890729752f4adad218074c4ed3c67f2c249d75f1c90f82375eb7bb5252e",
+  "coverage": "131 tools registered",
   "i2_plus": 22,
   "missing_fields": {
     "evidence": 3,
@@ -40,14 +40,14 @@
     "smoke_path": 3,
     "speed_probe": 1,
     "staged_eval": 7,
-    "staged_evaluation": 19,
+    "staged_evaluation": 21,
     "submodule_later": 1,
     "trial_1107": 1,
     "watch": 3
   },
   "per_stage": {
     "I0": 47,
-    "I1": 60,
+    "I1": 62,
     "I2": 10,
     "I3": 12
   }

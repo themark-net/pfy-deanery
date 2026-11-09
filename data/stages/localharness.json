@@ -1,0 +1,38 @@
+{
+  "name": "LocalHarness",
+  "integration_stage": "I1",
+  "intent": "staged_evaluation",
+  "github": "https://github.com/ahwurm/localharness",
+  "pin": "5af7511ce8f8f799f74de877698e4c4aec0dec45",
+  "license": "MIT",
+  "uses": "Self-hosted agent harness for a model that is already being served. Holds GGUF launch sizing, a per-call gate, YAML agents, SKILL.md skills, SQLite memory, and an experiment loop next to the local lanes already in this repo.",
+  "features": [
+    "gguf launch sizing",
+    "per-call gate",
+    "yaml agents",
+    "skill.md skills",
+    "sqlite memory",
+    "experiment loop"
+  ],
+  "potential": "ambiguous",
+  "non_goals": [
+    "replace grok build",
+    "replace opencode",
+    "model fetch",
+    "install into the default tool dir",
+    "mobile or discord plugins",
+    "second skill root",
+    "feature go",
+    "catalog hold 70-75"
+  ],
+  "next_gate": "Stay I1. The I2 trial plan is docs/ops/i2-trial-localharness-cartographer-1108.md. It needs approval before any run. Same served model, same task, wall time and tool-call success. No model fetch.",
+  "evidence": [
+    "entry:sources/entries/171-localharness.md",
+    "pin:5af7511ce8f8f799f74de877698e4c4aec0dec45",
+    "eval/evals/localharness/REPORT.md",
+    "eval/evals/localharness/VERDICT.json"
+  ],
+  "tier_ceiling": "I1",
+  "risk_class": "none",
+  "handoff_by": "llm"
+}

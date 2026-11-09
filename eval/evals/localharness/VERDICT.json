@@ -1,0 +1,25 @@
+{
+  "metric": "source_features_at_pin",
+  "threshold": 6,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I1",
+  "intent": "staged_evaluation",
+  "pin": "5af7511ce8f8f799f74de877698e4c4aec0dec45",
+  "source_features_confirmed": 6,
+  "runs": 0,
+  "supersede": {
+    "coverage": {
+      "track": "none",
+      "catalog": "none",
+      "evaluate": "none",
+      "integrate": "partial"
+    },
+    "checker": {
+      "parts": ["integrate"],
+      "supersede_candidate": false
+    },
+    "watchlist_row": false,
+    "why": "One part only, so scripts/supersede_check.py --parts integrate is not a candidate. LocalHarness does not track, catalog, or evaluate outside tools. Do not adopt it in place of pfy-mentat. Do not add a watchlist row."
+  }
+}

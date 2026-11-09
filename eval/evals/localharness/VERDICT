@@ -1,0 +1,1 @@
+PROMOTE I1 source_features_at_pin threshold=6 value_gate=fail modularity_gate=pass

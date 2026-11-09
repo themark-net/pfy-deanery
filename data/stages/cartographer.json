@@ -1,0 +1,34 @@
+{
+  "name": "Cartographer",
+  "integration_stage": "I1",
+  "intent": "staged_evaluation",
+  "github": "https://github.com/BeppeTemp/cartographer",
+  "pin": "f96e5d9f7b0ae8506ce5470e35372546a70ea292",
+  "license": "Apache-2.0",
+  "uses": "Git-backed wiki served over MCP so several agent clients can share one knowledge base.",
+  "features": [
+    "mcp wiki",
+    "git commit per write",
+    "write gate",
+    "client skill sync"
+  ],
+  "potential": "ambiguous",
+  "non_goals": [
+    "replace codebase-memory-mcp",
+    "replace opencode-mem",
+    "public demo server",
+    "setup against a real agent home",
+    "feature go",
+    "catalog hold 70-75"
+  ],
+  "next_gate": "Stay I1. The comparison plan is docs/ops/i2-trial-localharness-cartographer-1108.md. A planted wiki fact is checked against codebase-memory-mcp and opencode-mem. Do not run setup against a real agent home.",
+  "evidence": [
+    "entry:sources/entries/172-cartographer.md",
+    "pin:f96e5d9f7b0ae8506ce5470e35372546a70ea292",
+    "eval/evals/cartographer/REPORT.md",
+    "eval/evals/cartographer/VERDICT.json"
+  ],
+  "tier_ceiling": "I1",
+  "risk_class": "none",
+  "handoff_by": "llm"
+}

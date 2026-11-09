@@ -12,7 +12,7 @@
   - The `mobile` and `dispatch` (Discord) plugins are off by default; keep them off.
   - Pre-1.0: config schema can change without notice.
 - **Extracted Repos / Tools**: https://github.com/ahwurm/localharness · https://github.com/ahwurm/localshift
-- **TOOLS.md Link**: None yet. I0 awareness. No TOOLS.md row, no `data/tools.json` row.
+- **TOOLS.md Link**: None yet. Stage card `data/stages/localharness.json` at I1 after a static read. No TOOLS.md row, no `data/tools.json` row.
 - **Smoke**: `python3 examples/x-intake-local/smoke_171.py`. Commit-metadata only. Pins `$LOCALHARNESS_COMMIT`. Fetches via `$LOCALHARNESS_FETCH_BIN` or stdlib GitHub commits API. Does not install. Receipt: `pipelines/smoke/localharness/latest.json`. Tests: `python3 -m unittest tests.test_x_intake_smoke_171` (7 stub tests).
 - **Non-goals**: no install into `~/.local` or agent homes, no model download, no plugins beyond the defaults, no GPU run without Mark's go. Catalog HOLD 70-75 untouched. No Feature GO.
 - **How this fails / how we recover**:
@@ -24,4 +24,4 @@
 | Writes outside DEVELOP | uv tool and `~/.localharness` defaults | Redirect `UV_TOOL_DIR` and HOME to a worktree |
 | Pin drift | `main` moves | Smoke checks this SHA |
 
-- **Status**: Cataloged I0. Next step, if any: eval-auto trial on one catalog-lane task against our current local lane (same model, same task), comparing tool-call success and wall time. Needs Mark's go for any GPU run. No Feature GO.
+- **Status**: Stage card I1 (static read, 2026-11-08). Six named features are in the pin. Zero runs. Not a supersede of the catalog suite (`supersede_candidate` false, no watchlist row). Next step, if any: the no-fetch trial in `docs/ops/i2-trial-localharness-cartographer-1108.md` (same served model, same task, wall time and tool-call success). Needs approval before any run. No Feature GO.

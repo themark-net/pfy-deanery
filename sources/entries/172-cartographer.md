@@ -11,7 +11,7 @@
   - Ignore the public demo server; trials stay local.
   - Run `setup` only with HOME pointed at a throwaway worktree so it can't rewrite real client configs or install a user service.
 - **Extracted Repos / Tools**: https://github.com/BeppeTemp/cartographer
-- **TOOLS.md Link**: None yet. I0 awareness. No TOOLS.md row, no `data/tools.json` row.
+- **TOOLS.md Link**: None yet. Stage card `data/stages/cartographer.json` at I1 after a static read. No TOOLS.md row, no `data/tools.json` row.
 - **Smoke**: `python3 examples/x-intake-local/smoke_172.py`. Commit-metadata only. Pins `$CARTOGRAPHER_COMMIT`. Fetches via `$CARTOGRAPHER_FETCH_BIN` or stdlib GitHub commits API. Does not install. Receipt: `pipelines/smoke/cartographer/latest.json`. Tests: `python3 -m unittest tests.test_x_intake_smoke_172` (7 stub tests).
 - **Non-goals**: no service install, no edits to real agent client configs, no remote KB host. Catalog HOLD 70-75 untouched. No Feature GO.
 - **How this fails / how we recover**:
@@ -23,4 +23,4 @@
 | Duplicate memory layer | overlaps codebase-memory-mcp / opencode-mem | Compare in one memory eval, keep one |
 | Pin drift | `main` moves | Smoke checks this SHA |
 
-- **Status**: Cataloged I0. Next step, if any: include in a memory-layer comparison with codebase-memory-mcp and opencode-mem. No Feature GO.
+- **Status**: Stage card I1 (static read, 2026-11-08). The job is a git wiki, not the code graph and not opencode-mem. Not a supersede of the catalog suite. Next step, if any: the planted-fact comparison in `docs/ops/i2-trial-localharness-cartographer-1108.md`. No `setup` against a real agent home. No Feature GO.

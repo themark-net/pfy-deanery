@@ -2,16 +2,16 @@
 
 Stage cards are the source of truth.
 
-Coverage: 129 tools registered.
+Coverage: 131 tools registered.
 
-Cards: 129. I2+: 22.
+Cards: 131. I2+: 22.
 
 ## Stage counts
 
 | Stage | Count |
 |-------|------:|
 | I0 | 47 |
-| I1 | 60 |
+| I1 | 62 |
 | I2 | 10 |
 | I3 | 12 |
 
@@ -46,7 +46,7 @@ Cards: 129. I2+: 22.
 | smoke_path | 3 |
 | speed_probe | 1 |
 | staged_eval | 7 |
-| staged_evaluation | 19 |
+| staged_evaluation | 21 |
 | submodule_later | 1 |
 | trial_1107 | 1 |
 | watch | 3 |
@@ -88,6 +88,7 @@ Cards: 129. I2+: 22.
 | BugPatrol | I1 | staged_evaluation |
 | Bumblebee | I2 | catalog_default |
 | Camofox Browser | I1 | catalog_default |
+| Cartographer | I1 | staged_evaluation |
 | cass-memory | I0 | awareness |
 | cedr | I1 | staged_eval |
 | Charlotte | I1 | staged_evaluation |
@@ -144,6 +145,7 @@ Cards: 129. I2+: 22.
 | llama.cpp (server mode) | I1 | catalog_default |
 | llama.cpp ngram-mod | I3 | speed_probe |
 | llm-router | I0 | awareness |
+| LocalHarness | I1 | staged_evaluation |
 | magpie | I0 | awareness |
 | marketing-skills (marketing-council) | I1 | catalog_default |
 | mattpocock/skills | I1 | catalog_default |
