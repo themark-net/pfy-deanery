@@ -1,0 +1,8 @@
+{
+  "metric": "mark_stop_negative_result_2026-11-08",
+  "threshold": 1,
+  "value_gate": "fail",
+  "modularity_gate": "fail",
+  "proposed_stage": "I2",
+  "note": "Mark stopped ATG on 2026-11-08 at 4:21pm PT after a negative live result on the localized-repair bar (best arm 10/12; best localized 9/12 with more model calls than full replan). Items 2 to 4 cancelled. Do not promote to I3. The prior integrate VERDICT (offline atg-compile, no model call) must not drive an auto-raise. atg-framework stop docs: f42a4fc. Exclusion: atomic-task-graph-atg in eval/catalog-queue/exclusions.tsv."
+}

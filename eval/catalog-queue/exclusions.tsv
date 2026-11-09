@@ -17,3 +17,4 @@ karpathy-guidelines	First-party skill in use, gated by its skill smoke.
 finn-loop-eval-loop-8-exits-patterns	First-party skill in use, gated by its skill smoke.
 mattpocock-skills	Vendored and in use (grill step, Pocock skills).
 llama-cpp-server-mode	Card is the bring-up record; in use.
+atomic-task-graph-atg	Mark stopped ATG 2026-11-08 (negative result). Do not auto-raise or promote to I3. Receipt had no real model call.
