@@ -15,10 +15,12 @@ deepseek-v4-1-flash-1017-gguf	pull-over-25gb	card text is over 25 GB	data/stages
 destructive-command-guard	risky-class	security	data/stages/destructive-command-guard.json	-
 dspy	parked	run_tests failed	parked/dspy.parked	-
 elephant-goldfish-model	parked	run_tests failed	parked/elephant-goldfish-model.parked	-
+freeapp	parked	run_tests failed	parked/freeapp.parked	-
 grok-cli-bootstrap	demotion-flag	evidence I2: make target, repo path; tier_ceiling I3 does not raise it; missing-main-receipt	eval/catalog-verdicts/CEILING-MISMATCHES.md	-
 hal0	gpu	card text names a GPU run	data/stages/hal0.json	-
 hal0	risky-class	runtime-takeover	data/stages/hal0.json	-
 harness2	parked	run_tests failed	parked/harness2.parked	-
+hermes-agent-feedback-loops	parked	run_tests failed	parked/hermes-agent-feedback-loops.parked	-
 hiroute	demotion-flag	evidence I1: entry, report; tier_ceiling I3 does not raise it	eval/catalog-verdicts/CEILING-MISMATCHES.md	-
 hiroute	parked	receipt run failed rc=2	parked/hiroute.parked	-
 kander	risky-class	security	data/stages/kander.json	-
