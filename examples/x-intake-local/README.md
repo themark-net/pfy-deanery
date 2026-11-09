@@ -303,3 +303,7 @@ timeout. A bad value exits 2.
 Entries 168-170 (`smoke_168.py`, `smoke_169.py`, `smoke_170.py`) are commit-metadata receipts for cedr, IM.codes and
 Pi-Harness. Each reads the pinned GitHub commit JSON through `$CEDR_FETCH_BIN` / `$IMCODES_FETCH_BIN` / `$PIHARNESS_FETCH_BIN`
 or a stdlib fetch, checks the SHA, and exits 2 without installing anything. `PFY_XINTAKE_TIMEOUT` overrides the timeout.
+
+Entries 171-173 (`smoke_171.py`, `smoke_172.py`, `smoke_173.py`) are commit-metadata receipts for LocalHarness, Cartographer and
+agent-manager. Each reads the pinned GitHub commit JSON through `$LOCALHARNESS_FETCH_BIN` / `$CARTOGRAPHER_FETCH_BIN` /
+`$AGENTMANAGER_FETCH_BIN` or a stdlib fetch, checks the SHA, and exits 2 without installing anything. `PFY_XINTAKE_TIMEOUT` overrides the timeout.

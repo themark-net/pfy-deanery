@@ -177,3 +177,7 @@ pipelines/smoke/teaql-agent-kit/
 pipelines/smoke/cedr/
 pipelines/smoke/imcodes/
 pipelines/smoke/pi-harness/
+# 171-173 receipts.
+pipelines/smoke/localharness/
+pipelines/smoke/cartographer/
+pipelines/smoke/agent-manager/
