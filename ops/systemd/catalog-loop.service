@@ -3,6 +3,8 @@
 # ExecStart fetches origin and copies scripts/loop_worktree.sh from origin/main
 # into the runtime dir, then runs scripts/catalog_loop.sh in the loop worktree.
 # A credential prompt is off. Type=oneshot and Nice=10.
+# PFY_OPS_ROOT is the private ops checkout. The needs-mark queue is written and
+# committed there, never in the public repo.
 [Unit]
 Description=One tick of the catalog loop
 
@@ -10,4 +12,5 @@ Description=One tick of the catalog loop
 Type=oneshot
 Nice=10
 WorkingDirectory=%h
+Environment=PFY_OPS_ROOT=%h/DEVELOP/pfy-mentat-ops
 ExecStart=/bin/bash -c 'GIT_DIR=%h/DEVELOP/pfy-mentat/.git GIT_TERMINAL_PROMPT=0 git fetch -q origin && GIT_DIR=%h/DEVELOP/pfy-mentat/.git GIT_TERMINAL_PROMPT=0 git show origin/main:scripts/loop_worktree.sh > %t/pfy-loop-worktree.sh && exec /bin/bash %t/pfy-loop-worktree.sh -- scripts/catalog_loop.sh'

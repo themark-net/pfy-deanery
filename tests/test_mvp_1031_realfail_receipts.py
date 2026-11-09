@@ -10,9 +10,10 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from tests._ops import OPS, require  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-REPORT = ROOT / "eval" / "mvp-1031" / "realfail" / "REPORT.md"
+REPORT = OPS / "eval" / "mvp-1031" / "realfail" / "REPORT.md"
 SCRATCH = ROOT / "tmp" / "realfail-receipt-tests"
 
 SECRET_PARTS = (
@@ -181,9 +182,13 @@ def _write_tree(root: Path, row: str, receipt: dict, meta: dict, extra: str = ""
         (case_dir / "run.log").write_text(extra, encoding="utf-8")
 
 
+def setUpModule() -> None:
+    require(REPORT)
+
+
 class RealfailReceiptTests(unittest.TestCase):
     def test_committed_report_matches_receipts_and_has_no_secrets(self) -> None:
-        problems = evaluate(ROOT)
+        problems = evaluate(OPS)
         self.assertEqual(problems, [], "\n".join(problems))
 
     def test_matching_temp_receipt_is_accepted(self) -> None:

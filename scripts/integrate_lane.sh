@@ -198,6 +198,9 @@ if [ -n "$TICKET" ]; then
   ticket=$TICKET
 elif [ -f "$ROOT/tmp/TICKET-${SLUG}.md" ]; then
   ticket=$ROOT/tmp/TICKET-${SLUG}.md
+elif [ -n "${PFY_OPS_ROOT:-}" ] && [ -f "$PFY_OPS_ROOT/docs/ops/integrate/tickets/${SLUG}.md" ]; then
+  # Lane tickets are operator prose and live in the private ops checkout.
+  ticket=$PFY_OPS_ROOT/docs/ops/integrate/tickets/${SLUG}.md
 elif [ -f "$ROOT/docs/ops/integrate/tickets/${SLUG}.md" ]; then
   ticket=$ROOT/docs/ops/integrate/tickets/${SLUG}.md
 else

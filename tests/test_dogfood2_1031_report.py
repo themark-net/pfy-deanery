@@ -18,10 +18,11 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from tests._ops import OPS, require  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[1]
-CHECK = REPO / "eval" / "dogfood2-1031" / "check_reports.py"
-DOGFOOD = REPO / "eval" / "dogfood2-1031"
+CHECK = OPS / "eval" / "dogfood2-1031" / "check_reports.py"
+DOGFOOD = OPS / "eval" / "dogfood2-1031"
 SCRATCH = REPO / "tmp" / "dogfood2-check-tests"
 
 
@@ -83,6 +84,10 @@ def _git(repo: Path, args: list[str]) -> None:
     )
     if proc.returncode != 0:
         raise RuntimeError(proc.stderr or proc.stdout or "git %s failed" % " ".join(args))
+
+
+def setUpModule() -> None:
+    require(CHECK)
 
 
 class Dogfood2ReportTests(unittest.TestCase):

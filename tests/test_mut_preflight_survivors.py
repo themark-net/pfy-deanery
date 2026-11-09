@@ -31,7 +31,7 @@ if str(ROOT) not in sys.path:
 
 from pfylib.build_preflight import classify_cloud_failure  # noqa: E402
 
-CHECKER = ROOT / "eval" / "mvp-1031" / "check_receipt.py"
+CHECKER = ROOT / "tests" / "fixtures" / "mvp_receipt" / "check_receipt.py"
 SCRATCH = ROOT / "tmp" / "mutation-1031" / "preflight" / "survivor-tests"
 
 

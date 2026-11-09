@@ -49,7 +49,16 @@ class ExclusionHoldTest(unittest.TestCase):
     def test_real_atg_row_blocks_raise_and_apply(self):
         text = EXCLUSIONS.read_text(encoding="utf-8")
         self.assertIn(f"{ATG}\t", text)
-        needs = (ROOT / "eval" / "catalog-queue" / "needs-mark.tsv").read_text(encoding="utf-8")
+        # The live queue is operator state in the private ops checkout. Rebuild
+        # it from the public inputs into a temp file instead.
+        with tempfile.TemporaryDirectory() as built:
+            out = Path(built) / "needs-mark.tsv"
+            made = subprocess.run(
+                ["python3", str(ROOT / "scripts" / "catalog_needs_mark.py"), "--root", str(ROOT), "--out", str(out)],
+                cwd=ROOT, capture_output=True, text=True, timeout=60,
+            )
+            self.assertEqual(made.returncode, 0, made.stderr)
+            needs = out.read_text(encoding="utf-8")
         self.assertIn(f"{ATG}\texcluded\t", needs)
         before = CARD.read_bytes()
         self.assertEqual(json.loads(before)["tier_ceiling"], "I2")

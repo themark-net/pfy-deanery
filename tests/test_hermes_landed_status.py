@@ -8,10 +8,11 @@ from __future__ import annotations
 
 import unittest
 from pathlib import Path
+from tests._ops import OPS, require  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-PENDING = ROOT / "docs" / "PENDING-HANDOFF.md"
-EVAL = ROOT / "docs" / "eval" / "HERMES-EVAL-HANDOFF.md"
+PENDING = OPS / "docs" / "PENDING-HANDOFF.md"
+EVAL = OPS / "docs" / "eval" / "HERMES-EVAL-HANDOFF.md"
 MARKER = "## 2026-10-19: Hermes Agent bake-off"
 
 
@@ -20,6 +21,10 @@ def _hermes_section(text: str) -> str:
     rest = text[start + len(MARKER):]
     nxt = rest.find("\n## ")
     return rest if nxt < 0 else rest[:nxt]
+
+
+def setUpModule() -> None:
+    require(PENDING, EVAL)
 
 
 class HermesLandedStatusTests(unittest.TestCase):

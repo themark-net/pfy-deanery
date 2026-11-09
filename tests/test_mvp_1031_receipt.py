@@ -13,9 +13,10 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from tests._ops import OPS, require  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-FIXTURE = ROOT / "eval" / "mvp-1031" / "fixture"
+FIXTURE = ROOT / "tests" / "fixtures" / "mvp_receipt" / "fixture"
 SCRATCH = ROOT / "tmp" / "mvp-eval-1031"
 SCRATCH.mkdir(parents=True, exist_ok=True)
 os.environ["TMPDIR"] = str(SCRATCH)
@@ -57,7 +58,7 @@ class InitFixtureTests(unittest.TestCase):
     def setUp(self):
         self.caller = Path(tempfile.mkdtemp(prefix="caller-", dir=SCRATCH))
         (self.caller / "tmp").mkdir()
-        self.init = ROOT / "eval" / "mvp-1031" / "init_fixture.sh"
+        self.init = ROOT / "tests" / "fixtures" / "mvp_receipt" / "init_fixture.sh"
 
     def tearDown(self):
         shutil.rmtree(self.caller)
@@ -174,7 +175,7 @@ def _pass_receipt() -> dict:
 class CheckReceiptTests(unittest.TestCase):
     def setUp(self):
         self.work = Path(tempfile.mkdtemp(prefix="receipt-", dir=SCRATCH))
-        self.checker = ROOT / "eval" / "mvp-1031" / "check_receipt.py"
+        self.checker = ROOT / "tests" / "fixtures" / "mvp_receipt" / "check_receipt.py"
 
     def tearDown(self):
         shutil.rmtree(self.work)
@@ -277,7 +278,9 @@ class ReadmeDemoTests(unittest.TestCase):
     def test_readme_states_demo_command_without_plan_link(self):
         # Fail: a markdown link to the plan file 404s on this branch, and a drifted command breaks the demo.
         # Recover: keep the three inline commands and do not link the plan.
-        text = (ROOT / "eval" / "mvp-1031" / "README.md").read_text(encoding="utf-8")
+        readme = OPS / "eval" / "mvp-1031" / "README.md"
+        require(readme)
+        text = readme.read_text(encoding="utf-8")
         self.assertIn(
             'bash eval/mvp-1031/init_fixture.sh "$PWD/tmp/mvp-fixture-repo"',
             text,

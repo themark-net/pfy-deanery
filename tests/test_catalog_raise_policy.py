@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import tempfile
@@ -119,12 +120,16 @@ class RaisePolicyTest(unittest.TestCase):
             exclusions = root / "eval" / "catalog-queue" / "exclusions.tsv"
             exclusions.parent.mkdir(parents=True, exist_ok=True)
             exclusions.write_text("slug\treason\nzz-mark\tneeds Mark\n", encoding="utf-8")
+            unset = {k: v for k, v in os.environ.items() if k != "PFY_OPS_ROOT"}
             needs = subprocess.run(
                 ["python3", str(NEEDS), "--root", str(root)],
-                capture_output=True, text=True, timeout=30,
+                capture_output=True, text=True, timeout=30, env=unset,
             )
             self.assertEqual(needs.returncode, 0, needs.stderr)
-            text = (root / "eval" / "catalog-queue" / "needs-mark.tsv").read_text(encoding="utf-8")
+            # Operator queue: never under the public eval/ tree.
+            self.assertFalse((root / "eval" / "catalog-queue" / "needs-mark.tsv").exists())
+            out = root / "tmp" / "ops" / "eval" / "catalog-queue" / "needs-mark.tsv"
+            text = out.read_text(encoding="utf-8")
             self.assertTrue(text.startswith("slug\tkind\treason\tevidence\tsince\n"))
             self.assertNotIn("/home/", text)
             self.assertIn("aa-sec\trisky-class\tsecurity\t", text)
@@ -135,11 +140,11 @@ class RaisePolicyTest(unittest.TestCase):
             first = text
             second = subprocess.run(
                 ["python3", str(NEEDS), "--root", str(root)],
-                capture_output=True, text=True, timeout=30,
+                capture_output=True, text=True, timeout=30, env=unset,
             )
             self.assertEqual(second.returncode, 0, second.stderr)
             self.assertIn("unchanged", second.stdout)
-            self.assertEqual((root / "eval" / "catalog-queue" / "needs-mark.tsv").read_text(encoding="utf-8"), first)
+            self.assertEqual(out.read_text(encoding="utf-8"), first)
 
     def test_gpu_and_over_25gb_do_not_launch(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -172,12 +177,15 @@ class RaisePolicyTest(unittest.TestCase):
                 capture_output=True, text=True, timeout=30,
             )
             self.assertTrue(open_check.stdout.startswith("launch\t"), open_check.stdout)
+            ops = root / "ops-checkout"
             needs = subprocess.run(
                 ["python3", str(NEEDS), "--root", str(root)],
                 capture_output=True, text=True, timeout=30,
+                env={**os.environ, "PFY_OPS_ROOT": str(ops)},
             )
             self.assertEqual(needs.returncode, 0, needs.stderr)
-            text = (root / "eval" / "catalog-queue" / "needs-mark.tsv").read_text(encoding="utf-8")
+            self.assertFalse((root / "eval" / "catalog-queue" / "needs-mark.tsv").exists())
+            text = (ops / "eval" / "catalog-queue" / "needs-mark.tsv").read_text(encoding="utf-8")
             self.assertIn("aa-gpu\tgpu\t", text)
             self.assertIn("aa-huge\tpull-over-25gb\t", text)
             self.assertNotIn("aa-open\tgpu\t", text)
@@ -189,14 +197,11 @@ class RaisePolicyTest(unittest.TestCase):
         self.assertGreaterEqual(len(blocks), 5)
         skill = (ROOT / "bootstrap/grok-cli/skills/catalog-apply-and-ceiling/SKILL.md").read_text(encoding="utf-8")
         mirror = (ROOT / ".grok/skills/catalog-apply-and-ceiling/SKILL.md").read_text(encoding="utf-8")
-        handoff = (ROOT / "docs/ops/HANDOFF-catalog-loop-1108.md").read_text(encoding="utf-8")
         self.assertEqual(skill, mirror)
         for _name, body in blocks:
             tokens = re.findall(r'"([^"]+)"', body)
             self.assertTrue(tokens)
             for token in tokens:
                 self.assertIn(token, skill)
-                self.assertIn(token, handoff)
         for phrase in ("open-weights", "cpu-gpu", "25 gb", "25gb"):
             self.assertIn(phrase, skill)
-            self.assertIn(phrase, handoff)

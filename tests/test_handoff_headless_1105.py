@@ -15,9 +15,10 @@ from __future__ import annotations
 import subprocess
 import unittest
 from pathlib import Path
+from tests._ops import OPS, require  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-HANDOFF = ROOT / "docs" / "HANDOFF-headless-1105.md"
+HANDOFF = OPS / "docs" / "HANDOFF-headless-1105.md"
 HELP = ROOT / "scripts" / "pfy"
 
 # Exact bot commands. They are the ticket, not a copy of the doc.
@@ -41,11 +42,9 @@ LANDED = (
     "Reap the launch terminal when smoke fails after spawn.",
 )
 
+# Handoffs live in the private ops checkout. Public docs never link them.
 POINTERS = (
-    ROOT / "docs" / "HANDOFF-mvp-1104.md",
-    ROOT / "docs" / "modules" / "pfy.md",
-    ROOT / "docs" / "ops" / "simple-launch.md",
-    ROOT / "README.md",
+    OPS / "docs" / "HANDOFF-mvp-1104.md",
 )
 
 
@@ -94,6 +93,10 @@ def _still_open(text: str) -> list[str]:
     return bullets
 
 
+def setUpModule() -> None:
+    require(HANDOFF)
+
+
 class HeadlessHandoffTests(unittest.TestCase):
     def test_handoff_names_the_bot_commands(self):
         self.assertTrue(HANDOFF.is_file(), "docs/HANDOFF-headless-1105.md is missing")
@@ -137,5 +140,5 @@ class HeadlessHandoffTests(unittest.TestCase):
 
     def test_prior_notes_point_at_the_headless_handoff(self):
         name = "HANDOFF-headless-1105.md"
-        missing = [str(path.relative_to(ROOT)) for path in POINTERS if name not in _text(path)]
+        missing = [path.name for path in POINTERS if name not in _text(path)]
         self.assertEqual(missing, [], "a bot reading the old note cannot find the headless handoff")

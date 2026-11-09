@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -53,7 +54,13 @@ def check_oq_answered(text: str) -> bool | None:
         return None
     path = ROOT / m.group(1)
     if not path.is_file():
-        return False
+        # OQ records moved to the private ops checkout (PFY_OPS_ROOT), which
+        # mirrors public paths. Without it the claim cannot be checked here.
+        ops = os.environ.get("PFY_OPS_ROOT", "").strip()
+        alt = Path(ops).expanduser() / m.group(1) if ops else None
+        if alt is None or not alt.is_file():
+            return None
+        path = alt
     body = path.read_text(encoding="utf-8")
     return re.search(r"\*\*Status:\*\*\s*answered", body) is not None or re.search(
         r"^- \*\*Status:\*\* answered", body, re.M

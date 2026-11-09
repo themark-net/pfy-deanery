@@ -7,24 +7,33 @@ Recorded stdout, once a round has been saved, must parse to the stored verdict.
 
 from __future__ import annotations
 
+import os
 import json
 import re
 import sys
 import unittest
 from pathlib import Path
+from tests._ops import OPS, require  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-QUALITY = ROOT / "eval" / "mvp-1031" / "review-quality"
+QUALITY = OPS / "eval" / "mvp-1031" / "review-quality"
+# The private harness resolves public code through this.
+os.environ.setdefault("PFY_PUBLIC_ROOT", str(ROOT))
 if str(QUALITY) not in sys.path:
     sys.path.insert(0, str(QUALITY))
 
-from plant import decide, load_cases, load_cloud, load_round, prepare_workdir, review_argv, score  # noqa: E402
+if (QUALITY / "plant.py").is_file():
+    from plant import decide, load_cases, load_cloud, load_round, prepare_workdir, review_argv, score  # noqa: E402
 
 # Word-boundary forms so a name like task_text is not a secret.
 SECRET_RE = re.compile(
     r"(AKIA[0-9A-Z]{16}|BEGIN PRIVATE KEY|\bxai-[A-Za-z0-9]|\bsk_[A-Za-z0-9]|\bghp_[A-Za-z0-9]|\bbearer\s+[A-Za-z0-9])",
     re.IGNORECASE,
 )
+
+
+def setUpModule() -> None:
+    require(QUALITY / "plant.py")
 
 
 class ReviewQualityReplayTests(unittest.TestCase):

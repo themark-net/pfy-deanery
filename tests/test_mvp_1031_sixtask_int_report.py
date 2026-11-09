@@ -15,10 +15,11 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from tests._ops import OPS, require  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-INT = ROOT / "eval" / "mvp-1031" / "sixtask-int"
-TASKS = ROOT / "eval" / "mvp2" / "tasks"
+INT = OPS / "eval" / "mvp-1031" / "sixtask-int"
+TASKS = OPS / "eval" / "mvp2" / "tasks"
 
 
 def _load(name: str, path: Path):
@@ -29,8 +30,8 @@ def _load(name: str, path: Path):
     return module
 
 
-CHECK = _load("sixtask_int_check_report", INT / "check_report.py")
-RUN = _load("sixtask_int_run_task", INT / "run_task.py")
+CHECK = _load("sixtask_int_check_report", INT / "check_report.py") if (INT / "check_report.py").is_file() else None
+RUN = _load("sixtask_int_run_task", INT / "run_task.py") if (INT / "run_task.py").is_file() else None
 
 
 def _receipt(status: str = "PASS", exit_code: int = 0, attempts: int = 1, review: str = "accept") -> dict:
@@ -89,6 +90,10 @@ def _full_green(root: Path) -> None:
                 _receipt(),
                 _meta(label, task, writable),
             )
+
+
+def setUpModule() -> None:
+    require(INT / "check_report.py")
 
 
 class ReportCheckTests(unittest.TestCase):

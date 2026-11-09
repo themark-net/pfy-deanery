@@ -28,6 +28,7 @@ COPY_REL = (
     "scripts/catalog_apply_verdict.py",
     "scripts/catalog_auto_raise.py",
     "scripts/catalog_needs_mark.py",
+    "scripts/ops_paths.py",
     "scripts/catalog_card_guard.py",
     "scripts/integrate_intake.py",
     "scripts/catalog_check.py",
@@ -123,7 +124,7 @@ def build_repo(td: Path, cards: dict[str, dict]) -> Path:
     return clone
 
 
-def run_tick(td: Path, clone: Path, code: int = 0):
+def run_tick(td: Path, clone: Path, code: int = 0, ops: Path | None = None):
     state = td / "state"
     wt = td / "wt"
     for name in ("integrate", "integrate2", "evq"):
@@ -147,6 +148,9 @@ def run_tick(td: Path, clone: Path, code: int = 0):
         "PYTHONDONTWRITEBYTECODE": "1",
         "GIT_TERMINAL_PROMPT": "0",
     })
+    env.pop("PFY_OPS_ROOT", None)
+    if ops is not None:
+        env["PFY_OPS_ROOT"] = str(ops)
     proc = subprocess.run(
         ["bash", str(LOOP)],
         cwd=td,
@@ -251,7 +255,10 @@ class CatalogLoopTickTest(unittest.TestCase):
             self.assertEqual(stayed["integration_stage"], "I3")
             high = json.loads((wt / "data" / "stages" / "aa-stay.json").read_text(encoding="utf-8"))
             self.assertEqual(high["tier_ceiling"], "I4")
-            needs = (wt / "eval" / "catalog-queue" / "needs-mark.tsv").read_bytes()
+            # Operator queue: never in the public tree. Unset PFY_OPS_ROOT puts
+            # it under the worktree's gitignored tmp/ops/.
+            self.assertFalse((wt / "eval" / "catalog-queue" / "needs-mark.tsv").exists())
+            needs = (wt / "tmp" / "ops" / "eval" / "catalog-queue" / "needs-mark.tsv").read_bytes()
             needs_text = needs.decode("utf-8")
             self.assertTrue(needs_text.startswith("slug\tkind\treason\tevidence\tsince\n"))
             self.assertNotIn(str(td), needs_text)
@@ -270,7 +277,31 @@ class CatalogLoopTickTest(unittest.TestCase):
             status2 = json.loads((state2 / "loop.latest.json").read_text(encoding="utf-8"))
             self.assertEqual(status2["launched"], [])
             self.assertEqual(log2.read_text(encoding="utf-8"), "")
-            self.assertEqual((wt2 / "eval" / "catalog-queue" / "needs-mark.tsv").read_bytes(), needs)
+            self.assertEqual((wt2 / "tmp" / "ops" / "eval" / "catalog-queue" / "needs-mark.tsv").read_bytes(), needs)
+
+    def test_needs_mark_goes_to_the_ops_checkout_not_public(self):
+        """Fail: needs-mark.tsv shows up in the public worktree or its commit list.
+        Recovery: write it under PFY_OPS_ROOT and drop it from path_allowed."""
+        with tempfile.TemporaryDirectory() as tmp:
+            td = Path(tmp)
+            clone = build_repo(td, {"aa-gpu": card("aa-gpu", uses="needs a gpu"), "zz-open": card("zz-open")})
+            ops = td / "ops"
+            ops.mkdir()
+            subprocess.check_call(["git", "init", "-q", "-b", "main"], cwd=ops)
+            proc, state, wt, _log = run_tick(td, clone, ops=ops)
+            blob = proc.stdout + "\n" + proc.stderr
+            self.assertEqual(proc.returncode, 0, blob[-4000:])
+            status = json.loads((state / "loop.latest.json").read_text(encoding="utf-8"))
+            self.assertEqual(status["status"], "ok", blob[-2000:])
+            self.assertEqual(status["errors"], [], blob[-2000:])
+            text = (ops / "eval" / "catalog-queue" / "needs-mark.tsv").read_text(encoding="utf-8")
+            self.assertIn("aa-gpu\tgpu\t", text)
+            self.assertFalse((wt / "eval" / "catalog-queue" / "needs-mark.tsv").exists())
+            self.assertFalse((wt / "tmp" / "ops").exists())
+            self.assertIn("ops would commit eval/catalog-queue/needs-mark.tsv", blob)
+            self.assertNotIn("needs-mark", subprocess.run(
+                ["git", "status", "--porcelain", "-uall"], cwd=wt, capture_output=True, text=True,
+            ).stdout)
 
     def test_daily_cap_writes_quota_stop_and_launches_nothing(self):
         with tempfile.TemporaryDirectory() as tmp:

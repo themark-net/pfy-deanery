@@ -9,6 +9,9 @@
 # STOP and QUOTA_STOP exit 0 with status stopped and launch nothing.
 # PFY_CATALOG_OFFLINE=1 skips fetch, regen writes, and push. Tests use it.
 # PFY_SUPERSEDE_CHECK, when set, replaces python3 scripts/supersede_check.py.
+# Operator queues never go in the public repo. needs-mark.tsv is written to
+# $PFY_OPS_ROOT/eval/catalog-queue/needs-mark.tsv and committed in that private
+# checkout. Unset, it goes to tmp/ops/ in the worktree (gitignored), uncommitted.
 set -euo pipefail
 
 export GIT_TERMINAL_PROMPT=0
@@ -297,7 +300,7 @@ PY
     state_add=$(append_supersede_row "$STATE/needs-mark.tsv" "$slug" "$since")
     repo_add=kept
     if [ "$OFFLINE" -eq 0 ]; then
-      repo_add=$(append_supersede_row "eval/catalog-queue/needs-mark.tsv" "$slug" "$since")
+      repo_add=$(append_supersede_row "$(needs_file)" "$slug" "$since")
     fi
     if [ "$repo_add" = "added" ] || { [ "$OFFLINE" -eq 1 ] && [ "$state_add" = "added" ]; }; then
       PFY_NEEDS_COUNT=$(( ${PFY_NEEDS_COUNT:-0} + 1 ))
@@ -314,6 +317,16 @@ PY
   PFY_ERRORS=$(python3 -c 'import json,sys; print(json.dumps([sys.argv[1]]))' "supersede check exit ${rc}")
   export PFY_ERRORS
   SUPERSEDE_ACTION=error
+}
+
+# The needs-mark queue path. Private checkout when PFY_OPS_ROOT is set, else a
+# gitignored path under the current worktree.
+needs_file() {
+  if [ -n "${PFY_OPS_ROOT:-}" ]; then
+    printf '%s\n' "$PFY_OPS_ROOT/eval/catalog-queue/needs-mark.tsv"
+  else
+    printf '%s\n' "$PWD/tmp/ops/eval/catalog-queue/needs-mark.tsv"
+  fi
 }
 
 json_list() {
@@ -478,7 +491,7 @@ done
 
 path_allowed() {
   case "$1" in
-    data/stages/_registry.json|pipelines/catalog/dashboard.latest.md|pipelines/catalog/counts.latest.json|eval/catalog-queue/queue.tsv|eval/catalog-queue/needs-mark.tsv|eval/catalog-verdicts/CEILING-MISMATCHES.md)
+    data/stages/_registry.json|pipelines/catalog/dashboard.latest.md|pipelines/catalog/counts.latest.json|eval/catalog-queue/queue.tsv|eval/catalog-verdicts/CEILING-MISMATCHES.md)
       return 0
       ;;
     data/stages/*.json)
@@ -547,6 +560,42 @@ commit_generated() {
   return 1
 }
 
+# Commit the needs-mark queue in the private ops checkout. Only that one path
+# is staged, so other work in the ops tree is left alone. No PFY_OPS_ROOT, dry
+# run, or no-push: commit nothing. A failure is reported in errors and does not
+# stop the tick, because the public outputs already landed.
+commit_ops() {
+  [ -n "${PFY_OPS_ROOT:-}" ] || { printf '%s\n' "ops unset"; return 0; }
+  local ops="$PFY_OPS_ROOT"
+  local rel="eval/catalog-queue/needs-mark.tsv"
+  [ -d "$ops/.git" ] || [ -f "$ops/.git" ] || { printf '%s\n' "ops not a git checkout: $ops" >&2; return 1; }
+  if [ -z "$(git -C "$ops" status --porcelain -- "$rel")" ]; then
+    printf '%s\n' "ops unchanged"
+    return 0
+  fi
+  if [ "$DRY" -eq 1 ] || [ "${PFY_LOOP_NO_PUSH:-}" = "1" ]; then
+    printf '%s\n' "ops would commit $rel"
+    return 0
+  fi
+  git -C "$ops" add -- "$rel" || return 1
+  git -C "$ops" commit -q -m "catalog: needs-mark queue" -- "$rel" || return 1
+  local attempt=1
+  while [ "$attempt" -le 3 ]; do
+    git -C "$ops" fetch -q origin || return 1
+    if ! git -C "$ops" merge-base --is-ancestor origin/main HEAD; then
+      if ! git -C "$ops" -c rebase.autoStash=true rebase -q origin/main; then
+        git -C "$ops" rebase --abort || true
+        return 1
+      fi
+    fi
+    if git -C "$ops" push -q origin HEAD:refs/heads/main; then
+      return 0
+    fi
+    attempt=$((attempt + 1))
+  done
+  return 1
+}
+
 set +e
 commit_generated
 commit_rc=$?
@@ -555,6 +604,15 @@ if [ "$commit_rc" -eq 3 ]; then
   fail "stray generated paths" 3
 elif [ "$commit_rc" -ne 0 ]; then
   fail "loop commit failed"
+fi
+
+set +e
+commit_ops
+ops_rc=$?
+set -e
+if [ "$ops_rc" -ne 0 ]; then
+  PFY_ERRORS=$(python3 -c 'import json,sys; print(json.dumps(json.loads(sys.argv[1] or "[]") + [sys.argv[2]]))' "${PFY_ERRORS:-[]}" "ops commit failed")
+  export PFY_ERRORS
 fi
 
 fi # online regeneration. PFY_CATALOG_OFFLINE=1 skips this block.
@@ -697,7 +755,8 @@ is_taken() {
 
 needs_skip() {
   local slug="$1"
-  local file="eval/catalog-queue/needs-mark.tsv"
+  local file
+  file=$(needs_file)
   [ -f "$file" ] || return 1
   awk -F '\t' -v slug="$slug" 'NR > 1 && $1 == slug {found=1} END {exit found ? 0 : 1}' "$file"
 }

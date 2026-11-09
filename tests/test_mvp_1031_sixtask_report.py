@@ -12,9 +12,10 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from tests._ops import OPS, require  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-SIX = ROOT / "eval" / "mvp-1031" / "sixtask"
+SIX = OPS / "eval" / "mvp-1031" / "sixtask"
 
 
 def _load(name: str, path: Path):
@@ -25,8 +26,8 @@ def _load(name: str, path: Path):
     return module
 
 
-CHECK = _load("sixtask_check_report", SIX / "check_report.py")
-RUN = _load("sixtask_run_task", SIX / "run_task.py")
+CHECK = _load("sixtask_check_report", SIX / "check_report.py") if (SIX / "check_report.py").is_file() else None
+RUN = _load("sixtask_run_task", SIX / "run_task.py") if (SIX / "run_task.py").is_file() else None
 
 
 def _receipt(status: str, exit_code: int, attempts: int) -> dict:
@@ -79,6 +80,10 @@ def _write_tree(root: Path, rows: list[dict], receipts: dict, totals: dict) -> N
             encoding="utf-8",
         )
     (root / "REPORT.md").write_text(_report(rows, totals), encoding="utf-8")
+
+
+def setUpModule() -> None:
+    require(SIX / "check_report.py")
 
 
 class ReportCheckTests(unittest.TestCase):

@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Write eval/catalog-queue/needs-mark.tsv. Same inputs, same bytes.
+"""Write the needs-mark queue. Same inputs, same bytes.
+
+The queue is operator state, so it never goes in the public repo. Default
+output: $PFY_OPS_ROOT/eval/catalog-queue/needs-mark.tsv, or
+tmp/ops/eval/catalog-queue/needs-mark.tsv (gitignored) when PFY_OPS_ROOT is
+unset. --out overrides both.
 
 Columns: slug, kind, reason, evidence, since.
 Kinds: ceiling, gpu, pull-over-25gb, excluded, demotion-flag, parked, risky-class.
@@ -34,6 +39,7 @@ from scripts.catalog_auto_raise import (  # noqa: E402
 )
 from scripts.catalog_eval_queue import load_exclusions  # noqa: E402
 from scripts.integrate_intake import _rows  # noqa: E402
+from scripts.ops_paths import NEEDS_MARK_REL, ops_path  # noqa: E402
 
 HEADER = ("slug", "kind", "reason", "evidence", "since")
 DATE_RE = re.compile(r"\b(\d{4}-\d{2}-\d{2})\b")
@@ -271,7 +277,7 @@ def main(argv: list[str] | None = None) -> int:
     stages = pick(args.stages, root / "data" / "stages")
     exclusions = pick(args.exclusions, root / "eval" / "catalog-queue" / "exclusions.tsv")
     report = pick(args.report, root / "eval" / "catalog-verdicts" / "CEILING-MISMATCHES.md")
-    dest = pick(args.out, root / "eval" / "catalog-queue" / "needs-mark.tsv")
+    dest = pick(args.out, ops_path(NEEDS_MARK_REL, root))
     parked = [Path(item).expanduser() for item in args.parked]
     try:
         payload = render(collect(stages, exclusions, report, parked, root))

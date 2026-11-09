@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 # subject, as its drop-in asked. Their receipts are PASS. Only the subject
 # check is skipped for these exact commits, and only while the commit's
 # `git patch-id --stable` equals the receipt commit's, recorded here (S1).
-# See docs/ops/HANDOFF-mvp-land-1031.md.
+# Recorded in the private ops handoff for the mvp-land-1031 lane.
 REWORDED_PATCH_IDS = {
     "4a0fe4eeebd2": "a8f753bf6787ebd6a549ae5e87955c9b244363b2",
     "cdf4d681c19c": "e20e3149f2c812c58c5909303b6e62cf75faf588",

@@ -16,10 +16,11 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from tests._ops import OPS, require  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[1]
-CHECK = REPO / "eval" / "mvp-1031" / "dogfood" / "check_reports.py"
-DOGFOOD = REPO / "eval" / "mvp-1031" / "dogfood"
+CHECK = OPS / "eval" / "mvp-1031" / "dogfood" / "check_reports.py"
+DOGFOOD = OPS / "eval" / "mvp-1031" / "dogfood"
 SCRATCH = REPO / "tmp" / "dogfood-check-tests"
 
 REPORT_HEAD = """# Dogfood report fixture
@@ -54,6 +55,10 @@ def _receipt(status: str, exit_code: int, extra: str = "") -> str:
         if not extra.endswith("\n"):
             text += "\n"
     return text
+
+
+def setUpModule() -> None:
+    require(CHECK)
 
 
 class DogfoodReportCheckTests(unittest.TestCase):

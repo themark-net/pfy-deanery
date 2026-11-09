@@ -11,9 +11,10 @@ from __future__ import annotations
 import json
 import unittest
 from pathlib import Path
+from tests._ops import OPS, require  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-EVAL = ROOT / "eval" / "gom-dogfood-1031"
+EVAL = OPS / "eval" / "gom-dogfood-1031"
 REPORT = EVAL / "REPORT.md"
 
 COLUMNS = (
@@ -88,6 +89,10 @@ def check_report(report_text: str, root: Path) -> list[str]:
     for key in sorted(set(rows) - seen):
         errors.append("%s %s extra row" % key)
     return errors
+
+
+def setUpModule() -> None:
+    require(REPORT)
 
 
 class GomDogfoodReportTests(unittest.TestCase):
