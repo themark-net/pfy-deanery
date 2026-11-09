@@ -10,21 +10,14 @@ The product surface `./pfy` does onboard, stage, and ship. The catalog lifecycle
 - Browse shows the stage card when `data/tools.json` lags. `codebase-memory-mcp` was I2 in the json file and I3 on the card. The json file is still I2. Browse now shows I3. Do not hand-edit `integration_stage`.
 - `scripts/test_select.py` treats `VERDICT.json` and `receipt.json` as one file per tool. A test that names the full path still runs. A new artifact that nobody names stays structural and does not force the full suite. Before this, a stub eval of `gum` selected 22 modules (`tmp/mvp-gaps-1108/tmp/sandbox-eval/evalstate/gum-select.json`) and parked with `run_tests failed`.
 - Integrate dispatch checks that the card is I2, the slug is not excluded, and no park file exists before it writes `tmp/integrate/<slug>.dispatched`. Closed in `0dee24d93ba1ac865fc876ef6dd4bc66313f0224`.
+- Intake `--write-card` records evidence from the source: the repo URL, a license when a local tree states one, a pin SHA when the source or a local git HEAD has one, and one README claim. No network. `integration_stage` stays I0. `tier_ceiling` is I1 when that list is non-empty, so `catalog_apply_verdict.py` can allow I1. A bare name stays `evidence: []` and `tier_ceiling: I0`. Apply does not invent evidence. Empty source, duplicate, and `./pfy catalog nosuch` are unchanged. Closed in `d0312047a1150aa7b0d78be4fa36631bc7fa1673`.
 - README "Using the catalog" names the five commands. `./pfy help` says `pfy eval` is the product structural gate and names `scripts/eval_lane.sh` and `scripts/catalog_intake_dedupe.py`. The command name `pfy eval` is unchanged.
 
 While this walk was open, `origin/main` also landed `cec3b3de` (excluded slugs refused before a ceiling check; lane test selection is `origin/main...HEAD`; taste-skill, repowise, and opencode-mem tests expect the I3 cap the loop already wrote) and `5683af53` (I1 static eval for LocalHarness and Cartographer, value gate fail, both stay I1). This lane did not re-raise ATG. `atomic-task-graph-atg` stays on `eval/catalog-queue/exclusions.tsv`.
 
 ## Still open, highest impact first
 
-### 1. Promote: a new card cannot leave I0 in one pass
-
-Intake writes `evidence: []` and `tier_ceiling: I0` (`scripts/catalog_intake_dedupe.py` `_i0_card`). On the fresh clone, apply of a proposed I1 verdict printed `refused: above-ceiling: proposed I1 is above allowed I0 (evidence I0: no evidence listed; tier_ceiling I0 agrees)`. `catalog_auto_raise.py --slug gum` printed `skip gum gates` because no `eval/**/gum/VERDICT.json` was in the tree.
-
-The ceiling rule in `scripts/catalog_apply_verdict.py` ranks an empty list at I0, a `verdict.json` path at I1, and `make:` / `path:` / `probe:` / a receipt file name at I2. A valid main-run receipt lifts evidence to I3 (I4 with `submodule:` or `subtree:`). A higher `tier_ceiling` does not raise evidence. Auto-raise writes `tier_ceiling` only, and only when both gates pass and `risk_class` is none. It never demotes. `scripts/eval_lane.sh` applies the verdict and does not call auto-raise, and it does not append an evidence string.
-
-Nothing in the documented user path writes that evidence string. A user who follows the README table still cannot promote a brand-new card. Do not teach apply to invent evidence. `tests/test_eval_lane.py` expects an I1 proposal on an empty-evidence I0 card to be refused and still land.
-
-I3 still needs a receipt from a run on main (`docs/ops/INTEGRATE.md`). This lane did not invent one.
+Item 1 (intake evidence, a new card cannot leave I0) is closed. See Closed in this pass.
 
 ### 2. Catalog: a new card is invisible in `./pfy catalog`
 
