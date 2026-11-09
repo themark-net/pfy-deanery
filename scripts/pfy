@@ -226,9 +226,10 @@ pfy — simple setup & launch for the pfy-mentat stack
   pfy bot "prompt"        one-shot local bot. PFY_BOT_INTERFACE=hermes opts in. Default is opencode.
   pfy stage [--lab]       env-stage; --lab optional personal cage lab (doctor→setup→up-mcp)
   pfy eval | ship          product structural gate and product ship.
-                          pfy eval is not a catalog verdict. Catalog eval is
-                          scripts/eval_lane.sh. Intake is
-                          scripts/catalog_intake_dedupe.py
+                          pfy eval runs make eval-integration-change and writes pipelines/eval.
+                          It is not a catalog verdict. It does not call Grok and does not push main.
+                          Catalog verdicts are scripts/eval_lane.sh --slug <slug> (Grok, then fast-forwards main).
+                          Intake is scripts/catalog_intake_dedupe.py.
   pfy endpoint              print FreeToken-first live OpenAI-compat base (one line)
   pfy doctor               FreeToken-first one-shot health (detect+endpoint+tok/vram)
   pfy smoke                FreeToken-first models list + one chat smoke
@@ -1796,6 +1797,7 @@ cmd_stage() {
     (cd "$ROOT" && make env-stage)
   fi
 }
+# Product structural gate. Not scripts/eval_lane.sh (that lane calls Grok and can push main).
 cmd_eval() { (cd "$ROOT" && REASON="${REASON:-pfy eval}" make eval-integration-change); }
 cmd_ship() { (cd "$ROOT" && make product-ship); }
 cmd_models_pull() {

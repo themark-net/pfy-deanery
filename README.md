@@ -104,7 +104,7 @@ Rejections are logged with short, explicit reasons. There is no silent ignoring 
 
 ### Lifecycle (track, catalog, eval, integrate, promote)
 
-`./pfy catalog` lists the Active Catalog table, then any stage card that is not already one of those rows. Intake does not write TOOLS.md. Browse does not add a tool and does not change `integration_stage`. `./pfy eval` is the product structural gate (`make eval-integration-change`), not a catalog verdict.
+`./pfy catalog` lists the Active Catalog table, then any stage card that is not already one of those rows. Intake does not write TOOLS.md. Browse does not add a tool and does not change `integration_stage`. `./pfy eval` is the product structural gate (`make eval-integration-change`). It writes `pipelines/eval`. It does not call Grok and does not push `main`. It is not a catalog verdict. Catalog verdicts are `scripts/eval_lane.sh`.
 
 | Step | Command |
 |------|---------|
@@ -170,7 +170,7 @@ One-shot design: [docs/ops/one-shot-workflow.md](docs/ops/one-shot-workflow.md) 
 ## Current status (v0.4 → G8 launch)
 
 - **`./pfy`** simple surface (ADR-0012): bare `./pfy` / `up` / unnamed `start` / `board` open the window and do not start an engine unless opted in (`PFY_START_ENGINE=1`, `--start-engine`, or a terminal yes); named `start <harness>` and `./pfy env` still start inference; `models` is inspect-only
-- Catalog + eval pipeline remain first-class (`./pfy eval`, structural/golden)
+- Product structural gate stays `./pfy eval` (`make eval-integration-change`, writes `pipelines/eval`). Catalog verdicts are `scripts/eval_lane.sh`, not that command.
 
 
 - Methodology: taxonomy, rubric, SUBTREES, aggregates intake.
@@ -224,7 +224,9 @@ Bare `./pfy` opens the native window (Tauri if built, else already-on-box webkit
 | `./pfy models pull <name>` | Live engine: FreeToken records name for next `ft serve --model`; Ollama `pull`; llama-* honest skip |
 | `./pfy harness list` | Grok, OpenCode, Hermes, Claude Code, Codex, Gemini, Exo, … |
 | `./pfy harness use opencode` | Switch active harness (stubs print next steps) |
-| `./pfy stage` / `./pfy eval` / `./pfy ship` | Green checks + catalog gates + product verify |
+| `./pfy stage` | Product stage (`make env-stage`) |
+| `./pfy eval` | Product structural gate (`make eval-integration-change`). Writes `pipelines/eval`. Not `scripts/eval_lane.sh`. |
+| `./pfy ship` | Product verify (`make product-ship`) |
 
 Design: **G8** · [ADR-0012](docs/adr/0012-simple-harness-agnostic-launch.md) · [simple-launch.md](docs/ops/simple-launch.md).  
 Platform builders: `make help-platform`. Product surface is `make help` (onboard / stage / ship).

@@ -7,6 +7,8 @@ description: Drive one catalog tool from I0 toward I2. The lane script writes th
 
 Use this when a card needs an eval verdict. The driver is `scripts/eval_lane.sh`. Follow that script. Do not reimplement the land, the apply, or the card guard.
 
+This driver is not `./pfy eval`. `./pfy eval` is the product structural gate (`make eval-integration-change`). It writes `pipelines/eval`. It does not call Grok and does not push `main`.
+
 ## Inputs
 
 - `--slug <slug>`

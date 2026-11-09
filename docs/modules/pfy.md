@@ -35,6 +35,8 @@
 ./pfy stage | eval | ship
 ```
 
+`./pfy eval` is the product structural gate (`make eval-integration-change`). It writes `pipelines/eval`. It does not call Grok and does not push `main`. Catalog verdicts are `scripts/eval_lane.sh`.
+
 Root `./pfy` is a 100755 wrapper that execs `scripts/pfy`. Detector is invoked with `bash`.
 
 **Attach mode (#208 / #213 / #215):** HTML+tk select `bare` | `orchestration` | `code-graph`; paint `using: <mode>`. Orchestration starts a multi-step local loop (prove or FAIL+next) and Loop shows last evidence. Code-graph hands Axon or paints `path=codebase-memory (not axon)`. Named start and in-window Attach (OpenCode | Hermes | Grok | Codex | Claude) hand off skills/AGENTS/prompts/env or FAIL+next. [attach-mode.md](attach-mode.md) · [code-graph.md](code-graph.md).

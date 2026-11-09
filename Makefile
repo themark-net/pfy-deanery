@@ -112,7 +112,7 @@ help-platform:
 	@echo "  make eval-skillup              # Entry 146: contract tests, then the live case set"
 	@echo "  make eval-golden               # golden-task cards validate (no LLM)"
 	@echo "  make eval-unified-agents       # score claude-unified-agents pack"
-	@echo "  make eval-integration-change  # Exo-inspired ingest self-mod gates"
+	@echo "  make eval-integration-change  # ./pfy eval product structural gate. Not scripts/eval_lane.sh"
 	@echo "  make eval-deploy-ready         # G1: structural+golden+soft smokes (HD #33)"
 	@echo "  make eval-select-models        # pick gate/matrix models that FIT RAM/disk (may pull)"
 	@echo "  make eval-select-tools-model   # T-0093: probe tools-capable Ollama tag + tool-split"

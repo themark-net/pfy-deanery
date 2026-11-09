@@ -163,13 +163,94 @@ class DispatcherTests(_Tmp):
 
     def test_pfy_help_separates_product_eval_from_catalog_eval(self):
         # Fail: `pfy eval` reads as the catalog verdict lane, so a new user
-        # runs the product gate. Recovery: help names the product gate and
-        # the catalog scripts.
+        # runs the product gate (or the lane) for the other job.
+        # Recovery: help names the make target, the receipt dir, and the lane.
         p = self._pfy("help")
         self.assertEqual(p.returncode, 0, p.stderr)
-        self.assertIn("not a catalog verdict", p.stdout)
-        self.assertIn("scripts/eval_lane.sh", p.stdout)
-        self.assertIn("scripts/catalog_intake_dedupe.py", p.stdout)
+        for phrase in (
+            "not a catalog verdict",
+            "make eval-integration-change",
+            "pipelines/eval",
+            "does not call Grok and does not push main",
+            "scripts/eval_lane.sh --slug <slug>",
+            "scripts/catalog_intake_dedupe.py",
+        ):
+            self.assertIn(phrase, p.stdout, phrase)
+
+    def test_pfy_eval_runs_product_gate_not_catalog_lane(self):
+        # Fail: `./pfy eval` starts scripts/eval_lane.sh (Grok, then push main)
+        # or writes the product receipt during the check.
+        # Recovery: it only execs `make eval-integration-change` and returns.
+        bindir = self.tmp / "bin"
+        bindir.mkdir()
+        log = self.tmp / "make.log"
+        grok_flag = self.tmp / "grok-called"
+        make = bindir / "make"
+        make.write_text(
+            "#!/bin/sh\n"
+            "printf '%s\\n' \"argv0=$0\" \"REASON=${REASON-}\" \"$*\" > "
+            + repr(str(log))
+            + "\nexit 0\n",
+            encoding="utf-8",
+        )
+        make.chmod(0o755)
+        grok = bindir / "grok"
+        grok.write_text(
+            "#!/bin/sh\nprintf '%s\\n' called > " + repr(str(grok_flag)) + "\nexit 99\n",
+            encoding="utf-8",
+        )
+        grok.chmod(0o755)
+        receipt = ROOT / "pipelines" / "eval" / "integration-change.latest.md"
+        before = receipt.stat().st_mtime_ns if receipt.is_file() else None
+        env = dict(os.environ)
+        env["PATH"] = str(bindir) + os.pathsep + env.get("PATH", "")
+        env["PFY_STATE_DIR"] = str(self.state)
+        env.pop("REASON", None)
+        p = subprocess.run(
+            [str(ROOT / "pfy"), "eval"],
+            cwd=ROOT,
+            env=env,
+            capture_output=True,
+            text=True,
+            timeout=20,
+        )
+        self.assertEqual(p.returncode, 0, p.stderr + p.stdout)
+        self.assertNotIn("eval_lane", p.stdout + p.stderr)
+        self.assertNotIn("missing --slug", p.stderr)
+        self.assertFalse(grok_flag.exists(), "pfy eval called grok")
+        after = receipt.stat().st_mtime_ns if receipt.is_file() else None
+        self.assertEqual(before, after, "pfy eval wrote the product receipt")
+        text = log.read_text(encoding="utf-8")
+        self.assertIn("REASON=pfy eval", text)
+        self.assertEqual(text.strip().splitlines()[-1], "eval-integration-change")
+
+    def test_operator_docs_name_both_eval_commands(self):
+        # Fail: a product doc calls ./pfy eval the catalog lane, so the next
+        # reader runs scripts/eval_lane.sh or the product gate for the wrong job.
+        # Recovery: each surface names make eval-integration-change and the lane.
+        required = (
+            ROOT / "README.md",
+            ROOT / "docs" / "DESIGN.md",
+            ROOT / "docs" / "modules" / "pfy.md",
+            ROOT / "docs" / "ops" / "simple-launch.md",
+            ROOT / "docs" / "ops" / "product-operator-surface.md",
+            ROOT / "docs" / "ops" / "consultant-eval.md",
+            ROOT / "docs" / "ops" / "integration-self-mod-eval.md",
+            ROOT / "Makefile",
+            ROOT / "scripts" / "eval_lane.sh",
+            ROOT / "scripts" / "pfy",
+            ROOT / "bootstrap" / "grok-cli" / "skills" / "catalog-eval-lane" / "SKILL.md",
+            ROOT / ".grok" / "skills" / "catalog-eval-lane" / "SKILL.md",
+        )
+        for path in required:
+            text = path.read_text(encoding="utf-8")
+            self.assertIn("eval-integration-change", text, path)
+            self.assertIn("scripts/eval_lane.sh", text, path)
+        for path in (
+            ROOT / "docs" / "ops" / "simple-launch.md",
+            ROOT / "docs" / "ops" / "consultant-eval.md",
+        ):
+            self.assertNotIn("catalog self-mod", path.read_text(encoding="utf-8"), path)
 
     def test_python_m_pfylib_entry(self):
         p = subprocess.run([sys.executable, "-m", "pfylib", "toolset", "validate", "--json"], cwd=ROOT, capture_output=True, text=True, timeout=60)

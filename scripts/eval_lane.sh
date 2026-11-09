@@ -1,5 +1,8 @@
 #!/bin/bash
 # Drive one catalog eval lane. No pull requests.
+# Not ./pfy eval. That command is the product structural gate
+# (make eval-integration-change). It writes pipelines/eval.
+# It does not call Grok and does not push main.
 #
 #   scripts/eval_lane.sh --slug <slug> [--date MMDD] [--root DIR] [--state DIR] [--ticket FILE]
 #   scripts/eval_lane.sh --dry-run --slug <slug> --state DIR [--root DIR]

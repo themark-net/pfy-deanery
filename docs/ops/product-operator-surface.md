@@ -97,6 +97,8 @@ Public product surface:
 | ship | `./pfy ship` | `product-ship` |
 | eval | `./pfy eval` | `eval-integration-change` |
 
+`./pfy eval` runs `make eval-integration-change` and writes `pipelines/eval`. It does not call Grok and does not push `main`. Catalog verdicts are `scripts/eval_lane.sh --slug <slug>`.
+
 Platform remains on `make help-platform`. Harness registry: `data/harnesses.json`.
 
 

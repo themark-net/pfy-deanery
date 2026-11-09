@@ -32,7 +32,7 @@ cd pfy-mentat
 make eval-structural        # G0, no LLM, no cage required
 ```
 
-Bare `./pfy` / `./pfy start` / `./pfy up` (no harness name) = local inference (if any) + `scripts/env-stage.sh` (honest skip) + **native operator window**. They do **not** exec the active harness into that process. Named `./pfy start <id>` still execs that harness. `./pfy models` never means the stack is ready. `./pfy eval` is catalog self-mod (`make eval-integration-change`), not the consultant G0 lane.
+Bare `./pfy` / `./pfy start` / `./pfy up` (no harness name) = local inference (if any) + `scripts/env-stage.sh` (honest skip) + **native operator window**. They do **not** exec the active harness into that process. Named `./pfy start <id>` still execs that harness. `./pfy models` never means the stack is ready. `./pfy eval` is the product structural gate (`make eval-integration-change`). It writes `pipelines/eval`. It does not call Grok and does not push `main`. It is not `scripts/eval_lane.sh` and not the consultant G0 lane.
 
 Public CLI must agree: README Simple path, this file, [simple-launch.md](simple-launch.md), and `scripts/pfy` `usage()`.
 
@@ -93,7 +93,7 @@ Detect order (ADR-0014, first live wins): **FreeToken :1919 → llama-swap :9292
 | `make eval-structural` | No | No | G0 docs/schema scorers. Consultant default |
 | `make eval-golden` | No | Replay fixtures | Deterministic golden lane |
 | `make eval-deploy-ready` | Declared smokes | Mixed | G1 — skip if smoke needs lab you do not have; do not fake |
-| `./pfy eval` | No (Make target may skip) | Catalog change gates | `eval-integration-change`, not G0 |
+| `./pfy eval` | No (Make target may skip) | No | Product structural gate (`eval-integration-change`). Not `scripts/eval_lane.sh` and not G0 |
 | `make cage-*` / in-cage smokes | **Yes** | Varies | Optional lab. Missing Docker is skip, not product-ready |
 
 Do not call a lane green if it skipped. Point of truth: [eval-gates-and-ux-uat.md](eval-gates-and-ux-uat.md). Catalog scoring rubric: [evaluation-framework.md](../evaluation-framework.md).

@@ -58,8 +58,10 @@ Mirrors Exo mutation principles:
 
 ## CLI
 
+`./pfy eval` runs this target and writes `pipelines/eval`. It does not call Grok and does not push `main`. Catalog verdicts are `scripts/eval_lane.sh`.
+
 ```bash
-# evaluate current tree (default)
+# evaluate current tree (default). Same gate as ./pfy eval.
 make eval-integration-change
 
 # attach a reason for the receipt

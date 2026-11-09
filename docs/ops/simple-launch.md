@@ -34,7 +34,7 @@ cd pfy-mentat
 ./pfy models pull deepseek-coder:6.7b
 ./pfy stage                 # re-run product stage
 ./pfy stage --lab           # optional personal cage lab (doctor → setup → up-mcp)
-./pfy eval                  # catalog self-mod gates
+./pfy eval                  # product structural gate (make eval-integration-change), not scripts/eval_lane.sh
 ./pfy ship                  # product verify
 ```
 
@@ -65,8 +65,10 @@ When the detector selects llama-server (or `PFY_LOCAL_RUNTIME=llama-server`), th
 | `pfy stage` | `make env-stage` |
 | `pfy stage --lab` | `make cage-doctor` then `cage-setup` then `cage-up-mcp` (missing Docker: honest skip) |
 | `pfy ship` | `make product-ship` |
-| `pfy eval` | `make eval-integration-change` |
+| `pfy eval` | `make eval-integration-change` (writes `pipelines/eval`; not `scripts/eval_lane.sh`) |
 | Platform deep dives | `make help-platform` (cage, smokes, matrix) |
+
+`./pfy eval` does not call Grok and does not push `main`. Catalog verdicts are `scripts/eval_lane.sh --slug <slug>` (Grok, then a fast-forward of `main`). `--dry-run --state DIR` on that lane exits before Grok and the push.
 
 ## Harness status legend
 

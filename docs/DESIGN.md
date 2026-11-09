@@ -51,7 +51,7 @@ The **product you ship** is the operator stack (`./pfy` onboard / stage / ship).
 
 **Harness slots** (see `data/harnesses.json`): freetoken, llama-swap, llama.cpp, ollama, grok, opencode, hermes, claude-code, codex, gemini, exo, continue, agent-cage.
 
-Grok stays **default harness** (ADR-0002). Local **worker** uses `LOCAL_OPENAI_BASE_URL`. Eval pipeline (`pfy eval`) remains core for the catalog mission — it is not the first screen for newcomers.
+Grok stays **default harness** (ADR-0002). Local **worker** uses `LOCAL_OPENAI_BASE_URL`. The product structural gate (`./pfy eval`, `make eval-integration-change`) stays available. It writes `pipelines/eval`. It is not the catalog verdict lane (`scripts/eval_lane.sh`) and it is not the first screen for newcomers.
 
 **Authority:** [ADR-0012 simple launch](adr/0012-simple-harness-agnostic-launch.md) · [ADR-0014](adr/0014-pluggable-local-inference-spine.md) · [local-runtime.md](ops/local-runtime.md)
 
