@@ -583,6 +583,7 @@ def run_structural_checks(root: Path, changed: list[str]) -> int:
         "scripts/catalog_check.py",
         "scripts/smoke_contract_lint.py",
         "scripts/check_no_encoded_payloads.py",
+        "scripts/check_public_paths.py",
     ):
         proc = subprocess.run(
             [sys.executable, script],

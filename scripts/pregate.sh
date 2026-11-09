@@ -453,6 +453,8 @@ check_lint() {
   echo "== encoded payloads =="
   python3 scripts/check_no_encoded_payloads.py --selftest
   python3 scripts/check_no_encoded_payloads.py
+  echo "== public paths (no operator notes, queues, or employer names) =="
+  python3 scripts/check_public_paths.py
   echo "== smoke_contract_lint =="
   python3 scripts/smoke_contract_lint.py
   echo "== catalog_check =="
