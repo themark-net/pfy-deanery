@@ -9,6 +9,7 @@ The product surface `./pfy` does onboard, stage, and ship. The catalog lifecycle
 - Browse joins a parenthetical TOOLS.md name to the stage card. `adr-tools (optional)` showed a blank stage because the slug was `adr-tools-optional` and the card is `adr-tools`. The bold name is an alias, not a second row.
 - Browse shows the stage card when `data/tools.json` lags. `codebase-memory-mcp` was I2 in the json file and I3 on the card. The json file is still I2. Browse now shows I3. Do not hand-edit `integration_stage`.
 - `scripts/test_select.py` treats `VERDICT.json` and `receipt.json` as one file per tool. A test that names the full path still runs. A new artifact that nobody names stays structural and does not force the full suite. Before this, a stub eval of `gum` selected 22 modules (`tmp/mvp-gaps-1108/tmp/sandbox-eval/evalstate/gum-select.json`) and parked with `run_tests failed`.
+- Integrate dispatch checks that the card is I2, the slug is not excluded, and no park file exists before it writes `tmp/integrate/<slug>.dispatched`. Closed in `0dee24d93ba1ac865fc876ef6dd4bc66313f0224`.
 - README "Using the catalog" names the five commands. `./pfy help` says `pfy eval` is the product structural gate and names `scripts/eval_lane.sh` and `scripts/catalog_intake_dedupe.py`. The command name `pfy eval` is unchanged.
 
 While this walk was open, `origin/main` also landed `cec3b3de` (excluded slugs refused before a ceiling check; lane test selection is `origin/main...HEAD`; taste-skill, repowise, and opencode-mem tests expect the I3 cap the loop already wrote) and `5683af53` (I1 static eval for LocalHarness and Cartographer, value gate fail, both stay I1). This lane did not re-raise ATG. `atomic-task-graph-atg` stays on `eval/catalog-queue/exclusions.tsv`.
@@ -47,9 +48,9 @@ The stub lane against a local bare (not GitHub) reached `test_select mode=affect
 
 `./pfy eval` (the product gate) was not run. It writes under `pipelines/eval` and is a different command.
 
-### 5. Integrate: not walked, and the driver will push
+### 5. Integrate: I2 guard closed, and the driver still pushes
 
-The new gum card stayed I0, so integrate was not the next user step. `scripts/integrate_lane.sh` was not executed, not even against the local bare. The script creates `tmp/integrate/<slug>.dispatched` with noclobber before fetch, and it does not check that the card is I2 before that marker. A second start exits 2. It calls Grok and fast-forwards `main`. `--dry-run` now exits before that marker, Grok, and the push. The default path still fast-forwards `main`.
+The new gum card stayed I0, so integrate was not the next user step. `scripts/integrate_lane.sh` was not executed against a real origin. Closed in `0dee24d93ba1ac865fc876ef6dd4bc66313f0224`: the driver reads the stage card, `eval/catalog-queue/exclusions.tsv`, and park files before `tmp/integrate/<slug>.dispatched`. A card that is not I2, an excluded slug, or an existing `<slug>.parked` file exits before that marker. When `PFY_LOOP_STATE` is set, `$PFY_LOOP_STATE/integrate/<slug>.parked` counts. A refusal writes nothing and deletes nothing. A second start still exits 2. `--dry-run` still exits before the check, the marker, Grok, and the push. The default path still calls Grok and fast-forwards `main`.
 
 `python3 scripts/integrate_intake.py` at the walk commit listed eight I2 cards already at ceiling I3, with no flag: headson, hiroute, neatroots, opencode-mem, repowise, sponsio, strata, taste-skill. bumblebee was flagged `tier_ceiling below I3: needs Mark`. This lane did not launch any of them. Do not launch them from a gap pass. Parked loop slugs stay parked. Do not start `catalog-loop.timer`. Do not remove another unit's markers.
 
