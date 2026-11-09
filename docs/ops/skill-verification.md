@@ -118,7 +118,6 @@ Structural proof is still `make smoke-grok-skills` (manifest + `SKILL.md` + fron
 |-------|------------------|
 | `prefer-behavior-and-fail-recover-tests` | A test review names a failure mode and recovery. Tautological or implementation-detail units are a FAIL. |
 | `ui-is-the-app-design-in-loop` | Product UI cites a `docs/design/` pack. A docs/skills PR that adds no product chrome passes without a new design pack. |
-| `best-effort-and-bot-budget-build-max` | Reversible docs/skills land on a named branch. The PR does not touch an open founder checkout and does not claim Feature GO. |
 
 ### Regression template (paste into PR)
 

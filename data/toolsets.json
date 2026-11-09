@@ -223,7 +223,6 @@
         "skills": [
           {"name": "adr", "from": "bootstrap/grok-cli/skills/adr"},
           {"name": "agent-loops", "from": "bootstrap/grok-cli/skills/agent-loops"},
-          {"name": "best-effort-and-bot-budget-build-max", "from": "bootstrap/grok-cli/skills/best-effort-and-bot-budget-build-max"},
           {"name": "catalog-docs", "from": "bootstrap/grok-cli/skills/catalog-docs"},
           {"name": "docs", "from": "bootstrap/grok-cli/skills/docs"},
           {"name": "hermes-feedback", "from": "bootstrap/grok-cli/skills/hermes-feedback"},

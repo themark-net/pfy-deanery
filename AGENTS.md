@@ -50,7 +50,7 @@ Also use as needed: `CATEGORIZATION.md`, `SUBTREES.md`, `TOOLS.md`, `bootstrap/g
 #   python3 bootstrap/setup-local-agent-env.py
 ```
 
-Portable skills (SoT `bootstrap/grok-cli/skills/` — also for OpenCode): `adr`, `docs`, `open-questions`, `karpathy-guidelines`, `project-process`, `one-shot`, `marketing-council`, **`investigate`**, **`agent-loops`**, **`hermes-feedback`**, **`worker-monitor`** (local worker + Grok monitor), **`jev-decision`** (#230 typed Choice/Score), **`prefer-behavior-and-fail-recover-tests`** (Trophy / fail-recover), **`ui-is-the-app-design-in-loop`** (design pack before product UI), **`best-effort-and-bot-budget-build-max`** (BEST_EFFORT default; named branch; no Feature GO), **`catalog-intake-dedupe`**, **`catalog-eval-lane`**, **`catalog-integrate-lane`**, **`catalog-apply-and-ceiling`**, **`catalog-loop-operator`** (catalog pipeline; each skill drives a script); ponytail + mattpocock via `skills.paths`.  
+Portable skills (SoT `bootstrap/grok-cli/skills/` — also for OpenCode): `adr`, `docs`, `open-questions`, `karpathy-guidelines`, `project-process`, `one-shot`, `marketing-council`, **`investigate`**, **`agent-loops`**, **`hermes-feedback`**, **`worker-monitor`** (local worker + Grok monitor), **`jev-decision`** (#230 typed Choice/Score), **`prefer-behavior-and-fail-recover-tests`** (Trophy / fail-recover), **`ui-is-the-app-design-in-loop`** (design pack before product UI), **`catalog-intake-dedupe`**, **`catalog-eval-lane`**, **`catalog-integrate-lane`**, **`catalog-apply-and-ceiling`**, **`catalog-loop-operator`** (catalog pipeline; each skill drives a script); ponytail + mattpocock via `skills.paths`.  
 Verify: `make eval-structural` (no LLM) · `make smoke-grok-skills` · [skill-verification.md](docs/ops/skill-verification.md).  
 **Surfaces:** Grok = **monitor** / hard tasks (subscription) · OpenCode+Ollama = **worker** / bulk — [local-cloud-split.md](docs/ops/local-cloud-split.md) · ADR-0011.  
 **Local worker model:** `LOCAL_CODER_MODEL` (default `deepseek-coder:6.7b` after lab pass); set via `make eval-select-models`. Grok CLI does **not** auto-use it.  
@@ -75,7 +75,7 @@ Map **Think → Plan → Build → Review → Test → Ship → Reflect** withou
 | QA | `make cage-test`, `make smoke-*` (see [docs/modules/examples-smokes.md](docs/modules/examples-smokes.md)); **`prefer-behavior-and-fail-recover-tests`** |
 | UI / operator surface | **`ui-is-the-app-design-in-loop`** — design pack in `docs/design/` before product UI |
 | Security | write-guard + cage policy; not full gstack `/cso` |
-| Ship | Feature branch → green checks → merge; [DEPLOY.md](docs/ops/DEPLOY.md); **`best-effort-and-bot-budget-build-max`** for path and isolation |
+| Ship | Feature branch → green checks → merge; [DEPLOY.md](docs/ops/DEPLOY.md) |
 | Reflect | **`/hermes-feedback`** (memory + optional skill/curator); TODO/OQ; `/docs` or `/catalog-docs` if modules changed |
 | Marketing multi-view | **`/marketing-council`** |
 
@@ -164,7 +164,7 @@ Operator-facing UI follows **`ui-is-the-app-design-in-loop`**: design pack in `d
 
 ## Gate path (BEST_EFFORT default)
 
-Docs, skills, and reversible dogfood follow **`best-effort-and-bot-budget-build-max`**: land on a named branch and PR; do not share an open founder Build checkout; no Feature GO from the port.
+Docs, skills, and reversible dogfood follow the best-effort rule: land on a named branch and PR; do not share an open founder Build checkout; no Feature GO from the port.
 
 ### Verification, Benchmarks & Quality Gates
 - Agents must run and test their changes (build, targeted tests, end-to-end where applicable).

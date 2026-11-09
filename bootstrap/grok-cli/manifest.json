@@ -102,11 +102,6 @@
         "purpose": "Operator UI: design pack before product chrome; contextual levers; never ask known facts"
       },
       {
-        "name": "best-effort-and-bot-budget-build-max",
-        "origin": "first-party port of org bot standing (2026-09-25); org skill is a pointer",
-        "purpose": "BEST_EFFORT vs GATED; maximize Build; isolate from an open founder checkout; no Feature GO"
-      },
-      {
         "name": "catalog-intake-dedupe",
         "origin": "first-party catalog pipeline (2026-11-08)",
         "purpose": "Source string to an I0 card, or a duplicate match, via scripts/catalog_intake_dedupe.py"
