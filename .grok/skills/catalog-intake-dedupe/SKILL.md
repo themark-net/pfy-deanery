@@ -11,7 +11,7 @@ The checker is `scripts/catalog_intake_dedupe.py`. Read its output. Do not copy 
 
 ## Inputs
 
-- One source string: a GitHub URL, `owner/repo`, or a name.
+- One source string: a GitHub URL, `owner/repo`, a name, or a path to a local directory.
 - Optional `--root` for a repo root. Default is the repo that contains the script.
 - Optional `--write-card`. Without it, the command only prints.
 
@@ -22,7 +22,9 @@ One line:
 - `new <slug>` when nothing matches.
 - `duplicate <slug> <match>` when a stage card, an entry, or `sources/x-posts.md` already has the source.
 
-`--write-card` writes `data/stages/<slug>.json` at I0 only for a new source. A duplicate never writes.
+`--write-card` writes `data/stages/<slug>.json` for a new source. `integration_stage` stays I0. A duplicate never writes.
+
+The card records evidence the input actually has: the repo URL, a license when a local tree states one, a pin SHA when the source or a local git HEAD has one, and one README claim from a local tree. No network. `tier_ceiling` is I1 when that list is non-empty, so a later apply can move the card to I1. A name with none of those facts stays `evidence: []` and `tier_ceiling: I0`.
 
 ## Markers
 
@@ -36,7 +38,8 @@ Run the command once. If the line starts with `duplicate`, stop. Do not call `--
 
 - Empty slug: the script exits 1 and writes `empty slug` on stderr. Do not invent a slug.
 - Duplicate: stop. Do not edit the matched card in this step.
-- Do not raise `tier_ceiling` or `integration_stage` here.
+- Do not set `integration_stage` above I0 here. Apply does that.
+- Do not set `tier_ceiling` above I1. It is I1 only when the evidence list is non-empty, and I0 when the source has no repo URL, license, pin, or README claim.
 
 ## Supersede intake hook
 
