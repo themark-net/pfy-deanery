@@ -2,6 +2,10 @@
 # Drive one catalog eval lane. No pull requests.
 #
 #   scripts/eval_lane.sh --slug <slug> [--date MMDD] [--root DIR] [--state DIR] [--ticket FILE]
+#   scripts/eval_lane.sh --dry-run --slug <slug> --state DIR [--root DIR]
+#
+# --dry-run requires --state, prints one line, and exits before the dispatch
+# marker, fetch, Grok, and the push. It does not take the model lock.
 #
 # Worktree: STATE/eval/wt/<slug> cut from origin/main.
 # Branch: bot/eval-<slug>-<date>.
@@ -36,6 +40,8 @@ SLUG=""
 DATE=""
 TICKET=""
 STATE_DIR=""
+STATE_SET=0
+DRY=0
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -57,7 +63,12 @@ while [ $# -gt 0 ]; do
       ;;
     --state)
       STATE_DIR=${2:-}
+      STATE_SET=1
       shift 2
+      ;;
+    --dry-run)
+      DRY=1
+      shift
       ;;
     *)
       printf '%s\n' "unknown arg: $1" >&2
@@ -83,6 +94,14 @@ fi
 if ! printf '%s\n' "$DATE" | grep -E -q '^[0-9]{4}$'; then
   printf '%s\n' "bad date: $DATE" >&2
   exit 1
+fi
+if [ "$DRY" = "1" ]; then
+  if [ "$STATE_SET" != "1" ] || [ -z "$STATE_DIR" ]; then
+    printf '%s\n' "dry-run needs --state" >&2
+    exit 1
+  fi
+  printf '%s\n' "dry-run slug=${SLUG} state=${STATE_DIR} skip-grok skip-push"
+  exit 0
 fi
 if [ -z "$STATE_DIR" ]; then
   LOOP_STATE="${PFY_LOOP_STATE:-$HOME/DEVELOP/pfy-mentat/tmp/loop}"

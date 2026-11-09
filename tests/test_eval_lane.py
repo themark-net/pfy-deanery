@@ -108,6 +108,53 @@ def lane_env(td: Path, grok: Path) -> dict:
 
 
 class EvalLaneTest(unittest.TestCase):
+    def test_dry_run_skips_grok_and_does_not_push(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            td = Path(tmp)
+            clone, bare = make_fixture(td, {"widget": card("widget")})
+            before = subprocess.check_output(
+                ["git", "--git-dir", str(bare), "rev-parse", "main"],
+                text=True,
+            ).strip()
+            state = td / "evalstate"
+            grok = td / "bin" / "grok"
+            write_grok(grok, "#!/bin/sh\necho called >&2\nexit 99\n")
+            proc = subprocess.run(
+                [
+                    "bash", str(SCRIPT), "--dry-run",
+                    "--root", str(clone),
+                    "--state", str(state),
+                    "--slug", "widget",
+                    "--date", "1108",
+                ],
+                cwd=clone,
+                env=lane_env(td, grok),
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
+            self.assertIn("skip-grok", proc.stdout)
+            self.assertIn("skip-push", proc.stdout)
+            self.assertNotIn("called", proc.stderr)
+            self.assertFalse((state / "widget.dispatched").exists())
+            after = subprocess.check_output(
+                ["git", "--git-dir", str(bare), "rev-parse", "main"],
+                text=True,
+            ).strip()
+            self.assertEqual(before, after)
+            missing = subprocess.run(
+                ["bash", str(SCRIPT), "--dry-run", "--slug", "widget", "--root", str(clone)],
+                cwd=clone,
+                env=lane_env(td, grok),
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+            self.assertEqual(missing.returncode, 1, missing.stdout)
+            self.assertIn("dry-run needs --state", missing.stderr)
+            self.assertFalse((state / "widget.dispatched").exists())
+
     def test_refusal_leaves_the_card_bytes_unchanged(self):
         with tempfile.TemporaryDirectory() as tmp:
             td = Path(tmp)

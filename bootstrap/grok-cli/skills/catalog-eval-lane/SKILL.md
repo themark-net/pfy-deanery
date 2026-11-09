@@ -54,7 +54,10 @@ The noclobber `.dispatched` file is the guard. A second start exits 2 when `PFY_
 
 ```bash
 scripts/eval_lane.sh --slug <slug> [--date MMDD]
+scripts/eval_lane.sh --dry-run --slug <slug> --state DIR
 ```
+
+`--dry-run` requires `--state` and exits before the dispatch marker, Grok, and the push. It does not take the model lock.
 
 The Build writes the verdict and the report. It does not hand-edit `integration_stage` or `tier_ceiling`.
 

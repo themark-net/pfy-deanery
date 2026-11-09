@@ -43,7 +43,7 @@ Intake does not triple-write. It does not touch `TOOLS.md`, `data/tools.json`, o
 
 `scripts/eval_lane.sh` fetches `origin`, cuts a worktree from `origin/main`, calls Grok through `scripts/model_lock.sh`, selects tests, applies, and pushes `refs/heads/main`. Tests must pass `--root` and `--state`. A walk must set `PFY_GROK_BIN` to a stub and `PFY_MODEL_LOCK` to a private file. This walk did that. It did not take `~/.cache/pfy/locks/local-model.lock`. The destructive-command guard stayed on. A missing guard binary falls open.
 
-The stub lane against a local bare (not GitHub) reached `test_select mode=affected modules=22` and parked `run_tests failed`. Origin was not updated. The selector fix above is the small part. There is still no `--dry-run` that skips Grok and the push. Do not point a real lane at GitHub from a test.
+The stub lane against a local bare (not GitHub) reached `test_select mode=affected modules=22` and parked `run_tests failed`. Origin was not updated. The selector fix above is the small part. `--dry-run --state DIR` now exits before the dispatch marker, Grok, and the push. It does not walk apply. The default path still fast-forwards `main`. Do not point a real lane at GitHub from a test.
 
 `./pfy eval` (the product gate) was not run. It writes under `pipelines/eval` and is a different command.
 
