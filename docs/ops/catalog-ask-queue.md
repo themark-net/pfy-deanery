@@ -7,11 +7,13 @@ Cite **#209**. Browse a usable catalog subset from **Tools**. Ask the attached T
 On **Tools** (HTML+tk) or CLI:
 
 ```bash
-./pfy catalog                 # usable browse (name/stage/status/notes — not scores)
-./pfy catalog ask <name>      # prompt/artifact for attached TUI — operate-or-FAIL
-./pfy catalog queue <name>    # GitHub issue Design→DevBot (no Mark git/npm/CI)
+./pfy catalog                 # usable browse (name/stage/status/notes, not scores)
+./pfy catalog ask <name>      # prompt/artifact for attached TUI, operate-or-FAIL
+./pfy catalog queue <name>    # GitHub issue Design->DevBot (no Mark git/npm/CI)
 ./pfy catalog status          # queued items
 ```
+
+`./pfy catalog` keeps the Active Catalog table for documented tools. A stage card with no row in that table is listed after those rows. `catalog_intake_dedupe.py --write-card` does not write TOOLS.md, and browse does not change `integration_stage`. An I0 card is visible and Ask still SKIPs it.
 
 Tools: pick a row, **Ask TUI implement** (copy or auto-handoff `PFY_CATALOG_ASK_PROMPT` on next Attach), **Queue for org**. No Env nav tab.
 

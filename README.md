@@ -104,7 +104,7 @@ Rejections are logged with short, explicit reasons. There is no silent ignoring 
 
 ### Lifecycle (track, catalog, eval, integrate, promote)
 
-`./pfy catalog` browses the Active Catalog table. It does not add a tool. `./pfy eval` is the product structural gate (`make eval-integration-change`), not a catalog verdict.
+`./pfy catalog` lists the Active Catalog table, then any stage card that is not already one of those rows. Intake does not write TOOLS.md. Browse does not add a tool and does not change `integration_stage`. `./pfy eval` is the product structural gate (`make eval-integration-change`), not a catalog verdict.
 
 | Step | Command |
 |------|---------|

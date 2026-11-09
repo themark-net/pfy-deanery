@@ -2,7 +2,10 @@
 """Catalog browse + ask-TUI / queue-org -- cite #209.
 
 Tools panel: usable catalog subset (name/category/github/stage/notes/status),
-not a scores-only dump. Ask attached TUI to implement for next launch writes
+not a scores-only dump. The Active Catalog table stays the documented rows.
+A stage card that is not already one of those rows is listed too, so intake
+--write-card is visible without a TOOLS.md write. integration_stage is read
+only. Ask attached TUI to implement for next launch writes
 a concrete prompt/artifact (paste or auto-handoff) -- operate-or-FAIL.
 Queue for org opens a GitHub issue with Design->DevBot DoD (no Mark
 git/npm/CI). Honest SKIP/FAIL if no harness attached or entry HOLD/incomplete.
@@ -221,7 +224,11 @@ def _strip_md(s):
 
 
 def parse_tools_md(text):
-    """Active Catalog rows without score columns. Cite #209."""
+    """Active Catalog rows without score columns. Cite #209.
+
+    Stops at the next heading. Other tables (company rubric, field tables)
+    are not parsed as catalog rows. Unmatched stage cards are added later.
+    """
     items = []
     in_table = False
     for line in (text or "").splitlines():
@@ -322,6 +329,7 @@ def load_integration_stages(ROOT):
             if not isinstance(rec, dict):
                 continue
             out[_slug(name)] = {
+                "name": str(name).strip(),
                 "stage": str(rec.get("integration_stage") or "").strip(),
                 "github": str(rec.get("github") or "").strip(),
                 "notes_doc": str(rec.get("notes_doc") or "").strip(),
@@ -360,6 +368,24 @@ def merge_catalog(md_items, json_items, stages):
         if cur is None:
             cur = aliases.get(key)
         if cur is None:
+            # Intake writes a stage card and does not touch TOOLS.md.
+            # List that card. Do not invent a second row for an alias, and
+            # do not write integration_stage.
+            name = str(extra.get("name") or key or "").strip()
+            if not name:
+                continue
+            notes = str(extra.get("notes_doc") or "").strip()
+            by_id[key] = {
+                "id": key,
+                "name": name,
+                "category": "",
+                "github": str(extra.get("github") or "").strip(),
+                "notes": notes,
+                "tags": "",
+                "stage": str(extra.get("stage") or "").strip(),
+                "x_entry": x_entry_num(notes) or x_entry_num(name),
+                "stage_only": True,
+            }
             continue
         # The stage card is the lifecycle. tools.json can lag (I2 vs I3).
         if extra.get("stage"):
@@ -398,9 +424,16 @@ def load_catalog(ROOT, attach_mode=""):
     js = load_tools_json(ROOT)
     stages = load_integration_stages(ROOT)
     merged = merge_catalog(md, js, stages)
-    rows = [usable_fields(it, attach_mode) for it in merged]
-    rows.sort(key=lambda r: ((r.get("name") or "").lower(), r.get("id") or ""))
-    return rows
+    # Documented rows stay in their old order. Stage-only cards follow,
+    # so the Active Catalog table is still the head of the list.
+    merged.sort(
+        key=lambda it: (
+            1 if it.get("stage_only") else 0,
+            (it.get("name") or "").lower(),
+            it.get("id") or "",
+        )
+    )
+    return [usable_fields(it, attach_mode) for it in merged]
 
 
 def find_item(rows, name):
