@@ -1,8 +1,8 @@
 # Cartographer static eval (I0 to I1)
 
-Pin `f96e5d9f7b0ae8506ce5470e35372546a70ea292`. License Apache-2.0. Shallow clone under the lane tmp, 28M including git. The binary was not built. `cartographer setup` was not run. The public demo server was not contacted.
+Pin `f96e5d9f7b0ae8506ce5470e35372546a70ea292` (committer date 2026-11-08). License Apache-2.0, from the LICENSE file at that pin. This pass shallow-fetched that commit into a throwaway directory. `du -sb` is 27908157 bytes including git. `du -h` reports 33M of disk usage. The worktree without `.git` is 20568768 bytes. No `.gguf`, `.safetensors`, `.onnx`, `.pt`, `.bin`, or `.wasm` files. The binary was not built. `cartographer setup` was not run. The public demo server was not contacted.
 
-Intake: `duplicate cartographer sources/entries/172-cartographer.md`. The entry exists. The stage card did not, so this lane created it with `pfylib.stage_registry.write_tool` and then `scripts/catalog_apply_verdict.py`. No TOOLS.md row and no `data/tools.json` row.
+Intake: `duplicate cartographer data/stages/cartographer.json`. Stop. No second card. The card is already I1 and `tier_ceiling` is already I1. This pass does not edit `integration_stage` or `tier_ceiling`. The entry `sources/entries/172-cartographer.md` remains the narrative receipt. No TOOLS.md row and no `data/tools.json` row.
 
 ## What was confirmed in source
 
@@ -34,13 +34,13 @@ Cartographer is not the suite in `docs/ops/supersede-watch.md`.
 | evaluate | none | No rubric of improvement vectors and no I-stages. |
 | integrate | partial | It is a local MCP server someone could attach. It is not wired here. |
 
-Same checker result as LocalHarness: one part, `supersede_candidate` false. No watchlist row.
+`python3 scripts/supersede_check.py --parts integrate` prints `{"parts": ["integrate"], "supersede_candidate": false}`. One part is not a candidate. No watchlist row.
 
 ## Gates
 
 Value gate fails. The gap (a git wiki none of the current memory tools are) is real on paper. There is no day of operator use, no smoke of our own, and `setup` rewrites detected agent clients, so the blast radius is not acceptable until a throwaway home is the only home it sees.
 
-Modularity gate passes. The behavior that matters is the write gate and the client sync, which the README does not fully specify. The unit is one Go binary. Deleting a throwaway clone leaves the pin and the entry. 28M is under the 50 MB I2 size note and there are no weight files. This verdict still proposes I1.
+Modularity gate passes. The behavior that matters is the write gate and the client sync, which the README does not fully specify. The unit is one Go binary. Deleting a throwaway clone leaves the pin and the entry. The shallow fetch is under the 50 MB I2 size note (27908157 bytes apparent, 33M on disk) and there are no weight files. This verdict still proposes I1. `tier_ceiling` is I1, so a proposed I2 would be above the ceiling. This pass does not raise the ceiling.
 
 The trial plan is `docs/ops/i2-trial-localharness-cartographer-1108.md`.
 
