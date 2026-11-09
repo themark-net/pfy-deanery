@@ -15,6 +15,7 @@ The product surface `./pfy` does onboard, stage, and ship. The catalog lifecycle
 - Browse lists a stage card that is not an Active Catalog row. Intake still does not write `TOOLS.md`, `data/tools.json`, or `sources/`. Documented rows keep their table name, category, and github. The card's `integration_stage` is shown and not written. An I0 card stays incomplete, so ask still SKIPs. Auto-Company (other heading) and LiveKit (no table row) are listed. A stage file that is not valid JSON hides card stages until that file is removed; the table names stay. Empty source, duplicate, and `./pfy catalog nosuch` are unchanged. Closed in `cdf64e46b1890699fd627bf0e0820363fcbad4dc`.
 - README "Using the catalog" names the five commands. `./pfy help` says `pfy eval` is the product structural gate and names `scripts/eval_lane.sh` and `scripts/catalog_intake_dedupe.py`. The command name `pfy eval` is unchanged.
 - `./pfy eval` stays the product structural gate (`make eval-integration-change`). It writes `pipelines/eval`. It does not call Grok and does not push `main`. Catalog verdicts stay `scripts/eval_lane.sh` (Grok, then a fast-forward of `main`). Help, the operator docs, the eval-lane skill, and `tests/test_cli.py` say that. One test runs `./pfy eval` with a stub `make` and checks the receipt was not written. The command was not renamed. Closed in `ed9616cc4338cdfb6b404ad004fa4835518c3ca6`.
+- A temp catalog proves intake and browse together. `tests/test_catalog_fake_tool_e2e.py` builds a local git fixture, runs intake `--write-card`, refuses an I2 stub, applies I1 through `catalog_apply_verdict.py` with a stub `VERDICT.json`, and `./pfy catalog` lists that one card at I1. No network, no model, no GPU. The temp tree is removed inside the test. The real checkout is not written. Closed in `25040d36a2500532b5e562710d61172f75ccb927`.
 
 While this walk was open, `origin/main` also landed `cec3b3de` (excluded slugs refused before a ceiling check; lane test selection is `origin/main...HEAD`; taste-skill, repowise, and opencode-mem tests expect the I3 cap the loop already wrote) and `5683af53` (I1 static eval for LocalHarness and Cartographer, value gate fail, both stay I1). This lane did not re-raise ATG. `atomic-task-graph-atg` stays on `eval/catalog-queue/exclusions.tsv`.
 
@@ -23,6 +24,8 @@ While this walk was open, `origin/main` also landed `cec3b3de` (excluded slugs r
 Item 1 (intake evidence, a new card cannot leave I0) is closed. See Closed in this pass.
 
 Item 2 (a new stage card is invisible in `./pfy catalog`) is closed. See Closed in this pass.
+
+The e2e proof of items 1 and 2 is closed. A fake local fixture in a temp catalog reaches I1 through the stubbed apply path, and `./pfy catalog` lists it. See Closed in this pass. Closed in `25040d36a2500532b5e562710d61172f75ccb927`.
 
 Item 3 (`./pfy eval` versus `scripts/eval_lane.sh`) is closed. See Closed in this pass. The command name is unchanged.
 
