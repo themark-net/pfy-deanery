@@ -141,6 +141,10 @@ if [ ! -f "$MARKER" ]; then
   fi
 fi
 
+# The loop counts a running lane by <slug>.pid naming a live process (the
+# 4-at-once cap). Without this file every eval lane looked idle.
+printf '%s\n' "$$" > "$MARK_DIR/${SLUG}.pid"
+
 progress() {
   printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" >> "$PROGRESS"
 }

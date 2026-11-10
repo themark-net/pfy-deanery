@@ -159,6 +159,25 @@ class EvalLaneTest(unittest.TestCase):
             self.assertIn("dry-run needs --state", missing.stderr)
             self.assertFalse((state / "widget.dispatched").exists())
 
+    def test_lane_writes_its_pid_for_the_loop_running_cap(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            td = Path(tmp)
+            clone, _bare = make_fixture(td, {"widget": card("widget")})
+            state = td / "evalstate"
+            grok = td / "bin" / "grok"
+            write_grok(grok, "#!/bin/sh\nexit 99\n")
+            (td / "loopstate").mkdir()
+            (td / "loopstate" / "STOP").write_text("stop\n", encoding="utf-8")
+            proc = subprocess.run(
+                ["bash", str(SCRIPT), "--root", str(clone), "--state", str(state), "--slug", "widget", "--date", "1108"],
+                cwd=clone, env=lane_env(td, grok), capture_output=True, text=True, timeout=60,
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
+            self.assertEqual((state / "widget.parked").read_text(encoding="utf-8").strip(), "STOP file")
+            pid = (state / "widget.pid").read_text(encoding="utf-8").strip()
+            self.assertTrue(pid.isdigit(), pid)
+            self.assertFalse(Path(f"/proc/{pid}").exists())
+
     def test_missing_guard_script_names_fall_open_and_still_runs_git(self):
         """A missing guard.sh used to return with no line.
 
