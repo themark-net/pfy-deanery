@@ -1,6 +1,19 @@
 #!/usr/bin/env python3
 """Raise tier_ceiling to I3 when a verdict and the risk class allow it.
 
+Security tools (operator decision 2026-11-10)
+    A card whose risk class is exactly security (a scanner or guard) is
+    raised to tier_ceiling I2, not I3, with no verdict needed, so its I2
+    trial can run without asking the operator. --launch-check prints
+    launch with reason security-sandbox for such a card below I2: the loop
+    starts the eval lane with PFY_LANE_SANDBOX=sandlock, and the lane runs
+    every tool install and run through scripts/integrations/sandlock/wrap.py.
+    Apply caps a security verdict at I1 unless it records
+    "sandbox": "sandlock", and caps a security card at I2 unless it cites a
+    passing full gate (see catalog_apply_verdict.py, "Security full gate").
+    Auto-raise never raises a security card to I3. live-money,
+    runtime-takeover and unknown are still refused.
+
 Writes only tier_ceiling and ceiling_history. Never lowers a ceiling.
 Never edits a card whose ceiling is already I3 or I4. --dry-run writes nothing.
 
@@ -198,6 +211,14 @@ def _ceiling(card: dict) -> str | None:
     return None
 
 
+SECURITY_REASON = "security scanner or guard: I2 sandbox trial allowed by the operator decision of 2026-11-10; I3 needs the full gate"
+
+
+def raise_target(card: dict) -> str:
+    """I2 for a security card, I3 otherwise."""
+    return "I2" if classify_risk(card) == "security" else "I3"
+
+
 def plan_card(card: dict, verdict: dict | None) -> tuple[str, str]:
     """Return (raise|refuse|skip, reason). raise is the only write."""
     current = _ceiling(card)
@@ -209,6 +230,10 @@ def plan_card(card: dict, verdict: dict | None) -> tuple[str, str]:
     if blocked:
         return "refuse", blocked
     risk = classify_risk(card)
+    if risk == "security":
+        if current is not None and RANK[current] >= RANK["I2"]:
+            return "skip", "security: I3 needs the full gate"
+        return "raise", SECURITY_REASON
     if risk != "none":
         return "refuse", risk
     if not gates_pass(verdict):
@@ -240,22 +265,23 @@ def raise_card(path: Path, root: Path, today: str, dry_run: bool) -> tuple[str, 
         return action, reason
     current = card.get("tier_ceiling")
     current_text = current.strip() if isinstance(current, str) else ""
+    target = raise_target(card)
     evidence: list[str] = []
-    if verdict_path is not None:
+    if verdict_path is not None and target == "I3":
         try:
             evidence.append(verdict_path.relative_to(root).as_posix())
         except ValueError:
             evidence.append(verdict_path.as_posix())
     entry = {
         "from": current_text,
-        "to": "I3",
+        "to": target,
         "by": "catalog_loop",
         "date": today,
         "reason": reason,
         "evidence": evidence,
     }
     updated = dict(card)
-    updated["tier_ceiling"] = "I3"
+    updated["tier_ceiling"] = target
     history = updated.get("ceiling_history")
     if not isinstance(history, list):
         history = []
@@ -355,6 +381,14 @@ def main(argv: list[str] | None = None) -> int:
             risk = classify_risk(card)
             if blocked:
                 print(f"skip\t{args.launch_check}\t{blocked}")
+                return 0
+            if risk == "security":
+                ceiling = _ceiling(card)
+                stage = card.get("integration_stage")
+                if ceiling is not None and RANK[ceiling] >= RANK["I2"] and stage in ("I0", "I1"):
+                    print(f"launch\t{args.launch_check}\tsecurity-sandbox")
+                    return 0
+                print(f"skip\t{args.launch_check}\tsecurity")
                 return 0
             if risk != "none":
                 print(f"skip\t{args.launch_check}\t{risk}")

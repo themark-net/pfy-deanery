@@ -907,6 +907,11 @@ if [ "$SUPERSEDE_ACTION" = "continue" ] && [ "$DRY" -eq 0 ] && [ -f eval/catalog
       skipped+=("$slug")
       continue
     fi
+    sandbox_env=()
+    if [ "${check##*$'\t'}" = "security-sandbox" ]; then
+      # Security scanner or guard: the I2 trial runs under sandlock.
+      sandbox_env=(--setenv=PFY_LANE_SANDBOX=sandlock)
+    fi
     unit="pfy-lane-${kind}-${slug}"
     if [ "$kind" = "integrate" ]; then
       write_integrate_ticket "$slug" || fail "ticket write failed for $slug"
@@ -920,6 +925,7 @@ if [ "$SUPERSEDE_ACTION" = "continue" ] && [ "$DRY" -eq 0 ] && [ -f eval/catalog
       --setenv=PFY_LOOP_REPO="$REPO" \
       --setenv=PFY_GROK_BIN="${PFY_GROK_BIN:-grok}" \
       "${lock_env[@]+"${lock_env[@]}"}" \
+      "${sandbox_env[@]+"${sandbox_env[@]}"}" \
       "${launch_cmd[@]}"; then
       fail "systemd-run failed for $slug"
     fi

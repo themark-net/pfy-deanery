@@ -43,6 +43,19 @@ receipt:eval/integrate/<slug>/receipt.json to the evidence before the ceiling
 check, and writes it with the stage. A refusal still writes nothing.
 tier_ceiling still caps the result.
 
+Security full gate (operator decision 2026-11-10): when the card's risk
+class is security (scripts/catalog_auto_raise.py classify_risk), the allowed
+stage is capped at I2 unless the card cites gate:eval/integrate/<slug>/GATE.json
+and that file is a passing full gate: JSON with slug equal to the card file
+stem, pinned_sha a 40-hex SHA that is an ancestor of origin/main, and both
+tester and reviewer objects with verdict PASS and sha equal to pinned_sha.
+Anything else is named (security-gate-missing, security-gate-malformed,
+security-gate-not-pass, security-gate-sha-mismatch, or the receipt SHA
+reasons). A security verdict proposing I2 or above is capped at I1 unless it
+records "sandbox": "sandlock" (the I2 trial ran under
+scripts/integrations/sandlock/wrap.py). Nothing here self-approves: the gate
+file is written by the Tester and Reviewer, not by apply or a lane.
+
 I3 and I4 also need that receipt when applying a stage. A missing file is
 missing-main-receipt. Bad JSON or a run_kind other than pipeline or gate is
 receipt-malformed. A main_sha that is not an ancestor of origin/main is
@@ -356,6 +369,59 @@ def _one_receipt(card: dict, repo: Path, rel: str, slug: str) -> str | None:
     return _sha_on_origin_main(repo, data["main_sha"])
 
 
+def _gate_rels(card: dict) -> list[str]:
+    raw = card.get("evidence")
+    if not isinstance(raw, list):
+        return []
+    return [item.split(":", 1)[1].strip() for item in raw if isinstance(item, str) and item.strip().lower().startswith("gate:")]
+
+
+def gate_problem(card: dict, repo: Path, slug: str) -> str | None:
+    """None when the card cites a passing full gate (Tester and Reviewer PASS at one pinned SHA)."""
+    rels = _gate_rels(card)
+    if not rels:
+        return "security-gate-missing"
+    first = "security-gate-missing"
+    for index, rel in enumerate(rels):
+        problem = _one_gate(repo, rel, slug)
+        if problem is None:
+            return None
+        if index == 0:
+            first = problem
+    return first
+
+
+def _one_gate(repo: Path, rel: str, slug: str) -> str | None:
+    rel = rel.replace("\\", "/").strip()
+    if not rel or rel.startswith("/") or any(part == ".." for part in Path(rel).parts):
+        return "security-gate-malformed"
+    path = repo / rel
+    if not path.is_file():
+        return "security-gate-missing"
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return "security-gate-malformed"
+    if not isinstance(data, dict) or (slug and data.get("slug") != slug):
+        return "security-gate-malformed"
+    pinned = data.get("pinned_sha")
+    if not isinstance(pinned, str) or _SHA.fullmatch(pinned) is None:
+        return "security-gate-malformed"
+    for role in ("tester", "reviewer"):
+        item = data.get(role)
+        if not isinstance(item, dict):
+            return "security-gate-malformed"
+        if item.get("verdict") != "PASS":
+            return "security-gate-not-pass"
+        if item.get("sha") != pinned:
+            return "security-gate-sha-mismatch"
+    return _sha_on_origin_main(repo, pinned)
+
+
+def _is_security(card: dict) -> bool:
+    return _auto_raise().classify_risk(card) == "security"
+
+
 def receipt_problem(card: dict, repo: Path, slug: str = "") -> str | None:
     """None when any receipt: evidence item is a valid main-run receipt.
 
@@ -458,6 +524,15 @@ def decide_ceiling(
             bits.append(problem)
             if RANK[allowed] >= RANK["I3"]:
                 allowed = "I2"
+    if RANK[allowed] >= RANK["I3"] and _is_security(card):
+        problem = gate_problem(card, root, slug)
+        if problem:
+            allowed = "I2"
+            bits.append(f"security tool: I3 needs the full gate ({problem})")
+    if verdict is not None and _is_security(card) and verdict.get("sandbox") != "sandlock":
+        if RANK["I1"] < RANK[allowed]:
+            allowed = "I1"
+            bits.append("security verdict without sandbox sandlock caps the write at I1")
     if verdict is not None:
         if verdict["modularity_gate"] != "pass":
             if RANK["I1"] < RANK[allowed]:

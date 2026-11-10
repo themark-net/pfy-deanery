@@ -235,14 +235,22 @@ class CatalogLoopTickTest(unittest.TestCase):
             self.assertEqual(status["status"], "ok", blob[-2000:])
             self.assertFalse((state / "QUOTA_STOP.auto").exists())
             launched = set(status["launched"])
-            self.assertEqual(launched, {"aa-iopen", "aa-raise", "zz-open"})
+            # aa-sec: security scanner or guard, raised to I2 and launched under sandlock.
+            self.assertEqual(launched, {"aa-iopen", "aa-raise", "aa-sec", "zz-open"})
             text = log.read_text(encoding="utf-8")
             self.assertIn("--unit=pfy-lane-integrate-aa-iopen", text)
             self.assertIn("--unit=pfy-lane-eval-aa-raise", text)
             self.assertIn("--unit=pfy-lane-eval-zz-open", text)
             self.assertIn("--property=Nice=10", text)
             self.assertEqual(text.count("--unit=pfy-lane-eval-zz-open"), 1)
-            for slug in ("aa-int", "aa-landed", "aa-evq", "aa-gpu", "aa-huge", "aa-sec", "aa-money", "aa-take", "aa-unknown"):
+            sec_line = [line for line in text.splitlines() if "pfy-lane-eval-aa-sec" in line]
+            self.assertEqual(len(sec_line), 1, text)
+            self.assertIn("PFY_LANE_SANDBOX=sandlock", sec_line[0])
+            self.assertNotIn("PFY_LANE_SANDBOX", " ".join(line for line in text.splitlines() if "aa-sec" not in line))
+            sec = json.loads((wt / "data" / "stages" / "aa-sec.json").read_text(encoding="utf-8"))
+            self.assertEqual(sec["tier_ceiling"], "I2")
+            self.assertEqual(sec["ceiling_history"][-1]["to"], "I2")
+            for slug in ("aa-int", "aa-landed", "aa-evq", "aa-gpu", "aa-huge", "aa-money", "aa-take", "aa-unknown"):
                 self.assertNotIn(slug, text, slug)
             ticket = (wt / "tmp" / "TICKET-aa-iopen.md").read_text(encoding="utf-8")
             self.assertIn("catalog-integrate-lane", ticket)
@@ -265,7 +273,7 @@ class CatalogLoopTickTest(unittest.TestCase):
             self.assertNotIn(str(td), needs_text)
             self.assertIn("aa-gpu\tgpu\t", needs_text)
             self.assertIn("aa-huge\tpull-over-25gb\t", needs_text)
-            self.assertIn("aa-sec\trisky-class\tsecurity\t", needs_text)
+            self.assertNotIn("aa-sec\t", needs_text)
             self.assertIn("aa-money\trisky-class\tlive-money\t", needs_text)
             self.assertIn("aa-take\trisky-class\truntime-takeover\t", needs_text)
             self.assertIn("aa-unknown\trisky-class\tunknown\t", needs_text)
@@ -376,7 +384,7 @@ class CatalogLoopTickTest(unittest.TestCase):
             }
             clone = build_repo(td, {
                 "aa-both": card("aa-both"),
-                "aa-dup": card("aa-dup", risk_class="security"),
+                "aa-dup": card("aa-dup", risk_class="live-money"),
             })
             both = clone / "eval" / "evals" / "aa-both" / "VERDICT.json"
             both.parent.mkdir(parents=True, exist_ok=True)

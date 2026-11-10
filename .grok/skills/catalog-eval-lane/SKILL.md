@@ -39,6 +39,10 @@ Worktree: `<state>/wt/<slug>`. Branch: `bot/eval-<slug>-<date>`.
 
 The noclobber `.dispatched` file is the guard. A second start exits 2 when `PFY_LANE_FROM_LOOP` is not `1`. When the catalog loop already created the marker, it sets `PFY_LANE_FROM_LOOP=1` and the lane continues. Do not add another lock.
 
+## Security tools
+
+When `PFY_LANE_SANDBOX=sandlock` is set (the loop sets it for a security scanner or guard), the ticket gains a Sandbox section: every install and tool run goes through `scripts/integrations/sandlock/wrap.py` with `PFY_SANDLOCK=all`. Record `"sandbox": "sandlock"` in VERDICT.json only when no run logged `sandlock: unsandboxed`. Propose at most I2. I3 needs the Tester and Reviewer full gate (see catalog-apply-and-ceiling).
+
 ## Stop rules
 
 - `STOP` under the loop state dir, the repo `tmp/STOP`, the state dir, or the worktree `tmp/STOP`: park and exit 0.

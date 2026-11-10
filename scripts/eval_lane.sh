@@ -203,6 +203,19 @@ Do not hand-edit integration_stage or tier_ceiling.
 ${skill_reads}Follow those skills, then tmp/TICKET-${SLUG}.md.
 EOF
 fi
+if [ "${PFY_LANE_SANDBOX:-}" = "sandlock" ] && ! grep -q '^## Sandbox (security tool)' "$WT/tmp/TICKET-${SLUG}.md"; then
+  cat >> "$WT/tmp/TICKET-${SLUG}.md" <<EOF
+
+## Sandbox (security tool)
+
+This is a security scanner or guard. Run every install and every tool run
+for this trial through scripts/integrations/sandlock/wrap.py with
+PFY_SANDLOCK=all and SANDLOCK_BIN=scripts/integrations/sandlock/confine.py,
+with --cache under tmp/. If wrap.py logs "sandlock: unsandboxed", stop the
+trial and propose I1. Record "sandbox": "sandlock" in VERDICT.json only when
+every run was sandboxed. Propose at most I2. I3 needs the full gate.
+EOF
+fi
 ticket="$WT/tmp/TICKET-${SLUG}.md"
 
 if [ ! -f "$WT/data/stages/${SLUG}.json" ]; then

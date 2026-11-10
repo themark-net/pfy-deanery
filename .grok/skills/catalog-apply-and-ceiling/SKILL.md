@@ -1,6 +1,6 @@
 ---
 name: catalog-apply-and-ceiling
-description: Apply a verdict to a stage card and auto-raise tier_ceiling to I3 only when both gates pass and the risk class is none. The scripts decide. Do not hand-edit the card.
+description: Apply a verdict to a stage card and auto-raise tier_ceiling to I3 only when both gates pass and the risk class is none; security scanners and guards go to I2 with a sandlock trial and need the full gate for I3. The scripts decide. Do not hand-edit the card.
 ---
 
 # Catalog apply and ceiling
@@ -28,7 +28,18 @@ Raise `tier_ceiling` to I3 only when `value_gate` and `modularity_gate` are pass
 
 Never demote. Never lower a ceiling. Never touch a card whose ceiling is already above I3. A ceiling that is already I3 is unchanged.
 
-Skip when the gates fail or the verdict is missing. Refuse when the risk class is `security`, `live-money`, `runtime-takeover`, or `unknown`. Those rows belong in needs-mark.
+Skip when the gates fail or the verdict is missing. Refuse when the risk class is `live-money`, `runtime-takeover`, or `unknown`. Those rows belong in needs-mark.
+
+## Security tools (operator decision 2026-11-10)
+
+A card whose risk class is exactly `security` (a scanner or guard) does not wait for the operator below I3.
+
+- Auto-raise raises its `tier_ceiling` to I2, with no verdict needed. It never raises a security card to I3. A security card at ceiling I2 or above is skipped with `security: I3 needs the full gate`.
+- `--launch-check` prints `launch <slug> security-sandbox` for a security card below I2 with ceiling I2 or above. The loop starts that eval lane with `PFY_LANE_SANDBOX=sandlock`, and the lane ticket says to run every install and tool run through `scripts/integrations/sandlock/wrap.py` with `PFY_SANDLOCK=all` and `SANDLOCK_BIN=scripts/integrations/sandlock/confine.py`.
+- Apply caps a security verdict at I1 unless it records `"sandbox": "sandlock"`. A lane writes that only when no run logged `sandlock: unsandboxed`.
+- I3 or I4 for a security card also needs the full gate: the card cites `gate:eval/integrate/<slug>/GATE.json`, and that file has `slug`, a 40-hex `pinned_sha` on origin/main, and `tester` and `reviewer` objects that both have `verdict: PASS` and `sha` equal to `pinned_sha`. Without it apply caps the card at I2 and names the problem (`security-gate-missing`, `-malformed`, `-not-pass`, `-sha-mismatch`, or a receipt SHA reason).
+- The Tester and Reviewer write GATE.json. A lane, apply, or the loop never writes it. Do not self-approve.
+- needs-mark no longer lists `risky-class security` rows.
 
 A slug listed in `eval/catalog-queue/exclusions.tsv` is refused by apply and by auto-raise, before the gate check. The card bytes stay as they were. Passing gates do not raise it. `atomic-task-graph-atg` stays on that list. Do not promote it and do not raise its ceiling.
 
@@ -69,7 +80,8 @@ The commands are pure over the cards and verdicts. A second run with the same in
 ## Stop rules
 
 - Do not hand-edit a card to force a stage or a ceiling.
-- Do not raise a security, live-money, runtime-takeover, or unknown card.
+- Do not raise a live-money, runtime-takeover, or unknown card. Raise a security card to I2 only, never to I3.
+- Do not write or edit a GATE.json for a security card.
 - Do not raise a GPU card, a pull over 25 GB, or a release or deploy card.
 - Stop on stderr that starts with `refused:`. Leave the card bytes as they were.
 

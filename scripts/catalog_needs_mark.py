@@ -211,7 +211,10 @@ def collect(
             rows.append((slug, "gpu", "card text names a GPU run", evidence, "-"))
         elif blocked == "release-deploy":
             rows.append((slug, "risky-class", "release or deploy stays with the operator", evidence, "-"))
-        if risk in ("security", "live-money", "runtime-takeover", "unknown"):
+        # security is not listed: since the operator decision of 2026-11-10 a
+        # scanner or guard runs its I2 trial in sandlock without asking, and
+        # I3 goes through the Tester and Reviewer full gate, not the operator.
+        if risk in ("live-money", "runtime-takeover", "unknown"):
             rows.append((slug, "risky-class", risk, evidence, "-"))
     rows.extend(_demotions(root, report, names))
     rows.extend(_parked(root, parked_roots))
