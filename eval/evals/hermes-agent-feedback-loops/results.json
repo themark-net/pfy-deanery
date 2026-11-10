@@ -1,0 +1,38 @@
+{
+  "metric": "ported_loops",
+  "threshold": 3,
+  "ported_loops": 3,
+  "consistent": true,
+  "loops": [
+    {
+      "id": "auto_memory",
+      "ok": true,
+      "missing": []
+    },
+    {
+      "id": "auto_skill",
+      "ok": true,
+      "missing": []
+    },
+    {
+      "id": "curator",
+      "ok": true,
+      "missing": []
+    }
+  ],
+  "guards": {
+    "install_forbidden": true,
+    "daemon_omitted": true,
+    "no_hermes_binary": true,
+    "manifest_not_runtime": true,
+    "structural_lists_skill": true,
+    "reflect_routes_skill": true,
+    "mirror_skill_match": true,
+    "mirror_port_match": true
+  },
+  "skill_sha256": "ff72530ce19a7bbdf8296845c6c8e8ed5c7e1e8da3808abf4fc4f7ff9429f4d0",
+  "port_sha256": "64202a2da85333ab547f40b764eb66cd29c12f32408e93074bbba52b22ebdd96",
+  "runs": 0,
+  "installed": false,
+  "daemon_started": false
+}

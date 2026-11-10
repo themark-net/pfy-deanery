@@ -1,0 +1,53 @@
+{
+  "metric": "ported_loops",
+  "threshold": 3,
+  "ported_loops": 3,
+  "value_gate": "fail",
+  "modularity_gate": "fail",
+  "proposed_stage": "I1",
+  "intent": "staged_evaluation",
+  "skill_sha256": "ff72530ce19a7bbdf8296845c6c8e8ed5c7e1e8da3808abf4fc4f7ff9429f4d0",
+  "port_sha256": "64202a2da85333ab547f40b764eb66cd29c12f32408e93074bbba52b22ebdd96",
+  "runs": 0,
+  "installed": false,
+  "daemon_started": false,
+  "value_legs": {
+    "gap_fill": "fail",
+    "operator_leverage": "fail",
+    "evidence": "pass",
+    "blast_radius": "pass"
+  },
+  "modularity_legs": {
+    "local_code_needed": "fail",
+    "bounded_surface": "pass",
+    "isolatable": "pass",
+    "reversible": "pass"
+  },
+  "intake": {
+    "github_url": "duplicate hermes-agent sources/entries/134-hermes-agent.md",
+    "display_name": "duplicate hermes-agent-feedback-loops data/stages/hermes-agent-feedback-loops.json",
+    "wrote_card": false
+  },
+  "supersede": {
+    "coverage": {
+      "track": "none",
+      "catalog": "partial",
+      "evaluate": "partial",
+      "integrate": "partial"
+    },
+    "checker": {
+      "parts": ["catalog", "evaluate", "integrate"],
+      "coverage": {
+        "track": "none",
+        "catalog": "partial",
+        "evaluate": "partial",
+        "integrate": "partial"
+      },
+      "suite": ["track", "catalog", "evaluate", "integrate"],
+      "supersede_candidate": true
+    },
+    "watchlist_row": true,
+    "why": "The watchlist already records Hermes Agent as adopt_part with catalog, evaluate, and integrate at partial. scripts/supersede_check.py --parts track=none,catalog=partial,evaluate=partial,integrate=partial returns supersede_candidate true. That row is the record. This lane does not add a second row. The adopted part is the skill. Track is none, so the checker does not stop the suite. Do not replace this repo with Hermes."
+  },
+  "next_gate": "Stay I1. The three loops are already the first-party skill. Do not install the daemon. Re-open only if a later ticket names a hole this skill does not cover and the operator raises tier_ceiling. No gate wiring."
+}
