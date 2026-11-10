@@ -9,10 +9,20 @@ start-marker directory, default-deny network, and `--clean-env`.
 
 SANDLOCK_REAL selects the binary. When it is unset, the cache unpack path
 is used. A missing binary exits 1 before exec so wrap.py can fall open.
+
+SANDLOCK_EXTRA_READS (colon list) adds read grants, for example the
+directory of a pinned tool binary. SANDLOCK_PROFILE, when set, names a JSON
+file that gets the profile of the run this adapter builds, just before exec:
+reads, writes, network "deny", clean_env, sudo false, and the timeout. The
+home directory is written as $HOME. data/promotion-rules.json rule
+S-profile-readonly reads that profile from the sandbox trial
+(scripts/integrations/sandlock/trial.py). The self-test of `true` writes no
+profile.
 """
 
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 import sys
@@ -60,12 +70,62 @@ def extra_reads(cmd: list[str]) -> list[str]:
     return found
 
 
+def env_reads() -> list[str]:
+    raw = os.environ.get("SANDLOCK_EXTRA_READS", "")
+    return [item for item in raw.split(":") if item.startswith("/") and os.path.isdir(item)]
+
+
+def _label(path: str) -> str:
+    home = str(Path.home())
+    if path == home or path.startswith(home + "/"):
+        return "$HOME" + path[len(home):]
+    return path
+
+
+def profile_of(argv: list[str], cmd: list[str]) -> dict:
+    """What the sandlock run built from argv allows. Paths under the home are $HOME/..."""
+    reads: list[str] = []
+    writes: list[str] = []
+    index = 0
+    while index < len(argv):
+        item = argv[index]
+        if item == "--":
+            break
+        if item in ("-r", "-w") and index + 1 < len(argv):
+            target = reads if item == "-r" else writes
+            label = _label(argv[index + 1])
+            if label not in target:
+                target.append(label)
+            index += 2
+            continue
+        index += 1
+    names = {os.path.basename(part) for part in cmd}
+    return {
+        "sandbox": "sandlock",
+        "reads": reads,
+        "writes": writes,
+        "network": "deny",
+        "clean_env": "--clean-env" in argv,
+        "sudo": bool(names & {"sudo", "doas", "pkexec", "su"}) or os.geteuid() == 0,
+        "timeout_sec": int(COMMAND_TIMEOUT),
+    }
+
+
+def write_profile(argv: list[str], cmd: list[str]) -> None:
+    raw = os.environ.get("SANDLOCK_PROFILE", "").strip()
+    if not raw:
+        return
+    path = Path(raw)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(profile_of(argv, cmd), indent=2) + "\n", encoding="utf-8")
+
+
 def build_run(real: str, cmd: list[str]) -> list[str]:
     argv = [real, "run"]
     for path in READS:
         if os.path.isdir(path):
             argv.extend(["-r", path])
-    for path in extra_reads(cmd):
+    for path in extra_reads(cmd) + env_reads():
         argv.extend(["-r", path])
     writes: list[str] = []
     started = os.environ.get("SANDLOCK_STARTED", "").strip()
@@ -77,6 +137,9 @@ def build_run(real: str, cmd: list[str]) -> list[str]:
     if stage:
         writes.append(stage)
         argv.extend(["--env", "SANDLOCK_STAGE=%s" % stage])
+    # Shell scripts redirect to /dev/null. Writing there reaches no file.
+    if os.path.exists("/dev/null"):
+        writes.append("/dev/null")
     for key in ("PATH", "LANG", "LC_ALL", "TMPDIR"):
         value = os.environ.get(key, "")
         if value:
@@ -117,8 +180,13 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     if cmd == ["true"]:
         return 0 if self_test(real) else 1
+    argv = build_run(real, cmd)
     try:
-        os.execv(real, build_run(real, cmd))
+        write_profile(argv, cmd)
+    except OSError:
+        return 1
+    try:
+        os.execv(real, argv)
     except OSError:
         return 1
     return 127
