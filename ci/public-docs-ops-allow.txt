@@ -55,6 +55,7 @@ docs/ops/one-shot-workflow.md
 docs/ops/opencontext.md
 docs/ops/pfy-build-daily.md
 docs/ops/product-operator-surface.md
+docs/ops/promotion-rules.md
 docs/ops/recommend-models.md
 docs/ops/session-compose.md
 docs/ops/simple-launch.md
