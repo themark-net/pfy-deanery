@@ -135,13 +135,32 @@ jobs:
           fi
           test "$(git rev-parse --is-shallow-repository)" = false
           log="$RUNNER_TEMP/real-tree-audits.log"
+          # A failing or erroring test fails this step through pipefail.
           python3 -m unittest -v tests.test_dogfood2_1031_report tests.test_selfhost_1031_log 2>&1 | tee "$log"
-          if grep -q "skipped" "$log"; then
-            echo "real-tree audit skipped with full history"
+          # The run records these audits read live in the private ops repo
+          # (tests/_ops.py). Public CI has no PFY_OPS_ROOT, so those audits
+          # skip with the named ops-absent reason. Any other skip (a shallow
+          # clone, a missing commit) is still a failure.
+          ops_skip=" ... skipped 'private ops record absent (set PFY_OPS_ROOT)"
+          other=$(grep -F " ... skipped" "$log" | grep -vF "$ops_skip" || true)
+          if [ -n "$other" ]; then
+            echo "real-tree audit skipped with full history: $other"
             exit 1
           fi
-          grep -q "test_real_tree_matches_receipts_and_trailers .* ok$" "$log"
-          grep -q "test_this_branch_has_no_bad_built_by_trailer .* ok$" "$log"
+          if [ -n "${PFY_OPS_ROOT:-}" ]; then
+            # Ops is present: the two real-tree audits must run and pass.
+            if grep -qF "$ops_skip" "$log"; then
+              echo "PFY_OPS_ROOT is set but an ops record is absent"
+              exit 1
+            fi
+            grep -q "test_real_tree_matches_receipts_and_trailers .* ok$" "$log"
+            grep -q "test_this_branch_has_no_bad_built_by_trailer .* ok$" "$log"
+          else
+            echo "ops checkout absent: private-record audits skipped; public checks below must pass"
+            grep -q "test_runner_subject_matches_the_cloud_runner .* ok$" "$log"
+            grep -q "test_planted_bad_trailer_fails_and_a_pass_receipt_matches .* ok$" "$log"
+            grep -q "test_reworded_commit_must_keep_its_recorded_patch_id .* ok$" "$log"
+          fi
       - name: Upload receipts
         if: always()
         uses: actions/upload-artifact@v4

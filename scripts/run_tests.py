@@ -80,13 +80,19 @@ def repo_root_from(start: Path) -> Path:
 
 
 def default_module_files(root: Path) -> list[str]:
-    """Posix paths of every tests/test_*.py. This is the full suite."""
+    """Posix paths of every tests/**/test_*.py. This is the full suite.
+
+    Files under a ``fixtures`` directory are test data that a test copies
+    into a temp repo, not suite modules, so they are left out. This matches
+    scripts/test_select.py, which never selects a path under ``/fixtures/``.
+    """
     base = root / "tests"
     if not base.is_dir():
         return []
     found: list[str] = []
     for path in base.rglob("test_*.py"):
-        if "__pycache__" in path.parts:
+        rel_parts = path.relative_to(base).parts
+        if "__pycache__" in rel_parts or "fixtures" in rel_parts:
             continue
         found.append(path.relative_to(root).as_posix())
     return sorted(found)

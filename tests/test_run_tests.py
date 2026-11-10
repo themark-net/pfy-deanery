@@ -81,6 +81,27 @@ class RunTestsTests(unittest.TestCase):
     def _argv(self, *extra: str) -> list[str]:
         return [sys.executable, str(RUN), "--root", str(self.tmp), "-j", "2", *extra]
 
+    def test_full_suite_skips_fixture_test_files(self) -> None:
+        """Fail: a fixture's test_*.py under tests/fixtures/ is collected as a
+        suite module and errors on import (the nightly full suite went red on
+        tests.fixtures.mvp_receipt.fixture.test_add). Recovery: the default
+        list leaves out any path under a fixtures directory and keeps the
+        real modules.
+        """
+        fixture = self.tmp / "tests" / "fixtures" / "demo" / "fixture"
+        fixture.mkdir(parents=True)
+        (fixture / "test_add.py").write_text("from add import add\n", encoding="utf-8")
+        nested = self.tmp / "tests" / "sub"
+        nested.mkdir()
+        (nested / "__init__.py").write_text("", encoding="utf-8")
+        (nested / "test_nested.py").write_text("", encoding="utf-8")
+        proc = subprocess.run(
+            self._argv("--list"), cwd=self.tmp, env=self.env, capture_output=True, text=True
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        listed = [line for line in proc.stdout.splitlines() if line]
+        self.assertEqual(listed, ["tests.sub.test_nested", "tests.test_bad", "tests.test_ok"])
+
     def test_shards_cover_the_list_once_and_a_bad_shard_stays_red(self) -> None:
         """Fail: one shard runs every module, or a shard that contains the
         failing module exits 0. Recovery: each name lands in one slot, the

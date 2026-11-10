@@ -223,7 +223,12 @@
         "skills": [
           {"name": "adr", "from": "bootstrap/grok-cli/skills/adr"},
           {"name": "agent-loops", "from": "bootstrap/grok-cli/skills/agent-loops"},
+          {"name": "catalog-apply-and-ceiling", "from": "bootstrap/grok-cli/skills/catalog-apply-and-ceiling"},
           {"name": "catalog-docs", "from": "bootstrap/grok-cli/skills/catalog-docs"},
+          {"name": "catalog-eval-lane", "from": "bootstrap/grok-cli/skills/catalog-eval-lane"},
+          {"name": "catalog-intake-dedupe", "from": "bootstrap/grok-cli/skills/catalog-intake-dedupe"},
+          {"name": "catalog-integrate-lane", "from": "bootstrap/grok-cli/skills/catalog-integrate-lane"},
+          {"name": "catalog-loop-operator", "from": "bootstrap/grok-cli/skills/catalog-loop-operator"},
           {"name": "docs", "from": "bootstrap/grok-cli/skills/docs"},
           {"name": "hermes-feedback", "from": "bootstrap/grok-cli/skills/hermes-feedback"},
           {"name": "investigate", "from": "bootstrap/grok-cli/skills/investigate"},
