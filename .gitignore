@@ -181,6 +181,10 @@ pipelines/smoke/pi-harness/
 pipelines/smoke/localharness/
 pipelines/smoke/cartographer/
 pipelines/smoke/agent-manager/
+# 174-176 receipts.
+pipelines/smoke/jcode/
+pipelines/smoke/neuronto/
+pipelines/smoke/bricks/
 
 # Private operator material lives in the pfy-mentat-ops checkout (PFY_OPS_ROOT).
 # These paths moved there on 2026-11-09. scripts/check_public_paths.py also

@@ -307,3 +307,7 @@ or a stdlib fetch, checks the SHA, and exits 2 without installing anything. `PFY
 Entries 171-173 (`smoke_171.py`, `smoke_172.py`, `smoke_173.py`) are commit-metadata receipts for LocalHarness, Cartographer and
 agent-manager. Each reads the pinned GitHub commit JSON through `$LOCALHARNESS_FETCH_BIN` / `$CARTOGRAPHER_FETCH_BIN` /
 `$AGENTMANAGER_FETCH_BIN` or a stdlib fetch, checks the SHA, and exits 2 without installing anything. `PFY_XINTAKE_TIMEOUT` overrides the timeout.
+
+Entries 174-176 (`smoke_174.py`, `smoke_175.py`, `smoke_176.py`) are commit-metadata receipts for jcode, Neuronto ARD and
+Bricks. Each reads the pinned GitHub commit JSON through `$JCODE_FETCH_BIN` / `$NEURONTO_FETCH_BIN` /
+`$BRICKS_FETCH_BIN` or a stdlib fetch, checks the SHA, and exits 2 without installing anything. `PFY_XINTAKE_TIMEOUT` overrides the timeout.
