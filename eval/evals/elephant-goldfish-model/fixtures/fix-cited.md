@@ -49,7 +49,7 @@ Cited excerpts for the recheck ticket. Source commit 83d204bede34634cb719e460012
 1735|            hooks = dest.parent / ("recheck-hooks-" + sha[:12])
 1736|            hooks.mkdir(parents=True, exist_ok=True)
 1748|                "core.hooksPath=%s" % hooks,
-1750|            init = subprocess.run([*git_base, "init", "-q"], ...)
+1750|            init = subprocess.run([*git_base, "init", "-q"], capture_output=True, check=False)
 1753|                [*git_base, "commit", "-q", "--allow-empty", "-m", "recheck"],
 1761|            if again.get("aborted") == "timeout":
 1762|                return "timeout", tail
@@ -94,7 +94,3 @@ pregate(){ local sha=$1
 
 ff(){ ( cd "$WT" && git fetch -q origin && git merge-base --is-ancestor origin/main "$1" && git push -q origin "$1:refs/heads/main" ) }
 ```
-
-In the slice loop, a pregate failure increments the fail count and continues. After CI is green, ff is the land step. Success logs LANDED. Failure logs `FF failed (main moved?)`, increments the fail count, and rebases onto origin/main. A rebase that cannot start aborts and leaves the loop. After two failures the driver writes PARKED.
-
-flock -w 1800 starts scripts/pregate.sh only after the lock is free. The log file is the stdout of that script. grep looks for OVERALL=PASS in that log. A wait that ends before the script runs leaves the log empty, and grep then fails.

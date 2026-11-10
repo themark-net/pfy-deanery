@@ -4,68 +4,71 @@
   "license": "Apache-2.0",
   "installed": false,
   "model": "grok-4.7-build",
-  "parallel_wall_s": 152.747,
+  "parallel_wall_s": 270.637,
   "clean_ticket": "slice1",
-  "clean_ticket_blockers": 2,
+  "clean_ticket_blockers": 3,
   "threshold": 4,
   "clean_ticket_bar": "pass",
   "driver_lock_in_cited_packet": true,
   "land_step_in_cited_packet": true,
-  "lock_wait_named": true,
+  "lock_wait_named": false,
   "fast_forward_named": true,
   "park_causes_named_as_blocker": false,
+  "packet": "shell-only",
   "tickets": {
     "fix": {
       "ok": true,
-      "wall_s": 145.635,
-      "elephant_wall_s": 26.483,
+      "wall_s": 150.395,
+      "elephant_wall_s": 30.446,
       "elephant_turns": 1,
+      "elephant_attempts": 1,
       "model": "grok-4.7-build",
       "personas": {
         "readiness": {
           "ok": true,
-          "wall_s": 78.154,
-          "turns": 1,
-          "attempts": 1,
-          "Blocker": 2,
-          "Major": 4,
-          "Nit": 0
-        },
-        "critic": {
-          "ok": true,
-          "wall_s": 119.149,
+          "wall_s": 119.947,
           "turns": 1,
           "attempts": 1,
           "Blocker": 1,
-          "Major": 4,
+          "Major": 3,
+          "Nit": 1
+        },
+        "critic": {
+          "ok": true,
+          "wall_s": 109.645,
+          "turns": 1,
+          "attempts": 1,
+          "Blocker": 2,
+          "Major": 2,
           "Nit": 0
         },
         "codebase": {
           "ok": true,
-          "wall_s": 95.198,
+          "wall_s": 105.271,
           "turns": 1,
           "attempts": 1,
           "Blocker": 1,
-          "Major": 4,
+          "Major": 2,
           "Nit": 0
         }
       },
       "totals": {
         "Blocker": 4,
-        "Major": 12,
-        "Nit": 0
+        "Major": 7,
+        "Nit": 1
       }
     },
     "handoff": {
       "ok": true,
-      "wall_s": 91.266,
-      "elephant_wall_s": 35.419,
+      "wall_s": 270.637,
+      "elephant_wall_s": 21.276,
       "elephant_turns": 1,
+      "elephant_attempts": 2,
       "model": "grok-4.7-build",
       "personas": {
         "readiness": {
           "ok": true,
-          "wall_s": 52.178,
+          "wall_s": 37.195,
           "turns": 1,
           "attempts": 1,
           "Blocker": 3,
@@ -74,67 +77,68 @@
         },
         "critic": {
           "ok": true,
-          "wall_s": 55.845,
-          "turns": 1,
-          "attempts": 1,
-          "Blocker": 0,
-          "Major": 4,
-          "Nit": 0
-        },
-        "codebase": {
-          "ok": true,
-          "wall_s": 54.063,
+          "wall_s": 69.246,
           "turns": 1,
           "attempts": 1,
           "Blocker": 1,
-          "Major": 1,
-          "Nit": 1
-        }
-      },
-      "totals": {
-        "Blocker": 4,
-        "Major": 7,
-        "Nit": 2
-      }
-    },
-    "slice1": {
-      "ok": true,
-      "wall_s": 152.747,
-      "elephant_wall_s": 37.447,
-      "elephant_turns": 1,
-      "model": "grok-4.7-build",
-      "personas": {
-        "readiness": {
-          "ok": true,
-          "wall_s": 99.903,
-          "turns": 1,
-          "attempts": 1,
-          "Blocker": 2,
-          "Major": 4,
-          "Nit": 0
-        },
-        "critic": {
-          "ok": true,
-          "wall_s": 115.298,
-          "turns": 1,
-          "attempts": 1,
-          "Blocker": 0,
           "Major": 2,
           "Nit": 0
         },
         "codebase": {
           "ok": true,
-          "wall_s": 82.822,
+          "wall_s": 68.508,
           "turns": 1,
           "attempts": 1,
-          "Blocker": 0,
-          "Major": 1,
+          "Blocker": 1,
+          "Major": 3,
           "Nit": 0
         }
       },
       "totals": {
-        "Blocker": 2,
+        "Blocker": 5,
         "Major": 7,
+        "Nit": 1
+      }
+    },
+    "slice1": {
+      "ok": true,
+      "wall_s": 126.093,
+      "elephant_wall_s": 45.171,
+      "elephant_turns": 1,
+      "elephant_attempts": 1,
+      "model": "grok-4.7-build",
+      "personas": {
+        "readiness": {
+          "ok": true,
+          "wall_s": 64.984,
+          "turns": 1,
+          "attempts": 1,
+          "Blocker": 2,
+          "Major": 2,
+          "Nit": 0
+        },
+        "critic": {
+          "ok": true,
+          "wall_s": 80.92,
+          "turns": 1,
+          "attempts": 1,
+          "Blocker": 1,
+          "Major": 3,
+          "Nit": 0
+        },
+        "codebase": {
+          "ok": true,
+          "wall_s": 65.706,
+          "turns": 1,
+          "attempts": 1,
+          "Blocker": 0,
+          "Major": 3,
+          "Nit": 0
+        }
+      },
+      "totals": {
+        "Blocker": 3,
+        "Major": 8,
         "Nit": 0
       }
     }
