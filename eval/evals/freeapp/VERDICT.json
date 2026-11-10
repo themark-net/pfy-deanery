@@ -1,0 +1,64 @@
+{
+  "metric": "stage0_legs_present",
+  "threshold": 3,
+  "value": 0,
+  "stage0_legs_present": 0,
+  "value_gate": "fail",
+  "modularity_gate": "fail",
+  "proposed_stage": "I0",
+  "intent": "awareness",
+  "read_date": "2026-11-10",
+  "source_url": "https://www.freeapp.ai/",
+  "public_git_pin": false,
+  "installer_text_present": false,
+  "hello_world_command_present": false,
+  "license_open": false,
+  "price_usd_founder": 299,
+  "later_price_on_homepage": "89/mo",
+  "runs": 0,
+  "installed": false,
+  "stage0_legs": {
+    "license_open": "fail",
+    "quickstart_shown": "fail",
+    "hello_world_command": "fail"
+  },
+  "value_legs": {
+    "gap_fill": "fail",
+    "operator_leverage": "fail",
+    "evidence": "fail",
+    "blast_radius": "fail"
+  },
+  "modularity_legs": {
+    "local_code_needed": "pass",
+    "bounded_surface": "fail",
+    "isolatable": "fail",
+    "reversible": "fail"
+  },
+  "intake": {
+    "name_line": "duplicate freeapp data/stages/freeapp.json",
+    "url_line": "new https-www-freeapp-ai",
+    "wrote_card": false
+  },
+  "supersede": {
+    "coverage": {
+      "track": "none",
+      "catalog": "none",
+      "evaluate": "none",
+      "integrate": "none"
+    },
+    "checker": {
+      "parts": [],
+      "coverage": {
+        "track": "none",
+        "catalog": "none",
+        "evaluate": "none",
+        "integrate": "none"
+      },
+      "suite": ["track", "catalog", "evaluate", "integrate"],
+      "supersede_candidate": false
+    },
+    "watchlist_row": false,
+    "why": "A paid voice client for a coding agent on a server the operator owns. It does not watch outside sources, it does not keep a stage card per tool, it does not score tools on I0-I4, and it does not wire a tool with a run on main. A local daemon is not the integrate part. scripts/supersede_check.py --parts track=none,catalog=none,evaluate=none,integrate=none is not a candidate. No watchlist row."
+  },
+  "next_gate": "Stay I0. Stage-0 legs present: 0 of 3. The public site on 2026-11-10 still sells a founder licence at $299, still says one script without printing it, and still has no public git pin. Founder repository access is private and only after payment. Do not install. Do not buy a licence for this lab. Do not add a TOOLS.md row. Do not treat a different repository that happens to be named freeapp as this product. Re-open only when the vendor publishes a git pin, a license that allows commercial and research use without a paid grant, a shown install that finishes in under 5 minutes, and one runnable hello-world. A voice-path change still needs a new ADR."
+}
