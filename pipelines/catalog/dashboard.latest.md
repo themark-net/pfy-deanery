@@ -10,8 +10,8 @@ Cards: 135. I2+: 22.
 
 | Stage | Count |
 |-------|------:|
-| I0 | 50 |
-| I1 | 63 |
+| I0 | 49 |
+| I1 | 64 |
 | I2 | 3 |
 | I3 | 19 |
 
@@ -86,7 +86,7 @@ Cards: 135. I2+: 22.
 | Auto-Company | I1 | catalog_default |
 | awesome-hermes-skills | I1 | catalog_default |
 | Axon | I1 | staged_evaluation |
-| Bricks | I0 | (missing) |
+| Bricks | I1 | (missing) |
 | Brigade | I0 | awareness |
 | BugPatrol | I1 | staged_evaluation |
 | Bumblebee | I2 | catalog_default |

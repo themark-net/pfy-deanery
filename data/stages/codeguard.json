@@ -15,7 +15,7 @@
   ],
   "potential": "low",
   "next_gate": "Stay I0. Potential is low, so I2 does not apply. A later probe can argue I2 only if an offline run emits SARIF that catches shell=True and a Python secret written to a log, with no hosted model. That still would not replace SkillSpector as the H2 copy check. No gate wiring.",
-  "tier_ceiling": "I1",
+  "tier_ceiling": "I2",
   "non_goals": [
     "feature_go",
     "catalog_hold_70_75",
@@ -36,5 +36,15 @@
   "self_pipeline": {
     "status": "not_applicable",
     "reason": "Advisory probe only in ops:eval/evq1107/codeguard/REPORT.md. The SARIF reviewer was not run. Not applied to pregate or CI."
-  }
+  },
+  "ceiling_history": [
+    {
+      "from": "I1",
+      "to": "I2",
+      "by": "catalog_loop",
+      "date": "2026-11-10",
+      "reason": "security scanner or guard: I2 sandbox trial allowed by the operator decision of 2026-11-10; I3 needs the full gate",
+      "evidence": []
+    }
+  ]
 }

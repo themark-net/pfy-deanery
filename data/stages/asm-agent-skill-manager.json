@@ -33,7 +33,7 @@
     "eval/evq1107/asm-agent-skill-manager/VERDICT",
     "eval/evq1107/asm-agent-skill-manager/results.json"
   ],
-  "tier_ceiling": "I1",
+  "tier_ceiling": "I2",
   "uses": "Copy a local skill into a project provider directory. The 2026-11-07 probe labeled a planted SKILL.md high risk and still copied it (0/1 blocked). audit security on that copy read 0 files and returned safe.",
   "features": [
     "project copy to grok and opencode",
@@ -48,5 +48,15 @@
     "pregate or CI gate",
     "feature_go",
     "vendor the CLI"
+  ],
+  "ceiling_history": [
+    {
+      "from": "I1",
+      "to": "I2",
+      "by": "catalog_loop",
+      "date": "2026-11-10",
+      "reason": "security scanner or guard: I2 sandbox trial allowed by the operator decision of 2026-11-10; I3 needs the full gate",
+      "evidence": []
+    }
   ]
 }

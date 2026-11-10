@@ -11,7 +11,7 @@
   ],
   "potential": "low",
   "next_gate": "Stay I1. Do not wire a gate. Overlap tied a rename-aware git intersection and was slower. Both reviewer roles set to N/A reached done, and the aggregate view listed 0 runs. Reopen only if a later ticket runs PMQA and Security as separate read-only agents and shows must-fix findings our review bots miss, and that ticket grills wiring first. Live start stays skipped until tmux or herdr exists and the executor is not the doctor default (codex).",
-  "tier_ceiling": "I1",
+  "tier_ceiling": "I2",
   "non_goals": [
     "feature_go",
     "gate_wiring",
@@ -30,5 +30,15 @@
   "self_pipeline": {
     "status": "not_applicable",
     "reason": "Read-only overlap on one merge and a throwaway board. Not applied to this repo's pipeline. The done gate is not a CI check. Not a gate."
-  }
+  },
+  "ceiling_history": [
+    {
+      "from": "I1",
+      "to": "I2",
+      "by": "catalog_loop",
+      "date": "2026-11-10",
+      "reason": "security scanner or guard: I2 sandbox trial allowed by the operator decision of 2026-11-10; I3 needs the full gate",
+      "evidence": []
+    }
+  ]
 }

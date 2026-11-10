@@ -24,11 +24,11 @@ Scanned 135 cards. Mismatches 10.
 | Tool | Stage | Evidence ceiling | Tier ceiling | Allowed | Why |
 | --- | --- | --- | --- | --- | --- |
 | Antigravity-Manager | I1 | I1 | I0 | I0 | evidence I1: notes; tier_ceiling I0 caps the evidence |
-| Bumblebee | I2 | I1 | I1 | I1 | evidence I1: notes, pin, report, VERDICT, script; tier_ceiling I1 agrees |
 | Grok CLI bootstrap | I3 | I2 | I3 | I2 | evidence I2: make target, repo path; tier_ceiling I3 does not raise it; missing-main-receipt |
 | MLX + MLX-LM | I1 | I0 | I1 | I0 | evidence I0: no evidence listed; tier_ceiling I1 does not raise it |
 | SkillSpector | I3 | I1 | I3 | I1 | evidence I1: entry, notes, pin, scan summary, report; tier_ceiling I3 does not raise it; missing-main-receipt |
 | agent-cage (PNNL) | I3 | I2 | I3 | I2 | evidence I2: make target, repo path; tier_ceiling I3 does not raise it; missing-main-receipt |
+| destructive_command_guard | I3 | I3 | I3 | I2 | evidence I3: entry, pin, record, report, VERDICT, probe artifact, main-run receipt; tier_ceiling I3 agrees; security tool: I3 needs the full gate (security-gate-missing) |
 | llama.cpp (server mode) | I1 | I0 | I1 | I0 | evidence I0: no evidence listed; tier_ceiling I1 does not raise it |
 | project-process bootstrap | I3 | I2 | I3 | I2 | evidence I2: repo path; tier_ceiling I3 does not raise it; missing-main-receipt |
 | skill-up | I3 | I1 | I3 | I1 | evidence I1: summary, report, entry; tier_ceiling I3 does not raise it; a self_pipeline record does not raise this evidence; missing-main-receipt |

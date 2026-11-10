@@ -14,7 +14,7 @@
   ],
   "potential": "low",
   "next_gate": "Stay I0. Reconsider only if upstream allows argument-hint and disable-model-invocation, or this repo drops those keys. Trigger evals stay with skill-up. No gate wiring from this lane.",
-  "tier_ceiling": "I1",
+  "tier_ceiling": "I2",
   "non_goals": [
     "feature_go",
     "catalog_hold_70_75",
@@ -30,5 +30,15 @@
     "ops:eval/ev1107/osc/REPORT.md",
     "eval/ev1107/osc/results.json"
   ],
-  "handoff_by": "llm"
+  "handoff_by": "llm",
+  "ceiling_history": [
+    {
+      "from": "I1",
+      "to": "I2",
+      "by": "catalog_loop",
+      "date": "2026-11-10",
+      "reason": "security scanner or guard: I2 sandbox trial allowed by the operator decision of 2026-11-10; I3 needs the full gate",
+      "evidence": []
+    }
+  ]
 }

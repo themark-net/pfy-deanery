@@ -14,7 +14,7 @@
   ],
   "potential": "low",
   "next_gate": "Stay I0. A later slice may copy one SAFE skill only (property-based-testing, variant-analysis, or differential-review) after the install check exits 0 on that directory alone, with the license, credit, URL, and this pin, byte-identical, plus a separate PORT.md. It still has to find a defect on a pfy diff that the review skill and the existing tests miss. No gate wiring and no Feature GO from this lane.",
-  "tier_ceiling": "I1",
+  "tier_ceiling": "I2",
   "non_goals": [
     "feature_go",
     "catalog_hold_70_75",
@@ -35,5 +35,15 @@
   "self_pipeline": {
     "status": "not_applicable",
     "reason": "Advisory probe only in ops:eval/evq1107/trailofbits-skills/REPORT.md. The pack is not on pregate or CI. SkillSpector remains the install check."
-  }
+  },
+  "ceiling_history": [
+    {
+      "from": "I1",
+      "to": "I2",
+      "by": "catalog_loop",
+      "date": "2026-11-10",
+      "reason": "security scanner or guard: I2 sandbox trial allowed by the operator decision of 2026-11-10; I3 needs the full gate",
+      "evidence": []
+    }
+  ]
 }
