@@ -27,6 +27,9 @@ jobs:
     # follows the image.
     name: G0 (ubuntu-24.04)
     runs-on: ubuntu-24.04
+    # A hung apt mirror held shard 0 of run 42764532767 for 30+ minutes
+    # under the 360-minute default. Fail the job instead.
+    timeout-minutes: 30
     # Full suite on this image is over 5 minutes. Four shards by module hash
     # run the same non-test checks and a quarter of the selected modules.
     strategy:
@@ -57,6 +60,7 @@ jobs:
           test -n "$pin_py"
           "$pin_py" scripts/check_workflow_image_pin.py .github/workflows
       - name: Install ripgrep (harness2 sandbox tests need rg)
+        timeout-minutes: 5
         run: |
           set -euo pipefail
           if ! command -v rg >/dev/null 2>&1; then

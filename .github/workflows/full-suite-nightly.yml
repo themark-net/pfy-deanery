@@ -12,6 +12,9 @@ jobs:
   full-suite:
     name: Full suite backstop
     runs-on: ubuntu-24.04
+    # A hung apt mirror held shard 0 of run 42764532767 for 30+ minutes
+    # under the 360-minute default. Fail the job instead.
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -22,6 +25,7 @@ jobs:
           set -euo pipefail
           python3 -m pip install --disable-pip-version-check -q pyyaml
       - name: Install ripgrep (harness2 sandbox tests need rg)
+        timeout-minutes: 5
         run: |
           set -euo pipefail
           if ! command -v rg >/dev/null 2>&1; then
