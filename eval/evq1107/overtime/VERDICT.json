@@ -1,0 +1,11 @@
+{
+  "metric": "batch_report_verdict",
+  "threshold": 1,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I0",
+  "why": "stub resume was 1/1 and the third spawn was 0, but usable backends were 0 and gap B stayed 0",
+  "source": "eval/evq1107/overtime/VERDICT",
+  "pin": "fc215d4e90cd95fa6b64c39268bb49490cba7ca1"
+}

@@ -1,0 +1,11 @@
+{
+  "metric": "batch_report_verdict",
+  "threshold": 1,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I0",
+  "why": "reference: Node daemon with Controlled Nodes; the idle verdict and final-answer memory already sit in pfy docs",
+  "source": "eval/evq1107/imcodes/VERDICT",
+  "pin": "b8442c5ca3bd22046568258e84d30781dc6a79d0"
+}

@@ -1,0 +1,11 @@
+{
+  "metric": "batch_report_verdict",
+  "threshold": 1,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I0",
+  "why": "this repo scores L1 48/105, and removing AGENTS.md plus 65 SKILL.md files leaves L1 at 41/105 with skills still 0/17",
+  "source": "eval/evq1107/harness-score/VERDICT",
+  "pin": "70a0ecc1aa907faf1f7a99a919eb88122f9a328d"
+}

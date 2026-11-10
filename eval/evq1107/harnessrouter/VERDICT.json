@@ -1,0 +1,10 @@
+{
+  "metric": "batch_report_verdict",
+  "threshold": 1,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I0",
+  "why": "0 engines added; 15 of 26 backends map custom to openai-api; keyless POST 401; ready 1.186s",
+  "source": "eval/evq1107/harnessrouter/VERDICT"
+}

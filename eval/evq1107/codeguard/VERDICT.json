@@ -1,0 +1,11 @@
+{
+  "metric": "batch_report_verdict",
+  "threshold": 1,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I0",
+  "why": "prefix pass 1 of 3 plants, 0 of 2 agentgg plants, 0 install-gate commands",
+  "source": "eval/evq1107/codeguard/VERDICT",
+  "pin": "41160d54980bab0618165485ade3cfd2ade93288"
+}

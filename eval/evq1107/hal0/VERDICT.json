@@ -1,0 +1,11 @@
+{
+  "metric": "batch_report_verdict",
+  "threshold": 1,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I0",
+  "why": "reference: system install needs root, and Ollama plus llama-server already cover the OpenAI path",
+  "source": "eval/evq1107/hal0/VERDICT",
+  "pin": "60bcf6f77dc81c5e13692e4fde712db5eb3285ea"
+}

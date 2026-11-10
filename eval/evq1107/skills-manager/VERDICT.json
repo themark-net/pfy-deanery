@@ -1,0 +1,11 @@
+{
+  "metric": "batch_report_verdict",
+  "threshold": 1,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I0",
+  "why": "reference: npm hub beside the skill tree; the H2 scan and install.sh already cover the job",
+  "source": "eval/evq1107/skills-manager/VERDICT",
+  "pin": "fae0bb864a8b96c1d0ca6278a6b7062e62992a36"
+}

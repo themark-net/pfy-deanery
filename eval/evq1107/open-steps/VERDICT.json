@@ -1,0 +1,11 @@
+{
+  "metric": "batch_report_verdict",
+  "threshold": 1,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I0",
+  "why": "0 of 4 work-landed second stops stay blocked, 3 of those 4 have no report file, and a 10800s pregate FAIL env changes 0 exits",
+  "source": "eval/evq1107/open-steps/VERDICT",
+  "pin": "4fa744ba8ea06ccf128a39853824c46ac391dd00"
+}

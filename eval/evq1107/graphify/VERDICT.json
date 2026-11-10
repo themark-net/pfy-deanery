@@ -1,0 +1,10 @@
+{
+  "metric": "batch_report_verdict",
+  "threshold": 1,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I0",
+  "why": "affected plus the tests in the diff agrees with test_select on 5/10 commits, tied with codebase-memory, and the affected walk added no test. The venv is 102 MB.",
+  "source": "eval/evq1107/graphify/VERDICT"
+}

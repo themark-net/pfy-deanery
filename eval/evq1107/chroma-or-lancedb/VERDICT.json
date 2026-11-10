@@ -1,0 +1,11 @@
+{
+  "metric": "batch_report_verdict",
+  "threshold": 1,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I0",
+  "why": "reference: code memory is already chosen, and this pair does not score gap H1.",
+  "source": "eval/evq1107/chroma-or-lancedb/VERDICT",
+  "pin": "11f3c7435e71024aa0a2b53710a28d3289d922d1"
+}

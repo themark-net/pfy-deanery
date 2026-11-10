@@ -1,0 +1,11 @@
+{
+  "metric": "batch_report_verdict",
+  "threshold": 1,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I0",
+  "why": "reference: Apache-2.0 replay map has no Grok Build reader and does not score H1",
+  "source": "eval/evq1107/agentplay/VERDICT",
+  "pin": "ff5f83e37063a38ec55ab7dd2b0fcdc435f4a72c"
+}

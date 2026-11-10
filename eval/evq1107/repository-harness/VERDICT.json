@@ -1,0 +1,10 @@
+{
+  "metric": "batch_report_verdict",
+  "threshold": 1,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I0",
+  "why": "new map names 0 of 6 authority paths, 2 of 2 local markers kept on a same-version update",
+  "source": "eval/evq1107/repository-harness/VERDICT"
+}

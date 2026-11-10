@@ -1,0 +1,11 @@
+{
+  "metric": "batch_report_verdict",
+  "threshold": 1,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I0",
+  "why": "0 rules from one session, playbook top-1 7/8 vs token overlap 8/8, repo facts 0/8",
+  "source": "eval/evq1107/cass-memory/VERDICT",
+  "pin": "229a312b696aa347d1e2c491d3d466c925716dc0"
+}

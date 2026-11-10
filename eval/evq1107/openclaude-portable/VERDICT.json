@@ -1,0 +1,11 @@
+{
+  "metric": "batch_report_verdict",
+  "threshold": 1,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I0",
+  "why": "reference: USB wrapper downloads official Claude Code plus Node 24.21.0 and leaves gap B on the pfy build timeout",
+  "source": "eval/evq1107/openclaude-portable/VERDICT",
+  "pin": "b3660fda34333d759b7e76ccb62b0a2aa076bb66"
+}

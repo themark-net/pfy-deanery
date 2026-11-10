@@ -1,0 +1,11 @@
+{
+  "metric": "batch_report_verdict",
+  "threshold": 1,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I0",
+  "why": "receipt checks 3/3 but install-gate refuses were 0/4 and the boundary is trusted_host_process",
+  "source": "eval/evq1107/runx/VERDICT",
+  "pin": "4576f08185dbf1f9b76dadfad39ca5cc92e8a142"
+}

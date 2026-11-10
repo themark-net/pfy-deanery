@@ -1,0 +1,11 @@
+{
+  "metric": "batch_report_verdict",
+  "threshold": 1,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I0",
+  "why": "reference: hosted DeepSeek coding agent, and gap L stays with the local engines we already run",
+  "source": "eval/evq1107/reasonix/VERDICT",
+  "pin": "737a181c49367a7a153c71889c168638fcfc0ba3"
+}

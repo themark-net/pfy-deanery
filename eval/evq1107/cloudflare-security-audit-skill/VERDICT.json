@@ -1,0 +1,11 @@
+{
+  "metric": "batch_report_verdict",
+  "threshold": 1,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I0",
+  "why": "0/1 planted shell=True lines blocked, 2 passing receipts leave the line, upstream validators 65/65",
+  "source": "eval/evq1107/cloudflare-security-audit-skill/VERDICT",
+  "pin": "c1c8a8c1471069fb0e188eeaff69b8e8db6564a8"
+}

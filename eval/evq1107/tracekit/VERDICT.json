@@ -1,0 +1,11 @@
+{
+  "metric": "batch_report_verdict",
+  "threshold": 1,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I0",
+  "why": "coding and dev packs blocked 0/6 skill loads; strict blocked 1/6; verify caught 4/4 edited bundles",
+  "source": "eval/evq1107/tracekit/VERDICT",
+  "pin": "a94af452db0862ceb990c079fff17b6fed223ad3"
+}

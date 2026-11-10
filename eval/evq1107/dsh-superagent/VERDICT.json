@@ -1,0 +1,11 @@
+{
+  "metric": "batch_report_verdict",
+  "threshold": 1,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I0",
+  "why": "reference: research prototype; runtime needs DSH, a dedicated GitHub account, and danger-full-access",
+  "source": "eval/evq1107/dsh-superagent/VERDICT",
+  "pin": "6337fc823ce20251c8de8085948165c81aaa701e"
+}

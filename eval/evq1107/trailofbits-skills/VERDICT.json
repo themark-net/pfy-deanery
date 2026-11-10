@@ -1,0 +1,11 @@
+{
+  "metric": "batch_report_verdict",
+  "threshold": 1,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I0",
+  "why": "4 of 7 candidate skills blocked by the install check, 0 new defects on the risky diff",
+  "source": "eval/evq1107/trailofbits-skills/VERDICT",
+  "pin": "5c99c03fb8a9ea568432ecbcba5d86e9f4ac2bf0"
+}

@@ -1,0 +1,11 @@
+{
+  "metric": "batch_report_verdict",
+  "threshold": 1,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I0",
+  "why": "reference: Apache-2.0 fleet app is off the pfy build path, and a live run would use host ssh keys and the gh login",
+  "source": "eval/evq1107/muxin/VERDICT",
+  "pin": "d45f3e480e6523febe81ed51061261b92714b3c9"
+}

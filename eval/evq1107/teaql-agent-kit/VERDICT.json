@@ -1,0 +1,11 @@
+{
+  "metric": "batch_report_verdict",
+  "threshold": 1,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I0",
+  "why": "reference: context and file policy overlap write-guard, cage, and the 8 exits, and the kit does not move gap B",
+  "source": "eval/evq1107/teaql-agent-kit/VERDICT",
+  "pin": "92c79101f725655d5356078938742bd633f341a2"
+}

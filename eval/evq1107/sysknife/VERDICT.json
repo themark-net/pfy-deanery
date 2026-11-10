@@ -1,0 +1,11 @@
+{
+  "metric": "batch_report_verdict",
+  "threshold": 1,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I0",
+  "why": "reference: no cargo on nimo, and H2 stays with SkillSpector",
+  "source": "eval/evq1107/sysknife/VERDICT",
+  "pin": "1b3aab98b878128a267368cd47b51c921cd31219"
+}

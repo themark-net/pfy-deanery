@@ -1,0 +1,10 @@
+{
+  "metric": "batch_report_verdict",
+  "threshold": 1,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I0",
+  "why": "0 duplicate claims of 94 in 4.9699s, same 0 as exclusive markers in 0.004s",
+  "source": "eval/evq1107/brigade/VERDICT"
+}
