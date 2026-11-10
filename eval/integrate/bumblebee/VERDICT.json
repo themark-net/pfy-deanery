@@ -3,5 +3,6 @@
   "threshold": 1,
   "value_gate": "pass",
   "modularity_gate": "pass",
-  "proposed_stage": "I3"
+  "proposed_stage": "I3",
+  "sandbox": "sandlock"
 }

@@ -103,7 +103,7 @@ class VerdictMismatchScanTest(unittest.TestCase):
             for path, blob in before.items():
                 self.assertEqual(path.read_bytes(), blob)
 
-    def test_worktree_scan_names_skillspector_and_bumblebee(self):
+    def test_worktree_scan_names_skillspector_and_not_bumblebee(self):
         self.assertTrue(SCRIPT.is_file(), "catalog_apply_verdict.py missing")
         skill = ROOT / "data" / "stages" / "skillspector.json"
         bumble = ROOT / "data" / "stages" / "bumblebee.json"
@@ -121,13 +121,14 @@ class VerdictMismatchScanTest(unittest.TestCase):
             text = report.read_text(encoding="utf-8")
             head, _, _tail = text.partition("## Intent")
             skill_line = next(line for line in head.splitlines() if line.startswith("| SkillSpector |"))
-            bumble_line = next(line for line in head.splitlines() if line.startswith("| Bumblebee |"))
             self.assertIn("| I3 |", skill_line)
             self.assertIn("| I1 |", skill_line)
             self.assertIn("missing-main-receipt", skill_line)
-            self.assertIn("| I2 |", bumble_line)
-            self.assertIn("| I1 |", bumble_line)
-            self.assertNotIn("missing-main-receipt", bumble_line)
+            # Operator decision 2026-11-10: Bumblebee's ceiling is I3. As a
+            # security tool it is allowed I2 until the full gate, and it is at
+            # I2, so it is no longer a mismatch.
+            self.assertEqual(json.loads(before_bumble)["tier_ceiling"], "I3")
+            self.assertFalse(any(line.startswith("| Bumblebee |") for line in head.splitlines()))
         self.assertEqual(skill.read_bytes(), before_skill)
         self.assertEqual(bumble.read_bytes(), before_bumble)
 

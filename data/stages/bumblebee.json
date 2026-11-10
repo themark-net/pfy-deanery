@@ -20,9 +20,11 @@
     "pin:cc57710eeaf685e7b89924a36c8583cad0a378fe",
     "ops:eval/ev1107/bumblebee/REPORT.md",
     "eval/ev1107/bumblebee/VERDICT",
-    "scripts/pfy_mcp_scan.py"
+    "scripts/pfy_mcp_scan.py",
+    "receipt:eval/integrate/bumblebee/receipt.json",
+    "eval/integrate/bumblebee/sandbox-trial.json"
   ],
-  "tier_ceiling": "I1",
+  "tier_ceiling": "I3",
   "uses": "Advisory read-only check for package lockfiles and MCP host configs.",
   "features": [
     "supply chain exact-match",
@@ -30,7 +32,7 @@
     "advisory wrapper"
   ],
   "potential": "medium",
-  "next_gate": "Stay I2 until a grilled smoke runs scripts/pfy_mcp_scan.py on a fixture. Not a gate in this lane.",
+  "next_gate": "Stay I2 until the full gate: a Tester and a Reviewer PASS at one pinned SHA on origin/main, recorded in eval/integrate/bumblebee/GATE.json and cited as gate:eval/integrate/bumblebee/GATE.json. The sandlock trial and the main-run receipt are on file.",
   "handoff_by": "llm",
   "non_goals": [
     "replace write-guard",
@@ -39,5 +41,18 @@
   ],
   "notes_doc": "docs/ops/bumblebee-mcp-scan.md",
   "pin": "cc57710eeaf685e7b89924a36c8583cad0a378fe",
-  "entry": "sources/entries/069-bumblebee.md"
+  "entry": "sources/entries/069-bumblebee.md",
+  "ceiling_history": [
+    {
+      "from": "I1",
+      "to": "I3",
+      "by": "operator",
+      "date": "2026-11-10",
+      "reason": "operator decision 2026-11-10 12:08am PT: tier_ceiling I3. Security tool: I3 still needs the full gate (Tester and Reviewer PASS at one pinned SHA, gate:eval/integrate/bumblebee/GATE.json).",
+      "evidence": [
+        "eval/integrate/bumblebee/receipt.json",
+        "eval/integrate/bumblebee/sandbox-trial.json"
+      ]
+    }
+  ]
 }
