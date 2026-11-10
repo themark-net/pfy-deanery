@@ -306,9 +306,12 @@ def load_text(text: str) -> dict:
 
 
 def repo_test_modules() -> list[str]:
+    """Every suite module. A test_*.py under tests/**/fixtures/ is data a
+    test copies into a temp repo, not a module, so it is left out."""
     return sorted(
         path.relative_to(ROOT).as_posix()
         for path in (ROOT / "tests").rglob("test_*.py")
+        if "fixtures" not in path.relative_to(ROOT / "tests").parts
     )
 
 
