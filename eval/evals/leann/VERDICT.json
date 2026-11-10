@@ -1,0 +1,139 @@
+{
+  "metric": "lightweight_pin_clauses",
+  "threshold": 5,
+  "clauses_passed": 1,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I1",
+  "intent": "catalog_default",
+  "pin": "v0.3.9 07796bd7e40f2d5f3a4be9e45adf1f62a68481fd",
+  "clauses": {
+    "pin_under_50mb": false,
+    "no_torch_wheel": false,
+    "no_embedding_weights": false,
+    "index_smaller_than_raw": false,
+    "beats_cm_file_recall": true
+  },
+  "measured": {
+    "install_bytes": 3654444384,
+    "leann_pkg_bytes": 828648,
+    "torch_bytes": 689167796,
+    "torch_required": true,
+    "weight_bytes": 136817592,
+    "pin_limit_bytes": 52428800,
+    "disk_free_bytes": 416126337024,
+    "passages": 216,
+    "raw_bytes": 190529,
+    "index_bytes": 619064,
+    "leann_file_hits": 10,
+    "cm_file_hits": 0,
+    "file_questions": 10,
+    "embedding_model": "all-minilm",
+    "build_s": 2.143,
+    "search_s": 22.9569,
+    "gpu_used": true,
+    "passages_sha256": "1f3cd4ded4ec46df545118b43c401b73e86163343ea3e3b31b90ac514ac826e7",
+    "ping": "dim 384",
+    "dim": 384,
+    "naive_embedding_bytes": 331776,
+    "embedding_matrix_stored": false,
+    "files": [
+      {
+        "name": "catalog.ids.txt",
+        "bytes": 1296
+      },
+      {
+        "name": "catalog.index",
+        "bytes": 15074
+      },
+      {
+        "name": "catalog.leann.bm25.sqlite",
+        "bytes": 372736
+      },
+      {
+        "name": "catalog.leann.meta.json",
+        "bytes": 697
+      },
+      {
+        "name": "catalog.leann.passages.idx",
+        "bytes": 2693
+      },
+      {
+        "name": "catalog.leann.passages.jsonl",
+        "bytes": 226568
+      }
+    ],
+    "gpu_evidence": "rocm-device-log"
+  },
+  "value_legs": {
+    "gap_fill": "fail",
+    "operator_leverage": "fail",
+    "evidence": "pass",
+    "blast_radius": "fail"
+  },
+  "modularity_legs": {
+    "local_code_needed": "pass",
+    "bounded_surface": "pass",
+    "isolatable": "pass",
+    "reversible": "pass"
+  },
+  "supersede": {
+    "coverage": {
+      "track": "none",
+      "catalog": "none",
+      "evaluate": "none",
+      "integrate": "none"
+    },
+    "checker": {
+      "parts": [],
+      "coverage": {
+        "track": "none",
+        "catalog": "none",
+        "evaluate": "none",
+        "integrate": "none"
+      },
+      "suite": [
+        "track",
+        "catalog",
+        "evaluate",
+        "integrate"
+      ],
+      "supersede_candidate": false
+    },
+    "watchlist_row": false,
+    "why": "Compressed local RAG. It does not track outside tools, keep a stage card per tool, score tools, or install them. No suite part is partial or full. No watchlist row."
+  },
+  "gpu": {
+    "ok": true,
+    "samples": [
+      {
+        "gpu_busy_pct": 2,
+        "ram_avail_gib": 71,
+        "vram_used_bytes": 1545039872
+      },
+      {
+        "gpu_busy_pct": 2,
+        "ram_avail_gib": 71,
+        "vram_used_bytes": 1545039872
+      },
+      {
+        "gpu_busy_pct": 2,
+        "ram_avail_gib": 71,
+        "vram_used_bytes": 1545039872
+      }
+    ],
+    "vram_before_bytes": 1545039872,
+    "vram_after_bytes": 1545453568,
+    "during": {
+      "ok": true,
+      "samples": [
+        {
+          "gpu_busy_pct": 2,
+          "ram_avail_gib": 71,
+          "vram_used_bytes": 1545453568
+        }
+      ]
+    }
+  },
+  "reason": "STAY I1: 1 of 5 lightweight-pin clauses passed on the 216-passage set. Install is 3654444384 bytes with torch_required=True and embedding weights 136817592 bytes. Index 619064 bytes vs raw 190529 bytes. File recall 10/10 vs shadow codebase-memory 0/10. GPU embedder all-minilm, gpu_used=True."
+}

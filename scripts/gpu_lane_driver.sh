@@ -191,9 +191,18 @@ for slug in $SLUGS; do
   printf '%s\n' "$slug" > "$GPU_STATE/current"
   date -u +%Y-%m-%dT%H:%M:%SZ > "$GPU_STATE/$slug.started"
   progress "$slug start ($HEADROOM_LAST)"
-  PFY_LANE_FROM_LOOP=1 PFY_LOOP_STATE="$(dirname "$STATE")" \
-    bash "$LANE" --slug "$slug" --root "$ROOT" --state "$STATE" --ticket "$ticket" \
-    > "$GPU_STATE/$slug.out" 2>&1
+  if [ "$slug" = "leann" ]; then
+    # One leann lane holds scripts/model_lock.sh leann-model.lock across the trial and VERDICT.json.
+    # Light jobs never set PFY_LEANN_MODEL_LOCK and do not take this flock.
+    PFY_MODEL_LOCK="${PFY_LEANN_MODEL_LOCK:-$HOME/.cache/pfy/locks/leann-model.lock}" \
+      bash "$ROOT/scripts/model_lock.sh" env PFY_LEANN_LANE=leann PFY_LANE_FROM_LOOP=1 "PFY_LOOP_STATE=$(dirname "$STATE")" \
+      bash "$LANE" --slug leann --root "$ROOT" --state "$STATE" --ticket "$ticket" \
+      > "$GPU_STATE/$slug.out" 2>&1
+  else
+    PFY_LANE_FROM_LOOP=1 PFY_LOOP_STATE="$(dirname "$STATE")" \
+      bash "$LANE" --slug "$slug" --root "$ROOT" --state "$STATE" --ticket "$ticket" \
+      > "$GPU_STATE/$slug.out" 2>&1
+  fi
   rc=$?
   printf '%s\n' "$rc" > "$GPU_STATE/$slug.finished"
   rm -f "$GPU_STATE/current"
