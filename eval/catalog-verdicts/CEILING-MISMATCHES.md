@@ -1,6 +1,6 @@
 # Ceiling mismatches
 
-This scan does not change integration_stage. A flagged card stays where it is. The operator decides any demotion.
+This scan does not change integration_stage. A flagged card stays where it is. Each row names the failed rule from data/promotion-rules.json; the loop re-checks it every tick.
 
 Allowed stage is the lower of the evidence ceiling and tier_ceiling when the card has one. tier_ceiling is a cap from the catalog tier and posture. It does not raise a card whose evidence is weaker.
 
@@ -19,20 +19,19 @@ Apply adds two write caps the scan does not need. A failing modularity gate caps
 
 A tool whose uses, features, or tags cover CI, testing, or review cannot sit above I2 unless self_pipeline passes the same check as scripts/catalog_check.py (applied with evidence, not_applicable with a reason, or pending with grace). That check does not promote a card. Notes, a scan summary, and a report stay I1 even when tier_ceiling is I3.
 
-Scanned 135 cards. Mismatches 10.
+Scanned 135 cards. Mismatches 9.
 
 | Tool | Stage | Evidence ceiling | Tier ceiling | Allowed | Why |
 | --- | --- | --- | --- | --- | --- |
-| Antigravity-Manager | I1 | I1 | I0 | I0 | evidence I1: notes; tier_ceiling I0 caps the evidence |
-| Grok CLI bootstrap | I3 | I2 | I3 | I2 | evidence I2: make target, repo path; tier_ceiling I3 does not raise it; missing-main-receipt |
-| MLX + MLX-LM | I1 | I0 | I1 | I0 | evidence I0: no evidence listed; tier_ceiling I1 does not raise it |
-| SkillSpector | I3 | I1 | I3 | I1 | evidence I1: entry, notes, pin, scan summary, report; tier_ceiling I3 does not raise it; missing-main-receipt |
-| agent-cage (PNNL) | I3 | I2 | I3 | I2 | evidence I2: make target, repo path; tier_ceiling I3 does not raise it; missing-main-receipt |
-| destructive_command_guard | I3 | I3 | I3 | I2 | evidence I3: entry, pin, record, report, VERDICT, probe artifact, main-run receipt; tier_ceiling I3 agrees; security tool: I3 needs the full gate (security-gate-missing) |
-| llama.cpp (server mode) | I1 | I0 | I1 | I0 | evidence I0: no evidence listed; tier_ceiling I1 does not raise it |
-| project-process bootstrap | I3 | I2 | I3 | I2 | evidence I2: repo path; tier_ceiling I3 does not raise it; missing-main-receipt |
-| skill-up | I3 | I1 | I3 | I1 | evidence I1: summary, report, entry; tier_ceiling I3 does not raise it; a self_pipeline record does not raise this evidence; missing-main-receipt |
-| write-guard-mcp | I3 | I2 | I3 | I2 | evidence I2: make target, repo path; tier_ceiling I3 does not raise it; missing-main-receipt |
+| Antigravity-Manager | I1 | I1 | I0 | I0 | evidence I1: notes; tier_ceiling I0 caps the evidence; R-tier-ceiling: tier_ceiling I0 caps I1 |
+| Grok CLI bootstrap | I3 | I2 | I3 | I2 | evidence I2: make target, repo path; tier_ceiling I3 does not raise it; R-main-receipt: missing-main-receipt |
+| MLX + MLX-LM | I1 | I0 | I1 | I0 | evidence I0: no evidence listed; tier_ceiling I1 does not raise it; R-evidence: evidence I0: no evidence listed |
+| SkillSpector | I3 | I1 | I3 | I1 | evidence I1: entry, notes, pin, scan summary, report; tier_ceiling I3 does not raise it; R-evidence: evidence I1: entry, notes, pin, scan summary, report; R-main-receipt: missing-main-receipt; S-sandlock-trial-clean: no eval/integrate/skillspector/sandbox-trial.json; S-profile-readonly: no eval/integrate/skillspector/sandbox-trial.json; S-wiring: card has no wiring |
+| agent-cage (PNNL) | I3 | I2 | I3 | I2 | evidence I2: make target, repo path; tier_ceiling I3 does not raise it; R-main-receipt: missing-main-receipt |
+| llama.cpp (server mode) | I1 | I0 | I1 | I0 | evidence I0: no evidence listed; tier_ceiling I1 does not raise it; R-evidence: evidence I0: no evidence listed |
+| project-process bootstrap | I3 | I2 | I3 | I2 | evidence I2: repo path; tier_ceiling I3 does not raise it; R-main-receipt: missing-main-receipt |
+| skill-up | I3 | I1 | I3 | I1 | evidence I1: summary, report, entry; tier_ceiling I3 does not raise it; R-evidence: evidence I1: summary, report, entry; R-main-receipt: missing-main-receipt |
+| write-guard-mcp | I3 | I2 | I3 | I2 | evidence I2: make target, repo path; tier_ceiling I3 does not raise it; R-main-receipt: missing-main-receipt; S-sandlock-trial-clean: no eval/integrate/write-guard-mcp/sandbox-trial.json; S-profile-readonly: no eval/integrate/write-guard-mcp/sandbox-trial.json; S-wiring: card has no wiring |
 
 ## Intent values outside the enum
 

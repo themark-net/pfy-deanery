@@ -1,0 +1,51 @@
+{
+  "slug": "destructive-command-guard",
+  "run_kind": "sandbox-trial",
+  "sandbox": "sandlock",
+  "wrapper": "scripts/integrations/sandlock/trial.py (wrap.py --action run, PFY_SANDLOCK=all, SANDLOCK_BIN=confine.py)",
+  "started": "2026-11-10T15:30:34Z",
+  "finished": "2026-11-10T15:30:35Z",
+  "command": [
+    "python3",
+    "./eval/integrate/destructive-command-guard/sandbox-trial.py",
+    "./eval/evq1107/destructive-command-guard/results.json",
+    "./scripts/integrations/dcg/guard.sh",
+    "$HOME/.cache/pfy/tools/destructive-command-guard/unpack/dcg",
+    "./tmp/sandlock-trial/destructive-command-guard/stage"
+  ],
+  "exit_code": 0,
+  "unsandboxed_lines": 0,
+  "profile": {
+    "sandbox": "sandlock",
+    "reads": [
+      "/usr",
+      "/lib",
+      "/lib64",
+      "/bin",
+      "/etc",
+      "/usr/bin",
+      "$HOME/.cache/pfy/tools/destructive-command-guard/unpack",
+      "./tmp/sandlock-trial/destructive-command-guard/stage",
+      "./scripts/integrations/dcg",
+      "./eval/integrate/destructive-command-guard",
+      "./eval/evq1107/destructive-command-guard",
+      "./tmp/sandlock-trial/destructive-command-guard/wrap/started",
+      "/dev/null"
+    ],
+    "writes": [
+      "./tmp/sandlock-trial/destructive-command-guard/wrap/started",
+      "./tmp/sandlock-trial/destructive-command-guard/stage",
+      "/dev/null"
+    ],
+    "network": "deny",
+    "clean_env": true,
+    "sudo": false,
+    "timeout_sec": 120
+  },
+  "tool_version": "0.16.0",
+  "pin": "665fcd8fc62cb5941e0484ddab012419f146523d",
+  "did": "Classified the 12 destructive and 8 ordinary evq1107 cases through scripts/integrations/dcg/guard.sh inside sandlock. Nothing was executed.",
+  "scan_verdict": "CLEAN",
+  "findings": 0,
+  "outcome": "ok"
+}

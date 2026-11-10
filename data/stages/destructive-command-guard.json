@@ -20,7 +20,8 @@
     "ops:eval/evq1107/destructive-command-guard/REPORT.md",
     "eval/evq1107/destructive-command-guard/VERDICT",
     "eval/evq1107/destructive-command-guard/results.json",
-    "receipt:eval/integrate/destructive-command-guard/receipt.json"
+    "receipt:eval/integrate/destructive-command-guard/receipt.json",
+    "eval/integrate/destructive-command-guard/sandbox-trial.json"
   ],
   "tier_ceiling": "I3",
   "rationale": "operator approval 2026-11-08 10:03am PT. Raise tier_ceiling only. Catalog tier A still computes I1. catalog_stage_eval.py keeps a higher existing ceiling.",
@@ -33,7 +34,7 @@
     "json decision"
   ],
   "potential": "medium",
-  "next_gate": "Stay I2. write-guard shell ops were 0 and dcg denied 12/12 destructive commands. A later ticket can grill one worker-shell hook in a temp HOME. No gate wiring. The I1 ceiling stays.",
+  "next_gate": "Stay I3 by rules (data/promotion-rules.json, security track). Deny-only guard in the worker lanes; tests/test_dcg_fail_safe.py keeps ordinary commands allowed when dcg is missing. The 2026-11-10 sandlock trial classified 12/12 destructive and 8/8 ordinary cases cleanly.",
   "handoff_by": "llm",
   "non_goals": [
     "replace write-guard",
@@ -48,5 +49,44 @@
   "pin": "665fcd8fc62cb5941e0484ddab012419f146523d",
   "release": "v0.16.0",
   "tarball_sha256": "e7d860eba7f99cb5d5535b00942196aae3d6ca22ec049491d74c97aab556b642",
-  "binary_sha256": "f98166f7f0cf3dc1ec9483fedb2af9d9bc27248f5806ac2b7c83ff97e2e2b324"
+  "binary_sha256": "f98166f7f0cf3dc1ec9483fedb2af9d9bc27248f5806ac2b7c83ff97e2e2b324",
+  "wiring": {
+    "mode": "deny-only",
+    "where": "scripts/integrations/dcg/guard.sh",
+    "fail_open_test": "tests/test_dcg_fail_safe.py"
+  },
+  "promotion_history": [
+    {
+      "kind": "stage",
+      "from": "I3",
+      "to": "I3",
+      "result": "stay",
+      "passed": [
+        "R-not-excluded",
+        "R-evidence",
+        "R-tier-ceiling",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-modularity-gate",
+        "S-sandlock-verdict",
+        "R-value-gate",
+        "R-main-receipt",
+        "R-self-pipeline",
+        "S-sandlock-trial-clean",
+        "S-profile-readonly",
+        "S-wiring",
+        "S-ci-green"
+      ],
+      "failed": [],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-10",
+      "verdict": "eval/integrate/destructive-command-guard/VERDICT.json",
+      "note": "rules confirm the existing I3"
+    }
+  ]
 }

@@ -5,5 +5,7 @@
   "modularity_gate": "pass",
   "proposed_stage": "I3",
   "intent": "adhoc_probe",
-  "receipt": "eval/integrate/destructive-command-guard/receipt.json"
+  "receipt": "eval/integrate/destructive-command-guard/receipt.json",
+  "sandbox": "sandlock",
+  "sandbox_trial": "eval/integrate/destructive-command-guard/sandbox-trial.json"
 }

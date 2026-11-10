@@ -1,8 +1,6 @@
 slug	reason
-magpie	Needs the operator's GO (rewrites agent configs).
 hermes-teammates	Blocked until Hermes is wired as the pfy bot interface.
 monid	Hosted pay-per-call gateway on a prepaid balance (paid account).
-antigravity-manager	Manages Antigravity/Google accounts (accounts and secrets).
 bespoke-nimble	Upstream recipe can't run on nimo as documented (smoke exits 2).
 mlx-mlx-lm	Apple Silicon only.
 eight-exits-agent-loop	Methodology note, no tool (covered by the finn-loop card).
@@ -15,3 +13,4 @@ finn-loop-eval-loop-8-exits-patterns	First-party skill in use, gated by its skil
 mattpocock-skills	Vendored and in use (grill step, Pocock skills).
 llama-cpp-server-mode	Card is the bring-up record; in use.
 atomic-task-graph-atg	The operator stopped ATG 2026-11-08 (negative result). Do not auto-raise or promote to I3. Receipt had no real model call.
+deepseek-v4-1-flash-1017-gguf	Smallest quant 233 GB > nimo 132.5 GB RAM+VRAM. Out of the GPU queue 2026-11-10.

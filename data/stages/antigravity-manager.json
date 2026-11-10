@@ -37,5 +37,6 @@
   ],
   "potential": "low",
   "next_gate": "Stay skip-install.",
-  "handoff_by": "llm"
+  "handoff_by": "llm",
+  "risk_class": "secrets"
 }

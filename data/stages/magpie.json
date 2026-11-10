@@ -15,5 +15,6 @@
   "evidence": [
     "entry:sources/entries/163-magpie.md"
   ],
-  "handoff_by": "llm"
+  "handoff_by": "llm",
+  "risk_class": "runtime-takeover"
 }
