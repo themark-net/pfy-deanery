@@ -47,6 +47,8 @@ A slug listed in `eval/catalog-queue/exclusions.tsv` is refused by apply and by 
 
 `risk_class: none` wins over keyword classes. It does not override a GPU hit, a pull over 25 GB, or a release or deploy hit. Those still need the operator and are not launched.
 
+Operator approvals live in `eval/catalog-queue/approvals.tsv` (`slug`, `block`, `decided`, `note`; block is `gpu` or `pull-over-25gb`). An approved block no longer blocks raise or needs-mark. `--launch-check` prints `skip <slug> gpu-driver` for it: the loop never starts it, and `scripts/gpu_lane_driver.sh` runs approved lanes one at a time after GPU, RAM, and disk checks. A release or deploy hit cannot be approved there.
+
 ## Word lists
 
 The lists live in `scripts/catalog_auto_raise.py`. These tokens must match that script.

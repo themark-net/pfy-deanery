@@ -33,6 +33,7 @@ sys.path.insert(0, str(ROOT))
 
 from scripts.catalog_auto_raise import (  # noqa: E402
     GPU_TOKENS,
+    load_approvals,
     SIZE_RE,
     block_reason,
     classify_risk,
@@ -174,6 +175,11 @@ def collect(
 ) -> list[tuple[str, str, str, str, str]]:
     cards = _load_cards(stages)
     names = _name_to_slug(cards)
+    try:
+        # Operator-approved gpu and pull-over-25gb blocks drop their rows.
+        approvals = load_approvals(root)
+    except Exception as exc:
+        raise NeedsError(f"approvals: {exc}") from exc
     rows: list[tuple[str, str, str, str, str]] = []
     try:
         intake = _rows(stages)
@@ -200,9 +206,11 @@ def collect(
             kind = exclusion_kind(reason)
             if not kind:
                 continue
+            if kind in approvals.get(slug, frozenset()):
+                continue
             rows.append((slug, kind, cell(reason), evidence, "-"))
     for slug, card in cards:
-        blocked = block_reason(card)
+        blocked = block_reason(card, approvals.get(slug, frozenset()))
         risk = classify_risk(card)
         evidence = f"data/stages/{slug}.json"
         if blocked == "pull-over-25gb":

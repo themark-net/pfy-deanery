@@ -106,3 +106,7 @@ scripts/catalog_loop.sh
 ```
 
 The five software-factory questions for this pipeline are answered in the private ops handoff for the catalog loop.
+
+## GPU lanes
+
+Approved GPU and over-25 GB slugs (`eval/catalog-queue/approvals.tsv`) are not launched by the loop. Start `scripts/gpu_lane_driver.sh --root <worktree>` detached (systemd-run --user). It runs one eval lane at a time, waits for GPU and RAM headroom, parks a pull with `no disk` when space is short, and keeps its markers in `$PFY_LOOP_STATE/gpu/` (driver.pid, progress.md, current, `<slug>.started`, `.finished`, `.parked`, ALL_DONE). Touch `$PFY_LOOP_STATE/gpu/STOP` to stop it between lanes.

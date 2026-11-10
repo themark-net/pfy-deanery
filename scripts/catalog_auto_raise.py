@@ -1,6 +1,15 @@
 #!/usr/bin/env python3
 """Raise tier_ceiling to I3 when a verdict and the risk class allow it.
 
+GPU and over-25 GB approvals (operator decision 2026-11-10)
+    eval/catalog-queue/approvals.tsv in the private ops checkout
+    (scripts/ops_paths.py: $PFY_OPS_ROOT, else <root>/tmp/ops) lists
+    operator-approved blocks (slug, block, decided, note): gpu or pull-over-25gb. An approved block no
+    longer blocks raise or needs-mark. --launch-check prints
+    skip <slug> gpu-driver for a card with an approved block, because the
+    loop must not start GPU lanes in parallel: scripts/gpu_lane_driver.sh
+    runs them one at a time.
+
 Security tools (operator decision 2026-11-10)
     A card whose risk class is exactly security (a scanner or guard) is
     raised to tier_ceiling I2, not I3, with no verdict needed, so its I2
@@ -168,16 +177,64 @@ def has_gpu(tokens: set[str]) -> bool:
     return bool(parts & {"gpu", "vulkan", "rocm", "hip", "cuda"})
 
 
-def block_reason(card: dict) -> str:
-    """gpu, pull-over-25gb, release-deploy, or empty when the card may launch."""
+APPROVABLE = ("gpu", "pull-over-25gb")
+APPROVALS_REL = "eval/catalog-queue/approvals.tsv"
+APPROVALS_HEADER = "slug\tblock\tdecided\tnote"
+
+
+def load_approvals(root: Path) -> dict[str, frozenset[str]]:
+    """slug -> approved blocks. A missing file is no approvals. Bad rows raise RaiseError."""
+    from scripts.ops_paths import ops_path
+
+    path = ops_path(APPROVALS_REL, Path(root))
+    if not path.is_file():
+        return {}
+    lines = path.read_text(encoding="utf-8").splitlines()
+    if not lines or lines[0].rstrip("\r") != APPROVALS_HEADER:
+        raise RaiseError(f"{APPROVALS_REL}: header must be {APPROVALS_HEADER!r}")
+    found: dict[str, set[str]] = {}
+    for lineno, raw in enumerate(lines[1:], start=2):
+        if not raw.strip():
+            continue
+        parts = raw.rstrip("\r").split("\t")
+        if len(parts) != 4 or not all(part.strip() for part in parts):
+            raise RaiseError(f"{APPROVALS_REL}:{lineno}: need slug, block, decided, note")
+        slug, block, decided = parts[0].strip(), parts[1].strip(), parts[2].strip()
+        if block not in APPROVABLE:
+            raise RaiseError(f"{APPROVALS_REL}:{lineno}: block must be gpu or pull-over-25gb")
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", decided):
+            raise RaiseError(f"{APPROVALS_REL}:{lineno}: decided must be YYYY-MM-DD")
+        found.setdefault(slug, set()).add(block)
+    return {slug: frozenset(blocks) for slug, blocks in found.items()}
+
+
+def card_blocks(card: dict) -> list[str]:
+    """Every launch block on the card, in check order."""
     tokens = tokens_of(card)
+    blocks: list[str] = []
     if size_over_25(card):
-        return "pull-over-25gb"
+        blocks.append("pull-over-25gb")
     if has_gpu(tokens):
-        return "gpu"
+        blocks.append("gpu")
     if tokens & RELEASE_TOKENS or any(part in RELEASE_TOKENS for token in tokens for part in token.split("-")):
-        return "release-deploy"
+        blocks.append("release-deploy")
+    return blocks
+
+
+def block_reason(card: dict, approved: frozenset[str] = frozenset()) -> str:
+    """gpu, pull-over-25gb, release-deploy, or empty when the card may launch.
+
+    approved names operator-approved blocks (gpu, pull-over-25gb) to ignore.
+    """
+    for block in card_blocks(card):
+        if block not in approved:
+            return block
     return ""
+
+
+def needs_gpu_driver(card: dict, approved: frozenset[str]) -> bool:
+    """True when an approved block is what kept this card from launching."""
+    return any(block in approved for block in card_blocks(card))
 
 
 def latest_verdict(root: Path, slug: str) -> tuple[Path | None, dict | None]:
@@ -219,14 +276,14 @@ def raise_target(card: dict) -> str:
     return "I2" if classify_risk(card) == "security" else "I3"
 
 
-def plan_card(card: dict, verdict: dict | None) -> tuple[str, str]:
+def plan_card(card: dict, verdict: dict | None, approved: frozenset[str] = frozenset()) -> tuple[str, str]:
     """Return (raise|refuse|skip, reason). raise is the only write."""
     current = _ceiling(card)
     if current is not None and RANK[current] > RANK["I3"]:
         return "skip", "ceiling above I3"
     if current == "I3":
         return "skip", "ceiling already I3"
-    blocked = block_reason(card)
+    blocked = block_reason(card, approved)
     if blocked:
         return "refuse", blocked
     risk = classify_risk(card)
@@ -260,7 +317,7 @@ def raise_card(path: Path, root: Path, today: str, dry_run: bool) -> tuple[str, 
     except QueueError as exc:
         raise RaiseError(f"exclusions: {exc}") from exc
     verdict_path, verdict = latest_verdict(root, slug)
-    action, reason = plan_card(card, verdict)
+    action, reason = plan_card(card, verdict, load_approvals(root).get(slug, frozenset()))
     if action != "raise":
         return action, reason
     current = card.get("tier_ceiling")
@@ -377,8 +434,12 @@ def main(argv: list[str] | None = None) -> int:
                     return 0
             except QueueError as exc:
                 raise RaiseError(f"exclusions: {exc}") from exc
-            blocked = block_reason(card)
+            approved = load_approvals(root).get(args.launch_check, frozenset())
+            blocked = block_reason(card, approved)
             risk = classify_risk(card)
+            if not blocked and needs_gpu_driver(card, approved):
+                print(f"skip\t{args.launch_check}\tgpu-driver")
+                return 0
             if blocked:
                 print(f"skip\t{args.launch_check}\t{blocked}")
                 return 0

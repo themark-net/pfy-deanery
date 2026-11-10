@@ -3,11 +3,8 @@ magpie	Needs the operator's GO (rewrites agent configs).
 hermes-teammates	Blocked until Hermes is wired as the pfy bot interface.
 monid	Hosted pay-per-call gateway on a prepaid balance (paid account).
 antigravity-manager	Manages Antigravity/Google accounts (accounts and secrets).
-kolibri-1	Card says the Vulkan/GPU run needs the operator's approval.
 bespoke-nimble	Upstream recipe can't run on nimo as documented (smoke exits 2).
 mlx-mlx-lm	Apple Silicon only.
-laguna-s-2-1	Needs a GGUF over the 25 GB pull cap; needs the operator's OK.
-qwen38-flash-next	Smallest useful quant is 37.6 GB, over the 25 GB pull cap; needs the operator's OK.
 eight-exits-agent-loop	Methodology note, no tool (covered by the finn-loop card).
 five-repos-list-note	List note, no tool.
 ruben-three-claude-skills	Rejected methodology entry, no tool.
