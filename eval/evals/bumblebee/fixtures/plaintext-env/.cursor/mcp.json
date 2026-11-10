@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "local-notes": {
+      "command": "node",
+      "args": ["./server.js"],
+      "env": {
+        "API_TOKEN": "fixture-not-a-secret"
+      }
+    }
+  }
+}

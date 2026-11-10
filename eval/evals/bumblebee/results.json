@@ -1,0 +1,60 @@
+{
+  "metric": "advisory_cases",
+  "passed": 4,
+  "cases": 4,
+  "binary_sha256": "3b46f98ab8fa6345a5d39c7483ff37c51b2ee7699aabe51f2a54133f357f6c7a",
+  "binary_sha256_matches_pin": true,
+  "tool_version": "bumblebee v0.1.2",
+  "unsandboxed_lines": 0,
+  "sandbox": "sandlock",
+  "failures": {},
+  "cases_detail": [
+    {
+      "name": "clean",
+      "exit": 0,
+      "verdict": "CLEAN",
+      "kinds": [],
+      "keys": [],
+      "findings": 0,
+      "value_leaked": false,
+      "unsandboxed_lines": 0,
+      "sandboxed": true
+    },
+    {
+      "name": "git-selector",
+      "exit": 1,
+      "verdict": "FLAGGED",
+      "kinds": [
+        "git-selector"
+      ],
+      "keys": [],
+      "findings": 1,
+      "value_leaked": false,
+      "unsandboxed_lines": 0,
+      "sandboxed": true
+    },
+    {
+      "name": "plaintext-env",
+      "exit": 1,
+      "verdict": "FLAGGED",
+      "kinds": [
+        "plaintext-env"
+      ],
+      "keys": [
+        "API_TOKEN"
+      ],
+      "findings": 1,
+      "value_leaked": false,
+      "unsandboxed_lines": 0,
+      "sandboxed": true
+    },
+    {
+      "name": "home-refuse",
+      "exit": 2,
+      "refused": true,
+      "sentinel_started": false,
+      "sandboxed": false,
+      "note": "exits before the binary; a temp HOME, not the real home"
+    }
+  ]
+}
