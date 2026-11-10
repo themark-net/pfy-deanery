@@ -32,7 +32,7 @@
     "advisory wrapper"
   ],
   "potential": "medium",
-  "next_gate": "Stay I2 until the full gate: a Tester and a Reviewer PASS at one pinned SHA on origin/main, recorded in eval/integrate/bumblebee/GATE.json and cited as gate:eval/integrate/bumblebee/GATE.json. The sandlock trial and the main-run receipt are on file.",
+  "next_gate": "I3 by rules (data/promotion-rules.json, security track): clean sandlock trial with a read-only profile, advisory CI step in eval-structural (continue-on-error), main-run receipt at a pinned main SHA, eval-structural green. The loop retries a refusal once main is green.",
   "handoff_by": "llm",
   "non_goals": [
     "replace write-guard",
@@ -54,5 +54,9 @@
         "eval/integrate/bumblebee/sandbox-trial.json"
       ]
     }
-  ]
+  ],
+  "wiring": {
+    "mode": "advisory",
+    "where": ".github/workflows/eval-structural.yml"
+  }
 }

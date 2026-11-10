@@ -127,6 +127,23 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/check_public_paths.py
+      - name: Bumblebee MCP exposure scan (advisory, never blocks)
+        # pfy-advisory: bumblebee
+        # Rule S-wiring in data/promotion-rules.json reads this step. It must stay non-blocking.
+        if: matrix.shard == '0' && always() && !cancelled()
+        continue-on-error: true
+        timeout-minutes: 5
+        env:
+          BB_URL: https://github.com/perplexityai/bumblebee/releases/download/v0.1.2/bumblebee_0.1.2_linux_amd64.tar.gz
+          BB_SHA256: 53b080cf3ddb692b0c4e5492ef4785b4c54daf1624fcd0fcba3958116a0be8d9
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/bumblebee"
+          mkdir -p "$dir"
+          curl -fsSL --retry 2 -o "$dir/bb.tar.gz" "$BB_URL"
+          echo "$BB_SHA256  $dir/bb.tar.gz" | sha256sum -c -
+          tar -xzf "$dir/bb.tar.gz" -C "$dir"
+          PFY_BUMBLEBEE_BIN="$dir/bumblebee" python3 scripts/pfy_mcp_scan.py --root "$GITHUB_WORKSPACE" --out "$RUNNER_TEMP/bumblebee.json"
       - name: Real-tree audits with full history (dogfood2 trailers, S1 patch-ids)
         if: always() && !cancelled()
         run: |

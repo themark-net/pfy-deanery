@@ -2,14 +2,47 @@
   "slug": "bumblebee",
   "run_kind": "sandbox-trial",
   "sandbox": "sandlock",
-  "wrapper": "scripts/integrations/sandlock/wrap.py --action run (PFY_SANDLOCK=all, SANDLOCK_BIN=scripts/integrations/sandlock/confine.py)",
-  "started": "2026-11-10T08:16:59Z",
+  "wrapper": "scripts/integrations/sandlock/trial.py (wrap.py --action run, PFY_SANDLOCK=all, SANDLOCK_BIN=confine.py)",
+  "started": "2026-11-10T15:18:56Z",
+  "finished": "2026-11-10T15:18:56Z",
+  "command": [
+    "python3",
+    "./scripts/pfy_mcp_scan.py",
+    "--root",
+    "./tmp/bumblebee-trial-fixture",
+    "--out",
+    "./tmp/sandlock-trial/bumblebee/stage/scan.json"
+  ],
+  "exit_code": 0,
+  "unsandboxed_lines": 0,
+  "profile": {
+    "sandbox": "sandlock",
+    "reads": [
+      "/usr",
+      "/lib",
+      "/lib64",
+      "/bin",
+      "/etc",
+      "/usr/bin",
+      "./scripts",
+      "./tmp/bumblebee-trial-fixture",
+      "$HOME/.cache/pfy/tools/bumblebee",
+      "./tmp/sandlock-trial/bumblebee/wrap/started",
+      "./tmp/sandlock-trial/bumblebee/stage"
+    ],
+    "writes": [
+      "./tmp/sandlock-trial/bumblebee/wrap/started",
+      "./tmp/sandlock-trial/bumblebee/stage"
+    ],
+    "network": "deny",
+    "clean_env": true,
+    "sudo": false,
+    "timeout_sec": 120
+  },
   "tool_version": "bumblebee v0.1.2",
   "pin": "cc57710eeaf685e7b89924a36c8583cad0a378fe",
-  "did": "Same two-file fixture as run-on-main.sh (.cursor/mcp.json, clean-app/package-lock.json). scripts/pfy_mcp_scan.py ran inside sandlock: read grants on system dirs, the script, the fixture and the binary dir; writes only to the stage dir; default-deny network; clean env.",
-  "outcome": "ok",
+  "did": "Same two-file fixture as run-on-main.sh (.cursor/mcp.json, clean-app/package-lock.json), scanned by scripts/pfy_mcp_scan.py inside sandlock.",
   "scan_verdict": "CLEAN",
   "findings": 0,
-  "unsandboxed_lines": 0,
-  "exit_code": 0
+  "outcome": "ok"
 }
