@@ -1,0 +1,39 @@
+{
+  "metric": "file_qualified_python_names",
+  "threshold": 1,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I1",
+  "intent": "staged_evaluation",
+  "pin": "0.1.40",
+  "git": "e3e8aa54d200f97507514d205b3bfb156aa70150",
+  "npm_latest": "0.1.40",
+  "main_vs_tag": "identical",
+  "impact_connect": ["main"],
+  "file_qualified": false,
+  "prior_agreement": "3/10",
+  "prior_cbm_agreement": "5/10",
+  "install_allocated_bytes": 89458688,
+  "runs": 1,
+  "value_legs": {
+    "gap_fill": "fail",
+    "operator_leverage": "fail",
+    "evidence": "pass",
+    "blast_radius": "pass"
+  },
+  "supersede": {
+    "coverage": {
+      "track": "none",
+      "catalog": "none",
+      "evaluate": "none",
+      "integrate": "none"
+    },
+    "checker": {
+      "parts": [],
+      "supersede_candidate": false
+    },
+    "watchlist_row": false,
+    "why": "Call-graph impact does not watch outside sources, keep a deduped stage catalog, score tools on I0-I4, or wire a tool with a run on main. scripts/supersede_check.py --parts track=none,catalog=none,evaluate=none,integrate=none is not a candidate. No watchlist row."
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "pin": "0.1.40",
+  "git": "e3e8aa54d200f97507514d205b3bfb156aa70150",
+  "npm_latest": "0.1.40",
+  "main_vs_tag": "identical",
+  "node": "v22.23.0",
+  "install_bytes": 175879686,
+  "install_allocated_bytes": 89458688,
+  "package_bytes": 30064079,
+  "ten_commit_repeated": false,
+  "prior_results": "eval/ev1107/chiasmus/results.json",
+  "prior_agreement": "3/10",
+  "prior_cbm_agreement": "5/10",
+  "server_version": "0.1.40",
+  "defines": [
+    {
+      "file": "a.py",
+      "name": "connect",
+      "kind": "function",
+      "line": 1
+    },
+    {
+      "file": "a.py",
+      "name": "main",
+      "kind": "function",
+      "line": 5
+    },
+    {
+      "file": "b.py",
+      "name": "main",
+      "kind": "function",
+      "line": 1
+    }
+  ],
+  "impact_connect": [
+    "main"
+  ],
+  "impact_file_target": [],
+  "bare_names": true,
+  "same_name_two_files": true,
+  "file_qualified": false,
+  "real_home_unchanged": true,
+  "wall_s": 0.827,
+  "facts_error": false,
+  "impact_error": false
+}
