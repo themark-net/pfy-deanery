@@ -1,0 +1,31 @@
+{
+  "metric": "source_features_at_pin",
+  "threshold": 8,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I1",
+  "intent": "staged_evaluation",
+  "pin": "cbe5fb9bd248636ebeb5ac6f97ab83940d04fb2d",
+  "source_features_confirmed": 8,
+  "runs": 0,
+  "value_legs": {
+    "gap_fill": "fail",
+    "operator_leverage": "fail",
+    "evidence": "fail",
+    "blast_radius": "pass"
+  },
+  "supersede": {
+    "coverage": {
+      "track": "none",
+      "catalog": "none",
+      "evaluate": "none",
+      "integrate": "partial"
+    },
+    "checker": {
+      "parts": ["integrate"],
+      "supersede_candidate": false
+    },
+    "watchlist_row": false,
+    "why": "One part only, so scripts/supersede_check.py --parts integrate=partial is not a candidate. agent-manager runs existing agent CLIs on a private tmux socket. It does not watch outside sources, it does not keep a deduped tool catalog with stage cards, and it does not score tools on I0-I4. The internal catalog package is a model list for those CLIs. A package name is not suite coverage. Do not adopt it in place of this repo. Do not add a watchlist row."
+  }
+}

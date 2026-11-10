@@ -1,0 +1,75 @@
+{
+  "pin": "cbe5fb9bd248636ebeb5ac6f97ab83940d04fb2d",
+  "git_head": "cbe5fb9bd248636ebeb5ac6f97ab83940d04fb2d",
+  "pin_match": true,
+  "metric": "source_features_at_pin",
+  "threshold": 8,
+  "source_features_confirmed": 8,
+  "features": [
+    {
+      "id": "private_tmux_socket",
+      "path": "internal/tmux/tmux.go",
+      "ok": true,
+      "missing": [],
+      "sha256": "49bad9c588b490b5745b6fba952179b28500c34cc3bae90deb4f2dfca53b1d8f"
+    },
+    {
+      "id": "grok_no_leader",
+      "path": "internal/launch/launch.go",
+      "ok": true,
+      "missing": [],
+      "sha256": "099afdcedbb7a4a796800cd41e7f3c0d34f5cdccd0e69832efacf8afc05eb5b5"
+    },
+    {
+      "id": "grok_status_rules",
+      "path": "internal/config/builtin.go",
+      "ok": true,
+      "missing": [],
+      "sha256": "1375a993c383d11e84dfe1cbbac9a7d087cb4ea93e9d39c985c9689fca9d3765"
+    },
+    {
+      "id": "grok_fork_command",
+      "path": "internal/config/builtin.go",
+      "ok": true,
+      "missing": [],
+      "sha256": "1375a993c383d11e84dfe1cbbac9a7d087cb4ea93e9d39c985c9689fca9d3765"
+    },
+    {
+      "id": "cli_spawn_and_send",
+      "path": "internal/cli/session.go",
+      "ok": true,
+      "missing": [],
+      "sha256": "b6ae466331629d51c61225c076b185251eabd6212d3647dee7cc7cae97be9250"
+    },
+    {
+      "id": "mcp_create_session",
+      "path": "internal/mcpserver/mcpserver.go",
+      "ok": true,
+      "missing": [],
+      "sha256": "ab78edeb17159e97e58e3b23cb68d6701be285ea19d9992f14b1cafbf6fdb583"
+    },
+    {
+      "id": "diff_review_cli",
+      "path": "internal/cli/review.go",
+      "ok": true,
+      "missing": [],
+      "sha256": "80cd7e009bd87fbf5f9da467737af984fac92a388fce3afe8e620ce9b9847b83"
+    },
+    {
+      "id": "script_outside_tui",
+      "path": "internal/cli/cli.go",
+      "ok": true,
+      "missing": [],
+      "sha256": "9800702d7f658ea7f220260de8223e4ec0837591dd4fbe1f19a9589031eccd8b"
+    }
+  ],
+  "license_apache_2": true,
+  "cost_tracking_readme_claim": true,
+  "cost_tracking_go_files": [],
+  "grok_config_write_on_launch": true,
+  "headless_observe_example": true,
+  "go_mod_line": "go 1.27.3",
+  "runs": 0,
+  "built": false,
+  "installed": false
+}
