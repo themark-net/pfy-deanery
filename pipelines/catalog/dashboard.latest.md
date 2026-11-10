@@ -2,23 +2,24 @@
 
 Stage cards are the source of truth.
 
-Coverage: 131 tools registered.
+Coverage: 135 tools registered.
 
-Cards: 131. I2+: 22.
+Cards: 135. I2+: 22.
 
 ## Stage counts
 
 | Stage | Count |
 |-------|------:|
-| I0 | 47 |
+| I0 | 51 |
 | I1 | 62 |
-| I2 | 10 |
-| I3 | 12 |
+| I2 | 3 |
+| I3 | 19 |
 
 ## Intent counts
 
 | Intent | Count |
 |--------|------:|
+| (missing) | 4 |
 | ad_hoc_probe | 4 |
 | adhoc_probe | 4 |
 | advisory_skill_scan | 1 |
@@ -72,6 +73,7 @@ Cards: 131. I2+: 22.
 | Agent Beacon | I0 | awareness |
 | Agent Substrate | I0 | awareness |
 | agent-cage (PNNL) | I3 | primary_harness |
+| agent-manager | I0 | (missing) |
 | agentgg | I0 | awareness |
 | agentplay | I0 | design_reference |
 | ai-memory | I1 | staged_evaluation |
@@ -84,6 +86,7 @@ Cards: 131. I2+: 22.
 | Auto-Company | I1 | catalog_default |
 | awesome-hermes-skills | I1 | catalog_default |
 | Axon | I1 | staged_evaluation |
+| Bricks | I0 | (missing) |
 | Brigade | I0 | awareness |
 | BugPatrol | I1 | staged_evaluation |
 | Bumblebee | I2 | catalog_default |
@@ -123,13 +126,14 @@ Cards: 131. I2+: 22.
 | Harness Score | I0 | awareness |
 | harness2 | I1 | staged_evaluation |
 | HarnessRouter | I0 | awareness |
-| headson | I2 | ad_hoc_probe |
+| headson | I3 | ad_hoc_probe |
 | Hermes Agent (feedback loops) | I1 | catalog_default |
 | Hermes Teammates | I0 | blocked_on_hermes_wiring |
-| HiRoute | I2 | adhoc_probe |
+| HiRoute | I3 | adhoc_probe |
 | Hyperframes | I1 | catalog_default |
 | imcodes | I0 | awareness |
 | Jamon Holmgren agentic setup | I1 | catalog_default |
+| jcode | I0 | (missing) |
 | JevAgentHarness | I1 | staged_evaluation |
 | kanbots | I1 | catalog_default |
 | Kander | I1 | staged_evaluation |
@@ -158,14 +162,15 @@ Cards: 131. I2+: 22.
 | multi-agent-generator | I0 | design_reference |
 | Multica | I1 | reference |
 | Muxin | I0 | awareness |
-| neatroots | I2 | ad_hoc_probe |
+| neatroots | I3 | ad_hoc_probe |
+| Neuronto ARD Registry | I0 | (missing) |
 | odai | I0 | design_reference |
 | Ollama | I3 | host_runtime |
 | Open Steps | I0 | awareness |
 | Open WebUI | I1 | catalog_default |
 | OpenClaude-Portable | I0 | awareness |
 | OpenCode Skill Creator | I0 | awareness |
-| opencode-mem | I2 | ad_hoc_probe |
+| opencode-mem | I3 | ad_hoc_probe |
 | OpenContext | I1 | staged_evaluation |
 | OpenLore | I1 | staged_evaluation |
 | OpenQodex | I1 | staged_eval |
@@ -176,7 +181,7 @@ Cards: 131. I2+: 22.
 | project-process bootstrap | I3 | first_party |
 | Reasonix | I0 | awareness |
 | repository-harness | I0 | awareness |
-| repowise | I2 | smoke_path |
+| repowise | I3 | smoke_path |
 | RoBrain | I0 | awareness |
 | Ruben Hassid context/token hacks | I0 | awareness |
 | Rulora | I1 | staged_eval |
@@ -188,11 +193,11 @@ Cards: 131. I2+: 22.
 | Sloptrim | I1 | staged_evaluation |
 | smolvm | I1 | staged_eval |
 | SmythOS Studio | I1 | reference |
-| Sponsio | I2 | adhoc_probe |
+| Sponsio | I3 | adhoc_probe |
 | Squadra | I1 | staged_evaluation |
 | Strata | I2 | local_probe_stayed_i2 |
 | SysKnife | I0 | awareness |
-| taste-skill | I2 | ad_hoc_probe |
+| taste-skill | I3 | ad_hoc_probe |
 | TeaQL Agent Kit | I0 | awareness |
 | Tracekit | I0 | awareness |
 | trailofbits-skills | I0 | awareness |

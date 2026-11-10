@@ -1,7 +1,7 @@
 {
-  "card_count": 131,
-  "cards_sha256": "a1b74b889b5e517769a2d51c00ea353d237d0f847b65571f3d127b2c89049439",
-  "coverage": "131 tools registered",
+  "card_count": 135,
+  "cards_sha256": "4652daeb2cf57b77dfe741f83542e899460813841b25d02b660d777352bdc721",
+  "coverage": "135 tools registered",
   "i2_plus": 22,
   "missing_fields": {
     "evidence": 3,
@@ -13,6 +13,7 @@
     "uses": 2
   },
   "per_intent": {
+    "(missing)": 4,
     "ad_hoc_probe": 4,
     "adhoc_probe": 4,
     "advisory_skill_scan": 1,
@@ -46,9 +47,9 @@
     "watch": 3
   },
   "per_stage": {
-    "I0": 47,
+    "I0": 51,
     "I1": 62,
-    "I2": 10,
-    "I3": 12
+    "I2": 3,
+    "I3": 19
   }
 }

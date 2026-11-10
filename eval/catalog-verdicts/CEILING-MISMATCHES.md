@@ -19,14 +19,13 @@ Apply adds two write caps the scan does not need. A failing modularity gate caps
 
 A tool whose uses, features, or tags cover CI, testing, or review cannot sit above I2 unless self_pipeline passes the same check as scripts/catalog_check.py (applied with evidence, not_applicable with a reason, or pending with grace). That check does not promote a card. Notes, a scan summary, and a report stay I1 even when tier_ceiling is I3.
 
-Scanned 131 cards. Mismatches 11.
+Scanned 135 cards. Mismatches 10.
 
 | Tool | Stage | Evidence ceiling | Tier ceiling | Allowed | Why |
 | --- | --- | --- | --- | --- | --- |
 | Antigravity-Manager | I1 | I1 | I0 | I0 | evidence I1: notes; tier_ceiling I0 caps the evidence |
 | Bumblebee | I2 | I1 | I1 | I1 | evidence I1: notes, pin, report, VERDICT, script; tier_ceiling I1 agrees |
 | Grok CLI bootstrap | I3 | I2 | I3 | I2 | evidence I2: make target, repo path; tier_ceiling I3 does not raise it; missing-main-receipt |
-| HiRoute | I2 | I1 | I3 | I1 | evidence I1: entry, report; tier_ceiling I3 does not raise it |
 | MLX + MLX-LM | I1 | I0 | I1 | I0 | evidence I0: no evidence listed; tier_ceiling I1 does not raise it |
 | SkillSpector | I3 | I1 | I3 | I1 | evidence I1: entry, notes, pin, scan summary, report; tier_ceiling I3 does not raise it; missing-main-receipt |
 | agent-cage (PNNL) | I3 | I2 | I3 | I2 | evidence I2: make target, repo path; tier_ceiling I3 does not raise it; missing-main-receipt |
