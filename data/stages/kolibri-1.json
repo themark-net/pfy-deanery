@@ -36,5 +36,54 @@
     "GGUF Q3_K_S path on nimo"
   ],
   "potential": "medium",
-  "next_gate": "PASS make smoke-kolibri1 with verified GGUF, then consider I1; Vulkan/GPU needs operator approval."
+  "next_gate": "PASS make smoke-kolibri1 with verified GGUF, then consider I1; Vulkan/GPU needs operator approval.",
+  "promotion_history": [
+    {
+      "kind": "stage",
+      "from": "I0",
+      "to": "I1",
+      "result": "refuse",
+      "passed": [
+        "R-not-excluded",
+        "R-evidence"
+      ],
+      "failed": [
+        {
+          "rule": "R-tier-ceiling",
+          "detail": "tier_ceiling I0 caps I1"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-10",
+      "verdict": "eval/evals/kolibri-1/VERDICT.json"
+    },
+    {
+      "kind": "ceiling",
+      "from": "I0",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "R-not-excluded",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable",
+        "R-modularity-gate"
+      ],
+      "failed": [
+        {
+          "rule": "R-value-gate",
+          "detail": "value_gate fail"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-10",
+      "verdict": "eval/evals/kolibri-1/VERDICT.json"
+    }
+  ]
 }

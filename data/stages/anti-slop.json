@@ -37,5 +37,34 @@
   "self_pipeline": {
     "status": "not_applicable",
     "reason": "Advisory probe only in ops:eval/evq1107/anti-slop/REPORT.md. The phrase pass was not applied to pregate or CI. The pack was not installed into a harness."
-  }
+  },
+  "promotion_history": [
+    {
+      "kind": "ceiling",
+      "from": "I1",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "R-not-excluded",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable",
+        "R-modularity-gate"
+      ],
+      "failed": [
+        {
+          "rule": "R-value-gate",
+          "detail": "value_gate fail"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-10",
+      "verdict": "eval/evq1107/anti-slop/VERDICT.json"
+    }
+  ]
 }

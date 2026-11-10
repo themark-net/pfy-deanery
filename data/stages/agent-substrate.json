@@ -43,5 +43,34 @@
   ],
   "handoff_by": "llm",
   "tarball_sha256": "d547d81401461fd1c679c5c4fa0a6c2b8ef7dc3c22ce23c9e25dcc4c69cfd06f",
-  "runsc_sha256": "1a3982cb91714f9c0c7148668d2c40143ee97e238f8a8e7452e410770d34fbe3"
+  "runsc_sha256": "1a3982cb91714f9c0c7148668d2c40143ee97e238f8a8e7452e410770d34fbe3",
+  "promotion_history": [
+    {
+      "kind": "ceiling",
+      "from": "I1",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "R-not-excluded",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable",
+        "R-modularity-gate"
+      ],
+      "failed": [
+        {
+          "rule": "R-value-gate",
+          "detail": "value_gate fail"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-10",
+      "verdict": "eval/evq1107/agent-substrate/VERDICT.json"
+    }
+  ]
 }

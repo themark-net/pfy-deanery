@@ -17,5 +17,34 @@
   "risk_class": "none",
   "github": "https://github.com/wainmann/agent-manager",
   "license": "Apache-2.0",
-  "pin": "cbe5fb9bd248636ebeb5ac6f97ab83940d04fb2d"
+  "pin": "cbe5fb9bd248636ebeb5ac6f97ab83940d04fb2d",
+  "promotion_history": [
+    {
+      "kind": "ceiling",
+      "from": "I1",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "R-not-excluded",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable",
+        "R-modularity-gate"
+      ],
+      "failed": [
+        {
+          "rule": "R-value-gate",
+          "detail": "value_gate fail"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-10",
+      "verdict": "eval/evals/agent-manager/VERDICT.json"
+    }
+  ]
 }

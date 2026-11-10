@@ -64,5 +64,67 @@
   "potential": "measured-probe",
   "next_gate": "STOPPED 2026-11-08. Stay I2. Do NOT promote to I3. The operator recorded a negative result and cancelled further ATG finish work. See stop note on this card and exclusions.tsv.",
   "handoff_by": "llm",
-  "stop_reason": "STOPPED 2026-11-08 16:21 PT (the operator): negative result on the live localized-repair bar (atg-framework item 1, six sessions on qwen2.5:14b and qwen3.6:35b). Best arm 10/12; best localized 9/12 (qwen3.6:35b session 5) with 23 model calls vs replan 10/12 with 16 and sequential 10/12 with 12. The paper's localized-repair advantage did not reproduce. Items 2 to 4 cancelled. Do NOT promote to I3. The integrate receipt never included a real model call (offline atg-compile only). Write-up ae4891a; handoff 31fda31; stop docs f42a4fc on themark-net/atg-framework. Catalog exclusion: eval/catalog-queue/exclusions.tsv."
+  "stop_reason": "STOPPED 2026-11-08 16:21 PT (the operator): negative result on the live localized-repair bar (atg-framework item 1, six sessions on qwen2.5:14b and qwen3.6:35b). Best arm 10/12; best localized 9/12 (qwen3.6:35b session 5) with 23 model calls vs replan 10/12 with 16 and sequential 10/12 with 12. The paper's localized-repair advantage did not reproduce. Items 2 to 4 cancelled. Do NOT promote to I3. The integrate receipt never included a real model call (offline atg-compile only). Write-up ae4891a; handoff 31fda31; stop docs f42a4fc on themark-net/atg-framework. Catalog exclusion: eval/catalog-queue/exclusions.tsv.",
+  "promotion_history": [
+    {
+      "kind": "stage",
+      "from": "I2",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "R-evidence",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-modularity-gate",
+        "R-value-gate",
+        "R-main-receipt",
+        "R-self-pipeline"
+      ],
+      "failed": [
+        {
+          "rule": "R-not-excluded",
+          "detail": "excluded: The operator stopped ATG 2026-11-08 (negative result). Do not auto-raise or promote to I3. Receipt had no real model call."
+        },
+        {
+          "rule": "R-tier-ceiling",
+          "detail": "tier_ceiling I2 caps I3"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-10",
+      "verdict": "eval/integrate/atomic-task-graph-atg/VERDICT.json"
+    },
+    {
+      "kind": "ceiling",
+      "from": "I2",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable",
+        "R-modularity-gate",
+        "R-value-gate"
+      ],
+      "failed": [
+        {
+          "rule": "R-not-excluded",
+          "detail": "excluded: The operator stopped ATG 2026-11-08 (negative result). Do not auto-raise or promote to I3. Receipt had no real model call."
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-10",
+      "verdict": "eval/integrate/atomic-task-graph-atg/VERDICT.json"
+    }
+  ]
 }

@@ -45,5 +45,46 @@
       "reason": "security scanner or guard: I2 sandbox trial allowed by the operator decision of 2026-11-10; I3 needs the full gate",
       "evidence": []
     }
+  ],
+  "promotion_history": [
+    {
+      "kind": "ceiling",
+      "from": "I2",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "R-not-excluded",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable",
+        "R-modularity-gate"
+      ],
+      "failed": [
+        {
+          "rule": "R-value-gate",
+          "detail": "value_gate fail"
+        },
+        {
+          "rule": "S-sandlock-trial-clean",
+          "detail": "no eval/integrate/trailofbits-skills/sandbox-trial.json"
+        },
+        {
+          "rule": "S-profile-readonly",
+          "detail": "no eval/integrate/trailofbits-skills/sandbox-trial.json"
+        },
+        {
+          "rule": "S-wiring",
+          "detail": "card has no wiring"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-10",
+      "verdict": "eval/evq1107/trailofbits-skills/VERDICT.json"
+    }
   ]
 }

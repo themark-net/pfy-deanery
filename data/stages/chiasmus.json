@@ -26,5 +26,34 @@
   "self_pipeline": {
     "status": "not_applicable",
     "reason": "Report-only comparison in ops:eval/ev1107/chiasmus/REPORT.md. Impact agrees with test_select on 3/10 commits. codebase-memory agrees on 5/10. No extra test imports the change. Not wired into a gate."
-  }
+  },
+  "promotion_history": [
+    {
+      "kind": "ceiling",
+      "from": "I1",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "R-not-excluded",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable",
+        "R-modularity-gate"
+      ],
+      "failed": [
+        {
+          "rule": "R-value-gate",
+          "detail": "value_gate fail"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-10",
+      "verdict": "eval/evals/chiasmus/VERDICT.json"
+    }
+  ]
 }

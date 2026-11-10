@@ -26,5 +26,39 @@
   "handoff_by": "llm",
   "non_goals": [
     "linux default runtime"
+  ],
+  "promotion_history": [
+    {
+      "kind": "ceiling",
+      "from": "I1",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable"
+      ],
+      "failed": [
+        {
+          "rule": "R-not-excluded",
+          "detail": "excluded: Apple Silicon only."
+        },
+        {
+          "rule": "R-modularity-gate",
+          "detail": "no verdict"
+        },
+        {
+          "rule": "R-value-gate",
+          "detail": "no verdict"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-10"
+    }
   ]
 }

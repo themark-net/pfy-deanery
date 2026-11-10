@@ -17,5 +17,37 @@
   "risk_class": "none",
   "github": "https://github.com/kostja94/bricks",
   "license": "MIT",
-  "pin": "b110aa2808a7be0f74bac1142bb2ad2ef70b2a56"
+  "pin": "b110aa2808a7be0f74bac1142bb2ad2ef70b2a56",
+  "promotion_history": [
+    {
+      "kind": "ceiling",
+      "from": "I1",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "R-not-excluded",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable"
+      ],
+      "failed": [
+        {
+          "rule": "R-modularity-gate",
+          "detail": "modularity_gate fail"
+        },
+        {
+          "rule": "R-value-gate",
+          "detail": "value_gate fail"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-10",
+      "verdict": "eval/evals/bricks/VERDICT.json"
+    }
+  ]
 }

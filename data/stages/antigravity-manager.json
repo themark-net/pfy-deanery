@@ -38,5 +38,39 @@
   "potential": "low",
   "next_gate": "Stay skip-install.",
   "handoff_by": "llm",
-  "risk_class": "secrets"
+  "risk_class": "secrets",
+  "promotion_history": [
+    {
+      "kind": "ceiling",
+      "from": "I0",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "R-not-excluded",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable"
+      ],
+      "failed": [
+        {
+          "rule": "HS-secrets",
+          "detail": "risk_class secrets"
+        },
+        {
+          "rule": "R-modularity-gate",
+          "detail": "no verdict"
+        },
+        {
+          "rule": "R-value-gate",
+          "detail": "no verdict"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-10"
+    }
+  ]
 }

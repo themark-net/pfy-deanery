@@ -37,5 +37,34 @@
   "self_pipeline": {
     "status": "not_applicable",
     "reason": "Report-only probe in ops:eval/evq1107/graphjin/REPORT.md. CodeSQL was skipped at startup. The file list matched 6 of 6 copied paths and did not name a review test. Not wired into a gate."
-  }
+  },
+  "promotion_history": [
+    {
+      "kind": "ceiling",
+      "from": "I0",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "R-not-excluded",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable",
+        "R-modularity-gate"
+      ],
+      "failed": [
+        {
+          "rule": "R-value-gate",
+          "detail": "value_gate fail"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-10",
+      "verdict": "eval/evq1107/graphjin/VERDICT.json"
+    }
+  ]
 }

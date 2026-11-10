@@ -33,5 +33,34 @@
     "eval/evq1107/robrain/results.json",
     "pin:ac53011016e5f7dd42bae9c00c1a9b7d207a68b8"
   ],
-  "handoff_by": "llm"
+  "handoff_by": "llm",
+  "promotion_history": [
+    {
+      "kind": "ceiling",
+      "from": "I1",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "R-not-excluded",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable",
+        "R-modularity-gate"
+      ],
+      "failed": [
+        {
+          "rule": "R-value-gate",
+          "detail": "value_gate fail"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-10",
+      "verdict": "eval/evq1107/robrain/VERDICT.json"
+    }
+  ]
 }

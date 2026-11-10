@@ -27,5 +27,57 @@
   "handoff_by": "llm",
   "non_goals": [
     "preferred over FreeToken"
+  ],
+  "promotion_history": [
+    {
+      "kind": "stage",
+      "from": "I1",
+      "to": "I1",
+      "result": "refuse",
+      "passed": [
+        "R-tier-ceiling"
+      ],
+      "failed": [
+        {
+          "rule": "R-not-excluded",
+          "detail": "excluded: Card is the bring-up record; in use."
+        },
+        {
+          "rule": "R-evidence",
+          "detail": "evidence I0: no evidence listed"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-10",
+      "verdict": "eval/evals/llama-cpp-server-mode/VERDICT.json"
+    },
+    {
+      "kind": "ceiling",
+      "from": "I1",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable",
+        "R-modularity-gate",
+        "R-value-gate"
+      ],
+      "failed": [
+        {
+          "rule": "R-not-excluded",
+          "detail": "excluded: Card is the bring-up record; in use."
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-10",
+      "verdict": "eval/evals/llama-cpp-server-mode/VERDICT.json"
+    }
   ]
 }

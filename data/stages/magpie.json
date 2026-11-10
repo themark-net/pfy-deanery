@@ -16,5 +16,39 @@
     "entry:sources/entries/163-magpie.md"
   ],
   "handoff_by": "llm",
-  "risk_class": "runtime-takeover"
+  "risk_class": "runtime-takeover",
+  "promotion_history": [
+    {
+      "kind": "ceiling",
+      "from": "I1",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "R-not-excluded",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable"
+      ],
+      "failed": [
+        {
+          "rule": "HS-runtime-takeover",
+          "detail": "risk_class runtime-takeover"
+        },
+        {
+          "rule": "R-modularity-gate",
+          "detail": "no verdict"
+        },
+        {
+          "rule": "R-value-gate",
+          "detail": "no verdict"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-10"
+    }
+  ]
 }

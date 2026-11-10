@@ -39,5 +39,37 @@
     "ops:eval/evq1107/sysknife/REPORT.md",
     "eval/evq1107/sysknife/VERDICT"
   ],
-  "handoff_by": "llm"
+  "handoff_by": "llm",
+  "promotion_history": [
+    {
+      "kind": "ceiling",
+      "from": "I1",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "R-not-excluded",
+        "HS-live-money",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable",
+        "R-modularity-gate"
+      ],
+      "failed": [
+        {
+          "rule": "HS-release-deploy",
+          "detail": "card text names a release or deploy"
+        },
+        {
+          "rule": "R-value-gate",
+          "detail": "value_gate fail"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-10",
+      "verdict": "eval/evq1107/sysknife/VERDICT.json"
+    }
+  ]
 }

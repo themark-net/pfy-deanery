@@ -29,5 +29,34 @@
     "ops:eval/ev1107/egm/runs/slice1.json",
     "pin 7bd119c plugin 0.1.1; three reviews in 135.2s parallel; STAY I1"
   ],
-  "handoff_by": "llm"
+  "handoff_by": "llm",
+  "promotion_history": [
+    {
+      "kind": "ceiling",
+      "from": "I1",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "R-not-excluded",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable",
+        "R-modularity-gate"
+      ],
+      "failed": [
+        {
+          "rule": "R-value-gate",
+          "detail": "value_gate fail"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-10",
+      "verdict": "eval/evals/elephant-goldfish-model/VERDICT.json"
+    }
+  ]
 }
