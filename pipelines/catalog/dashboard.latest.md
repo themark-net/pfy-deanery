@@ -12,8 +12,8 @@ Cards: 135. I2+: 22.
 |-------|------:|
 | I0 | 49 |
 | I1 | 64 |
-| I2 | 3 |
-| I3 | 19 |
+| I2 | 2 |
+| I3 | 20 |
 
 ## Intent counts
 
@@ -89,7 +89,7 @@ Cards: 135. I2+: 22.
 | Bricks | I1 | (missing) |
 | Brigade | I0 | awareness |
 | BugPatrol | I1 | staged_evaluation |
-| Bumblebee | I2 | catalog_default |
+| Bumblebee | I3 | catalog_default |
 | Camofox Browser | I1 | catalog_default |
 | Cartographer | I1 | staged_evaluation |
 | cass-memory | I0 | awareness |
