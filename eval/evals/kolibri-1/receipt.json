@@ -1,0 +1,18 @@
+{
+  "model": "Aleph-Alpha/Kolibri-1",
+  "gguf_bytes": 33870242400,
+  "gguf_sha256": "26ce4a2f618e3d55d401faaa78bb144057268b8303e645b6e3d552258d1d34aa",
+  "llama_cpp": "edd6e2bbdad5930899a93db8fa73c3b61c7b9bcc",
+  "backend": "hip",
+  "gpu_target": "gfx1151",
+  "ngl": 99,
+  "ctx": 8192,
+  "load_seconds": 12,
+  "exit_code": 0,
+  "verdict": "PASS",
+  "checks": [
+    {"name": "english", "pass": true, "latency_s": 0.36, "completion_tokens": 2, "content": "Paris"},
+    {"name": "german", "pass": true, "latency_s": 0.38, "completion_tokens": 13, "content": "17 x 23 = 391."},
+    {"name": "tool_call", "pass": true, "latency_s": 0.86, "completion_tokens": 24, "tool": "get_weather", "arguments_city": "Berlin"}
+  ]
+}

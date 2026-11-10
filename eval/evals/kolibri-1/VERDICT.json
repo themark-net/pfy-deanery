@@ -1,0 +1,80 @@
+{
+  "metric": "smoke_checks_passed",
+  "threshold": 3,
+  "value": 3,
+  "smoke_checks_passed": 3,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I1",
+  "intent": "staged_evaluation",
+  "read_date": "2026-11-10",
+  "pin": "edd6e2bbdad5930899a93db8fa73c3b61c7b9bcc",
+  "gguf_sha256": "26ce4a2f618e3d55d401faaa78bb144057268b8303e645b6e3d552258d1d34aa",
+  "gguf_bytes": 33870242400,
+  "disk": {
+    "avail_bytes": 383215075328,
+    "need_bytes": 83870242400,
+    "margin_gb": 50,
+    "ok": true
+  },
+  "checks": {
+    "english": {"pass": true, "latency_s": 0.36, "completion_tokens": 2, "answer": "Paris"},
+    "german": {"pass": true, "latency_s": 0.38, "completion_tokens": 13, "answer": "391"},
+    "tool_call": {"pass": true, "latency_s": 0.86, "completion_tokens": 24, "tool": "get_weather", "city": "Berlin"}
+  },
+  "load_seconds": 12,
+  "backend": "llama.cpp hip gfx1151 ngl 99",
+  "device": {
+    "name": "ROCm0 Radeon 8060S",
+    "reported_mib": 98304,
+    "reported_free_mib": 98303
+  },
+  "gpu": {
+    "preflight_use_pct": 2,
+    "preflight_free_g": 39,
+    "busy_max_pct": 30,
+    "min_free_g": 24,
+    "device_run_use_pct": [2, 4, 13, 18, 19, 18, 18, 64],
+    "device_run_vram_pct": 9,
+    "device_run_load_seconds": 15
+  },
+  "value_legs": {
+    "gap_fill": "fail",
+    "operator_leverage": "fail",
+    "evidence": "pass",
+    "blast_radius": "fail"
+  },
+  "modularity_legs": {
+    "local_code_needed": "pass",
+    "bounded_surface": "pass",
+    "isolatable": "pass",
+    "reversible": "pass"
+  },
+  "intake": {
+    "name_line": "duplicate kolibri-1 data/stages/kolibri-1.json",
+    "url_line": "new https-huggingface-co-aleph-alpha-kolibri-1",
+    "wrote_card": false
+  },
+  "supersede": {
+    "coverage": {
+      "track": "none",
+      "catalog": "none",
+      "evaluate": "none",
+      "integrate": "none"
+    },
+    "checker": {
+      "parts": [],
+      "coverage": {
+        "track": "none",
+        "catalog": "none",
+        "evaluate": "none",
+        "integrate": "none"
+      },
+      "suite": ["track", "catalog", "evaluate", "integrate"],
+      "supersede_candidate": false
+    },
+    "watchlist_row": false,
+    "why": "A local German and English MoE weight. It does not watch outside sources, keep a stage card per tool, score tools, or wire a tool with a run on main. scripts/supersede_check.py --parts track=none,catalog=none,evaluate=none,integrate=none is not a candidate. No watchlist row."
+  },
+  "reason": "Propose I1. make smoke-kolibri1 passed 3 of 3 on the sha256-checked Q3_K_S GGUF (33870242400 bytes) through the patched llama.cpp HIP server, commit edd6e2b, gfx1151, ngl 99, on ROCm0. Load 12s. English Paris 0.36s, German 391 0.38s, tool get_weather Berlin 0.86s. Disk free 383215075328 bytes, need 83870242400. GPU use 2 percent and 39 GiB available before the smoke. A second pinned-device run sampled GPU use up to 64 percent. Value gate fails: 1 of 4 (evidence only). Multi-GB weights and no day-one operator path. Modularity gate passes. tier_ceiling is I0, so apply should refuse I1 and leave the card bytes unchanged."
+}
