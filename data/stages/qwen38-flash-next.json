@@ -1,0 +1,14 @@
+{
+  "name": "qwen38-flash-next",
+  "integration_stage": "I0",
+  "uses": "",
+  "features": [],
+  "potential": "ambiguous",
+  "non_goals": [
+    "raised without a verdict"
+  ],
+  "next_gate": "eval",
+  "evidence": [],
+  "tier_ceiling": "I0",
+  "risk_class": "unknown"
+}
