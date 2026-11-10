@@ -10,8 +10,8 @@ Cards: 135. I2+: 22.
 
 | Stage | Count |
 |-------|------:|
-| I0 | 51 |
-| I1 | 62 |
+| I0 | 50 |
+| I1 | 63 |
 | I2 | 3 |
 | I3 | 19 |
 
@@ -73,7 +73,7 @@ Cards: 135. I2+: 22.
 | Agent Beacon | I0 | awareness |
 | Agent Substrate | I0 | awareness |
 | agent-cage (PNNL) | I3 | primary_harness |
-| agent-manager | I0 | (missing) |
+| agent-manager | I1 | (missing) |
 | agentgg | I0 | awareness |
 | agentplay | I0 | design_reference |
 | ai-memory | I1 | staged_evaluation |
