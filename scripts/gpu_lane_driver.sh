@@ -2,6 +2,14 @@
 # Run operator-approved GPU and over-25 GB eval lanes one at a time.
 #
 #   scripts/gpu_lane_driver.sh --root WT [--state DIR] [--slugs "a b c"] [--once]
+#   scripts/gpu_lane_driver.sh --check-lock
+#   scripts/gpu_lane_driver.sh --gpu-preflight
+#
+# --check-lock exits 75 when PFY_MODEL_LOCK_HELD=1 and names PFY_TOOL.
+# --gpu-preflight exits 0 when the GPU is under the busy cap and free RAM
+# meets the floor. If the probe is still over the cap when
+# PFY_GPU_WAIT_BOUND_SEC elapses, it writes a non-pass verdict to
+# PFY_VERDICT_PATH and exits 1. Neither flag starts a model.
 #
 # Slugs default to eval/catalog-queue/approvals.tsv in the private ops
 # checkout ($PFY_OPS_ROOT, else $ROOT/tmp/ops), first-seen order. The
@@ -38,15 +46,94 @@ ROOT=""
 STATE="${PFY_LOOP_STATE:-$HOME/DEVELOP/pfy-mentat/tmp/loop}/eval"
 SLUGS=""
 ONCE=0
+CHECK_LOCK=0
+GPU_PREFLIGHT=0
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --root) ROOT=${2:-}; shift 2 ;;
     --state) STATE=${2:-}; shift 2 ;;
     --slugs) SLUGS=${2:-}; shift 2 ;;
     --once) ONCE=1; shift ;;
+    --check-lock) CHECK_LOCK=1; shift ;;
+    --gpu-preflight) GPU_PREFLIGHT=1; shift ;;
     *) printf 'unknown arg %s\n' "$1" >&2; exit 2 ;;
   esac
 done
+
+# Lane checks. They exit before a driver pid, a fetch, or a model start.
+# --check-lock: a held model lock is busy for this tool (exit 75).
+# --gpu-preflight: a busy GPU past the wait bound writes a non-pass verdict.
+if [ "$CHECK_LOCK" -eq 1 ]; then
+  if [ "${PFY_MODEL_LOCK_HELD:-}" = "1" ]; then
+    printf '%s state is busy\n' "${PFY_TOOL:-}" >&2
+    exit 75
+  fi
+  exit 0
+fi
+
+if [ "$GPU_PREFLIGHT" -eq 1 ]; then
+  bound="${PFY_GPU_WAIT_BOUND_SEC:-0}"
+  busy_max="${PFY_GPU_BUSY_MAX:-30}"
+  min_ram="${PFY_GPU_MIN_RAM_GIB:-24}"
+  start=$(date +%s)
+  while true; do
+    if [ -n "${PFY_GPU_USE_PCT:-}" ]; then
+      use="$PFY_GPU_USE_PCT"
+    else
+      use=$(rocm-smi --showuse --showmemuse 2>/dev/null | sed -n 's/.*GPU use (%): *\([0-9][0-9]*\).*/\1/p' | sort -n | tail -n 1)
+      if [ -z "$use" ]; then
+        use=$(cat /sys/class/drm/card*/device/gpu_busy_percent 2>/dev/null | sort -n | tail -n 1)
+      fi
+      use="${use:-100}"
+    fi
+    if [ -n "${PFY_FREE_GIB:-}" ]; then
+      free_gib="$PFY_FREE_GIB"
+    else
+      free_gib=$(free -g | awk '/^Mem:/ {print $7}')
+      free_gib="${free_gib:-0}"
+    fi
+    if [[ "$use" =~ ^[0-9]+$ ]] && [[ "$free_gib" =~ ^[0-9]+$ ]] \
+      && [ "$use" -le "$busy_max" ] && [ "$free_gib" -ge "$min_ram" ]; then
+      exit 0
+    fi
+    now=$(date +%s)
+    if [ $((now - start)) -ge "$bound" ]; then
+      python3 - "$use" "$free_gib" "${PFY_VERDICT_PATH:-}" <<'PY'
+import json
+import sys
+
+use, free_gib, path = sys.argv[1:]
+
+def as_int(value):
+    try:
+        return int(value)
+    except ValueError:
+        return value
+
+doc = {
+    "metric": "gpu_headroom",
+    "threshold": 30,
+    "value_gate": "fail",
+    "modularity_gate": "pass",
+    "proposed_stage": "I0",
+    "result": "stay",
+    "reason": "gpu busy past wait bound",
+    "gpu_use_pct": as_int(use),
+    "free_gib": as_int(free_gib),
+}
+text = json.dumps(doc, indent=2) + "\n"
+if path:
+    with open(path, "w", encoding="utf-8") as handle:
+        handle.write(text)
+else:
+    sys.stdout.write(text)
+PY
+      exit 1
+    fi
+    sleep 1
+  done
+fi
+
 [ -n "$ROOT" ] || { printf '%s\n' "missing --root" >&2; exit 2; }
 ROOT=$(cd "$ROOT" && pwd) || exit 2
 HERE=$(cd "$(dirname "$0")" && pwd) || exit 2
