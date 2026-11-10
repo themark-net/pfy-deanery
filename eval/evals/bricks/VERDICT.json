@@ -1,0 +1,45 @@
+{
+  "metric": "validator_components",
+  "threshold": 32,
+  "value_gate": "fail",
+  "modularity_gate": "fail",
+  "proposed_stage": "I1",
+  "intent": "staged_evaluation",
+  "pin": "b110aa2808a7be0f74bac1142bb2ad2ef70b2a56",
+  "validator_exit": 0,
+  "validator_components": 32,
+  "validator_skills": 4,
+  "worktree_bytes": 104880,
+  "clone_bytes": 191002,
+  "weight_files": 0,
+  "agent_interface_ids": 5,
+  "runs_on_this_repo": 0,
+  "value_legs": {
+    "gap_fill": "fail",
+    "operator_leverage": "fail",
+    "evidence": "pass",
+    "blast_radius": "pass"
+  },
+  "supersede": {
+    "coverage": {
+      "track": "none",
+      "catalog": "none",
+      "evaluate": "none",
+      "integrate": "partial"
+    },
+    "checker": {
+      "parts": ["integrate"],
+      "coverage": {
+        "track": "none",
+        "catalog": "none",
+        "evaluate": "none",
+        "integrate": "partial"
+      },
+      "suite": ["track", "catalog", "evaluate", "integrate"],
+      "supersede_candidate": false
+    },
+    "watchlist_row": false,
+    "why": "Skill text someone could copy into a worktree. It does not watch outside tools, it does not keep a stage card per tool, and it does not score tools on improvement vectors. catalog/components.json is a UI concept list. One partial part is not a supersede candidate. No watchlist row."
+  },
+  "next_gate": "Stay I1. A later ticket may copy the four skill directories into a worktree and run component-inventory without editing product UI. Do not run npx skills add. Re-open I2 only if that inventory names a duplicate the design-in-loop pack does not already forbid, and the operator raises tier_ceiling. No gate wiring."
+}
