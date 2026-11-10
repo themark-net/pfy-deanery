@@ -43,6 +43,16 @@ exec {REAL_NODE} "$@"
 
 
 class XIntakeSmoke106108Tests(unittest.TestCase):
+    def setUp(self) -> None:
+        # Each test writes its smoke receipts to its own temp dir. A shared
+        # pipelines/smoke/<entry>/latest.json raced with other modules that
+        # run the same entry in parallel (modular CI: one state file per run).
+        self._receipt_dir = tempfile.TemporaryDirectory(prefix="pfy-xintake-receipts-")
+        self.receipts = Path(self._receipt_dir.name)
+
+    def tearDown(self) -> None:
+        self._receipt_dir.cleanup()
+
     def _base_env(self, home: Path) -> dict[str, str]:
         env = os.environ.copy()
         env["HOME"] = str(home)
@@ -59,6 +69,7 @@ class XIntakeSmoke106108Tests(unittest.TestCase):
             "npm_config_cache",
         ):
             env.pop(key, None)
+        env["PFY_SMOKE_RECEIPT_DIR"] = str(self.receipts)
         return env
 
     def _run(self, entry: str, env: dict[str, str]) -> subprocess.CompletedProcess[str]:
@@ -72,7 +83,7 @@ class XIntakeSmoke106108Tests(unittest.TestCase):
         )
 
     def _receipt(self, entry: str) -> dict:
-        path = ROOT / "pipelines" / "smoke" / entry / "latest.json"
+        path = self.receipts / entry / "latest.json"
         self.assertTrue(path.is_file(), f"missing receipt {path}")
         return json.loads(path.read_text(encoding="utf-8"))
 
@@ -464,6 +475,23 @@ raise SystemExit(1)
             self.assertTrue(home_value.startswith(os.path.normpath(tempfile.gettempdir()) + os.sep), home_value)
             self.assertNotIn("Traceback", proc.stderr)
 
+
+    def test_cassmemory_receipt_stays_in_this_tests_dir(self) -> None:
+        # Fail: the smoke writes the shared repo receipt, so a parallel module
+        # reading pipelines/smoke/cassmemory/latest.json sees this test's run.
+        # Recover: the receipt lands under PFY_SMOKE_RECEIPT_DIR and the repo
+        # file keeps its bytes.
+        shared = ROOT / "pipelines" / "smoke" / "cassmemory" / "latest.json"
+        before = shared.read_bytes() if shared.exists() else None
+        with tempfile.TemporaryDirectory(prefix="pfy-xintake-cm-") as td:
+            home = Path(td) / "home"
+            home.mkdir()
+            env = self._base_env(home)
+            env["CM_BIN"] = str(Path(td) / "missing-cm")
+            self._run("cassmemory", env)
+        self.assertTrue((self.receipts / "cassmemory" / "latest.json").is_file())
+        after = shared.read_bytes() if shared.exists() else None
+        self.assertEqual(before, after)
 
 if __name__ == "__main__":
     unittest.main()
