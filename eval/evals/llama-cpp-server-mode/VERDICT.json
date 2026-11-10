@@ -1,0 +1,114 @@
+{
+  "metric": "gpu_server_checks",
+  "threshold": 3,
+  "value": 3,
+  "gpu_server_checks": 3,
+  "value_gate": "pass",
+  "modularity_gate": "pass",
+  "proposed_stage": "I1",
+  "intent": "catalog_default",
+  "read_date": "2026-11-10",
+  "pin": "1 (6f3a9f3de)",
+  "checks": {
+    "hip_offload": true,
+    "models_endpoint": true,
+    "completion": true
+  },
+  "stock_debian": {
+    "version": "8681 (Debian)",
+    "device_lines": []
+  },
+  "hip": {
+    "version": "1 (6f3a9f3de)",
+    "binary": "/usr/local/lib/ollama/llama-server",
+    "backend_so": "/usr/local/lib/ollama/rocm_v7_2/libggml-hip.so",
+    "device": "ROCm0: Radeon 8060S Graphics (98304 MiB, 72306 MiB free)",
+    "ngl": 999,
+    "fit": "off",
+    "no_mmap": true,
+    "ctx": 2048,
+    "hsa_override_gfx_version": "11.5.1",
+    "offloaded": "29/29",
+    "rocm_buffer_mib": 934.7,
+    "cpu_buffer_mib": 182.57
+  },
+  "model": {
+    "label": "qwen2.5-coder-1.5b-q4km",
+    "bytes": 986048576,
+    "sha256": "29d8c98fa6b098e200069bfb88b9508dc3e85586d20cba59f8dda9a808165104",
+    "gguf_magic": true
+  },
+  "bind": {
+    "host": "127.0.0.1",
+    "port": 51537
+  },
+  "load_seconds": 1.394,
+  "completion": {
+    "http": 200,
+    "latency_s": 0.055,
+    "completion_tokens": 2,
+    "finish_reason": "stop",
+    "content": "Paris",
+    "paris": true,
+    "prompt_tok_s": 1039.63,
+    "decode_tok_s": 261.71
+  },
+  "disk": {
+    "avail_bytes": 381777739776,
+    "download_bytes": 0
+  },
+  "gpu": {
+    "preflight_use_pct": [2, 2, 2],
+    "preflight_vram_pct": [8, 8, 8],
+    "preflight_ram_avail_gib": [70, 70, 70],
+    "busy_max_pct": 30,
+    "min_ram_gib": 24,
+    "waits": 0,
+    "during_use_pct_max": 6,
+    "during_vram_pct_max": 8,
+    "during_samples": 3
+  },
+  "forked_into_repo": false,
+  "model_started": true,
+  "stopped": true,
+  "timeout": false,
+  "license": "Expat",
+  "value_legs": {
+    "gap_fill": "pass",
+    "operator_leverage": "pass",
+    "evidence": "pass",
+    "blast_radius": "pass"
+  },
+  "modularity_legs": {
+    "local_code_needed": "pass",
+    "bounded_surface": "pass",
+    "isolatable": "pass",
+    "reversible": "pass"
+  },
+  "intake": {
+    "line": "duplicate llama-cpp-ngram-mod data/stages/llama-cpp-ngram-mod.json",
+    "wrote_card": false
+  },
+  "supersede": {
+    "coverage": {
+      "track": "none",
+      "catalog": "none",
+      "evaluate": "none",
+      "integrate": "none"
+    },
+    "checker": {
+      "parts": [],
+      "coverage": {
+        "track": "none",
+        "catalog": "none",
+        "evaluate": "none",
+        "integrate": "none"
+      },
+      "suite": ["track", "catalog", "evaluate", "integrate"],
+      "supersede_candidate": false
+    },
+    "watchlist_row": false,
+    "why": "A GGUF server. It does not watch outside sources, keep a stage card per tool, score tools, or wire a tool with a run on main. scripts/supersede_check.py --parts track=none,catalog=none,evaluate=none,integrate=none is not a candidate. No watchlist row."
+  },
+  "reason": "STAY I1. gpu_server_checks 3/3. Debian llama-server 8681 lists no GPU device. Bundled llama-server 1 (6f3a9f3de) with libggml-hip.so, -fit off, -ngl 999, --no-mmap, on 127.0.0.1:51537, loaded the existing 986048576-byte Q4_K_M GGUF (sha256 29d8c98fa6b098e200069bfb88b9508dc3e85586d20cba59f8dda9a808165104) in 1.394s and offloaded 29/29 layers to ROCm0. ROCm0 buffer 934.7 MiB, CPU buffer 182.57 MiB. Chat completion returned Paris in 0.055s, 2 tokens, prompt 1039.63 tok/s, decode 261.71 tok/s. Preflight GPU use 2 percent and 70 GiB available. During the run GPU use peaked at 6 percent and VRAM percent stayed at 8. Download 0 bytes. Disk free 381777739776 bytes. No tree was forked. The process this lane started was stopped. Value gate 4/4. Modularity gate passes. The card next_gate keeps this as the bring-up record, tier_ceiling is I1, and the slug is excluded, so the stage to write is I1. Apply should refuse and leave the card bytes unchanged."
+}

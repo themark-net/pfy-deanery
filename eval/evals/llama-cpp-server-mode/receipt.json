@@ -1,0 +1,166 @@
+{
+  "forked_into_repo": false,
+  "download_bytes": 0,
+  "timeout": false,
+  "model_started": true,
+  "port_bound": true,
+  "stopped": true,
+  "host": "127.0.0.1",
+  "model": {
+    "bytes": 986048576,
+    "sha256": "29d8c98fa6b098e200069bfb88b9508dc3e85586d20cba59f8dda9a808165104",
+    "gguf_magic": true,
+    "label": "qwen2.5-coder-1.5b-q4km"
+  },
+  "disk": {
+    "avail_bytes": 381777739776,
+    "total_bytes": 956069838848
+  },
+  "stock_debian": {
+    "present": true,
+    "version": "8681 (Debian)",
+    "device_lines": []
+  },
+  "hip": {
+    "version": "1 (6f3a9f3de)",
+    "backend_so": "/usr/local/lib/ollama/rocm_v7_2/libggml-hip.so",
+    "binary": "/usr/local/lib/ollama/llama-server",
+    "device_lines": [
+      "ROCm0: Radeon 8060S Graphics (98304 MiB, 72306 MiB free)"
+    ],
+    "ngl": 999,
+    "fit": "off",
+    "no_mmap": true,
+    "ctx": 2048,
+    "hsa_override_gfx_version": "11.5.1"
+  },
+  "gpu_preflight": {
+    "samples": [
+      {
+        "use_pct": 2,
+        "vram_pct": 8,
+        "ram_avail_gib": 70,
+        "rc": 0
+      },
+      {
+        "use_pct": 2,
+        "vram_pct": 8,
+        "ram_avail_gib": 70,
+        "rc": 0
+      },
+      {
+        "use_pct": 2,
+        "vram_pct": 8,
+        "ram_avail_gib": 70,
+        "rc": 0
+      }
+    ],
+    "clear": true,
+    "busy_max_pct": 30,
+    "min_ram_gib": 24,
+    "waits": 0
+  },
+  "port": 51537,
+  "pid": 1648412,
+  "health": {
+    "status": "ok"
+  },
+  "load_seconds": 1.394,
+  "models": {
+    "http": 200,
+    "ids": [
+      "llama-cpp-server-mode"
+    ]
+  },
+  "completion": {
+    "http": 200,
+    "latency_s": 0.055,
+    "completion_tokens": 2,
+    "finish_reason": "stop",
+    "content": "Paris",
+    "paris": true
+  },
+  "gpu_during": {
+    "n": 3,
+    "use_pct_max": 6,
+    "vram_pct_max": 8,
+    "samples_head": [
+      {
+        "use_pct": 2,
+        "vram_pct": 8,
+        "ram_avail_gib": 70,
+        "rc": 0
+      },
+      {
+        "use_pct": 4,
+        "vram_pct": 8,
+        "ram_avail_gib": 69,
+        "rc": 0
+      },
+      {
+        "use_pct": 6,
+        "vram_pct": 8,
+        "ram_avail_gib": 69,
+        "rc": 0
+      }
+    ],
+    "samples_tail": [
+      {
+        "use_pct": 2,
+        "vram_pct": 8,
+        "ram_avail_gib": 70,
+        "rc": 0
+      },
+      {
+        "use_pct": 4,
+        "vram_pct": 8,
+        "ram_avail_gib": 69,
+        "rc": 0
+      },
+      {
+        "use_pct": 6,
+        "vram_pct": 8,
+        "ram_avail_gib": 69,
+        "rc": 0
+      }
+    ]
+  },
+  "log": {
+    "offloaded": [
+      "29/29"
+    ],
+    "rocm_buffer_mib": [
+      934.7
+    ],
+    "cpu_buffer_mib": [
+      182.57
+    ],
+    "prompt_tok_s": [
+      1039.63
+    ],
+    "decode_tok_s": [
+      261.71
+    ],
+    "device_lines": [
+      "0.00.214.891 I   - ROCm0   : Radeon 8060S Graphics (98304 MiB, 72375 MiB free)",
+      "0.00.214.924 I system_info: n_threads = 16 (n_threads_batch = 16) / 32 | CPU : SSE3 = 1 | SSSE3 = 1 | AVX = 1 | AVX2 = 1 | F16C = 1 | FMA = 1 | BMI2 = 1 | AVX512 = 1 | AVX512_VBMI = 1 | AVX512_VNNI = 1 | AVX512_BF16 = 1 | LLAMAFILE = 1 | RE",
+      "0.00.259.023 I llama_prepare_model_devices: using device ROCm0 (Radeon 8060S Graphics) (0000:c5:00.0) - 72354 MiB free",
+      "0.00.355.483 D load_tensors: layer   0 assigned to device ROCm0, is_swa = 0",
+      "0.00.355.483 D load_tensors: layer   1 assigned to device ROCm0, is_swa = 0",
+      "0.00.355.484 D load_tensors: layer   2 assigned to device ROCm0, is_swa = 0",
+      "0.00.355.484 D load_tensors: layer   3 assigned to device ROCm0, is_swa = 0",
+      "0.00.355.484 D load_tensors: layer   4 assigned to device ROCm0, is_swa = 0",
+      "0.00.355.484 D load_tensors: layer   5 assigned to device ROCm0, is_swa = 0",
+      "0.00.355.484 D load_tensors: layer   6 assigned to device ROCm0, is_swa = 0",
+      "0.00.355.484 D load_tensors: layer   7 assigned to device ROCm0, is_swa = 0",
+      "0.00.355.485 D load_tensors: layer   8 assigned to device ROCm0, is_swa = 0"
+    ]
+  },
+  "log_tail": "0.01.443.392 I slot      release: id  0 | task 0 | stop processing: n_tokens = 42, truncated = 0\n0.01.443.392 D slot        reset: id  0 | task 0 | \n0.01.443.397 D srv  update_slots: run slots completed\n0.01.443.397 D que    start_loop: waiting for new tasks\n0.01.443.398 D que    start_loop: processing new tasks\n0.01.443.399 D que    start_loop: processing task, id = 3\n0.01.443.400 D que    start_loop: update slots\n0.01.443.400 I srv  update_slots: all slots are idle\n0.01.443.406 D que    start_loop: waiting for new tasks\n0.01.444.736 D Parsed message: {\"role\":\"assistant\",\"content\":\"Paris\"}\n0.01.444.818 D srv          stop: all tasks already finished, no need to cancel\n0.01.444.826 D res  remove_waiti: remove task 0 from waiting list. current waiting = 1 (before remove)\n0.01.444.826 D srv          stop: all tasks already finished, no need to cancel\n0.01.444.842 I srv  log_server_r: done request: POST /v1/chat/completions 127.0.0.1 200\n0.01.444.843 D srv  log_server_r: request:  {\"model\": \"llama-cpp-server-mode\", \"messages\": [{\"role\": \"user\", \"content\": \"What is the capital of France? Answer with one word.\"}], \"temperature\": 0, \"max_tokens\": 16}\n0.01.444.844 D srv  log_server_r: response: {\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"Paris\"}}],\"created\":1794321478,\"model\":\"llama-cpp-server-mode\",\"system_fingerprint\":\"b1-6f3a9f3de\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":2,\"prompt_tokens\":41,\"total_tokens\":43,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"id\":\"chatcmpl-k1jTmYGMpEkXBXW9m4s4VWXP3xuYeoIj\",\"timings\":{\"cache_n\":0,\"prompt_n\":41,\"prompt_ms\":39.437,\"prompt_per_token_ms\":0.9618780487804878,\"prompt_per_second\":1039.632832111976,\"predicted_n\":2,\"predicted_ms\":7.642,\"predicted_per_token_ms\":3.821,\"predicted_per_second\":261.7115938236064}}\n0.01.445.346 D que    start_loop: processing new tasks\n0.01.445.348 D que    start_loop: terminate\n0.01.445.349 I srv    operator(): operator(): cleaning up before exit...\n0.01.446.820 D ggml_backend_cuda_get_available_uma_memory: final available_memory_kb: 72832912\n0.01.446.841 I common_memory_breakdown_print: | memory breakdown [MiB]     | total    free    self   model   context   compute    unaccounted |\n0.01.446.842 I common_memory_breakdown_print: |   - ROCm0 (8060S Graphics) | 98304 = 71125 + (1054 =   934 +      56 +      63) +       26123 |\n0.01.446.842 I common_memory_breakdown_print: |   - Host                   |                   190 =   182 +       0 +       8                |\n0.01.446.911 D ~llama_context:      ROCm0 compute buffer size is  63.5099 MiB, matches expectation of  63.5099 MiB\n0.01.446.912 D ~llama_context:  ROCm_Host compute buffer size is   8.0117 MiB, matches expectation of   8.0117 MiB",
+  "checks": {
+    "hip_offload": true,
+    "models_endpoint": true,
+    "completion": true
+  },
+  "gpu_server_checks": 3
+}
