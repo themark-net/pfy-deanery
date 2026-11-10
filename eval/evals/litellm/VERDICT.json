@@ -1,0 +1,93 @@
+{
+  "metric": "probe_not_product_lever",
+  "threshold": 1,
+  "value": 1,
+  "value_gate": "pass",
+  "modularity_gate": "pass",
+  "proposed_stage": "I3",
+  "tool": "litellm",
+  "measured": {
+    "product_lever": false,
+    "probe_on_platform_help": true,
+    "on_default_help": false,
+    "env_stage_soft_skip": true,
+    "local_code_needed": true,
+    "bounded_surface": true,
+    "isolatable": true,
+    "reversible": true,
+    "disk_free_bytes": 381817061376,
+    "download_over_25gb": false,
+    "download_blocked": false,
+    "download_bytes": 0,
+    "timeout": false,
+    "start_model": true,
+    "completion_ok": true,
+    "gpu_used": true,
+    "second_run": false,
+    "model": "deepseek-coder:latest",
+    "completion_base": "http://127.0.0.1:11434/v1",
+    "gpu_use_pct": 2,
+    "free_ram_gib": 72,
+    "vram_pct": 8,
+    "wait_action": "start",
+    "wait_polls": 1,
+    "model_present": true,
+    "model_bytes": 776080839,
+    "model_digest": "3ddd2d3fc8d2b5fe039d18f859271132fd9c7960ef0be1864984442dc2a915d3",
+    "proxy_model_ids": [
+      "local-coder"
+    ],
+    "smoke_model_on_proxy": false,
+    "tool_version": "1.108.3",
+    "elapsed_s": 2.0414,
+    "answer_chars": 5,
+    "answer": "PONG!",
+    "completion_error": "",
+    "gpu_use_max_pct": 13,
+    "size_vram": 4085210152,
+    "processes_started": [
+      "model_lock completion"
+    ],
+    "processes_stopped": [
+      "model_lock completion"
+    ]
+  },
+  "value_legs": {
+    "gap_fill": "pass",
+    "operator_leverage": "pass",
+    "evidence": "pass",
+    "blast_radius": "pass"
+  },
+  "modularity_legs": {
+    "local_code_needed": "pass",
+    "bounded_surface": "pass",
+    "isolatable": "pass",
+    "reversible": "pass"
+  },
+  "intake": {
+    "line": "duplicate litellm data/stages/litellm.json",
+    "wrote_card": false
+  },
+  "supersede": {
+    "coverage": {
+      "track": "none",
+      "catalog": "none",
+      "evaluate": "none",
+      "integrate": "none"
+    },
+    "checker": {
+      "parts": [],
+      "coverage": {
+        "track": "none",
+        "catalog": "none",
+        "evaluate": "none",
+        "integrate": "none"
+      },
+      "suite": ["track", "catalog", "evaluate", "integrate"],
+      "supersede_candidate": false
+    },
+    "watchlist_row": false,
+    "why": "An OpenAI-compatible proxy. It does not watch outside tools, keep a stage card per tool, score catalog tools, or wire a tool with a run on main. scripts/supersede_check.py --parts track=none,catalog=none,evaluate=none,integrate=none is not a candidate. No watchlist row."
+  },
+  "reason": "Propose I3. probe_not_product_lever is 1. smoke-litellm-ollama stays on platform help and off the product help. env-stage soft-skips it. LiteLLM 1.108.3 completed openai/deepseek-coder:latest against the already listening Ollama OpenAI endpoint in 2.0414s. Preflight GPU use 2 percent, 72 GiB available. During-call GPU use max 13 percent, size_vram 4085210152. No download and no new port."
+}
