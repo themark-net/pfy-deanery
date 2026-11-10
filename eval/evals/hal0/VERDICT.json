@@ -12,6 +12,8 @@
   "elapsed_s": 0.7477,
   "model_started": false,
   "port_bound": false,
+  "podman_called": false,
+  "sudo_called": false,
   "download_over_25gb": false,
   "validate_npu": false,
   "podman_systemd_slot": true,
@@ -25,7 +27,7 @@
   "unified_memory_mb": 110001,
   "gpu": {
     "vendor": "amd",
-    "name": "Strix Halo [Radeon 8060S Graphics]",
+    "name": "Advanced Micro Devices, Inc. [AMD/ATI] Strix Halo [Radeon Graphics / Radeon 8050S Graphics / Radeon 8060S Graphics] (rev c1)",
     "vram_mb": 98304,
     "driver": "amdgpu",
     "compute_capable": true,
@@ -41,7 +43,7 @@
   "npu": {
     "present": true,
     "name": "AMD NPU (XDNA)",
-    "validated": false
+    "validated": null
   },
   "value_legs": {
     "gap_fill": "fail",
@@ -51,7 +53,7 @@
   },
   "modularity_legs": {
     "local_code_needed": "pass",
-    "bounded_surface": "fail",
+    "bounded_surface": "pass",
     "isolatable": "fail",
     "reversible": "pass"
   },
@@ -80,5 +82,5 @@
     "watchlist_row": false,
     "why": "A local inference appliance. It does not watch outside tools, keep a stage card per tool, score catalog tools, or wire a tool with a run on main. scripts/supersede_check.py --parts track=none,catalog=none,evaluate=none,integrate=none is not a candidate. No watchlist row."
   },
-  "reason": "STAY I0. slot_completions 0, threshold 1. The userspace hardware probe on pin 60bcf6f77dc81c5e13692e4fde712db5eb3285ea (v1.4.0) reported platform strix-halo, ROCm compute, Vulkan, kfd, and 98304 MiB. An XDNA node is present and was not validated. Three samples showed GPU use 2 percent and 73 GiB available. The probe took 0.7477 s. Slot load writes a podman systemd unit, which this gate forbids, so no model started, no port was bound, and no weight was downloaded. Disk free 356 GB. Value gate 0 of 4. Modularity fails because the appliance is not a bounded cache runtime."
+  "reason": "STAY I0. slot_completions 0, threshold 1. The userspace hardware probe on pin 60bcf6f77dc81c5e13692e4fde712db5eb3285ea (v1.4.0) reported platform strix-halo, kfd present, and vulkan_capable. compute_capable is true because rocm-smi --showproductname exited 0, not because a kernel ran. vram_mb 98304 is the probe effective pool, the larger of the VRAM carve-out and GTT. The GPU name is the lspci string. An XDNA node is present and npu.validated is null because flm validate did not run. Three samples showed GPU use 2 percent and 73 GiB available. The probe took 0.7477 s. Slot load writes a podman systemd unit, which this gate forbids, so podman was not called, sudo was not called, no model started, no port was bound, and no weight was downloaded. Disk free 356 GB. Value gate 0 of 4. Modularity fails because a slot cannot sit in a cache path without that unit."
 }

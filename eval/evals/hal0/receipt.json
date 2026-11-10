@@ -32,7 +32,7 @@
     "vulkan_capable": true
   },
   "npu_present": true,
-  "npu_validated": false,
+  "npu_validated": null,
   "podman_systemd_slot": true,
   "verdict": "STAY"
 }
