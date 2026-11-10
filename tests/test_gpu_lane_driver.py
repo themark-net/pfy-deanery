@@ -11,6 +11,7 @@ from __future__ import annotations
 import os
 import subprocess
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -96,6 +97,100 @@ class GpuDriverTest(unittest.TestCase):
                 self.assertTrue((gpu / f"{slug}.parked").read_text().startswith("no headroom (gpu_busy=95%"), slug)
             self.assertFalse(log.exists())
             self.assertIn("waiting for headroom", (gpu / "progress.md").read_text())
+
+    def test_leann_waits_on_its_lock_and_other_slugs_do_not_take_it(self):
+        # How this fails: the leann lane starts while another holder has the
+        # leann model lock, or the held flag leaks and the lane skips the
+        # shared model lock. How we recover: the driver flocks the leann lock
+        # for the whole lane, then the child unsets that flag and runs.
+        with tempfile.TemporaryDirectory() as tmp:
+            td = Path(tmp)
+            root, state, env, log = self._setup(td)
+            lock = td / "leann-model.lock"
+            # A parent that already holds the shared model lock must not make
+            # this driver skip the leann flock.
+            env["PFY_MODEL_LOCK_HELD"] = "1"
+            env.pop("PFY_MODEL_LOCK", None)
+            env["PFY_LEANN_MODEL_LOCK"] = str(lock)
+            lane = td / "lane.sh"
+            lane.write_text(
+                "#!/bin/bash\n"
+                f'echo "start-$2" >> {log}\n'
+                'if [ "$2" = "leann" ]; then\n'
+                '  if flock -n "$PFY_LEANN_MODEL_LOCK" true; then\n'
+                f'    echo "leann lock was free" >> {log}\n'
+                "    exit 3\n"
+                "  fi\n"
+                '  if [ -n "${PFY_MODEL_LOCK_HELD:-}" ]; then\n'
+                f'    echo "held flag leaked" >> {log}\n'
+                "    exit 4\n"
+                "  fi\n"
+                f'  echo "leann lock held" >> {log}\n'
+                "else\n"
+                '  if ! flock -n "$PFY_LEANN_MODEL_LOCK" true; then\n'
+                f'    echo "non-leann held leann lock" >> {log}\n'
+                "    exit 5\n"
+                "  fi\n"
+                f'  echo "non-leann left leann lock" >> {log}\n'
+                "fi\n"
+                "exit 0\n",
+                encoding="utf-8",
+            )
+            lane.chmod(0o755)
+            holder = subprocess.Popen(["flock", str(lock), "sleep", "30"], start_new_session=True)
+            try:
+                for _ in range(50):
+                    if subprocess.call(["flock", "-n", str(lock), "true"], timeout=2) != 0:
+                        break
+                    time.sleep(0.05)
+                else:
+                    self.fail("holder did not take the leann lock")
+                proc = subprocess.Popen(
+                    ["bash", str(DRIVER), "--root", str(root), "--state", str(state), "--slugs", "leann"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    env=env,
+                )
+                try:
+                    time.sleep(2)
+                    early = log.read_text(encoding="utf-8") if log.exists() else ""
+                    self.assertNotIn("start-leann", early)
+                    try:
+                        os.killpg(holder.pid, 15)
+                    except ProcessLookupError:
+                        pass
+                    holder.wait(timeout=5)
+                    _out, err = proc.communicate(timeout=20)
+                finally:
+                    if proc.poll() is None:
+                        proc.kill()
+                        proc.wait(timeout=5)
+            finally:
+                if holder.poll() is None:
+                    try:
+                        os.killpg(holder.pid, 9)
+                    except ProcessLookupError:
+                        pass
+                    holder.wait(timeout=5)
+            self.assertEqual(proc.returncode, 0, err)
+            finished = (state.parent / "gpu" / "leann.finished").read_text(encoding="utf-8").strip()
+            self.assertEqual(finished, "0", (state.parent / "gpu" / "leann.out").read_text(encoding="utf-8"))
+            text = log.read_text(encoding="utf-8")
+            self.assertIn("leann lock held", text)
+            self.assertNotIn("held flag leaked", text)
+            self.assertNotIn("leann lock was free", text)
+            other = subprocess.run(
+                ["bash", str(DRIVER), "--root", str(root), "--state", str(state), "--slugs", "aa-gpu"],
+                capture_output=True,
+                text=True,
+                env=env,
+                timeout=20,
+            )
+            self.assertEqual(other.returncode, 0, other.stderr)
+            text = log.read_text(encoding="utf-8")
+            self.assertIn("non-leann left leann lock", text)
+            self.assertNotIn("non-leann held leann lock", text)
 
     def test_second_driver_and_stop_file(self):
         with tempfile.TemporaryDirectory() as tmp:

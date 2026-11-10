@@ -49,6 +49,7 @@ while [ "$#" -gt 0 ]; do
 done
 [ -n "$ROOT" ] || { printf '%s\n' "missing --root" >&2; exit 2; }
 ROOT=$(cd "$ROOT" && pwd) || exit 2
+HERE=$(cd "$(dirname "$0")" && pwd) || exit 2
 GPU_STATE="${PFY_GPU_STATE:-$(dirname "$STATE")/gpu}"
 BUSY_MAX="${PFY_GPU_BUSY_MAX:-30}"
 MIN_RAM="${PFY_GPU_MIN_RAM_GIB:-24}"
@@ -193,9 +194,13 @@ for slug in $SLUGS; do
   progress "$slug start ($HEADROOM_LAST)"
   if [ "$slug" = "leann" ]; then
     # One leann lane holds scripts/model_lock.sh leann-model.lock across the trial and VERDICT.json.
-    # Light jobs never set PFY_LEANN_MODEL_LOCK and do not take this flock.
-    PFY_MODEL_LOCK="${PFY_LEANN_MODEL_LOCK:-$HOME/.cache/pfy/locks/leann-model.lock}" \
-      bash "$ROOT/scripts/model_lock.sh" env PFY_LEANN_LANE=leann PFY_LANE_FROM_LOOP=1 "PFY_LOOP_STATE=$(dirname "$STATE")" \
+    # An inherited held flag would skip this flock. The child drops the flag and
+    # PFY_MODEL_LOCK so the lane still takes the shared model lock instead of
+    # waiting on this same file. Light jobs never set PFY_LEANN_MODEL_LOCK and
+    # do not take this flock.
+    env -u PFY_MODEL_LOCK_HELD \
+      PFY_MODEL_LOCK="${PFY_LEANN_MODEL_LOCK:-$HOME/.cache/pfy/locks/leann-model.lock}" \
+      bash "$HERE/model_lock.sh" env -u PFY_MODEL_LOCK_HELD -u PFY_MODEL_LOCK PFY_LEANN_LANE=leann PFY_LANE_FROM_LOOP=1 "PFY_LOOP_STATE=$(dirname "$STATE")" \
       bash "$LANE" --slug leann --root "$ROOT" --state "$STATE" --ticket "$ticket" \
       > "$GPU_STATE/$slug.out" 2>&1
   else
