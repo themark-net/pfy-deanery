@@ -49,5 +49,5 @@
     "watchlist_row": true,
     "why": "The watchlist already records Hermes Agent as adopt_part with catalog, evaluate, and integrate at partial. scripts/supersede_check.py --parts track=none,catalog=partial,evaluate=partial,integrate=partial returns supersede_candidate true. That row is the record. This lane does not add a second row. The adopted part is the skill. Track is none, so the checker does not stop the suite. Do not replace this repo with Hermes."
   },
-  "next_gate": "Stay I1. The three loops are already the first-party skill. Do not install the daemon. Re-open only if a later ticket names a hole this skill does not cover and the operator raises tier_ceiling. No gate wiring."
+  "next_gate": "Stay I1. Three ported loops meet the metric. Value is 2 of 4 and modularity misses local code needed, so both gates fail and auto-raise skips. Do not install the daemon. Re-open only if a later measurement passes both gates. This lane does not write integration_stage or tier_ceiling."
 }

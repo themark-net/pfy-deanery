@@ -5,7 +5,8 @@ The catalog card is the three Entry 048 loops, already a first-party skill.
 This probe reads that skill. It does not clone NousResearch/hermes-agent,
 does not start a daemon, and does not write a stage card.
 
-Exit 0: all three loops are in the skill, the skill forbids the runtime,
+Exit 0: all three loops are in the skill, the install ban keeps both
+markers on one line, the Reflect row names /hermes-feedback on that row,
 PORT.md still omits the 90-day daemon, and the bootstrap copy matches the
 .grok mirror.
 Exit 1: the files are readable and a loop or a guard disagrees.
@@ -60,6 +61,13 @@ def _read(root: Path, rel: str) -> str | None:
 
 def _needles(text: str, needles: tuple[str, ...]) -> list[str]:
     return [needle for needle in needles if needle not in text]
+
+
+def _same_line(text: str, needles: tuple[str, ...]) -> bool:
+    for line in text.splitlines():
+        if all(needle in line for needle in needles):
+            return True
+    return False
 
 
 def _manifest_row(doc: object) -> dict | None:
@@ -142,12 +150,12 @@ def measure(root: Path) -> tuple[dict, int]:
     if not isinstance(origin, str):
         origin = ""
     guards = {
-        "install_forbidden": "Install or require" in skill and "as runtime" in skill,
+        "install_forbidden": _same_line(skill, ("Install or require", "as runtime")),
         "daemon_omitted": "automatic 90-day daemon" in port,
         "no_hermes_binary": "no Hermes binary" in port,
         "manifest_not_runtime": row is not None and "not runtime" in origin,
         "structural_lists_skill": _structural_lists(structural),
-        "reflect_routes_skill": "| Reflect |" in agents and "/hermes-feedback" in agents,
+        "reflect_routes_skill": _same_line(agents, ("| Reflect |", "/hermes-feedback")),
         "mirror_skill_match": skill == mirror_skill,
         "mirror_port_match": port == mirror_port,
     }
