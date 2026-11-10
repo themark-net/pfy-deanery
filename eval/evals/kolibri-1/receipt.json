@@ -12,7 +12,7 @@
   "verdict": "PASS",
   "checks": [
     {"name": "english", "pass": true, "latency_s": 0.36, "completion_tokens": 2, "content": "Paris"},
-    {"name": "german", "pass": true, "latency_s": 0.38, "completion_tokens": 13, "content": "17 x 23 = 391."},
+    {"name": "german", "pass": true, "latency_s": 0.38, "completion_tokens": 13, "content": "17 × 23 = 391."},
     {"name": "tool_call", "pass": true, "latency_s": 0.86, "completion_tokens": 24, "tool": "get_weather", "arguments_city": "Berlin"}
   ]
 }
