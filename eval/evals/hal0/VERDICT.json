@@ -1,0 +1,84 @@
+{
+  "metric": "slot_completions",
+  "threshold": 1,
+  "value": 0,
+  "slot_completions": 0,
+  "value_gate": "fail",
+  "modularity_gate": "fail",
+  "proposed_stage": "I0",
+  "intent": "awareness",
+  "pin": "60bcf6f77dc81c5e13692e4fde712db5eb3285ea",
+  "release": "v1.4.0",
+  "elapsed_s": 0.7477,
+  "model_started": false,
+  "port_bound": false,
+  "download_over_25gb": false,
+  "validate_npu": false,
+  "podman_systemd_slot": true,
+  "disk_free_gb": 356,
+  "src_bytes": 31527905,
+  "venv_bytes": 62481930,
+  "platform": "strix-halo",
+  "kfd_present": true,
+  "ram_mb": 110001,
+  "ram_available_mb": 75518,
+  "unified_memory_mb": 110001,
+  "gpu": {
+    "vendor": "amd",
+    "name": "Strix Halo [Radeon 8060S Graphics]",
+    "vram_mb": 98304,
+    "driver": "amdgpu",
+    "compute_capable": true,
+    "vulkan_capable": true,
+    "preflight_use_pct": [2, 2, 2],
+    "preflight_vram_pct": [8, 8, 8],
+    "preflight_ram_avail_gib": [73, 73, 73],
+    "during_use_pct": 2,
+    "busy_max_pct": 30,
+    "min_ram_gib": 24,
+    "waits": 0
+  },
+  "npu": {
+    "present": true,
+    "name": "AMD NPU (XDNA)",
+    "validated": false
+  },
+  "value_legs": {
+    "gap_fill": "fail",
+    "operator_leverage": "fail",
+    "evidence": "fail",
+    "blast_radius": "fail"
+  },
+  "modularity_legs": {
+    "local_code_needed": "pass",
+    "bounded_surface": "fail",
+    "isolatable": "fail",
+    "reversible": "pass"
+  },
+  "intake": {
+    "line": "duplicate hal0 data/stages/hal0.json",
+    "wrote_card": false
+  },
+  "supersede": {
+    "coverage": {
+      "track": "none",
+      "catalog": "none",
+      "evaluate": "none",
+      "integrate": "none"
+    },
+    "checker": {
+      "parts": [],
+      "coverage": {
+        "track": "none",
+        "catalog": "none",
+        "evaluate": "none",
+        "integrate": "none"
+      },
+      "suite": ["track", "catalog", "evaluate", "integrate"],
+      "supersede_candidate": false
+    },
+    "watchlist_row": false,
+    "why": "A local inference appliance. It does not watch outside tools, keep a stage card per tool, score catalog tools, or wire a tool with a run on main. scripts/supersede_check.py --parts track=none,catalog=none,evaluate=none,integrate=none is not a candidate. No watchlist row."
+  },
+  "reason": "STAY I0. slot_completions 0, threshold 1. The userspace hardware probe on pin 60bcf6f77dc81c5e13692e4fde712db5eb3285ea (v1.4.0) reported platform strix-halo, ROCm compute, Vulkan, kfd, and 98304 MiB. An XDNA node is present and was not validated. Three samples showed GPU use 2 percent and 73 GiB available. The probe took 0.7477 s. Slot load writes a podman systemd unit, which this gate forbids, so no model started, no port was bound, and no weight was downloaded. Disk free 356 GB. Value gate 0 of 4. Modularity fails because the appliance is not a bounded cache runtime."
+}
