@@ -217,7 +217,11 @@ for this trial through scripts/integrations/sandlock/wrap.py with
 PFY_SANDLOCK=all and SANDLOCK_BIN=scripts/integrations/sandlock/confine.py,
 with --cache under tmp/. If wrap.py logs "sandlock: unsandboxed", stop the
 trial and propose I1. Record "sandbox": "sandlock" in VERDICT.json only when
-every run was sandboxed. Propose at most I2. I3 needs the full gate.
+every run was sandboxed. Write eval/integrate/${SLUG}/sandbox-trial.json with
+scripts/integrations/sandlock/trial.py so the trial carries its profile.
+I3 is decided by data/promotion-rules.json (security track): a clean trial,
+a read-only profile, advisory or deny-only wiring, a main-run receipt, and a
+green eval-structural. Nobody signs off.
 EOF
 fi
 ticket="$WT/tmp/TICKET-${SLUG}.md"
@@ -458,7 +462,22 @@ else
   cp "$apply_log" "$REFUSED"
   after_apply=$(card_bytes)
   if [ "$before_apply" != "$after_apply" ]; then
-    park_exit "apply refusal changed the card"
+    # A rule refusal writes only promotion_history (data/promotion-rules.json
+    # ledger). Commit that; anything else changed is still a park.
+    if git -C "$WT" show "HEAD:data/stages/${SLUG}.json" 2>/dev/null | python3 -c '
+import json, sys
+old = json.load(sys.stdin)
+now = json.load(open(sys.argv[1], encoding="utf-8"))
+old.pop("promotion_history", None)
+now.pop("promotion_history", None)
+sys.exit(0 if old == now else 1)' "$card"
+    then
+      run_checked git -C "$WT" add -- "data/stages/${SLUG}.json" || park_exit "apply add failed"
+      run_checked git -C "$WT" commit -qm "eval: record the rule refusal for ${SLUG}" || park_exit "apply commit failed"
+      progress "$SLUG rule refusal recorded"
+    else
+      park_exit "apply refusal changed the card"
+    fi
   fi
 fi
 if [ "$apply_ok" -eq 1 ] && [ -n "$(git -C "$WT" status --porcelain)" ]; then

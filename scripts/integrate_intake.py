@@ -10,7 +10,10 @@ produce the same table and the same JSON. Ceilings are read and never written.
   python3 scripts/integrate_intake.py --stages data/stages --json
 
 A ceiling of I0, I1, I2, blank, or anything other than I3 or I4 sets flag to
-"tier_ceiling below I3: needs the operator". This script does not change that ceiling.
+"tier_ceiling below I3: <rule IDs>", the ceiling rules from
+data/promotion-rules.json that fail for the card now (scripts/catalog_auto_raise.py
+plan). "tier_ceiling below I3: rules pass" means the next auto-raise raises it.
+Nobody signs off. This script does not change that ceiling.
 """
 from __future__ import annotations
 
@@ -21,11 +24,28 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 AT_I3 = frozenset({"I3", "I4"})
-FLAG = "tier_ceiling below I3: needs the operator"
+FLAG = "tier_ceiling below I3"
 
 
 class IntakeError(Exception):
     """A named failure. No card is written."""
+
+
+def _failed_rules(stages: Path, slug: str, card: dict) -> str:
+    """Comma list of the ceiling rules that fail now, or 'rules pass'."""
+    sys.path.insert(0, str(ROOT))
+    from scripts import catalog_auto_raise as ar
+    root = stages.resolve().parent.parent
+    try:
+        _path, verdict = ar.latest_verdict(root, slug)
+        approved = ar.load_approvals(root).get(slug, frozenset())
+        result = ar.plan(card, verdict, approved, root, slug)
+    except Exception as exc:  # noqa: BLE001 - a broken rules file is named, not hidden
+        return f"rules error {exc}"
+    failed = [rid for rid, ok, _d in result["results"] if not ok]
+    if result["action"] == "raise" or not failed:
+        return "rules pass"
+    return ",".join(failed)
 
 
 def _rows(stages: Path) -> list[dict[str, str]]:
@@ -66,7 +86,7 @@ def _rows(stages: Path) -> list[dict[str, str]]:
             ceiling_text = ceiling.strip()
         else:
             raise IntakeError(f"malformed-card: {path.name}: tier_ceiling is not a string")
-        flag = "" if ceiling_text in AT_I3 else FLAG
+        flag = "" if ceiling_text in AT_I3 else f"{FLAG}: {_failed_rules(stages, path.stem, card)}"
         rows.append({
             "slug": path.stem,
             "tier_ceiling": ceiling_text,

@@ -27,6 +27,8 @@ COPY_REL = (
     "scripts/catalog_eval_queue.py",
     "scripts/catalog_apply_verdict.py",
     "scripts/catalog_auto_raise.py",
+    "scripts/promotion_rules.py",
+    "data/promotion-rules.json",
     "scripts/catalog_needs_mark.py",
     "scripts/catalog_park_retry.py",
     "scripts/ops_paths.py",
@@ -271,13 +273,15 @@ class CatalogLoopTickTest(unittest.TestCase):
             needs_text = needs.decode("utf-8")
             self.assertTrue(needs_text.startswith("slug\tkind\treason\tevidence\tsince\n"))
             self.assertNotIn(str(td), needs_text)
-            self.assertIn("aa-gpu\tgpu\t", needs_text)
-            self.assertIn("aa-huge\tpull-over-25gb\t", needs_text)
+            # Only hard stops are rows, each naming its rule (data/promotion-rules.json).
+            self.assertIn("aa-gpu\thard-stop\tHS-gpu-unapproved: ", needs_text)
+            self.assertIn("aa-huge\thard-stop\tHS-pull-over-25gb-unapproved: ", needs_text)
             self.assertNotIn("aa-sec\t", needs_text)
-            self.assertIn("aa-money\trisky-class\tlive-money\t", needs_text)
-            self.assertIn("aa-take\trisky-class\truntime-takeover\t", needs_text)
-            self.assertIn("aa-unknown\trisky-class\tunknown\t", needs_text)
-            self.assertIn("aa-i3\tdemotion-flag\t", needs_text)
+            self.assertIn("aa-money\thard-stop\tHS-live-money: ", needs_text)
+            self.assertIn("aa-take\thard-stop\tHS-runtime-takeover: ", needs_text)
+            # Unknown risk and a demotion flag are failed rules, not rows.
+            self.assertNotIn("aa-unknown\t", needs_text)
+            self.assertNotIn("aa-i3\t", needs_text)
             self.assertNotIn("\naa-iopen\t", "\n" + needs_text)
             self.assertNotIn("\naa-int\t", "\n" + needs_text)
             log.write_text("", encoding="utf-8")
@@ -304,7 +308,7 @@ class CatalogLoopTickTest(unittest.TestCase):
             self.assertEqual(status["status"], "ok", blob[-2000:])
             self.assertEqual(status["errors"], [], blob[-2000:])
             text = (ops / "eval" / "catalog-queue" / "needs-mark.tsv").read_text(encoding="utf-8")
-            self.assertIn("aa-gpu\tgpu\t", text)
+            self.assertIn("aa-gpu\thard-stop\tHS-gpu-unapproved: ", text)
             self.assertFalse((wt / "eval" / "catalog-queue" / "needs-mark.tsv").exists())
             self.assertFalse((wt / "tmp" / "ops").exists())
             self.assertIn("ops would commit eval/catalog-queue/needs-mark.tsv", blob)

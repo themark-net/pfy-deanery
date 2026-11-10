@@ -12,6 +12,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from tests._ledger import assert_only_ledger
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "catalog_apply_verdict.py"
@@ -51,7 +52,7 @@ class VerdictFailRecoverTest(unittest.TestCase):
             )
             self.assertNotEqual(bad.returncode, 0)
             self.assertIn("malformed", (bad.stderr + bad.stdout).lower())
-            self.assertEqual(card.read_bytes(), before)
+            assert_only_ledger(self, card, before)
             verdict.write_text(json.dumps(_verdict("I1")))
             good = subprocess.run(
                 ["python3", str(SCRIPT), "--card", str(card), "--verdict", str(verdict)],
@@ -103,7 +104,7 @@ class VerdictFailRecoverTest(unittest.TestCase):
             )
             self.assertNotEqual(blocked.returncode, 0)
             self.assertIn("ceiling", (blocked.stderr + blocked.stdout).lower())
-            self.assertEqual(card.read_bytes(), before)
+            assert_only_ledger(self, card, before)
             verdict.write_text(json.dumps(_verdict("I1")))
             recovered = subprocess.run(
                 ["python3", str(SCRIPT), "--card", str(card), "--verdict", str(verdict)],

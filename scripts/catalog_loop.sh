@@ -138,6 +138,7 @@ doc = {
     "supersede": os.environ.get("PFY_SUPERSEDE", ""),
     "supersede_stale": grab("PFY_SUPERSEDE_STALE", []),
     "park_retry": grab("PFY_PARK_RETRY", []),
+    "rule_retry": grab("PFY_RULE_RETRY", []),
 }
 text = json.dumps(doc, indent=2, sort_keys=True) + "\n"
 for dest in (state_path, repo_path):
@@ -452,6 +453,26 @@ if [ -d "$STATE/eval" ]; then
   done
 fi
 shopt -u nullglob
+
+# Rule refusals re-check themselves: a card whose last promotion_history
+# entry is a refusal with no hard stop is re-applied once eval-structural is
+# green on origin/main (data/promotion-rules.json, "retry").
+rule_retry=()
+if retry_rules=$(python3 scripts/catalog_apply_verdict.py --retry-refused --root "$PWD"); then
+  while IFS=$'\t' read -r action slug why; do
+    [ -n "${action:-}" ] || continue
+    rule_retry+=("$action $slug $why")
+    if [ "$action" = "promote" ]; then
+      applied+=("$slug")
+    fi
+  done <<< "$retry_rules"
+else
+  rule_retry+=("error retry-refused failed")
+fi
+if [ "${#rule_retry[@]}" -gt 0 ]; then
+  PFY_RULE_RETRY=$(json_list "${rule_retry[@]}")
+  export PFY_RULE_RETRY
+fi
 
 today_iso=$(TZ=America/Los_Angeles date +%Y-%m-%d)
 raised=()

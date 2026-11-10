@@ -41,7 +41,9 @@ The noclobber `.dispatched` file is the guard. A second start exits 2 when `PFY_
 
 ## Security tools
 
-When `PFY_LANE_SANDBOX=sandlock` is set (the loop sets it for a security scanner or guard), the ticket gains a Sandbox section: every install and tool run goes through `scripts/integrations/sandlock/wrap.py` with `PFY_SANDLOCK=all`. Record `"sandbox": "sandlock"` in VERDICT.json only when no run logged `sandlock: unsandboxed`. Propose at most I2. I3 needs the Tester and Reviewer full gate (see catalog-apply-and-ceiling).
+When `PFY_LANE_SANDBOX=sandlock` is set (the loop sets it for a security scanner or guard), the ticket gains a Sandbox section: every install and tool run goes through `scripts/integrations/sandlock/wrap.py` with `PFY_SANDLOCK=all`. Record `"sandbox": "sandlock"` in VERDICT.json only when no run logged `sandlock: unsandboxed`. Write `eval/integrate/<slug>/sandbox-trial.json` with `scripts/integrations/sandlock/trial.py` so it carries the profile. I3 is decided by `data/promotion-rules.json` (security track: clean trial, read-only profile, advisory or deny-only wiring, main-run receipt, eval-structural green). Nobody signs off (see catalog-apply-and-ceiling).
+
+A rule refusal writes only a `promotion_history` entry on the card. The lane commits that entry ("record the rule refusal") and lands it; any other card change after a refusal still parks.
 
 ## Stop rules
 

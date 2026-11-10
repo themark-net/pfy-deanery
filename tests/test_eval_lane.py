@@ -236,7 +236,8 @@ class EvalLaneTest(unittest.TestCase):
             self.assertNotIn("push", recorded)
             self.assertFalse((state / "widget.done").exists())
 
-    def test_refusal_leaves_the_card_bytes_unchanged(self):
+    def test_refusal_lands_only_the_rule_ledger(self):
+        """A rule refusal changes no stage: only promotion_history names the failed rules."""
         with tempfile.TemporaryDirectory() as tmp:
             td = Path(tmp)
             body = card("widget", integration_stage="I0", tier_ceiling="I0", evidence=[])
@@ -285,13 +286,17 @@ class EvalLaneTest(unittest.TestCase):
             remote = subprocess.check_output(
                 ["git", "--git-dir", str(bare), "show", "main:data/stages/widget.json"]
             )
-            self.assertEqual(remote, original)
+            landed = json.loads(remote)
+            history = landed.pop("promotion_history")
+            self.assertEqual(landed, json.loads(original))
+            self.assertEqual(history[-1]["result"], "refuse")
+            self.assertIn("R-tier-ceiling", [item["rule"] for item in history[-1]["failed"]])
             refused = (state / "widget.refused").read_text(encoding="utf-8")
             self.assertIn("refused:", refused)
             progress = (state / "progress.md").read_text(encoding="utf-8")
             self.assertIn("skill=catalog-eval-lane sha=", progress)
             self.assertIn("apply refused", progress)
-            self.assertIn("test_select mode=none", progress)
+            self.assertIn("rule refusal recorded", progress)
             self.assertIn("landed", progress)
             prompt = (state / "widget-implement.prompt").read_text(encoding="utf-8")
             self.assertIn("bootstrap/grok-cli/skills/catalog-eval-lane/SKILL.md", prompt)

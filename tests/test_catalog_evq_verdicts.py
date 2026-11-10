@@ -6,6 +6,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from tests._ledger import assert_only_ledger
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "catalog_evq_verdicts.py"
@@ -58,7 +59,7 @@ class EvqVerdictsTest(unittest.TestCase):
             applied = subprocess.run(["python3", str(APPLY), "--card", str(stay), "--verdict", str(dest)], capture_output=True, text=True, timeout=30, cwd=root)
             self.assertEqual(applied.returncode, 0, applied.stderr)
             self.assertIn("STAY I0", applied.stdout)
-            self.assertEqual(stay.read_bytes(), before)
+            assert_only_ledger(self, stay, before)
             json_bytes = dest.read_bytes()
             again = run(root, "--stage", "I0")
             self.assertIn("skip stay has-json", again.stdout.splitlines())

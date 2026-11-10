@@ -34,9 +34,13 @@ Path: `$PFY_OPS_ROOT/eval/catalog-queue/needs-mark.tsv`, in the private ops chec
 
 Columns: `slug`, `kind`, `reason`, `evidence`, `since`.
 
-`kind` is one of: `ceiling`, `gpu`, `pull-over-25gb`, `excluded`, `demotion-flag`, `parked`, `risky-class`, `supersede-stop`.
+`kind` is `hard-stop` (reason starts with the rule ID from `data/promotion-rules.json`: `HS-live-money`, `HS-release-deploy`, `HS-secrets`, `HS-runtime-takeover`, `HS-gpu-unapproved`, `HS-pull-over-25gb-unapproved`) or `supersede-stop`. Since the rules decision of 2026-11-10 nothing else is a row: ceiling flags, demotion flags, parked lanes, unknown risk, and exclusions are failed rules in the card's `promotion_history` (and park-history.tsv for parks), re-checked by the loop.
 
 The loop skips every slug in that file. Do not launch them by hand from the loop.
+
+## Rule retry
+
+Each tick runs `catalog_apply_verdict.py --retry-refused` after the landed-lane applies. A card whose last stage ledger entry is a refusal with no hard stop and no failed verdict gate is re-applied once eval-structural is green on origin/main. `loop.latest.json` field `rule_retry` lists `promote`, `refuse`, or `hold` per card. `--launch-check` skips a card already above its rule-allowed stage and names the first failed rule; the scan re-checks it every tick.
 
 ## Markers
 

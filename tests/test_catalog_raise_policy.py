@@ -97,7 +97,7 @@ class RaisePolicyTest(unittest.TestCase):
             self.assertEqual(last["date"], "2026-11-08")
             self.assertTrue(last["evidence"])
             sec = json.loads((stages / "aa-sec.json").read_text(encoding="utf-8"))
-            # Security scanner or guard: I2 only (operator decision 2026-11-10), never I3.
+            # Security scanner or guard: the rules give I2 for the sandlock trial; I3 needs a clean trial, a read-only profile, and wiring.
             self.assertEqual(sec["tier_ceiling"], "I2")
             self.assertEqual(sec["ceiling_history"][-1]["to"], "I2")
             self.assertEqual(sec["ceiling_history"][-1]["evidence"], [])
@@ -107,10 +107,10 @@ class RaisePolicyTest(unittest.TestCase):
                 self.assertNotIn("ceiling_history", body)
             self.assertEqual((stages / "aa-i3.json").read_bytes(), before_i3)
             self.assertEqual((stages / "aa-stay.json").read_bytes(), before_stay)
-            self.assertIn("raise\taa-sec\tsecurity scanner or guard", real.stdout)
-            self.assertIn("refuse\taa-money\tlive-money", real.stdout)
-            self.assertIn("refuse\taa-take\truntime-takeover", real.stdout)
-            self.assertIn("refuse\taa-unknown\tunknown", real.stdout)
+            self.assertIn("raise\taa-sec\trules passed for I2:", real.stdout)
+            self.assertIn("refuse\taa-money\tHS-live-money:", real.stdout)
+            self.assertIn("refuse\taa-take\tHS-runtime-takeover:", real.stdout)
+            self.assertIn("skip\taa-unknown\tR-classifiable:", real.stdout)
             self.assertIn("skip\taa-i3\t", real.stdout)
             self.assertIn("skip\taa-stay\t", real.stdout)
 
@@ -138,10 +138,10 @@ class RaisePolicyTest(unittest.TestCase):
             self.assertTrue(text.startswith("slug\tkind\treason\tevidence\tsince\n"))
             self.assertNotIn("/home/", text)
             self.assertNotIn("aa-sec\t", text)
-            self.assertIn("aa-money\trisky-class\tlive-money\t", text)
-            self.assertIn("aa-take\trisky-class\truntime-takeover\t", text)
-            self.assertIn("aa-unknown\trisky-class\tunknown\t", text)
-            self.assertIn("zz-mark\texcluded\tneeds the operator\t", text)
+            self.assertIn("aa-money\thard-stop\tHS-live-money: ", text)
+            self.assertIn("aa-take\thard-stop\tHS-runtime-takeover: ", text)
+            self.assertNotIn("aa-unknown\t", text)  # a failed rule, not a hard stop
+            self.assertNotIn("zz-mark\t", text)  # an exclusion is rule R-not-excluded
             first = text
             second = subprocess.run(
                 ["python3", str(NEEDS), "--root", str(root)],
@@ -167,8 +167,8 @@ class RaisePolicyTest(unittest.TestCase):
                 capture_output=True, text=True, timeout=30,
             )
             self.assertEqual(proc.returncode, 0, proc.stderr)
-            self.assertIn("refuse\taa-gpu\tgpu", proc.stdout)
-            self.assertIn("refuse\taa-huge\tpull-over-25gb", proc.stdout)
+            self.assertIn("refuse\taa-gpu\tHS-gpu-unapproved:", proc.stdout)
+            self.assertIn("refuse\taa-huge\tHS-pull-over-25gb-unapproved:", proc.stdout)
             self.assertIn("raise\taa-open\t", proc.stdout)
             for slug in ("aa-gpu", "aa-huge"):
                 check = subprocess.run(
@@ -191,9 +191,9 @@ class RaisePolicyTest(unittest.TestCase):
             self.assertEqual(needs.returncode, 0, needs.stderr)
             self.assertFalse((root / "eval" / "catalog-queue" / "needs-mark.tsv").exists())
             text = (ops / "eval" / "catalog-queue" / "needs-mark.tsv").read_text(encoding="utf-8")
-            self.assertIn("aa-gpu\tgpu\t", text)
-            self.assertIn("aa-huge\tpull-over-25gb\t", text)
-            self.assertNotIn("aa-open\tgpu\t", text)
+            self.assertIn("aa-gpu\thard-stop\tHS-gpu-unapproved: ", text)
+            self.assertIn("aa-huge\thard-stop\tHS-pull-over-25gb-unapproved: ", text)
+            self.assertNotIn("aa-open\t", text)
             self.assertNotIn("aa-open\trisky-class\t", text)
 
     def test_word_lists_in_the_skill_match_the_checker(self):

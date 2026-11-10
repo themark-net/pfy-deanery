@@ -34,27 +34,34 @@ Evidence comes only from the card's evidence list:
   VERDICT, summary, script)
 - I0: evidence list empty
 
+Rules (operator decision 2026-11-10, 7:04am PT): the allowed stage comes
+from data/promotion-rules.json through scripts/promotion_rules.py. Nobody
+signs off. The stage table lists, for each step, the rule IDs that must pass:
+I1 not excluded, evidence, tier_ceiling; I2 adds the hard stops and the
+modularity gate; I3 adds the value gate, a valid main-run receipt, and the
+self_pipeline check; I4 adds an embed. A security scanner or guard (the
+security track) also needs, at I2, a verdict with "sandbox": "sandlock", and
+at I3 a clean sandlock trial (eval/integrate/<slug>/sandbox-trial.json), a
+read-only profile in that trial, advisory, non-blocking, or deny-only wiring,
+and eval-structural green on origin/main. There is no GATE.json.
+
+Ledger: every promotion, demotion, and refusal writes one promotion_history
+entry on the card (kind stage) with the passed and failed rule IDs. A stay
+writes nothing. A refusal writes
+only that entry: integration_stage and evidence stay as they were. An entry
+equal to the last one apart from the date is not appended again.
+
+Retry: --retry-refused re-applies the recorded verdict for every card whose
+last stage entry is a refusal with no hard-stop rule and no failed verdict
+gate, once eval-structural is green on origin/main (PFY_MAIN_GREEN=1 or 0
+overrides, as in catalog_park_retry.py). The catalog loop calls it each tick.
+
 Receipt link: when a verdict proposes I3 or I4 and the card lists no valid
 main-run receipt, apply checks the conventional eval/integrate/<slug>/receipt.json.
-If that file is a valid main-run receipt on origin/main, the card's risk class
-is none, and it has no GPU, over-25 GB, or release block (the same classifier
-as scripts/catalog_auto_raise.py), apply adds
-receipt:eval/integrate/<slug>/receipt.json to the evidence before the ceiling
-check, and writes it with the stage. A refusal still writes nothing.
-tier_ceiling still caps the result.
-
-Security full gate (operator decision 2026-11-10): when the card's risk
-class is security (scripts/catalog_auto_raise.py classify_risk), the allowed
-stage is capped at I2 unless the card cites gate:eval/integrate/<slug>/GATE.json
-and that file is a passing full gate: JSON with slug equal to the card file
-stem, pinned_sha a 40-hex SHA that is an ancestor of origin/main, and both
-tester and reviewer objects with verdict PASS and sha equal to pinned_sha.
-Anything else is named (security-gate-missing, security-gate-malformed,
-security-gate-not-pass, security-gate-sha-mismatch, or the receipt SHA
-reasons). A security verdict proposing I2 or above is capped at I1 unless it
-records "sandbox": "sandlock" (the I2 trial ran under
-scripts/integrations/sandlock/wrap.py). Nothing here self-approves: the gate
-file is written by the Tester and Reviewer, not by apply or a lane.
+If that file is a valid main-run receipt on origin/main and the card has no
+hard stop (scripts/catalog_auto_raise.py hard_stops), apply adds
+receipt:eval/integrate/<slug>/receipt.json to the evidence before the rules
+run, and writes it with the stage. A refusal does not write the link.
 
 I3 and I4 also need that receipt when applying a stage. A missing file is
 missing-main-receipt. Bad JSON or a run_kind other than pipeline or gate is
@@ -63,10 +70,11 @@ receipt-sha-not-on-main. When origin/main cannot be resolved, the reason is
 git-unavailable. The card bytes stay as they are on every refusal. Scan flags
 cards already at I3 or I4 that fail this rule and does not demote them.
 
-On apply, a failing modularity gate caps the write at I1. A failing value
-gate caps the write at I2. I3 and I4 need both gates to pass. A CI, testing,
+On apply, a failing modularity gate (R-modularity-gate) caps the write at
+I1. A failing value gate (R-value-gate) caps the write at I2. A CI, testing,
 or review tool cannot go above I2 unless self_pipeline passes the same check
-as scripts/catalog_check.py. That check does not promote a card.
+as scripts/catalog_check.py (R-self-pipeline). That check does not promote a
+card.
 
 Intent on a new verdict must be in the enum or an alias. Stored card intents
 are left as they are, including one-off strings.
@@ -109,7 +117,7 @@ INTENT_ALIASES = {
 
 REPORT_INTRO = """# Ceiling mismatches
 
-This scan does not change integration_stage. A flagged card stays where it is. The operator decides any demotion.
+This scan does not change integration_stage. A flagged card stays where it is. Each row names the failed rule from data/promotion-rules.json; the loop re-checks it every tick.
 
 Allowed stage is the lower of the evidence ceiling and tier_ceiling when the card has one. tier_ceiling is a cap from the catalog tier and posture. It does not raise a card whose evidence is weaker.
 
@@ -166,12 +174,11 @@ def link_main_receipt(card: dict, repo: Path, slug: str) -> tuple[dict, str | No
     if problem is not None:
         return card, None, problem
     raiser = _auto_raise()
-    risk = raiser.classify_risk(card)
-    if risk != "none":
-        return card, None, f"risk-class {risk}"
-    block = raiser.block_reason(card)
-    if block:
-        return card, None, f"blocked {block}"
+    stops = raiser.hard_stops(card, _approved(repo, slug))
+    if stops:
+        return card, None, f"hard stop {stops[0][0]}"
+    if raiser.risk_track(card) == "unknown":
+        return card, None, "risk-class unknown"
     updated = dict(card)
     evidence = list(card.get("evidence") or []) if isinstance(card.get("evidence"), list) else []
     evidence.append(f"receipt:{rel}")
@@ -369,57 +376,29 @@ def _one_receipt(card: dict, repo: Path, rel: str, slug: str) -> str | None:
     return _sha_on_origin_main(repo, data["main_sha"])
 
 
-def _gate_rels(card: dict) -> list[str]:
-    raw = card.get("evidence")
-    if not isinstance(raw, list):
-        return []
-    return [item.split(":", 1)[1].strip() for item in raw if isinstance(item, str) and item.strip().lower().startswith("gate:")]
+def _rules():
+    from scripts import promotion_rules
+    return promotion_rules
 
 
-def gate_problem(card: dict, repo: Path, slug: str) -> str | None:
-    """None when the card cites a passing full gate (Tester and Reviewer PASS at one pinned SHA)."""
-    rels = _gate_rels(card)
-    if not rels:
-        return "security-gate-missing"
-    first = "security-gate-missing"
-    for index, rel in enumerate(rels):
-        problem = _one_gate(repo, rel, slug)
-        if problem is None:
-            return None
-        if index == 0:
-            first = problem
-    return first
-
-
-def _one_gate(repo: Path, rel: str, slug: str) -> str | None:
-    rel = rel.replace("\\", "/").strip()
-    if not rel or rel.startswith("/") or any(part == ".." for part in Path(rel).parts):
-        return "security-gate-malformed"
-    path = repo / rel
-    if not path.is_file():
-        return "security-gate-missing"
+def _approved(repo: Path, slug: str) -> frozenset:
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError):
-        return "security-gate-malformed"
-    if not isinstance(data, dict) or (slug and data.get("slug") != slug):
-        return "security-gate-malformed"
-    pinned = data.get("pinned_sha")
-    if not isinstance(pinned, str) or _SHA.fullmatch(pinned) is None:
-        return "security-gate-malformed"
-    for role in ("tester", "reviewer"):
-        item = data.get(role)
-        if not isinstance(item, dict):
-            return "security-gate-malformed"
-        if item.get("verdict") != "PASS":
-            return "security-gate-not-pass"
-        if item.get("sha") != pinned:
-            return "security-gate-sha-mismatch"
-    return _sha_on_origin_main(repo, pinned)
+        return _auto_raise().load_approvals(repo).get(slug, frozenset())
+    except Exception as exc:  # noqa: BLE001 - a bad approvals file fails closed
+        raise Refuse(f"approvals: {exc}") from exc
 
 
-def _is_security(card: dict) -> bool:
-    return _auto_raise().classify_risk(card) == "security"
+def _load_rules(repo: Path) -> dict:
+    pr = _rules()
+    try:
+        return pr.load_rules(repo)
+    except pr.RuleError as exc:
+        raise Refuse(f"rules: {exc}") from exc
+
+
+def _ctx(name: str, card: dict, verdict: dict | None, repo: Path, slug: str, mode: str):
+    return _rules().Ctx(card=card, slug=slug, root=repo, name=name, verdict=verdict,
+                        approved=_approved(repo, slug), mode=mode)
 
 
 def receipt_problem(card: dict, repo: Path, slug: str = "") -> str | None:
@@ -488,61 +467,51 @@ def decide_ceiling(
     card: dict,
     verdict: dict | None = None,
     repo: Path | None = None,
+    slug: str = "",
 ) -> tuple[str, str, str | None, str]:
     """Return allowed stage, evidence stage, tier ceiling, and the reason.
 
-    verdict gates apply only when a verdict is passed. The scan omits them.
+    The allowed stage is the highest step of data/promotion-rules.json whose
+    rules all pass. Rules that need a verdict run only when one is passed
+    (mode apply). The scan passes none (mode scan).
     """
     root = repo if repo is not None else ROOT
-    slug = _expected_slug(card, "")
+    slug = slug or _expected_slug(card, "")
     evidence_stage, kinds = evidence_ceiling(card, root, slug)
-    allowed = evidence_stage
     bits = [f"evidence {evidence_stage}: {kinds}"]
     tier = _stage(card.get("tier_ceiling"))
     if tier is not None:
-        if RANK[tier] < RANK[allowed]:
-            allowed = tier
+        if RANK[tier] < RANK[evidence_stage]:
             bits.append(f"tier_ceiling {tier} caps the evidence")
-        elif RANK[tier] > RANK[allowed]:
+        elif RANK[tier] > RANK[evidence_stage]:
             bits.append(f"tier_ceiling {tier} does not raise it")
         else:
             bits.append(f"tier_ceiling {tier} agrees")
-    cap = _self_pipeline_cap(name, card)
-    if cap is not None and RANK[cap] < RANK[allowed]:
-        allowed = cap
-        bits.append("self_pipeline blocks I3 for a CI, testing, or review tool")
-    if (
-        isinstance(card.get("self_pipeline"), dict)
-        and RANK[evidence_stage] < 3
-        and RANK[allowed] == RANK[evidence_stage]
-    ):
-        bits.append("a self_pipeline record does not raise this evidence")
+    rules = _load_rules(root)
+    ctx = _ctx(name, card, verdict, root, slug, "apply" if verdict is not None else "scan")
+    pr = _rules()
+    allowed, _passed, failing = pr.stage_allowed(rules, ctx)
+    named: list[str] = []
+    for rid, ok, detail in failing:
+        if not ok:
+            named.append(f"{rid}: {detail}")
     stage = _stage(card.get("integration_stage"))
-    if stage in ("I3", "I4"):
-        problem = receipt_problem(card, root, slug)
-        if problem:
-            bits.append(problem)
-            if RANK[allowed] >= RANK["I3"]:
-                allowed = "I2"
-    if RANK[allowed] >= RANK["I3"] and _is_security(card):
-        problem = gate_problem(card, root, slug)
-        if problem:
-            allowed = "I2"
-            bits.append(f"security tool: I3 needs the full gate ({problem})")
-    if verdict is not None and _is_security(card) and verdict.get("sandbox") != "sandlock":
-        if RANK["I1"] < RANK[allowed]:
-            allowed = "I1"
-            bits.append("security verdict without sandbox sandlock caps the write at I1")
-    if verdict is not None:
-        if verdict["modularity_gate"] != "pass":
-            if RANK["I1"] < RANK[allowed]:
-                allowed = "I1"
-                bits.append("modularity_gate fail caps the write at I1")
-        elif verdict["value_gate"] != "pass":
-            if RANK["I2"] < RANK[allowed]:
-                allowed = "I2"
-                bits.append("value_gate fail caps the write at I2")
+    if stage is not None and RANK[stage] > RANK[allowed] + 1:
+        # Name every rule the card's own stage fails, not only the first step.
+        for rid, ok, detail in pr.evaluate(rules, ctx, pr.rule_ids(rules, "stage", pr.track_of(card), stage), stage):
+            text = f"{rid}: {detail}"
+            if not ok and text not in named:
+                named.append(text)
+    bits.extend(named)
     return allowed, evidence_stage, tier, "; ".join(bits)
+
+
+def rule_results(name: str, card: dict, verdict: dict | None, repo: Path, slug: str, target: str) -> list:
+    """Every rule for target on this card's track: (rule, ok, detail)."""
+    pr = _rules()
+    rules = _load_rules(repo)
+    ctx = _ctx(name, card, verdict, repo, slug, "apply" if verdict is not None else "scan")
+    return pr.evaluate(rules, ctx, pr.rule_ids(rules, "stage", pr.track_of(card), target), target)
 
 
 def _threshold_text(value: int | float) -> str:
@@ -651,11 +620,27 @@ def apply_stage(card_path: Path, target: str, repo_root: Path) -> str | None:
             return problem
     if target == "I4" and not _has_embed(card):
         return "missing-embed"
+    if RANK[target] >= RANK["I3"] and _rules().track_of(card) == "security":
+        slug = _expected_slug(card, path.stem)
+        for rid, ok, _detail in rule_results(str(name), card, None, repo, slug, target):
+            if not ok and rid.startswith("S-"):
+                return rid
     if card.get("integration_stage") != target:
         updated = dict(card)
         updated["integration_stage"] = target
         _write_json(path, updated)
     return None
+
+
+def _today() -> str:
+    return _auto_raise().pt_today()
+
+
+def _rel(root: Path, path: Path) -> str:
+    try:
+        return path.resolve().relative_to(root.resolve()).as_posix()
+    except ValueError:
+        return path.name
 
 
 def apply_verdict(
@@ -666,33 +651,99 @@ def apply_verdict(
 ) -> int:
     root = repo if repo is not None else ROOT
     card = _read_object(card_path, "card")
+    original = card
     slug = card_path.stem
-    try:
-        if exclusion_reason(root, slug):
-            raise Refuse(f"excluded: {slug}")
-    except QueueError as exc:
-        raise Refuse(f"exclusions: {exc}") from exc
     verdict = parse_verdict(verdict_path)
     name = card.get("name") if isinstance(card.get("name"), str) and card.get("name").strip() else card_path.stem
     proposed = verdict["proposed_stage"]
+    pr = _rules()
+    rules = _load_rules(root)
     linked: str | None = None
     if RANK[proposed] >= RANK["I3"]:
         card, linked, _note = link_main_receipt(card, root, slug)
-    allowed, _evidence, _tier, reason = decide_ceiling(name, card, verdict, root)
-    if RANK[proposed] > RANK[allowed]:
+    results = rule_results(name, card, verdict, root, slug, proposed)
+    failed = [(rid, detail) for rid, ok, detail in results if not ok]
+    verdict_rel = _rel(root, verdict_path)
+    old = original.get("integration_stage")
+    if failed:
+        ledgered = dict(original)
+        if pr.append_ledger(ledgered, pr.ledger_entry(rules, "stage", old, proposed, "refuse", results, _today(), verdict_rel)):
+            _write_json(card_path, ledgered)
+        if any(rid == "R-not-excluded" for rid, _d in failed):
+            raise Refuse(f"excluded: {slug}")
+        allowed, _evidence, _tier, reason = decide_ceiling(name, card, verdict, root, slug)
         raise Refuse(f"above-ceiling: proposed {proposed} is above allowed {allowed} ({reason})")
-    if card.get("integration_stage") != proposed or linked is not None:
-        updated = dict(card)
-        updated["integration_stage"] = proposed
+    action = movement(old, proposed)
+    updated = dict(card)
+    updated["integration_stage"] = proposed
+    if action != "STAY":
+        result = "promote" if action == "PROMOTE" else "demote"
+        pr.append_ledger(updated, pr.ledger_entry(rules, "stage", old, proposed, result, results, _today(), verdict_rel))
+    if updated != original:
         _write_json(card_path, updated)
     if linked is not None:
         sys.stdout.write(f"linked {linked}\n")
-    action = movement(card.get("integration_stage"), proposed)
     line = render_one_line(action, proposed, verdict)
     if one_line_path is not None:
         _write_text(one_line_path, line)
     sys.stdout.write(line)
     return 0
+
+
+VERDICT_FIXED = frozenset({"R-value-gate", "R-modularity-gate", "S-sandlock-verdict", "R-not-excluded"})
+
+
+def retry_refused(root: Path) -> list[str]:
+    """Re-apply the recorded verdict of each rule-refused card once main is green."""
+    import contextlib
+    import io
+    pr = _rules()
+    rules = _load_rules(root)
+    stages = root / "data" / "stages"
+    out: list[str] = []
+    green: bool | None = None
+    for path in sorted(p for p in stages.glob("*.json") if not p.name.startswith("_")):
+        try:
+            card = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError):
+            continue
+        history = card.get("promotion_history") if isinstance(card, dict) else None
+        if not isinstance(history, list):
+            continue
+        last = [e for e in history if isinstance(e, dict) and e.get("kind") == "stage"]
+        if not last or last[-1].get("result") != "refuse":
+            continue
+        entry = last[-1]
+        ids = [f.get("rule") for f in entry.get("failed", []) if isinstance(f, dict)]
+        slug = path.stem
+        if any(pr.is_hard_stop(rules, rid) for rid in ids if isinstance(rid, str)):
+            out.append(f"hold\t{slug}\thard-stop")
+            continue
+        if any(rid in VERDICT_FIXED for rid in ids):
+            out.append(f"hold\t{slug}\tverdict-fixed")
+            continue
+        verdict_rel = entry.get("verdict")
+        verdict_path = root / verdict_rel if isinstance(verdict_rel, str) and verdict_rel else None
+        if verdict_path is None or not verdict_path.is_file():
+            out.append(f"hold\t{slug}\tno-verdict")
+            continue
+        if green is None:
+            from scripts.catalog_park_retry import main_green, main_sha
+            green = main_green(root, main_sha(root))
+        if not green:
+            out.append(f"hold\t{slug}\tmain-not-green")
+            continue
+        try:
+            with contextlib.redirect_stdout(io.StringIO()):
+                apply_verdict(path, verdict_path, None, root)
+        except Refuse as exc:
+            text = str(exc)
+            fresh = json.loads(path.read_text(encoding="utf-8")).get("promotion_history") or [{}]
+            failed = [f.get("rule") for f in fresh[-1].get("failed", []) if isinstance(f, dict)]
+            out.append(f"refuse\t{slug}\t{','.join(failed) or text}")
+            continue
+        out.append(f"promote\t{slug}\t{entry.get('to')}")
+    return out
 
 
 def _intent_notes(tools: dict) -> list[tuple[str, str]]:
@@ -709,7 +760,7 @@ def render_report(tools: dict, root: Path) -> str:
     for name in sorted(tools):
         card = tools[name]
         stage = _stage(card.get("integration_stage"))
-        allowed, evidence_stage, tier, reason = decide_ceiling(name, card, None, root)
+        allowed, evidence_stage, tier, reason = decide_ceiling(name, card, None, root, slug_for(name))
         if stage is None:
             mismatches.append((name, str(card.get("integration_stage")), evidence_stage, tier, allowed, reason))
             continue
@@ -793,8 +844,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--scan", action="store_true", help="Report cards above the evidence ceiling. Does not write cards.")
     parser.add_argument("--root", default="", help="Repo root for --scan. Default: this repo.")
     parser.add_argument("--report", default="", help="Mismatch report path. Default: eval/catalog-verdicts/CEILING-MISMATCHES.md under --root.")
+    parser.add_argument("--retry-refused", action="store_true", help="Re-apply rule-refused cards once main is green. Prints promote, refuse, or hold per card.")
     args = parser.parse_args(argv)
     try:
+        if args.retry_refused:
+            root = _abs(args.root) if args.root else ROOT
+            for line in retry_refused(root):
+                print(line)
+            return 0
         if args.scan:
             if args.card or args.verdict or args.write_one_line:
                 raise Refuse("scan-only: --scan does not take --card, --verdict, or --write-one-line")
@@ -806,7 +863,8 @@ def main(argv: list[str] | None = None) -> int:
         if not args.verdict:
             raise Refuse("missing-verdict: pass --verdict")
         one_line = _abs(args.write_one_line) if args.write_one_line else None
-        return apply_verdict(_abs(args.card), _abs(args.verdict), one_line)
+        root = _abs(args.root) if args.root else None
+        return apply_verdict(_abs(args.card), _abs(args.verdict), one_line, root)
     except Refuse as exc:
         sys.stderr.write(f"refused: {exc}\n")
         return 1

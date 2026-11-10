@@ -7,6 +7,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from tests._ledger import assert_only_ledger
 
 ROOT = Path(__file__).resolve().parents[1]
 RAISE = ROOT / "scripts" / "catalog_auto_raise.py"
@@ -59,7 +60,8 @@ class ExclusionHoldTest(unittest.TestCase):
             )
             self.assertEqual(made.returncode, 0, made.stderr)
             needs = out.read_text(encoding="utf-8")
-        self.assertIn(f"{ATG}\texcluded\t", needs)
+        # Since the rules decision of 2026-11-10 an exclusion is a rule (R-not-excluded), not a needs-mark row.
+        self.assertNotIn(f"{ATG}\t", needs)
         before = CARD.read_bytes()
         self.assertEqual(json.loads(before)["tier_ceiling"], "I2")
         self.assertEqual(json.loads(before)["integration_stage"], "I2")
@@ -69,7 +71,7 @@ class ExclusionHoldTest(unittest.TestCase):
             cwd=ROOT, capture_output=True, text=True, timeout=30,
         )
         self.assertEqual(dry.returncode, 0, dry.stderr)
-        self.assertIn(f"refuse\t{ATG}\texcluded", dry.stdout)
+        self.assertIn(f"refuse\t{ATG}\tR-not-excluded: excluded:", dry.stdout)
         self.assertNotIn(f"raise\t{ATG}\t", dry.stdout)
         check = subprocess.run(
             ["python3", str(RAISE), "--root", str(ROOT), "--launch-check", ATG],
@@ -95,8 +97,8 @@ class ExclusionHoldTest(unittest.TestCase):
             )
             self.assertNotEqual(proc.returncode, 0, proc.stdout)
             self.assertIn(f"refused: excluded: {ATG}", proc.stderr)
-            self.assertEqual(card.read_bytes(), before)
-        self.assertEqual(CARD.read_bytes(), before)
+            assert_only_ledger(self, card, before)
+        assert_only_ledger(self, CARD, before)
 
     def test_passing_gates_do_not_raise_an_excluded_slug(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -122,9 +124,9 @@ class ExclusionHoldTest(unittest.TestCase):
                 capture_output=True, text=True, timeout=30,
             )
             self.assertEqual(proc.returncode, 0, proc.stderr)
-            self.assertIn(f"refuse\t{ATG}\texcluded", proc.stdout)
+            self.assertIn(f"refuse\t{ATG}\tR-not-excluded: excluded:", proc.stdout)
             self.assertIn("raise\tzz-open\t", proc.stdout)
-            self.assertEqual(excluded.read_bytes(), before)
+            assert_only_ledger(self, excluded, before)
             self.assertEqual(json.loads(open_card.read_text(encoding="utf-8"))["tier_ceiling"], "I3")
 
     def test_lane_selects_its_commits_not_main_only_files(self):

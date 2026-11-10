@@ -3,6 +3,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from tests._ledger import assert_only_ledger
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "catalog_apply_verdict.py"
@@ -38,7 +39,7 @@ class CeilingRefuseTest(unittest.TestCase):
             self.assertNotEqual(proc.returncode, 0)
             blob = proc.stderr + proc.stdout
             self.assertIn("ceiling", blob.lower())
-            self.assertEqual(card.read_bytes(), before)
+            assert_only_ledger(self, card, before)
             self.assertEqual(json.loads(card.read_text())["integration_stage"], "I1")
 
 

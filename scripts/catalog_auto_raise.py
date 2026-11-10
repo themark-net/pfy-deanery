@@ -1,27 +1,29 @@
 #!/usr/bin/env python3
-"""Raise tier_ceiling to I3 when a verdict and the risk class allow it.
+"""Raise tier_ceiling when the promotion rules pass (data/promotion-rules.json).
 
-GPU and over-25 GB approvals (operator decision 2026-11-10)
-    eval/catalog-queue/approvals.tsv in the private ops checkout
-    (scripts/ops_paths.py: $PFY_OPS_ROOT, else <root>/tmp/ops) lists
-    operator-approved blocks (slug, block, decided, note): gpu or pull-over-25gb. An approved block no
-    longer blocks raise or needs-mark. --launch-check prints
+Rule-based promotion (operator decision 2026-11-10, 7:04am PT)
+    Nobody signs off. A card's ceiling is raised when every rule in the
+    rules file's "ceiling" table passes for its track (default or security).
+    Default track: I3 when not excluded, no hard stop, classifiable, and the
+    latest verdict passes both gates. Security track (a scanner or guard):
+    I2 for the sandlock trial, then I3 when the trial is clean, its profile
+    is read-only, and the card is wired advisory, non-blocking, or deny-only
+    with a fail-open test. Each raise and each refusal writes the rule IDs
+    that passed and failed to the card's promotion_history (kind ceiling).
+    A refusal with no verdict yet and no hard stop is not written.
+
+Hard stops (the only rules that write a needs-mark row)
+    HS-live-money, HS-release-deploy, HS-secrets, HS-runtime-takeover,
+    HS-gpu-unapproved, HS-pull-over-25gb-unapproved. GPU and over-25 GB
+    blocks are cleared per slug by eval/catalog-queue/approvals.tsv in the
+    private ops checkout (scripts/ops_paths.py). --launch-check prints
     skip <slug> gpu-driver for a card with an approved block, because the
     loop must not start GPU lanes in parallel: scripts/gpu_lane_driver.sh
     runs them one at a time.
 
-Security tools (operator decision 2026-11-10)
-    A card whose risk class is exactly security (a scanner or guard) is
-    raised to tier_ceiling I2, not I3, with no verdict needed, so its I2
-    trial can run without asking the operator. --launch-check prints
-    launch with reason security-sandbox for such a card below I2: the loop
-    starts the eval lane with PFY_LANE_SANDBOX=sandlock, and the lane runs
-    every tool install and run through scripts/integrations/sandlock/wrap.py.
-    Apply caps a security verdict at I1 unless it records
-    "sandbox": "sandlock", and caps a security card at I2 unless it cites a
-    passing full gate (see catalog_apply_verdict.py, "Security full gate").
-    Auto-raise never raises a security card to I3. live-money,
-    runtime-takeover and unknown are still refused.
+--launch-check prints launch or skip with the failed rule ID. A security
+card below I2 with a ceiling of I2 or more launches with reason
+security-sandbox: the loop starts the eval lane with PFY_LANE_SANDBOX=sandlock.
 
 Writes only tier_ceiling and ceiling_history. Never lowers a ceiling.
 Never edits a card whose ceiling is already I3 or I4. --dry-run writes nothing.
@@ -35,7 +37,9 @@ Risk class
 
 Word lists (whole tokens, hyphenated compounds kept)
     security: security, secret, secrets, credential, credentials, password,
-    pentest, penetration, exploit, vulnerability, sast, keyring
+    pentest, penetration, exploit, vulnerability, sast
+    secrets handling (hard stop): keyring, vault, password-manager,
+    secrets-manager, secret-store, credential-store, credential-helper
     live-money: trading, broker, payment, payments, wallet, invoice, bank,
     funds, stripe, live-money
     runtime-takeover: runtime-takeover, takeover, privilege, sudo, rootkit,
@@ -71,13 +75,17 @@ from scripts.catalog_eval_queue import QueueError, exclusion_reason  # noqa: E40
 
 STAGES = ("I0", "I1", "I2", "I3", "I4")
 RANK = {stage: index for index, stage in enumerate(STAGES)}
-RISK_ENUM = ("security", "live-money", "runtime-takeover", "none")
+RISK_ENUM = ("security", "live-money", "runtime-takeover", "secrets", "none")
 TOKEN_RE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 SIZE_RE = re.compile(r"(?<![\d.])(\d+(?:\.\d+)?)\s*(gb|gib)\b", re.IGNORECASE)
 
 SECURITY_TOKENS = frozenset({
     "security", "secret", "secrets", "credential", "credentials", "password",
-    "pentest", "penetration", "exploit", "vulnerability", "sast", "keyring",
+    "pentest", "penetration", "exploit", "vulnerability", "sast",
+})
+SECRETS_TOKENS = frozenset({
+    "keyring", "vault", "password-manager", "secrets-manager", "secret-store",
+    "secrets-store", "credential-store", "credential-helper", "secrets-handling",
 })
 LIVE_MONEY_TOKENS = frozenset({
     "trading", "broker", "payment", "payments", "wallet", "invoice", "bank",
@@ -160,6 +168,8 @@ def classify_risk(card: dict) -> str:
         hits.append("live-money")
     if tokens & RUNTIME_TOKENS:
         hits.append("runtime-takeover")
+    if tokens & SECRETS_TOKENS:
+        hits.append("secrets")
     if len(hits) > 1:
         return "unknown"
     if len(hits) == 1:
@@ -237,6 +247,55 @@ def needs_gpu_driver(card: dict, approved: frozenset[str]) -> bool:
     return any(block in approved for block in card_blocks(card))
 
 
+HARD_CLASSES = {
+    "live-money": "HS-live-money",
+    "runtime-takeover": "HS-runtime-takeover",
+    "secrets": "HS-secrets",
+}
+
+
+def risk_track(card: dict) -> str:
+    """security, none, or unknown. Hard-stop classes are separate (hard_stops)."""
+    raw = card.get("risk_class")
+    if isinstance(raw, str) and raw.strip():
+        key = raw.strip().lower()
+        if key not in RISK_ENUM:
+            return "unknown"
+        return "security" if key == "security" else "none"
+    if raw not in (None, ""):
+        return "unknown"
+    tokens = tokens_of(card)
+    if not tokens:
+        return "unknown"
+    return "security" if tokens & SECURITY_TOKENS else "none"
+
+
+def hard_stops(card: dict, approved: frozenset[str] = frozenset()) -> list[tuple[str, str]]:
+    """(rule ID, detail) for every hard stop on the card. Empty when none."""
+    found: list[tuple[str, str]] = []
+    raw = card.get("risk_class")
+    key = raw.strip().lower() if isinstance(raw, str) else ""
+    tokens = tokens_of(card)
+    if key in RISK_ENUM:
+        if key in HARD_CLASSES:
+            found.append((HARD_CLASSES[key], f"risk_class {key}"))
+    else:
+        for name, words in (("live-money", LIVE_MONEY_TOKENS), ("runtime-takeover", RUNTIME_TOKENS), ("secrets", SECRETS_TOKENS)):
+            hit = sorted(tokens & words)
+            if hit:
+                found.append((HARD_CLASSES[name], f"card text names {', '.join(hit)}"))
+    for block in card_blocks(card):
+        if block == "release-deploy":
+            found.append(("HS-release-deploy", "card text names a release or deploy"))
+        elif block == "gpu" and block not in approved:
+            found.append(("HS-gpu-unapproved", "card text names a GPU run; no gpu row in approvals.tsv"))
+        elif block == "pull-over-25gb" and block not in approved:
+            found.append(("HS-pull-over-25gb-unapproved", "card text is over 25 GB; no pull-over-25gb row in approvals.tsv"))
+    order = ["HS-live-money", "HS-release-deploy", "HS-secrets", "HS-runtime-takeover", "HS-gpu-unapproved", "HS-pull-over-25gb-unapproved"]
+    found.sort(key=lambda item: order.index(item[0]))
+    return found
+
+
 def latest_verdict(root: Path, slug: str) -> tuple[Path | None, dict | None]:
     """Last sorted eval/<dir>/<slug>/VERDICT.json. Missing file yields (None, None)."""
     base = root / "eval"
@@ -268,38 +327,61 @@ def _ceiling(card: dict) -> str | None:
     return None
 
 
-SECURITY_REASON = "security scanner or guard: I2 sandbox trial allowed by the operator decision of 2026-11-10; I3 needs the full gate"
+def _rules():
+    from scripts import promotion_rules
+    return promotion_rules
 
 
-def raise_target(card: dict) -> str:
-    """I2 for a security card, I3 otherwise."""
-    return "I2" if classify_risk(card) == "security" else "I3"
-
-
-def plan_card(card: dict, verdict: dict | None, approved: frozenset[str] = frozenset()) -> tuple[str, str]:
-    """Return (raise|refuse|skip, reason). raise is the only write."""
+def plan(card: dict, verdict: dict | None, approved: frozenset[str] = frozenset(),
+         root: Path | None = None, slug: str = "") -> dict:
+    """Decide a ceiling raise by the rules. Keys: action, reason, target, results, hard."""
+    pr = _rules()
+    rules = pr.load_rules(root)
     current = _ceiling(card)
     if current is not None and RANK[current] > RANK["I3"]:
-        return "skip", "ceiling above I3"
+        return {"action": "skip", "reason": "ceiling above I3", "target": current, "results": [], "hard": False}
     if current == "I3":
-        return "skip", "ceiling already I3"
-    blocked = block_reason(card, approved)
-    if blocked:
-        return "refuse", blocked
-    risk = classify_risk(card)
-    if risk == "security":
-        if current is not None and RANK[current] >= RANK["I2"]:
-            return "skip", "security: I3 needs the full gate"
-        return "raise", SECURITY_REASON
-    if risk != "none":
-        return "refuse", risk
-    if not gates_pass(verdict):
-        return "skip", "gates"
-    return "raise", "value_gate and modularity_gate passed and risk_class is none"
+        return {"action": "skip", "reason": "ceiling already I3", "target": current, "results": [], "hard": False}
+    ctx = pr.Ctx(card=card, slug=slug or str(card.get("slug") or ""), root=Path(root) if root else ROOT,
+                 name=str(card.get("name") or slug), verdict=verdict, approved=approved, mode="ceiling")
+    allowed, passed, failing = pr.stage_allowed(rules, ctx, kind="ceiling", top="I3")
+    if allowed != "I0" and (current is None or RANK[allowed] > RANK[current]):
+        ids = ", ".join(rid for rid, _ok, _d in passed)
+        return {"action": "raise", "reason": f"rules passed for {allowed}: {ids}", "target": allowed,
+                "results": passed, "hard": False}
+    failed = [(rid, detail) for rid, ok, detail in failing if not ok]
+    if not failed:
+        return {"action": "skip", "reason": f"ceiling {current} already meets the rules", "target": current or "",
+                "results": [], "hard": False}
+    hard = [item for item in failed if pr.is_hard_stop(rules, item[0])]
+    excluded = [item for item in failed if item[0] == "R-not-excluded"]
+    rid, detail = (hard or excluded or failed)[0]
+    action = "refuse" if hard or any(rid == "R-not-excluded" for rid, _d in failed) else "skip"
+    steps = rules["ceiling"][pr.track_of(card)]
+    next_stage = next((st for st in sorted(steps, key=RANK.get) if RANK[st] > RANK[allowed]), "I3")
+    return {"action": action, "reason": f"{rid}: {detail}", "target": next_stage, "results": failing, "hard": bool(hard)}
+
+
+def plan_card(card: dict, verdict: dict | None, approved: frozenset[str] = frozenset(),
+              root: Path | None = None, slug: str = "") -> tuple[str, str]:
+    """Return (raise|refuse|skip, reason). raise is the only ceiling write."""
+    result = plan(card, verdict, approved, root, slug)
+    return result["action"], result["reason"]
+
+
+def raise_target(card: dict, verdict: dict | None = None, approved: frozenset[str] = frozenset(),
+                 root: Path | None = None, slug: str = "") -> str:
+    """The ceiling the rules allow now."""
+    return plan(card, verdict, approved, root, slug)["target"]
 
 
 def _dumps(card: dict) -> str:
     return json.dumps(card, indent=2, ensure_ascii=False) + "\n"
+
+
+def _only_missing_verdict(results: list) -> bool:
+    failed = [(rid, detail) for rid, ok, detail in results if not ok]
+    return bool(failed) and all(detail == "no verdict" for _rid, detail in failed)
 
 
 def raise_card(path: Path, root: Path, today: str, dry_run: bool) -> tuple[str, str]:
@@ -311,42 +393,45 @@ def raise_card(path: Path, root: Path, today: str, dry_run: bool) -> tuple[str, 
     if not isinstance(card, dict):
         raise RaiseError(f"malformed-card: {path.name}: top level is not an object")
     slug = path.stem
+    pr = _rules()
     try:
-        if exclusion_reason(root, slug):
-            return "refuse", "excluded"
-    except QueueError as exc:
-        raise RaiseError(f"exclusions: {exc}") from exc
-    verdict_path, verdict = latest_verdict(root, slug)
-    action, reason = plan_card(card, verdict, load_approvals(root).get(slug, frozenset()))
-    if action != "raise":
-        return action, reason
+        rules = pr.load_rules(root)
+        verdict_path, verdict = latest_verdict(root, slug)
+        result = plan(card, verdict, load_approvals(root).get(slug, frozenset()), root, slug)
+    except pr.RuleError as exc:
+        raise RaiseError(f"rules: {exc}") from exc
+    action, reason = result["action"], result["reason"]
+    verdict_rel = ""
+    if verdict_path is not None:
+        try:
+            verdict_rel = verdict_path.relative_to(root).as_posix()
+        except ValueError:
+            verdict_rel = verdict_path.as_posix()
+    updated = dict(card)
     current = card.get("tier_ceiling")
     current_text = current.strip() if isinstance(current, str) else ""
-    target = raise_target(card)
-    evidence: list[str] = []
-    if verdict_path is not None and target == "I3":
-        try:
-            evidence.append(verdict_path.relative_to(root).as_posix())
-        except ValueError:
-            evidence.append(verdict_path.as_posix())
-    entry = {
-        "from": current_text,
-        "to": target,
-        "by": "catalog_loop",
-        "date": today,
-        "reason": reason,
-        "evidence": evidence,
-    }
-    updated = dict(card)
-    updated["tier_ceiling"] = target
-    history = updated.get("ceiling_history")
-    if not isinstance(history, list):
-        history = []
-    else:
-        history = list(history)
-    if not history or history[-1] != entry:
-        history.append(entry)
-    updated["ceiling_history"] = history
+    if action == "raise":
+        target = result["target"]
+        entry = {
+            "from": current_text,
+            "to": target,
+            "by": "catalog_loop",
+            "date": today,
+            "reason": reason,
+            "evidence": [verdict_rel] if verdict_rel and target == "I3" else [],
+            "rules": [rid for rid, _ok, _d in result["results"]],
+        }
+        updated["tier_ceiling"] = target
+        history = updated.get("ceiling_history")
+        history = list(history) if isinstance(history, list) else []
+        if not history or history[-1] != entry:
+            history.append(entry)
+        updated["ceiling_history"] = history
+        pr.append_ledger(updated, pr.ledger_entry(rules, "ceiling", current_text, target, "raise",
+                                                  result["results"], today, verdict_rel))
+    elif result["results"] and (result["hard"] or not _only_missing_verdict(result["results"])):
+        pr.append_ledger(updated, pr.ledger_entry(rules, "ceiling", current_text, result["target"], "refuse",
+                                                  result["results"], today, verdict_rel))
     text = _dumps(updated)
     if text != raw and not dry_run:
         _atomic(path, text)
@@ -428,33 +513,44 @@ def main(argv: list[str] | None = None) -> int:
             if not isinstance(card, dict):
                 print(f"skip\t{args.launch_check}\tmalformed-card")
                 return 0
+            slug = args.launch_check
+            approved = load_approvals(root).get(slug, frozenset())
+            pr = _rules()
             try:
-                if exclusion_reason(root, args.launch_check):
-                    print(f"skip\t{args.launch_check}\texcluded")
+                rules = pr.load_rules(root)
+            except pr.RuleError as exc:
+                raise RaiseError(f"rules: {exc}") from exc
+            ctx = pr.Ctx(card=card, slug=slug, root=root, name=str(card.get("name") or slug), approved=approved)
+            failed = [(rid, detail) for rid, ok, detail in pr.launch_results(rules, ctx) if not ok]
+            if failed:
+                rid = failed[0][0]
+                print(f"skip\t{slug}\t{'excluded' if rid == 'R-not-excluded' else rid}")
+                return 0
+            if needs_gpu_driver(card, approved):
+                print(f"skip\t{slug}\tgpu-driver")
+                return 0
+            # A card already above its rule-allowed stage is re-checked by the
+            # scan each tick; an eval lane would only re-propose that stage.
+            stage = card.get("integration_stage")
+            if isinstance(stage, str) and stage in RANK and RANK[stage] >= RANK["I2"]:
+                ctx.mode = "scan"
+                allowed, _passed, failing = pr.stage_allowed(rules, ctx)
+                if RANK[stage] > RANK[allowed]:
+                    first = next((rid for rid, ok, _d in failing if not ok), "rules")
+                    print(f"skip\t{slug}\t{first}: {stage} above allowed {allowed}")
                     return 0
-            except QueueError as exc:
-                raise RaiseError(f"exclusions: {exc}") from exc
-            approved = load_approvals(root).get(args.launch_check, frozenset())
-            blocked = block_reason(card, approved)
-            risk = classify_risk(card)
-            if not blocked and needs_gpu_driver(card, approved):
-                print(f"skip\t{args.launch_check}\tgpu-driver")
-                return 0
-            if blocked:
-                print(f"skip\t{args.launch_check}\t{blocked}")
-                return 0
-            if risk == "security":
+            if risk_track(card) == "security":
                 ceiling = _ceiling(card)
                 stage = card.get("integration_stage")
                 if ceiling is not None and RANK[ceiling] >= RANK["I2"] and stage in ("I0", "I1"):
-                    print(f"launch\t{args.launch_check}\tsecurity-sandbox")
+                    print(f"launch\t{slug}\tsecurity-sandbox")
                     return 0
-                print(f"skip\t{args.launch_check}\tsecurity")
+                if ceiling in ("I3", "I4") and stage == "I2":
+                    print(f"launch\t{slug}\tsecurity")
+                    return 0
+                print(f"skip\t{slug}\tsecurity: ceiling rules not met")
                 return 0
-            if risk != "none":
-                print(f"skip\t{args.launch_check}\t{risk}")
-                return 0
-            print(f"launch\t{args.launch_check}\t{risk}")
+            print(f"launch\t{slug}\tnone")
             return 0
         paths = iter_cards(stages)
         if args.slug:

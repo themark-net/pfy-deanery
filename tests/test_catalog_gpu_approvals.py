@@ -64,18 +64,18 @@ class GpuApprovalsTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = build(Path(tmp), APPROVALS)
             self.assertEqual(check(root, "gpu-ok"), "skip\tgpu-ok\tgpu-driver")
-            self.assertEqual(check(root, "gpu-no"), "skip\tgpu-no\tgpu")
-            self.assertEqual(check(root, "both"), "skip\tboth\tgpu")  # pull approved, gpu not
-            self.assertEqual(check(root, "rel"), "skip\trel\trelease-deploy")
+            self.assertEqual(check(root, "gpu-no"), "skip\tgpu-no\tHS-gpu-unapproved")
+            self.assertEqual(check(root, "both"), "skip\tboth\tHS-gpu-unapproved")  # pull approved, gpu not
+            self.assertEqual(check(root, "rel"), "skip\trel\tHS-release-deploy")
             env = {k: v for k, v in os.environ.items() if k != "PFY_OPS_ROOT"}
             out = root / "nm.tsv"
             proc = subprocess.run(["python3", str(NEEDS), "--root", str(root), "--out", str(out)], capture_output=True, text=True, timeout=30, env=env)
             self.assertEqual(proc.returncode, 0, proc.stderr)
             text = out.read_text(encoding="utf-8")
-            self.assertNotIn("gpu-ok\tgpu\t", text)
-            self.assertIn("gpu-no\tgpu\t", text)
-            self.assertNotIn("both\tpull-over-25gb\t", text)
-            self.assertIn("both\tgpu\t", text)
+            self.assertNotIn("gpu-ok\t", text)
+            self.assertIn("gpu-no\thard-stop\tHS-gpu-unapproved: ", text)
+            self.assertNotIn("both\thard-stop\tHS-pull-over-25gb-unapproved", text)
+            self.assertIn("both\thard-stop\tHS-gpu-unapproved: ", text)
             self.assertNotIn("big-ex\t", text)
 
     def test_bad_approval_rows_are_errors(self):
@@ -91,7 +91,7 @@ class GpuApprovalsTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = build(Path(tmp), APPROVALS)
             (root / "tmp" / "ops" / "eval" / "catalog-queue" / "approvals.tsv").unlink()
-            self.assertEqual(check(root, "gpu-ok"), "skip\tgpu-ok\tgpu")
+            self.assertEqual(check(root, "gpu-ok"), "skip\tgpu-ok\tHS-gpu-unapproved")
 
     def test_approvals_file_is_not_in_the_public_tree(self):
         self.assertFalse((ROOT / "eval" / "catalog-queue" / "approvals.tsv").exists())

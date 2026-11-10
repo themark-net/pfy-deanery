@@ -18,6 +18,7 @@ from contextlib import redirect_stdout
 from pathlib import Path
 
 from tests.test_catalog_apply_verdict_receipt import load_mod, make_repo, write_receipt
+from tests._ledger import assert_only_ledger
 
 VERDICT = {
     "metric": "probe_exit",
@@ -104,7 +105,7 @@ class ReceiptLinkTest(unittest.TestCase):
                 rc, msg = self._apply(slug, path)
                 self.assertIsNone(rc, msg)
                 self.assertIn("above-ceiling", msg)
-                self.assertEqual(path.read_bytes(), before)
+                assert_only_ledger(self, path, before)
 
 
 if __name__ == "__main__":

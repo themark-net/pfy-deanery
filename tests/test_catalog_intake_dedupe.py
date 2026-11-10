@@ -11,6 +11,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from tests._ledger import assert_only_ledger
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "catalog_intake_dedupe.py"
@@ -143,7 +144,7 @@ class IntakeDedupeTest(unittest.TestCase):
             self.assertEqual(refused.returncode, 1, refused.stdout)
             self.assertIn("above-ceiling", refused.stderr)
             self.assertIn("proposed I2", refused.stderr)
-            self.assertEqual(path.read_bytes(), before)
+            assert_only_ledger(self, path, before)
             write_verdict(verdict, "I1")
             allowed = apply(path, verdict)
             self.assertEqual(allowed.returncode, 0, allowed.stderr)
@@ -166,7 +167,7 @@ class IntakeDedupeTest(unittest.TestCase):
             self.assertEqual(refused.returncode, 1, refused.stdout)
             self.assertIn("above-ceiling", refused.stderr)
             self.assertIn("no evidence listed", refused.stderr)
-            self.assertEqual(path.read_bytes(), before)
+            assert_only_ledger(self, path, before)
 
     def test_local_fixture_records_license_pin_and_readme(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -363,7 +364,7 @@ class IntakeDedupeTest(unittest.TestCase):
             refused = apply(path, verdict)
             self.assertEqual(refused.returncode, 1, refused.stdout)
             self.assertIn("no evidence listed", refused.stderr)
-            self.assertEqual(path.read_bytes(), before)
+            assert_only_ledger(self, path, before)
 
     def test_entry_without_a_card_gets_its_card_once(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -392,7 +393,7 @@ class IntakeDedupeTest(unittest.TestCase):
             before = card_path(root, "widget-kit").read_bytes()
             second = run(root, "acme/widget-kit", write=True)
             self.assertEqual(second.stdout.strip(), "duplicate widget-kit data/stages/widget-kit.json")
-            self.assertEqual(card_path(root, "widget-kit").read_bytes(), before)
+            assert_only_ledger(self, card_path(root, "widget-kit"), before)
 
     def test_entry_without_a_title_writes_nothing(self):
         with tempfile.TemporaryDirectory() as tmp:

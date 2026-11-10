@@ -196,6 +196,10 @@ Classification order in `scripts/catalog_check.py` (`pipeline_role_hits`):
 5. I4 requires explicit checklist in PR (SUBTREES.md).
 6. Do not mark a CI, testing, or review tool I3 or I4 without `self_pipeline` (applied with evidence, not_applicable with a reason, or pending with grace).
 
+## Promotion rules
+
+Since 2026-11-10 every move between these stages, and every tier_ceiling raise, is decided by the machine-checked rules in `data/promotion-rules.json` (see `docs/ops/promotion-rules.md`). Nobody signs off. Only a hard-stop rule (live money, release or deploy, secrets handling, runtime takeover, or an unapproved GPU run or pull over 25 GB) waits for a person.
+
 ## Resolution source
 
 OQ-0003 (2026-07-30): Wait for first embed; define value + modularity thresholds; separate integration-stage rubric; staged evaluation default; lightweight intermediary probe (<50 MB) when potential ambiguous; full integration is a later state.

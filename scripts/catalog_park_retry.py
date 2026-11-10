@@ -13,7 +13,8 @@ For each <dir>/<slug>.parked:
   1. Record it in park-history.tsv (once per park): slug, kind, reason,
      parked_at (marker mtime, UTC), retries so far, origin/main SHA.
   2. Re-open it only when all of these hold, else leave it and print why:
-       the reason is one a green main can fix (RETRYABLE)      not-retryable
+       the reason is one a green main can fix (RETRYABLE, or a
+       RETRYABLE_PREFIXES prefix such as "receipt run failed")   not-retryable
        retries so far are under --max-retries (default 2)        cap
        now >= parked_at + backoff * 2**retries (default 2 h)     backoff
        the lane worktree <dir>/wt/<slug>, if any, is clean       dirty-worktree
@@ -48,6 +49,8 @@ RETRYABLE = (
     "land failed",
     "push failed",
 )
+# Prefixes a green main can also fix (the receipt reruns on the new main).
+RETRYABLE_PREFIXES = ("receipt run failed",)
 HISTORY_HEADER = "slug\tkind\treason\tparked_at\tretries\tmain_sha\n"
 
 
@@ -129,7 +132,7 @@ def run(repo: Path, dirs: list[tuple[str, Path]], history: Path, now: float, cap
             record(history, (slug, kind, reason or "-", parked_at, str(n), sha or "-"))
             why = ""
             wt = base / "wt" / slug
-            if reason not in RETRYABLE:
+            if reason not in RETRYABLE and not reason.startswith(RETRYABLE_PREFIXES):
                 why = "not-retryable"
             elif n >= cap:
                 why = "cap"

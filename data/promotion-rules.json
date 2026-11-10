@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "decided": "2026-11-10",
+  "doc": "docs/ops/promotion-rules.md",
+  "engine": "scripts/promotion_rules.py",
+  "summary": "Every move from I0 to I4, and every tier_ceiling raise, is decided by these machine-checked rules. Nobody signs off. Only a hard-stop rule writes a needs-mark row. Any other failed rule is written to the card's promotion_history and re-checked on the next tick once eval-structural is green on origin/main.",
+  "modes": {
+    "apply": "catalog_apply_verdict.py --card --verdict, and --retry-refused",
+    "scan": "catalog_apply_verdict.py --scan (no verdict; never writes a card)",
+    "ceiling": "catalog_auto_raise.py (tier_ceiling raise, reads the latest VERDICT.json)",
+    "launch": "catalog_auto_raise.py --launch-check (may the loop start a lane)"
+  },
+  "rules": {
+    "R-not-excluded": {"modes": ["apply", "ceiling", "launch"], "check": "slug is not listed in eval/catalog-queue/exclusions.tsv"},
+    "R-classifiable": {"modes": ["ceiling", "launch"], "check": "risk_class is valid, or uses/features/tags/catalog_tags/next_gate have words to classify"},
+    "R-evidence": {"modes": ["apply", "scan"], "check": "the evidence list supports the target, up to I2 (I1: any artifact; I2: a measured probe, make:, or path:)"},
+    "R-tier-ceiling": {"modes": ["apply", "scan"], "check": "target is at or below tier_ceiling when the card has one"},
+    "R-modularity-gate": {"modes": ["apply", "ceiling"], "check": "the verdict's modularity_gate is pass"},
+    "R-value-gate": {"modes": ["apply", "ceiling"], "check": "the verdict's value_gate is pass"},
+    "R-main-receipt": {"modes": ["apply", "scan"], "check": "a receipt: evidence item is a valid main-run receipt (run_kind pipeline or gate) whose main_sha is an ancestor of origin/main"},
+    "R-self-pipeline": {"modes": ["apply", "scan"], "check": "a CI, testing, or review tool passes the catalog_check self_pipeline check at I3"},
+    "R-embed": {"modes": ["apply", "scan"], "check": "a submodule: or subtree: evidence item"},
+    "S-sandlock-verdict": {"modes": ["apply"], "check": "the verdict records \"sandbox\": \"sandlock\" (every trial run went through scripts/integrations/sandlock/wrap.py)"},
+    "S-sandlock-trial-clean": {"modes": ["apply", "scan", "ceiling"], "check": "eval/integrate/<slug>/sandbox-trial.json: run_kind sandbox-trial, sandbox sandlock, outcome ok, exit_code 0, unsandboxed_lines 0, scan_verdict CLEAN when present"},
+    "S-profile-readonly": {"modes": ["apply", "scan", "ceiling"], "check": "the trial's profile (written by confine.py): writes only under ./tmp/, /tmp/ or $TMPDIR (plus /dev/null), network deny or the pinned fetch only, no sudo, clean env, no read of the real home root or a secrets path"},
+    "S-wiring": {"modes": ["apply", "scan", "ceiling"], "check": "card wiring is advisory or non-blocking (a CI step marked '# pfy-advisory: <slug>' with continue-on-error: true), or deny-only with an existing fail_open_test"},
+    "S-ci-green": {"modes": ["apply"], "check": "eval-structural concluded success on origin/main"},
+    "HS-live-money": {"modes": ["apply", "ceiling", "launch"], "hard_stop": true, "check": "risk_class live-money, or trading, broker, payment, wallet, invoice, bank, funds, stripe words"},
+    "HS-release-deploy": {"modes": ["apply", "ceiling", "launch"], "hard_stop": true, "check": "release, deploy, or deployment words"},
+    "HS-secrets": {"modes": ["apply", "ceiling", "launch"], "hard_stop": true, "check": "risk_class secrets, or keyring, vault, password-manager, secrets-manager, secret-store, credential-store, credential-helper words"},
+    "HS-runtime-takeover": {"modes": ["apply", "ceiling", "launch"], "hard_stop": true, "check": "risk_class runtime-takeover, or runtime-takeover, takeover, privilege, sudo, rootkit, host-control words"},
+    "HS-gpu-unapproved": {"modes": ["apply", "ceiling", "launch"], "hard_stop": true, "check": "a GPU run (gpu, vulkan, rocm, hip, cuda, weights) with no gpu row in the ops approvals.tsv"},
+    "HS-pull-over-25gb-unapproved": {"modes": ["apply", "ceiling", "launch"], "hard_stop": true, "check": "a size over 25 GB in the card text with no pull-over-25gb row in the ops approvals.tsv"}
+  },
+  "hard_stops": ["HS-live-money", "HS-release-deploy", "HS-secrets", "HS-runtime-takeover", "HS-gpu-unapproved", "HS-pull-over-25gb-unapproved"],
+  "stage": {
+    "default": {
+      "I1": ["R-not-excluded", "R-evidence", "R-tier-ceiling"],
+      "I2": ["HS-live-money", "HS-release-deploy", "HS-secrets", "HS-runtime-takeover", "HS-gpu-unapproved", "HS-pull-over-25gb-unapproved", "R-modularity-gate"],
+      "I3": ["R-value-gate", "R-main-receipt", "R-self-pipeline"],
+      "I4": ["R-embed"]
+    },
+    "security": {
+      "I1": ["R-not-excluded", "R-evidence", "R-tier-ceiling"],
+      "I2": ["HS-live-money", "HS-release-deploy", "HS-secrets", "HS-runtime-takeover", "HS-gpu-unapproved", "HS-pull-over-25gb-unapproved", "R-modularity-gate", "S-sandlock-verdict"],
+      "I3": ["R-value-gate", "R-main-receipt", "R-self-pipeline", "S-sandlock-trial-clean", "S-profile-readonly", "S-wiring", "S-ci-green"],
+      "I4": ["R-embed"]
+    }
+  },
+  "ceiling": {
+    "default": {
+      "I3": ["R-not-excluded", "HS-live-money", "HS-release-deploy", "HS-secrets", "HS-runtime-takeover", "HS-gpu-unapproved", "HS-pull-over-25gb-unapproved", "R-classifiable", "R-modularity-gate", "R-value-gate"]
+    },
+    "security": {
+      "I2": ["R-not-excluded", "HS-live-money", "HS-release-deploy", "HS-secrets", "HS-runtime-takeover", "HS-gpu-unapproved", "HS-pull-over-25gb-unapproved", "R-classifiable"],
+      "I3": ["R-modularity-gate", "R-value-gate", "S-sandlock-trial-clean", "S-profile-readonly", "S-wiring"]
+    }
+  },
+  "launch": ["R-not-excluded", "HS-live-money", "HS-release-deploy", "HS-secrets", "HS-runtime-takeover", "HS-gpu-unapproved", "HS-pull-over-25gb-unapproved", "R-classifiable"],
+  "retry": "A refusal with no hard-stop rule is re-applied by catalog_apply_verdict.py --retry-refused once eval-structural is green on origin/main."
+}

@@ -15,6 +15,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from tests._ledger import assert_only_ledger
 
 ROOT = Path(__file__).resolve().parents[1]
 INTAKE = ROOT / "scripts" / "catalog_intake_dedupe.py"
@@ -176,7 +177,7 @@ class FakeToolE2ETest(unittest.TestCase):
             self.assertEqual(refused.returncode, 1, refused.stdout)
             self.assertIn("above-ceiling", refused.stderr)
             self.assertIn("proposed I2", refused.stderr)
-            self.assertEqual(card_path.read_bytes(), before)
+            assert_only_ledger(self, card_path, before)
             still = run([str(PFY), "catalog"], env, root)
             self.assertEqual(catalog_rows(still.stdout)[SLUG][1], "I0")
 
