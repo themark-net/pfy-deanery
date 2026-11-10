@@ -1,6 +1,6 @@
 {
   "name": "Bumblebee",
-  "integration_stage": "I2",
+  "integration_stage": "I3",
   "intent": "catalog_default",
   "tier": "A",
   "auto": true,
@@ -58,5 +58,38 @@
   "wiring": {
     "mode": "advisory",
     "where": ".github/workflows/eval-structural.yml"
-  }
+  },
+  "promotion_history": [
+    {
+      "kind": "stage",
+      "from": "I2",
+      "to": "I3",
+      "result": "promote",
+      "passed": [
+        "R-not-excluded",
+        "R-evidence",
+        "R-tier-ceiling",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-modularity-gate",
+        "S-sandlock-verdict",
+        "R-value-gate",
+        "R-main-receipt",
+        "R-self-pipeline",
+        "S-sandlock-trial-clean",
+        "S-profile-readonly",
+        "S-wiring",
+        "S-ci-green"
+      ],
+      "failed": [],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-10",
+      "verdict": "VERDICT.json"
+    }
+  ]
 }
