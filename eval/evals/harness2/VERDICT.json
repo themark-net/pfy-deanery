@@ -1,0 +1,36 @@
+{
+  "metric": "heldout_gain",
+  "threshold": 2,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I1",
+  "intent": "staged_evaluation",
+  "pin": "1cfe254e8d25b15f37048c3730134686abe60335",
+  "heldout_gain": 0,
+  "heldout_n": 16,
+  "better_base_correct": 15,
+  "final_correct": 15,
+  "base_gap": 0,
+  "negative_finding": "gain",
+  "runs": 0,
+  "value_legs": {
+    "gap_fill": "fail",
+    "operator_leverage": "fail",
+    "evidence": "pass",
+    "blast_radius": "pass"
+  },
+  "supersede": {
+    "coverage": {
+      "track": "none",
+      "catalog": "none",
+      "evaluate": "none",
+      "integrate": "none"
+    },
+    "checker": {
+      "parts": [],
+      "supersede_candidate": false
+    },
+    "watchlist_row": false,
+    "why": "scripts/supersede_check.py --parts track=none,catalog=none,evaluate=none,integrate=none is not a candidate. Harness2 tunes one agent harness from task runs. It does not watch outside sources, it does not keep a deduped tool catalog with stage cards, and it does not score catalog tools on I0-I4. The local sandbox under examples/harness2-local is this repo's trial of that pin, not harness2 wiring outside tools in with a run on main. A bench score is not suite coverage. Do not adopt it in place of this repo. Do not add a watchlist row."
+  }
+}
