@@ -28,6 +28,7 @@ COPY_REL = (
     "scripts/catalog_apply_verdict.py",
     "scripts/catalog_auto_raise.py",
     "scripts/catalog_needs_mark.py",
+    "scripts/catalog_park_retry.py",
     "scripts/ops_paths.py",
     "scripts/catalog_card_guard.py",
     "scripts/integrate_intake.py",

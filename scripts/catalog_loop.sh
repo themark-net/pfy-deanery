@@ -93,6 +93,7 @@ export PFY_PARKED="[]"
 export PFY_ERRORS="[]"
 export PFY_SUPERSEDE=""
 export PFY_SUPERSEDE_STALE="[]"
+export PFY_PARK_RETRY="[]"
 
 write_status() {
   local status="$1"
@@ -136,6 +137,7 @@ doc = {
     "errors": grab("PFY_ERRORS", []),
     "supersede": os.environ.get("PFY_SUPERSEDE", ""),
     "supersede_stale": grab("PFY_SUPERSEDE_STALE", []),
+    "park_retry": grab("PFY_PARK_RETRY", []),
 }
 text = json.dumps(doc, indent=2, sort_keys=True) + "\n"
 for dest in (state_path, repo_path):
@@ -462,6 +464,28 @@ while IFS=$'\t' read -r action slug reason; do
     refused+=("$slug")
   fi
 done <<< "$raise_out"
+
+# Re-open parked eval/integrate lanes once main is green (cap 2, backoff
+# 2h doubling). Runs before needs-mark so a re-opened slug is not listed
+# there, and before launch so the daily and running caps still apply.
+# Every park is logged to $STATE/park-history.tsv with its reason.
+retry_lines=()
+if [ "$DRY" -eq 0 ]; then
+  if retry_out=$(python3 scripts/catalog_park_retry.py --repo "$PWD" \
+      --dir eval="$STATE/eval" --dir integrate="$STATE/integrate" \
+      --history "$STATE/park-history.tsv"); then
+    while IFS= read -r line; do
+      [ -n "$line" ] && retry_lines+=("$line")
+    done <<< "$retry_out"
+  else
+    retry_lines+=("error park-retry failed")
+    printf '%s\n' "park-retry failed" >&2
+  fi
+fi
+if [ "${#retry_lines[@]}" -gt 0 ]; then
+  PFY_PARK_RETRY=$(json_list "${retry_lines[@]}")
+  export PFY_PARK_RETRY
+fi
 
 parked_args=()
 for base in "$STATE/eval" "$STATE/integrate" "$INTEGRATE_ROOT" "$INTEGRATE2_ROOT" "$EVQ_ROOT"; do
