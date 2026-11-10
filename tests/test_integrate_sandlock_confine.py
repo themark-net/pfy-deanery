@@ -88,6 +88,8 @@ class SandlockConfineTest(unittest.TestCase):
             marker.parent.mkdir()
             env["SANDLOCK_STAGE"] = str(stage)
             env["SANDLOCK_STARTED"] = str(marker)
+            env["PFY_BUMBLEBEE_BIN"] = str(td / "not-the-pinned-binary")
+            env["HOME"] = str(td / "caller-home")
             out = stage / "out.txt"
             payload = "from pathlib import Path; import os; Path(os.environ['OUT']).write_text('ok')"
             env["OUT"] = str(out)
@@ -108,6 +110,8 @@ class SandlockConfineTest(unittest.TestCase):
             joined = " ".join(argv)
             self.assertIn("SANDLOCK_STARTED=%s" % marker, joined)
             self.assertIn("SANDLOCK_STAGE=%s" % stage, joined)
+            self.assertNotIn("PFY_BUMBLEBEE_BIN", joined)
+            self.assertNotIn("HOME=", joined)
 
             missing_env = env.copy()
             missing_env["SANDLOCK_REAL"] = str(td / "no-such-sandlock")

@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Four advisory cases for the pinned bumblebee wrapper.
 
-The clean, git-selector, and plaintext-env fixtures run through
-scripts/integrations/sandlock/wrap.py with PFY_SANDLOCK=all and
-SANDLOCK_BIN=scripts/integrations/sandlock/confine.py. Writes stay under
-a temp stage directory. The home-refuse case uses a temp HOME and a
-sentinel binary. It must exit 2 before that sentinel starts.
+All four run through scripts/integrations/sandlock/wrap.py with
+PFY_SANDLOCK=all and SANDLOCK_BIN=scripts/integrations/sandlock/confine.py.
+Writes stay under a temp stage directory. confine.py passes --clean-env, so
+the outer PFY_BUMBLEBEE_BIN and HOME do not reach the scan. A pin script
+inside the sandboxed command sets PFY_BUMBLEBEE_BIN to the hashed cache
+binary. The home-refuse case also sets HOME to a temp directory there, and
+it must exit 2 before that sentinel starts.
 
 Exit 0: all four cases match and no wrap logged "sandlock: unsandboxed".
 Exit 1: the tool ran and a case missed, or a run was unsandboxed.
@@ -18,6 +20,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import shlex
 import stat
 import subprocess
 import sys
@@ -48,23 +51,54 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def run_wrapped(root: Path, stage: Path, cache: Path) -> tuple[int, str, str, int]:
+def shell() -> str:
+    for candidate in ("/bin/sh", "/usr/bin/sh"):
+        if os.access(candidate, os.X_OK):
+            return candidate
+    return "sh"
+
+
+def write_pin(stage: Path, binary: Path, home: Path | None) -> Path:
+    """Set the binary inside the sandbox. clean-env drops the outer value."""
+    lines = [
+        "#!/bin/sh",
+        "export PFY_BUMBLEBEE_BIN=%s" % shlex.quote(str(binary)),
+    ]
+    if home is not None:
+        lines.append("export HOME=%s" % shlex.quote(str(home)))
+    lines.append('exec "$@"')
+    path = stage / "pin.sh"
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    path.chmod(path.stat().st_mode | stat.S_IEXEC)
+    return path
+
+
+def run_wrapped(
+    root: Path,
+    stage: Path,
+    cache: Path,
+    binary: Path,
+    *,
+    sandlock_bin: Path | None = None,
+    home: Path | None = None,
+) -> tuple[int, str, str, int]:
     stage.mkdir(parents=True, exist_ok=True)
     (stage / "tmp").mkdir(exist_ok=True)
     out = stage / "scan.json"
-    binary = cache_binary()
-    reads = [str(root.resolve())]
-    if binary is not None:
-        reads.append(str(binary.parent.resolve()))
+    pin = write_pin(stage, binary, home)
+    reads = [str(root.resolve()), str(binary.parent.resolve())]
     env = os.environ.copy()
     env.update({
         "PFY_SANDLOCK": "all",
-        "SANDLOCK_BIN": str(CONFINE),
+        "SANDLOCK_BIN": str(sandlock_bin or CONFINE),
         "SANDLOCK_STAGE": str(stage),
         "SANDLOCK_PROFILE": str(stage / "profile.json"),
         "TMPDIR": str(stage / "tmp"),
         "SANDLOCK_EXTRA_READS": ":".join(reads),
         "PYTHONDONTWRITEBYTECODE": "1",
+        # Fall-open still runs this command. The pin script sets the binary.
+        # Do not replace HOME here: sandlock's own binary is under the caller home.
+        "PFY_BUMBLEBEE_BIN": str(binary),
     })
     proc = subprocess.run(
         [
@@ -75,6 +109,8 @@ def run_wrapped(root: Path, stage: Path, cache: Path) -> tuple[int, str, str, in
             "--action",
             "run",
             "--",
+            shell(),
+            str(pin),
             sys.executable,
             str(SCRIPT),
             "--root",
@@ -120,11 +156,18 @@ def keys(scan: dict) -> list[str]:
     return found
 
 
-def case_scan(name: str, work: Path) -> dict:
+def case_scan(
+    name: str,
+    work: Path,
+    binary: Path,
+    sandlock_bin: Path | None = None,
+) -> dict:
     root = FIXTURES / name
     stage = work / name / "stage"
     cache = work / name / "wrap"
-    code, stdout, stderr, unsandboxed = run_wrapped(root, stage, cache)
+    code, stdout, stderr, unsandboxed = run_wrapped(
+        root, stage, cache, binary, sandlock_bin=sandlock_bin,
+    )
     scan = load_scan(stage)
     leaked = TOKEN_VALUE in stdout or TOKEN_VALUE in stderr or TOKEN_VALUE in json.dumps(scan)
     row = {
@@ -165,34 +208,33 @@ def expect_env(row: dict) -> str:
     return ""
 
 
-def case_home(work: Path) -> dict:
+def case_home(work: Path, sandlock_bin: Path | None = None) -> dict:
     home = work / "home"
-    home.mkdir()
-    started = work / "started"
+    home.mkdir(parents=True)
+    stage = work / "home-stage"
+    started = stage / "sentinel-started"
     sentinel = work / "sentinel"
     sentinel.write_text(
-        "#!/bin/sh\nprintf started > %s\nexit 0\n" % json.dumps(str(started)),
+        "#!/bin/sh\nprintf started > %s\nexit 0\n" % shlex.quote(str(started)),
         encoding="utf-8",
     )
     sentinel.chmod(sentinel.stat().st_mode | stat.S_IEXEC)
-    env = os.environ.copy()
-    env["HOME"] = str(home)
-    env["PFY_BUMBLEBEE_BIN"] = str(sentinel)
-    env["PYTHONDONTWRITEBYTECODE"] = "1"
-    proc = subprocess.run(
-        [sys.executable, str(SCRIPT), "--root", str(home), "--out", str(work / "out.json")],
-        env=env,
-        capture_output=True,
-        text=True,
-        timeout=30,
+    code, stdout, stderr, unsandboxed = run_wrapped(
+        home,
+        stage,
+        work / "home-wrap",
+        sentinel,
+        sandlock_bin=sandlock_bin,
+        home=home,
     )
-    refused = "refusing to scan" in proc.stdout
+    refused = "refusing to scan" in stdout or "refusing to scan" in stderr
     return {
         "name": "home-refuse",
-        "exit": proc.returncode,
+        "exit": code,
         "refused": refused,
-        "sentinel_started": started.exists(),
-        "sandboxed": False,
+        "sentinel_started": started.is_file(),
+        "unsandboxed_lines": unsandboxed,
+        "sandboxed": unsandboxed == 0 and code != 127,
         "note": "exits before the binary; a temp HOME, not the real home",
     }
 
@@ -252,9 +294,9 @@ def main() -> int:
     with tempfile.TemporaryDirectory(prefix="pfy-bumblebee-probe-") as tmp:
         work = Path(tmp)
         try:
-            clean = case_scan("clean", work)
-            git_row = case_scan("git-selector", work)
-            env_row = case_scan("plaintext-env", work)
+            clean = case_scan("clean", work, binary)
+            git_row = case_scan("git-selector", work, binary)
+            env_row = case_scan("plaintext-env", work, binary)
             home_row = case_home(work)
             version = tool_version(binary, work)
         except subprocess.TimeoutExpired:
@@ -267,7 +309,12 @@ def main() -> int:
         "home-refuse": expect_home(home_row),
     }
     passed = [name for name, problem in checks.items() if not problem]
-    unsandboxed = clean["unsandboxed_lines"] + git_row["unsandboxed_lines"] + env_row["unsandboxed_lines"]
+    unsandboxed = (
+        clean["unsandboxed_lines"]
+        + git_row["unsandboxed_lines"]
+        + env_row["unsandboxed_lines"]
+        + home_row["unsandboxed_lines"]
+    )
     doc = {
         "metric": "advisory_cases",
         "passed": len(passed),
@@ -280,7 +327,11 @@ def main() -> int:
         "failures": {name: problem for name, problem in checks.items() if problem},
         "cases_detail": [clean, git_row, env_row, home_row],
     }
-    OUT.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
+    text = json.dumps(doc, indent=2) + "\n"
+    if "/home/" in text or TOKEN_VALUE in text:
+        print("refusing to write results with a home path or an env value", file=sys.stderr)
+        return 1
+    OUT.write_text(text, encoding="utf-8")
     if digest != PIN_SHA256:
         print("binary sha256 does not match the v0.1.2 pin", file=sys.stderr)
         return 1

@@ -53,7 +53,8 @@
       "exit": 2,
       "refused": true,
       "sentinel_started": false,
-      "sandboxed": false,
+      "unsandboxed_lines": 0,
+      "sandboxed": true,
       "note": "exits before the binary; a temp HOME, not the real home"
     }
   ]
