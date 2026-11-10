@@ -4,12 +4,14 @@
 Does not build, install, or launch the tool. Does not attach to a live
 tmux socket and does not write a grok config.
 
-Exit 0: all eight source features are in the tree and LICENSE is Apache-2.0.
-Exit 1: the tree is readable and at least one of those checks failed.
+Exit 0: all eight source features are in the tree, LICENSE is Apache-2.0,
+and git HEAD is either absent or equal to the pin.
+Exit 1: the tree is readable and a feature, the license, or a present
+HEAD disagrees. A HEAD that differs from the pin fails here.
 Exit 2: the tree path is missing or not a directory.
 
-A pass means the pinned source matches the entry claims. It does not mean
-the binary ran.
+A pass means the source text matches the entry claims. It does not mean
+the binary ran. A missing HEAD does not by itself fail the pin check.
 """
 
 from __future__ import annotations
