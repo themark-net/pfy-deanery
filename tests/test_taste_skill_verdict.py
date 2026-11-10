@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 class TestTasteSkillVerdict(unittest.TestCase):
-    def test_proposed_i3_stays_off_the_card(self):
+    def test_proposed_i3_needs_the_linked_receipt(self):
         verdict = json.loads(
             Path("eval/integrate/taste-skill/VERDICT.json").read_text(encoding="utf-8")
         )
@@ -17,12 +17,10 @@ class TestTasteSkillVerdict(unittest.TestCase):
         card = json.loads(
             Path("data/stages/taste-skill.json").read_text(encoding="utf-8")
         )
-        self.assertEqual(card["integration_stage"], "I2")
         self.assertEqual(card["tier_ceiling"], "I3")
-        evidence = card.get("evidence") or []
-        self.assertFalse(
-            any(isinstance(item, str) and item.strip().lower().startswith("receipt:") for item in evidence)
-        )
+        # I3 only when apply linked the main-run receipt on the card.
+        cites = "receipt:eval/integrate/taste-skill/receipt.json" in (card.get("evidence") or [])
+        self.assertEqual(card["integration_stage"] == "I3", cites, card.get("evidence"))
 
 
 if __name__ == "__main__":

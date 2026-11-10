@@ -1,6 +1,6 @@
 {
   "name": "headson",
-  "integration_stage": "I2",
+  "integration_stage": "I3",
   "intent": "ad_hoc_probe",
   "entry": "sources/entries/133-headson.md",
   "github": "https://github.com/kantord/headson",
@@ -33,7 +33,8 @@
     "eval/evq1107/headson/results.json",
     "pin headson-v0.17.1 26ccc98d9e90150ff4c2d9a7299f7ad85544cd23",
     "tarball_sha256:90f5880efcacd16000e12e6f461e7e486ea56636d2f67243de2a65160006ac58",
-    "binary_sha256:1a5920a7088db2f2eaf3e53c588fb5133b020a4b9aa417631977e16ead136422"
+    "binary_sha256:1a5920a7088db2f2eaf3e53c588fb5133b020a4b9aa417631977e16ead136422",
+    "receipt:eval/integrate/headson/receipt.json"
   ],
   "handoff_by": "llm",
   "ceiling_history": [

@@ -1,6 +1,6 @@
 {
   "name": "neatroots",
-  "integration_stage": "I2",
+  "integration_stage": "I3",
   "intent": "ad_hoc_probe",
   "entry": "sources/entries/137-neatroots.md",
   "github": "https://github.com/neatlogs/neatroots",
@@ -26,7 +26,8 @@
     "entry:sources/entries/137-neatroots.md",
     "ops:eval/ev1107/neatroots/REPORT.md",
     "eval/ev1107/neatroots/VERDICT",
-    "eval/ev1107/neatroots/check-results.json"
+    "eval/ev1107/neatroots/check-results.json",
+    "receipt:eval/integrate/neatroots/receipt.json"
   ],
   "handoff_by": "llm",
   "ceiling_history": [

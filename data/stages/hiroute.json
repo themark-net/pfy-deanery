@@ -1,6 +1,6 @@
 {
   "name": "HiRoute",
-  "integration_stage": "I2",
+  "integration_stage": "I3",
   "intent": "adhoc_probe",
   "entry": "sources/entries/147-hiroute.md",
   "github": "https://github.com/higress-group/HiRoute",
@@ -18,7 +18,8 @@
   ],
   "evidence": [
     "entry:sources/entries/147-hiroute.md",
-    "ops:eval/ev1107/hiroute/REPORT.md"
+    "ops:eval/ev1107/hiroute/REPORT.md",
+    "receipt:eval/integrate/hiroute/receipt.json"
   ],
   "handoff_by": "llm",
   "ceiling_history": [

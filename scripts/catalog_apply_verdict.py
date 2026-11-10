@@ -34,6 +34,15 @@ Evidence comes only from the card's evidence list:
   VERDICT, summary, script)
 - I0: evidence list empty
 
+Receipt link: when a verdict proposes I3 or I4 and the card lists no valid
+main-run receipt, apply checks the conventional eval/integrate/<slug>/receipt.json.
+If that file is a valid main-run receipt on origin/main, the card's risk class
+is none, and it has no GPU, over-25 GB, or release block (the same classifier
+as scripts/catalog_auto_raise.py), apply adds
+receipt:eval/integrate/<slug>/receipt.json to the evidence before the ceiling
+check, and writes it with the stage. A refusal still writes nothing.
+tier_ceiling still caps the result.
+
 I3 and I4 also need that receipt when applying a stage. A missing file is
 missing-main-receipt. Bad JSON or a run_kind other than pipeline or gate is
 receipt-malformed. A main_sha that is not an ancestor of origin/main is
@@ -113,6 +122,48 @@ _CATALOG_CHECK = None
 
 class Refuse(Exception):
     """A named refusal. The card is not written."""
+
+
+_AUTO_RAISE = None
+
+
+def _auto_raise():
+    global _AUTO_RAISE
+    if _AUTO_RAISE is None:
+        path = ROOT / "scripts" / "catalog_auto_raise.py"
+        spec = importlib.util.spec_from_file_location("catalog_auto_raise_for_verdict", path)
+        if spec is None or spec.loader is None:
+            raise Refuse("malformed-verdict: cannot load scripts/catalog_auto_raise.py")
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        _AUTO_RAISE = mod
+    return _AUTO_RAISE
+
+
+def link_main_receipt(card: dict, repo: Path, slug: str) -> tuple[dict, str | None, str]:
+    """Return (card, linked_rel, note).
+
+    linked_rel is the receipt: item added to a copy of the card, or None when
+    the card is unchanged. note names why nothing was linked.
+    """
+    if receipt_problem(card, repo, slug) is None:
+        return card, None, "already-linked"
+    rel = f"eval/integrate/{slug}/receipt.json"
+    problem = _one_receipt(card, repo, rel, slug)
+    if problem is not None:
+        return card, None, problem
+    raiser = _auto_raise()
+    risk = raiser.classify_risk(card)
+    if risk != "none":
+        return card, None, f"risk-class {risk}"
+    block = raiser.block_reason(card)
+    if block:
+        return card, None, f"blocked {block}"
+    updated = dict(card)
+    evidence = list(card.get("evidence") or []) if isinstance(card.get("evidence"), list) else []
+    evidence.append(f"receipt:{rel}")
+    updated["evidence"] = evidence
+    return updated, f"receipt:{rel}", "linked"
 
 
 def _catalog_check():
@@ -532,24 +583,35 @@ def apply_stage(card_path: Path, target: str, repo_root: Path) -> str | None:
     return None
 
 
-def apply_verdict(card_path: Path, verdict_path: Path, one_line_path: Path | None) -> int:
+def apply_verdict(
+    card_path: Path,
+    verdict_path: Path,
+    one_line_path: Path | None,
+    repo: Path | None = None,
+) -> int:
+    root = repo if repo is not None else ROOT
     card = _read_object(card_path, "card")
     slug = card_path.stem
     try:
-        if exclusion_reason(ROOT, slug):
+        if exclusion_reason(root, slug):
             raise Refuse(f"excluded: {slug}")
     except QueueError as exc:
         raise Refuse(f"exclusions: {exc}") from exc
     verdict = parse_verdict(verdict_path)
     name = card.get("name") if isinstance(card.get("name"), str) and card.get("name").strip() else card_path.stem
     proposed = verdict["proposed_stage"]
-    allowed, _evidence, _tier, reason = decide_ceiling(name, card, verdict, ROOT)
+    linked: str | None = None
+    if RANK[proposed] >= RANK["I3"]:
+        card, linked, _note = link_main_receipt(card, root, slug)
+    allowed, _evidence, _tier, reason = decide_ceiling(name, card, verdict, root)
     if RANK[proposed] > RANK[allowed]:
         raise Refuse(f"above-ceiling: proposed {proposed} is above allowed {allowed} ({reason})")
-    if card.get("integration_stage") != proposed:
+    if card.get("integration_stage") != proposed or linked is not None:
         updated = dict(card)
         updated["integration_stage"] = proposed
         _write_json(card_path, updated)
+    if linked is not None:
+        sys.stdout.write(f"linked {linked}\n")
     action = movement(card.get("integration_stage"), proposed)
     line = render_one_line(action, proposed, verdict)
     if one_line_path is not None:

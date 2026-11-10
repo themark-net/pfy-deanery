@@ -1,6 +1,6 @@
 {
   "name": "taste-skill",
-  "integration_stage": "I2",
+  "integration_stage": "I3",
   "intent": "ad_hoc_probe",
   "entry": "sources/entries/143-taste-skill.md",
   "github": "https://github.com/Leonxlnx/taste-skill",
@@ -33,7 +33,8 @@
     "version:v2.1.4",
     "ops:eval/evq1107/taste-skill/REPORT.md",
     "eval/evq1107/taste-skill/VERDICT",
-    "eval/evq1107/taste-skill/results.json"
+    "eval/evq1107/taste-skill/results.json",
+    "receipt:eval/integrate/taste-skill/receipt.json"
   ],
   "handoff_by": "llm",
   "self_pipeline": {

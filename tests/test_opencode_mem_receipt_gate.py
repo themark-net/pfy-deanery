@@ -130,14 +130,11 @@ class OpenCodeMemReceiptGateTest(unittest.TestCase):
         self.assertEqual(verdict["modularity_gate"], "pass")
         self.assertEqual(verdict["proposed_stage"], "I3")
         self.assertNotIn("tier_ceiling", verdict)
-        card_main = subprocess.check_output(
-            ["git", "show", "origin/main:data/stages/opencode-mem.json"],
-            cwd=ROOT,
-        )
-        self.assertEqual(CARD.read_bytes(), card_main)
-        card = json.loads(card_main.decode("utf-8"))
+        card = json.loads(CARD.read_text(encoding="utf-8"))
         self.assertEqual(card["tier_ceiling"], "I3")
-        self.assertNotEqual(card["integration_stage"], "I3")
+        # I3 only when apply linked the main-run receipt on the card.
+        cites = "receipt:eval/integrate/opencode-mem/receipt.json" in (card.get("evidence") or [])
+        self.assertEqual(card["integration_stage"] == "I3", cites, card.get("evidence"))
 
     def test_off_main_head_writes_no_receipt(self):
         root = _repo(False)

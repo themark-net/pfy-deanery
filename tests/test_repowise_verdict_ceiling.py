@@ -1,5 +1,4 @@
 import json
-import subprocess
 import unittest
 from pathlib import Path
 
@@ -18,15 +17,10 @@ class TestRepowiseVerdictCeiling(unittest.TestCase):
         card = Path("data/stages/repowise.json")
         if card.exists():
             data = json.loads(card.read_text())
-            self.assertNotEqual(data.get("integration_stage"), "I3")
             self.assertEqual(data.get("tier_ceiling"), "I3")
 
-    def test_card_bytes_match_origin_main(self):
-        card = ROOT / "data/stages/repowise.json"
-        proc = subprocess.run(
-            ["git", "show", "origin/main:data/stages/repowise.json"],
-            cwd=ROOT,
-            capture_output=True,
-        )
-        self.assertEqual(proc.returncode, 0)
-        self.assertEqual(card.read_bytes(), proc.stdout)
+    def test_i3_only_with_a_cited_main_receipt(self):
+        # The card may reach I3 only when apply linked the main-run receipt.
+        data = json.loads((ROOT / "data/stages/repowise.json").read_text())
+        cites = "receipt:eval/integrate/repowise/receipt.json" in (data.get("evidence") or [])
+        self.assertEqual(data.get("integration_stage") == "I3", cites, data.get("evidence"))

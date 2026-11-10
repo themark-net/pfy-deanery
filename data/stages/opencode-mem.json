@@ -1,6 +1,6 @@
 {
   "name": "opencode-mem",
-  "integration_stage": "I2",
+  "integration_stage": "I3",
   "intent": "ad_hoc_probe",
   "tier": "A",
   "auto": true,
@@ -23,7 +23,8 @@
     "eval/evq1107/opencode-mem/VERDICT",
     "eval/evq1107/opencode-mem/results.json",
     "pin:6c5828f3e49f962385aeb3ad033ecac5adc22878",
-    "npm:opencode-mem@2.41.1"
+    "npm:opencode-mem@2.41.1",
+    "receipt:eval/integrate/opencode-mem/receipt.json"
   ],
   "tier_ceiling": "I3",
   "uses": "Memory plugin for the OpenCode worker. A new process searched 8 of 8 stored salts that rg does not find in this repo.",

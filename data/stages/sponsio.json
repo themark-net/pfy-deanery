@@ -1,6 +1,6 @@
 {
   "name": "Sponsio",
-  "integration_stage": "I2",
+  "integration_stage": "I3",
   "intent": "adhoc_probe",
   "entry": "sources/entries/098-sponsio.md",
   "github": "https://github.com/SponsioLabs/Sponsio",
@@ -33,7 +33,8 @@
     "release:v0.2.0a17",
     "ops:eval/evq1107/sponsio/REPORT.md",
     "eval/evq1107/sponsio/VERDICT",
-    "eval/evq1107/sponsio/results.json"
+    "eval/evq1107/sponsio/results.json",
+    "receipt:eval/integrate/sponsio/receipt.json"
   ],
   "handoff_by": "llm",
   "ceiling_history": [

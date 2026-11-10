@@ -8,8 +8,11 @@ VERDICT = ROOT / "eval/integrate/neatroots/VERDICT.json"
 class TestNeatrootsVerdict(unittest.TestCase):
     def test_verdict_fields(self):
         data = json.loads(VERDICT.read_text(encoding="utf-8"))
-        self.assertEqual(data["metric"], "offline_trace_check")
-        self.assertEqual(data["threshold"], "exit_code_0")
+        # threshold is a number (parse_verdict refuses a string). The receipt
+        # records the offline check's exit code, and 0 is the pass bar.
+        self.assertEqual(data["metric"], "offline_trace_check_exit")
+        self.assertEqual(data["threshold"], 0)
+        self.assertEqual(data["value"], 0)
         self.assertEqual(data["value_gate"], "pass")
         self.assertEqual(data["modularity_gate"], "pass")
         self.assertEqual(data["proposed_stage"], "I3")

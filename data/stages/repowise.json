@@ -1,6 +1,6 @@
 {
   "name": "repowise",
-  "integration_stage": "I2",
+  "integration_stage": "I3",
   "intent": "smoke_path",
   "tier": "A",
   "auto": true,
@@ -15,7 +15,8 @@
   "catalog_github": "https://github.com/repowise-dev/repowise",
   "posture": [],
   "evidence": [
-    "make:smoke-repowise"
+    "make:smoke-repowise",
+    "receipt:eval/integrate/repowise/receipt.json"
   ],
   "tier_ceiling": "I3",
   "uses": "Context packing probe. Overlaps codebase-memory.",
