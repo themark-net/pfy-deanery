@@ -1,0 +1,142 @@
+{
+  "pin": "7bd119c1031c58e6a6f4e2031b397a2635872124",
+  "plugin": "0.1.1",
+  "license": "Apache-2.0",
+  "installed": false,
+  "model": "grok-4.7-build",
+  "parallel_wall_s": 152.747,
+  "clean_ticket": "slice1",
+  "clean_ticket_blockers": 2,
+  "threshold": 4,
+  "clean_ticket_bar": "pass",
+  "driver_lock_in_cited_packet": true,
+  "land_step_in_cited_packet": true,
+  "lock_wait_named": true,
+  "fast_forward_named": true,
+  "park_causes_named_as_blocker": false,
+  "tickets": {
+    "fix": {
+      "ok": true,
+      "wall_s": 145.635,
+      "elephant_wall_s": 26.483,
+      "elephant_turns": 1,
+      "model": "grok-4.7-build",
+      "personas": {
+        "readiness": {
+          "ok": true,
+          "wall_s": 78.154,
+          "turns": 1,
+          "attempts": 1,
+          "Blocker": 2,
+          "Major": 4,
+          "Nit": 0
+        },
+        "critic": {
+          "ok": true,
+          "wall_s": 119.149,
+          "turns": 1,
+          "attempts": 1,
+          "Blocker": 1,
+          "Major": 4,
+          "Nit": 0
+        },
+        "codebase": {
+          "ok": true,
+          "wall_s": 95.198,
+          "turns": 1,
+          "attempts": 1,
+          "Blocker": 1,
+          "Major": 4,
+          "Nit": 0
+        }
+      },
+      "totals": {
+        "Blocker": 4,
+        "Major": 12,
+        "Nit": 0
+      }
+    },
+    "handoff": {
+      "ok": true,
+      "wall_s": 91.266,
+      "elephant_wall_s": 35.419,
+      "elephant_turns": 1,
+      "model": "grok-4.7-build",
+      "personas": {
+        "readiness": {
+          "ok": true,
+          "wall_s": 52.178,
+          "turns": 1,
+          "attempts": 1,
+          "Blocker": 3,
+          "Major": 2,
+          "Nit": 1
+        },
+        "critic": {
+          "ok": true,
+          "wall_s": 55.845,
+          "turns": 1,
+          "attempts": 1,
+          "Blocker": 0,
+          "Major": 4,
+          "Nit": 0
+        },
+        "codebase": {
+          "ok": true,
+          "wall_s": 54.063,
+          "turns": 1,
+          "attempts": 1,
+          "Blocker": 1,
+          "Major": 1,
+          "Nit": 1
+        }
+      },
+      "totals": {
+        "Blocker": 4,
+        "Major": 7,
+        "Nit": 2
+      }
+    },
+    "slice1": {
+      "ok": true,
+      "wall_s": 152.747,
+      "elephant_wall_s": 37.447,
+      "elephant_turns": 1,
+      "model": "grok-4.7-build",
+      "personas": {
+        "readiness": {
+          "ok": true,
+          "wall_s": 99.903,
+          "turns": 1,
+          "attempts": 1,
+          "Blocker": 2,
+          "Major": 4,
+          "Nit": 0
+        },
+        "critic": {
+          "ok": true,
+          "wall_s": 115.298,
+          "turns": 1,
+          "attempts": 1,
+          "Blocker": 0,
+          "Major": 2,
+          "Nit": 0
+        },
+        "codebase": {
+          "ok": true,
+          "wall_s": 82.822,
+          "turns": 1,
+          "attempts": 1,
+          "Blocker": 0,
+          "Major": 1,
+          "Nit": 0
+        }
+      },
+      "totals": {
+        "Blocker": 2,
+        "Major": 7,
+        "Nit": 0
+      }
+    }
+  }
+}

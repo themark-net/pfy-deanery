@@ -1,0 +1,39 @@
+{
+  "metric": "clean_ticket_blockers",
+  "threshold": 4,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I1",
+  "intent": "staged_evaluation",
+  "pin": "7bd119c1031c58e6a6f4e2031b397a2635872124",
+  "plugin": "0.1.1",
+  "clean_ticket": "slice1",
+  "clean_ticket_blockers": 2,
+  "parallel_wall_s": 152.747,
+  "runs": 3,
+  "driver_lock_in_cited_packet": true,
+  "land_step_in_cited_packet": true,
+  "lock_wait_named": true,
+  "fast_forward_named": true,
+  "park_causes_named_as_blocker": false,
+  "value_legs": {
+    "gap_fill": "fail",
+    "operator_leverage": "fail",
+    "evidence": "pass",
+    "blast_radius": "pass"
+  },
+  "supersede": {
+    "coverage": {
+      "track": "none",
+      "catalog": "none",
+      "evaluate": "none",
+      "integrate": "partial"
+    },
+    "checker": {
+      "parts": ["integrate"],
+      "supersede_candidate": false
+    },
+    "watchlist_row": false,
+    "why": "One part only, so scripts/supersede_check.py --parts track=none,catalog=none,evaluate=none,integrate=partial is not a candidate. Elephant-Goldfish reviews one spec. It does not watch outside sources, it does not keep a deduped tool catalog, and it does not score tools on I0-I4. A local plugin someone could run is the integrate part at partial. It is not wired here. Do not adopt it in place of this repo. Do not add a watchlist row."
+  }
+}
