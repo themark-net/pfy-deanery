@@ -13,9 +13,16 @@ non-empty, so catalog_apply_verdict.py can allow I1. A bare name stays
 evidence [] and tier_ceiling I0. This script does not invent evidence
 and does not raise integration_stage.
 
+A source that only has an intake entry (sources/entries/NNN-*.md) and no
+card is still a duplicate, but --write-card then writes its I0 card from
+that entry: name from the entry title, the entry path, and the pin and
+license the entry's URL line records. Prints card <slug> <entry>. A
+second run finds the card and prints duplicate.
+
 Prints one line:
   new <slug>
   duplicate <slug> <match>
+  card <slug> <entry>
 """
 from __future__ import annotations
 
@@ -377,6 +384,34 @@ def _i0_card(facts: dict) -> dict:
     return card
 
 
+_ENTRY_TITLE = re.compile(r"^#+\s*Entry\s+\d+:\s*([^:]+?)\s*:", re.M)
+_ENTRY_PIN = re.compile(r"commit\s+`([0-9a-f]{40})`")
+_ENTRY_LICENSE = re.compile(r"^- \*\*URL\*\*:\s*\S+\s*\(([A-Za-z0-9.+-]+)[,)]", re.M)
+
+
+def entry_card(root: Path, entry_rel: str, facts: dict) -> tuple[str, dict] | None:
+    """(name, I0 card) built from an intake entry, or None without a title."""
+    try:
+        text = (root / entry_rel).read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return None
+    title = _ENTRY_TITLE.search(text)
+    if not title:
+        return None
+    merged = dict(facts)
+    merged["evidence"] = list(facts["evidence"])
+    if not merged["pin"]:
+        pin = _ENTRY_PIN.search(text)
+        merged["pin"] = pin.group(1) if pin else ""
+        if merged["pin"]:
+            _add_evidence(merged["evidence"], f"pin:{merged['pin']}")
+    if not merged["license"]:
+        lic = _ENTRY_LICENSE.search(text)
+        merged["license"] = lic.group(1) if lic else ""
+    _add_evidence(merged["evidence"], f"entry:{entry_rel}")
+    return title.group(1).strip(), _i0_card(merged)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Match a source to an existing card, entry, or X post.")
     parser.add_argument("source", help="GitHub URL, owner/repo, name, or local directory.")
@@ -390,6 +425,13 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     found = find_duplicate(root, args.source, facts)
     if found:
+        if args.write_card and found[1].startswith("sources/entries/"):
+            built = entry_card(root, found[1], facts)
+            if built is not None:
+                name, card = built
+                dest = write_tool(root, name, card)
+                print(f"card {dest.stem} {found[1]}")
+                return 0
         print(f"duplicate {found[0]} {found[1]}")
         return 0
     if args.write_card:

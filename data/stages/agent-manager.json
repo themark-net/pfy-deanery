@@ -1,0 +1,21 @@
+{
+  "name": "agent-manager",
+  "integration_stage": "I0",
+  "uses": "",
+  "features": [],
+  "potential": "ambiguous",
+  "non_goals": [
+    "raised without a verdict"
+  ],
+  "next_gate": "eval",
+  "evidence": [
+    "https://github.com/wainmann/agent-manager",
+    "pin:cbe5fb9bd248636ebeb5ac6f97ab83940d04fb2d",
+    "entry:sources/entries/173-agent-manager.md"
+  ],
+  "tier_ceiling": "I1",
+  "risk_class": "none",
+  "github": "https://github.com/wainmann/agent-manager",
+  "license": "Apache-2.0",
+  "pin": "cbe5fb9bd248636ebeb5ac6f97ab83940d04fb2d"
+}

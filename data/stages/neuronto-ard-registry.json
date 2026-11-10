@@ -1,0 +1,21 @@
+{
+  "name": "Neuronto ARD Registry",
+  "integration_stage": "I0",
+  "uses": "",
+  "features": [],
+  "potential": "ambiguous",
+  "non_goals": [
+    "raised without a verdict"
+  ],
+  "next_gate": "eval",
+  "evidence": [
+    "https://github.com/neuronto/agentic-resource-discovery",
+    "pin:09d4fa8b0576981d93ae608ff4509ded4ef2df2e",
+    "entry:sources/entries/175-neuronto-ard.md"
+  ],
+  "tier_ceiling": "I1",
+  "risk_class": "none",
+  "github": "https://github.com/neuronto/agentic-resource-discovery",
+  "license": "Apache-2.0",
+  "pin": "09d4fa8b0576981d93ae608ff4509ded4ef2df2e"
+}

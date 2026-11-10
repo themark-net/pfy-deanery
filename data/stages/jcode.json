@@ -1,0 +1,21 @@
+{
+  "name": "jcode",
+  "integration_stage": "I0",
+  "uses": "",
+  "features": [],
+  "potential": "ambiguous",
+  "non_goals": [
+    "raised without a verdict"
+  ],
+  "next_gate": "eval",
+  "evidence": [
+    "https://github.com/1jehuang/jcode",
+    "pin:9c9003b18da0506739988bec461c1760014effcf",
+    "entry:sources/entries/174-jcode.md"
+  ],
+  "tier_ceiling": "I1",
+  "risk_class": "none",
+  "github": "https://github.com/1jehuang/jcode",
+  "license": "MIT",
+  "pin": "9c9003b18da0506739988bec461c1760014effcf"
+}

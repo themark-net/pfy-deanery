@@ -364,3 +364,42 @@ class IntakeDedupeTest(unittest.TestCase):
             self.assertEqual(refused.returncode, 1, refused.stdout)
             self.assertIn("no evidence listed", refused.stderr)
             self.assertEqual(path.read_bytes(), before)
+
+    def test_entry_without_a_card_gets_its_card_once(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = catalog_root(tmp)
+            entries = root / "sources" / "entries"
+            entries.mkdir(parents=True)
+            sha = "a" * 40
+            (entries / "201-widget.md").write_text(
+                "### Entry 201: Widget Kit: does widgets\n\n"
+                f"- **URL**: https://github.com/acme/widget-kit (MIT). Checked at commit `{sha}` (2026-11-09).\n",
+                encoding="utf-8",
+            )
+            plain = run(root, "acme/widget-kit")
+            self.assertEqual(plain.stdout.strip(), "duplicate widget-kit sources/entries/201-widget.md")
+            self.assertFalse(card_path(root, "widget-kit").exists())
+            first = run(root, "acme/widget-kit", write=True)
+            self.assertEqual(first.returncode, 0, first.stderr)
+            self.assertEqual(first.stdout.strip(), "card widget-kit sources/entries/201-widget.md")
+            card = load_card(root, "widget-kit")
+            self.assertEqual(card["name"], "Widget Kit")
+            self.assertEqual(card["integration_stage"], "I0")
+            self.assertEqual(card["tier_ceiling"], "I1")
+            self.assertEqual(card["license"], "MIT")
+            self.assertEqual(card["pin"], sha)
+            self.assertIn("entry:sources/entries/201-widget.md", card["evidence"])
+            before = card_path(root, "widget-kit").read_bytes()
+            second = run(root, "acme/widget-kit", write=True)
+            self.assertEqual(second.stdout.strip(), "duplicate widget-kit data/stages/widget-kit.json")
+            self.assertEqual(card_path(root, "widget-kit").read_bytes(), before)
+
+    def test_entry_without_a_title_writes_nothing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = catalog_root(tmp)
+            entries = root / "sources" / "entries"
+            entries.mkdir(parents=True)
+            (entries / "202-odd.md").write_text("see https://github.com/acme/odd\n", encoding="utf-8")
+            out = run(root, "acme/odd", write=True)
+            self.assertEqual(out.stdout.strip(), "duplicate odd sources/entries/202-odd.md")
+            self.assertEqual(list((root / "data" / "stages").glob("*.json")), [])

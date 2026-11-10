@@ -1,0 +1,21 @@
+{
+  "name": "Bricks",
+  "integration_stage": "I0",
+  "uses": "",
+  "features": [],
+  "potential": "ambiguous",
+  "non_goals": [
+    "raised without a verdict"
+  ],
+  "next_gate": "eval",
+  "evidence": [
+    "https://github.com/kostja94/bricks",
+    "pin:b110aa2808a7be0f74bac1142bb2ad2ef70b2a56",
+    "entry:sources/entries/176-bricks.md"
+  ],
+  "tier_ceiling": "I1",
+  "risk_class": "none",
+  "github": "https://github.com/kostja94/bricks",
+  "license": "MIT",
+  "pin": "b110aa2808a7be0f74bac1142bb2ad2ef70b2a56"
+}
