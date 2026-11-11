@@ -311,3 +311,7 @@ agent-manager. Each reads the pinned GitHub commit JSON through `$LOCALHARNESS_F
 Entries 174-176 (`smoke_174.py`, `smoke_175.py`, `smoke_176.py`) are commit-metadata receipts for jcode, Neuronto ARD and
 Bricks. Each reads the pinned GitHub commit JSON through `$JCODE_FETCH_BIN` / `$NEURONTO_FETCH_BIN` /
 `$BRICKS_FETCH_BIN` or a stdlib fetch, checks the SHA, and exits 2 without installing anything. `PFY_XINTAKE_TIMEOUT` overrides the timeout.
+
+Entries 177-179 (`smoke_177.py`, `smoke_178.py`, `smoke_179.py`) are commit-metadata receipts for renderlint, StarSling Skills and
+Agent Autoloop. Each reads the pinned GitHub commit JSON through `$RENDERLINT_FETCH_BIN` / `$STARSLING_FETCH_BIN` /
+`$AUTOLOOP_FETCH_BIN` or a stdlib fetch, checks the SHA, and exits 2 without installing anything. `PFY_XINTAKE_TIMEOUT` overrides the timeout.
