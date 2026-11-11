@@ -16,7 +16,7 @@ jobs:
     name: G0 launcher 100755
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: FAIL unless pfy, scripts/pfy, detect-local-runtime.sh are 100755 and ./pfy help runs
         run: |
           set -euo pipefail
@@ -59,7 +59,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 1
           token: ${{ secrets.GITHUB_TOKEN }}
