@@ -1,0 +1,12 @@
+{
+  "metric": "self_pipeline_audit",
+  "threshold": 1,
+  "value": 1,
+  "value_gate": "pass",
+  "modularity_gate": "pass",
+  "proposed_stage": "I2",
+  "intent": "ad_hoc_probe",
+  "why": "read-only ci-score (63/100) and ci-speedup on pfy-mentat workflows at 335114f, with measured speedups vs the modular-CI plan. No workflow edits. I3 still needs a main-run receipt.",
+  "source": "eval/integrate/starsling-skills/VERDICT",
+  "pin": "14571ad98289d8afd8de1a5b87ddc51909984f30"
+}

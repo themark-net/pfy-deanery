@@ -1,0 +1,119 @@
+{
+  "tool": "starsling-skills",
+  "pin": "14571ad98289d8afd8de1a5b87ddc51909984f30",
+  "audited_commit": "335114f55e4da4b6f28c68c93f846ac6bcd92d53",
+  "audited_at": "2026-11-10T20:07:17-08:00",
+  "timezone": "America/Los_Angeles",
+  "skills": [
+    "ci-score",
+    "ci-speedup"
+  ],
+  "ci_score": {
+    "score": 63,
+    "max": 100,
+    "rubric": "ci-score-v0.1.8",
+    "applicable_pass": 5,
+    "applicable_fail": 3,
+    "n_a": 3,
+    "fail": [
+      "pinned action SHAs (0 of 15)",
+      "dependency caching (no actions/cache or setup-* cache:)",
+      "path filters on 0 of 2 PR workflows"
+    ],
+    "pass": [
+      "shallow checkout",
+      "test sharding / matrix",
+      "concurrency groups",
+      "superseded runs cancelled",
+      "job timeouts"
+    ],
+    "advisory": [
+      "hard-coded runs-on in 4 jobs"
+    ]
+  },
+  "ci_speedup": {
+    "skill_commit": "14571ad98289d8afd8de1a5b87ddc51909984f30",
+    "runs_analyzed": 37,
+    "jobs_sampled": 85,
+    "workflows_analyzed": 3,
+    "window": "2026-10-12 to 2026-11-11",
+    "pr_sample": "1 of 20 PRs (era door, short sample)",
+    "headline_pr_wait_p50": "3m 41s",
+    "headline_note": "P50 from 1 of 20 PRs and 7 eval-structural runs since a workflow change about 12 hours earlier. Independent job timings on recent successful push landings are much shorter (median 33s per ubuntu shard job). Treat the 3m 41s figure as a floor, not a firm typical landing time.",
+    "gh_api_calls": 121,
+    "gh_api_failures": 9,
+    "partial": "sample_thinned",
+    "long_poles": [
+      {
+        "check": "G0 (ubuntu-24.04) (0)",
+        "workflow": "eval-structural.yml",
+        "p50": "3m 41s",
+        "role": "reported PR gate"
+      },
+      {
+        "check": "G0 launcher 100755",
+        "workflow": "filemode-operator-scripts.yml",
+        "p50": "6s",
+        "role": "concurrent, not the gate"
+      }
+    ]
+  },
+  "minutes_saved": [
+    {
+      "fix": "Cache ripgrep and PyYAML on ubuntu eval-structural shards (setup-python cache or actions/cache; keep the pinned test image on nimo).",
+      "aligns_with": "modular-CI cached tool and image layers",
+      "per_run_wall_s": 10,
+      "per_run_wall_note": "median slowest-shard rg install is 11s plus about 3s pip; a warm cache should leave 1-2s",
+      "runner_min_per_30d": 340,
+      "runner_min_note": "425 eval-structural runs in 30d; median 36 runner-seconds of rg per run plus about 12s of pip across 4 shards",
+      "risk": "low",
+      "priority": 1
+    },
+    {
+      "fix": "Relieve nimo queue collisions between local-lab and nightly-models (and landing nimo jobs). Cron is already staggered; the lock still stacks ~14 min median wait, and two sampled nights waited about 53-61 min.",
+      "aligns_with": "modular-CI no global lock / parallel non-GPU jobs",
+      "per_run_wall_min": 14,
+      "per_run_wall_note": "median queue among 13 recent successful nightly-models runs was 821s; work itself is about 1 min",
+      "wall_min_per_30d": 410,
+      "wall_min_note": "30 successful nightly-models runs in 30d times the 13.7 min median queue; this is self-hosted wait, not GitHub-hosted minutes",
+      "risk": "low if only the schedule or lock changes",
+      "priority": 2
+    },
+    {
+      "fix": "If local-lab stages are independent, run them as parallel jobs instead of one sequential lab (auto) job.",
+      "aligns_with": "modular-CI parallel non-GPU jobs",
+      "per_run_wall_min": 33,
+      "per_run_wall_note": "13 recent successful labs, median 55 min. One earlier breakdown had smoke-integration at 22 min as the longest stage, so parallel wall would be about 22 min.",
+      "wall_min_per_30d": 726,
+      "wall_min_note": "22 successful local-lab runs in 30d times about 33 min. Confirm the stages do not share state before doing this. Recent labs also flake, which may matter more than parallelism.",
+      "risk": "medium",
+      "priority": 3
+    },
+    {
+      "fix": "Pin the 15 remote GitHub Actions to full commit SHAs (keep a # vN comment).",
+      "aligns_with": "supply-chain hygiene, not a modular-CI speed rule",
+      "per_run_wall_s": 0,
+      "runner_min_per_30d": 0,
+      "risk": "low",
+      "priority": 4
+    },
+    {
+      "fix": "Do not add a naive workflow-level paths or paths-ignore on eval-structural. test_select already does affected-only tests inside the job. YAML path filters could skip checkout on docs-only changes but could also skip needed structural and catalog checks. filemode branch or path narrowing is optional and must keep the filemode contract.",
+      "aligns_with": "modular-CI affected-only tests (already implemented in-job)",
+      "per_run_wall_s": 0,
+      "runner_min_per_30d": null,
+      "runner_min_note": "ci-speedup did not measure a runner-minute saving. filemode had 1522 runs in 30d at about 6-11s; narrowing off-main or docs-only runs could cut a few runner-hours a month, with ~0 merge-wait because filemode is already a 6s concurrent check.",
+      "risk": "medium if applied as a workflow-level filter on a required check",
+      "priority": 5
+    }
+  ],
+  "coverage_gaps": [
+    "ci-speedup GraphQL PR lifecycle was not measured (no gh login on nimo; an errors fixture was served on purpose).",
+    "Required-check / ruleset reads were unavailable; ranking fell back to sampled checks.",
+    "PR gate sample was 1 of 20 (era door).",
+    "9 gh API calls failed or missed a shifted 30-day volume window on the rerun.",
+    "ci-speedup only deep-analyzed 3 workflows on the PR/push path. local-lab and nightly-models minutes come from the same run history, measured beside the skill.",
+    "ci-secure was not run; this pass was ci-score and ci-speedup only, and the card is not on the security track."
+  ],
+  "workflows_not_changed": true
+}

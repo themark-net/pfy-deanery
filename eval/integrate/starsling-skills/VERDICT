@@ -1,0 +1,1 @@
+PROMOTE I2 self_pipeline_audit threshold=1 value_gate=pass modularity_gate=pass

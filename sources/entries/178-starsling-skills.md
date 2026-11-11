@@ -24,4 +24,4 @@
 | `gh` token scope too wide | Skill reads more than run history | Use `ci-score` offline first; `ci-speedup` read-only |
 | Pin drift | `main` moves | Smoke checks this SHA |
 
-- **Status**: Cataloged I0. Next step, if any: run `ci-score` offline and `ci-speedup` read-only on pfy-mentat's workflows in a worktree and compare findings with the current CI plan.
+- **Status**: Cataloged I2 by the promotion rules after a read-only self-pipeline audit (ci-score 63/100 and ci-speedup) at pin `14571ad` on tree `335114f`. Results: `eval/integrate/starsling-skills/results.json`. Report in the private ops repo. Workflows were not changed. I3 still needs a main-run receipt.

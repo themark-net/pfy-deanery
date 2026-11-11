@@ -1,0 +1,63 @@
+{
+  "name": "StarSling Skills",
+  "integration_stage": "I2",
+  "intent": "ad_hoc_probe",
+  "entry": "sources/entries/178-starsling-skills.md",
+  "github": "https://github.com/starslingdev/skills",
+  "license": "MIT",
+  "pin": "14571ad98289d8afd8de1a5b87ddc51909984f30",
+  "risk_class": "none",
+  "notes_doc": "ops:eval/integrate/starsling-skills/REPORT.md",
+  "uses": "Read-only audit of GitHub Actions workflow configuration (ci-score) and run history (ci-speedup).",
+  "features": [
+    "offline CI config score",
+    "run-history speed audit",
+    "optimization pattern catalog"
+  ],
+  "potential": "medium",
+  "next_gate": "Stay at the rules' tier. Do not change workflows until a listed fix is chosen. I3 needs a main-run receipt, which means wiring an advisory CI step, which was out of scope for this pass. Re-run ci-score and ci-speedup after a workflow change or at a new pin.",
+  "non_goals": [
+    "workflow edits on this landing",
+    "StarSling account or the sling skill",
+    "auto-applied workflow fixes",
+    "ci-secure on this pass",
+    "npx skills add -g into agent homes"
+  ],
+  "evidence": [
+    "entry:sources/entries/178-starsling-skills.md",
+    "pin:14571ad98289d8afd8de1a5b87ddc51909984f30",
+    "eval/integrate/starsling-skills/results.json",
+    "eval/integrate/starsling-skills/VERDICT",
+    "ops:eval/integrate/starsling-skills/REPORT.md"
+  ],
+  "self_pipeline": {
+    "status": "applied",
+    "evidence": "eval/integrate/starsling-skills/results.json"
+  },
+  "handoff_by": "llm",
+  "promotion_history": [
+    {
+      "kind": "stage",
+      "from": "I0",
+      "to": "I2",
+      "result": "promote",
+      "passed": [
+        "R-not-excluded",
+        "R-evidence",
+        "R-tier-ceiling",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-modularity-gate"
+      ],
+      "failed": [],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-10",
+      "verdict": "eval/integrate/starsling-skills/VERDICT.json"
+    }
+  ]
+}
