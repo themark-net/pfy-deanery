@@ -125,6 +125,68 @@
       "by": "rules",
       "date": "2026-11-10",
       "verdict": "eval/integrate/atomic-task-graph-atg/VERDICT.json"
+    },
+    {
+      "kind": "stage",
+      "from": "I2",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "R-evidence",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-modularity-gate",
+        "R-catalog-fit",
+        "R-value-gate",
+        "R-main-receipt",
+        "R-self-pipeline"
+      ],
+      "failed": [
+        {
+          "rule": "R-not-excluded",
+          "detail": "excluded: The operator stopped ATG 2026-11-08 (negative result). Do not auto-raise or promote to I3. Receipt had no real model call."
+        },
+        {
+          "rule": "R-tier-ceiling",
+          "detail": "tier_ceiling I2 caps I3"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-11",
+      "verdict": "eval/integrate/atomic-task-graph-atg/VERDICT.json"
+    },
+    {
+      "kind": "ceiling",
+      "from": "I2",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable",
+        "R-modularity-gate",
+        "R-value-gate",
+        "R-catalog-fit"
+      ],
+      "failed": [
+        {
+          "rule": "R-not-excluded",
+          "detail": "excluded: The operator stopped ATG 2026-11-08 (negative result). Do not auto-raise or promote to I3. Receipt had no real model call."
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-11",
+      "verdict": "eval/integrate/atomic-task-graph-atg/VERDICT.json"
     }
   ]
 }

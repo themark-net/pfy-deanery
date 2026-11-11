@@ -117,6 +117,40 @@
       "by": "rules",
       "date": "2026-11-11",
       "verdict": "eval/integrate/antigravity-manager/VERDICT.json"
+    },
+    {
+      "kind": "ceiling",
+      "from": "I0",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable",
+        "R-modularity-gate",
+        "R-catalog-fit"
+      ],
+      "failed": [
+        {
+          "rule": "R-not-excluded",
+          "detail": "excluded: Skip-install (2026-11-11): LiteLLM with our own keys already covers account/key pooling; no install."
+        },
+        {
+          "rule": "HS-secrets",
+          "detail": "risk_class secrets"
+        },
+        {
+          "rule": "R-value-gate",
+          "detail": "value_gate fail"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-11",
+      "verdict": "eval/integrate/antigravity-manager/VERDICT.json"
     }
   ],
   "decision": {

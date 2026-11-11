@@ -82,6 +82,48 @@
       "rules": "data/promotion-rules.json@v1",
       "by": "rules",
       "date": "2026-11-10"
+    },
+    {
+      "kind": "ceiling",
+      "from": "I2",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "R-not-excluded",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable",
+        "R-catalog-fit"
+      ],
+      "failed": [
+        {
+          "rule": "R-modularity-gate",
+          "detail": "no verdict"
+        },
+        {
+          "rule": "R-value-gate",
+          "detail": "no verdict"
+        },
+        {
+          "rule": "S-sandlock-trial-clean",
+          "detail": "no eval/integrate/opencode-skill-creator/sandbox-trial.json"
+        },
+        {
+          "rule": "S-profile-readonly",
+          "detail": "no eval/integrate/opencode-skill-creator/sandbox-trial.json"
+        },
+        {
+          "rule": "S-wiring",
+          "detail": "card has no wiring"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-11"
     }
   ]
 }
