@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The tool is explicitly defined as a SKILL.md prompt pack for filtering generic UI/copy/code comments. It does not install software, rewrite configs, or take over runtime. The subject's own metadata states 'No installer' and 'Potential is low'. Since it adds no unique gap to the catalog (it is a prompt pattern, not a tool) and a safe default (human review or existing linting) exists, it should be skipped.",
+  "slug": "anti-slop",
+  "verdict": "skip_install"
+}

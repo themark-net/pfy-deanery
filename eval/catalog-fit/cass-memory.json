@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The tool has low potential and its evaluation probe failed to extract rules from sessions. The next gate explicitly forbids wiring a gate and requires offline rule extraction which the current binary cannot perform without network/API keys. A safe default exists (manual or existing CLI tools) as it does not fill a unique gap with acceptable blast radius.",
+  "slug": "cass-memory",
+  "verdict": "skip_install"
+}

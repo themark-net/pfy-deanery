@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.85,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The tool's potential is rated 'low' and it provides a specific implementation (exclusive marker files) for a task ledger. A safe default exists (e.g., standard file locking or existing cataloged coordination tools) without needing to install this specific low-potential utility. It does not fill a critical stage gap with unique value sufficient to warrant installation.",
+  "slug": "brigade",
+  "verdict": "skip_install"
+}

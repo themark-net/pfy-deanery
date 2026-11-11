@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The subject explicitly lists 'install' and 'viewer' in non_goals, has low potential, and serves only as a reference read. It does not fill a functional gap requiring installation.",
+  "slug": "agentplay",
+  "verdict": "skip_install"
+}
