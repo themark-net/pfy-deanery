@@ -129,7 +129,7 @@ def build_repo(td: Path, cards: dict[str, dict]) -> Path:
     return clone
 
 
-def run_tick(td: Path, clone: Path, code: int = 0, ops: Path | None = None):
+def run_tick(td: Path, clone: Path, code: int = 0, ops: Path | None = None, extra: dict | None = None):
     state = td / "state"
     wt = td / "wt"
     for name in ("integrate", "integrate2", "evq"):
@@ -154,8 +154,19 @@ def run_tick(td: Path, clone: Path, code: int = 0, ops: Path | None = None):
         "GIT_TERMINAL_PROMPT": "0",
     })
     env.pop("PFY_OPS_ROOT", None)
+    for key in (
+        "PFY_CATFIT_MOCK",
+        "PFY_CATFIT_MODEL",
+        "PFY_CATFIT_FALLBACK_MODEL",
+        "PFY_CATFIT_HOST",
+        "PFY_CATFIT_TIMEOUT",
+        "PFY_CATFIT_PER_TICK",
+    ):
+        env.pop(key, None)
     if ops is not None:
         env["PFY_OPS_ROOT"] = str(ops)
+    if extra:
+        env.update(extra)
     proc = subprocess.run(
         ["bash", str(LOOP)],
         cwd=td,
@@ -462,3 +473,87 @@ class CatalogLoopTickTest(unittest.TestCase):
             status2 = json.loads((state2 / "loop.latest.json").read_text(encoding="utf-8"))
             self.assertEqual(status2["launched"], [])
             self.assertNotIn("supersede_recheck_lane.sh", log2.read_text(encoding="utf-8") if log2.exists() else "")
+
+    def test_tick_triages_i0_offline_safe_and_a_down_model_does_not_fail(self):
+        """Fail: the tick calls Ollama, triages after the queue, or a broken
+        local model aborts the tick. Recover: PFY_CATFIT_MOCK writes fit files
+        before the queue (a confident skip drops the slug) and a refused
+        Ollama logs one line and still exits 0."""
+        with tempfile.TemporaryDirectory() as tmp:
+            td = Path(tmp)
+            cards = {
+                "aa-keep": card("aa-keep"),
+                "bb-drop": card("bb-drop"),
+                "cc-stay": card("cc-stay", integration_stage="I1", tier_ceiling="I2"),
+                "zz-mark": card("zz-mark"),
+            }
+            clone = build_repo(td, cards)
+            gate_dir = clone / "data" / "decision-gates"
+            gate_dir.mkdir(parents=True)
+            shutil.copy(
+                ROOT / "data" / "decision-gates" / "catalog-fit.v0.json",
+                gate_dir / "catalog-fit.v0.json",
+            )
+            git(clone, "add", "data/decision-gates/catalog-fit.v0.json")
+            git(clone, "commit", "-m", "gate")
+            git(clone, "push", "origin", "main")
+            mock = td / "mock.json"
+            mock.write_text(json.dumps({
+                "aa-keep": {
+                    "slug": "aa-keep",
+                    "fit": True,
+                    "overlap_with": None,
+                    "verdict": "fit",
+                    "reason": "loop mock",
+                    "confidence": 1,
+                },
+                "bb-drop": {
+                    "slug": "bb-drop",
+                    "fit": False,
+                    "overlap_with": None,
+                    "verdict": "skip_install",
+                    "reason": "loop mock",
+                    "confidence": 1,
+                },
+            }), encoding="utf-8")
+            safe = {
+                "PFY_CATFIT_MOCK": str(mock),
+                "PFY_CATFIT_HOST": "http://127.0.0.1:9",
+                "PFY_CATFIT_TIMEOUT": "1",
+            }
+            proc, state, wt, _log = run_tick(td, clone, extra=safe)
+            blob = proc.stdout + "\n" + proc.stderr
+            self.assertEqual(proc.returncode, 0, blob[-4000:])
+            status = json.loads((state / "loop.latest.json").read_text(encoding="utf-8"))
+            self.assertEqual(status["status"], "ok", blob[-2000:])
+            self.assertNotIn("catalog-fit: zz-mark", proc.stderr)
+            self.assertNotIn("catalog-fit: cc-stay", proc.stderr)
+            self.assertNotIn("catalog-fit: fallback", proc.stderr)
+            kept = json.loads((wt / "eval" / "catalog-fit" / "aa-keep.json").read_text(encoding="utf-8"))
+            dropped = json.loads((wt / "eval" / "catalog-fit" / "bb-drop.json").read_text(encoding="utf-8"))
+            self.assertEqual(kept["verdict"], "fit")
+            self.assertEqual(kept["model"], "qwen3.6:35b")
+            self.assertNotIn("fallback_from", kept)
+            self.assertEqual(dropped["verdict"], "skip_install")
+            self.assertEqual(dropped["exit"], 0)
+            self.assertFalse((wt / "eval" / "catalog-fit" / "cc-stay.json").exists())
+            self.assertFalse((wt / "eval" / "catalog-fit" / "zz-mark.json").exists())
+            queue = (wt / "eval" / "catalog-queue" / "queue.tsv").read_text(encoding="utf-8")
+            self.assertIn("aa-keep", queue)
+            self.assertNotIn("bb-drop", queue)
+            self.assertNotIn("bb-drop", status["launched"])
+
+            down = {
+                "PFY_CATFIT_HOST": "http://127.0.0.1:9",
+                "PFY_CATFIT_TIMEOUT": "1",
+            }
+            again, state2, wt2, _log2 = run_tick(td, clone, extra=down)
+            blob2 = again.stdout + "\n" + again.stderr
+            self.assertEqual(again.returncode, 0, blob2[-4000:])
+            status2 = json.loads((state2 / "loop.latest.json").read_text(encoding="utf-8"))
+            self.assertEqual(status2["status"], "ok", blob2[-2000:])
+            self.assertIn("ollama unreachable", again.stderr)
+            self.assertIn("catalog-fit: aa-keep:", again.stderr)
+            fit_dir = wt2 / "eval" / "catalog-fit"
+            written = list(fit_dir.glob("*.json")) if fit_dir.is_dir() else []
+            self.assertEqual(written, [])

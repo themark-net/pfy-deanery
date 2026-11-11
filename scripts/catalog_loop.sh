@@ -1,6 +1,8 @@
 #!/bin/bash
 # One catalog loop tick. Idempotent. Does not install units and does not
-# start a model. PFY_LOOP_NO_PUSH=1 and --dry-run push nothing.
+# pull a model. Before the queue rebuild, new I0 cards are triaged by
+# scripts/catalog_fit_triage.py (local model, not a Grok lane, not the
+# 20/day lane budget). PFY_LOOP_NO_PUSH=1 and --dry-run push nothing.
 # Optional command word: tick (same as no argument).
 #
 # State: ${PFY_CATALOG_STATE_DIR:-${PFY_LOOP_STATE:-$HOME/DEVELOP/pfy-mentat/tmp/loop}}
@@ -336,6 +338,24 @@ json_list() {
   python3 -c 'import json,sys; print(json.dumps(sys.argv[1:]))' "$@"
 }
 
+# Local catalog-fit before the queue rebuild. Not a Grok lane: it does not
+# spend the daily lane-start budget. Cap is PFY_CATFIT_PER_TICK (default 4).
+# Exit 1 (Ollama down) logs and the tick continues. PFY_CATALOG_OFFLINE skips
+# this with the rest of the regen block. When PFY_MODEL_LOCK is set, hold
+# the same lock the lanes use.
+catalog_fit_pending() {
+  local limit="${PFY_CATFIT_PER_TICK:-4}"
+  if [ -n "${PFY_MODEL_LOCK:-}" ]; then
+    bash "$SCRIPT_DIR/model_lock.sh" \
+      python3 scripts/catalog_fit_triage.py pending --limit "$limit" --write \
+      || printf '%s\n' "catalog-fit: pending failed" >&2
+  else
+    python3 scripts/catalog_fit_triage.py pending --limit "$limit" --write \
+      || printf '%s\n' "catalog-fit: pending failed" >&2
+  fi
+  return 0
+}
+
 in_prepared_worktree() {
   local here wt_abs lock
   here=$(realpath -m "$PWD")
@@ -410,6 +430,7 @@ if [ "$OFFLINE" -eq 1 ]; then
 else
 
 python3 scripts/catalog_counts.py || fail "catalog_counts failed"
+catalog_fit_pending
 python3 scripts/catalog_eval_queue.py || fail "catalog_eval_queue failed"
 python3 scripts/catalog_apply_verdict.py --scan || fail "ceiling scan failed"
 
@@ -536,7 +557,7 @@ done
 
 path_allowed() {
   case "$1" in
-    data/stages/_registry.json|pipelines/catalog/dashboard.latest.md|pipelines/catalog/counts.latest.json|eval/catalog-queue/queue.tsv|eval/catalog-verdicts/CEILING-MISMATCHES.md)
+    data/stages/_registry.json|pipelines/catalog/dashboard.latest.md|pipelines/catalog/counts.latest.json|eval/catalog-queue/queue.tsv|eval/catalog-verdicts/CEILING-MISMATCHES.md|eval/catalog-fit/*.json)
       return 0
       ;;
     data/stages/*.json)

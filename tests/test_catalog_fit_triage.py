@@ -1,21 +1,28 @@
 """Catalog-fit triage keeps a bad local-model answer off the Grok lane.
 
 How this fails: a mock that disagrees with a golden is treated as fit, bad
-JSON is stored as fit, a low confidence blocks promotion, or a confident
-skip_install still starts a trial. How we recover: replay exits non-zero,
-unusable JSON escalates (exit 3) and is not fit, low confidence leaves
-promotion and the queue unchanged, and a confident negative caps I1, blocks
-launch, and drops the queue row. A hard stop still fails first.
+JSON is stored as fit, a low confidence blocks promotion, a confident
+skip_install still starts a trial, a load error on qwen3.6:35b aborts instead
+of retrying qwen2.5:14b, or an explicit model silently falls back. How we
+recover: replay exits non-zero, unusable JSON escalates (exit 3) and is not
+fit, low confidence leaves promotion and the queue unchanged, a confident
+negative caps I1 and drops the queue row, a load error retries once and
+records fallback_from, and an explicit PFY_CATFIT_MODEL does not retry.
+A hard stop still fails first. pending writes exit 0 and 3, skips exit 1,
+and keeps going.
 """
 from __future__ import annotations
 
+import io
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stderr
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -140,12 +147,28 @@ class CatalogFitTriageTest(unittest.TestCase):
     def setUp(self) -> None:
         self._gate = os.environ.get("PFY_JEV_CONF_GATE")
         os.environ["PFY_JEV_CONF_GATE"] = "0.85"
+        self._saved = {}
+        for key in (
+            "PFY_CATFIT_MODEL",
+            "PFY_CATFIT_FALLBACK_MODEL",
+            "PFY_CATFIT_MOCK",
+            "PFY_CATFIT_HOST",
+            "PFY_CATFIT_TIMEOUT",
+            "PFY_CATFIT_PER_TICK",
+        ):
+            self._saved[key] = os.environ.get(key)
+            os.environ.pop(key, None)
 
     def tearDown(self) -> None:
         if self._gate is None:
             os.environ.pop("PFY_JEV_CONF_GATE", None)
         else:
             os.environ["PFY_JEV_CONF_GATE"] = self._gate
+        for key, value in self._saved.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
 
     def _cases(self) -> list[dict]:
         data = json.loads(GATE.read_text(encoding="utf-8"))
@@ -248,22 +271,34 @@ class CatalogFitTriageTest(unittest.TestCase):
         self.assertFalse(rec["fit"])
         self.assertEqual(rec["chip_conf"], jev.CHIP_CONF_LOW)
         calls: list[str] = []
+        tags: list[str] = []
 
         def fake(prompt: str, *, model: str, host: str) -> str:
-            calls.append(prompt)
+            calls.append(model)
             return "not json"
+
+        def installed(model: str, *, host: str) -> bool:
+            tags.append(model)
+            return True
 
         def boom(prompt: str, *, model: str, host: str) -> str:
             raise AssertionError("model called")
 
+        def boom_tags(model: str, *, host: str) -> bool:
+            raise AssertionError("tags checked under mock")
+
         old = fit.call_model
+        old_tags = fit.model_installed
         try:
             fit.call_model = fake
+            fit.model_installed = installed
             code, rec = fit.triage("litellm", root=ROOT, write=False)
             self.assertEqual(code, jev.EXIT_ESCALATE)
             self.assertFalse(rec["fit"])
-            self.assertEqual(len(calls), 1)
+            self.assertEqual(calls, ["qwen3.6:35b"])
+            self.assertEqual(tags, ["qwen3.6:35b"])
             fit.call_model = boom
+            fit.model_installed = boom_tags
             code, rec = fit.triage(
                 "litellm",
                 root=ROOT,
@@ -275,6 +310,7 @@ class CatalogFitTriageTest(unittest.TestCase):
             self.assertEqual(rec["verdict"], "fit")
         finally:
             fit.call_model = old
+            fit.model_installed = old_tags
 
     def test_promotion_caps_i2_and_launch_but_hard_stop_wins(self) -> None:
         rules = pr.load_rules(ROOT)
@@ -455,6 +491,231 @@ class CatalogFitTriageTest(unittest.TestCase):
             ])
             self.assertEqual(rerun.returncode, 0, rerun.stderr)
             self.assertEqual(out.read_bytes(), kept)
+
+    def test_load_error_falls_back_once_unless_the_model_is_explicit(self) -> None:
+        """Fail: qwen3.6:35b load error aborts, or an explicit model is replaced.
+        Recover: one retry on qwen2.5:14b records model and fallback_from.
+        PFY_CATFIT_MODEL and a model argument do not retry."""
+        calls: list[str] = []
+
+        def generate(prompt: str, *, model: str, host: str) -> str:
+            calls.append(model)
+            if model == "qwen3.6:35b":
+                raise fit.ModelLoadError("http 500 model requires more system memory")
+            if model != "qwen2.5:14b":
+                raise AssertionError(model)
+            matched = re.search(r"slug must be (\S+)\.", prompt)
+            self.assertIsNotNone(matched)
+            slug = matched.group(1)
+            verdict = EXPECTED.get(slug, ["fit"])[0]
+            return json.dumps(_answer(slug, verdict))
+
+        def installed(model: str, *, host: str) -> bool:
+            return True
+
+        old_call = fit.call_model
+        old_tags = fit.model_installed
+        try:
+            fit.call_model = generate
+            fit.model_installed = installed
+            with tempfile.TemporaryDirectory() as raw:
+                root = Path(raw)
+                gates = root / "data" / "decision-gates"
+                gates.mkdir(parents=True)
+                shutil.copy(GATE, gates / "catalog-fit.v0.json")
+                stages = root / "data" / "stages"
+                stages.mkdir()
+                (stages / "probe-fit.json").write_text(
+                    json.dumps(_card("probe-fit")) + "\n", encoding="utf-8",
+                )
+                err = io.StringIO()
+                with redirect_stderr(err):
+                    code, rec = fit.triage("probe-fit", root=root, write=True)
+                self.assertEqual(code, jev.EXIT_READY, err.getvalue())
+                self.assertEqual(rec["model"], "qwen2.5:14b")
+                self.assertEqual(rec["fallback_from"], "qwen3.6:35b")
+                self.assertEqual(rec["verdict"], "fit")
+                self.assertIn(
+                    "catalog-fit: fallback qwen3.6:35b -> qwen2.5:14b "
+                    "(http 500 model requires more system memory)",
+                    err.getvalue(),
+                )
+                stored = json.loads(
+                    (root / "eval" / "catalog-fit" / "probe-fit.json").read_text(encoding="utf-8"),
+                )
+                self.assertEqual(stored["model"], "qwen2.5:14b")
+                self.assertEqual(stored["fallback_from"], "qwen3.6:35b")
+                self.assertEqual(calls, ["qwen3.6:35b", "qwen2.5:14b"])
+
+                calls.clear()
+                err = io.StringIO()
+                out = root / "replay.json"
+                with redirect_stderr(err):
+                    replay_code = fit.replay(
+                        root=ROOT,
+                        mock=None,
+                        model="qwen3.6:35b",
+                        host="http://127.0.0.1:9",
+                        out=out,
+                        allow_fallback=True,
+                    )
+                self.assertEqual(replay_code, 0, err.getvalue())
+                report = json.loads(out.read_text(encoding="utf-8"))
+                self.assertEqual(report["failed"], 0)
+                self.assertEqual(report["model"], "qwen2.5:14b")
+                self.assertEqual(report["fallback_from"], "qwen3.6:35b")
+                self.assertTrue(all(row["ok"] for row in report["results"]))
+                self.assertIn("catalog-fit: fallback qwen3.6:35b -> qwen2.5:14b", err.getvalue())
+
+            calls.clear()
+
+            def missing(model: str, *, host: str) -> bool:
+                return False
+
+            fit.model_installed = missing
+            err = io.StringIO()
+            with redirect_stderr(err):
+                code, rec = fit.triage("litellm", root=ROOT, write=False)
+            self.assertEqual(code, jev.EXIT_READY, err.getvalue())
+            self.assertEqual(calls, ["qwen2.5:14b"])
+            self.assertEqual(rec["fallback_from"], "qwen3.6:35b")
+            self.assertIn(
+                "catalog-fit: fallback qwen3.6:35b -> qwen2.5:14b (not installed)",
+                err.getvalue(),
+            )
+
+            calls.clear()
+            os.environ["PFY_CATFIT_FALLBACK_MODEL"] = "tiny:test"
+
+            def tiny(prompt: str, *, model: str, host: str) -> str:
+                calls.append(model)
+                return json.dumps(_answer("litellm", "fit"))
+
+            fit.call_model = tiny
+            err = io.StringIO()
+            with redirect_stderr(err):
+                code, rec = fit.triage("litellm", root=ROOT, write=False)
+            self.assertEqual(code, jev.EXIT_READY, err.getvalue())
+            self.assertEqual(calls, ["tiny:test"])
+            self.assertEqual(rec["model"], "tiny:test")
+            self.assertEqual(rec["fallback_from"], "qwen3.6:35b")
+            os.environ.pop("PFY_CATFIT_FALLBACK_MODEL", None)
+
+            calls.clear()
+            os.environ["PFY_CATFIT_MODEL"] = "kept:explicit"
+
+            def refuse(prompt: str, *, model: str, host: str) -> str:
+                calls.append(model)
+                raise fit.ModelLoadError("model requires more system memory")
+
+            def tags_boom(model: str, *, host: str) -> bool:
+                raise AssertionError("tags checked for an explicit model")
+
+            fit.call_model = refuse
+            fit.model_installed = tags_boom
+            err = io.StringIO()
+            with redirect_stderr(err):
+                with self.assertRaises(fit.FitBroken):
+                    fit.triage("litellm", root=ROOT, write=False)
+            self.assertEqual(calls, ["kept:explicit"])
+            self.assertNotIn("catalog-fit: fallback", err.getvalue())
+
+            calls.clear()
+            os.environ.pop("PFY_CATFIT_MODEL", None)
+            err = io.StringIO()
+            with redirect_stderr(err):
+                with self.assertRaises(fit.FitBroken):
+                    fit.triage("litellm", root=ROOT, model="kept:explicit", write=False)
+            self.assertEqual(calls, ["kept:explicit"])
+            self.assertNotIn("catalog-fit: fallback", err.getvalue())
+        finally:
+            fit.call_model = old_call
+            fit.model_installed = old_tags
+            os.environ.pop("PFY_CATFIT_MODEL", None)
+            os.environ.pop("PFY_CATFIT_FALLBACK_MODEL", None)
+
+    def test_pending_writes_confident_and_low_and_skips_broken(self) -> None:
+        """Fail: pending triages I1, excluded, or already-filed cards, drops a
+        low-confidence row, or stores a broken call. Recover: limit and slug
+        order, write exit 0 and 3 only, and a confident skip leaves the queue."""
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            gates = root / "data" / "decision-gates"
+            gates.mkdir(parents=True)
+            shutil.copy(GATE, gates / "catalog-fit.v0.json")
+            stages = root / "data" / "stages"
+            stages.mkdir()
+            stages_wanted = {
+                "aa-low": "I0",
+                "bb-skip": "I0",
+                "cc-down": "I0",
+                "dd-have": "I0",
+                "ee-stay": "I1",
+                "ff-ex": "I0",
+                "gg-later": "I0",
+            }
+            for slug, stage in stages_wanted.items():
+                body = _card(slug)
+                body["integration_stage"] = stage
+                (stages / f"{slug}.json").write_text(json.dumps(body) + "\n", encoding="utf-8")
+            hidden = _card("registry")
+            hidden["integration_stage"] = "I0"
+            (stages / "_registry.json").write_text(json.dumps(hidden) + "\n", encoding="utf-8")
+            exc = root / "eval" / "catalog-queue"
+            exc.mkdir(parents=True)
+            (exc / "exclusions.tsv").write_text(
+                "slug\treason\nff-ex\theld\n",
+                encoding="utf-8",
+            )
+            prior = _stored("dd-have", "fit", 1.0)
+            prior["reason"] = "already stored"
+            _write_fit(root, prior)
+            prior_bytes = (root / "eval" / "catalog-fit" / "dd-have.json").read_bytes()
+            mock = root / "mock.json"
+            mock.write_text(json.dumps({
+                "aa-low": _answer("aa-low", "awareness", 0.1),
+                "bb-skip": _answer("bb-skip", "skip_install", 1.0),
+                "gg-later": _answer("gg-later", "fit", 1.0),
+            }), encoding="utf-8")
+            proc = _run([
+                str(TRIAGE), "--root", str(root),
+                "pending", "--limit", "3", "--mock", str(mock), "--write",
+            ])
+            self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
+            self.assertIn("catalog-fit: cc-down:", proc.stderr)
+            self.assertNotIn("gg-later", proc.stderr)
+            self.assertNotIn("ff-ex", proc.stderr)
+            self.assertNotIn("ee-stay", proc.stderr)
+            self.assertNotIn("dd-have", proc.stderr)
+            self.assertNotIn("_registry", proc.stderr)
+            low = json.loads((root / "eval" / "catalog-fit" / "aa-low.json").read_text(encoding="utf-8"))
+            self.assertEqual(low["exit"], jev.EXIT_ESCALATE)
+            self.assertEqual(low["verdict"], "awareness")
+            self.assertNotIn("fallback_from", low)
+            skipped = json.loads((root / "eval" / "catalog-fit" / "bb-skip.json").read_text(encoding="utf-8"))
+            self.assertEqual(skipped["exit"], 0)
+            self.assertEqual(skipped["verdict"], "skip_install")
+            self.assertFalse((root / "eval" / "catalog-fit" / "cc-down.json").exists())
+            self.assertFalse((root / "eval" / "catalog-fit" / "gg-later.json").exists())
+            self.assertFalse((root / "eval" / "catalog-fit" / "ff-ex.json").exists())
+            self.assertFalse((root / "eval" / "catalog-fit" / "ee-stay.json").exists())
+            self.assertFalse((root / "eval" / "catalog-fit" / "_registry.json").exists())
+            self.assertEqual((root / "eval" / "catalog-fit" / "dd-have.json").read_bytes(), prior_bytes)
+
+            out = root / "queue.tsv"
+            queued = _run([
+                str(QUEUE), "--stages", str(stages), "--exclusions", str(exc / "exclusions.tsv"),
+                "--catalog-fit", str(root / "eval" / "catalog-fit"), "--out", str(out),
+            ])
+            self.assertEqual(queued.returncode, 0, queued.stderr)
+            text = out.read_text(encoding="utf-8")
+            self.assertNotIn("bb-skip", text)
+            self.assertIn("aa-low", text)
+            self.assertIn("cc-down", text)
+            self.assertIn("gg-later", text)
+            self.assertIn("dd-have", text)
+            self.assertIn("ee-stay", text)
+            self.assertNotIn("ff-ex", text)
 
 
 if __name__ == "__main__":
