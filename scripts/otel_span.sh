@@ -85,6 +85,23 @@ otel_sdk_present() {
 }
 
 # Latch for this process. Closed port and missing SDK stay silent.
+# Run a tracing helper in the background with no inherited descriptors above
+# stderr. A caller's lock fd (catalog_loop.sh holds STATE/loop.lock on fd 8)
+# must not outlive the caller inside a slow exporter, or the next tick
+# reports busy. The subshell drops them before exec.
+otel_bg() {
+  (
+    local fd n
+    for fd in /proc/$BASHPID/fd/*; do
+      n=${fd##*/}
+      case $n in '' | *[!0-9]*) continue ;; esac
+      [ "$n" -gt 2 ] && eval "exec $n>&-" 2>/dev/null
+    done
+    "$@"
+  ) </dev/null >/dev/null 2>&1 &
+  disown $! 2>/dev/null || true
+}
+
 otel_live() {
   if [ "${OTEL_LIVE_CACHED:-}" = "1" ]; then
     return 0
@@ -139,8 +156,7 @@ otel_emit_bg() {
     [ -n "$item" ] || continue
     args+=(--attr "$item")
   done
-  otel_py "${args[@]}" >/dev/null 2>&1 &
-  disown $! 2>/dev/null || true
+  otel_bg otel_py "${args[@]}"
 }
 
 otel_span_begin() {
@@ -283,8 +299,7 @@ otel_ingest_bg() {
   local log="$1"
   [ -n "$log" ] && [ -f "$log" ] || return 0
   otel_live || return 0
-  otel_py ingest --log "$log" >/dev/null 2>&1 &
-  disown $! 2>/dev/null || true
+  otel_bg otel_py ingest --log "$log"
   return 0
 }
 

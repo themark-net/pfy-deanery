@@ -404,6 +404,7 @@ def _decode(blobs: list[bytes]) -> list[dict]:
 
 class _Collector(BaseHTTPRequestHandler):
     def do_POST(self) -> None:  # noqa: N802
+        time.sleep(getattr(self.server, "delay", 0))
         length = int(self.headers.get("Content-Length") or "0")
         body = self.rfile.read(length)
         if self.headers.get("Content-Encoding") == "gzip":
@@ -449,6 +450,39 @@ class ProtobufTreeTests(unittest.TestCase):
                 return found
             time.sleep(0.05)
         return found
+
+    def test_background_emit_does_not_keep_the_callers_lock(self) -> None:
+        # catalog_loop.sh holds STATE/loop.lock on fd 8. A slow exporter that
+        # inherited fd 8 kept the lock after the tick exited, so the next tick
+        # said busy. How it fails: flock -n below cannot take the lock.
+        # Recovery: otel_bg drops every fd above 2 before running the helper.
+        self.server.delay = 1.5
+        lock = ROOT / "tmp" / ("otel-lock-%d" % os.getpid())
+        lock.parent.mkdir(parents=True, exist_ok=True)
+        script = (
+            'exec 8>>"$1"; flock -n 8 || exit 9; '
+            '. "$2"; otel_span_begin held deanery.lane_id=lock-probe; otel_span_end 0'
+        )
+        env = os.environ.copy()
+        env.pop("PFY_OTEL", None)
+        proc = subprocess.run(["bash", "-c", script, "x", str(lock), str(WRAPPER)], env=env, timeout=10)
+        self.assertEqual(proc.returncode, 0)
+        try:
+            free = subprocess.run(["flock", "-n", str(lock), "true"], timeout=5)
+            self.assertEqual(free.returncode, 0, "background emitter still holds the caller's lock fd")
+            names = {item["name"] for item in self._wait_any()}
+            self.assertIn("held", names)
+        finally:
+            lock.unlink(missing_ok=True)
+
+    def _wait_any(self) -> list[dict]:
+        deadline = time.monotonic() + 6
+        while time.monotonic() < deadline:
+            found = _decode(list(self.server.posts))
+            if found:
+                return found
+            time.sleep(0.05)
+        return []
 
     def test_bash_traceparent_parents_the_python_tree(self) -> None:
         mark = _sentinel()
