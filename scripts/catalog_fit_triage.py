@@ -657,7 +657,7 @@ def pending(
     """
     for slug in select_pending(root, limit):
         try:
-            code, _rec = triage(
+            code, rec = triage(
                 slug,
                 root=root,
                 mock=mock,
@@ -671,6 +671,12 @@ def pending(
             continue
         if code == jev.EXIT_BROKEN:
             print(f"catalog-fit: {slug}: broken", file=sys.stderr)
+            continue
+        rec = rec if isinstance(rec, dict) else {}
+        print(
+            f"catalog-fit: {slug} {rec.get('verdict')} conf {rec.get('confidence')} "
+            f"exit {code} model {rec.get('model')}{' (written)' if write else ''}"
+        )
     return 0
 
 
