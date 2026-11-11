@@ -163,7 +163,7 @@ Prior synthesis rows above remain historical context; this section is the 2026-0
 
 ## Aggregate synthesis rollup (2026-10-30) - T-0002
 
-**Diff vs the 2026-07-30 rollup.** Issue #16 was already closed on that rollup (`57bc3d0`). This section is the next periodic pass. No new S1-S4 scores. No new overall. `data/tools.json` version stays 0.4.18. `sources/aggregates.md` still has no aggregate logged, and this pass does not add one. Cluster letters in the July table are unchanged. Not a Feature GO. Catalog HOLD 70-75 unchanged.
+**Diff vs the 2026-07-30 rollup.** Issue #16 was already closed on that rollup (`57bc3d0`). This section is the next periodic pass. No new S1-S4 scores. No new overall. `data/tools.json` version stays 0.4.19. `sources/aggregates.md` still has no aggregate logged, and this pass does not add one. Cluster letters in the July table are unchanged. Not a Feature GO. Catalog HOLD 70-75 unchanged.
 
 | What changed since July | Evidence already on this branch | What this pass did not do |
 |-------------------------|---------------------------------|---------------------------|

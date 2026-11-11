@@ -144,6 +144,7 @@ pfy-deanery does not treat “it builds on my machine” as success. While we ca
 | **Catalog docs skill** | `/catalog-docs` | Keep README, triple-write catalog, harness docs consistent |
 | **Consultant eval** | [docs/ops/consultant-eval.md](docs/ops/consultant-eval.md) | Outsider map: real vs stub vs catalog; `./pfy` + `make eval-structural` |
 | **Module docs** | [docs/modules/](docs/modules/README.md) | Operator + agent maps for pfy, detector, grok, opencode, cage, write-guard |
+| **Phoenix trace sink** | [docs/ops/phoenix.md](docs/ops/phoenix.md) | Loopback Arize Phoenix (OTLP + UI). The operator enables the user unit. |
 
 When architecture pivots: `/adr`. When something is unsettled: `/open-questions`. When documenting this repo: **`/catalog-docs`**. Work queue: `docs/TODO.md`.
 

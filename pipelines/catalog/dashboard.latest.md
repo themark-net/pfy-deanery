@@ -2,16 +2,16 @@
 
 Stage cards are the source of truth.
 
-Coverage: 137 tools registered.
+Coverage: 139 tools registered.
 
-Cards: 137. I2+: 23.
+Cards: 139. I2+: 23.
 
 ## Stage counts
 
 | Stage | Count |
 |-------|------:|
-| I0 | 47 |
-| I1 | 67 |
+| I0 | 48 |
+| I1 | 68 |
 | I2 | 3 |
 | I3 | 20 |
 
@@ -19,7 +19,7 @@ Cards: 137. I2+: 23.
 
 | Intent | Count |
 |--------|------:|
-| (missing) | 4 |
+| (missing) | 6 |
 | ad_hoc_probe | 5 |
 | adhoc_probe | 4 |
 | advisory_skill_scan | 1 |
@@ -81,6 +81,7 @@ Cards: 137. I2+: 23.
 | Aider | I1 | catalog_default |
 | anti-slop | I0 | awareness |
 | Antigravity-Manager | I1 | skip_install |
+| Arize Phoenix | I1 | (missing) |
 | asm (agent-skill-manager) | I1 | evq1107_probe |
 | assay | I1 | staged_evaluation |
 | Atomic Task Graph (ATG) | I2 | submodule_later |
@@ -143,6 +144,7 @@ Cards: 137. I2+: 23.
 | Kenfold | I1 | staged_evaluation |
 | Kolibri-1 | I0 | local_smoke_patched_llamacpp_gguf |
 | Laguna S 2.1 | I1 | eval_under_250gb_pool |
+| Langfuse | I0 | (missing) |
 | LangGraph (LangChain) | I1 | catalog_default |
 | LEANN | I1 | catalog_default |
 | LiteLLM | I3 | smoke_path |

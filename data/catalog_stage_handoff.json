@@ -676,5 +676,21 @@
       "vendor the scanner into the tree"
     ],
     "next_gate": "Stay advisory. A blocking gate needs Tester and Reviewer, which is a separate step."
+  },
+  "Arize Phoenix": {
+    "potential": "high",
+    "uses": "Keep lane spans in one loopback process and show them in its UI. Deanery adds only a thin lane-graph view on this store.",
+    "features": [
+      "UI, OTLP/HTTP, and GraphQL on one loopback port",
+      "OTLP gRPC on the same loopback host",
+      "SQLite file under the pfy state directory",
+      "pinned package install and a user unit"
+    ],
+    "non_goals": [
+      "no cloud Arize",
+      "no auth or exposure beyond loopback",
+      "no Postgres"
+    ],
+    "next_gate": "Post one span to the loopback collector and read it in the UI, then add a thin lane-graph view on this store."
   }
 }

@@ -1,0 +1,29 @@
+{
+  "name": "Langfuse",
+  "integration_stage": "I0",
+  "uses": "Record an open-core trace UI that draws agent graphs and has a LiteLLM callback. It is not the sink for this machine.",
+  "features": [
+    "agent graphs",
+    "LiteLLM callback",
+    "MIT core with commercial ee directories"
+  ],
+  "potential": "low",
+  "non_goals": [
+    "no self-host on this machine",
+    "no Postgres",
+    "no ClickHouse",
+    "no Redis",
+    "no object storage"
+  ],
+  "next_gate": "Stay at awareness. Revisit only if this machine grows a database host and the loopback sink is no longer enough.",
+  "evidence": [
+    "https://github.com/langfuse/langfuse",
+    "license:MIT",
+    "entry:sources/entries/181-langfuse.md"
+  ],
+  "tier_ceiling": "I1",
+  "risk_class": "none",
+  "github": "https://github.com/langfuse/langfuse",
+  "license": "MIT",
+  "handoff_by": "llm"
+}

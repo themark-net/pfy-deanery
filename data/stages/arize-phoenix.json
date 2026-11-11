@@ -1,0 +1,40 @@
+{
+  "name": "Arize Phoenix",
+  "integration_stage": "I1",
+  "uses": "Keep lane spans in one loopback process and show them in its UI. Deanery adds only a thin lane-graph view on this store.",
+  "features": [
+    "UI, OTLP/HTTP, and GraphQL on one loopback port",
+    "OTLP gRPC on the same loopback host",
+    "SQLite file under the pfy state directory",
+    "pinned package install and a user unit"
+  ],
+  "potential": "high",
+  "non_goals": [
+    "no cloud Arize",
+    "no auth or exposure beyond loopback",
+    "no Postgres"
+  ],
+  "next_gate": "Post one span to the loopback collector and read it in the UI, then add a thin lane-graph view on this store.",
+  "evidence": [
+    "https://github.com/arize-ai/phoenix",
+    "license:Elastic-2.0",
+    "entry:sources/entries/180-arize-phoenix.md",
+    "pin:21.0.0",
+    "scripts/phoenix_service.sh",
+    "docs/ops/phoenix.md"
+  ],
+  "tier_ceiling": "I1",
+  "risk_class": "none",
+  "github": "https://github.com/arize-ai/phoenix",
+  "license": "Elastic-2.0",
+  "pin": "21.0.0",
+  "tags": [
+    "observability",
+    "traces",
+    "otlp",
+    "local-first",
+    "loopback",
+    "sqlite"
+  ],
+  "handoff_by": "llm"
+}

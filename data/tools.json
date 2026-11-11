@@ -1,7 +1,7 @@
 {
-  "version": "0.4.18",
-  "last_updated": "2026-10-20",
-  "description": "v0.4.18: + harness2 (Entry 136) I1, tier C, overall 59 (weighted 59.5, floored). Live nimo trial gain 0, no proposal branch. Not a Feature GO. Previous: v0.4.17: ATG bench pin is atg main 543e778ed24fbf3fc903eb961feb627039019832 (Entry 101). The I2 score (2/10 valid, 2/10 sink-correct) was taken at 86d1b890 on build/atg-finish and has not been re-run at the main pin 543e778. Previous: v0.4.16: + Atomic Task Graph (ATG) object (scores copied from the TOOLS.md row on 2026-10-06; stage I2 probe). Previous: v0.4.15: + Kolibri-1 (X Entry 085, B, I0; smoke pending). Previous: v0.4.14: ADR-0017 catalog<->implementation link.",
+  "version": "0.4.19",
+  "last_updated": "2026-11-11",
+  "description": "v0.4.19: + Arize Phoenix (Entry 180), tier B, overall 73 (weighted 73.8, floored). Loopback trace sink. Not a Feature GO. Previous: v0.4.18: + harness2 (Entry 136) I1, tier C, overall 59 (weighted 59.5, floored). Live nimo trial gain 0, no proposal branch. Not a Feature GO. Previous: v0.4.17: ATG bench pin is atg main 543e778ed24fbf3fc903eb961feb627039019832 (Entry 101). The I2 score (2/10 valid, 2/10 sink-correct) was taken at 86d1b890 on build/atg-finish and has not been re-run at the main pin 543e778. Previous: v0.4.16: + Atomic Task Graph (ATG) object (scores copied from the TOOLS.md row on 2026-10-06; stage I2 probe). Previous: v0.4.15: + Kolibri-1 (X Entry 085, B, I0; smoke pending). Previous: v0.4.14: ADR-0017 catalog<->implementation link.",
   "schema_notes": {
     "required_for_all": [
       "name",
@@ -227,6 +227,30 @@
       ],
       "pinned_commit": "1cfe254e8d25b15f37048c3730134686abe60335",
       "notes": "Entry 136. I1 after the 2026-10-20 nimo trial (examples/harness2-local). One local model through a sandboxed OpenCode loop: S1 70. Fits at ctx 32768 with MemAvailable above 16 GiB, no tok/s number, two prompts hit the cap: S2 55. Custom glue, not a Docker one-liner: S3 58. Upstream is days old, three commits, no release: S4 45. Weighted sum 59.5, recorded 59, tier C. Held-out gain 0 (15/16 vs 15/16). Receipt pipelines/dogfood/harness2-local/receipt.json. Not a Feature GO. Not I3. No toolset link.",
+      "integration_stage": "I1"
+    },
+    {
+      "name": "Arize Phoenix",
+      "primary_category": "Evaluation & Benchmarking",
+      "github": "https://github.com/Arize-ai/phoenix",
+      "scores": {
+        "s1": 76,
+        "s2": 72,
+        "s3": 70,
+        "s4": 78,
+        "overall": 73
+      },
+      "tier": "B",
+      "tags": [
+        "observability",
+        "traces",
+        "otlp",
+        "local-first",
+        "loopback",
+        "sqlite"
+      ],
+      "pinned_commit": "21.0.0",
+      "notes": "Entry 180. Loopback trace store and UI. Pin arize-phoenix 21.0.0. Scores 76/72/70/78. Weighted sum 73.8, recorded 73, tier B. Operator note docs/ops/phoenix.md. No toolset link. Not a Feature GO.",
       "integration_stage": "I1"
     }
   ],
