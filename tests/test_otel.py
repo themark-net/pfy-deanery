@@ -21,7 +21,19 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 WRAPPER = ROOT / "scripts" / "otel_span.sh"
-SDK_SITE = ROOT / "tmp" / "toolcache" / "tools" / "otel" / ("site-py%d%d" % sys.version_info[:2])
+_SITE = Path("tools") / "otel" / ("site-py%d%d" % sys.version_info[:2])
+
+
+def _sdk_cache() -> Path:
+    """./tmp/toolcache first, then the operator tool cache (read only here)."""
+    for base in (ROOT / "tmp" / "toolcache", Path(os.environ.get("PFY_TOOL_CACHE") or Path.home() / ".cache" / "pfy")):
+        if (base / _SITE / "opentelemetry").is_dir():
+            return base
+    return ROOT / "tmp" / "toolcache"
+
+
+SDK_CACHE = _sdk_cache()
+SDK_SITE = SDK_CACHE / _SITE
 
 sys.path.insert(0, str(ROOT))
 
@@ -118,7 +130,7 @@ class RedactionTests(unittest.TestCase):
 
 class NoopTests(unittest.TestCase):
     def tearDown(self) -> None:
-        os.environ.pop("PFY_OTEL", None)
+        os.environ["PFY_OTEL"] = "0"
         os.environ.pop("PFY_OTEL_ENDPOINT", None)
         os.environ.pop("PFY_TOOL_CACHE", None)
         otel._reset()
@@ -407,7 +419,7 @@ class _Collector(BaseHTTPRequestHandler):
         return
 
 
-@unittest.skipUnless(_sdk_ready(), "otel SDK is not in ./tmp/toolcache")
+@unittest.skipUnless(_sdk_ready(), "otel SDK is not in ./tmp/toolcache or the tool cache")
 class ProtobufTreeTests(unittest.TestCase):
     def setUp(self) -> None:
         self.server = ThreadingHTTPServer(("127.0.0.1", 0), _Collector)
@@ -417,7 +429,7 @@ class ProtobufTreeTests(unittest.TestCase):
         self.port = self.server.server_address[1]
         os.environ.pop("PFY_OTEL", None)
         os.environ["PFY_OTEL_ENDPOINT"] = "http://127.0.0.1:%d/v1/traces" % self.port
-        os.environ["PFY_TOOL_CACHE"] = str(ROOT / "tmp" / "toolcache")
+        os.environ["PFY_TOOL_CACHE"] = str(SDK_CACHE)
         otel._reset()
 
     def tearDown(self) -> None:
@@ -463,7 +475,7 @@ class ProtobufTreeTests(unittest.TestCase):
         env = os.environ.copy()
         env.pop("PFY_OTEL", None)
         env["PFY_OTEL_ENDPOINT"] = "http://127.0.0.1:%d/v1/traces" % self.port
-        env["PFY_TOOL_CACHE"] = str(ROOT / "tmp" / "toolcache")
+        env["PFY_TOOL_CACHE"] = str(SDK_CACHE)
         proc = subprocess.run(
             [str(WRAPPER), "wrap", "--", sys.executable, "-c", child],
             cwd=ROOT,
