@@ -56,6 +56,8 @@ The only rules that stop and write a needs-mark row (kind `hard-stop`, the reaso
 - `HS-gpu-unapproved`: a GPU run with no `gpu` row in the ops `approvals.tsv`.
 - `HS-pull-over-25gb-unapproved`: a pull over 25 GB with no `pull-over-25gb` row there.
 
+A card can narrow its row with `hard_stop_scope` (for example `real install only`): the scope is added to the reason, so the row names the one action still waiting. A sandboxed eval with a throwaway HOME is not that action. A slug in `eval/catalog-queue/exclusions.tsv` is closed: it never launches and gets no hard-stop row.
+
 ## Inspect one card
 
 ```bash

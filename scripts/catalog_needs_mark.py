@@ -15,7 +15,10 @@ with the rule ID from data/promotion-rules.json:
   HS-gpu-unapproved, HS-pull-over-25gb-unapproved.
 Sources, in a stable order, deduped by slug+kind+reason:
   each stage card's hard stops (scripts/catalog_auto_raise.py hard_stops,
-  with the ops approvals.tsv applied)
+  with the ops approvals.tsv applied). A card's optional hard_stop_scope
+  string is appended to the reason, so the row names the one action still
+  waiting (for example "real install only"). A slug in exclusions.tsv is
+  closed: it never launches, so its card hard stops are not listed.
   exclusions.tsv reasons that name a GPU run or a pull over 25 GB with no
   approval for that slug
 Not listed any more: ceiling flags, demotion flags, parked lanes, unknown
@@ -126,15 +129,22 @@ def collect(
         approvals = load_approvals(root)
     except Exception as exc:
         raise NeedsError(f"approvals: {exc}") from exc
-    rows: list[tuple[str, str, str, str, str]] = []
-    for slug, card in cards:
-        for rid, detail in hard_stops(card, approvals.get(slug, frozenset())):
-            rows.append((slug, "hard-stop", cell(f"{rid}: {detail}"), f"data/stages/{slug}.json", "-"))
+    excluded: dict[str, str] = {}
     if exclusions.is_file():
         try:
             excluded = load_exclusions(exclusions)
         except Exception as exc:
             raise NeedsError(f"exclusions: {exc}") from exc
+    rows: list[tuple[str, str, str, str, str]] = []
+    for slug, card in cards:
+        if slug in excluded:
+            continue
+        scope = card.get("hard_stop_scope")
+        for rid, detail in hard_stops(card, approvals.get(slug, frozenset())):
+            if isinstance(scope, str) and scope.strip():
+                detail = f"{detail}; {scope.strip()}"
+            rows.append((slug, "hard-stop", cell(f"{rid}: {detail}"), f"data/stages/{slug}.json", "-"))
+    if exclusions.is_file():
         evidence = evidence_for(root, exclusions)
         for slug in sorted(excluded):
             reason = excluded[slug]
