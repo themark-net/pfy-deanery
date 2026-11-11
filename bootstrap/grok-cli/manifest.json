@@ -112,6 +112,11 @@
         "purpose": "I0 to I2 eval lane. The skill drives scripts/eval_lane.sh"
       },
       {
+        "name": "catalog-fit-triage",
+        "origin": "first-party catalog pipeline (2026-11-11)",
+        "purpose": "Local-model fit, skip_install, redundant, or awareness via scripts/catalog_fit_triage.py"
+      },
+      {
         "name": "catalog-integrate-lane",
         "origin": "first-party catalog pipeline (2026-11-08)",
         "purpose": "I2 to I3 integrate lane. The skill drives scripts/integrate_lane.sh"

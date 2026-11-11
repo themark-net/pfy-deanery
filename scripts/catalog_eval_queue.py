@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Build the catalog eval queue from stage cards.
 
-Same cards and the same exclusions file always produce the same bytes.
-This replaces the hand-built tmp/evq/queue.tsv list. That file is not an
-input. Exclusions are a separate committed input. Do not hand-edit the
-generated queue.
+Same cards, the same exclusions file, and the same catalog-fit files always
+produce the same bytes. This replaces the hand-built tmp/evq/queue.tsv list.
+That file is not an input. Exclusions are a separate committed input. Do not
+hand-edit the generated queue.
 
 Sort key
     (mode rank, slug)
@@ -39,6 +39,12 @@ Filters
     A slug listed in the exclusions file is omitted. The reason is required and
     is not copied into the queue. A slug with no card is kept in the exclusions
     file so the reason stays on record.
+    A confident catalog-fit verdict also omits the row, so no trial lane
+    starts. The file is ``eval/catalog-fit/<slug>.json``. Confidence is at or
+    above the Jev conf gate (``scripts/pfy_jev_230.py``) and the verdict is
+    ``skip_install``, ``redundant``, or ``awareness``. Low confidence and a
+    ``fit`` verdict stay in the queue. A missing catalog-fit directory changes
+    nothing. The reader uses the confidence number, not a stored exit field.
     ``tier_ceiling``, ``handoff_by``, ``potential``, and ``features`` do not
     change membership or order.
 
@@ -56,9 +62,11 @@ Fail closed
     Malformed JSON, a card that is not an object, a missing integration_stage,
     a bad field type on a field this script reads, a missing exclusions file,
     a header other than "slug" then "reason", an empty reason, or a duplicate
-    slug: print a named error on stderr, exit 1, and do not create or replace
-    the queue file. Cards are validated before any write, including cards that
-    exclusions will omit.
+    slug, or a malformed catalog-fit file (bad JSON or a schema the reader
+    rejects, printed as ``<filename>: catalog-fit malformed``): print a named
+    error on stderr, exit 1, and do not create or replace the queue file.
+    Cards are validated before any write, including cards that exclusions will
+    omit. A catalog-fit file for a loaded card is checked the same way.
 
 Write
     The full file is built in memory. If the output already has those bytes,
@@ -68,6 +76,7 @@ Write
 Defaults
     --stages data/stages
     --exclusions eval/catalog-queue/exclusions.tsv
+    --catalog-fit eval/catalog-fit
     --out eval/catalog-queue/queue.tsv
 """
 
@@ -82,8 +91,11 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 DEFAULT_STAGES = ROOT / "data" / "stages"
 DEFAULT_EXCLUSIONS = ROOT / "eval" / "catalog-queue" / "exclusions.tsv"
+DEFAULT_CATFIT = ROOT / "eval" / "catalog-fit"
 DEFAULT_OUT = ROOT / "eval" / "catalog-queue" / "queue.tsv"
 
 HEADER = ("n", "slug", "mode", "gap", "entry", "card", "why")
@@ -276,10 +288,35 @@ def publish(dest: Path, payload: bytes) -> bool:
     return True
 
 
-def build(stages: Path, exclusions: Path) -> tuple[bytes, int, int]:
+def _fit_drops(catalog_fit: Path, loaded: list[tuple[str, str, str, str, str, str]], skipped: dict) -> set[str]:
+    """Slugs a confident negative catalog-fit file removes. Missing dir is a no-op."""
+    if not catalog_fit.exists():
+        return set()
+    if not catalog_fit.is_dir():
+        raise QueueError(f"{catalog_fit.name}: catalog-fit is not a directory")
+    from scripts.catalog_fit_triage import FitError, blocks_launch, load_stored
+
+    dropped: set[str] = set()
+    for row in loaded:
+        slug = row[0]
+        path = catalog_fit / f"{slug}.json"
+        if not path.is_file():
+            continue
+        try:
+            record = load_stored(path, slug)
+        except FitError as exc:
+            raise QueueError(str(exc)) from exc
+        if slug not in skipped and blocks_launch(record):
+            dropped.add(slug)
+    return dropped
+
+
+def build(stages: Path, exclusions: Path, catalog_fit: Path | None = None) -> tuple[bytes, int, int]:
+    fit_dir = DEFAULT_CATFIT if catalog_fit is None else catalog_fit
     skipped = load_exclusions(exclusions)
     loaded = load_cards(stages)
-    rows = [row for row in loaded if row[0] not in skipped]
+    dropped = _fit_drops(fit_dir, loaded, skipped)
+    rows = [row for row in loaded if row[0] not in skipped and row[0] not in dropped]
     return render(rows), len(rows), len(loaded) - len(rows)
 
 
@@ -289,10 +326,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--stages", type=Path, default=DEFAULT_STAGES)
     parser.add_argument("--exclusions", type=Path, default=DEFAULT_EXCLUSIONS)
+    parser.add_argument("--catalog-fit", type=Path, default=DEFAULT_CATFIT)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     args = parser.parse_args(argv)
     try:
-        payload, count, omitted = build(args.stages, args.exclusions)
+        payload, count, omitted = build(args.stages, args.exclusions, args.catalog_fit)
         changed = publish(args.out, payload)
     except QueueError as exc:
         print(str(exc), file=sys.stderr)

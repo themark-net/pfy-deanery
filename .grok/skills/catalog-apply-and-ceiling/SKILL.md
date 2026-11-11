@@ -11,9 +11,9 @@ Use this when a verdict should move `integration_stage`, or when a passing eval 
 
 Every move from I0 to I4, and every ceiling raise, is decided by the rules file. Nobody signs off and nothing waits for a person, except a hard stop.
 
-- Stage steps (default track): I1 needs `R-not-excluded`, `R-evidence`, `R-tier-ceiling`. I2 adds the hard stops and `R-modularity-gate`. I3 adds `R-value-gate`, `R-main-receipt`, `R-self-pipeline`. I4 adds `R-embed`.
+- Stage steps (default track): I1 needs `R-not-excluded`, `R-evidence`, `R-tier-ceiling`. I2 adds the hard stops, `R-modularity-gate`, and `R-catalog-fit` (a confident skip_install, redundant, or awareness caps the stage at I1). I3 adds `R-value-gate`, `R-main-receipt`, `R-self-pipeline`. I4 adds `R-embed`.
 - Security track (a scanner or guard): I2 also needs `S-sandlock-verdict` (the verdict records `"sandbox": "sandlock"`). I3 also needs `S-sandlock-trial-clean`, `S-profile-readonly`, `S-wiring`, and `S-ci-green`. There is no GATE.json and no Tester or Reviewer sign-off.
-- Ceiling (auto-raise): default track I3 when not excluded, no hard stop, `R-classifiable`, and the latest verdict passes both gates. Security track I2 when not excluded, no hard stop, and classifiable; I3 when the trial is clean, the profile is read-only, the wiring passes, and both gates pass.
+- Ceiling (auto-raise): default track I3 when not excluded, no hard stop, `R-classifiable`, the latest verdict passes both gates, and `R-catalog-fit` does not cap the card at I1. Security track I2 when not excluded, no hard stop, and classifiable, with the same catalog-fit cap; I3 when the trial is clean, the profile is read-only, the wiring passes, and both gates pass.
 - Print the rules for one card: `python3 scripts/promotion_rules.py --slug <slug> --mode apply --target I3`.
 
 ## Hard stops

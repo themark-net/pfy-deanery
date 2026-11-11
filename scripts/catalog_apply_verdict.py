@@ -37,8 +37,8 @@ Evidence comes only from the card's evidence list:
 Rules (operator decision 2026-11-10, 7:04am PT): the allowed stage comes
 from data/promotion-rules.json through scripts/promotion_rules.py. Nobody
 signs off. The stage table lists, for each step, the rule IDs that must pass:
-I1 not excluded, evidence, tier_ceiling; I2 adds the hard stops and the
-modularity gate; I3 adds the value gate, a valid main-run receipt, and the
+I1 not excluded, evidence, tier_ceiling; I2 adds the hard stops, the
+modularity gate, and a confident catalog-fit cap at I1; I3 adds the value gate, a valid main-run receipt, and the
 self_pipeline check; I4 adds an embed. A security scanner or guard (the
 security track) also needs, at I2, a verdict with "sandbox": "sandlock", and
 at I3 a clean sandlock trial (eval/integrate/<slug>/sandbox-trial.json), a

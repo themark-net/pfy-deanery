@@ -1,0 +1,209 @@
+{
+  "schema_version": "catalog-fit.v0",
+  "gate_id": "catalog-fit",
+  "mode": "shadow",
+  "stub": true,
+  "live_bridge": false,
+  "cites": ["ADR-0016", "#230"],
+  "question": "Does this catalog tool fit Deanery (pfy-deanery), or should we skip install?",
+  "engine_preference": "local",
+  "primary_local": ["CUA-S1-FORMS", "org-spinny-decide"],
+  "script": "scripts/catalog_fit_triage.py",
+  "engine": "scripts/pfy_jev_230.py",
+  "conf_gate": 0.85,
+  "conf_gate_note": "Coding-session Choice gate from ADR-0016. Margin chip (conf ok / conf low), never percent-correct. Below the gate the triage escalates (exit 3) and the normal eval lane decides. Hard stops in data/promotion-rules.json stay authoritative.",
+  "labels_written": "2026-11-11T00:00:00Z",
+  "labels_before_models": true,
+  "label_rule": "Labels were written from the stage cards, the value gate in docs/ops/integration-stages.md, Unique value in docs/evaluation-framework.md, and the existing skip_install decisions. Written before any catalog-fit model run. Not a Feature GO.",
+  "rubric": {
+    "fit": "Fits Deanery's local-first track, catalog, evaluate, and integrate mission and an existing stage gap.",
+    "overlap_with": "Existing cataloged tool slug this subject duplicates, or null when it duplicates none.",
+    "skip_install": "A safe default exists without installing the tool.",
+    "blast_radius": "low, medium, or high. Config rewrite, runtime takeover, and secrets or account pools are high.",
+    "unique_gap": "Unique value from docs/evaluation-framework.md: a clear gap versus the catalog, overlap with an existing tool, or redundant."
+  },
+  "criteria": {
+    "fit": "Fits the mission and fills a stage gap. Unique value is a clear gap. Blast radius is acceptable. No safe skip.",
+    "skip_install": "A safe default exists without installing. Do not start an install or a Grok trial lane.",
+    "redundant": "Duplicates a cataloged tool. overlap_with names that slug. The safe default is the existing tool.",
+    "awareness": "Poor fit for the local-first catalog mission, or blast radius is high (config rewrite or runtime takeover). Track only. Do not install."
+  },
+  "output": {
+    "slug": "string, the subject slug",
+    "fit": "boolean",
+    "overlap_with": "string or null",
+    "verdict": "fit | skip_install | redundant | awareness",
+    "reason": "string",
+    "confidence": "number from 0 to 1, a margin, never percent-correct"
+  },
+  "n_cases": 8,
+  "cases": [
+    {
+      "id": "magpie",
+      "slug": "magpie",
+      "source": "data/stages/magpie.json",
+      "source_id": "magpie",
+      "card": "data/stages/magpie.json",
+      "family": "stage-card",
+      "label": "awareness",
+      "accept": ["awareness"],
+      "note": "Poor fit. Rewrites agent configs. Runtime-takeover risk. Card data/stages/magpie.json.",
+      "state": {
+        "name": "magpie",
+        "integration_stage": "I0",
+        "intent": "awareness",
+        "uses": "One gateway config for every agent.",
+        "potential": "low",
+        "next_gate": "Rewrites agent configs; needs the operator GO. After Strata.",
+        "risk_class": "runtime-takeover",
+        "non_goals": ["feature_go", "catalog_hold_70_75"]
+      }
+    },
+    {
+      "id": "antigravity-manager",
+      "slug": "antigravity-manager",
+      "source": "data/stages/antigravity-manager.json",
+      "source_id": "antigravity-manager",
+      "card": "data/stages/antigravity-manager.json",
+      "family": "stage-card",
+      "label": "redundant",
+      "accept": ["redundant", "skip_install"],
+      "overlap_with": "litellm",
+      "note": "Account-pool proxy. LiteLLM plus own keys is the default. redundant is primary; skip_install is also accepted.",
+      "state": {
+        "name": "Antigravity-Manager",
+        "integration_stage": "I1",
+        "intent": "skip_install",
+        "uses": "Account-pool proxy. LiteLLM plus keys is the default.",
+        "features": ["account pool"],
+        "potential": "low",
+        "next_gate": "Stay skip-install.",
+        "risk_class": "secrets",
+        "posture": ["skip_install"],
+        "catalog_tags": ["#proxy", "#account-pool", "#tauri", "#openai-shim", "#I1", "#low-pri"]
+      }
+    },
+    {
+      "id": "hd-01-optional-tool-skip",
+      "slug": "hd-01-optional-tool-skip",
+      "source": "data/decision-gates/laya-trial.cases.v0.json",
+      "source_id": "hd-01-optional-tool-skip",
+      "family": "laya-trial",
+      "label": "skip_install",
+      "accept": ["skip_install"],
+      "instructions": "Human-decision inventory B1: optional catalog tool. Prefer defaults and reversible experiments.",
+      "note": "Copied from the laya-trial skip_install case. A safe default exists. Not an OQ.",
+      "state": {
+        "kind": "optional catalog tool",
+        "open_source_local_coding_assist": true,
+        "safe_default": "skip install",
+        "blast_radius": "low",
+        "fits_existing_skill_or_smoke": false,
+        "note": "Antigravity-style over-promotion to OQ is the failure mode to avoid."
+      }
+    },
+    {
+      "id": "hd-03-antigravity-skip",
+      "slug": "hd-03-antigravity-skip",
+      "source": "data/decision-gates/laya-trial.cases.v0.json",
+      "source_id": "hd-03-antigravity-skip",
+      "family": "laya-trial",
+      "label": "skip_install",
+      "accept": ["skip_install"],
+      "instructions": "Human-decision inventory defaults. Prefer defaults and reversible experiments.",
+      "note": "Copied from the laya-trial skip_install case. LiteLLM plus keys is the safe default.",
+      "state": {
+        "topic": "Antigravity-Manager",
+        "question": "Do we need multi-account relay?",
+        "answered": "skip; stay low-pri eval",
+        "safe_default": "no / LiteLLM + keys",
+        "blast_radius": "preference, not disk"
+      }
+    },
+    {
+      "id": "ch-hd-01-optional-tool-skip",
+      "slug": "ch-hd-01-optional-tool-skip",
+      "source": "data/decision-gates/hermes-bakeoff.tasks.v0.json",
+      "source_id": "ch-hd-01-optional-tool-skip",
+      "family": "hermes-bakeoff",
+      "label": "skip_install",
+      "accept": ["skip_install"],
+      "instructions": "Human-decision inventory B1: optional catalog tool. Prefer defaults and reversible experiments.",
+      "note": "Hermes task ch-hd-01-optional-tool-skip. State copied from laya hd-01-optional-tool-skip, which that task labels skip_install.",
+      "state": {
+        "kind": "optional catalog tool",
+        "open_source_local_coding_assist": true,
+        "safe_default": "skip install",
+        "blast_radius": "low",
+        "fits_existing_skill_or_smoke": false,
+        "note": "Antigravity-style over-promotion to OQ is the failure mode to avoid."
+      }
+    },
+    {
+      "id": "litellm",
+      "slug": "litellm",
+      "source": "data/stages/litellm.json",
+      "source_id": "litellm",
+      "card": "data/stages/litellm.json",
+      "family": "stage-card",
+      "label": "fit",
+      "accept": ["fit"],
+      "overlap_with": null,
+      "note": "Clear gap: one OpenAI-compatible proxy for Grok and local models. Already the default. Not an account-pool relay.",
+      "state": {
+        "name": "LiteLLM",
+        "integration_stage": "I3",
+        "intent": "smoke_path",
+        "uses": "One OpenAI-compatible proxy for Grok and local models.",
+        "features": ["proxy", "fallbacks"],
+        "potential": "high",
+        "next_gate": "Keep smoke-litellm-ollama as a probe, not a required product lever.",
+        "non_goals": ["vendor the server into the repo"]
+      }
+    },
+    {
+      "id": "codebase-memory-mcp",
+      "slug": "codebase-memory-mcp",
+      "source": "data/stages/codebase-memory-mcp.json",
+      "source_id": "codebase-memory-mcp",
+      "card": "data/stages/codebase-memory-mcp.json",
+      "family": "stage-card",
+      "label": "fit",
+      "accept": ["fit"],
+      "overlap_with": null,
+      "note": "Clear gap: primary code-graph MCP. Unique value versus other memory tools. Smoke is the operator path.",
+      "state": {
+        "name": "codebase-memory-mcp",
+        "integration_stage": "I3",
+        "intent": "smoke_path",
+        "uses": "Primary code-graph MCP and the code-graph toolset.",
+        "features": ["mcp", "code graph"],
+        "potential": "high",
+        "next_gate": "Smoke is the probe. Promote the card to I3 only when that smoke is the operator path of record.",
+        "non_goals": ["second primary graph"]
+      }
+    },
+    {
+      "id": "write-guard-mcp",
+      "slug": "write-guard-mcp",
+      "source": "data/stages/write-guard-mcp.json",
+      "source_id": "write-guard-mcp",
+      "card": "data/stages/write-guard-mcp.json",
+      "family": "stage-card",
+      "label": "fit",
+      "accept": ["fit"],
+      "overlap_with": null,
+      "note": "Clear gap: first-party write mediation above the cage mount. Blast radius is the guard itself and is the point of the tool.",
+      "state": {
+        "name": "write-guard-mcp",
+        "integration_stage": "I3",
+        "intent": "first_party",
+        "uses": "First-party write mediation above the cage mount.",
+        "features": ["audit", "enforce"],
+        "potential": "high",
+        "next_gate": "Keep smoke-write-guard. mcp-host wiring stays parked.",
+        "non_goals": ["replace cage mounts", "mcp-host wiring in this pass"]
+      }
+    }
+  ]
+}

@@ -17,7 +17,7 @@ Operator decision, 2026-11-10 7:04am PT: rules move cards through the pipeline, 
 | Step | Default track | Security track adds |
 | --- | --- | --- |
 | I1 | R-not-excluded, R-evidence, R-tier-ceiling | |
-| I2 | the six hard stops, R-modularity-gate | S-sandlock-verdict |
+| I2 | the six hard stops, R-modularity-gate, R-catalog-fit | S-sandlock-verdict |
 | I3 | R-value-gate, R-main-receipt, R-self-pipeline | S-sandlock-trial-clean, S-profile-readonly, S-wiring, S-ci-green |
 | I4 | R-embed | |
 
@@ -25,8 +25,8 @@ Operator decision, 2026-11-10 7:04am PT: rules move cards through the pipeline, 
 
 | Track | Raise to | Rules |
 | --- | --- | --- |
-| default | I3 | R-not-excluded, hard stops, R-classifiable, R-modularity-gate, R-value-gate (latest verdict) |
-| security | I2 | R-not-excluded, hard stops, R-classifiable |
+| default | I3 | R-not-excluded, hard stops, R-classifiable, R-modularity-gate, R-value-gate (latest verdict), R-catalog-fit |
+| security | I2 | R-not-excluded, hard stops, R-classifiable, R-catalog-fit |
 | security | I3 | the I2 rules plus R-modularity-gate, R-value-gate, S-sandlock-trial-clean, S-profile-readonly, S-wiring |
 
 ## Rules
@@ -44,6 +44,15 @@ Operator decision, 2026-11-10 7:04am PT: rules move cards through the pipeline, 
 - `S-profile-readonly`: that trial's `profile` (written by `scripts/integrations/sandlock/confine.py`) writes only under `./tmp/`, `/tmp/` or `$TMPDIR` (plus `/dev/null`, which reaches no file), has network `deny` or a pinned fetch list, `sudo` false, a clean env, and no read of the home root or a secrets path (`.ssh`, `.gnupg`, `.aws`, `.grok`, `.config`, `.netrc`, `.dev.vars`, `auth.json`, `.docker`, `.kube`).
 - `S-wiring`: the card's `wiring` is `advisory` or `non-blocking` (a CI step with the comment `# pfy-advisory: <slug>` and `continue-on-error: true`), or `deny-only` with an existing `fail_open_test`.
 - `S-ci-green`: eval-structural concluded success on origin/main (public API, no token; `PFY_MAIN_GREEN=1` or `0` overrides in tests).
+- `R-catalog-fit`: a confident `skip_install`, `redundant`, or `awareness` in `eval/catalog-fit/<slug>.json` caps the stage at I1 and blocks launch. A missing file or a confidence under the Jev gate passes.
+
+## Catalog-fit
+
+`R-catalog-fit` is not a hard stop. It runs in apply, ceiling, and launch, after the hard stops.
+
+When `eval/catalog-fit/<slug>.json` exists, confidence is at or above the Jev gate (`scripts/pfy_jev_230.py`, default 0.85), and the verdict is `skip_install`, `redundant`, or `awareness`, a target above I1 fails and launch fails. No Grok lane starts. A missing file or a confidence under the gate passes, and the normal eval lane decides. A malformed file fails closed. Hard stops are unchanged and are still evaluated first.
+
+`scripts/catalog_fit_triage.py --write` writes the file. The rubric is `data/decision-gates/catalog-fit.v0.json`.
 
 ## Hard stops
 

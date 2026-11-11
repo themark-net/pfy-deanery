@@ -1,6 +1,6 @@
 # Catalog eval queue
 
-Generated work list for catalog evals. `scripts/catalog_eval_queue.py` reads stage cards and `exclusions.tsv`, then writes `queue.tsv`. Do not hand-edit `queue.tsv`. To drop a slug, add a row here with a reason and run the script again.
+Generated work list for catalog evals. `scripts/catalog_eval_queue.py` reads stage cards and `exclusions.tsv`, then writes `queue.tsv`. Do not hand-edit `queue.tsv`. To drop a slug, add a row here with a reason and run the script again. A confident catalog-fit verdict of `skip_install`, `redundant`, or `awareness` in `eval/catalog-fit/<slug>.json` also drops the row so no trial lane starts. Low confidence stays.
 
 This replaces the hand-built `tmp/evq/queue.tsv` process. That file is not an input.
 
@@ -44,7 +44,7 @@ Tags come from `tags` and `catalog_tags`. A leading `#` is ignored. Comparison i
 
 ## Filters
 
-Every `*.json` in the stages directory is a row, except names that start with `_` and slugs listed in `exclusions.tsv`. `integration_stage` must be a non-empty string. The stage value does not drop or reorder a row. `tier_ceiling`, `handoff_by`, `potential`, and `features` do not change the queue.
+Every `*.json` in the stages directory is a row, except names that start with `_`, slugs listed in `exclusions.tsv`, and slugs whose `eval/catalog-fit/<slug>.json` is a confident `skip_install`, `redundant`, or `awareness` (Jev conf gate). Low confidence and a `fit` verdict stay. A missing catalog-fit directory changes nothing. A malformed catalog-fit file fails the run and does not replace `queue.tsv`. `integration_stage` must be a non-empty string. The stage value does not drop or reorder a row. `tier_ceiling`, `handoff_by`, `potential`, and `features` do not change the queue.
 
 ## Exclusions
 

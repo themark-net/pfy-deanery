@@ -50,7 +50,7 @@ Also use as needed: `CATEGORIZATION.md`, `SUBTREES.md`, `TOOLS.md`, `bootstrap/g
 #   python3 bootstrap/setup-local-agent-env.py
 ```
 
-Portable skills (SoT `bootstrap/grok-cli/skills/` — also for OpenCode): `adr`, `docs`, `open-questions`, `karpathy-guidelines`, `project-process`, `one-shot`, `marketing-council`, **`investigate`**, **`agent-loops`**, **`hermes-feedback`**, **`worker-monitor`** (local worker + Grok monitor), **`jev-decision`** (#230 typed Choice/Score), **`prefer-behavior-and-fail-recover-tests`** (Trophy / fail-recover), **`ui-is-the-app-design-in-loop`** (design pack before product UI), **`catalog-intake-dedupe`**, **`catalog-eval-lane`**, **`catalog-integrate-lane`**, **`catalog-apply-and-ceiling`**, **`catalog-loop-operator`** (catalog pipeline; each skill drives a script); ponytail + mattpocock via `skills.paths`.  
+Portable skills (SoT `bootstrap/grok-cli/skills/` — also for OpenCode): `adr`, `docs`, `open-questions`, `karpathy-guidelines`, `project-process`, `one-shot`, `marketing-council`, **`investigate`**, **`agent-loops`**, **`hermes-feedback`**, **`worker-monitor`** (local worker + Grok monitor), **`jev-decision`** (#230 typed Choice/Score), **`prefer-behavior-and-fail-recover-tests`** (Trophy / fail-recover), **`ui-is-the-app-design-in-loop`** (design pack before product UI), **`catalog-intake-dedupe`**, **`catalog-eval-lane`**, **`catalog-integrate-lane`**, **`catalog-apply-and-ceiling`**, **`catalog-fit-triage`**, **`catalog-loop-operator`** (catalog pipeline; each skill drives a script); ponytail + mattpocock via `skills.paths`.  
 Verify: `make eval-structural` (no LLM) · `make smoke-grok-skills` · [skill-verification.md](docs/ops/skill-verification.md).  
 **Surfaces:** Grok = **monitor** / hard tasks (subscription) · OpenCode+Ollama = **worker** / bulk — [local-cloud-split.md](docs/ops/local-cloud-split.md) · ADR-0011.  
 **Local worker model:** `LOCAL_CODER_MODEL` (default `deepseek-coder:6.7b` after lab pass); set via `make eval-select-models`. Grok CLI does **not** auto-use it.  
@@ -154,7 +154,7 @@ Before building any new or changed pipeline, CI, or gate step, check the catalog
 4. Where does a human re-enter?
 5. What stops two runs doing the same work?
 
-Catalog pipeline skills, same SoT and a full copy under `.grok/skills/`: **`catalog-intake-dedupe`**, **`catalog-eval-lane`**, **`catalog-integrate-lane`**, **`catalog-apply-and-ceiling`**, **`catalog-loop-operator`**. They name the scripts. They do not reimplement them.
+Catalog pipeline skills, same SoT and a full copy under `.grok/skills/`: **`catalog-intake-dedupe`**, **`catalog-eval-lane`**, **`catalog-integrate-lane`**, **`catalog-apply-and-ceiling`**, **`catalog-fit-triage`**, **`catalog-loop-operator`**. They name the scripts. They do not reimplement them.
 
 A tool whose uses cover CI, testing, or review cannot reach I3 until it has been applied to this repo's own pipeline, or a recorded reason says why not. The field is `self_pipeline` on the stage card. The check is `scripts/catalog_check.py`. Scheme: [docs/ops/integration-stages.md](docs/ops/integration-stages.md).
 

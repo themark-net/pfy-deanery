@@ -28,6 +28,8 @@ COPY_REL = (
     "scripts/catalog_apply_verdict.py",
     "scripts/catalog_auto_raise.py",
     "scripts/promotion_rules.py",
+    "scripts/catalog_fit_triage.py",
+    "scripts/pfy_jev_230.py",
     "data/promotion-rules.json",
     "scripts/catalog_needs_mark.py",
     "scripts/catalog_park_retry.py",

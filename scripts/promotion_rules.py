@@ -255,6 +255,32 @@ def _fail(detail: str) -> tuple[bool, str]:
     return False, detail
 
 
+def c_catalog_fit(ctx: Ctx, target: str) -> tuple[bool, str]:
+    """Cap I1 and block launch on a confident negative catalog-fit verdict.
+
+    A missing file or a confidence under the Jev gate passes. The normal eval
+    lane decides those. Hard stops are separate rules and stay first.
+    """
+    from scripts.catalog_fit_triage import NEGATIVE, FitError, blocks_launch, load_stored
+
+    path = ctx.root / "eval" / "catalog-fit" / f"{ctx.slug}.json"
+    if not path.is_file():
+        return _ok("no catalog-fit file")
+    try:
+        record = load_stored(path, ctx.slug)
+    except FitError as exc:
+        return _fail(str(exc))
+    if not blocks_launch(record):
+        if record.get("verdict") in NEGATIVE:
+            return _ok("conf low")
+        return _ok(f"verdict {record.get('verdict')}")
+    verdict = record["verdict"]
+    if ctx.mode == "launch" or RANK.get(target, 0) > RANK["I1"]:
+        why = "blocks launch" if ctx.mode == "launch" else "caps I1"
+        return _fail(f"catalog-fit {verdict} {why}")
+    return _ok(f"catalog-fit {verdict} at I1")
+
+
 def c_not_excluded(ctx: Ctx, target: str) -> tuple[bool, str]:
     from scripts.catalog_eval_queue import QueueError, exclusion_reason
     try:
@@ -508,6 +534,7 @@ def _hard(rid: str):
 
 CHECKS = {
     "R-not-excluded": c_not_excluded,
+    "R-catalog-fit": c_catalog_fit,
     "R-classifiable": c_classifiable,
     "R-evidence": c_evidence,
     "R-tier-ceiling": c_tier,
