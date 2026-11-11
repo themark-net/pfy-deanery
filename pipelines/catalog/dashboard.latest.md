@@ -2,16 +2,16 @@
 
 Stage cards are the source of truth.
 
-Coverage: 135 tools registered.
+Coverage: 136 tools registered.
 
-Cards: 135. I2+: 22.
+Cards: 136. I2+: 22.
 
 ## Stage counts
 
 | Stage | Count |
 |-------|------:|
 | I0 | 48 |
-| I1 | 65 |
+| I1 | 66 |
 | I2 | 2 |
 | I3 | 20 |
 
@@ -23,7 +23,7 @@ Cards: 135. I2+: 22.
 | ad_hoc_probe | 4 |
 | adhoc_probe | 4 |
 | advisory_skill_scan | 1 |
-| awareness | 33 |
+| awareness | 34 |
 | awareness_fit_gate_failed | 1 |
 | blocked_on_hermes_wiring | 1 |
 | catalog_default | 24 |
@@ -62,7 +62,7 @@ Cards: 135. I2+: 22.
 | non_goals | 2 |
 | next_gate | 2 |
 | evidence | 3 |
-| tier_ceiling | 5 |
+| tier_ceiling | 6 |
 
 ## Tools
 
@@ -70,6 +70,7 @@ Cards: 135. I2+: 22.
 |----|-------|--------|
 | adr-tools | I1 | optional_pin |
 | AgenC | I0 | demoted_adr0010 |
+| Agent Autoloop | I1 | awareness |
 | Agent Beacon | I0 | awareness |
 | Agent Substrate | I0 | awareness |
 | agent-cage (PNNL) | I3 | primary_harness |
