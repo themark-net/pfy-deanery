@@ -62,7 +62,7 @@ Cards: 137. I2+: 23.
 | non_goals | 2 |
 | next_gate | 2 |
 | evidence | 3 |
-| tier_ceiling | 7 |
+| tier_ceiling | 6 |
 
 ## Tools
 
