@@ -127,6 +127,20 @@ WT="$MARK_DIR/wt/${SLUG}"
 BRANCH="bot/eval-${SLUG}-${DATE}"
 GROK_BIN="${PFY_GROK_BIN:-grok}"
 LOOP_STATE="${PFY_LOOP_STATE:-$(dirname "$STATE_DIR")}"
+if [ -f "$SCRIPT_DIR/otel_span.sh" ]; then
+  # shellcheck disable=SC1091
+  . "$SCRIPT_DIR/otel_span.sh"
+  otel_span_begin "eval-lane" \
+    "deanery.lane_id=eval-${SLUG}" \
+    "deanery.job_id=eval-${SLUG}" \
+    "deanery.parent_lane=${DEANERY_PARENT_LANE:-}" \
+    deanery.task_class=eval \
+    deanery.route=cloud \
+    deanery.iteration=0 \
+    llm.provider=xai \
+    llm.model_name=grok
+  trap 'otel_lane_trap' EXIT
+fi
 
 mkdir -p "$MARK_DIR"
 
@@ -268,11 +282,33 @@ run_grok() {
   local prompt="$2"
   local log="$MARK_DIR/${SLUG}-${label}.log"
   local try=1
+  local rc=0
   while [ "$try" -le 3 ]; do
-    if (
+    if declare -F otel_span_begin >/dev/null 2>&1; then
+      otel_span_begin "grok-${label}" kind=AGENT \
+        "deanery.lane_id=eval-${SLUG}" \
+        "deanery.job_id=eval-${SLUG}" \
+        "deanery.parent_lane=${DEANERY_PARENT_LANE:-}" \
+        deanery.task_class=eval \
+        deanery.route=cloud \
+        "deanery.iteration=${try}" \
+        llm.provider=xai \
+        llm.model_name=grok
+    fi
+    set +e
+    (
       cd "$WT"
       run_checked bash "$SCRIPT_DIR/model_lock.sh" "$GROK_BIN" --cwd "$WT" --always-approve --output-format plain --prompt-file "$prompt"
-    ) >"$log" 2>&1; then
+    ) >"$log" 2>&1
+    rc=$?
+    set -e
+    if declare -F otel_ingest_bg >/dev/null 2>&1; then
+      otel_ingest_bg "$log" || true
+    fi
+    if declare -F otel_span_end >/dev/null 2>&1; then
+      otel_span_end "$rc" || true
+    fi
+    if [ "$rc" -eq 0 ]; then
       progress "$SLUG grok $label ok"
       return 0
     fi

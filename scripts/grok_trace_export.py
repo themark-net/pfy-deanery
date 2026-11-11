@@ -25,26 +25,17 @@ import tarfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+_ROOT = Path(__file__).resolve().parents[1]
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
+from pfylib.redact import redact  # noqa: E402
+
 LIMIT = 400
 PROJECT = "pfy-grok"
 CHAT_TYPES = {"assistant", "tool_result", "user", "system", "reasoning"}
 ROLES = {"assistant", "tool", "user", "system"}
 
-_PATTERNS = [
-    re.compile(
-        r"-----BEGIN [A-Z ]*PRIVATE KEY-----.*?-----END [A-Z ]*PRIVATE KEY-----",
-        re.S,
-    ),
-    re.compile(r"sk-[A-Za-z0-9_-]{8,}"),
-    re.compile(r"ghp_[A-Za-z0-9]{20,}"),
-    re.compile(r"github_pat_[A-Za-z0-9_]{20,}"),
-    re.compile(r"AKIA[0-9A-Z]{16}"),
-    re.compile(r"xox[abprs]-[A-Za-z0-9-]{10,}"),
-    re.compile(r"(?i)\bBearer\s+[A-Za-z0-9._~+/=-]{16,}"),
-    re.compile(
-        r"(?i)\b(authorization|api[_-]?key|token|secret|password)\s*[=:]\s*\S+"
-    ),
-]
 _LEAK = re.compile(
     r"REDACTME|sk-[A-Za-z0-9_-]{8,}|ghp_[A-Za-z0-9]{20,}"
     r"|github_pat_[A-Za-z0-9_]{20,}|AKIA[0-9A-Z]{16}"
@@ -53,21 +44,6 @@ _LEAK = re.compile(
 _NARRATIVE_FAIL = re.compile(
     r"(?im)^(error:|couldn't create session|overall=fail\b|\[fail\])"
 )
-
-
-def redact(text: str) -> str:
-    if not text:
-        return ""
-    for pat in _PATTERNS:
-        text = pat.sub(_sub, text)
-    return text.replace("REDACTME", "[REDACTED]")
-
-
-def _sub(match: re.Match[str]) -> str:
-    key = match.group(1) if match.lastindex else ""
-    if key:
-        return key + "=[REDACTED]"
-    return "[REDACTED]"
 
 
 def bound(text: str) -> str:

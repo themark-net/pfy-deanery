@@ -413,31 +413,44 @@ def default_call_model(prompt: str, *, model: str, host: str) -> str:
         "options": {"temperature": 0},
     }).encode("utf-8")
     req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})
+    box = None
     try:
-        with urllib.request.urlopen(req, timeout=call_timeout()) as resp:
-            raw = resp.read().decode("utf-8")
-    except urllib.error.HTTPError as exc:
-        raise ModelLoadError(_http_reason(exc.code, _read_error_body(exc))) from exc
-    except urllib.error.URLError as exc:
-        reason = _one_line(str(getattr(exc, "reason", exc)))
-        if _looks_like_load(reason):
-            raise ModelLoadError(reason or "load failed") from exc
-        raise FitBroken("ollama unreachable") from exc
-    except TimeoutError as exc:
-        raise FitBroken("ollama unreachable") from exc
-    try:
-        data = json.loads(raw)
-    except json.JSONDecodeError as exc:
-        raise FitBroken("ollama response is not json") from exc
-    if isinstance(data, dict) and isinstance(data.get("error"), str) and data["error"].strip():
-        err = _one_line(data["error"])
-        if _looks_like_load(err):
-            raise ModelLoadError(err)
-        raise FitBroken(err or "ollama response missing")
-    text = data.get("response") if isinstance(data, dict) else None
-    if not isinstance(text, str) or not text.strip():
-        raise FitBroken("ollama response missing")
-    return text
+        from pfylib.otel import llm_call, route_for
+
+        box = llm_call(model, "ollama", route_for("ollama", host), name="ollama.generate")
+    except Exception:
+        box = None
+    if box is None:
+        from contextlib import nullcontext
+
+        box = nullcontext(None)
+    with box as handle:
+        try:
+            with urllib.request.urlopen(req, timeout=call_timeout()) as resp:
+                raw = resp.read().decode("utf-8")
+        except urllib.error.HTTPError as exc:
+            raise ModelLoadError(_http_reason(exc.code, _read_error_body(exc))) from exc
+        except urllib.error.URLError as exc:
+            reason = _one_line(str(getattr(exc, "reason", exc)))
+            if _looks_like_load(reason):
+                raise ModelLoadError(reason or "load failed") from exc
+            raise FitBroken("ollama unreachable") from exc
+        except TimeoutError as exc:
+            raise FitBroken("ollama unreachable") from exc
+        try:
+            data = json.loads(raw)
+        except json.JSONDecodeError as exc:
+            raise FitBroken("ollama response is not json") from exc
+        if isinstance(data, dict) and isinstance(data.get("error"), str) and data["error"].strip():
+            err = _one_line(data["error"])
+            if _looks_like_load(err):
+                raise ModelLoadError(err)
+            raise FitBroken(err or "ollama response missing")
+        text = data.get("response") if isinstance(data, dict) else None
+        if not isinstance(text, str) or not text.strip():
+            raise FitBroken("ollama response missing")
+        _otel_tokens(handle, data, text)
+        return text
 
 
 # Tests replace these. CI passes a mock and does not call them.
@@ -477,6 +490,39 @@ def _resolve_text(prompt: str, model_name: str, host_name: str, *, allow_fallbac
         reason = reason or "not installed"
     _note_fallback(model_name, fb, reason or "load failed")
     return _call_or_broken(prompt, fb, host_name), fb, model_name
+
+
+def _otel_tokens(handle, data, text) -> None:
+    """Token counts and a short output on the LLM span. Never raises."""
+    if handle is None or not isinstance(data, dict):
+        return
+    try:
+        prompt_n = data.get("prompt_eval_count")
+        completion_n = data.get("eval_count")
+        if isinstance(prompt_n, int):
+            handle.set("llm.token_count.prompt", prompt_n)
+        if isinstance(completion_n, int):
+            handle.set("llm.token_count.completion", completion_n)
+        if isinstance(prompt_n, int) and isinstance(completion_n, int):
+            handle.set("llm.token_count.total", prompt_n + completion_n)
+        handle.set("output.value", text)
+    except Exception:
+        pass
+
+
+def _traced_resolve(slug: str, prompt: str, model_name: str, host_name: str, *, allow_fallback: bool):
+    """One CHAIN span per slug around the model call. Mock callers never get here."""
+    try:
+        from pfylib.otel import bind, span
+    except Exception:
+        return _resolve_text(prompt, model_name, host_name, allow_fallback=allow_fallback)
+    try:
+        route = "cloud" if cloud_selected() else "local"
+    except Exception:
+        route = "unknown"
+    with bind(lane_id="catalog-fit-" + slug, job_id=slug, task_class="catalog-fit", route=route):
+        with span("catalog-fit", kind="CHAIN"):
+            return _resolve_text(prompt, model_name, host_name, allow_fallback=allow_fallback)
 
 
 def triage(
@@ -520,8 +566,8 @@ def triage(
         raw = mock[slug]
         text = raw if isinstance(raw, str) else json.dumps(raw)
     else:
-        text, used_model, fallback_from = _resolve_text(
-            prompt, model_name, host_name, allow_fallback=allow_fallback,
+        text, used_model, fallback_from = _traced_resolve(
+            slug, prompt, model_name, host_name, allow_fallback=allow_fallback,
         )
     payload, problem = parse_model(text, slug)
     focus = payload["verdict"] if payload else ""

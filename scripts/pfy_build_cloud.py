@@ -1597,6 +1597,15 @@ class CloudBuild:
             tmp = self.worktree / "tmp"
             tmp.mkdir(parents=True, exist_ok=True)
             env["TMPDIR"] = str(tmp)
+        try:
+            from pfylib.otel import child_env as otel_child
+
+            traced = otel_child(env)
+            token = traced.get("TRACEPARENT")
+            if token:
+                env["TRACEPARENT"] = token
+        except Exception:
+            pass
         return env
 
     def save_pid(self) -> None:
@@ -1790,14 +1799,42 @@ class CloudBuild:
             "plain",
         ]
         self.save_pid()
-        status, code, out, err = run_command(
-            argv,
-            self.worktree or self.repo,
-            self.args.timeout,
-            self.state,
-            self.child_env(),
-            on_start=self.save_pid,
-        )
+        try:
+            from pfylib.otel import span as otel_span
+
+            box = otel_span(
+                "grok",
+                kind="AGENT",
+                **{
+                    "deanery.lane_id": "build-cloud",
+                    "deanery.task_class": "build",
+                    "deanery.route": "cloud",
+                    "deanery.iteration": len(self.attempts) + 1,
+                    "llm.provider": "xai",
+                    "llm.model_name": "grok",
+                },
+            )
+        except Exception:
+            box = None
+        if box is None:
+            status, code, out, err = run_command(
+                argv,
+                self.worktree or self.repo,
+                self.args.timeout,
+                self.state,
+                self.child_env(),
+                on_start=self.save_pid,
+            )
+        else:
+            with box:
+                status, code, out, err = run_command(
+                    argv,
+                    self.worktree or self.repo,
+                    self.args.timeout,
+                    self.state,
+                    self.child_env(),
+                    on_start=self.save_pid,
+                )
         self.save_pid()
         return status, code, out, err
 

@@ -192,6 +192,9 @@ def run_one(root: Path, module: str, run_dir: Path) -> dict:
     env["XDG_DATA_HOME"] = str(xdg / "data")
     env["XDG_STATE_HOME"] = str(xdg / "state")
     env["PYTHONDONTWRITEBYTECODE"] = "1"
+    # Tests never export spans to the operator's Phoenix. tests.test_otel
+    # sets its own endpoint against an in-process collector.
+    env["PFY_OTEL"] = "0"
     if os.environ.get("PFY_TEST_ISOLATE_HOME") == "1":
         home = slot / "home"
         home.mkdir(parents=True, exist_ok=True)

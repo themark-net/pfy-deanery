@@ -39,6 +39,7 @@ router_settings:
 litellm_settings:
   drop_params: true
   request_timeout: 300
+  callbacks: ["arize_phoenix"]
 
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY

@@ -65,6 +65,7 @@ docs/ops/skill-up-eval.md
 docs/ops/skill-verification.md
 docs/ops/smythos-studio-entry-081.md
 docs/ops/supersede-watch.md
+docs/ops/tracing.md
 docs/ops/unified-agents-recipes.md
 docs/ops/voice-agent-channel.md
 docs/ops/voice-agent-runner.md

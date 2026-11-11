@@ -3041,6 +3041,43 @@ def _review_poster_argv(script_path: Path) -> list[str]:
     return ["python3", str(script_path)]
 
 
+class _otel_llm:
+    """LLM span around one local call. Tracing failures still run the body once."""
+
+    def __init__(self, model: str, base: str, name: str, env: dict) -> None:
+        self.model = model
+        self.base = base
+        self.name = name
+        self.env = env
+        self._cm = None
+
+    def __enter__(self):
+        try:
+            from pfylib.otel import child_env, llm_call, route_for
+
+            route = route_for("ollama", self.base)
+            provider = "ollama" if route == "local" else "openai-compatible"
+            self._cm = llm_call(self.model, provider, route, name=self.name)
+            self._cm.__enter__()
+            traced = child_env(self.env)
+            token = traced.get("TRACEPARENT")
+            if token:
+                self.env["TRACEPARENT"] = token
+        except Exception:
+            self._cm = None
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        cm = self._cm
+        self._cm = None
+        if cm is None:
+            return False
+        try:
+            return cm.__exit__(exc_type, exc, tb)
+        except Exception:
+            return False
+
+
 def _run_model_review(
     args,
     worktree: Path,
@@ -3116,9 +3153,10 @@ def _run_model_review(
     if limit <= 0:
         return "overall-timeout", None
     try:
-        run_status, _code, out, err = run_bounded(
-            prepared.argv, child, worktree, limit, state
-        )
+        with _otel_llm(args.model_name, openai_base, "local.review", child):
+            run_status, _code, out, err = run_bounded(
+                prepared.argv, child, worktree, limit, state
+            )
     finally:
         prepared.close()
     if run_status == "interrupted":
@@ -3642,7 +3680,8 @@ def build_local(argv: list[str] | None = None) -> int:
             if remain < agent_limit:
                 agent_limit = remain
                 agent_cut = True
-            run_status, agent_code, out, err = run_bounded(prepared.argv, child, worktree, agent_limit, state)
+            with _otel_llm(args.model_name, openai_base, "opencode", child):
+                run_status, agent_code, out, err = run_bounded(prepared.argv, child, worktree, agent_limit, state)
             agent_seconds += time.monotonic() - agent_t0
             prepared.close()
             prepared = None

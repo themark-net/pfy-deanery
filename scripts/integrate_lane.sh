@@ -100,6 +100,20 @@ if [ "$DRY" = "1" ]; then
   printf '%s\n' "dry-run slug=${SLUG} skip-card skip-marker skip-fetch skip-grok skip-apply skip-push"
   exit 0
 fi
+if [ -f "$SCRIPT_DIR/otel_span.sh" ]; then
+  # shellcheck disable=SC1091
+  . "$SCRIPT_DIR/otel_span.sh"
+  otel_span_begin "integrate-lane" \
+    "deanery.lane_id=integrate-${SLUG}" \
+    "deanery.job_id=integrate-${SLUG}" \
+    "deanery.parent_lane=${DEANERY_PARENT_LANE:-}" \
+    deanery.task_class=integrate \
+    deanery.route=cloud \
+    deanery.iteration=0 \
+    llm.provider=xai \
+    llm.model_name=grok
+  trap 'otel_lane_trap' EXIT
+fi
 
 MARK_DIR="$ROOT/tmp/integrate"
 MARKER="$MARK_DIR/${SLUG}.dispatched"
@@ -246,11 +260,33 @@ run_grok() {
   local prompt="$2"
   local log="$MARK_DIR/${SLUG}-${label}.log"
   local try=1
+  local rc=0
   while [ "$try" -le 3 ]; do
-    if (
+    if declare -F otel_span_begin >/dev/null 2>&1; then
+      otel_span_begin "grok-${label}" kind=AGENT \
+        "deanery.lane_id=integrate-${SLUG}" \
+        "deanery.job_id=integrate-${SLUG}" \
+        "deanery.parent_lane=${DEANERY_PARENT_LANE:-}" \
+        deanery.task_class=integrate \
+        deanery.route=cloud \
+        "deanery.iteration=${try}" \
+        llm.provider=xai \
+        llm.model_name=grok
+    fi
+    set +e
+    (
       cd "$WT"
       run_checked bash "$SCRIPT_DIR/model_lock.sh" "${PFY_GROK_BIN:-grok}" --always-approve --output-format plain --prompt-file "$prompt"
-    ) >"$log" 2>&1; then
+    ) >"$log" 2>&1
+    rc=$?
+    set -e
+    if declare -F otel_ingest_bg >/dev/null 2>&1; then
+      otel_ingest_bg "$log" || true
+    fi
+    if declare -F otel_span_end >/dev/null 2>&1; then
+      otel_span_end "$rc" || true
+    fi
+    if [ "$rc" -eq 0 ]; then
       progress "$SLUG grok $label ok"
       return 0
     fi

@@ -129,6 +129,25 @@ def _scrub(env: dict, **extra: str) -> dict[str, str]:
     return out
 
 
+def _llm_child(model, provider, base, name, env, cmd, timeout, cwd=None):
+    """One LLM span around one child. An import failure still runs the child once."""
+    try:
+        from pfylib.otel import child_env as trace_env
+        from pfylib.otel import llm_call, route_for
+
+        box = llm_call(model, provider, route_for(provider, base), name=name)
+    except Exception:
+        return _run_child(cmd, env, timeout, cwd=cwd)
+    with box:
+        try:
+            token = trace_env(env).get("TRACEPARENT")
+            if token:
+                env["TRACEPARENT"] = token
+        except Exception:
+            pass
+        return _run_child(cmd, env, timeout, cwd=cwd)
+
+
 def _run_child(
     cmd: list[str], env: dict, timeout: float, cwd: Path | None = None
 ) -> tuple[int, str, str, bool]:
@@ -239,7 +258,9 @@ def run_opencode(prompt: str, env: dict, root: Path, timeout: float, base: str, 
     for key in ("HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_CACHE_HOME", "XDG_STATE_HOME"):
         Path(child_env[key]).mkdir(parents=True, exist_ok=True)
     cwd.mkdir(parents=True, exist_ok=True)
-    code, stdout, stderr, timed_out = _run_child(cmd, child_env, timeout, cwd=cwd)
+    code, stdout, stderr, timed_out = _llm_child(
+        model, "ollama", base, "opencode", child_env, cmd, timeout, cwd=cwd
+    )
     if timed_out:
         print("FAIL: timeout")
         print("  next: retry or raise PFY_BOT_TIMEOUT")
@@ -294,7 +315,9 @@ def run_hermes(prompt: str, env: dict, root: Path, timeout: float, base: str, re
         PYTHONNOUSERSITE="1",
         PYTHONDONTWRITEBYTECODE="1",
     )
-    code, stdout, stderr, timed_out = _run_child(cmd, child_env, timeout)
+    code, stdout, stderr, timed_out = _llm_child(
+        model, "ollama", base, "hermes", child_env, cmd, timeout
+    )
     if timed_out:
         print("FAIL: timeout")
         print("  next: retry or raise PFY_BOT_TIMEOUT")

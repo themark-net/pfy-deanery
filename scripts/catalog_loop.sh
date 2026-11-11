@@ -401,6 +401,12 @@ if [ "${PFY_LOOP_IN_WORKTREE:-}" != "1" ]; then
 fi
 
 # Inner tick. Parent holds STATE/loop.lock, or this process is already in the worktree.
+if [ -f "$SCRIPT_DIR/otel_span.sh" ]; then
+  # shellcheck disable=SC1091
+  . "$SCRIPT_DIR/otel_span.sh"
+  otel_tick_begin
+  trap 'otel_tick_finish' EXIT
+fi
 if [ -f "$STATE/STOP" ] || [ -f "$STATE/QUOTA_STOP" ]; then
   stop_files=()
   [ -f "$STATE/STOP" ] && stop_files+=("$STATE/STOP")
@@ -900,12 +906,18 @@ PY
     return 0
   fi
   printf '%s\n' "queued" > "$stamp"
+  lane_trace_env=()
+  if declare -F otel_launch_setenv >/dev/null 2>&1; then
+    otel_launch_setenv supersede recheck
+    lane_trace_env=("${OTEL_LAUNCH_ENV[@]+"${OTEL_LAUNCH_ENV[@]}"}")
+  fi
   if ! "$SYSTEMD_RUN" --user --collect --unit="pfy-lane-supersede-recheck" --property=Nice=10 \
     --setenv=PFY_LANE_FROM_LOOP=1 \
     --setenv=PFY_LOOP_STATE="$STATE" \
     --setenv=PFY_LOOP_REPO="$REPO" \
     --setenv=PFY_GROK_BIN="${PFY_GROK_BIN:-grok}" \
     "${lock_env[@]+"${lock_env[@]}"}" \
+    "${lane_trace_env[@]+"${lane_trace_env[@]}"}" \
     "$WT/scripts/supersede_recheck_lane.sh"; then
     fail "systemd-run failed for supersede recheck"
   fi
@@ -961,6 +973,11 @@ if [ "$SUPERSEDE_ACTION" = "continue" ] && [ "$DRY" -eq 0 ] && [ -f eval/catalog
     else
       launch_cmd=("$WT/scripts/eval_lane.sh" --slug "$slug" --root "$WT" --state "$STATE/eval")
     fi
+    lane_trace_env=()
+    if declare -F otel_launch_setenv >/dev/null 2>&1; then
+      otel_launch_setenv "$kind" "$slug"
+      lane_trace_env=("${OTEL_LAUNCH_ENV[@]+"${OTEL_LAUNCH_ENV[@]}"}")
+    fi
     if ! "$SYSTEMD_RUN" --user --collect --unit="$unit" --property=Nice=10 \
       --setenv=PFY_LANE_FROM_LOOP=1 \
       --setenv=PFY_LOOP_STATE="$STATE" \
@@ -968,6 +985,7 @@ if [ "$SUPERSEDE_ACTION" = "continue" ] && [ "$DRY" -eq 0 ] && [ -f eval/catalog
       --setenv=PFY_GROK_BIN="${PFY_GROK_BIN:-grok}" \
       "${lock_env[@]+"${lock_env[@]}"}" \
       "${sandbox_env[@]+"${sandbox_env[@]}"}" \
+      "${lane_trace_env[@]+"${lane_trace_env[@]}"}" \
       "${launch_cmd[@]}"; then
       fail "systemd-run failed for $slug"
     fi
