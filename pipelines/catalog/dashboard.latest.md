@@ -2,9 +2,9 @@
 
 Stage cards are the source of truth.
 
-Coverage: 136 tools registered.
+Coverage: 137 tools registered.
 
-Cards: 136. I2+: 22.
+Cards: 137. I2+: 23.
 
 ## Stage counts
 
@@ -12,7 +12,7 @@ Cards: 136. I2+: 22.
 |-------|------:|
 | I0 | 48 |
 | I1 | 66 |
-| I2 | 2 |
+| I2 | 3 |
 | I3 | 20 |
 
 ## Intent counts
@@ -20,7 +20,7 @@ Cards: 136. I2+: 22.
 | Intent | Count |
 |--------|------:|
 | (missing) | 4 |
-| ad_hoc_probe | 4 |
+| ad_hoc_probe | 5 |
 | adhoc_probe | 4 |
 | advisory_skill_scan | 1 |
 | awareness | 34 |
@@ -62,7 +62,7 @@ Cards: 136. I2+: 22.
 | non_goals | 2 |
 | next_gate | 2 |
 | evidence | 3 |
-| tier_ceiling | 6 |
+| tier_ceiling | 7 |
 
 ## Tools
 
@@ -196,6 +196,7 @@ Cards: 136. I2+: 22.
 | SmythOS Studio | I1 | reference |
 | Sponsio | I3 | adhoc_probe |
 | Squadra | I1 | staged_evaluation |
+| StarSling Skills | I2 | ad_hoc_probe |
 | Strata | I2 | local_probe_stayed_i2 |
 | SysKnife | I0 | awareness |
 | taste-skill | I3 | ad_hoc_probe |

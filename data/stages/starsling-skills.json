@@ -58,6 +58,54 @@
       "by": "rules",
       "date": "2026-11-10",
       "verdict": "eval/integrate/starsling-skills/VERDICT.json"
+    },
+    {
+      "kind": "ceiling",
+      "from": "",
+      "to": "I3",
+      "result": "raise",
+      "passed": [
+        "R-not-excluded",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable",
+        "R-modularity-gate",
+        "R-value-gate"
+      ],
+      "failed": [],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-10",
+      "verdict": "eval/integrate/starsling-skills/VERDICT.json"
+    }
+  ],
+  "tier_ceiling": "I3",
+  "ceiling_history": [
+    {
+      "from": "",
+      "to": "I3",
+      "by": "catalog_loop",
+      "date": "2026-11-10",
+      "reason": "rules passed for I3: R-not-excluded, HS-live-money, HS-release-deploy, HS-secrets, HS-runtime-takeover, HS-gpu-unapproved, HS-pull-over-25gb-unapproved, R-classifiable, R-modularity-gate, R-value-gate",
+      "evidence": [
+        "eval/integrate/starsling-skills/VERDICT.json"
+      ],
+      "rules": [
+        "R-not-excluded",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable",
+        "R-modularity-gate",
+        "R-value-gate"
+      ]
     }
   ]
 }
