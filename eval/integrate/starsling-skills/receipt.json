@@ -1,0 +1,11 @@
+{
+  "slug": "starsling-skills",
+  "run_kind": "pipeline",
+  "main_sha": "9f0019b42f01b0e05a288850577e482d823b0f59",
+  "run_id": "starsling-skills-9f0019b42f01-2026-11-11T05:10:13Z",
+  "started": "2026-11-11T05:10:13Z",
+  "finished": "2026-11-11T05:10:13Z",
+  "outcome": "ok",
+  "tool_version": "ci-score-v0.1.8",
+  "did": "Ran pinned ci-score collect_config.py on 9f0019b42f01b0e05a288850577e482d823b0f59. Score 88/100 (ci-score-v0.1.8). Scanned 6 workflows. Workflows unchanged. ci-speedup was not run."
+}
