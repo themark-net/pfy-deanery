@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.85,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The tool is explicitly marked with 'potential: low' and its next gate requires conditions (false injection findings gone) that suggest it is not yet a stable or necessary component. It serves as a report-only SAST probe which does not fill a critical unique gap in the local-first catalog compared to existing standard tools, and a safe default exists for diff scanning without installing this specific low-potential agent.",
+  "slug": "agentgg",
+  "verdict": "skip_install"
+}

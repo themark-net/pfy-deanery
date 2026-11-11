@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.85,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The tool's potential is explicitly rated 'low' and its next gate requires re-opening only if specific future conditions are met. It copies Grok sessions to local JSONL, a function that can be achieved via safe defaults or manual scripts without installing this specific agent. The non-goals list excludes critical integration points (grok_hooks, skills), limiting its utility as a standalone catalog item. It does not fill a unique gap with low blast radius; rather, it is an optional, low-potential utility.",
+  "slug": "agent-beacon",
+  "verdict": "skip_install"
+}

@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The subject explicitly states 'No install' and identifies no gap that beats the existing Grok plus cage solution. It is optional with a safe default (Grok) and lacks unique value for the catalog.",
+  "slug": "agenc",
+  "verdict": "skip_install"
+}

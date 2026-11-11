@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The subject explicitly states 'Not a Feature GO' and identifies critical blockers (rootless restore refusal, cache pin issues) that prevent it from filling a reliable gap. The potential is rated 'low', and the next gate advises against starting an install or trial lane due to these unresolved runtime constraints.",
+  "slug": "agent-substrate",
+  "verdict": "skip_install"
+}

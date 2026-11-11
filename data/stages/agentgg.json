@@ -73,6 +73,34 @@
       "rules": "data/promotion-rules.json@v1",
       "by": "rules",
       "date": "2026-11-11"
+    },
+    {
+      "kind": "ceiling",
+      "from": "I1",
+      "to": "I2",
+      "result": "refuse",
+      "passed": [
+        "R-not-excluded",
+        "HS-live-money",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable"
+      ],
+      "failed": [
+        {
+          "rule": "HS-release-deploy",
+          "detail": "card text names a release or deploy"
+        },
+        {
+          "rule": "R-catalog-fit",
+          "detail": "catalog-fit skip_install caps I1"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-11"
     }
   ]
 }
