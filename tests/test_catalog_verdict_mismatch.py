@@ -5,7 +5,10 @@ stays at I3 while the report names it. A Bumblebee-shaped card stays at I2
 while tier_ceiling I1 is named. An operator path at I3 without a main-run
 receipt is flagged with missing-main-receipt and is not demoted.
 The same cards produce the same report on a second run.
-The worktree scan names SkillSpector and Bumblebee and leaves their cards.
+The worktree scan names SkillSpector, not Bumblebee, and leaves both cards.
+The real cards' stages are read from the card and its promotion_history
+(the last stage promote or demote), not hard-coded, so a promotion by the
+rules (data/promotion-rules.json) does not break this test.
 """
 from __future__ import annotations
 
@@ -30,6 +33,14 @@ def _card(name: str, stage: str, evidence: list[str], tier: str, self_pipeline=N
         "uses": "Notes only.",
         "features": ["receipt"],
     }
+
+
+def _rules_stage(card: dict) -> str:
+    """Stage the rules last wrote: the last stage promote/demote "to", else integration_stage."""
+    for entry in reversed(card.get("promotion_history") or []):
+        if entry.get("kind") == "stage" and entry.get("result") in ("promote", "demote") and entry.get("to"):
+            return entry["to"]
+    return card["integration_stage"]
 
 
 class VerdictMismatchScanTest(unittest.TestCase):
@@ -109,8 +120,12 @@ class VerdictMismatchScanTest(unittest.TestCase):
         bumble = ROOT / "data" / "stages" / "bumblebee.json"
         before_skill = skill.read_bytes()
         before_bumble = bumble.read_bytes()
-        self.assertEqual(json.loads(before_skill)["integration_stage"], "I3")
-        self.assertEqual(json.loads(before_bumble)["integration_stage"], "I2")
+        skill_card = json.loads(before_skill)
+        bumble_card = json.loads(before_bumble)
+        skill_stage = skill_card["integration_stage"]
+        # The card holds the stage its rule ledger last wrote.
+        self.assertEqual(skill_stage, _rules_stage(skill_card))
+        self.assertEqual(bumble_card["integration_stage"], _rules_stage(bumble_card))
         with tempfile.TemporaryDirectory() as tmp:
             report = Path(tmp) / "CEILING-MISMATCHES.md"
             proc = subprocess.run(
@@ -121,13 +136,13 @@ class VerdictMismatchScanTest(unittest.TestCase):
             text = report.read_text(encoding="utf-8")
             head, _, _tail = text.partition("## Intent")
             skill_line = next(line for line in head.splitlines() if line.startswith("| SkillSpector |"))
-            self.assertIn("| I3 |", skill_line)
+            self.assertIn("| %s |" % skill_stage, skill_line)
             self.assertIn("| I1 |", skill_line)
             self.assertIn("missing-main-receipt", skill_line)
-            # Operator decision 2026-11-10: Bumblebee's ceiling is I3. As a
-            # security tool it is allowed I2 until the full gate, and it is at
-            # I2, so it is no longer a mismatch.
-            self.assertEqual(json.loads(before_bumble)["tier_ceiling"], "I3")
+            # Operator decision 2026-11-10: Bumblebee's ceiling is I3, and the
+            # rules moved it there with a main-run receipt, so whatever stage
+            # its ledger holds is backed and it is not a mismatch.
+            self.assertEqual(bumble_card["tier_ceiling"], "I3")
             self.assertFalse(any(line.startswith("| Bumblebee |") for line in head.splitlines()))
         self.assertEqual(skill.read_bytes(), before_skill)
         self.assertEqual(bumble.read_bytes(), before_bumble)
