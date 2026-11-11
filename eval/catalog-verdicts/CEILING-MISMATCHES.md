@@ -23,7 +23,7 @@ Scanned 137 cards. Mismatches 9.
 
 | Tool | Stage | Evidence ceiling | Tier ceiling | Allowed | Why |
 | --- | --- | --- | --- | --- | --- |
-| Antigravity-Manager | I1 | I1 | I0 | I0 | evidence I1: notes; tier_ceiling I0 caps the evidence; R-tier-ceiling: tier_ceiling I0 caps I1 |
+| Antigravity-Manager | I1 | I1 | I0 | I0 | evidence I1: notes, VERDICT; tier_ceiling I0 caps the evidence; R-tier-ceiling: tier_ceiling I0 caps I1 |
 | Grok CLI bootstrap | I3 | I2 | I3 | I2 | evidence I2: make target, repo path; tier_ceiling I3 does not raise it; R-main-receipt: missing-main-receipt |
 | MLX + MLX-LM | I1 | I0 | I1 | I0 | evidence I0: no evidence listed; tier_ceiling I1 does not raise it; R-evidence: evidence I0: no evidence listed |
 | SkillSpector | I3 | I1 | I3 | I1 | evidence I1: entry, notes, pin, scan summary, report; tier_ceiling I3 does not raise it; R-evidence: evidence I1: entry, notes, pin, scan summary, report; R-main-receipt: missing-main-receipt; S-sandlock-trial-clean: no eval/integrate/skillspector/sandbox-trial.json; S-profile-readonly: no eval/integrate/skillspector/sandbox-trial.json; S-wiring: card has no wiring |

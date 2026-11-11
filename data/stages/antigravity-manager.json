@@ -28,7 +28,8 @@
     "skip_install"
   ],
   "evidence": [
-    "notes_doc:docs/ops/antigravity-catalog-posture.md"
+    "notes_doc:docs/ops/antigravity-catalog-posture.md",
+    "eval/integrate/antigravity-manager/VERDICT.json"
   ],
   "tier_ceiling": "I0",
   "uses": "Account-pool proxy. LiteLLM plus keys is the default.",
@@ -36,7 +37,7 @@
     "account pool"
   ],
   "potential": "low",
-  "next_gate": "Stay skip-install.",
+  "next_gate": "Closed 2026-11-11: skip-install. LiteLLM with our own keys already covers account/key pooling; no install. Listed in eval/catalog-queue/exclusions.tsv, so the loop never queues or launches it.",
   "handoff_by": "llm",
   "risk_class": "secrets",
   "promotion_history": [
@@ -71,6 +72,24 @@
       "rules": "data/promotion-rules.json@v1",
       "by": "rules",
       "date": "2026-11-10"
+    },
+    {
+      "kind": "decision",
+      "from": "I1",
+      "to": "I1",
+      "result": "close",
+      "passed": [],
+      "failed": [],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "operator",
+      "date": "2026-11-11",
+      "note": "skip-install: LiteLLM with our own keys already covers account/key pooling; no install."
     }
-  ]
+  ],
+  "decision": {
+    "result": "skip-install",
+    "reason": "LiteLLM with our own keys already covers account/key pooling; no install.",
+    "date": "2026-11-11",
+    "by": "operator"
+  }
 }

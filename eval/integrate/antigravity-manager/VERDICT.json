@@ -1,0 +1,12 @@
+{
+  "metric": "install decision",
+  "threshold": 1,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I1",
+  "decision": "skip-install",
+  "reason": "LiteLLM with our own keys already covers account/key pooling; no install.",
+  "date": "2026-11-11",
+  "by": "operator"
+}
