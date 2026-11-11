@@ -1,19 +1,23 @@
 {
   "name": "magpie",
-  "integration_stage": "I0",
+  "integration_stage": "I1",
   "intent": "awareness",
   "entry": "sources/entries/163-magpie.md",
   "github": "https://github.com/yetone/magpie",
   "uses": "One gateway config for every agent.",
   "potential": "low",
-  "next_gate": "Rewrites agent configs; needs the operator GO. After Strata.",
+  "next_gate": "Stay I1. A real install is a hard stop (HS-runtime-takeover): it rewrites every agent's config and leaves residue on uninstall. The sandboxed eval with a throwaway HOME is done; LiteLLM covers the gateway.",
   "tier_ceiling": "I1",
   "non_goals": [
     "feature_go",
     "catalog_hold_70_75"
   ],
   "evidence": [
-    "entry:sources/entries/163-magpie.md"
+    "entry:sources/entries/163-magpie.md",
+    "pin:a6d84e13a9eeb7cdc07cc97fd2aa777d7690f0ad",
+    "eval/integrate/magpie/sandbox-trial.json",
+    "eval/integrate/magpie/VERDICT.json",
+    "ops:eval/magpie-1111/REPORT.md"
   ],
   "handoff_by": "llm",
   "risk_class": "runtime-takeover",
@@ -49,6 +53,60 @@
       "rules": "data/promotion-rules.json@v1",
       "by": "rules",
       "date": "2026-11-10"
+    },
+    {
+      "kind": "stage",
+      "from": "I0",
+      "to": "I1",
+      "result": "promote",
+      "passed": [
+        "R-not-excluded",
+        "R-evidence",
+        "R-tier-ceiling"
+      ],
+      "failed": [],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-11",
+      "verdict": "eval/integrate/magpie/VERDICT.json"
+    },
+    {
+      "kind": "stage",
+      "from": "I1",
+      "to": "I2",
+      "result": "refuse",
+      "passed": [
+        "R-not-excluded",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved"
+      ],
+      "failed": [
+        {
+          "rule": "R-evidence",
+          "detail": "evidence I1: entry, pin, other, VERDICT, report"
+        },
+        {
+          "rule": "R-tier-ceiling",
+          "detail": "tier_ceiling I1 caps I2"
+        },
+        {
+          "rule": "HS-runtime-takeover",
+          "detail": "risk_class runtime-takeover"
+        },
+        {
+          "rule": "R-modularity-gate",
+          "detail": "modularity_gate fail"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-11",
+      "verdict": "eval/integrate/magpie/VERDICT.json",
+      "note": "scored after the sandboxed eval: I2 is not reachable; a real install stays a hard stop"
     }
-  ]
+  ],
+  "hard_stop_scope": "real install only; the sandbox eval is done (2026-11-11, eval/integrate/magpie/sandbox-trial.json)"
 }

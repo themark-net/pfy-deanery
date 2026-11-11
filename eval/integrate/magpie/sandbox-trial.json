@@ -1,0 +1,47 @@
+{
+  "slug": "magpie",
+  "run_kind": "sandbox-trial",
+  "sandbox": "sandlock",
+  "wrapper": "scripts/integrations/sandlock/trial.py (wrap.py --action run, PFY_SANDLOCK=all, SANDLOCK_BIN=confine.py)",
+  "started": "2026-11-11T17:50:39Z",
+  "finished": "2026-11-11T17:51:02Z",
+  "command": [
+    "python3",
+    "./eval/integrate/magpie/sandbox-trial.py",
+    "./tmp/magpie/bin/magpie",
+    "./tmp/sandlock-trial/magpie/stage"
+  ],
+  "exit_code": 0,
+  "unsandboxed_lines": 0,
+  "profile": {
+    "sandbox": "sandlock",
+    "reads": [
+      "/usr",
+      "/lib",
+      "/lib64",
+      "/bin",
+      "/etc",
+      "/usr/bin",
+      "./tmp/sandlock-trial/magpie/stage",
+      "./tmp/magpie/bin",
+      "./eval/integrate/magpie",
+      "./tmp/sandlock-trial/magpie/wrap/started",
+      "/dev/null"
+    ],
+    "writes": [
+      "./tmp/sandlock-trial/magpie/wrap/started",
+      "./tmp/sandlock-trial/magpie/stage",
+      "/dev/null"
+    ],
+    "network": "deny",
+    "clean_env": true,
+    "sudo": false,
+    "timeout_sec": 120
+  },
+  "tool_version": "source a6d84e13 (go1.26.8, -tags nogui)",
+  "pin": "a6d84e13a9eeb7cdc07cc97fd2aa777d7690f0ad",
+  "did": "Built the magpie CLI from the pinned source and ran 18 commands in sandlock with a throwaway HOME seeded with placeholder agent configs: add a local provider (placeholder key), set Claude Code, Codex, OpenCode and Gemini CLI to it, accounts, autostart on/off, daemon install, library sync, web gateway for 8s, restore defaults, uninstall. Network denied. Traced from outside with strace.",
+  "scan_verdict": "OBSERVED",
+  "findings": 4,
+  "outcome": "ok"
+}
