@@ -177,11 +177,32 @@ else
   did="Ran pinned ci-score collect_config.py on ${main_sha}. Score ${score}/100 (${spec}). Workflows unchanged. ci-speedup was not run."
 fi
 
+# Private logs only. Drop the home prefix and em dashes before they
+# land in the ops checkout. The public receipt does not include these files.
 ops=$root/tmp/ops/eval/integrate/starsling-skills
 mkdir -p "$ops"
-cp "$work/findings.json" "$ops/ci-score-findings.json"
-cp "$work/collect.out" "$ops/ci-score.out"
-cp "$work/collect.err" "$ops/ci-score.err"
+export OPS_DIR=$ops
+export OPS_WORK=$work
+export OPS_HOME=${HOME:-}
+python3 - <<'PY'
+import os
+from pathlib import Path
+
+home = os.environ.get("OPS_HOME", "")
+src_dir = Path(os.environ["OPS_WORK"])
+dest_dir = Path(os.environ["OPS_DIR"])
+names = {
+    "findings.json": "ci-score-findings.json",
+    "collect.out": "ci-score.out",
+    "collect.err": "ci-score.err",
+}
+for src_name, dest_name in names.items():
+    text = (src_dir / src_name).read_text(encoding="utf-8", errors="replace")
+    if home and home != "/":
+        text = text.replace(home + "/", "$HOME/").replace(home, "$HOME")
+    text = text.replace("\u2014", "-").replace("\u2013", "-")
+    (dest_dir / dest_name).write_text(text, encoding="utf-8")
+PY
 
 dest_dir=$(dirname -- "$receipt")
 mkdir -p -- "$dest_dir"
