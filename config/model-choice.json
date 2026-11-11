@@ -1,0 +1,31 @@
+{
+  "schema": "model-choice.v1",
+  "note": "Committed defaults are local. Cloud is set only by the operator (setup, GUI, PFY_MODEL_<TASK>, or a cloud: prefix). User overrides live outside the repo.",
+  "tasks": {
+    "catalog-fit": {
+      "backend": "local",
+      "model": "qwen3.6:35b",
+      "fallback": "qwen2.5:14b"
+    },
+    "eval-lane": {
+      "backend": "local",
+      "model": "qwen2.5:14b"
+    },
+    "eval-suite": {
+      "backend": "local",
+      "model": "qwen2.5:14b"
+    },
+    "matrix": {
+      "backend": "local",
+      "model": "qwen2.5:14b"
+    },
+    "decision-route": {
+      "backend": "local",
+      "model": "qwen3.6:35b"
+    },
+    "build-lane": {
+      "backend": "local",
+      "model": "qwen3.6:35b"
+    }
+  }
+}

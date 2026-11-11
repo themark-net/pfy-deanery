@@ -16,7 +16,9 @@ not edit a stage card and does not pull a model.
   python3 scripts/catalog_fit_triage.py replay [--mock PATH] [--model NAME] [--out PATH]
 
 PFY_CATFIT_MOCK is a JSON object mapping slug to a response object (or a raw
-string). PFY_CATFIT_MODEL overrides the default qwen3.6:35b. When that
+string). The model comes from pfylib.model_choice (config/model-choice.json,
+the saved operator choice, PFY_MODEL_CATALOG_FIT; PFY_CATFIT_MODEL is an
+alias) and defaults to qwen3.6:35b. When that
 variable is unset, a missing tag or a generate load error retries once with
 qwen2.5:14b (PFY_CATFIT_FALLBACK_MODEL). The host defaults to
 http://127.0.0.1:11434 (PFY_CATFIT_HOST, else OLLAMA_HOST). --write stores
@@ -82,9 +84,20 @@ class ModelLoadError(FitBroken):
     """This model did not load. A fallback may retry once."""
 
 
+def _resolved() -> tuple[str, str, str]:
+    """(backend, model, source) from pfylib.model_choice. PFY_CATFIT_MODEL is an alias."""
+    from pfylib.model_choice import resolve
+    return resolve("catalog-fit")
+
+
 def default_model() -> str:
-    raw = (os.environ.get("PFY_CATFIT_MODEL") or DEFAULT_MODEL).strip()
-    return raw or DEFAULT_MODEL
+    _backend, model, _source = _resolved()
+    return model or DEFAULT_MODEL
+
+
+def cloud_selected() -> bool:
+    """True only when the operator explicitly set catalog-fit to cloud."""
+    return _resolved()[0] == "cloud"
 
 
 def fallback_model() -> str:
@@ -93,8 +106,8 @@ def fallback_model() -> str:
 
 
 def operator_set_model() -> bool:
-    """True when the operator named a model. Fallback stays off."""
-    return bool((os.environ.get("PFY_CATFIT_MODEL") or "").strip())
+    """True when the operator named a model (env, alias, or saved choice). Fallback stays off."""
+    return _resolved()[2] in ("env", "alias", "user")
 
 
 def call_timeout() -> float:
@@ -373,7 +386,20 @@ def default_model_installed(model: str, *, host: str) -> bool:
 
 
 def default_call_model(prompt: str, *, model: str, host: str) -> str:
-    """POST /api/generate. Does not pull a model."""
+    """POST /api/generate. Does not pull a model.
+
+    When the operator set catalog-fit to cloud, the call goes through
+    pfylib.model_choice (LiteLLM proxy, own keys) instead.
+    """
+    if cloud_selected():
+        from pfylib.model_choice import ModelCallError, call_model as mc_call
+        try:
+            text, _usage = mc_call(prompt, task="catalog-fit", model="cloud:" + model)
+        except ModelCallError as exc:
+            raise FitBroken(str(exc)) from exc
+        if not isinstance(text, str) or not text.strip():
+            raise FitBroken("litellm response missing")
+        return text
     url = host.rstrip("/") + "/api/generate"
     body = json.dumps({
         "model": model,
@@ -433,7 +459,7 @@ def _call_or_broken(prompt: str, model: str, host: str) -> str:
 def _resolve_text(prompt: str, model_name: str, host_name: str, *, allow_fallback: bool) -> tuple[str, str, str | None]:
     """Return response text, the model that produced it, and fallback_from."""
     fb = fallback_model()
-    if not allow_fallback or not fb or fb == model_name:
+    if not allow_fallback or not fb or fb == model_name or cloud_selected():
         return _call_or_broken(prompt, model_name, host_name), model_name, None
     reason = ""
     try:

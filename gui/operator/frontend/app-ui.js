@@ -254,6 +254,7 @@ async function tick(){
       }
     }
     paintToolRow(s);
+    refreshTaskModels();
     paintCatalogRows(s);
     paintWizard(s);
     const tape=s.tape||[];
@@ -282,6 +283,77 @@ async function tick(){
     paintAttach();
   }
 }
+let taskModelStamp='';
+let compareOffer=null;
+async function postModelChoice(task, spec){
+  if(noLiveApi()) return {ok:false, error:'FAIL no board'};
+  try{
+    const r=await fetch(apiRoot()+'/model-choice',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({task, spec})});
+    try{return await r.json();}catch(e){return {ok:false, error:String(e)};}
+  }catch(e){return {ok:false, error:String(e)};}
+}
+async function postCompare(body){
+  if(noLiveApi()) return {ok:false, error:'FAIL no board', line:'FAIL no board'};
+  try{
+    const r=await fetch(apiRoot()+'/model-choice/compare',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    try{return await r.json();}catch(e){return {ok:false, error:String(e)};}
+  }catch(e){return {ok:false, error:String(e)};}
+}
+function bindTaskModel(box){
+  box.querySelectorAll('[data-spec]').forEach(el=>{
+    el.addEventListener('click', async ()=>{
+      const res=await postModelChoice(el.getAttribute('data-task')||'', el.getAttribute('data-spec')||'');
+      const msg=document.querySelector('.js-compare-msg');
+      if(msg && res && res.error) msg.textContent=res.error;
+      taskModelStamp='';
+      await refreshTaskModels();
+    });
+  });
+  box.querySelectorAll('select.task-model').forEach(sel=>{
+    sel.addEventListener('change', async ()=>{
+      const res=await postModelChoice(sel.getAttribute('data-task')||'', sel.value||'');
+      const msg=document.querySelector('.js-compare-msg');
+      if(msg && res && res.error) msg.textContent=res.error;
+      taskModelStamp='';
+      await refreshTaskModels();
+    });
+  });
+}
+async function refreshTaskModels(){
+  if(noLiveApi()) return;
+  try{
+    const r=await fetch(apiRoot()+'/model-choice',{cache:'no-store'});
+    const j=await r.json();
+    const stamp=j.html||'';
+    if(stamp===taskModelStamp) return;
+    taskModelStamp=stamp;
+    document.querySelectorAll('.task-models').forEach(box=>{
+      box.innerHTML=stamp;
+      bindTaskModel(box);
+    });
+  }catch(e){}
+}
+function paintCompare(text){
+  document.querySelectorAll('.js-compare-msg').forEach(el=>{el.textContent=text||'';});
+}
+document.querySelectorAll('.js-compare-fit').forEach(btn=>{
+  btn.addEventListener('click', async ()=>{
+    paintCompare('checking cost…');
+    const j=await postCompare({task:'catalog-fit', against:'grok-4.7', confirm:false});
+    compareOffer=j;
+    paintCompare((j&&j.line)||(j&&j.error)||'FAIL compare');
+    document.querySelectorAll('.js-compare-run').forEach(run=>{run.hidden=!(j&&j.needs_confirm);});
+  });
+});
+document.querySelectorAll('.js-compare-run').forEach(btn=>{
+  btn.addEventListener('click', async ()=>{
+    if(!compareOffer) return;
+    const j=await postCompare({task:'catalog-fit', against:compareOffer.against||'grok-4.7', confirm:true, max_usd:compareOffer.cost_usd});
+    compareOffer=null;
+    document.querySelectorAll('.js-compare-run').forEach(run=>{run.hidden=true;});
+    paintCompare(j.ran?('wrote '+(j.out||'')):(j.error||j.blocked||j.line||'not run'));
+  });
+});
 tick(); setInterval(tick, REFRESH);
 
 document.getElementById('btngabsync')&&document.getElementById('btngabsync').addEventListener('click',async()=>{

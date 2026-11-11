@@ -240,6 +240,10 @@ pfy — simple setup & launch for the pfy-deanery stack
                           orchestration starts multi-step local loops (#213)
                           code-graph hands Axon or equivalent (#215)
   pfy models [list]       list FreeToken-first live engine models (inspect-only)
+  pfy models show|set     per-task local/cloud model (same as pfy model-choice)
+  pfy model-choice show|set <task> <backend:model>
+  pfy compare <task> --against <model> [--last|--run PATH] [--yes --max-usd N]
+                          print the cost, then run only after y or --yes --max-usd
   pfy models pull <name>  live engine (FreeToken records name; Ollama pulls; llama skip)
   pfy models recommend    ranked host-fit models not yet pulled (VRAM/RAM/runtime)
   pfy models try [name]   pull top (or named) recommendation — operate-or-FAIL
@@ -1023,6 +1027,7 @@ cmd_status() {
     printf "%-14s %-14s %-8s %s\n" "$id" "$live" "$role" "$name"
   done
   echo ""
+  python3 -c 'import sys; sys.path.insert(0, "'"$ROOT"'"); from pfylib.model_choice import print_compare_reminder; print_compare_reminder()' || true
   echo "next: pfy setup   |   pfy   |   pfy start grok   |   pfy harness list"
   echo "override: PFY_LOCAL_RUNTIME=freetoken|llama-swap|llama-server|ollama|shimmy"
 }
@@ -1030,6 +1035,9 @@ cmd_status() {
 cmd_setup() {
   local profile="${1:-balanced}"
   echo "==> pfy setup (profile=$profile)"
+  if [[ -t 0 ]]; then
+    python3 "$ROOT/pfylib/cli.py" model-choice prompt || true
+  fi
   (cd "$ROOT" && make env-init)
   if [[ -f "$ROOT/.env" ]]; then
     if grep -q '^DEPLOY_PROFILE=' "$ROOT/.env" 2>/dev/null; then
@@ -2260,7 +2268,7 @@ main() {
       local _pfy_route=0 _a
       for _a in "$@"; do
         case "$_a" in
-          --preset|--item|--harness|--dry-run|--yes|--json|--all-detected) _pfy_route=1 ;;
+          --preset|--item|--harness|--dry-run|--yes|--json|--all-detected|--model-choice) _pfy_route=1 ;;
         esac
       done
       if [[ "$_pfy_route" -eq 1 ]]; then
@@ -2328,14 +2336,29 @@ main() {
     models)
       local sub="${1:-list}"; shift || true
       case "$sub" in
+        show|set)
+          export PFY_ROOT="$ROOT"
+          exec python3 "$ROOT/pfylib/cli.py" model-choice "$sub" "$@"
+          ;;
         list|"") cmd_models_list ;;
         pull) cmd_models_pull "$@" ;;
         recommend) cmd_models_recommend "$@" ;;
         try) cmd_models_try "$@" ;;
         gab-sync|gab_sync) cmd_models_gab_sync "$@" ;;
         gab-pull|gab_pull) cmd_models_gab_pull "$@" ;;
-        *) die "models subcommands: list|pull|recommend|try|gab-sync|gab-pull" ;;
+        *) die "models subcommands: list|pull|recommend|try|gab-sync|gab-pull|show|set" ;;
       esac
+      ;;
+    model-choice)
+      export PFY_ROOT="$ROOT"
+      if [[ $# -eq 0 ]]; then
+        set -- show
+      fi
+      exec python3 "$ROOT/pfylib/cli.py" model-choice "$@"
+      ;;
+    compare)
+      export PFY_ROOT="$ROOT"
+      exec python3 "$ROOT/pfylib/cli.py" compare "$@"
       ;;
     catalog) cmd_catalog "$@" ;;
     launch) cmd_launch "$@" ;;

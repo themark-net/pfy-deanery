@@ -532,6 +532,10 @@ def _public_plan(file_ops: list[dict], delegates: list[dict], harnesses: list[st
 
 
 def cmd_setup(args) -> int:
+    from . import model_choice
+    model_choice_code = model_choice.setup_from_args(args)
+    if isinstance(model_choice_code, int) and model_choice_code != 0:
+        return model_choice_code
     dry = bool(getattr(args, "dry_run", False))
     yes = bool(getattr(args, "yes", False))
     if not dry and not yes and not sys.stdin.isatty():

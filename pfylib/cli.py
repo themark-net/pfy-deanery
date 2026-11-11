@@ -17,7 +17,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     __package__ = "pfylib"  # noqa: A001 -- PEP 366 so relative imports work when run by path
 
-from . import hedge, registry, setup, toolsets  # noqa: E402
+from . import hedge, model_choice, registry, setup, toolsets  # noqa: E402
 
 EXIT_READY, EXIT_FAIL, EXIT_USAGE, EXIT_STUB = 0, 1, 2, 3
 
@@ -203,6 +203,55 @@ def _setup_verb(args) -> int:
     return setup.cmd_setup(args)
 
 
+def _model_choice_show(args) -> int:
+    if args.json:
+        rows = []
+        for task in model_choice.TASK_ORDER:
+            backend, model, source = model_choice.resolve(task, root=args.root)
+            rows.append({"task": task, "backend": backend, "model": model, "source": source})
+        _emit({"tasks": rows}, True)
+        return EXIT_READY
+    print(model_choice.show_text(root=args.root))
+    return EXIT_READY
+
+
+def _model_choice_set(args) -> int:
+    spec = args.spec
+    if "=" not in spec:
+        spec = "%s=%s" % (args.task, spec)
+    task, backend, model = model_choice.apply_assignment(spec)
+    print("model-choice %s %s:%s" % (task, backend, model))
+    return EXIT_READY
+
+
+def _model_choice_prompt(args) -> int:
+    args.model_choice_prompt = True
+    code = model_choice.setup_from_args(args)
+    return EXIT_READY if code in (None, 0) else int(code)
+
+
+def _compare_verb(args) -> int:
+    try:
+        result = model_choice.run_compare(
+            args.task,
+            against=args.against,
+            run=args.run or None,
+            last=bool(args.last) or not args.run,
+            yes=bool(args.yes),
+            max_usd=args.max_usd,
+            accept_stale=bool(args.accept_stale_price),
+            out=args.out or None,
+            root=args.root,
+        )
+    except model_choice.UnknownModelPrice as exc:
+        print("UnknownModelPrice: %s" % exc, file=sys.stderr)
+        return EXIT_FAIL
+    except (model_choice.PriceCoverageError, model_choice.CompareBusy, model_choice.ModelCallError, ValueError) as exc:
+        print(str(exc), file=sys.stderr)
+        return EXIT_FAIL
+    return EXIT_READY if result.get("ok") else EXIT_FAIL
+
+
 def _doctor_verb(args) -> int:
     return setup.cmd_doctor(args)
 
@@ -283,7 +332,33 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--yes", action="store_true")
     sp.add_argument("--json", action="store_true")
     sp.add_argument("--all-detected", action="store_true")
+    sp.add_argument("--model-choice", action="append", default=None, help="task=backend:model (repeatable)")
     sp.set_defaults(fn=_setup_verb)
+
+    mc = verbs.add_parser("model-choice", help="show or set the per-task local/cloud model")
+    msub = mc.add_subparsers(dest="sub", required=True)
+    p = msub.add_parser("show", help="print each task class")
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=_model_choice_show)
+    p = msub.add_parser("set", help="set <task> <backend:model>")
+    p.add_argument("task")
+    p.add_argument("spec")
+    p.set_defaults(fn=_model_choice_set)
+    p = msub.add_parser("prompt", help="setup prompt (Enter keeps the current row)")
+    p.add_argument("--model-choice", action="append", default=None)
+    p.add_argument("--yes", action="store_true")
+    p.set_defaults(fn=_model_choice_prompt)
+
+    cp = verbs.add_parser("compare", help="cost-gated cross-model compare (catalog-fit)")
+    cp.add_argument("task")
+    cp.add_argument("--against", required=True)
+    cp.add_argument("--run", default="")
+    cp.add_argument("--last", action="store_true")
+    cp.add_argument("--yes", action="store_true")
+    cp.add_argument("--max-usd", type=float, default=None)
+    cp.add_argument("--accept-stale-price", action="store_true")
+    cp.add_argument("--out", default="")
+    cp.set_defaults(fn=_compare_verb)
 
     sp = verbs.add_parser("doctor", help="read-only install status (does not exec delegates)")
     sp.add_argument("--json", action="store_true")

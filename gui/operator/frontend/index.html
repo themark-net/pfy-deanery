@@ -105,6 +105,16 @@ noscript .fail{padding:16px;display:block}
         <div class="row why" id=hedge-cloud-meaning></div>
       </div>
     </div>
+    <div class=step>
+      <h3>Task model</h3>
+      <p class=why>Each task keeps the model already chosen. Cloud stays off until you set it on this row. Enter is not required: the current choice is selected.</p>
+    </div>
+    <div id=task-models class=task-models></div>
+    <div class=acts>
+      <button type=button class="primary js-compare-fit">Compare last local catalog-fit run</button>
+      <button type=button class="js-compare-run" hidden>Run it</button>
+    </div>
+    <p class="attach-result js-compare-msg"></p>
     <div class=route id=hedge-route>Checking where this session can run…</div>
     <div class=next id=hedge-next></div>
     <div class=row>this session <span id=hedge-copy class=live></span></div>
@@ -148,6 +158,16 @@ noscript .fail{padding:16px;display:block}
     <div class=row>live <span id=eng-live class=live>missing</span></div>
     <div class=row>grok <span id=eng-grok class=live>missing</span></div>
     <div class=row>models <span id=eng-models class=muted>(none)</span></div>
+    <div class=step>
+      <h3>Task model</h3>
+      <p class=why>Same choice as Loop. Local is this machine. Cloud is the LiteLLM proxy, and only after you pick it.</p>
+    </div>
+    <div id=task-models-engine class=task-models></div>
+    <div class=acts>
+      <button type=button class="primary js-compare-fit">Compare last local catalog-fit run</button>
+      <button type=button class="js-compare-run" hidden>Run it</button>
+    </div>
+    <p class="attach-result js-compare-msg"></p>
     <div class=row>tok_path <b id=eng-tok>SKIP</b></div>
     <div class=row>vram <b id=eng-vram>SKIP</b></div>
     <div class=row>recommend <span id=eng-reco class=muted>(none)</span></div>

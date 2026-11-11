@@ -1,0 +1,70 @@
+{
+  "schema": "model-prices.v1",
+  "unit": "USD per 1M tokens, standard tier, short context unless noted",
+  "stale_after_days": 45,
+  "models": {
+    "grok-4.7": {
+      "provider": "xAI",
+      "source": "https://docs.x.ai/docs/models",
+      "fetched": "2026-11-11",
+      "in": 2.0,
+      "out": 6.0,
+      "cached_in": 0.5,
+      "long_context": {
+        "min_prompt_tokens": 200000,
+        "in": 4.0,
+        "out": 12.0
+      }
+    },
+    "grok-4.3": {
+      "provider": "xAI",
+      "source": "https://docs.x.ai/docs/models",
+      "fetched": "2026-11-11",
+      "in": 1.25,
+      "out": 2.5
+    },
+    "grok-build-0.1": {
+      "provider": "xAI",
+      "source": "https://docs.x.ai/docs/models",
+      "fetched": "2026-11-11",
+      "in": 1.0,
+      "out": 2.0
+    },
+    "gpt-6.1-sol": {
+      "provider": "OpenAI",
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "fetched": "2026-11-11",
+      "in": 2.0,
+      "out": 10.0
+    },
+    "gpt-6.1-terra": {
+      "provider": "OpenAI",
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "fetched": "2026-11-11",
+      "in": 1.0,
+      "out": 5.0
+    },
+    "gpt-6-luna": {
+      "provider": "OpenAI",
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "fetched": "2026-11-11",
+      "in": 0.1,
+      "out": 0.5
+    },
+    "gpt-5.4-mini": {
+      "provider": "OpenAI",
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "fetched": "2026-11-11",
+      "in": 0.75,
+      "out": 4.5,
+      "short_context_max_input_tokens": 272000
+    },
+    "ollama:*": {
+      "provider": "Local",
+      "source": "local",
+      "fetched": "2026-11-11",
+      "in": 0.0,
+      "out": 0.0
+    }
+  }
+}

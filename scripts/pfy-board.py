@@ -18,6 +18,8 @@ POST /wizard composes Loop launch wizard steps (#225). Decision toggle is wizard
 POST /launch Launch session: enterable TUI with composed env or FAIL+next (#225/#224). Applies enabled Loop modules first (pfylib.loop_paint).
 POST /module toggles a catalog toolset on Loop (stub modules cannot be enabled).
 POST /loop/task sets hedge task class bulk|interactive|hard.
+GET /model-choice and POST /model-choice read and set per-task model choice.
+POST /model-choice/compare is the cost gate from pfylib.model_choice.
 POST /decision/smoke operator-free CUA-S1-FORMS Choice (#230).
 POST /space-invaders runs session Space Invaders via Attach OpenCode (#155).
 """
@@ -2097,6 +2099,10 @@ class Handler(BaseHTTPRequestHandler):
         if asset:
             fp, ctype = asset
             self._send(200, fp.read_bytes(), ctype); return
+        if path == "/model-choice":
+            from pfylib.model_choice import gui_document
+            self._send(200, json.dumps(gui_document(root=ROOT, probe=True)).encode("utf-8"), "application/json; charset=utf-8")
+            return
         if path == "/snapshot":
             self._send(200, json.dumps(snapshot(), indent=2).encode("utf-8"), "application/json; charset=utf-8"); return
         if path == "/usage":
@@ -2337,6 +2343,30 @@ class Handler(BaseHTTPRequestHandler):
             opt_in = bool((body or {}).get("opt_in_huge"))
             result = gab_pull(tag, confirm_tight=confirm, opt_in_huge=opt_in)
             code = 200 if result.get("ok") else 400
+            self._send(code, json.dumps(result).encode("utf-8"), "application/json; charset=utf-8")
+            return
+        if path == "/model-choice":
+            length = int(self.headers.get("Content-Length") or 0)
+            raw = self.rfile.read(length) if length else b"{}"
+            try:
+                body = json.loads(raw.decode() or "{}")
+            except json.JSONDecodeError:
+                body = {}
+            from pfylib.model_choice import gui_set
+            result = gui_set(body, root=ROOT)
+            code = 200 if result.get("ok") else 400
+            self._send(code, json.dumps(result).encode("utf-8"), "application/json; charset=utf-8")
+            return
+        if path == "/model-choice/compare":
+            length = int(self.headers.get("Content-Length") or 0)
+            raw = self.rfile.read(length) if length else b"{}"
+            try:
+                body = json.loads(raw.decode() or "{}")
+            except json.JSONDecodeError:
+                body = {}
+            from pfylib.model_choice import gui_compare
+            result = gui_compare(body, root=ROOT)
+            code = 200 if result.get("ok") or result.get("needs_confirm") else 400
             self._send(code, json.dumps(result).encode("utf-8"), "application/json; charset=utf-8")
             return
         if path == "/gab/cloud":

@@ -1037,5 +1037,6 @@ export PFY_ORIGIN_MAIN
 PFY_ORIGIN_MAIN=$(git rev-parse origin/main 2>/dev/null || true)
 export PFY_ORIGIN_MAIN
 write_status "$status_name"
+python3 -c 'import sys; from pathlib import Path; sys.path.insert(0, str(Path("'"$SCRIPT_DIR"'").resolve().parent)); from pfylib.model_choice import print_compare_reminder; print_compare_reminder()' || true
 printf '%s\n' "status=${status_name}"
 exit 0

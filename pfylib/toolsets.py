@@ -300,6 +300,9 @@ def _plan_jev(t: dict, hid: str, lane: str, status: str, *, root_dir: Path | Non
         "PFY_JEV_CONF_GATE": "%.2f" % gate,
         "PFY_TOOLSET_BRIEF": str(brief_path),
     }
+    from .model_choice import resolve as resolve_model
+    chosen_backend, chosen_model, _chosen_source = resolve_model("decision-route", root=root_dir)
+    env["PFY_MODEL_DECISION_ROUTE"] = "%s:%s" % (chosen_backend, chosen_model)
     files: list[dict] = [{"path": str(brief_path), "mode": "write", "content": brief}]
     agents = st / "attach-agents.md"
     if hid == "grok":
