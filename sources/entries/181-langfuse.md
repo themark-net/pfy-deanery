@@ -2,7 +2,7 @@
 
 - **URL**: https://github.com/langfuse/langfuse (MIT, TypeScript). Core outside the ee directories is MIT Expat. The upstream LICENSE (read 2026-11-11) puts `ee/`, `web/src/ee/`, `worker/src/ee/`, and `packages/shared/src/server/ee/` under `ee/LICENSE`, a commercial enterprise license. The core runs without those modules.
 - **Date**: 2026-11-11
-- **Source / Poster**: founder request (Mark, chat 2026-11-11), considered next to Phoenix (Entry 180). Not an X post.
+- **Source / Poster**: operator request (chat 2026-11-11), considered next to Phoenix (Entry 180). Not an X post.
 - **Summary / Key Claims** (upstream README and LICENSE; their claims): open-core trace UI. Agent Graphs draws loops. LiteLLM has a native Langfuse callback. Self-host of the stack we would need is not a single process.
 - **Why it matters here**: it is the obvious other trace UI. Agent Graphs is closer to a lane picture than Phoenix's table of spans. We still pick Phoenix, and Deanery draws the thin lane-graph view itself.
 - **Fit on nimo**: no. A self-host that matches the documented stack wants Postgres, ClickHouse, Redis, and S3-compatible object storage (MinIO). That is too heavy for a sink on this machine. No install, no venv, no unit.

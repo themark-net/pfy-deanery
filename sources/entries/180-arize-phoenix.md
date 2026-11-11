@@ -2,7 +2,7 @@
 
 - **URL**: https://github.com/Arize-ai/phoenix (Elastic-2.0, Python). PyPI `arize-phoenix==21.0.0`. Pin file `config/phoenix/version.txt`.
 - **Date**: 2026-11-11
-- **Source / Poster**: founder request (Mark, chat 2026-11-11). Not an X post.
+- **Source / Poster**: operator request (chat 2026-11-11). Not an X post.
 - **Summary / Key Claims** (upstream docs plus the installed 21.0.0 tree; their product, our bind choices): one process serves a trace UI, OTLP/HTTP at `/v1/traces`, GraphQL at `/graphql`, and OTLP gRPC. Default store is SQLite under `PHOENIX_WORKING_DIR`. gRPC binds to `PHOENIX_HOST` (`phoenix/server/cli/commands/serve.py` passes `grpc_host=host`, and `host` is `get_env_host()`). `PHOENIX_ENABLE_MCP_SERVER=false` is accepted (`_bool_val` allows `true`/`false`; the default is true, so the unit sets false).
 - **Why it matters here**: local and cloud lanes need a trace store and a UI. Deanery builds only a thin lane-graph view on top of that store. Phoenix already is the store. Langfuse (Entry 181) draws agent graphs and has a LiteLLM callback, and its self-host is too heavy for nimo.
 - **Fit on nimo**: one process. SQLite under the pfy state dir (`PFY_STATE_DIR` or `~/.pfy-mentat`, same rule as `pfylib/registry.state_dir`). The operator's venv is about 446 MB under the tool cache (`python 3.13`, uv). Loopback only.

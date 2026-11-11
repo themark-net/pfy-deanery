@@ -54,6 +54,7 @@ docs/ops/one-shot-example-dods.md
 docs/ops/one-shot-workflow.md
 docs/ops/opencontext.md
 docs/ops/pfy-build-daily.md
+docs/ops/phoenix.md
 docs/ops/product-operator-surface.md
 docs/ops/promotion-rules.md
 docs/ops/recommend-models.md
