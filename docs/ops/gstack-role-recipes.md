@@ -12,9 +12,9 @@
 Think → Plan → Build → Review → Test → Ship → Reflect
 ```
 
-gstack implements that as many Claude Code slash skills (`/plan-ceo-review`, `/review`, `/qa`, `/ship`, `/cso`, …). **We do not vendor those skills.** We map the **roles and stage gates** onto **pfy-mentat** skills and process so Grok agents get the same discipline without a 20+ skill monorepo.
+gstack implements that as many Claude Code slash skills (`/plan-ceo-review`, `/review`, `/qa`, `/ship`, `/cso`, …). **We do not vendor those skills.** We map the **roles and stage gates** onto **pfy-deanery** skills and process so Grok agents get the same discipline without a 20+ skill monorepo.
 
-## Role → pfy-mentat mapping
+## Role → pfy-deanery mapping
 
 | Role (gstack spirit) | Upstream examples (do not install) | Use in this stack |
 |----------------------|------------------------------------|-------------------|
@@ -102,7 +102,7 @@ Role: retro.
 |--------|-----|
 | `git clone gstack` into this catalog | ADR-0003 / ADR-0009 — huge Claude-oriented tree |
 | Copy all 20+ slash skills into `bootstrap/grok-cli/skills/` | Not core; maintenance and surface area |
-| Require Bun/Claude Code for pfy-mentat bootstrap | Grok-first (ADR-0002) |
+| Require Bun/Claude Code for pfy-deanery bootstrap | Grok-first (ADR-0002) |
 | Treat Multica as gstack | Multica = board/teammates platform; gstack = role skill factory |
 
 ## Deeper port investigation (single skill)

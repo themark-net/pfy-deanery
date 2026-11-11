@@ -27,7 +27,7 @@ Before a new or changed pipeline, CI, or gate step, check the catalog for a tool
 - Commit secrets, API keys, or credentials
 - Create a second decision log outside `docs/adr/`
 
-## Skills (install via pfy-mentat bootstrap)
+## Skills (install via pfy-deanery bootstrap)
 
 - `/adr` — Architecture Decision Records
 - `/open-questions` / `/oq` — TBD parking lot
@@ -51,4 +51,4 @@ Think → Plan → Build → Review → Test → Ship → Reflect:
 | Ship | Feature branch → green → merge |
 | Reflect | Update TODO/OQ; heal docs |
 
-Full recipes live in the pfy-mentat catalog: `docs/ops/gstack-role-recipes.md`.
+Full recipes live in the pfy-deanery catalog: `docs/ops/gstack-role-recipes.md`.

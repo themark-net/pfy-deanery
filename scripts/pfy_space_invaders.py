@@ -96,7 +96,7 @@ canvas{background:#050814;border:1px solid #2a3550;image-rendering:pixelated}
 
 TASK_MD = """# Space Invaders (Attach OpenCode session)
 
-Cite: pfy-mentat #155
+Cite: pfy-deanery #155
 
 Goal: minimal playable Space Invaders under this folder (`index.html` canvas).
 When ready, print exactly: `SPACE_INVADERS_OK`

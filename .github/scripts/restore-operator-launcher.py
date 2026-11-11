@@ -5,7 +5,7 @@ import os
 import urllib.request
 
 MAIN = "22a2f2448f9565643ac1b62fa5f9c6026547eb1a"
-URL = f"https://raw.githubusercontent.com/themark-net/pfy-mentat/{MAIN}/scripts/pfy"
+URL = f"https://raw.githubusercontent.com/themark-net/pfy-deanery/{MAIN}/scripts/pfy"
 OLD_LAUNCH = (
     '    echo "native window (pywebview)"\n'
     '    echo "  one-liner: cd gui/operator/src-tauri && cargo build --release"\n'

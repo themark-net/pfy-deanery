@@ -15,7 +15,7 @@ Use this when starting a repo so you never re-specify the process by hand.
 ## Quick start (new project)
 
 ```bash
-# From a pfy-mentat checkout:
+# From a pfy-deanery checkout:
 mkdir -p ~/work/my-app && cd ~/work/my-app && git init
 
 /path/to/pfy-mentat/bootstrap/project-process/init.sh . \

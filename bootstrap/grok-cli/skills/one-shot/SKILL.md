@@ -34,7 +34,7 @@ Full rules: `docs/ops/one-shot-workflow.md` · ADR-0008.
 For non-default caps, multi-phase Finn structure, or explicit stop-condition design,
 use **`/agent-loops`** (exit card + 8 exits) then return here to execute.
 
-## Catalog smoke shortcuts (pfy-mentat)
+## Catalog smoke shortcuts (pfy-deanery)
 
 | Target | Proves |
 |--------|--------|

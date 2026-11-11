@@ -11,7 +11,7 @@ description: >
 argument-hint: "[plan | run | audit | exits] [optional goal]"
 ---
 
-# /agent-loops — Loop engineering for Grok (pfy-mentat)
+# /agent-loops — Loop engineering for Grok (pfy-deanery)
 
 **Iron Law: WRITE THE EXITS BEFORE YOU WRITE THE LOOP.**
 
@@ -78,7 +78,7 @@ Exit 8 may be `n/a` for pure local coding loops.
 Loop engineering answers: **what starts a run** and **what decides work is done**.
 Pick by task shape — not by “most autonomous.”
 
-| Type | Starts when | Done when | Best for | pfy-mentat default |
+| Type | Starts when | Done when | Best for | pfy-deanery default |
 |------|-------------|-----------|----------|--------------------|
 | **Turn-based** | User message | End of turn; human next prompt | Exploratory, requirements forming | Normal chat |
 | **Goal-based** | Goal + success criteria + budget | External check of criteria | Measurable outcomes | **`/one-shot`**, eval-harness, this skill `run` |
@@ -248,4 +248,4 @@ Status:          DONE | STOPPED_EXIT | BLOCKED | NEEDS_HUMAN
 - Finn-style spec/build/review + human gate (Entry 024)  
 - Rubric eval loop (Entry 032); generate→test→update (Entry 031)  
 - Eight exits taxonomy — @hanakoxbt (Entry 068)  
-Skill text owned first-party under pfy-mentat (T-0050).
+Skill text owned first-party under pfy-deanery (T-0050).

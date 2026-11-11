@@ -60,7 +60,7 @@ Modularity, if a later session copies or imports the repo: one Python package, e
 - Do not vendor `src/atg` or add a submodule in this change.
 - Do not claim pfy reproduced ALFWorld, WebShop, or a GPT-4 comparison.
 
-## Relationship to pfy-mentat
+## Relationship to pfy-deanery
 
 | Concern | Policy |
 |---------|--------|

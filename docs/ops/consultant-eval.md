@@ -20,8 +20,8 @@ Read this first if you are evaluating **code against documentation**. Docs below
 ## Operator loop (no tribal knowledge)
 
 ```bash
-git clone https://github.com/themark-net/pfy-mentat.git
-cd pfy-mentat
+git clone https://github.com/themark-net/pfy-deanery.git
+cd pfy-deanery
 ./pfy setup                 # or: ./pfy setup local-only
 ./pfy status                # live column is authority, not json "status"
 ./pfy                       # inference → env-stage → native operator window

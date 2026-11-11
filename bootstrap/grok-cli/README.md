@@ -2,7 +2,7 @@
 
 Replayable packaging of the **Grok CLI customizations** used with this catalog: portable agent skills, MCP code-memory wiring, and a safe config fragment.
 
-This is the first concrete integration under `pfy-mentat` — not another third-party tool row alone, but the **operator environment** that ties Grok CLI + MCP memory + agent process skills into a stack you can rebuild on a new machine.
+This is the first concrete integration under `pfy-deanery` — not another third-party tool row alone, but the **operator environment** that ties Grok CLI + MCP memory + agent process skills into a stack you can rebuild on a new machine.
 
 ## How this fits the repository
 
@@ -70,8 +70,8 @@ Runs the official [codebase-memory-mcp](https://github.com/DeusData/codebase-mem
 curl -fsSL https://x.ai/cli/install.sh | bash
 
 # 2. Clone this catalog
-git clone git@github.com:themark-net/pfy-mentat.git
-cd pfy-mentat
+git clone git@github.com:themark-net/pfy-deanery.git
+cd pfy-deanery
 
 # 3. Replay customizations
 ./bootstrap/grok-cli/install.sh --with-codebase-memory

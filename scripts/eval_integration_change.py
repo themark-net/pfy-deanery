@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Exo-inspired self-mod eval for catalog/skill/smoke ingestion (pfy-mentat).
+"""Exo-inspired self-mod eval for catalog/skill/smoke ingestion (pfy-deanery).
 
 Hard gates → adopt | soft-only → hold | hard fail → rollback.
 Writes pipelines/eval/integration-change.latest.{md,json}

@@ -23,7 +23,7 @@ Day-to-day: `./exo.sh` in the Exo checkout (often `~/exo/` or this repo root if 
 
 Detects `$ROOT/exo.sh`, `$HOME/exo/exo.sh`, or `exo.sh` on PATH. If present, execs that script and passes `LOCAL_OPENAI_BASE_URL` / `OPENAI_BASE_URL` when the local detector is ready. No invented Exo flags.
 
-If missing: `STUB harness: exo`, [issue #60](https://github.com/themark-net/pfy-mentat/issues/60), the setup one-liner above, exit 2.
+If missing: `STUB harness: exo`, [issue #60](https://github.com/themark-net/pfy-deanery/issues/60), the setup one-liner above, exit 2.
 
 `./pfy harness use exo` does **not** change `default_harness` (stays grok).
 

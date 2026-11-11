@@ -5,7 +5,7 @@ description: >
   multi-file ADRs (with rejected alternatives), central TODO, open questions,
   and AGENTS.md. Use when the user runs /project-process, /init-process,
   "scaffold process docs", "new project process", "bootstrap ADR TODO OQ",
-  or starts a greenfield repo and wants the pfy-mentat process standard.
+  or starts a greenfield repo and wants the pfy-deanery process standard.
 argument-hint: "[init|audit|refresh-skills] [path]"
 ---
 
@@ -38,7 +38,7 @@ Companion skills: `/adr`, `/open-questions`, `/docs` (from `bootstrap/grok-cli/s
 2. Prefer running the package script when available:
 
 ```bash
-# From pfy-mentat clone:
+# From pfy-deanery clone:
 ./bootstrap/project-process/init.sh <target> --name <name>
 # Optional:
 ./bootstrap/project-process/init.sh --install-skills

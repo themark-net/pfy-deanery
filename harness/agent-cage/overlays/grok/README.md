@@ -88,7 +88,7 @@ make cage-grok-ready         # smoke
 
 | Piece | Path |
 |-------|------|
-| Host catalog | git clone of pfy-mentat |
+| Host catalog | git clone of pfy-deanery |
 | Cage workspace tree | `~/.agentcage/workspace/pfy-mentat` ← `make cage-workspace-sync` |
 | In-container | `/workspace/pfy-mentat` |
 | MCP server | cage **mcp-host** `@modelcontextprotocol/server-filesystem` on **`/workspace`** |

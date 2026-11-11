@@ -8,8 +8,8 @@ Consultant map (real vs stub vs catalog): [consultant-eval.md](consultant-eval.m
 ## New machine (happy path)
 
 ```bash
-git clone https://github.com/themark-net/pfy-mentat.git
-cd pfy-mentat
+git clone https://github.com/themark-net/pfy-deanery.git
+cd pfy-deanery
 ./pfy setup                 # or: ./pfy setup local-only
 ./pfy status                # ready | partial | stub
 ./pfy                       # env-stage → native window (no engine daemon unless opted in)
@@ -113,19 +113,19 @@ Patterns may already exist as skills/docs; the unified installer path does not. 
 
 | Work | Issue |
 |------|------:|
-| Epic G8 | [#53](https://github.com/themark-net/pfy-mentat/issues/53) |
-| Ollama | [#54](https://github.com/themark-net/pfy-mentat/issues/54) |
-| OpenCode | [#55](https://github.com/themark-net/pfy-mentat/issues/55) |
-| Hermes | [#56](https://github.com/themark-net/pfy-mentat/issues/56) |
-| Claude Code | [#57](https://github.com/themark-net/pfy-mentat/issues/57) |
-| Codex | [#58](https://github.com/themark-net/pfy-mentat/issues/58) |
-| Gemini | [#59](https://github.com/themark-net/pfy-mentat/issues/59) |
-| Exo | [#60](https://github.com/themark-net/pfy-mentat/issues/60) |
-| Continue | [#61](https://github.com/themark-net/pfy-mentat/issues/61) |
-| agent-cage lab | [#62](https://github.com/themark-net/pfy-mentat/issues/62) |
-| llama-swap / llama-server start | [#104](https://github.com/themark-net/pfy-mentat/issues/104) |
-| board URL on start/up | [#106](https://github.com/themark-net/pfy-mentat/issues/106) |
-| native operator GUI | [#108](https://github.com/themark-net/pfy-mentat/issues/108) |
-| window always opens | [#114](https://github.com/themark-net/pfy-mentat/issues/114) |
-| FreeToken `ft serve` health wait | [#110](https://github.com/themark-net/pfy-mentat/issues/110) |
-| models pull live engine | [#112](https://github.com/themark-net/pfy-mentat/issues/112) |
+| Epic G8 | [#53](https://github.com/themark-net/pfy-deanery/issues/53) |
+| Ollama | [#54](https://github.com/themark-net/pfy-deanery/issues/54) |
+| OpenCode | [#55](https://github.com/themark-net/pfy-deanery/issues/55) |
+| Hermes | [#56](https://github.com/themark-net/pfy-deanery/issues/56) |
+| Claude Code | [#57](https://github.com/themark-net/pfy-deanery/issues/57) |
+| Codex | [#58](https://github.com/themark-net/pfy-deanery/issues/58) |
+| Gemini | [#59](https://github.com/themark-net/pfy-deanery/issues/59) |
+| Exo | [#60](https://github.com/themark-net/pfy-deanery/issues/60) |
+| Continue | [#61](https://github.com/themark-net/pfy-deanery/issues/61) |
+| agent-cage lab | [#62](https://github.com/themark-net/pfy-deanery/issues/62) |
+| llama-swap / llama-server start | [#104](https://github.com/themark-net/pfy-deanery/issues/104) |
+| board URL on start/up | [#106](https://github.com/themark-net/pfy-deanery/issues/106) |
+| native operator GUI | [#108](https://github.com/themark-net/pfy-deanery/issues/108) |
+| window always opens | [#114](https://github.com/themark-net/pfy-deanery/issues/114) |
+| FreeToken `ft serve` health wait | [#110](https://github.com/themark-net/pfy-deanery/issues/110) |
+| models pull live engine | [#112](https://github.com/themark-net/pfy-deanery/issues/112) |

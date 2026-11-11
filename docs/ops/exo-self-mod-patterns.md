@@ -1,4 +1,4 @@
-# Exo self-mod patterns (extract for pfy-mentat)
+# Exo self-mod patterns (extract for pfy-deanery)
 
 **Upstream:** [exoharness/exo](https://github.com/exoharness/exo)  
 **Pin:** `372602d1b553af06e9843e19f31fa8a7f749ab6e`  
@@ -41,7 +41,7 @@ From SELF-CONTROL “Mutation and Transparency”:
 3. **Named tools** — durable mutations go through schemas, not silent host file hacks  
 4. **Reversible by default** — disable/checkpoint > hard delete  
 
-## Map → pfy-mentat (safer, catalog-shaped)
+## Map → pfy-deanery (safer, catalog-shaped)
 
 | Exo idea | Our equivalent |
 |----------|----------------|
@@ -69,7 +69,7 @@ That is our portable “evaluate a change to ourselves (catalog/skills/smokes)�
 ## Non-goals
 
 - Replace Grok CLI / agent-cage with Exo  
-- Unattended `rebuild_and_restart` of pfy-mentat  
+- Unattended `rebuild_and_restart` of pfy-deanery  
 - Subtree-embed Exo  
 - Numeric RSI fitness function (upstream doesn’t have one either)
 

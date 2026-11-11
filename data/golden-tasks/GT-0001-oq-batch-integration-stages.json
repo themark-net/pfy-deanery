@@ -30,22 +30,22 @@
     },
     {
       "kind": "issue",
-      "ref": "https://github.com/themark-net/pfy-mentat/issues/17",
+      "ref": "https://github.com/themark-net/pfy-deanery/issues/17",
       "note": "OQ-0003 closed answered"
     },
     {
       "kind": "issue",
-      "ref": "https://github.com/themark-net/pfy-mentat/issues/18",
+      "ref": "https://github.com/themark-net/pfy-deanery/issues/18",
       "note": "OQ-0004 closed answered"
     },
     {
       "kind": "issue",
-      "ref": "https://github.com/themark-net/pfy-mentat/issues/19",
+      "ref": "https://github.com/themark-net/pfy-deanery/issues/19",
       "note": "OQ-0007 closed answered"
     },
     {
       "kind": "issue",
-      "ref": "https://github.com/themark-net/pfy-mentat/issues/30",
+      "ref": "https://github.com/themark-net/pfy-deanery/issues/30",
       "note": "ATG one-week reminder"
     }
   ],
@@ -59,6 +59,6 @@
     "data/golden-tasks/GT-0001-oq-batch-integration-stages.json exists"
   ],
   "source_session": "2026-07-30 Grok OQ batch walkthrough",
-  "replay_prompt": "You maintain themark-net/pfy-mentat. Operator wants pending open questions resolved interactively, then: wait on first subtree with an integration-stage rubric (staged eval + optional lightweight probe); ATG as submodule later with a one-week reminder; skip Antigravity and fix process so optional tools are not blocking OQs; allow model downloads within 250GB with golden-task eval from repo history. Produce the same class of docs and issue updates without inventing architecture outside ADRs.",
+  "replay_prompt": "You maintain themark-net/pfy-deanery. Operator wants pending open questions resolved interactively, then: wait on first subtree with an integration-stage rubric (staged eval + optional lightweight probe); ATG as submodule later with a one-week reminder; skip Antigravity and fix process so optional tools are not blocking OQs; allow model downloads within 250GB with golden-task eval from repo history. Produce the same class of docs and issue updates without inventing architecture outside ADRs.",
   "notes": "High-signal orchestration sample: multi-OQ resolution + process docs. Use for golden_replay lane when implemented."
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Live org queue from Tools -- cite #214.
 
-Queue for org creates a REAL GitHub issue on themark-net/pfy-mentat with
+Queue for org creates a REAL GitHub issue on themark-net/pfy-deanery with
 Design->DevBot DoD (operate-or-FAIL, no mock success). Refresh status via
 gh/api and paint open/closed/PR on Tools (or Loop). Honest SKIP/FAIL if
 auth/connector missing or entry HOLD. Do not auto-lift catalog 70-75.
@@ -25,14 +25,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ISSUE = "#214"
-REPO = "themark-net/pfy-mentat"
+REPO = "themark-net/pfy-deanery"
 ISSUE_API = "https://api.github.com/repos/%s/issues" % REPO
 REPO_API = "https://api.github.com/repos/%s" % REPO
 UA = "pfy-live-org-queue-214"
 DRAFT_FILE = "catalog-issue-draft.md"
 NEXT_HOLD = "catalog 70-75 HOLD (do not auto-lift)"
 NEXT_GH = (
-    "gh auth login && gh issue create --repo themark-net/pfy-mentat "
+    "gh auth login && gh issue create --repo themark-net/pfy-deanery "
     "(or GITHUB_TOKEN POST api.github.com) -- draft in "
     "$PFY_STATE_DIR/catalog-issue-draft.md"
 )
@@ -772,7 +772,7 @@ def cmd_selftest():
                         {
                             "name": "Grok CLI bootstrap",
                             "primary_category": "Pipeline & CI/CD Components",
-                            "github": "https://github.com/themark-net/pfy-mentat",
+                            "github": "https://github.com/themark-net/pfy-deanery",
                             "notes": "Primary operator env (ADR-0002).",
                             "integration_stage": "I3",
                         },

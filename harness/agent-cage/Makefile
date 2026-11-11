@@ -1,4 +1,4 @@
-# agent-cage harness wrapper for pfy-mentat
+# agent-cage harness wrapper for pfy-deanery
 # Multi-OS friendly entry (Linux / macOS / Windows-WSL).
 #
 # IMPORTANT:

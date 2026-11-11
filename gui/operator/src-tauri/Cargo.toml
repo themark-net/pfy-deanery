@@ -1,8 +1,8 @@
 [package]
 name = "pfy-operator"
 version = "0.1.0"
-description = "pfy-mentat native operator GUI (Tauri 2)"
-authors = ["pfy-mentat"]
+description = "pfy-deanery native operator GUI (Tauri 2)"
+authors = ["pfy-deanery"]
 edition = "2021"
 rust-version = "1.77"
 

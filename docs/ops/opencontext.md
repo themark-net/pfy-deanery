@@ -33,7 +33,7 @@ oc doc ls pfy-205-hello
 oc context manifest pfy-205-hello --limit 10 --format json
 ```
 
-`oc search --mode keyword` currently requires an embedding API key even in keyword mode (`@aicontextlab/cli` 0.2.2). `./pfy context` records that as SKIP and still PASSes on folder/doc ls + store keyword + manifest. Do **not** run `oc init` inside pfy-mentat (it rewrites `AGENTS.md`).
+`oc search --mode keyword` currently requires an embedding API key even in keyword mode (`@aicontextlab/cli` 0.2.2). `./pfy context` records that as SKIP and still PASSes on folder/doc ls + store keyword + manifest. Do **not** run `oc init` inside pfy-deanery (it rewrites `AGENTS.md`).
 
 ## Attach handoff (env / config / `./pfy`)
 

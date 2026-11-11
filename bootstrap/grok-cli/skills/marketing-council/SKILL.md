@@ -7,7 +7,7 @@ metadata:
 
 # Marketing Council
 
-> **pfy-mentat first-party port** (T-0011 / ADR-0009). Upstream: coreyhaines31/marketingskills · MIT.  
+> **pfy-deanery first-party port** (T-0011 / ADR-0009). Upstream: coreyhaines31/marketingskills · MIT.  
 > Prefer this council for multi-perspective marketing decisions; hand off execution to other skills.  
 > Process glue: after a strategic decision, record durable choices with `/adr` and park TBDs with `/open-questions`.
 
@@ -156,7 +156,7 @@ Users can extend the bench ("add my own advisor"). Create a dossier following th
 
 ## Related Skills
 
-- **/adr**, **/open-questions**, **/docs** (pfy-mentat process): persist decisions and docs after council synthesis
+- **/adr**, **/open-questions**, **/docs** (pfy-deanery process): persist decisions and docs after council synthesis
 
 - **positioning** / **product-marketing**: When Dunford's take wins — execute the positioning work
 - **offers** / **pricing**: When Hormozi/Halbert direction wins — build the offer

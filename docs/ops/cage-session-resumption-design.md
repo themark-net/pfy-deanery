@@ -70,7 +70,7 @@ Add **sessions volume** (directory mount) for persistence.
 
 | Field | Example |
 |-------|---------|
-| `repo_id` | `pfy-mentat` or slug of git remote + short hash |
+| `repo_id` | `pfy-deanery` or slug of git remote + short hash |
 | Stable cage path | `/workspace/repos/<repo_id>` **or** keep `/workspace/pfy-mentat` for catalog |
 | Host mirror | `~/.agentcage/workspace/<repo_id>` (already used) |
 
@@ -135,7 +135,7 @@ Inside TUI: `/resume` still works once sessions are on the persisted mount.
 3. `grok-resume` / `grok-sessions` Make targets.  
 4. Smoke: start session → down → up → `grok -c` sees prior summary.  
 5. Doc: update grok overlay README + one-shot DoD.  
-6. Optional: project file `.agentcage-repo.json` `{ "repo_id": "pfy-mentat", "cage_path": "/workspace/pfy-mentat" }`.
+6. Optional: project file `.agentcage-repo.json` `{ "repo_id": "pfy-deanery", "cage_path": "/workspace/pfy-mentat" }`.
 
 ### 9. Acceptance (T-0047 DoD)
 

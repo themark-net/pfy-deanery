@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "rule": "No reinvention. If a project does the full suite (track, catalog, evaluate, integrate, local-first) better than pfy-mentat, stop and adopt it. See docs/ops/supersede-watch.md.",
+  "rule": "No reinvention. If a project does the full suite (track, catalog, evaluate, integrate, local-first) better than pfy-deanery, stop and adopt it. See docs/ops/supersede-watch.md.",
   "parts": {
     "track": "Watches outside sources (X, GitHub, feeds) for new tools on its own.",
     "catalog": "Keeps one deduped catalog of tools with a record per tool.",

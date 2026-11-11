@@ -3,7 +3,7 @@
 **Status:** Accepted  
 **Date:** 2026-08-24  
 **Deciders:** CEO (org) · owner named the X engine  
-**Issue:** [#76](https://github.com/themark-net/pfy-mentat/issues/76) · PR [#77](https://github.com/themark-net/pfy-mentat/pull/77)
+**Issue:** [#76](https://github.com/themark-net/pfy-deanery/issues/76) · PR [#77](https://github.com/themark-net/pfy-deanery/pull/77)
 
 ## Context
 

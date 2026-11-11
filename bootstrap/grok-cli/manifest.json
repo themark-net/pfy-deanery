@@ -1,7 +1,7 @@
 {
   "name": "grok-cli-bootstrap",
   "version": "0.1.0",
-  "description": "Replayable Grok CLI customizations for the pfy-mentat stack: portable agent skills, MCP code memory, and config fragments.",
+  "description": "Replayable Grok CLI customizations for the pfy-deanery stack: portable agent skills, MCP code memory, and config fragments.",
   "last_updated": "2026-09-28",
   "fits_repo_goals": [
     "Grok CLI as primary interface",

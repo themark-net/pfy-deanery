@@ -6,7 +6,7 @@
 
 ## What we take
 
-| Pattern | Use in pfy-mentat |
+| Pattern | Use in pfy-deanery |
 |---------|-------------------|
 | **Named expert personas** with fixed jobs (CEO/critic/eng) | Role router in AGENTS.md; optional persona prompts in skills — not 14 concurrent agents by default |
 | **Shared consensus baton** (human-editable shared doc) | `docs/TODO.md` + OQ + short worksheets; avoid pure chat-only “agreement” |

@@ -1,12 +1,14 @@
-# pfy-mentat
+# pfy-deanery (Deanery)
 
-**pfy-mentat — Your PFY, a Mentat. It gets sent out, finds the tools, applies the standards, and reports back with receipts.**
+**pfy-deanery (Deanery) — Your PFY. It gets sent out, finds the tools, applies the standards, and reports back with receipts.**
 
-pfy-mentat is both a high-standard catalog of local LLM development tools *and* an orientation toward building the software that actually deploys and runs them reliably.
+pfy-deanery is both a high-standard catalog of local LLM development tools *and* an orientation toward building the software that actually deploys and runs them reliably.
 
 The system (the PFY) is sent out to discover candidates, apply strict local-first standards, reject what doesn’t meet them, and deliver only the components that are worth using. The goal is not merely “tools that exist,” but tooling that helps people ship working local LLM systems instead of fighting endless “it works on my machine” problems — both for the tools themselves and for the products built with them.
 
-Repository: https://github.com/themark-net/pfy-mentat
+Repository: https://github.com/themark-net/pfy-deanery
+
+Formerly **pfy-mentat** (renamed 2026-11-11; GitHub redirects the old URL). For one transition period some names keep the old spelling on purpose: the default state dir `~/.pfy-mentat` (`PFY_STATE_DIR` overrides), checkout paths such as `~/DEVELOP/pfy-mentat` used by the catalog loop units, the self-hosted runner label `pfy-mentat`, the agent-cage image tag and `/workspace/pfy-mentat`, and the `mentat` launcher alias that `./pfy install` still writes next to `deanery`.
 
 ## Simple path
 
@@ -18,11 +20,11 @@ Operator environment: local inference, then product stage (honest skip if a piec
 ./pfy start grok  # named harness after inference/stage (still execs that harness)
 ./pfy launch      # one command: fill missing lane local, toolsets bare, ready harness, then the TUI
 ./pfy models    # inspect-only: live GET /v1/models (and Ollama /api/tags); usage if exposed
-./pfy install   # PATH launchers mentat and pfy (default ~/.local/bin)
-mentat          # same as ./pfy, from any directory
+./pfy install   # PATH launchers deanery and pfy (default ~/.local/bin)
+deanery         # same as ./pfy, from any directory
 ```
 
-`./pfy install` writes two POSIX launchers, `mentat` and `pfy`, so `mentat` from any directory behaves like `./pfy`. The default directory is `$HOME/.local/bin`. Pass `--prefix` for another directory (for example `/opt/pfy-mentat/bin`). If that directory is not writable, the command prints `sudo ./pfy install --prefix ...` and does not run sudo. If the directory is not on PATH, it prints the exact line to add to `~/.bashrc` or `~/.profile`. For the default directory that line is `export PATH="$HOME/.local/bin:$PATH"`. It does not edit those files. Remove the launchers with `./pfy install --uninstall` or `./pfy uninstall --launchers`.
+`./pfy install` writes POSIX launchers `deanery` and `pfy`, so `deanery` from any directory behaves like `./pfy`. It also writes `mentat`, a transition alias from before the project was renamed from pfy-mentat (2026-11-11); it will be dropped in a later release. The default directory is `$HOME/.local/bin`. Pass `--prefix` for another directory (for example `/opt/pfy-deanery/bin`). If that directory is not writable, the command prints `sudo ./pfy install --prefix ...` and does not run sudo. If the directory is not on PATH, it prints the exact line to add to `~/.bashrc` or `~/.profile`. For the default directory that line is `export PATH="$HOME/.local/bin:$PATH"`. It does not edit those files. Remove the launchers with `./pfy install --uninstall` or `./pfy uninstall --launchers`.
 
 Headless (no GUI): `./pfy launch --headless`, then `./pfy launch status` and `./pfy launch stop`.
 
@@ -67,7 +69,7 @@ Operator card: [docs/ops/pfy-build-daily.md](docs/ops/pfy-build-daily.md). Modul
 - **Local first, always.** Tools must be self-hostable and runnable on normal developer hardware with minimal ceremony.
 - **Permissive and embeddable.** Licenses must allow real use and modification.
 - **Receipts over vibes.** Every inclusion or rejection is logged with explicit reasoning in [`sources/x-posts.md`](sources/x-posts.md) (and related sources).
-- **Beyond “it builds.”** While many projects struggle to even compile successfully, pfy-mentat orients toward components and practices that support working, deployable results — for the tools themselves and for the systems people build with them.
+- **Beyond “it builds.”** While many projects struggle to even compile successfully, pfy-deanery orients toward components and practices that support working, deployable results — for the tools themselves and for the systems people build with them.
 
 We recognize that perfect reproducibility is impossible in computing (just as Ansible’s idempotency guarantees can be broken by the environment). The intent is still to raise the baseline: tools and patterns that are more likely to result in something that actually runs and keeps running, rather than another local-only prototype.
 
@@ -126,7 +128,7 @@ Discovery is not a slowly rotting list: candidates from X (and related monitors 
 
 ### Philosophy on deployment and working results
 
-pfy-mentat does not treat “it builds on my machine” as success. While we cannot eliminate all environment-specific failures, selection criteria and patterns here prioritize components that support reproducible builds *and* working deployments. People using this catalog should spend less time debugging why something only works for the original author and more time shipping functional local LLM systems.
+pfy-deanery does not treat “it builds on my machine” as success. While we cannot eliminate all environment-specific failures, selection criteria and patterns here prioritize components that support reproducible builds *and* working deployments. People using this catalog should spend less time debugging why something only works for the original author and more time shipping functional local LLM systems.
 
 ## Process docs (agents & humans)
 
@@ -200,11 +202,11 @@ Full new-machine path: **[docs/ops/DEPLOY.md](docs/ops/DEPLOY.md)**.
 One launcher. Inference first, then product stage, then the native operator window:
 
 ```bash
-git clone https://github.com/themark-net/pfy-mentat.git
-cd pfy-mentat
+git clone https://github.com/themark-net/pfy-deanery.git
+cd pfy-deanery
 ./pfy setup              # env + Grok skills if CLI present
-./pfy install            # mentat and pfy on PATH (default ~/.local/bin)
-mentat                   # same as ./pfy, from any directory
+./pfy install            # deanery and pfy on PATH (default ~/.local/bin)
+deanery                  # same as ./pfy, from any directory
 ./pfy                    # env-stage → native window (engine starts only if opted in)
 ./pfy board              # same native window
 ./pfy models             # inspect-only; listing tags is not success
@@ -234,8 +236,8 @@ Platform builders: `make help-platform`. Product surface is `make help` (onboard
 
 
 ```bash
-git clone git@github.com:themark-net/pfy-mentat.git
-cd pfy-mentat
+git clone git@github.com:themark-net/pfy-deanery.git
+cd pfy-deanery
 make env-init                 # creates .env from example (gitignored)
 # edit .env: DEPLOY_PROFILE=local-only|balanced|max-performance + secrets
 make env-check                # validates required vars for profile

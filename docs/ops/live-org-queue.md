@@ -1,6 +1,6 @@
 # Live org queue from Tools — real GitHub issues + status
 
-Cite **#214**. Deepens Tools **Queue for org**: create a real GitHub issue on `themark-net/pfy-mentat` with Design→DevBot DoD, then paint **open / closed / PR**. Honest SKIP/FAIL. No mock success.
+Cite **#214**. Deepens Tools **Queue for org**: create a real GitHub issue on `themark-net/pfy-deanery` with Design→DevBot DoD, then paint **open / closed / PR**. Honest SKIP/FAIL. No mock success.
 
 Catalog browse + Ask TUI remain [#209](catalog-ask-queue.md). This slice is the live queue path nimo smoke found missing.
 
@@ -26,7 +26,7 @@ Status refresh uses `gh issue view` / API GET + linked PR (timeline or `gh pr li
 | Entry X 070–075 / catalog PRs 70–75 | **SKIP** | catalog 70-75 HOLD (do not auto-lift) |
 | Incomplete (I0, skip install, no smoke) | **SKIP** | pick a complete catalog entry |
 | Another item already asked/open/pr | **FAIL** | finish or cancel the pending integration first |
-| `gh` unauthenticated and no `GITHUB_TOKEN`/`GH_TOKEN` | **FAIL queue** | `gh auth login` then `gh issue create --repo themark-net/pfy-mentat` (draft in `$PFY_STATE_DIR/catalog-issue-draft.md`) |
+| `gh` unauthenticated and no `GITHUB_TOKEN`/`GH_TOKEN` | **FAIL queue** | `gh auth login` then `gh issue create --repo themark-net/pfy-deanery` (draft in `$PFY_STATE_DIR/catalog-issue-draft.md`) |
 
 That is not a live catalog write (`LIVE_HARD_OFF` still holds for TOOLS.md / tools.json).
 

@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def gh_issues():
     try:
         p = subprocess.run(
-            ["gh", "issue", "list", "--repo", "themark-net/pfy-mentat", "--state", "all", "--limit", "100",
+            ["gh", "issue", "list", "--repo", "themark-net/pfy-deanery", "--state", "all", "--limit", "100",
              "--json", "number,title,state"],
             capture_output=True, text=True, timeout=60,
         )
@@ -22,7 +22,7 @@ def gh_issues():
 def main() -> int:
     issues = {i["number"]: i for i in gh_issues()}
     todo = (ROOT / "docs/TODO.md").read_text(encoding="utf-8", errors="replace")
-    nums = sorted(set(int(n) for n in re.findall(r"github\.com/themark-net/pfy-mentat/issues/(\d+)", todo)))
+    nums = sorted(set(int(n) for n in re.findall(r"github\.com/themark-net/pfy-(?:deanery|mentat)/issues/(\d+)", todo)))
     lines = ["# TODO ↔ GitHub sync helper", "", f"links_in_TODO: {len(nums)}", ""]
     closed_still_active = []
     for n in nums:

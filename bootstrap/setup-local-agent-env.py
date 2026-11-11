@@ -159,7 +159,7 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    print("pfy-mentat local agent environment check (idempotent)")
+    print("pfy-deanery local agent environment check (idempotent)")
     print(f"Repo: {REPO_ROOT}")
     print(f"Components: {args.components}")
 

@@ -9,7 +9,7 @@
 1. **(a) Not yet a standalone PoC of the paper.** The whole loop is in the code (compile → thought experiment → parallel execute → LCA-localized repair), but it has only been shown working with a scripted `MockLLM`. All three live compiles on 2026-10-05 failed.
 2. **The paper's claims are unmeasured.** There is no baseline (linear/ReAct or global replan), no task suite, and no hallucinated-action or steps metric. ALFWorld, WebShop and ScienceWorld are deferred by Decision 0018.
 3. **It needs an LLM endpoint.** The native client is Ollama-only (`/api/chat` + `format` schema). A llama-server, Lemonade or vLLM server can only be reached through the optional LiteLLM extra (`ATG_MODEL=openai/<name>` + `OPENAI_API_BASE`), and that path has not been tested. A ~60-line stdlib OpenAI-compatible client is the missing piece.
-4. **(b) Adapt it for pfy-mentat; don't embed it.** The useful parts for pfy are (i) a compile bench built on pfy's local-bench harness, (ii) the decision lane acting as ATG's judge, and (iii) an opt-in `atg` loop kind under the `orchestration` toolset. Skip the parallel executor for model work: nimo holds one big model at a time.
+4. **(b) Adapt it for pfy-deanery; don't embed it.** The useful parts for pfy are (i) a compile bench built on pfy's local-bench harness, (ii) the decision lane acting as ATG's judge, and (iii) an opt-in `atg` loop kind under the `orchestration` toolset. Skip the parallel executor for model work: nimo holds one big model at a time.
 5. **Stale catalog card.** pfy's ATG card still says "No runnable core" (I1, `docs_only`). The trigger it named has fired. Refresh the card in pfy-mentat. Promote it to I2 (probe) only after one live compile exits 0.
 
 ## Paper components: implemented vs missing
@@ -47,9 +47,9 @@ Pass bar for "PoC for the paper": step 1 or 2 exits 0 with sink `{'value': 25}` 
 
 No paid key is needed anywhere. Everything above runs on local models.
 
-## (b) pfy-mentat integration points
+## (b) pfy-deanery integration points
 
-| # | atg piece | pfy-mentat counterpart | Call | Size | Risks |
+| # | atg piece | pfy-deanery counterpart | Call | Size | Risks |
 |---|---|---|---|---|---|
 | 1 | **Compile bench** (how often a model emits a valid DAG, sink correct, repairs used) | `examples/local-bench/bench.py`, `pipelines/dogfood/local-bench-*` (48-case #230 harness, PeakSampler, receipts) | **Adopt** the pfy harness pattern for an `atg-compile` case set (about 10 tasks). It answers blocker 1 with the same receipts and memory floor | S–M (~200 LOC + receipt) | Host contention: reuse the one-model-at-a-time and 16 GiB floor rules |
 | 2 | Thought-experiment judge (`judge_llm`) | Decision lane: `./pfy decision`, CUA-S1-FORMS, `scripts/pfy_jev_230.py` typed Choice/Score | **Adapt**: judge = typed Choice {execute, repair:<node-id>} through the decision lane instead of free-form text | M (~150 LOC + adapter in pfy, no atg core change) | CUA-S1-FORMS is a form-fill specialist. Measure it on judge cases before trusting it |

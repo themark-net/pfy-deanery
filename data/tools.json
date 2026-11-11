@@ -28,7 +28,7 @@
     {
       "name": "Grok CLI bootstrap",
       "primary_category": "Pipeline & CI/CD Components",
-      "github": "https://github.com/themark-net/pfy-mentat",
+      "github": "https://github.com/themark-net/pfy-deanery",
       "scores": {
         "s1": 95,
         "s2": 90,

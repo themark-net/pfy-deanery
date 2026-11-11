@@ -15,7 +15,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 RECEIPT = ROOT / "sources" / "entries" / "084-ix.md"
-ISSUE = "https://github.com/themark-net/pfy-mentat/issues/198"
+ISSUE = "https://github.com/themark-net/pfy-deanery/issues/198"
 UPSTREAM = "https://github.com/ix-infrastructure/Ix"
 
 NEEDLES = (

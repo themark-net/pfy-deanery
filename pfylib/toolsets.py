@@ -270,7 +270,7 @@ def _jev_skill_md(brief: str) -> str:
     front = (
         "---\n"
         "name: pfy-jev-decision\n"
-        "description: Use the pfy-mentat Jev-style decision layer (typed Choice/Score, margin confidence) via ./pfy decision. Applied by ./pfy toolset apply jev --harness grok (ADR-0017).\n"
+        "description: Use the pfy-deanery Jev-style decision layer (typed Choice/Score, margin confidence) via ./pfy decision. Applied by ./pfy toolset apply jev --harness grok (ADR-0017).\n"
         "---\n\n"
     )
     return front + brief

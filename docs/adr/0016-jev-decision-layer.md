@@ -3,7 +3,7 @@
 - **Date:** 2026-09-18
 - **Status:** Accepted
 - **Deciders:** Founder locks on #230
-- **Issue:** [#230](https://github.com/themark-net/pfy-mentat/issues/230)
+- **Issue:** [#230](https://github.com/themark-net/pfy-deanery/issues/230)
 
 ## Context
 

@@ -1,10 +1,10 @@
 # Supersede watch: no reinvention
 
-**Owner rule (the operator, 2026-11-08):** pfy-mentat does not reinvent. If another project does the full suite better, we stop work and use theirs.
+**Owner rule (the operator, 2026-11-08):** pfy-deanery does not reinvent. If another project does the full suite better, we stop work and use theirs.
 
 ## The suite
 
-pfy-mentat is only worth building while no one else does all four parts together:
+pfy-deanery is only worth building while no one else does all four parts together:
 
 | Part | Means |
 |------|-------|

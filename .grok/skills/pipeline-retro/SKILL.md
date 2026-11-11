@@ -1,7 +1,7 @@
 ---
 name: pipeline-retro
 description: >
-  Retrospective on the pfy-mentat landing pipeline. Run it on every 10th
+  Retrospective on the pfy-deanery landing pipeline. Run it on every 10th
   landing on main, or when someone asks for a pipeline retro. Applies the
   retro skill's automated-checks and tool-economy lenses, plus the
   software-factory five questions, and writes a short report with a cut list.

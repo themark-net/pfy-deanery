@@ -26,7 +26,7 @@ Git root of the active project. Then:
 
 1. Prefer existing `docs/OPEN_QUESTIONS.md`.
 2. Else create `docs/OPEN_QUESTIONS.md` using the central-log template from `references/template.md`.
-3. For large or highly parallel work, also use detail files under `docs/open-questions/OQ-NNNN-slug.md` and keep one-line rows in the central log. In pfy-mentat itself these records are private: write them under `$PFY_OPS_ROOT/docs/open-questions/` and never commit them to the public repo.
+3. For large or highly parallel work, also use detail files under `docs/open-questions/OQ-NNNN-slug.md` and keep one-line rows in the central log. In pfy-deanery itself these records are private: write them under `$PFY_OPS_ROOT/docs/open-questions/` and never commit them to the public repo.
 
 Do not scatter open questions only in code comments or chat.
 

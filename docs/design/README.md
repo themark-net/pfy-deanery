@@ -1,4 +1,4 @@
-# pfy-mentat design index
+# pfy-deanery design index
 
 Harness/model takeover map for operator-facing Design DoDs. Product locks also live in `docs/DESIGN.md` and ADRs under `docs/adr/`.
 

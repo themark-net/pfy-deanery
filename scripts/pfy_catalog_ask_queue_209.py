@@ -27,7 +27,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ISSUE = "#209"
-REPO = "themark-net/pfy-mentat"
+REPO = "themark-net/pfy-deanery"
 ISSUE_API = "https://api.github.com/repos/%s/issues" % REPO
 HOLD_ENTRIES = frozenset(range(70, 76))
 SIDECAR_OK = ("grok", "opencode", "hermes", "codex", "claude", "claude-code")
@@ -42,7 +42,7 @@ NEXT_HOLD = "catalog 70-75 HOLD (do not auto-lift)"
 NEXT_INCOMPLETE = "pick a complete catalog entry (not I0 / skip / scores-only)"
 NEXT_ONE = "finish or cancel the pending catalog integration first"
 NEXT_GH = (
-    "gh issue create --repo themark-net/pfy-mentat "
+    "gh issue create --repo themark-net/pfy-deanery "
     "(or GITHUB_TOKEN POST api.github.com) -- draft in "
     "$PFY_STATE_DIR/catalog-issue-draft.md"
 )
@@ -1189,7 +1189,7 @@ def cmd_selftest():
                         {
                             "name": "Grok CLI bootstrap",
                             "primary_category": "Pipeline & CI/CD Components",
-                            "github": "https://github.com/themark-net/pfy-mentat",
+                            "github": "https://github.com/themark-net/pfy-deanery",
                             "scores": {"s1": 95, "overall": 94},
                             "tier": "S",
                             "notes": "Primary operator env (ADR-0002).",

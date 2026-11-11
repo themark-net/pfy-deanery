@@ -1419,7 +1419,7 @@ def selftest_snap():
             "last_verb":{"verb":"gui","when":""},"now":"idle","processes":[],"agent_lane_collapsed":True,
             "tools":{"skills":{"one-shot":True,"investigate":True,"agent-loops":True,"hermes-feedback":True},"mcp":False,"write_guard":False,"tools_mode":"split"},
             "catalog":[{"name":"repowise","stage":"I1","status":"ready","github":"https://github.com/repowise-dev/repowise","notes":"usable","category":"Coding"}],
-            "catalog_ok":True,"catalog_queue":[{"name":"repowise","kind":"queue","status":"open","issue_url":"https://github.com/themark-net/pfy-mentat/issues/214"}],"catalog_attached":"grok","catalog_prompt":"",
+            "catalog_ok":True,"catalog_queue":[{"name":"repowise","kind":"queue","status":"open","issue_url":"https://github.com/themark-net/pfy-deanery/issues/214"}],"catalog_attached":"grok","catalog_prompt":"",
             "modules_task":"interactive","modules_enabled":["jev"],
             "modules":[
                 {"id":"jev","title":"Jev","status":"implemented","enabled":True,"stub":False},

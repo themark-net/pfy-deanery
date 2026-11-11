@@ -11,7 +11,7 @@ description: >
 argument-hint: "[memory | skill | curator | all] [optional focus]"
 ---
 
-# /hermes-feedback — Three self-improvement loops (pfy-mentat)
+# /hermes-feedback — Three self-improvement loops (pfy-deanery)
 
 **Pattern, not runtime.** Inspired by [Hermes Agent](https://github.com/NousResearch/hermes-agent)
 three loops (X Entry 048 / catalog **Hermes Agent (feedback loops)**). This skill is
@@ -216,4 +216,4 @@ writing skills:
 
 Process adapted from public descriptions of Hermes Agent feedback loops
 (Entry 048 in `sources/x-posts.md`). Skill text owned first-party under
-pfy-mentat (T-0048). See [PORT.md](PORT.md).
+pfy-deanery (T-0048). See [PORT.md](PORT.md).

@@ -2,7 +2,7 @@
 
 - **Date:**
 - **Tester:**
-- **Environment (our):** e.g. `make env-stage` from pfy-mentat
+- **Environment (our):** e.g. `make env-stage` from pfy-deanery
 - **Environment (client):** e.g. `make project-onboard DIR=…` then …
 - **G1 receipt:** `pipelines/eval/deploy-ready.latest.md` present? yes/no
 

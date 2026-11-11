@@ -78,7 +78,7 @@ Audit checkpoint (2026-09-25): default `make help` lists three product Make targ
 
 ## Related TODOs
 
-- **T-0110** — Pluggable local runtime (doing/partial) · [#76](https://github.com/themark-net/pfy-mentat/issues/76)  
+- **T-0110** — Pluggable local runtime (doing/partial) · [#76](https://github.com/themark-net/pfy-deanery/issues/76)  
 - **T-0101** — Ollama adapter complete (kept)  
 - **T-0085** — Worker/monitor split: local worker, Grok monitor recipe  
 - **T-0080** — OpenCode host smoke (required for real offload)  

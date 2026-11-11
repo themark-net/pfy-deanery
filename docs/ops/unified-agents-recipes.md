@@ -1,4 +1,4 @@
-# Claude Code Unified Agents → pfy-mentat (eval + integration)
+# Claude Code Unified Agents → pfy-deanery (eval + integration)
 
 **X:** https://x.com/i/status/2082997925014053075  
 **Upstream:** https://github.com/stretchcloud/claude-code-unified-agents  
@@ -33,7 +33,7 @@ make eval-unified-agents   # if registered
 
 ## Prefer first-party when both exist
 
-| Unified agent | Prefer in pfy-mentat |
+| Unified agent | Prefer in pfy-deanery |
 |---------------|----------------------|
 | orchestrator | `/agent-loops` + `/worker-monitor` |
 | error-detective | `/investigate` |

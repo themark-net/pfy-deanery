@@ -3,7 +3,7 @@
 
 The fixture is a throwaway repository. It is shaped like this repo's lane
 landing (one branch, one new file per agent). It does not read or write the
-pfy-mentat git directory. gitai runs only when the pinned build is already
+pfy-deanery git directory. gitai runs only when the pinned build is already
 present under the cache. Tokens stay in that work directory and are stripped
 from the result file.
 """

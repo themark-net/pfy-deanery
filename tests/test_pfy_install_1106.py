@@ -1,7 +1,7 @@
 """Behavior of ./pfy install PATH launchers.
 
 Seam: ./pfy install / install --uninstall / uninstall --launchers, and the
-mentat and pfy scripts those commands write. Every test uses a temp HOME
+deanery, pfy and mentat (transition alias) scripts those commands write. Every test uses a temp HOME
 and a temp prefix. Nothing here may touch the real ~/.local/bin.
 
 Fail if the launchers disappear, point at another cwd, or overwrite a
@@ -21,7 +21,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PFY = ROOT / "pfy"
 REAL_BIN = Path.home() / ".local" / "bin"
-MARKER = "# pfy-mentat launcher (pfy install)"
+MARKER = "# pfy-deanery launcher (pfy install)"
+OLD_MARKER = "# pfy-mentat launcher (pfy install)"
+NAMES = ("deanery", "pfy", "mentat")
 
 
 def _snapshot_real_bin() -> tuple:
@@ -29,7 +31,7 @@ def _snapshot_real_bin() -> tuple:
         return ("missing",)
     names = tuple(sorted(p.name for p in REAL_BIN.iterdir()))
     stats = []
-    for name in ("mentat", "pfy"):
+    for name in NAMES:
         path = REAL_BIN / name
         if path.exists() or path.is_symlink():
             st = path.lstat()
@@ -130,6 +132,7 @@ class PfyInstall1106(unittest.TestCase):
         proc = self.install()
         blob = proc.stdout + proc.stderr
         self.assertEqual(proc.returncode, 0, blob)
+        self.assert_ran_this_repo(self.prefix / "deanery")
         self.assert_ran_this_repo(self.prefix / "mentat")
         self.assert_ran_this_repo(self.prefix / "pfy")
         mentat_mode = (self.prefix / "mentat").stat().st_mode
@@ -247,6 +250,7 @@ class PfyInstall1106(unittest.TestCase):
         removed = self.run_pfy([str(PFY), "install", "--uninstall", "--prefix", str(self.prefix)])
         blob = removed.stdout + removed.stderr
         self.assertEqual(removed.returncode, 0, blob)
+        self.assertFalse((self.prefix / "deanery").exists())
         self.assertFalse((self.prefix / "mentat").exists())
         self.assertFalse((self.prefix / "pfy").exists())
         self.assertEqual(keep.read_text(encoding="utf-8"), "keep\n")
@@ -379,7 +383,7 @@ class PfyInstall1106(unittest.TestCase):
         self.assertFalse(any(p.exists() for p in watched), "prefix path was eval'd")
         self.assert_ran_this_repo(prefix / "mentat")
         self.assert_ran_this_repo(prefix / "pfy")
-        leftovers = [p.name for p in prefix.iterdir() if p.name not in ("mentat", "pfy")]
+        leftovers = [p.name for p in prefix.iterdir() if p.name not in NAMES]
         self.assertEqual(leftovers, [])
 
     def test_unwritable_prefix_fails_without_invoking_sudo(self) -> None:
@@ -441,6 +445,7 @@ class PfyInstall1106(unittest.TestCase):
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         simple = readme.split("## Simple path", 1)[1].split("\n## ", 1)[0]
         self.assertIn("./pfy install", simple)
+        self.assertIn("deanery", simple)
         self.assertIn("mentat", simple)
         self.assertIn("--prefix", simple)
         self.assertIn('export PATH="$HOME/.local/bin:$PATH"', simple)
@@ -453,3 +458,41 @@ class PfyInstall1106(unittest.TestCase):
         self.assertIn("./pfy install", deploy)
         self.assertIn("--uninstall", deploy)
         self.assertIn("--launchers", deploy)
+
+    def test_pre_rename_launchers_are_ours_and_get_upgraded(self) -> None:
+        """Fail: launchers written as pfy-mentat (old marker) are called foreign,
+        so install refuses after the Deanery rename. Recovery: accept the old
+        marker as ours, rewrite all three with the new marker, add deanery."""
+        old_body = "#!/bin/sh\n%s\n# root: %s\nexec '%s/scripts/pfy' \"$@\"\n" % (OLD_MARKER, self.other, self.other)
+        for name in ("mentat", "pfy"):
+            (self.prefix / name).write_text(old_body, encoding="utf-8")
+        proc = self.install()
+        blob = proc.stdout + proc.stderr
+        self.assertEqual(proc.returncode, 0, blob)
+        self.assertIn("updated launchers", blob)
+        for name in NAMES:
+            self.assert_ran_this_repo(self.prefix / name)
+            self.assertNotIn(OLD_MARKER, (self.prefix / name).read_text(encoding="utf-8"))
+
+    def test_pre_rename_launchers_are_removed_by_uninstall(self) -> None:
+        """Fail: uninstall leaves an old-marker mentat behind as foreign.
+        Recovery: remove old-marker launchers too."""
+        old_body = "#!/bin/sh\n%s\n# root: %s\nexec '%s/scripts/pfy' \"$@\"\n" % (OLD_MARKER, ROOT, ROOT)
+        (self.prefix / "mentat").write_text(old_body, encoding="utf-8")
+        proc = self.run_pfy([str(PFY), "uninstall", "--launchers", "--prefix", str(self.prefix)])
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertFalse((self.prefix / "mentat").exists())
+
+    def test_foreign_deanery_blocks_every_write(self) -> None:
+        """Fail: a foreign deanery is overwritten, or pfy/mentat get written anyway.
+        Recovery: exit non-zero before writing any launcher."""
+        foreign = self.prefix / "deanery"
+        foreign.write_text("#!/bin/sh\necho foreign-deanery\n", encoding="utf-8")
+        before = foreign.read_bytes()
+        proc = self.install()
+        blob = proc.stdout + proc.stderr
+        self.assertNotEqual(proc.returncode, 0, blob)
+        self.assertEqual(foreign.read_bytes(), before)
+        self.assertFalse((self.prefix / "pfy").exists())
+        self.assertFalse((self.prefix / "mentat").exists())
+        self.assertIn(str(foreign), blob)

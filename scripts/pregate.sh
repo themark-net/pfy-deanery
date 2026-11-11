@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Local pre-gate for themark-net/pfy-mentat: catch Tester/Reviewer failure
+# Local pre-gate for themark-net/pfy-deanery: catch Tester/Reviewer failure
 # classes on nimo before spending bot gate rounds. See docs/ops/PREGATE.md.
 #
 # Usage:

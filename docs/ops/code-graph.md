@@ -7,7 +7,7 @@ Upstream: [harshkedia177/axon](https://github.com/harshkedia177/axon) (MIT) · P
 Stage-0 receipt: [sources/entries/082-axon.md](../../sources/entries/082-axon.md).  
 Nimo hello-world proof: [docs/sources/code-graph-215-hello.md](../sources/code-graph-215-hello.md). Live path on nimo at ship: **codebase-memory MCP** (Axon not installed).
 
-Catalog PR [#75](https://github.com/themark-net/pfy-mentat/pull/75) stays HOLD — this slice does **not** merge it.
+Catalog PR [#75](https://github.com/themark-net/pfy-deanery/pull/75) stays HOLD — this slice does **not** merge it.
 
 ## Operator
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# pfy — simple operator surface for pfy-mentat
+# pfy — simple operator surface for pfy-deanery
 # Inference first (FreeToken / llama-swap / llama-server / Ollama), then native operator window.
 # Named ./pfy start <harness> still execs that harness. Bare ./pfy does not exec a harness.
 # Plain source. Do not re-encode or shard this file (gate: scripts/check_no_encoded_payloads.py).
@@ -202,7 +202,7 @@ cmd_gui() {
 
 usage() {
   cat <<'U'
-pfy — simple setup & launch for the pfy-mentat stack
+pfy — simple setup & launch for the pfy-deanery stack
 
   pfy                     env-stage → native window (no harness exec; no engine daemon unless opted in)
   pfy --start-engine      same as pfy, but may start the down engine (also PFY_START_ENGINE=1)
@@ -212,10 +212,10 @@ pfy — simple setup & launch for the pfy-mentat stack
   pfy doctor --json        read-only catalog alignment (bare doctor stays FreeToken health)
   pfy uninstall [--yes]    remove ledger-owned catalog writes only
   pfy install [--prefix DIR] [--dry-run]
-                          write mentat and pfy launchers into DIR
+                          write deanery and pfy launchers (plus a mentat alias) into DIR
                           (default ~/.local/bin). Does not edit shell rc.
   pfy install --uninstall [--prefix DIR]
-                          remove pfy-mentat launchers from DIR
+                          remove pfy-deanery launchers from DIR
   pfy uninstall --launchers [--prefix DIR]
                           same launcher removal; plain uninstall is unchanged
   pfy status              harness table + local usage block
@@ -1009,7 +1009,7 @@ PY
 }
 
 cmd_status() {
-  echo "pfy-mentat simple surface"
+  echo "pfy-deanery simple surface"
   echo "root: $ROOT"
   echo "active harness: $(cat "$ACTIVE_FILE" 2>/dev/null || json_field default)"
   rt=$(local_runtime)
@@ -1284,7 +1284,7 @@ stub_harness() {
   print_fs_nav
   echo "STUB harness: $id"
   if [[ -n "$issue" ]]; then
-    echo "  https://github.com/themark-net/pfy-mentat/issues/${issue}"
+    echo "  https://github.com/themark-net/pfy-deanery/issues/${issue}"
   fi
   case "$id" in
     continue)
@@ -1503,7 +1503,7 @@ exec_harness() {
       else
         echo "STUB harness: hermes"
         issue=$(json_field github_issue hermes || true)
-        echo "  https://github.com/themark-net/pfy-mentat/issues/${issue:-56}"
+        echo "  https://github.com/themark-net/pfy-deanery/issues/${issue:-56}"
         inst=$(json_field setup hermes || true)
         [[ -n "$inst" ]] && echo "  $inst"
         exit 2
@@ -1513,7 +1513,7 @@ exec_harness() {
       if ! have claude; then
         echo "FAIL attach -- claude missing"
         issue=$(json_field github_issue claude-code || true)
-        echo "  https://github.com/themark-net/pfy-mentat/issues/${issue:-57}"
+        echo "  https://github.com/themark-net/pfy-deanery/issues/${issue:-57}"
         inst=$(json_field setup claude-code || true)
         [[ -n "$inst" ]] && echo "  next: $inst"
         echo "  equiv: ./pfy models"
@@ -1567,7 +1567,7 @@ exec_harness() {
       if [[ -z "$cbin" ]]; then
         echo "FAIL attach -- codex missing"
         issue=$(json_field github_issue codex || true)
-        echo "  https://github.com/themark-net/pfy-mentat/issues/${issue:-58}"
+        echo "  https://github.com/themark-net/pfy-deanery/issues/${issue:-58}"
         inst=$(json_field setup codex || true)
         [[ -n "$inst" ]] && echo "  next: $inst"
         echo "  equiv: ./pfy models"
@@ -1601,7 +1601,7 @@ exec_harness() {
       else
         echo "STUB harness: gemini"
         issue=$(json_field github_issue gemini || true)
-        echo "  https://github.com/themark-net/pfy-mentat/issues/${issue:-59}"
+        echo "  https://github.com/themark-net/pfy-deanery/issues/${issue:-59}"
         inst=$(json_field setup gemini || true)
         [[ -n "$inst" ]] && echo "  $inst"
         exit 2
@@ -1621,7 +1621,7 @@ exec_harness() {
       else
         echo "STUB harness: exo"
         issue=$(json_field github_issue exo || true)
-        echo "  https://github.com/themark-net/pfy-mentat/issues/${issue:-60}"
+        echo "  https://github.com/themark-net/pfy-deanery/issues/${issue:-60}"
         inst=$(json_field setup exo || true)
         [[ -n "$inst" ]] && echo "  $inst"
         exit 2
@@ -1846,7 +1846,7 @@ cmd_models_pull() {
         ollama pull "$m"
       else
         echo "STUB: ollama not on PATH — honest skip"
-        echo "  https://github.com/themark-net/pfy-mentat/issues/112"
+        echo "  https://github.com/themark-net/pfy-deanery/issues/112"
         echo "  ollama pull $m"
       fi
       return 0
@@ -1857,13 +1857,13 @@ cmd_models_pull() {
       ;;
     llama-swap|llama-server|llama.cpp)
       echo "note: $engine has no pull — honest skip (no GGUF download)"
-      echo "  https://github.com/themark-net/pfy-mentat/issues/112"
+      echo "  https://github.com/themark-net/pfy-deanery/issues/112"
       echo "  set PFY_LLAMA_MODEL to an existing GGUF path"
       return 0
       ;;
     shimmy)
       echo "STUB: shimmy has no pull — honest skip"
-      echo "  https://github.com/themark-net/pfy-mentat/issues/112"
+      echo "  https://github.com/themark-net/pfy-deanery/issues/112"
       echo "  shimmy"
       return 0
       ;;

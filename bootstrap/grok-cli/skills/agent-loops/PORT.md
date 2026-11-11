@@ -8,7 +8,7 @@
   - Entry 024 — Finn spec → build → review + human gate
   - Entry 032 — rubric-first eval loop + rigor ladder
   - Entry 031 — generate → test → update context
-- **Mapped onto pfy-mentat:**
+- **Mapped onto pfy-deanery:**
   - Goal loops → `/one-shot` + DoD + cost ladder (ADR-0008)
   - Exits → turn/error caps already in one-shot; expanded explicit exit card
   - Verification → `make smoke-*`, `make eval-*`, cage lab

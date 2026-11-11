@@ -67,7 +67,7 @@ WATCH = {"harnessscore": (".harness-score", ".config/harness-score"),
          "openlore": (".openlore", ".pi/agent/extensions")}
 AGENTS_MD = """# Fixture project
 
-A tiny Python package used by the pfy-mentat Harness Score smoke.
+A tiny Python package used by the pfy-deanery Harness Score smoke.
 
 ## Build and test
 

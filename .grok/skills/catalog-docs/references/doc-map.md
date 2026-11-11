@@ -1,4 +1,4 @@
-# Documentation map — pfy-mentat
+# Documentation map — pfy-deanery
 
 Quick index for `/catalog-docs`.
 

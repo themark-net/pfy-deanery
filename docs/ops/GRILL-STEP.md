@@ -6,7 +6,7 @@ The trigger list lives in one place: `TRIGGER_GLOBS` and `TEXT_NEEDLES` in `scri
 
 ## Command
 
-From a pfy-mentat checkout:
+From a pfy-deanery checkout:
 
 ```bash
 python3 scripts/grill_ticket.py path/to/TICKET-<label>.md

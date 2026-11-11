@@ -25,7 +25,7 @@ Tools: pick a row, **Ask TUI implement** (copy or auto-handoff `PFY_CATALOG_ASK_
 | Entry X 070–075 / catalog PRs 70–75 | **SKIP** | catalog 70-75 HOLD (do not auto-lift) |
 | Incomplete (I0, skip install, no smoke, scores-only) | **SKIP** | pick a complete catalog entry |
 | Another item already asked/open | **FAIL** | finish or cancel the pending integration first |
-| `gh` and `GITHUB_TOKEN` both missing | **FAIL queue** | `gh issue create --repo themark-net/pfy-mentat` (draft in `$PFY_STATE_DIR/catalog-issue-draft.md`) |
+| `gh` and `GITHUB_TOKEN` both missing | **FAIL queue** | `gh issue create --repo themark-net/pfy-deanery` (draft in `$PFY_STATE_DIR/catalog-issue-draft.md`) |
 
 Live Queue (real issue + open/closed/PR refresh) is [#214](live-org-queue.md). This file keeps browse/ask. `LIVE_HARD_OFF` still holds for TOOLS.md / tools.json.
 

@@ -162,7 +162,7 @@ Add a tool by writing only its file. Leave every other card alone:
 
 ## Self-pipeline rule (CI, testing, review)
 
-I0 to I4 measure how far a tool is built into the product. They do not ask whether we use the tool on ourselves. A tool whose uses, features, or tags cover CI, testing, or review cannot reach I3 until it has been applied to pfy-mentat's own pipeline, or a recorded reason says why not.
+I0 to I4 measure how far a tool is built into the product. They do not ask whether we use the tool on ourselves. A tool whose uses, features, or tags cover CI, testing, or review cannot reach I3 until it has been applied to pfy-deanery's own pipeline, or a recorded reason says why not.
 
 The field lives on the per-tool card `data/stages/<slug>.json`. `scripts/catalog_check.py` reads it through `pfylib.stage_registry.load_stages`. Do not put the field back into `data/tool_integration_stages.json`.
 

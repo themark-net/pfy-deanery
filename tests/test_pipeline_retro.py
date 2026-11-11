@@ -283,7 +283,7 @@ class ParseAndCountTest(unittest.TestCase):
     def test_github_client_uses_cache_and_stops_before_the_rate_floor(self):
         cache = ROOT / "tmp" / "retro-test-cache"
         cache.mkdir(parents=True, exist_ok=True)
-        url = "https://api.github.com/repos/themark-net/pfy-mentat/actions/runs?per_page=1"
+        url = "https://api.github.com/repos/themark-net/pfy-deanery/actions/runs?per_page=1"
         digest = __import__("hashlib").sha256(url.encode()).hexdigest()[:24]
         cached = {"workflow_runs": []}
         (cache / f"{digest}.json").write_text(json.dumps(cached), encoding="utf-8")

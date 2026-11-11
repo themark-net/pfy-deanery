@@ -168,4 +168,4 @@ Before a multi-step loop, set exit card **budget** and **model tier**:
 - ADR-0014 (pluggable local spine) · ADR-0011 · ADR-0002 · ADR-0006 · ADR-0003 (no vendoring)  
 - [human-decision-inventory.md](human-decision-inventory.md)  
 - [loop-engineering.md](loop-engineering.md)  
-- Issue [#76](https://github.com/themark-net/pfy-mentat/issues/76)
+- Issue [#76](https://github.com/themark-net/pfy-deanery/issues/76)

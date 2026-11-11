@@ -27,7 +27,7 @@ PIN_TAG = "v0.1.1"
 IMAGE = "docker.io/pgvector/pgvector:0.8.6-pg18-trixie"
 DB_URL = "postgres://kenfold@127.0.0.1:54329/kenfold?sslmode=disable"
 CONTAINER = "pfy-evq-kenfold-pg"
-PROJECT = "https://github.com/themark-net/pfy-mentat"
+PROJECT = "https://github.com/themark-net/pfy-deanery"
 WRITER = "grok-build"
 READER = "opencode"
 

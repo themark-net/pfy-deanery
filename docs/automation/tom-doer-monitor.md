@@ -1,6 +1,6 @@
 # Tom Doerr (@tom_doerr) Monitor Procedure
 
-**Purpose**: Keep the pfy-mentat catalog up to date with high-signal LLM/agent/tool repos posted by @tom_doerr (very active sharer of GitHub repos focused on DSPy, agents, RAG, inference, and related tooling).
+**Purpose**: Keep the pfy-deanery catalog up to date with high-signal LLM/agent/tool repos posted by @tom_doerr (very active sharer of GitHub repos focused on DSPy, agents, RAG, inference, and related tooling).
 
 **Standing Request** (recorded in memory): Perform regular checks of @tom_doerr posts. Add relevant repos following the standard X-seed process (Entry NNN in sources/x-posts.md + evaluation + catalog update). Apply 7-day relevance volume review.
 

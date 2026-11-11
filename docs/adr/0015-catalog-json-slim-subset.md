@@ -3,7 +3,7 @@
 **Status:** Accepted  
 **Date:** 2026-08-24  
 **Deciders:** PM / DevBot (owner completeness audit)  
-**Issue:** [#83](https://github.com/themark-net/pfy-mentat/issues/83)
+**Issue:** [#83](https://github.com/themark-net/pfy-deanery/issues/83)
 
 ## Context
 

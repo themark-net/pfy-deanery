@@ -6,7 +6,7 @@
 - **Related seed:** Entry 055 credential pools — hygiene notes only, not iron-proxy runtime
 - **Not a raw snapshot:** no Hermes binary, no skill marketplace dump, no Claude-only harness
 - **Taken:** three-loop model; complex-task → skill threshold; curator prune/pin/consolidate; compound knowledge framing
-- **Mapped onto Grok + pfy-mentat:**
+- **Mapped onto Grok + pfy-deanery:**
   - Memory → Grok memory tools + TODO/OQ/worksheets
   - Auto-skill → `/create-skill` discipline + `.grok/skills` / bootstrap first-party layout
   - Curator → explicit inventory of skill dirs + archive/pin (no 7-day daemon)

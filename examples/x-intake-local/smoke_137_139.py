@@ -431,7 +431,7 @@ try {
 }
 console.log(JSON.stringify(out));
 '''
-OSC_GOOD = "---\nname: good\ndescription: Use when the user asks to summarize a pfy-mentat smoke receipt.\n---\n# Good\nBody.\n"
+OSC_GOOD = "---\nname: good\ndescription: Use when the user asks to summarize a pfy-deanery smoke receipt.\n---\n# Good\nBody.\n"
 
 
 def smoke_skillcreator(r: dict) -> int:

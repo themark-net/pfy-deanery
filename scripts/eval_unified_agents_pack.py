@@ -2,7 +2,7 @@
 """Extensive eval loop: stretchcloud/claude-code-unified-agents pack.
 
 Scores each agent markdown for structural quality, Claude lock-in, bloat,
-overlap with pfy-mentat skills, and port priority. Writes markdown + JSON.
+overlap with pfy-deanery skills, and port priority. Writes markdown + JSON.
 Exit 0 always (observational) unless --strict and pack fails gate.
 """
 from __future__ import annotations

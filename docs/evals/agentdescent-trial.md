@@ -18,7 +18,7 @@ line** into the real triage text without a SKIP-heavy (borderline-rich) set firs
 
 ## Skill choice
 
-pfy-mentat has no dedicated X intake triage SKILL.md. The written rules the daily intake applies are README.md
+pfy-deanery has no dedicated X intake triage SKILL.md. The written rules the daily intake applies are README.md
 "Stage 0 gate" and docs/evaluation-framework.md "Phase 0". `examples/agentdescent-trial/skill/SKILL.md` is an **excerpt** of
 them (it omits the CATEGORIZATION.md pointer and the Phase 0 AI-company routing bullet; its own header wrongly says
 verbatim, kept byte-identical to what was scored; see `skill/README.md`) plus a one-word output line; that is the

@@ -1,4 +1,4 @@
-# Grok CLI fragment managed by pfy-mentat bootstrap/grok-cli.
+# Grok CLI fragment managed by pfy-deanery bootstrap/grok-cli.
 # Applied idempotently by install.sh — safe to re-run.
 # Does NOT contain secrets. Auth remains in ~/.grok/auth.json or XAI_API_KEY.
 

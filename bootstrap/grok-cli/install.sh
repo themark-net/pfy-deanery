@@ -303,7 +303,7 @@ for s in m.get("first_party_skills",{}).get("skills",[]):
 
 # --- main -------------------------------------------------------------------
 
-log "pfy-mentat Grok CLI bootstrap"
+log "pfy-deanery Grok CLI bootstrap"
 log "repo: $REPO_ROOT"
 log "GROK_HOME: $GROK_HOME"
 

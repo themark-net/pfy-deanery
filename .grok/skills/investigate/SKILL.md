@@ -9,7 +9,7 @@ description: >
 argument-hint: "[bug description or error text]"
 ---
 
-# /investigate — Root-cause debugging (pfy-mentat)
+# /investigate — Root-cause debugging (pfy-deanery)
 
 **Iron Law: NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST.**
 

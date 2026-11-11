@@ -1,7 +1,7 @@
 # X intake triage (baseline, as written in the repo today)
 
 Source: README.md "Stage 0 gate" and docs/evaluation-framework.md "Phase 0: Triage & relevance gate",
-copied verbatim at origin/main 7b5107d. pfy-mentat has no separate triage SKILL.md; these two passages
+copied verbatim at origin/main 7b5107d. pfy-deanery has no separate triage SKILL.md; these two passages
 are the written rules the daily X intake applies.
 
 ## Stage 0 gate

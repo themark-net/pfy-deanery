@@ -56,7 +56,7 @@ async function postCatalogQueue(name){
         return {ok:false,error:String(e),copy:'FAIL queue',live:'FAIL'};
       }
     }
-    if(noLiveApi()) return {ok:false,error:'FAIL',copy:'FAIL queue',live:'FAIL',next_step:'gh issue create --repo themark-net/pfy-mentat'};
+    if(noLiveApi()) return {ok:false,error:'FAIL',copy:'FAIL queue',live:'FAIL',next_step:'gh issue create --repo themark-net/pfy-deanery'};
     const r=await fetch(apiRoot()+'/catalog/queue',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:name||''})});
     try{return await r.json();}catch(e){return {ok:false,error:String(e),copy:'FAIL queue',live:'FAIL'};}
   }catch(e){
@@ -95,7 +95,7 @@ async function runCatalogQueue(){
       if(lastSnap && j.queue) lastSnap.catalog_queue=j.queue;
       paintCatalog(j.copy||'PASS queue','ok');
     }else{
-      const nxt=(j && j.next_step)||'gh issue create --repo themark-net/pfy-mentat';
+      const nxt=(j && j.next_step)||'gh issue create --repo themark-net/pfy-deanery';
       let msg=(j && (j.copy||j.error))||'queue';
       if(String(msg).indexOf(nxt)<0) msg=msg+' · next: '+nxt;
       const skip=String((j&&j.live)||msg).indexOf('SKIP')>=0;

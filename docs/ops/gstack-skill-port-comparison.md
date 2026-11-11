@@ -14,7 +14,7 @@ Use these columns for any future external skill-pack promotion review:
 
 | Attribute | Type | Meaning |
 |-----------|------|---------|
-| **unique_gap** | 0–5 | How much capability we lack vs current pfy-mentat skills/process (5 = large hole) |
+| **unique_gap** | 0–5 | How much capability we lack vs current pfy-deanery skills/process (5 = large hole) |
 | **daily_utility** | 0–5 | How often a Grok operator on this catalog would invoke it |
 | **method_quality** | 0–5 | Quality of the portable *method* if stripped of host glue |
 | **raw_portability** | 0–5 | Can we paths-snapshot SKILL.md as-is on Grok? (5 = clean MIT skill like mattpocock) |

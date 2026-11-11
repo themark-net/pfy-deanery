@@ -1,8 +1,8 @@
-# Toolset value ranking for pfy-mentat
+# Toolset value ranking for pfy-deanery
 
 ## 2026-11-07 catch-up re-rank (entries 137 to 167)
 
-**Why:** 22 entries were cataloged between 2026-10-24 and 2026-11-06 and none was tested or built in. The operator approved a catch-up pass on 2026-11-07. This section ranks entries 137 to 167 by how soon each one closes a named pfy-mentat MVP gap. The 2026-10-06 ranking below is kept as history.
+**Why:** 22 entries were cataloged between 2026-10-24 and 2026-11-06 and none was tested or built in. The operator approved a catch-up pass on 2026-11-07. This section ranks entries 137 to 167 by how soon each one closes a named pfy-deanery MVP gap. The 2026-10-06 ranking below is kept as history.
 
 **Read:** `sources/entries/137` to `167`, a private ops note, a private ops note, a private ops note, a private ops note, `data/tool_integration_stages.json`, and the Strata upstream repo (README, `docs/STRIX_HALO.md`, `docs/MODELS.md`, `docs/TERMINAL_LAUNCH.md`, release `v0.2.12` asset list).
 
@@ -45,12 +45,12 @@ Each trial records its verdict as `eval/<dir>/<slug>/VERDICT.json` (schema `docs
 
 ### Strata, long term
 
-Strata is an MIT local inference engine (C++, HIP, CUDA, Metal, SYCL) by Niko1221, about 41k stars and very active (release `v0.2.12` on 2026-11-07, 0.2.10 to 0.2.12 in five days). It plugs into pfy-mentat as a second engine on the local-model path: pfy already talks to engines through an OpenAI-compatible base URL, so Strata sits beside Ollama without a harness rewrite. Its value for nimo is the packaged gfx1151 engine and its own packs of the models we care about (Qwen3.6-35B-A3B, Qwen3.8-Flash-Next). Risks, all from upstream's own docs: Strix Halo support is marked experimental, DeepSeek V4.1-Flash on Strix Halo runs on Windows only (Linux not yet), the release cadence means pins go stale within days, and the desktop AppImage and updater are out of scope for us (the terminal `strata launch --no-tui` path is the one to use). Speed and quality on nimo are unmeasured until the trial below.
+Strata is an MIT local inference engine (C++, HIP, CUDA, Metal, SYCL) by Niko1221, about 41k stars and very active (release `v0.2.12` on 2026-11-07, 0.2.10 to 0.2.12 in five days). It plugs into pfy-deanery as a second engine on the local-model path: pfy already talks to engines through an OpenAI-compatible base URL, so Strata sits beside Ollama without a harness rewrite. Its value for nimo is the packaged gfx1151 engine and its own packs of the models we care about (Qwen3.6-35B-A3B, Qwen3.8-Flash-Next). Risks, all from upstream's own docs: Strix Halo support is marked experimental, DeepSeek V4.1-Flash on Strix Halo runs on Windows only (Linux not yet), the release cadence means pins go stale within days, and the desktop AppImage and updater are out of scope for us (the terminal `strata launch --no-tui` path is the one to use). Speed and quality on nimo are unmeasured until the trial below.
 
 
 ## 2026-10-06 ranking (history)
 
-**Scope:** what to integrate next, assuming **local models only on nimo** (Strix Halo, Ollama about 22 GB edge; `llama-server --no-mmap` edge ≥ 51 GB) and no paid keys besides Grok and Cursor. Active products: Leasegrid, pfy-mentat, Gom Jabbar (jobbar-master), Lotline, Practice Minder.
+**Scope:** what to integrate next, assuming **local models only on nimo** (Strix Halo, Ollama about 22 GB edge; `llama-server --no-mmap` edge ≥ 51 GB) and no paid keys besides Grok and Cursor. Active products: Leasegrid, pfy-deanery, Gom Jabbar (jobbar-master), Lotline, Practice Minder.
 **Read:** `TOOLS.md`, `data/tool_integration_stages.json`, `data/toolsets.json`, `sources/x-posts.md`, `sources/entries/066–092`, private ops notesLOCAL-BENCH-*`, `~/DEVELOP/_vendor/*` READMEs. Nothing was installed or run for this ranking.
 
 ## Already integrated (not re-recommended)
@@ -59,7 +59,7 @@ codebase-memory-mcp (I2, `code-graph` toolset) · LiteLLM (I2 smoke) · Ollama (
 
 ## Ranking
 
-| # | Candidate | Value for pfy-mentat (local-only) | Effort | API key? | Status |
+| # | Candidate | Value for pfy-deanery (local-only) | Effort | API key? | Status |
 |---|---|---|---|---|---|
 | 1 | **llama-server `--no-mmap` lane** (llama.cpp server mode) | Only way to run `qwen3-coder-next` (83.3 % on #230, vs 79.2 % for qwen3.6). Make it a named lane in `pfylib/hedge.py` / `eval-lanes.json` with start/stop + health, not a bench-only script. It also gives atg-framework an OpenAI-compatible target | S–M | No | Built in a bench only (`pipelines/dogfood/local-bench-4/run_nommap_server.sh`). Not a lane |
 | 2 | **atg-framework (ATG)** | Typed DAG compile + localized repair for multi-step local loops. First use is a compile bench, then an opt-in `atg` loop kind. See [ATG-FRAMEWORK-EVAL.md](ATG-FRAMEWORK-EVAL.md) | M | No (Ollama / local) | STOPPED 2026-11-08 (the operator): negative live result. Localized repair did not beat full replan on model calls (best localized 9/12 @23 calls vs replan 10/12 @16). Do not promote to I3. Catalog exclusion set. Stop docs on atg-framework `f42a4fc`. |
@@ -81,4 +81,4 @@ Graphify, Ix, Axon (CM is primary) · Memvid · MUE-X and Exo (unsafe as runtime
 
 - **Gom Jabbar:** #3 (DSPy) moves routine identify/fit work to local models (ROADMAP item 7). #6 memory pattern for sticky answers.
 - **Leasegrid / Practice Minder / Lotline:** no tool on this list is on their critical path. They are founder-gated (RELEASE / the operator inputs). #4 and #8 protect the Build sessions that work on them.
-- **pfy-mentat:** do #1, then #2 (bench), then #3. That order raises local-model quality before adding loop machinery.
+- **pfy-deanery:** do #1, then #2 (bench), then #3. That order raises local-model quality before adding loop machinery.

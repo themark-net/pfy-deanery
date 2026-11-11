@@ -10,7 +10,7 @@ Run this before any Tester or Reviewer gate request and attach its summary. It c
 
 ## How to run (nimo)
 
-From any pfy-mentat worktree that has this script:
+From any pfy-deanery worktree that has this script:
 
 ```bash
 ./scripts/pregate.sh                 # full run on HEAD in an isolated worktree

@@ -33,7 +33,7 @@ rea gets the same job (put tools + skills into whichever agent you already use) 
 
 ```bash
 # one line (no sudo, no clone needed):
-curl -fsSL https://raw.githubusercontent.com/themark-net/pfy-mentat/v0.4.17/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/themark-net/pfy-deanery/v0.4.17/install.sh | bash
 #  → installs pfy to ~/.local/share/pfy (pinned tag) + shim ~/.local/bin/pfy, then runs `pfy setup` if a TTY exists
 
 pfy setup                         # interactive: harnesses → catalog items → plan → approve

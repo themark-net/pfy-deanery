@@ -19,7 +19,7 @@ That:
 4. Exports `OPENCODE_SKILLS` → `bootstrap/grok-cli/skills`.
 5. When the local runtime is ready, points the model provider at `LOCAL_OPENAI_BASE_URL` (`OPENAI_BASE_URL` defaults to that).
 
-Missing binary: honest STUB + https://github.com/themark-net/pfy-mentat/issues/55, exit 2. No fake ready.
+Missing binary: honest STUB + https://github.com/themark-net/pfy-deanery/issues/55, exit 2. No fake ready.
 
 ## Suggested host layout
 

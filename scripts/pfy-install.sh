@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
-# PATH launchers for mentat and pfy. scripts/pfy is the only caller.
+# PATH launchers for deanery and pfy, plus mentat as a transition alias
+# (the project was pfy-mentat until 2026-11-11). scripts/pfy is the only caller.
 # No sudo. Does not edit shell rc files.
 set -euo pipefail
 
-MARKER='# pfy-mentat launcher (pfy install)'
+MARKER='# pfy-deanery launcher (pfy install)'
+# Launchers written before the Deanery rename carry this marker. Still ours.
+OLD_MARKER='# pfy-mentat launcher (pfy install)'
+LAUNCHERS=(deanery pfy mentat)
 
 die() {
   printf 'error: %s\n' "$*" >&2
@@ -11,15 +15,14 @@ die() {
 }
 
 # Temps live in the prefix. A trap string would eval a quote in that path.
-PFY_INSTALL_T1=
-PFY_INSTALL_T2=
+PFY_INSTALL_TMPS=()
 cleanup_launchers() {
-  if [ -n "${PFY_INSTALL_T1:-}" ]; then
-    rm -f -- "$PFY_INSTALL_T1" || true
-  fi
-  if [ -n "${PFY_INSTALL_T2:-}" ]; then
-    rm -f -- "$PFY_INSTALL_T2" || true
-  fi
+  local t
+  for t in "${PFY_INSTALL_TMPS[@]}"; do
+    if [ -n "$t" ]; then
+      rm -f -- "$t" || true
+    fi
+  done
 }
 
 source=${BASH_SOURCE[0]}
@@ -96,7 +99,7 @@ wrapper_body() {
 is_ours() {
   local f=$1
   [ -f "$f" ] || return 1
-  grep -F -q -x "$MARKER" "$f"
+  grep -F -q -x -e "$MARKER" -e "$OLD_MARKER" "$f"
 }
 
 is_install_sh_shim() {
@@ -235,7 +238,7 @@ do_uninstall() {
     printf 'already uninstalled\n'
     return 0
   fi
-  for name in mentat pfy; do
+  for name in "${LAUNCHERS[@]}"; do
     f="$prefix/$name"
     if [ ! -e "$f" ] && [ ! -L "$f" ]; then
       continue
@@ -258,65 +261,63 @@ do_uninstall() {
 }
 
 do_install() {
-  local mentat="$prefix/mentat"
-  local pfy="$prefix/pfy"
-  local cm=missing cp=missing old="" old_p=""
+  local name f c r old="" foreign=0 current=1 i
+  local -A cls=()
   warn_unstable
   if [ -e "$prefix" ] && [ ! -d "$prefix" ]; then
     die "install: $prefix exists and is not a directory"
   fi
-  if [ -d "$prefix" ]; then
-    cm=$(classify "$mentat")
-    cp=$(classify "$pfy")
-  fi
-  if [ "$cm" = "foreign" ] || [ "$cp" = "foreign" ]; then
-    if [ "$cm" = "foreign" ]; then
-      printf 'error: refusing to overwrite %s (not a pfy-mentat launcher)\n' "$mentat" >&2
+  for name in "${LAUNCHERS[@]}"; do
+    if [ -d "$prefix" ]; then
+      cls[$name]=$(classify "$prefix/$name")
+    else
+      cls[$name]=missing
     fi
-    if [ "$cp" = "foreign" ]; then
-      printf 'error: refusing to overwrite %s (not a pfy-mentat launcher)\n' "$pfy" >&2
+  done
+  for name in "${LAUNCHERS[@]}"; do
+    if [ "${cls[$name]}" = "foreign" ]; then
+      printf 'error: refusing to overwrite %s (not a pfy-deanery launcher)\n' "$prefix/$name" >&2
+      foreign=1
     fi
-    exit 1
-  fi
-  if [ "$cm" = "ours" ] && [ "$cp" = "ours" ]; then
-    if cmp -s "$mentat" <(wrapper_body) && cmp -s "$pfy" <(wrapper_body); then
-      printf 'already installed\n'
-      warn_path
-      return 0
+  done
+  [ "$foreign" -eq 0 ] || exit 1
+  for name in "${LAUNCHERS[@]}"; do
+    f="$prefix/$name"
+    if [ "${cls[$name]}" = "ours" ]; then
+      r=$(baked_root "$f")
+      if [ -z "$old" ] && [ -n "$r" ] && [ "$r" != "$ROOT" ]; then
+        old=$r
+      fi
+      cmp -s "$f" <(wrapper_body) || current=0
+    else
+      current=0
     fi
-    old=$(baked_root "$mentat")
-    old_p=$(baked_root "$pfy")
-    if [ "$old" = "$ROOT" ]; then
-      old=$old_p
-    fi
-  elif [ "$cm" = "ours" ]; then
-    old=$(baked_root "$mentat")
-  elif [ "$cp" = "ours" ]; then
-    old=$(baked_root "$pfy")
-  fi
-  if [ "$dry" -eq 1 ]; then
-    printf 'would install mentat and pfy in %s\n' "$prefix"
+  done
+  if [ "$current" -eq 1 ]; then
+    printf 'already installed\n'
     warn_path
     return 0
   fi
-  if [ "$cp" = "shim" ]; then
-    printf 'note: replacing install.sh shim at %s\n' "$pfy" >&2
+  if [ "$dry" -eq 1 ]; then
+    printf 'would install deanery, pfy and mentat (alias) in %s\n' "$prefix"
+    warn_path
+    return 0
+  fi
+  if [ "${cls[pfy]}" = "shim" ]; then
+    printf 'note: replacing install.sh shim at %s\n' "$prefix/pfy" >&2
   fi
   ensure_prefix
-  local t1 t2
-  t1=$(mktemp "$prefix/.pfy-launcher.XXXXXX")
-  PFY_INSTALL_T1=$t1
   trap cleanup_launchers EXIT
-  t2=$(mktemp "$prefix/.pfy-launcher.XXXXXX")
-  PFY_INSTALL_T2=$t2
-  wrapper_body > "$t1"
-  wrapper_body > "$t2"
-  chmod 755 "$t1" "$t2"
-  mv -f "$t1" "$mentat"
-  PFY_INSTALL_T1=
-  mv -f "$t2" "$pfy"
-  PFY_INSTALL_T2=
-  if [ -n "$old" ] && [ "$old" != "$ROOT" ]; then
+  for i in "${!LAUNCHERS[@]}"; do
+    PFY_INSTALL_TMPS[i]=$(mktemp "$prefix/.pfy-launcher.XXXXXX")
+    wrapper_body > "${PFY_INSTALL_TMPS[i]}"
+    chmod 755 "${PFY_INSTALL_TMPS[i]}"
+  done
+  for i in "${!LAUNCHERS[@]}"; do
+    mv -f "${PFY_INSTALL_TMPS[i]}" "$prefix/${LAUNCHERS[i]}"
+    PFY_INSTALL_TMPS[i]=
+  done
+  if [ -n "$old" ]; then
     printf 'updated launchers (was %s, now %s)\n' "$old" "$ROOT"
   else
     printf 'installed %s\n' "$prefix"

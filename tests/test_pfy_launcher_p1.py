@@ -19,7 +19,7 @@ PFY = ROOT / "pfy"
 INSTALL = ROOT / "install.sh"
 SOT = ROOT / "bootstrap" / "grok-cli" / "skills"
 TAG = "v0.4.17"
-ONE_LINER = "https://raw.githubusercontent.com/themark-net/pfy-mentat/v0.4.17/install.sh"
+ONE_LINER = "https://raw.githubusercontent.com/themark-net/pfy-deanery/v0.4.17/install.sh"
 SETUP_ARGV = [
     "-y",
     "rea-agents@6.4.0",

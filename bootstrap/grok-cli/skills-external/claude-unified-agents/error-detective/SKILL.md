@@ -7,7 +7,7 @@ description: >
 
 # error-detective
 
-> **Port notes (pfy-mentat):** Claude Code sub-agent adapted as a Grok **paths** skill.
+> **Port notes (pfy-deanery):** Claude Code sub-agent adapted as a Grok **paths** skill.
 > Tools `Read/Grep/Bash/Write` ≈ filesystem + shell; `Task` ≈ delegate via `/agent-loops` or worker-monitor;
 > Do **not** assume Claude `/agents` UI. Prefer `make smoke-*` and write-guard for safety.
 

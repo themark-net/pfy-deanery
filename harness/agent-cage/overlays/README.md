@@ -1,4 +1,4 @@
-# Overlays for pfy-mentat
+# Overlays for pfy-deanery
 
 Place docker-compose overrides, MCP server snippets, and Grok/LiteLLM wiring here as they stabilize.
 

@@ -1,12 +1,12 @@
-# Deploy / new-machine stand-up (pfy-mentat)
+# Deploy / new-machine stand-up (pfy-deanery)
 
-**Repo:** https://github.com/themark-net/pfy-mentat  
+**Repo:** https://github.com/themark-net/pfy-deanery  
 
 ## 1. Clone
 
 ```bash
-git clone git@github.com:themark-net/pfy-mentat.git
-cd pfy-mentat
+git clone git@github.com:themark-net/pfy-deanery.git
+cd pfy-deanery
 ```
 
 Optional local folder rename if you still have the old path:
@@ -14,7 +14,7 @@ Optional local folder rename if you still have the old path:
 ```bash
 mv ~/DEVELOP/local-llm-dev-tools ~/DEVELOP/pfy-mentat
 cd ~/DEVELOP/pfy-mentat
-git remote set-url origin git@github.com:themark-net/pfy-mentat.git
+git remote set-url origin git@github.com:themark-net/pfy-deanery.git
 git fetch origin && git checkout main && git pull
 ```
 
@@ -22,7 +22,7 @@ git fetch origin && git checkout main && git pull
 
 ```bash
 ./pfy install
-# launchers in ~/.local/bin (mentat and pfy). Pass --prefix for another directory.
+# launchers in ~/.local/bin (deanery and pfy, plus the mentat alias). Pass --prefix for another directory.
 # If it is not on PATH, add the printed export PATH="$HOME/.local/bin:$PATH"
 # line to ~/.bashrc or ~/.profile. This command does not edit those files and does not run sudo.
 # Remove: ./pfy install --uninstall
@@ -99,7 +99,7 @@ Prefer these over ad-hoc host-only checks ([harness framework](harness-integrati
 
 ## Verify checklist
 
-- [ ] `git remote -v` → `themark-net/pfy-mentat.git`
+- [ ] `git remote -v` → `themark-net/pfy-deanery.git`
 - [ ] `make env-check` OK for chosen profile  
 - [ ] `grok --version` on host  
 - [ ] `make cage-test` green (stack up)  

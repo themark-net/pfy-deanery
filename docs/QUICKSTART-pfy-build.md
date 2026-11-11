@@ -8,11 +8,11 @@ Commands below were run from this worktree at `2026-10-31T21:21:27Z`. A fence ta
 
 Grok is logged in once, on the operator account, outside this repo. This card does not open `auth.json`. bwrap is on the host for the local fallback sandbox.
 
-From this checkout, `./pfy install` writes `mentat` and `pfy` into `$HOME/.local/bin`. Then `mentat` from any directory behaves like `./pfy`. Pass `--prefix` for another directory (for example `/opt/pfy-mentat/bin`). If the directory is not writable, the command prints a sudo line and does not run sudo. If it is not on PATH, add the printed line to `~/.bashrc` or `~/.profile` (for the default directory, `export PATH="$HOME/.local/bin:$PATH"`). Remove the launchers with `./pfy install --uninstall` or `./pfy uninstall --launchers`.
+From this checkout, `./pfy install` writes `deanery` and `pfy` (plus the transition alias `mentat`) into `$HOME/.local/bin`. Then `deanery` from any directory behaves like `./pfy`. Pass `--prefix` for another directory (for example `/opt/pfy-deanery/bin`). If the directory is not writable, the command prints a sudo line and does not run sudo. If it is not on PATH, add the printed line to `~/.bashrc` or `~/.profile` (for the default directory, `export PATH="$HOME/.local/bin:$PATH"`). Remove the launchers with `./pfy install --uninstall` or `./pfy uninstall --launchers`.
 
 ```bash
 ./pfy install
-mentat help
+deanery help
 ```
 
 ```text

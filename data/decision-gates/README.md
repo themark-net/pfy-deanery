@@ -1,6 +1,6 @@
 # Decision gates (offline stubs)
 
-Versioned offline decision-gate stubs for org / pfy **shadow** mode. Dogfood **D1**. Cites: [ADR-0016](../../docs/adr/0016-jev-decision-layer.md) · [#230](https://github.com/themark-net/pfy-mentat/issues/230).
+Versioned offline decision-gate stubs for org / pfy **shadow** mode. Dogfood **D1**. Cites: [ADR-0016](../../docs/adr/0016-jev-decision-layer.md) · [#230](https://github.com/themark-net/pfy-deanery/issues/230).
 
 Choice, Score, and Noul criteria, plus the conf gate, live in these files. That is the offline fallback. The files are data, so a later adapter can speak HTTP or an SDK without this repo locking one in.
 

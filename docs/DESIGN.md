@@ -1,4 +1,4 @@
-# Design: pfy-mentat
+# Design: pfy-deanery
 
 **Status:** Active  
 **Last updated:** 2026-08-24  

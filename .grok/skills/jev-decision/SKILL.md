@@ -33,7 +33,7 @@ Loop wizard: decision off | CUA-S1-FORMS | TypeSafe | mini-jev. Launch session s
 
 ## Headless implement
 
-On pfy-mentat slices, prefer **`./pfy build -p "<prompt>"`** over bare `grok -p`. The wrapper applies the local jev toolset, logs a decision shadow, then runs plain `grok -p`.
+On pfy-deanery slices, prefer **`./pfy build -p "<prompt>"`** over bare `grok -p`. The wrapper applies the local jev toolset, logs a decision shadow, then runs plain `grok -p`.
 
 Receipt: `pipelines/dogfood/build/`.
 
@@ -52,4 +52,4 @@ Receipt: `pipelines/dogfood/build/`.
 - Require a TypeSafe key for default smoke
 - Lift catalog 70–75 or reopen #76
 - Treat exit 3 / escalate as a broken tool, or auto-act on conf low
-- Use bare `grok -p` for headless pfy-mentat implement when `./pfy build -p` can run
+- Use bare `grok -p` for headless pfy-deanery implement when `./pfy build -p` can run

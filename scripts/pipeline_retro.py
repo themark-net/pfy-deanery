@@ -39,7 +39,7 @@ SELECTED_PREGATE_CHECKS = frozenset({"ci-parity"})
 # one full-suite pregate. Below it, keep the minutes and do not call it a suite.
 PROGRESS_FULL_SECONDS = 600
 RANK = {"other": 0, "selected": 1, "full": 2}
-REPO_SLUG = "themark-net/pfy-mentat"
+REPO_SLUG = "themark-net/pfy-deanery"
 API = "https://api.github.com"
 MIN_REMAINING = 8
 USER_AGENT = "pfy-pipeline-retro"

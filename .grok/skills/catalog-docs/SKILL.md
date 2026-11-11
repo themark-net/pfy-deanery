@@ -1,7 +1,7 @@
 ---
 name: catalog-docs
 description: >
-  Document and keep consistent the pfy-mentat catalog repository:
+  Document and keep consistent the pfy-deanery catalog repository:
   process docs (DESIGN/ADR/TODO/OQ), TOOLS.md + data/tools.json + sources
   triple-write, bootstrap packages, agent-cage harness, CONTRIBUTING, and
   README. Use when the user runs /catalog-docs, asks to document this repo,
@@ -11,7 +11,7 @@ description: >
 argument-hint: "[audit|readme|tool|seed|module|harness|status] [path or name]"
 ---
 
-# catalog-docs — Documentation for pfy-mentat
+# catalog-docs — Documentation for pfy-deanery
 
 You are the **repository documentation skill** for this catalog only. Keep humans and agents oriented; never leave catalog claims without matching files.
 

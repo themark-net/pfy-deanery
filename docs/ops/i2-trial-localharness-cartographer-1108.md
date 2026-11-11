@@ -34,11 +34,11 @@ Pin `f96e5d9f7b0ae8506ce5470e35372546a70ea292`.
 
 Do not run `setup`. Do not use the public demo. `HOME` is the throwaway directory. Create an empty local git repo and serve it with `cartographer serve --kb` on stdio, or skip the arm if the binary cannot be built without extra downloads.
 
-Plant one sentence that is not in the pfy-mentat tree. A second process reads it back through the MCP read path. Time that round trip.
+Plant one sentence that is not in the pfy-deanery tree. A second process reads it back through the MCP read path. Time that round trip.
 
 Controls, same sentence:
 
-- `rg` on the pfy-mentat tree should miss it.
+- `rg` on the pfy-deanery tree should miss it.
 - opencode-mem is a different store. Do not expect this sentence to appear there unless the trial wrote it there on purpose. If that arm is included, it gets its own planted salt, as in `eval/evq1107/opencode-mem/`.
 - codebase-memory-mcp gets a code question (a symbol that exists in this repo). Cartographer should miss that symbol. The code graph should miss the planted wiki sentence.
 

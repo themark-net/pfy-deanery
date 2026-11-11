@@ -18,7 +18,7 @@
 
 `select_ollama_models.py` already ranks by RAM + disk; set `EVAL_DISK_BUDGET_GB` against free space **within** the 250 GB pool policy (do not fill the pool with one model without a plan).
 
-**Never** store weights under the pfy-mentat git tree (ADR-0003).
+**Never** store weights under the pfy-deanery git tree (ADR-0003).
 
 ## Pre-download suitability ladder
 

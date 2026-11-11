@@ -1,6 +1,6 @@
 # Module: Live org queue (`scripts/pfy_live_org_queue_214.py`)
 
-**Purpose:** Queue for org creates a **real** GitHub issue on `themark-net/pfy-mentat` with Design→DevBot DoD and paints open/closed/PR. Cite #214.
+**Purpose:** Queue for org creates a **real** GitHub issue on `themark-net/pfy-deanery` with Design→DevBot DoD and paints open/closed/PR. Cite #214.
 
 ## Human operator
 

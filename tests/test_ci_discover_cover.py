@@ -215,7 +215,7 @@ def job_kind(job_id: str, job: dict) -> str | None:
     if (
         isinstance(runs, list)
         and "self-hosted" in runs
-        and "pfy-mentat" in runs
+        and "pfy-mentat" in runs  # self-hosted runner label (unchanged by the Deanery rename)
         and (name == "G0 (self-hosted nimo)" or job_id == "structural-local")
     ):
         return "nimo"

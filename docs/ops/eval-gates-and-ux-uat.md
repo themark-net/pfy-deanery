@@ -1,6 +1,6 @@
 # Eval gates, deploy readiness, and UX UAT (HD #33)
 
-**Status:** Accepted 2026-07-30 · **Source:** [issue #33](https://github.com/themark-net/pfy-mentat/issues/33)  
+**Status:** Accepted 2026-07-30 · **Source:** [issue #33](https://github.com/themark-net/pfy-deanery/issues/33)  
 **Related:** [data/eval-lanes.json](../../data/eval-lanes.json) · [product-operator-surface.md](product-operator-surface.md) · [design-coding-assist-rubric.md](../evaluation/design-coding-assist-rubric.md)
 
 ## Decision (not “docs vs host-proof”)

@@ -2,13 +2,13 @@
 {
 # User-level pfy installer. No sudo, no system packages.
 # One-liner:
-#   curl -fsSL https://raw.githubusercontent.com/themark-net/pfy-mentat/v0.4.17/install.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/themark-net/pfy-deanery/v0.4.17/install.sh | sh
 # A missing closing brace makes a truncated pipe a syntax error, so nothing runs.
 
 set -eu
 
 TAG=v0.4.17
-REPO_URL=https://github.com/themark-net/pfy-mentat.git
+REPO_URL=https://github.com/themark-net/pfy-deanery.git
 DEST="${HOME:-}/.local/share/pfy/${TAG}"
 SHIM="${HOME:-}/.local/bin/pfy"
 

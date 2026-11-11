@@ -1,4 +1,4 @@
-# pfy-mentat — top-level operator entrypoints
+# pfy-deanery — top-level operator entrypoints
 # Prefer these from the repo root (avoids "no rule to make target 'test'").
 #
 # Agent cage is the integration lab. Prefer testing catalog tool installs
@@ -32,7 +32,7 @@ MODEL_LOCK := ./scripts/model_lock.sh
 	cage-code-sync cage-code-status cage-code-from-cage cage-code-to-cage
 
 help:
-	@echo "pfy-mentat"
+	@echo "pfy-deanery"
 	@echo ""
 	@echo "Product:"
 	@echo "  ./pfy setup                 attach this stack to a project"
@@ -47,7 +47,7 @@ help:
 	@echo "Platform (cage, smoke, eval): make help-platform"
 
 help-platform:
-	@echo "pfy-mentat — platform"
+	@echo "pfy-deanery — platform"
 	@echo ""
 	@echo "Environment (secrets never in git):"
 	@echo "  make env-init         Create .env from bootstrap/env/env.example if missing (idempotent)"

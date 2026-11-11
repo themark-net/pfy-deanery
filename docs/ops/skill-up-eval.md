@@ -1,6 +1,6 @@
 # skill-up eval
 
-skill-up grades one case set with a skill and without it. That comparison is how this repo scores the devbot pfy trial (pfy-mentat against a plain Build run) and H1 (did a harness or skill change help). The 2026-11-07 nimo receipt is `ops:eval/catchup-1107/skill-up/REPORT.md`.
+skill-up grades one case set with a skill and without it. That comparison is how this repo scores the devbot pfy trial (pfy-deanery against a plain Build run) and H1 (did a harness or skill change help). The 2026-11-07 nimo receipt is `ops:eval/catchup-1107/skill-up/REPORT.md`.
 
 ## How to run
 

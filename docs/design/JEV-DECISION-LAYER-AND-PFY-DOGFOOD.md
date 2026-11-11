@@ -1,15 +1,15 @@
-# Jev decision layer × org bots × pfy-mentat dogfood
+# Jev decision layer × org bots × pfy-deanery dogfood
 
 **Status:** Plan (docs-only)  
 **Date:** 2026-10-04 (PT)  
-**Owner ask:** Integrate TypeSafe Jev with Grok Bot org + Grok Build on nimo, and with pfy-mentat; dogfood whether `./pfy` + catalog tooling can replace or augment bare `grok -p` for bots and a human dev.  
-**Related:** [#230](https://github.com/themark-net/pfy-mentat/issues/230) · [ADR-0016](../adr/0016-jev-decision-layer.md) · [ops/jev-230.md](../ops/jev-230.md) · [ops/integration-stages.md](../ops/integration-stages.md) · org skill `org-spinny-decide` · `themark-net/org-spinny-decide`
+**Owner ask:** Integrate TypeSafe Jev with Grok Bot org + Grok Build on nimo, and with pfy-deanery; dogfood whether `./pfy` + catalog tooling can replace or augment bare `grok -p` for bots and a human dev.  
+**Related:** [#230](https://github.com/themark-net/pfy-deanery/issues/230) · [ADR-0016](../adr/0016-jev-decision-layer.md) · [ops/jev-230.md](../ops/jev-230.md) · [ops/integration-stages.md](../ops/integration-stages.md) · org skill `org-spinny-decide` · `themark-net/org-spinny-decide`
 
 ---
 
 ## 0. Inventory (2026-10-04)
 
-### Already in pfy-mentat (wired, local-first)
+### Already in pfy-deanery (wired, local-first)
 
 | Asset | Path / surface | Calls cloud TypeSafe? |
 |-------|----------------|------------------------|
@@ -54,7 +54,7 @@
 
 ### GitHub org code search
 
-`org:themark-net` code search via MCP/`gh` returned empty / unauthenticated for private index. Inventory above is from **nimo checkouts + clone remotes**, not search hits. Confirmed remotes: `themark-net/pfy-mentat`, `themark-net/org-spinny-decide`.
+`org:themark-net` code search via MCP/`gh` returned empty / unauthenticated for private index. Inventory above is from **nimo checkouts + clone remotes**, not search hits. Confirmed remotes: `themark-net/pfy-deanery`, `themark-net/org-spinny-decide`.
 
 ---
 
@@ -85,7 +85,7 @@ Pipeline reminder: bots coordinate (PM / DevBot / Tester / Reviewer / CEO) → h
 
 ---
 
-## 2. pfy-mentat proposal
+## 2. pfy-deanery proposal
 
 ### How pfy wraps Grok Build today
 
@@ -148,7 +148,7 @@ Rationale (ADR-0016 + Stage 0):
 
 ### Question
 
-Can a **bot** (headless, nimo Shell) and a **human dev** each complete a real slice using pfy-mentat’s `./pfy` tooling (+ working catalog/toolsets) **in place of or wrapping** bare `grok -p`, with honest gates?
+Can a **bot** (headless, nimo Shell) and a **human dev** each complete a real slice using pfy-deanery’s `./pfy` tooling (+ working catalog/toolsets) **in place of or wrapping** bare `grok -p`, with honest gates?
 
 ### First candidate slice (narrow, green deps only)
 
@@ -207,12 +207,12 @@ grok -p "$PROMPT" --cwd "$WT" --always-approve
 
 | Step | Work | Repo |
 |-----:|------|------|
-| 0 | This plan + PENDING-HANDOFF | pfy-mentat (this PR) |
+| 0 | This plan + PENDING-HANDOFF | pfy-deanery (this PR) |
 | 1 | Shadow logger JSONL schema + one org gate (`push_hold`) dual-run vs Ollama | org-spinny-decide + optional pfy bridge |
-| 2 | Versioned `data/decision-gates/*.json` extracted from `pfy_jev_230.py` | pfy-mentat |
-| 3 | Bot skill update: prefer `./pfy toolset apply jev` before `grok -p` on pfy-mentat slices | box workflows / port-bot-doctrine |
-| 4 | If key appears: one smoke `typesafe` call; compare to CUA; keep offline default | pfy-mentat |
-| 5 | T-0123 catalog re-score (optional I1 cloud row) | pfy-mentat |
+| 2 | Versioned `data/decision-gates/*.json` extracted from `pfy_jev_230.py` | pfy-deanery |
+| 3 | Bot skill update: prefer `./pfy toolset apply jev` before `grok -p` on pfy-deanery slices | box workflows / port-bot-doctrine |
+| 4 | If key appears: one smoke `typesafe` call; compare to CUA; keep offline default | pfy-deanery |
+| 5 | T-0123 catalog re-score (optional I1 cloud row) | pfy-deanery |
 
 ---
 
