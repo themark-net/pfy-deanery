@@ -40,10 +40,11 @@ from scripts import pfy_jev_230 as jev  # noqa: E402
 VERDICTS = ("fit", "skip_install", "redundant", "awareness")
 NEGATIVE = frozenset({"skip_install", "redundant", "awareness"})
 REQUIRED = ("slug", "fit", "overlap_with", "verdict", "reason", "confidence")
+# Prior decisions (intent, posture, integration_stage, tier_ceiling) are left
+# out on purpose, so the model judges the tool, not an earlier label.
 CARD_KEYS = (
-    "name", "integration_stage", "intent", "uses", "features", "potential",
-    "next_gate", "non_goals", "risk_class", "posture", "catalog_tags", "tags",
-    "notes", "github", "tier_ceiling",
+    "name", "uses", "features", "potential", "next_gate", "non_goals",
+    "risk_class", "catalog_tags", "tags", "notes", "github",
 )
 SLUG_RE = re.compile(r"[a-z0-9][a-z0-9._-]*")
 PROMPT_LEAD = (
@@ -115,7 +116,13 @@ def build_prompt(slug: str, subject: dict, gate: dict) -> str:
         "verdict is one of: fit, skip_install, redundant, awareness.",
         f"slug must be {slug}.",
         "confidence is a margin from 0 to 1, never percent-correct.",
-        "Do not pick fit when blast radius is high or a safe default already exists.",
+        "Decide in this order and stop at the first match:",
+        "1. awareness: blast radius is high (rewrites agent or user configs, runtime takeover,",
+        "   autostart or system services, secrets or account pools) or the tool is off-mission.",
+        "2. redundant: an existing cataloged tool already does the job; name it in overlap_with.",
+        "3. skip_install: the tool is optional, adds no unique gap, and a safe default exists.",
+        "4. fit: the tool fills a real gap with low or medium blast radius.",
+        "non_goals and parked wiring limit scope; they do not make a useful tool skip_install.",
         "",
         "Rubric dimensions:",
     ]
@@ -257,6 +264,9 @@ def default_call_model(prompt: str, *, model: str, host: str) -> str:
         "prompt": prompt,
         "stream": False,
         "format": "json",
+        # Thinking models (qwen3.x) return an empty response with format json
+        # unless thinking is off. Non-thinking models ignore it.
+        "think": False,
         "options": {"temperature": 0},
     }).encode("utf-8")
     req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"})

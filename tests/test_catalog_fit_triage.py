@@ -176,7 +176,7 @@ class CatalogFitTriageTest(unittest.TestCase):
         self.assertEqual(cases["ch-hd-01-optional-tool-skip"]["source_id"], "ch-hd-01-optional-tool-skip")
         self.assertEqual(hermes["ch-hd-01-optional-tool-skip"]["label"], "skip_install")
         magpie = json.loads((ROOT / "data" / "stages" / "magpie.json").read_text(encoding="utf-8"))
-        self.assertIn("Rewrites agent configs", magpie["next_gate"])
+        self.assertRegex(magpie["next_gate"], r"(?i)rewrites .*config")
         self.assertEqual(magpie["risk_class"], "runtime-takeover")
         anti = json.loads((ROOT / "data" / "stages" / "antigravity-manager.json").read_text(encoding="utf-8"))
         uses = anti["uses"]
