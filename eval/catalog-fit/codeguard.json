@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The subject explicitly states it is 'Not an install gate' and has 'low' potential. It provides static rule text for host agents rather than performing runtime scanning or configuration rewriting. A safe default exists (not installing), and it does not fill a unique gap in the local-first catalog mission.",
+  "slug": "codeguard",
+  "verdict": "skip_install"
+}

@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The subject explicitly lists 'install' and 'replace codebase-memory' in non_goals. The next_gate indicates that the gap H1 is already covered by existing tools (codebase-memory-mcp, LEANN, opencode-mem) and no retrieval job requires this specific tool. A safe default exists without installing.",
+  "slug": "chroma-or-lancedb",
+  "verdict": "skip_install"
+}

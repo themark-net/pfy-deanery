@@ -126,6 +126,32 @@
       "by": "rules",
       "date": "2026-11-11",
       "verdict": "eval/evq1107/codeguard/VERDICT.json"
+    },
+    {
+      "kind": "ceiling",
+      "from": "I2",
+      "to": "I2",
+      "result": "refuse",
+      "passed": [
+        "R-not-excluded",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable"
+      ],
+      "failed": [
+        {
+          "rule": "R-catalog-fit",
+          "detail": "catalog-fit skip_install caps I1"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-11",
+      "verdict": "eval/evq1107/codeguard/VERDICT.json"
     }
   ]
 }
