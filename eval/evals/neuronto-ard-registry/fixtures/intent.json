@@ -1,0 +1,39 @@
+{
+  "cases": [
+    {
+      "query": "local model routing",
+      "tool": "get_route",
+      "server": "de.umzugsdirekt/mcp",
+      "description": "Moving route with localized interface text (de|en|fr|ro).",
+      "on_intent": false
+    },
+    {
+      "query": "local model routing",
+      "tool": "check_local_viability",
+      "server": "Local Model Suitability MCP",
+      "description": "Checks whether a task can be handled by a local model instead of a cloud API. Call this before the agent routes the task.",
+      "on_intent": true
+    },
+    {
+      "query": "local model routing",
+      "tool": "lookup_local_model",
+      "server": "OutilsIA",
+      "description": "Looks up a local model in a public catalog. It does not send the task anywhere.",
+      "on_intent": false
+    },
+    {
+      "query": "code review",
+      "tool": "code-review",
+      "server": "MeshMarket",
+      "description": "Reviews pasted code for bugs, security issues, and style problems.",
+      "on_intent": true
+    },
+    {
+      "query": "memory",
+      "tool": "memory_search",
+      "server": "WorkingMemory",
+      "description": "Search session memory.",
+      "on_intent": true
+    }
+  ]
+}

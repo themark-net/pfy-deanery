@@ -1,0 +1,326 @@
+{
+  "pin": "09d4fa8b0576981d93ae608ff4509ded4ef2df2e",
+  "pin_matches_main": true,
+  "main_sha": "09d4fa8b0576981d93ae608ff4509ded4ef2df2e",
+  "license": "Apache-2.0",
+  "repo_kb": 1180,
+  "stars": 57,
+  "installed": false,
+  "catalog_names": 181,
+  "catalog_repos": 122,
+  "limit": 8,
+  "queries": [
+    {
+      "q": "code review",
+      "returned": 8,
+      "on_intent": 8,
+      "off_intent": 0,
+      "catalog_hits": 0,
+      "novel_on_intent_servers": 7,
+      "hits": [
+        {
+          "tool": "review-code",
+          "server": "Roundtable",
+          "identifier": "urn:air:now.roundtable.mcp:mcp:roundtable",
+          "score": 100,
+          "verified": true,
+          "on_intent": true,
+          "missed": [],
+          "in_catalog": false,
+          "catalog_match": null
+        },
+        {
+          "tool": "code-review",
+          "server": "AgentPay — Pay-per-call AI Microservices",
+          "identifier": "urn:air:io.github.ronaldanton:mcp:agentpay",
+          "score": 99,
+          "verified": true,
+          "on_intent": true,
+          "missed": [],
+          "in_catalog": false,
+          "catalog_match": null
+        },
+        {
+          "tool": "code-review",
+          "server": "MeshMarket",
+          "identifier": "urn:air:io.github.rightonpar-llc:mcp:mesh-connector",
+          "score": 99,
+          "verified": true,
+          "on_intent": true,
+          "missed": [],
+          "in_catalog": false,
+          "catalog_match": null
+        },
+        {
+          "tool": "python_code_review",
+          "server": "Python Code Reviewer",
+          "identifier": "urn:air:org.duckdns.43-134-36-21:mcp:python-code-reviewer",
+          "score": 99,
+          "verified": true,
+          "on_intent": true,
+          "missed": [],
+          "in_catalog": false,
+          "catalog_match": null
+        },
+        {
+          "tool": "getCodeReview",
+          "server": "LGTM API specification",
+          "identifier": "urn:air:lgtm.com:api:lgtm-api-specification",
+          "score": 98,
+          "verified": true,
+          "on_intent": true,
+          "missed": [],
+          "in_catalog": false,
+          "catalog_match": null
+        },
+        {
+          "tool": "code-review-security",
+          "server": "Andreax",
+          "identifier": "urn:air:io.github.moralito311-andr:mcp:andreax",
+          "score": 97,
+          "verified": true,
+          "on_intent": true,
+          "missed": [],
+          "in_catalog": false,
+          "catalog_match": null
+        },
+        {
+          "tool": "code-review",
+          "server": "Andreax",
+          "identifier": "urn:air:io.github.moralito311-andr:mcp:andreax",
+          "score": 97,
+          "verified": true,
+          "on_intent": true,
+          "missed": [],
+          "in_catalog": false,
+          "catalog_match": null
+        },
+        {
+          "tool": "CreateCodeReview",
+          "server": "Amazon CodeGuru Reviewer",
+          "identifier": "urn:air:amazonaws.com:api:codeguru-reviewer",
+          "score": 96,
+          "verified": true,
+          "on_intent": true,
+          "missed": [],
+          "in_catalog": false,
+          "catalog_match": null
+        }
+      ],
+      "status": 200
+    },
+    {
+      "q": "memory",
+      "returned": 8,
+      "on_intent": 8,
+      "off_intent": 0,
+      "catalog_hits": 0,
+      "novel_on_intent_servers": 6,
+      "hits": [
+        {
+          "tool": "agent_memory_delete",
+          "server": "Japan Public Ledgers MCP",
+          "identifier": "urn:air:com.mcp-revenue-empire:mcp:japan-public-ledgers",
+          "score": 100,
+          "verified": true,
+          "on_intent": true,
+          "missed": [],
+          "in_catalog": false,
+          "catalog_match": null
+        },
+        {
+          "tool": "manage_memory",
+          "server": "WorkingMemory",
+          "identifier": "urn:air:ai.workingmemory:mcp:memory",
+          "score": 100,
+          "verified": true,
+          "on_intent": true,
+          "missed": [],
+          "in_catalog": false,
+          "catalog_match": null
+        },
+        {
+          "tool": "memory_search",
+          "server": "Tools for Agents",
+          "identifier": "urn:air:io.github.max124vip-dev:mcp:tools-for-agents",
+          "score": 100,
+          "verified": true,
+          "on_intent": true,
+          "missed": [],
+          "in_catalog": false,
+          "catalog_match": null
+        },
+        {
+          "tool": "memory_set",
+          "server": "AgentBazaar",
+          "identifier": "urn:air:tech.agentbazaar:mcp:marketplace",
+          "score": 100,
+          "verified": true,
+          "on_intent": true,
+          "missed": [],
+          "in_catalog": false,
+          "catalog_match": null
+        },
+        {
+          "tool": "memory_get",
+          "server": "AgentBazaar",
+          "identifier": "urn:air:tech.agentbazaar:mcp:marketplace",
+          "score": 100,
+          "verified": true,
+          "on_intent": true,
+          "missed": [],
+          "in_catalog": false,
+          "catalog_match": null
+        },
+        {
+          "tool": "agent_memory_provenance",
+          "server": "PHION Task Router",
+          "identifier": "urn:air:systems.phion:mcp:evidence-engine",
+          "score": 99,
+          "verified": true,
+          "on_intent": true,
+          "missed": [],
+          "in_catalog": false,
+          "catalog_match": null
+        },
+        {
+          "tool": "memory_store",
+          "server": "Tools for Agents",
+          "identifier": "urn:air:io.github.max124vip-dev:mcp:tools-for-agents",
+          "score": 99,
+          "verified": true,
+          "on_intent": true,
+          "missed": [],
+          "in_catalog": false,
+          "catalog_match": null
+        },
+        {
+          "tool": "memory_write",
+          "server": "io.github.mifactory-bot/mifactory-agent-memory",
+          "identifier": "urn:air:io.github.mifactory-bot:mcp:mifactory-agent-memory",
+          "score": 99,
+          "verified": true,
+          "on_intent": true,
+          "missed": [],
+          "in_catalog": false,
+          "catalog_match": null
+        }
+      ],
+      "status": 200
+    },
+    {
+      "q": "local model routing",
+      "returned": 8,
+      "on_intent": 3,
+      "off_intent": 5,
+      "catalog_hits": 0,
+      "novel_on_intent_servers": 3,
+      "hits": [
+        {
+          "tool": "ddg_list_models",
+          "server": "DDG Agent Services",
+          "identifier": "urn:air:io.github.daedalusdevelopmentgroup:mcp:ddg-agent-services-mcp",
+          "score": 100,
+          "verified": true,
+          "on_intent": true,
+          "missed": [],
+          "in_catalog": false,
+          "catalog_match": null
+        },
+        {
+          "tool": "check_local_viability",
+          "server": "Local Model Suitability MCP",
+          "identifier": "urn:air:io.github.ojaskord:mcp:local-model-suitability-mcp",
+          "score": 100,
+          "verified": true,
+          "on_intent": true,
+          "missed": [],
+          "in_catalog": false,
+          "catalog_match": null
+        },
+        {
+          "tool": "register_compute_profile",
+          "server": "io.github.jdhart81/neurogenesis",
+          "identifier": "urn:air:io.github.jdhart81:mcp:neurogenesis",
+          "score": 91,
+          "verified": true,
+          "on_intent": true,
+          "missed": [],
+          "in_catalog": false,
+          "catalog_match": null
+        },
+        {
+          "tool": "get_route",
+          "server": "de.umzugsdirekt/mcp",
+          "identifier": "urn:air:de.umzugsdirekt:mcp:mcp",
+          "score": 83,
+          "verified": true,
+          "on_intent": false,
+          "missed": [
+            "model"
+          ],
+          "in_catalog": false,
+          "catalog_match": null
+        },
+        {
+          "tool": "get_route",
+          "server": "de.wievielkostetmeinumzug/mcp",
+          "identifier": "urn:air:de.wievielkostetmeinumzug:mcp:mcp",
+          "score": 83,
+          "verified": true,
+          "on_intent": false,
+          "missed": [
+            "model"
+          ],
+          "in_catalog": false,
+          "catalog_match": null
+        },
+        {
+          "tool": "search_routes",
+          "server": "de.umzugsdirekt/mcp",
+          "identifier": "urn:air:de.umzugsdirekt:mcp:mcp",
+          "score": 83,
+          "verified": true,
+          "on_intent": false,
+          "missed": [
+            "model"
+          ],
+          "in_catalog": false,
+          "catalog_match": null
+        },
+        {
+          "tool": "search_routes",
+          "server": "de.wievielkostetmeinumzug/mcp",
+          "identifier": "urn:air:de.wievielkostetmeinumzug:mcp:mcp",
+          "score": 83,
+          "verified": true,
+          "on_intent": false,
+          "missed": [
+            "model"
+          ],
+          "in_catalog": false,
+          "catalog_match": null
+        },
+        {
+          "tool": "lookup_local_model",
+          "server": "OutilsIA — Conseiller IA locale",
+          "identifier": "urn:air:fr.outilsia:mcp:local-ai-advisor",
+          "score": 82,
+          "verified": true,
+          "on_intent": false,
+          "missed": [
+            "routing"
+          ],
+          "in_catalog": false,
+          "catalog_match": null
+        }
+      ],
+      "status": 200
+    }
+  ],
+  "on_intent_servers": 16,
+  "on_intent_novel_servers": 16,
+  "off_intent_hits": 5,
+  "catalog_hits": 0,
+  "threshold": 1
+}

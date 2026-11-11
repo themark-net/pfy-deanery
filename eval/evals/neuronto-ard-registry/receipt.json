@@ -1,0 +1,18 @@
+{
+  "slug": "neuronto-ard-registry",
+  "run_kind": "eval-probe",
+  "outcome": "measured",
+  "installed": false,
+  "pin": "09d4fa8b0576981d93ae608ff4509ded4ef2df2e",
+  "pin_matches_main": true,
+  "license": "Apache-2.0",
+  "repo_kb": 1180,
+  "metric": "on_intent_novel_servers",
+  "value": 16,
+  "threshold": 1,
+  "queries": [
+    "code review",
+    "memory",
+    "local model routing"
+  ]
+}

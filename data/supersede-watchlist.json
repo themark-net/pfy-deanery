@@ -101,6 +101,15 @@
       "verdict": "adopt_part",
       "reason": "A harness, not a catalog. Already our secondary surface (ADR-0011).",
       "last_checked": "2026-11-08"
+    },
+    {
+      "name": "Neuronto ARD Registry",
+      "url": "https://github.com/neuronto/agentic-resource-discovery",
+      "what": "Public federated index of agent resources. It searches MCP tools from a handshake with each server and serves that index over HTTP.",
+      "coverage": {"track": "partial", "catalog": "partial", "evaluate": "none", "integrate": "none"},
+      "verdict": "watch",
+      "reason": "It crawls outside registries and keeps a deduped record per server and tool. Its bench scores its own retrieval, not outside tools on improvement vectors, and it does not wire a tool with a local-first run. Query the public index as an untrusted discovery feed. Do not install search hits.",
+      "last_checked": "2026-11-11"
     }
   ]
 }

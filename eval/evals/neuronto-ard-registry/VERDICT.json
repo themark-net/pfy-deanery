@@ -1,0 +1,60 @@
+{
+  "metric": "on_intent_novel_servers",
+  "threshold": 1,
+  "value": 16,
+  "value_gate": "pass",
+  "modularity_gate": "fail",
+  "proposed_stage": "I1",
+  "intent": "staged_evaluation",
+  "pin": "09d4fa8b0576981d93ae608ff4509ded4ef2df2e",
+  "pin_matches_main": true,
+  "license": "Apache-2.0",
+  "repo_kb": 1180,
+  "stars": 57,
+  "installed": false,
+  "queries": ["code review", "memory", "local model routing"],
+  "limit": 8,
+  "on_intent_novel_servers": 16,
+  "on_intent_servers": 16,
+  "off_intent_hits": 5,
+  "catalog_hits": 0,
+  "value_legs": {
+    "gap_fill": "pass",
+    "operator_leverage": "fail",
+    "evidence": "pass",
+    "blast_radius": "pass"
+  },
+  "modularity_legs": {
+    "local_code_needed": "fail",
+    "bounded_surface": "pass",
+    "isolatable": "pass",
+    "reversible": "pass"
+  },
+  "intake": {
+    "line": "duplicate neuronto-ard-registry data/stages/neuronto-ard-registry.json",
+    "wrote_card": false
+  },
+  "supersede": {
+    "coverage": {
+      "track": "partial",
+      "catalog": "partial",
+      "evaluate": "none",
+      "integrate": "none"
+    },
+    "checker": {
+      "parts": ["track", "catalog"],
+      "coverage": {
+        "track": "partial",
+        "catalog": "partial",
+        "evaluate": "none",
+        "integrate": "none"
+      },
+      "suite": ["track", "catalog", "evaluate", "integrate"],
+      "supersede_candidate": true
+    },
+    "watchlist_row": true,
+    "verdict": "watch",
+    "why": "It crawls public registries and keeps a deduped record per server and tool. Two parts at partial is a candidate. It does not score outside tools on improvement vectors and it does not wire a tool with a local-first run. Watchlist verdict is watch. No second card."
+  },
+  "next_gate": "Stay at the stage apply writes. Do not install the registry or any search hit. A later ticket may call the same read-only tool search from intake, still as untrusted names, only after the rules raise the ceiling. No main-run receipt in this trial."
+}

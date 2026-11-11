@@ -24,4 +24,5 @@
 | Public service goes away | API 5xx or project abandoned | Fall back to the CC BY dataset or a self-hosted copy |
 | Pin drift | `main` moves | Smoke checks this SHA |
 
-- **Status**: Cataloged I0. Next step, if any: an eval-auto trial that runs a few catalog-capability queries (for example "code review", "memory", "local model routing") through `/tools?q=` and counts how many hits are new versus already in the catalog.
+- **Supersede**: `#supersede-candidate`. `scripts/supersede_check.py --parts track=partial,catalog=partial,evaluate=none,integrate=none` is a candidate. Watchlist verdict `watch`. Not a stop.
+- **Status**: Cataloged I0 at intake. The named trial ran as a read-only `GET /tools?q=` probe. Counts and the stage proposal are in `eval/evals/neuronto-ard-registry/VERDICT.json`. Apply decides the stage. No TOOLS.md row.
