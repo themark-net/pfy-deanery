@@ -88,9 +88,19 @@ fn space_invaders() -> Result<Value, String> {
     run_board(&["--space-invaders"])
 }
 
+#[tauri::command]
+fn lanes() -> Result<Value, String> {
+    run_board(&["--lanes"])
+}
+
+#[tauri::command]
+fn lane_detail(trace: String, lane: String) -> Result<Value, String> {
+    run_board(&["--lane-detail", &trace, &lane])
+}
+
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![snapshot, start_sidecar, run_stage, launch_env, pull_model, test_model, set_tool, space_invaders])
+        .invoke_handler(tauri::generate_handler![snapshot, start_sidecar, run_stage, launch_env, pull_model, test_model, set_tool, space_invaders, lanes, lane_detail])
         .run(tauri::generate_context!())
         .expect("error while running pfy-operator");
 }

@@ -14,6 +14,7 @@ Modules:
                scripts/pfy_attach_usable_*.py files are thin shims over it (T-0121)
   cli       -- argparse front end used by ``./pfy toolset`` and ``./pfy hedge``
   model_choice -- per-task local/cloud resolve + cost-gated compare
+  lane_graph -- local Phoenix lane graph for the operator Runs view (docs/design/LANE-GRAPH-IA.md)
   bot_interface -- ``./pfy bot`` one-shot. Default opencode. PFY_BOT_INTERFACE=hermes opts in.
   setup     -- phase-1 setup / doctor / uninstall (adapters + ledger)
   adapters  -- harness path resolution (no launch)

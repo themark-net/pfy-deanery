@@ -12,6 +12,7 @@ Harness/model takeover map for operator-facing Design DoDs. Product locks also l
 | Jev #230 | a private ops note, `JEV-230-CUA-S1-FORMS-LOCK.md` | Design lock on main |
 | Jev org × pfy dogfood | `JEV-DECISION-LAYER-AND-PFY-DOGFOOD.md` | Plan (docs PR #259) |
 | Loop #243 | `LOOP-243-*.md` (journey, IA, wireframes, non-goals, DevBot handoff) | **Shipped** via PR #243 @ tip `7ea4c8f` — keep for history + regression |
+| Lane graph | `LANE-GRAPH-IA.md` | Runs tab under Loop. Reads local Phoenix. |
 | UX school | `UX-SCHOOL.md` | Foundations |
 
 ## How to use

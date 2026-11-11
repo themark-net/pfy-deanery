@@ -20,6 +20,8 @@ POST /module toggles a catalog toolset on Loop (stub modules cannot be enabled).
 POST /loop/task sets hedge task class bulk|interactive|hard.
 GET /model-choice and POST /model-choice read and set per-task model choice.
 POST /model-choice/compare is the cost gate from pfylib.model_choice.
+GET /lanes is the Runs graph from local Phoenix (docs/design/LANE-GRAPH-IA.md).
+GET /lanes/detail?trace=&lane= is one lane outline. Both return JSON even when Phoenix is down.
 POST /decision/smoke operator-free CUA-S1-FORMS Choice (#230).
 POST /space-invaders runs session Space Invaders via Attach OpenCode (#155).
 """
@@ -28,7 +30,7 @@ import json, os, shutil, socket, subprocess, sys, urllib.request
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -460,9 +462,18 @@ def html_page():
 
 
 def frontend_static(path: str):
-    """Serve sibling assets from gui/operator/frontend (app-core-*.js, app-ui.js, …)."""
+    """Serve sibling assets from gui/operator/frontend (app-core-*.js, app-ui.js, vendor/)."""
     name = (path or "").lstrip("/")
-    if not name or "/" in name or "\\" in name or ".." in name or name.startswith("."):
+    if not name or "\\" in name or ".." in name or name.startswith("."):
+        return None
+    parts = [part for part in name.split("/") if part]
+    if not parts or any(part.startswith(".") for part in parts):
+        return None
+    if len(parts) == 2 and parts[0] == "vendor":
+        name = "/".join(parts)
+    elif len(parts) == 1:
+        name = parts[0]
+    else:
         return None
     if not name.endswith((".js", ".css", ".map", ".svg", ".png", ".ico", ".woff2")):
         return None
@@ -2103,6 +2114,19 @@ class Handler(BaseHTTPRequestHandler):
             from pfylib.model_choice import gui_document
             self._send(200, json.dumps(gui_document(root=ROOT, probe=True)).encode("utf-8"), "application/json; charset=utf-8")
             return
+        if path == "/lanes":
+            from pfylib.lane_graph import lanes_document
+            payload = lanes_document()
+            self._send(200, json.dumps(payload).encode("utf-8"), "application/json; charset=utf-8")
+            return
+        if path == "/lanes/detail":
+            from pfylib.lane_graph import lane_detail_document
+            qs = parse_qs(urlparse(self.path).query)
+            trace = (qs.get("trace") or [""])[0]
+            lane = (qs.get("lane") or [""])[0]
+            payload = lane_detail_document(trace, lane)
+            self._send(200, json.dumps(payload).encode("utf-8"), "application/json; charset=utf-8")
+            return
         if path == "/snapshot":
             self._send(200, json.dumps(snapshot(), indent=2).encode("utf-8"), "application/json; charset=utf-8"); return
         if path == "/usage":
@@ -2521,6 +2545,16 @@ def main():
         result = space_invaders_artifact()
         print(json.dumps(result))
         return 0 if result.get("ok") else 2
+    if args[:1] == ["--lanes"]:
+        from pfylib.lane_graph import lanes_document
+        print(json.dumps(lanes_document()))
+        return 0
+    if args[:1] == ["--lane-detail"]:
+        from pfylib.lane_graph import lane_detail_document
+        trace = args[1] if len(args) > 1 else ""
+        lane = args[2] if len(args) > 2 else ""
+        print(json.dumps(lane_detail_document(trace, lane)))
+        return 0
     if HOST not in ("127.0.0.1", "localhost"):
         print("error: operator HTTP binds loopback only", file=sys.stderr); return 2
     httpd = ThreadingHTTPServer((HOST, PORT), Handler)

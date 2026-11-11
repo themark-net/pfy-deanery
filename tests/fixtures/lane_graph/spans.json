@@ -1,0 +1,318 @@
+{
+  "next_cursor": null,
+  "data": [
+    {
+      "id": "U3Bhbjaaaa0000",
+      "name": "catalog-loop",
+      "context": {
+        "trace_id": "a11ce001a11ce001a11ce001a11ce001",
+        "span_id": "aaaa000000000001"
+      },
+      "span_kind": "CHAIN",
+      "parent_id": null,
+      "start_time": "2026-11-11T12:00:00Z",
+      "end_time": "2026-11-11T12:00:10Z",
+      "status_code": "OK",
+      "status_message": "",
+      "attributes": {
+        "deanery.job_id": "job-243",
+        "deanery.lane_id": "catalog-loop",
+        "deanery.task_class": "catalog-loop",
+        "deanery.iteration": 0
+      },
+      "events": []
+    },
+    {
+      "id": "U3Bhbjbbbb0000",
+      "name": "eval-widget",
+      "context": {
+        "trace_id": "a11ce001a11ce001a11ce001a11ce001",
+        "span_id": "bbbb000000000000"
+      },
+      "span_kind": "CHAIN",
+      "parent_id": "aaaa000000000001",
+      "start_time": "2026-11-11T12:00:01Z",
+      "end_time": "2026-11-11T12:00:02Z",
+      "status_code": "ERROR",
+      "status_message": "",
+      "attributes": {
+        "deanery.job_id": "job-243",
+        "deanery.lane_id": "eval-widget",
+        "deanery.task_class": "eval-lane",
+        "deanery.iteration": 0,
+        "deanery.parent_lane": "catalog-loop"
+      },
+      "events": [
+        {
+          "name": "reasoning",
+          "timestamp": "2026-11-11T12:00:01.500000Z",
+          "attributes": {
+            "deanery.reasoning.summary": "retry after rubric miss"
+          }
+        }
+      ]
+    },
+    {
+      "id": "U3Bhbjbbbb0000",
+      "name": "eval-widget",
+      "context": {
+        "trace_id": "a11ce001a11ce001a11ce001a11ce001",
+        "span_id": "bbbb000000000001"
+      },
+      "span_kind": "CHAIN",
+      "parent_id": "aaaa000000000001",
+      "start_time": "2026-11-11T12:00:02Z",
+      "end_time": "2026-11-11T12:00:03Z",
+      "status_code": "ERROR",
+      "status_message": "",
+      "attributes": {
+        "deanery.job_id": "job-243",
+        "deanery.lane_id": "eval-widget",
+        "deanery.task_class": "eval-lane",
+        "deanery.iteration": 1,
+        "deanery.parent_lane": "catalog-loop"
+      },
+      "events": []
+    },
+    {
+      "id": "U3Bhbjbbbb0000",
+      "name": "eval-widget",
+      "context": {
+        "trace_id": "a11ce001a11ce001a11ce001a11ce001",
+        "span_id": "bbbb000000000002"
+      },
+      "span_kind": "CHAIN",
+      "parent_id": "aaaa000000000001",
+      "start_time": "2026-11-11T12:00:03Z",
+      "end_time": "2026-11-11T12:00:06Z",
+      "status_code": "OK",
+      "status_message": "",
+      "attributes": {
+        "deanery.job_id": "job-243",
+        "deanery.lane_id": "eval-widget",
+        "deanery.task_class": "eval-lane",
+        "deanery.iteration": 2,
+        "deanery.parent_lane": "catalog-loop"
+      },
+      "events": []
+    },
+    {
+      "id": "U3Bhbjbbbb0000",
+      "name": "llm",
+      "context": {
+        "trace_id": "a11ce001a11ce001a11ce001a11ce001",
+        "span_id": "bbbb000000000010"
+      },
+      "span_kind": "LLM",
+      "parent_id": "bbbb000000000002",
+      "start_time": "2026-11-11T12:00:03.500000Z",
+      "end_time": "2026-11-11T12:00:05Z",
+      "status_code": "OK",
+      "status_message": "",
+      "attributes": {
+        "llm.model_name": "grok-4.1",
+        "llm.provider": "xai",
+        "deanery.route": "cloud",
+        "llm.token_count.prompt": 800,
+        "llm.token_count.completion": 120,
+        "llm.token_count.total": 920,
+        "llm.cost.total": 0.021
+      },
+      "events": []
+    },
+    {
+      "id": "U3Bhbjbbbb0000",
+      "name": "reasoning",
+      "context": {
+        "trace_id": "a11ce001a11ce001a11ce001a11ce001",
+        "span_id": "bbbb000000000011"
+      },
+      "span_kind": "CHAIN",
+      "parent_id": "bbbb000000000002",
+      "start_time": "2026-11-11T12:00:03.200000Z",
+      "end_time": "2026-11-11T12:00:03.400000Z",
+      "status_code": "OK",
+      "status_message": "",
+      "attributes": {
+        "deanery.reasoning.summary": "checked the rubric and kept the cloud route"
+      },
+      "events": []
+    },
+    {
+      "id": "U3Bhbjbbbb0000",
+      "name": "file_op",
+      "context": {
+        "trace_id": "a11ce001a11ce001a11ce001a11ce001",
+        "span_id": "bbbb000000000012"
+      },
+      "span_kind": "TOOL",
+      "parent_id": "bbbb000000000002",
+      "start_time": "2026-11-11T12:00:04Z",
+      "end_time": "2026-11-11T12:00:04.200000Z",
+      "status_code": "OK",
+      "status_message": "",
+      "attributes": {
+        "deanery.file.path": "docs/design/LANE-GRAPH-IA.md",
+        "deanery.file.op": "read",
+        "deanery.file.contents": "SHOULD_NOT_APPEAR_FILE_BODY"
+      },
+      "events": []
+    },
+    {
+      "id": "U3Bhbjbbbb0000",
+      "name": "mcp.search",
+      "context": {
+        "trace_id": "a11ce001a11ce001a11ce001a11ce001",
+        "span_id": "bbbb000000000013"
+      },
+      "span_kind": "TOOL",
+      "parent_id": "bbbb000000000002",
+      "start_time": "2026-11-11T12:00:04.200000Z",
+      "end_time": "2026-11-11T12:00:04.800000Z",
+      "status_code": "OK",
+      "status_message": "",
+      "attributes": {
+        "deanery.mcp": true,
+        "deanery.mcp.server": "codebase-memory",
+        "deanery.mcp.tool": "search",
+        "tool.name": "search"
+      },
+      "events": []
+    },
+    {
+      "id": "U3Bhbjbbbb0000",
+      "name": "pytest",
+      "context": {
+        "trace_id": "a11ce001a11ce001a11ce001a11ce001",
+        "span_id": "bbbb000000000014"
+      },
+      "span_kind": "TOOL",
+      "parent_id": "bbbb000000000002",
+      "start_time": "2026-11-11T12:00:05Z",
+      "end_time": "2026-11-11T12:00:05.400000Z",
+      "status_code": "OK",
+      "status_message": "",
+      "attributes": {
+        "tool.name": "pytest"
+      },
+      "events": []
+    },
+    {
+      "id": "U3Bhbjcccc0000",
+      "name": "catalog-fit",
+      "context": {
+        "trace_id": "a11ce001a11ce001a11ce001a11ce001",
+        "span_id": "cccc000000000001"
+      },
+      "span_kind": "CHAIN",
+      "parent_id": "bbbb000000000002",
+      "start_time": "2026-11-11T12:00:06Z",
+      "end_time": "2026-11-11T12:00:08Z",
+      "status_code": "OK",
+      "status_message": "",
+      "attributes": {
+        "deanery.job_id": "job-243",
+        "deanery.lane_id": "catalog-fit",
+        "deanery.task_class": "catalog-fit",
+        "deanery.iteration": 0,
+        "deanery.parent_lane": "eval-widget"
+      },
+      "events": []
+    },
+    {
+      "id": "U3Bhbjcccc0000",
+      "name": "llm",
+      "context": {
+        "trace_id": "a11ce001a11ce001a11ce001a11ce001",
+        "span_id": "cccc000000000002"
+      },
+      "span_kind": "LLM",
+      "parent_id": "cccc000000000001",
+      "start_time": "2026-11-11T12:00:06.200000Z",
+      "end_time": "2026-11-11T12:00:07.500000Z",
+      "status_code": "OK",
+      "status_message": "",
+      "attributes": {
+        "llm.model_name": "qwen2.5:14b",
+        "llm.provider": "ollama",
+        "deanery.route": "local",
+        "llm.token_count.prompt": 400,
+        "llm.token_count.completion": 80,
+        "llm.token_count.total": 480,
+        "deanery.lane_id": "catalog-fit"
+      },
+      "events": []
+    },
+    {
+      "id": "U3Bhbjdddd0000",
+      "name": "integrate",
+      "context": {
+        "trace_id": "a11ce001a11ce001a11ce001a11ce001",
+        "span_id": "dddd000000000001"
+      },
+      "span_kind": "CHAIN",
+      "parent_id": "cccc000000000001",
+      "start_time": "2026-11-11T12:00:08Z",
+      "end_time": "2026-11-11T12:00:09.500000Z",
+      "status_code": "OK",
+      "status_message": "",
+      "attributes": {
+        "deanery.job_id": "job-243",
+        "deanery.lane_id": "integrate",
+        "deanery.task_class": "integrate",
+        "deanery.iteration": 0,
+        "deanery.parent_lane": "catalog-fit"
+      },
+      "events": []
+    },
+    {
+      "id": "U3Bhbjdddd0000",
+      "name": "llm",
+      "context": {
+        "trace_id": "a11ce001a11ce001a11ce001a11ce001",
+        "span_id": "dddd000000000002"
+      },
+      "span_kind": "LLM",
+      "parent_id": "dddd000000000001",
+      "start_time": "2026-11-11T12:00:08.100000Z",
+      "end_time": "2026-11-11T12:00:08.400000Z",
+      "status_code": "OK",
+      "status_message": "",
+      "attributes": {
+        "llm.model_name": "qwen2.5:14b",
+        "llm.provider": "ollama",
+        "deanery.route": "local",
+        "llm.token_count.prompt": 200,
+        "llm.token_count.completion": 40,
+        "llm.token_count.total": 240,
+        "deanery.lane_id": "integrate"
+      },
+      "events": []
+    },
+    {
+      "id": "U3Bhbjdddd0000",
+      "name": "llm",
+      "context": {
+        "trace_id": "a11ce001a11ce001a11ce001a11ce001",
+        "span_id": "dddd000000000003"
+      },
+      "span_kind": "LLM",
+      "parent_id": "dddd000000000001",
+      "start_time": "2026-11-11T12:00:08.500000Z",
+      "end_time": "2026-11-11T12:00:09.200000Z",
+      "status_code": "OK",
+      "status_message": "",
+      "attributes": {
+        "llm.model_name": "grok-4.1",
+        "llm.provider": "xai",
+        "deanery.route": "cloud",
+        "llm.token_count.prompt": 300,
+        "llm.token_count.completion": 60,
+        "llm.token_count.total": 360,
+        "llm.cost.total": 0.013,
+        "deanery.lane_id": "integrate"
+      },
+      "events": []
+    }
+  ]
+}

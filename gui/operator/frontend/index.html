@@ -54,6 +54,20 @@ a.hit:hover{background:#345a80}
 a.inspect{color:#e8edf4;text-decoration:none}
 a.inspect .copy{display:inline-block}
 noscript .fail{padding:16px;display:block}
+.lane-wrap{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:12px;align-items:stretch}
+#lane-cy{height:620px;background:#121821;border:1px solid #243041;border-radius:12px}
+#lane-detail{min-height:620px}
+#lane-detail[hidden],#lane-tip[hidden]{display:none !important}
+.lane-tip{position:fixed;z-index:5;max-width:280px;background:#18202c;border:1px solid #334155;border-radius:8px;padding:8px 10px;pointer-events:none;color:#e8edf4;font-size:12px}
+.lane-legend{display:flex;flex-wrap:wrap;gap:12px;margin:8px 0 12px;color:#8b97a8;font-size:12px}
+.lane-legend .lg i{display:inline-block;width:22px;height:3px;margin-right:6px;vertical-align:middle;background:#7d8796}
+.lane-legend .local i{background:#3dd68c}
+.lane-legend .cloud i{background:#4d8dff}
+.lane-legend .mixed i{background:#e6c15a}
+.lane-legend .unknown i{background:#7d8796}
+.lane-legend .loop i{height:0;border-top:2px dashed #8b97a8;background:transparent}
+.lane-rows{margin:8px 0 0;padding-left:1.1rem}
+#lane-steps{margin:8px 0 12px;padding-left:1.2rem;color:#c5ced9}
 </style></head><body>
 <noscript><p class=fail>FAIL JS required — pfy harness use grok</p></noscript>
 <div class=app>
@@ -61,6 +75,7 @@ noscript .fail{padding:16px;display:block}
   <b>pfy</b>
   <span class=navhint>Loop is the product. Other tabs are details.</span>
   <button type=button class="navbtn on" data-go=loop title="Pick gathered tools and where they run, then open a session">Loop</button>
+  <button type=button class=navbtn data-go=runs title="Lanes that already ran, and the Phoenix trace">Runs</button>
   <button type=button class=navbtn data-go=engine title="Local models: status, pull, recommend">Engine</button>
   <button type=button class=navbtn data-go=stage title="Environment check — SKIP is honest, not a fake pass">Stage</button>
   <button type=button class=navbtn data-go=attach title="Open grok/OpenCode now, without composing modules">Attach</button>
@@ -149,6 +164,29 @@ noscript .fail{padding:16px;display:block}
     <div class=row id=launchwhat class=muted></div>
     <span id=launchcopymsg class=attach-result></span>
     <span id=attachmsg class=attach-result></span>
+  </section>
+  <!-- docs/design/LANE-GRAPH-IA.md -->
+  <section class=view id=view-runs>
+    <h2>RUNS</h2>
+    <p class=lede>Lanes that ran on this machine. Hover a lane for the summary. Click it for the outline. Open in Phoenix for the trace.</p>
+    <p id=lane-note class=why></p>
+    <div class=lane-legend id=lane-legend>
+      <span class="lg local"><i></i>local</span>
+      <span class="lg cloud"><i></i>cloud</span>
+      <span class="lg mixed"><i></i>mixed</span>
+      <span class="lg unknown"><i></i>unknown</span>
+      <span class="lg loop"><i></i>retry / eval loop</span>
+    </div>
+    <div class=lane-wrap>
+      <div id=lane-cy></div>
+      <aside id=lane-detail class=pane hidden>
+        <h3 id=lane-detail-title>Lane</h3>
+        <ol id=lane-steps></ol>
+        <div id=lane-tabs class=acts></div>
+        <div id=lane-tab-body></div>
+        <a id=lane-phoenix class=hit href=# target=_blank rel=noopener>Open in Phoenix</a>
+      </aside>
+    </div>
   </section>
   <section class=view id=view-engine>
     <h2>ENGINE</h2>
@@ -276,5 +314,7 @@ noscript .fail{padding:16px;display:block}
 <script src="app-core-2.js"></script>
 <script src="app-core-3.js"></script>
 <script src="app-ui.js"></script>
+<script src="vendor/cytoscape.min.js"></script>
+<script src="lane-graph.js"></script>
 <script src="space-invaders.js"></script>
 </body></html>
