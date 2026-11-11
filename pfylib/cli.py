@@ -349,7 +349,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--yes", action="store_true")
     p.set_defaults(fn=_model_choice_prompt)
 
-    cp = verbs.add_parser("compare", help="cost-gated cross-model compare (catalog-fit)")
+    cp = verbs.add_parser("compare", help="cost-gated cross-model compare (catalog-fit, decision-route)")
     cp.add_argument("task")
     cp.add_argument("--against", required=True)
     cp.add_argument("--run", default="")

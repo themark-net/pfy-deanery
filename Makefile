@@ -25,6 +25,7 @@ MODEL_LOCK := ./scripts/model_lock.sh
 	voice-agent-run voice-orchestrate \
 	worker-stage worker-env monitor-brief \
 	eval-tier0 eval-tier1 eval-mvp eval-suite eval-matrix eval-v02 eval-structural \
+	tokens-venv \
 	eval-skillup \
 	eval-select-models eval-select-tools-model eval-auto \
 	cage-grok cage-grok-shell cage-grok-run cage-grok-sessions cage-grok-resume \
@@ -431,6 +432,13 @@ eval-matrix:
 	fi; \
 	if [ -z "$$model" ]; then model=qwen2.5:14b; fi; \
 	$(MODEL_LOCK) $(MAKE) -C $(HARNESS) eval-matrix EVAL_MODEL="$$model"
+
+# Tokenizer venv for model-choice estimates. tiktoken only, under <repo>/.venv.
+# Does not install system-wide. First tiktoken use may fetch its BPE file into
+# .venv/tiktoken-cache (read-only). model_choice sets TIKTOKEN_CACHE_DIR there.
+tokens-venv:
+	python3 -m venv .venv
+	.venv/bin/python -m pip install --disable-pip-version-check 'tiktoken==0.9.0'
 
 eval-v02:
 	@$(MODEL_LOCK) $(MAKE) -C $(HARNESS) eval-v02

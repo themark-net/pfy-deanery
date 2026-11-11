@@ -21,8 +21,8 @@ Nothing new was adopted. No second router, no second GUI page.
 
 ## Software factory
 
-1. **Trigger.** Operator, in setup, on the Loop or Engine view, or `./pfy model-choice set`. Compare: `./pfy compare catalog-fit --against <model>`, or the Loop / Engine "Compare last local catalog-fit run" button. Reminder: `./pfy status` and one call at the end of `scripts/catalog_loop.sh`, only when the last compare is older than 14 days and a newer `eval/catalog-fit/*.json` exists.
-2. **Reads / writes.** Reads committed `config/model-choice.json`, user override `XDG_CONFIG_HOME/pfy/model-choice.json` (default `~/.config/pfy/`), `PFY_MODEL_<TASK>`, LiteLLM yaml model names, Ollama `GET /api/tags` (no pull), `data/model-prices.json`, catalog-fit goldens and `eval/catalog-fit/`. Writes the user override, `XDG_STATE_HOME/pfy/model-compare.json`, and `./tmp/compare-*.json`. Cloud POST goes to the LiteLLM proxy only after a yes.
+1. **Trigger.** Operator, in setup, on the Loop or Engine view, or `./pfy model-choice set`. Compare: `./pfy compare catalog-fit --against <model>` or `./pfy compare decision-route --against <model>`, or the Loop / Engine "Compare last local catalog-fit run" button. Reminder: `./pfy status` and one call at the end of `scripts/catalog_loop.sh`, only when the last compare is older than 14 days and a newer `eval/catalog-fit/*.json` exists. The reminder stays on catalog-fit.
+2. **Reads / writes.** Reads committed `config/model-choice.json`, user override `XDG_CONFIG_HOME/pfy/model-choice.json` (default `~/.config/pfy/`), `PFY_MODEL_<TASK>`, LiteLLM yaml model names, Ollama `GET /api/tags` (no pull), `data/model-prices.json`, catalog-fit goldens and `eval/catalog-fit/`, and `data/decision-gates/laya-trial.cases.v0.json`. Writes the user override, `XDG_STATE_HOME/pfy/model-compare.json`, and `./tmp/compare-*.json`. Cloud POST goes to the LiteLLM proxy only after a yes.
 3. **Triggers next.** A saved choice is what `resolve(task)` returns. catalog-fit triage and the runners below call it (or `runner_choice`). Compare writes a verdict diff. Nothing starts a lane, a pull, or another compare.
 4. **Human re-enters.** Every cloud backend is an explicit config or `cloud:` value. Compare prints the price line and waits for `y` / `yes` on a TTY, or `--yes` plus `--max-usd`. The reminder only prints a command.
 5. **One run.** A lock file beside the compare state (`O_CREAT|O_EXCL`). A second compare exits with "compare already running". A lock older than one hour is removed and the new run proceeds. The reminder never takes the lock.
@@ -34,8 +34,9 @@ Nothing new was adopted. No second router, no second GUI page.
 - catalog-fit default is local `qwen3.6:35b`, fallback local `qwen2.5:14b` when detected tags omit the preferred tag, or when Ollama says the tag is missing. Fallback never goes to cloud.
 - `PFY_CATFIT_MODEL` is an alias under `PFY_MODEL_CATALOG_FIT`. `PFY_JEV_MODEL` is not an alias.
 - Golden replay does not take a model (`requires_llm` false). Selectable classes: catalog-fit, eval-suite, matrix, decision-route, build-lane. eval-lane was removed: `scripts/eval_lane.sh` calls grok with no model flag, and the catalog loop, `loop_worktree`, and `scripts/pfy_build_p.py` do not take a model.
-- Compare MVP task is catalog-fit. Other task names refuse.
-- Token counts: tiktoken, else LiteLLM `token_counter`, else chars/4 labeled `(approx)`. Prompt tokens come from the prompts. Completion tokens for the estimate come from the local output length.
+- Compare tasks plug in through one adapter each (cases, prompt, verdict parser): catalog-fit and decision-route. eval-lane is not replayable. `eval/` and `eval/catalog-verdicts` store probe verdicts, not the prompts the lane sent. eval-suite, matrix, and build-lane have no labeled replay set here.
+- decision-route replays `laya-trial.cases.v0.json` (the push_hold cases are in that file). The local side is `decide_choice` (token overlap, no second model call). The cloud side is one LiteLLM call per case. The user message is `decision_prompt()` from `examples/typed-decisions-local/trial.py` plus the fields `typesafe_evaluate` posts (`state`, `questions` with instructions and criteria). The label is not in the prompt. `--run` and `--last` do not filter this set. The same price gate, stale check, lock, and reminder rules apply. The reminder still only prints, and only for catalog-fit.
+- Token counts: LiteLLM `token_counter` if importable, else tiktoken `o200k_base`, else chars/4. The estimate line always names the method: `(litellm)`, `(tiktoken o200k_base)`, or `(approx)`. tiktoken is an approximation for non-OpenAI tokenizers, including xAI. `make tokens-venv` creates `<repo>/.venv` and installs pinned `tiktoken` there only. `model_choice` adds that venv's `site-packages` when the import fails, and sets `TIKTOKEN_CACHE_DIR` to `<repo>/.venv/tiktoken-cache` so the BPE file is a read-only fetch into the venv. Prompt tokens come from the prompts. Completion tokens for the estimate come from the local output length.
 - Prices live in `data/model-prices.json` with source URL and fetched date. Older than 45 days requires `--accept-stale-price`. Unknown model raises `UnknownModelPrice`.
 - `--yes` without `--max-usd` does not run. Estimate above `--max-usd` does not run. No TTY and no `--yes` does not run.
 - GUI controls sit on Loop step "where work runs" and repeat on Engine. No new sidebar item. Prefill is the resolved choice. Options are detected local tags plus LiteLLM cloud aliases and priced cloud models. The page does not ask for a model the config or the proxy already has.
@@ -73,8 +74,8 @@ A cloud choice takes effect only on a LiteLLM transport. catalog-fit already swi
 1. Operator opens Loop or runs `./pfy setup`. Each task shows `local` and the committed model.
 2. They set catalog-fit to `cloud:grok-4.7` or leave it local.
 3. Later, status prints: it will cost about a few cents to check the last local catalog-fit run.
-4. They run `./pfy compare catalog-fit --against grok-4.7`. The process prints the token line, the provider, the source, and the fetched date, then waits.
-5. `y` or `--yes --max-usd <limit>` runs one cloud call per case through LiteLLM. The diff lands in `./tmp`. `n`, a closed stdin, a stale price, an unknown model, or a cap below the estimate runs nothing.
+4. They run `./pfy compare catalog-fit --against grok-4.7` or `./pfy compare decision-route --against grok-4.7`. The process prints the token line (with the counter name), the provider, the source, and the fetched date, then waits.
+5. `y` or `--yes --max-usd <limit>` runs one cloud call per case through LiteLLM. The diff lands in `./tmp`. `n`, a closed stdin, a stale price, an unknown model, or a cap below the estimate runs nothing. A second compare while the lock is held does not run.
 
 ## Non-goals
 
@@ -82,7 +83,7 @@ A cloud choice takes effect only on a LiteLLM transport. catalog-fit already swi
 - A new provider SDK, a new window, or a settings page.
 - Silent cloud, automatic compare, pulling an Ollama model, or putting keys in the repo, logs, or tests.
 - Replacing Jev or the hedge credit ledger.
-- Compare for tasks other than catalog-fit.
-- Treating eval-lane as a model-choice task. It has no model-taking runner. Stored probe verdicts under `eval/` and `eval/catalog-verdicts` are not replayable prompts.
+- Compare for eval-suite, matrix, or build-lane. Those runners take a model, but this repo has no labeled replay set for them.
+- Treating eval-lane as a model-choice task or a compare task. It has no model-taking runner. Stored probe verdicts under `eval/` and `eval/catalog-verdicts` are not replayable prompts.
 - Changing `scripts/catalog_fit_triage.py` beyond the resolve and call handoff, or `scripts/catalog_loop.sh` beyond the reminder call.
 - Pointing `typesafe_model()` or `scripts/pfy_build_p.py` at model choice. TypeSafe is not the LiteLLM proxy. The product build launcher does not take a model.

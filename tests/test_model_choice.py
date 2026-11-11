@@ -31,8 +31,8 @@ from scripts import catalog_fit_triage as fit  # noqa: E402
 from tests._model_choice_isolation import begin as iso_begin, end as iso_end  # noqa: E402
 
 LINE_RE = re.compile(
-    r"Compare catalog-fit \(8 cases\) on grok-4\.7: ~[\d,]+ input \+ ~[\d,]+ output tokens"
-    r"( \(approx\))? = \$\d+\.\d{4} \(xAI price \$2\.00/\$6\.00 per 1M, "
+    r"Compare catalog-fit \(8 cases\) on grok-4\.7: ~[\d,]+ input \+ ~[\d,]+ output tokens "
+    r"\((?:approx|litellm|tiktoken o200k_base)\) = \$\d+\.\d{4} \(xAI price \$2\.00/\$6\.00 per 1M, "
     r"docs\.x\.ai/docs/models, fetched 2026-11-11\)\. Run it\? \[y/N\]"
 )
 
@@ -65,8 +65,10 @@ class Isolated(unittest.TestCase):
         (self.tmp / "home").mkdir()
         self.calls: list[dict] = []
         self._transport = mc._TRANSPORT
+        self._counters = mc._COUNTERS
         self._isatty = mc.sys_isatty
         mc._TRANSPORT = self._refuse
+        mc._COUNTERS = lambda text: ((len(text or "") + 3) // 4, "approx")
         mc.sys_isatty = lambda: False
         self.labels = _labels()
         self.run_dir = self.tmp / "run"
@@ -75,6 +77,7 @@ class Isolated(unittest.TestCase):
 
     def tearDown(self) -> None:
         mc._TRANSPORT = self._transport
+        mc._COUNTERS = self._counters
         mc.sys_isatty = self._isatty
         if self._home is None:
             os.environ.pop("HOME", None)
@@ -530,6 +533,214 @@ class ToolsetTests(Isolated):
         planned = toolsets.plan("jev", "grok", "local", root_dir=ROOT, state=self.tmp / "state")
         self.assertEqual(planned["env"]["PFY_MODEL_DECISION_ROUTE"], "local:qwen3.6:35b")
         self.assertIn("PFY_DECISION_PATH", planned["env"])
+
+
+class DecisionCompareTests(Isolated):
+    def test_parser_accepts_only_a_criteria_key(self) -> None:
+        case = {"keys": ["push", "hold", "escalate"]}
+        self.assertEqual(mc.parse_decision_choice('{"choice":"hold","confidence":0.4,"why":"red"}', case), "hold")
+        self.assertEqual(
+            mc.parse_decision_choice('```json\n{"answers":[{"choice":"push"}]}\n```', case),
+            "push",
+        )
+        self.assertIsNone(mc.parse_decision_choice('{"choice":"nope"}', case))
+        self.assertIsNone(mc.parse_decision_choice("not json", case))
+
+    def test_eval_lane_is_not_replayable(self) -> None:
+        with self.assertRaises(ValueError) as caught:
+            mc.run_compare("eval-lane", against="grok-4.7", root=ROOT, yes=True, max_usd=1)
+        self.assertIn("not replayable", str(caught.exception))
+        self.assertEqual(self.calls, [])
+        with self.assertRaises(ValueError) as other:
+            mc.run_compare("build-lane", against="grok-4.7", root=ROOT)
+        self.assertIn("catalog-fit and decision-route", str(other.exception))
+
+    def test_gates_match_catalog_fit_and_yes_diffs_against_labels(self) -> None:
+        closed = self._decision()
+        self.assertEqual(closed["blocked"], "no TTY")
+        self.assertIn("decision-route (48 cases)", closed["line"])
+        self.assertIn("(approx)", closed["line"])
+        self.assertIn("docs.x.ai/docs/models", closed["line"])
+        self.assertIn("fetched 2026-11-11", closed["line"])
+        self.assertEqual(self.calls, [])
+
+        with self.assertRaises(mc.UnknownModelPrice):
+            self._decision(against="no-such-model")
+        self.assertEqual(self.calls, [])
+
+        stale = self._decision(yes=True, max_usd=50, today=date(2026, 12, 27))
+        self.assertEqual(stale["blocked"], "stale price")
+        self.assertIn("--accept-stale-price", stale["line"])
+        self.assertEqual(self.calls, [])
+
+        missing = self._decision(yes=True)
+        self.assertIn("--yes requires --max-usd", missing["stdout"])
+        self.assertEqual(self.calls, [])
+
+        lock = mc._lock_path()
+        lock.parent.mkdir(parents=True, exist_ok=True)
+        lock.write_text("busy\n", encoding="utf-8")
+        with self.assertRaises(mc.CompareBusy):
+            self._decision(yes=True, max_usd=50)
+        self.assertEqual(self.calls, [])
+        lock.unlink()
+
+        # run/last do not filter the labeled set.
+        est = mc.estimate_task(
+            "decision-route",
+            against="grok-4.7",
+            root=ROOT,
+            run=str(self.tmp / "no-such-run"),
+            last=False,
+            today=date(2026, 11, 11),
+        )
+        self.assertEqual(est["cases"], 48)
+
+        mc._TRANSPORT = self._decision_cloud
+        result = self._decision(yes=True, max_usd=float(est["cost_text"]))
+        self.assertTrue(result["ran"], result.get("stdout"))
+        self.assertEqual(len(self.calls), 48)
+        for req in self.calls:
+            self.assertEqual(req["backend"], "cloud")
+            prompt = req["body"]["messages"][0]["content"]
+            self.assertIn("Read cases.json", prompt)
+            body = json.loads(prompt.split("CASE_JSON:\n", 1)[1])
+            self.assertNotIn("label", body)
+            self.assertNotIn("note", body)
+        payload = json.loads(self.out.read_text(encoding="utf-8"))
+        self.assertEqual(payload["usage"], {"prompt_tokens": 480, "completion_tokens": 240})
+        self.assertEqual(payload["cost_usd"], 0.0024)
+        labels = self._labels()
+        from scripts import pfy_jev_230 as jev
+        raw = json.loads((ROOT / "data" / "decision-gates" / "laya-trial.cases.v0.json").read_text(encoding="utf-8"))
+        sample = next(row for row in raw["cases"] if row["id"] == "ph-03-ci-red")
+        local = jev.decide_choice(sample["state"], sample["criteria"], instructions=sample["instructions"])
+        got = next(row for row in payload["cases"] if row["id"] == "ph-03-ci-red")
+        self.assertEqual(got["local"], local["choice"])
+        self.assertEqual(got["cloud"], sample["label"])
+        self.assertEqual(got["golden"], sample["label"])
+        self.assertTrue(all(row["match_golden_cloud"] for row in payload["cases"]))
+        self.assertEqual({row["id"] for row in payload["cases"]}, set(labels))
+        self.assertFalse(mc._lock_path().exists())
+        self.assertIsNone(mc.reminder_line("decision-route", root=ROOT))
+
+    def _labels(self) -> dict[str, str]:
+        data = json.loads((ROOT / "data" / "decision-gates" / "laya-trial.cases.v0.json").read_text(encoding="utf-8"))
+        return {row["id"]: row["label"] for row in data["cases"]}
+
+    def _decision_cloud(self, req: dict) -> dict:
+        self.calls.append(req)
+        prompt = req["body"]["messages"][0]["content"]
+        match = re.search(r'"id": "([^"]+)"', prompt)
+        label = self._labels()[match.group(1)] if match else "hold"
+        return {
+            "choices": [{"message": {"content": json.dumps({"choice": label, "confidence": 0.9, "why": "replay"})}}],
+            "usage": {"prompt_tokens": 10, "completion_tokens": 5},
+        }
+
+    def _decision(self, **kwargs) -> dict:
+        buf = io.StringIO()
+        args = dict(
+            against="grok-4.7",
+            run=str(self.run_dir),
+            last=False,
+            yes=False,
+            isatty=False,
+            out=str(self.tmp / "compare-decision-route.json"),
+            root=ROOT,
+            today=date(2026, 11, 11),
+        )
+        args.update(kwargs)
+        self.out = Path(args["out"])
+        with redirect_stdout(buf):
+            result = mc.run_compare("decision-route", **args)
+        result["stdout"] = buf.getvalue()
+        return result
+
+
+class TokenTests(Isolated):
+    def test_three_counters_and_empty_text(self) -> None:
+        self.assertEqual(mc.count_tokens(""), (0, "exact"))
+        for label in ("litellm", "tiktoken o200k_base", "approx"):
+            mc._COUNTERS = lambda text, label=label: (4, label)
+            est = mc.estimate_catalog_fit(
+                against="grok-4.7",
+                root=ROOT,
+                run=str(self.run_dir),
+                last=False,
+                today=date(2026, 11, 11),
+            )
+            self.assertEqual(est["token_method"], label)
+            self.assertIn("(%s)" % label, est["line"])
+            self.assertEqual(self.calls, [])
+
+        mc._COUNTERS = lambda text: (1, "approx") if "slug must be" in text else (1, "litellm")
+        mixed = mc.estimate_catalog_fit(
+            against="grok-4.7", root=ROOT, run=str(self.run_dir), last=False, today=date(2026, 11, 11),
+        )
+        self.assertEqual(mixed["token_method"], "approx")
+
+    def test_order_is_litellm_then_tiktoken_then_chars(self) -> None:
+        mc._COUNTERS = None
+        seen: list[str] = []
+
+        def no_lit(text: str):
+            seen.append("litellm")
+            raise ImportError("no litellm")
+
+        def tik(text: str):
+            seen.append("tiktoken")
+            return 9, "tiktoken o200k_base"
+
+        def yes_lit(text: str):
+            seen.append("litellm")
+            return 4, "litellm"
+
+        def no_tik(text: str):
+            seen.append("tiktoken")
+            raise ImportError("no tiktoken")
+
+        old_l, old_t = mc._count_litellm, mc._count_tiktoken
+        try:
+            mc._count_litellm, mc._count_tiktoken = no_lit, tik
+            self.assertEqual(mc.count_tokens("hello"), (9, "tiktoken o200k_base"))
+            self.assertEqual(seen, ["litellm", "tiktoken"])
+            seen.clear()
+            mc._count_litellm = yes_lit
+            self.assertEqual(mc.count_tokens("hello"), (4, "litellm"))
+            self.assertEqual(seen, ["litellm"])
+            seen.clear()
+            mc._count_litellm, mc._count_tiktoken = no_lit, no_tik
+            self.assertEqual(mc.count_tokens("abcd"), (1, "approx"))
+            self.assertEqual(seen, ["litellm", "tiktoken"])
+        finally:
+            mc._count_litellm, mc._count_tiktoken = old_l, old_t
+
+    def test_failed_import_uses_the_venv_and_sets_the_cache_dir(self) -> None:
+        venv = self.tmp / "tokvenv"
+        site = venv / "lib" / "python3.12" / "site-packages"
+        site.mkdir(parents=True)
+        (site / "pfy_fake_tok.py").write_text("MARKER = 1\n", encoding="utf-8")
+        os.environ["PFY_VENV"] = str(venv)
+        os.environ.pop("TIKTOKEN_CACHE_DIR", None)
+        sys.modules.pop("pfy_fake_tok", None)
+        before = list(sys.path)
+        try:
+            mod = mc._import_mod("pfy_fake_tok")
+            self.assertEqual(mod.MARKER, 1)
+            self.assertIn(str(site), sys.path)
+            self.assertEqual(os.environ["TIKTOKEN_CACHE_DIR"], str(venv / "tiktoken-cache"))
+            sys.path[:] = before
+            sys.modules.pop("pfy_fake_tok", None)
+            os.environ["TIKTOKEN_CACHE_DIR"] = str(self.tmp / "preset-cache")
+            again = mc._import_mod("pfy_fake_tok")
+            self.assertEqual(again.MARKER, 1)
+            self.assertEqual(os.environ["TIKTOKEN_CACHE_DIR"], str(self.tmp / "preset-cache"))
+        finally:
+            sys.path[:] = before
+            sys.modules.pop("pfy_fake_tok", None)
+            os.environ.pop("TIKTOKEN_CACHE_DIR", None)
+            os.environ.pop("PFY_VENV", None)
 
 
 def time_old() -> float:

@@ -14,6 +14,7 @@ A cloud backend is returned only when the operator set it.
 """
 from __future__ import annotations
 
+import importlib
 import json
 import os
 import sys
@@ -47,7 +48,7 @@ ALIAS_ENV = {
     "eval-suite": "EVAL_MODEL",
     "build-lane": "PFY_LOCAL_BUILD_MODEL",
 }
-COMPARE_TASKS = ("catalog-fit",)
+COMPARE_TASKS = ("catalog-fit", "decision-route")
 SUGGEST_CLOUD = ("grok-4.7", "gpt-6.1-sol")
 REMIND_DAYS = 14
 LOCK_STALE_S = 3600
@@ -57,6 +58,9 @@ DEFAULT_LITELLM = "http://127.0.0.1:4000/v1"
 # Tests inject this. Production leaves it None and uses HTTP.
 # A cloud socket is refused while PFY_MODEL_NO_PAID=1 and this is None.
 _TRANSPORT = None
+# Tests inject a tokenizer: callable(text) -> (count, label). None uses the
+# real order: litellm, else tiktoken, else chars/4.
+_COUNTERS = None
 
 
 class ModelCallError(Exception):
@@ -519,22 +523,78 @@ def _call_local(prompt: str, model: str, *, host: str | None, root: Path | None,
     )
 
 
+def _venv_root() -> Path | None:
+    raw = (os.environ.get("PFY_VENV") or "").strip()
+    if raw:
+        return Path(raw).expanduser()
+    candidate = repo_root() / ".venv"
+    if candidate.is_dir():
+        return candidate
+    return None
+
+
+def _add_venv_site() -> list[str]:
+    """Put <venv>/lib/python*/site-packages on sys.path. Tokenizer imports only."""
+    root = _venv_root()
+    if root is None:
+        return []
+    lib = root / "lib"
+    if not lib.is_dir():
+        return []
+    added: list[str] = []
+    for site in sorted(lib.glob("python*/site-packages")):
+        if not site.is_dir():
+            continue
+        text = str(site)
+        if text not in sys.path:
+            sys.path.insert(0, text)
+            added.append(text)
+    if added:
+        cache = root / "tiktoken-cache"
+        os.environ.setdefault("TIKTOKEN_CACHE_DIR", str(cache))
+    return added
+
+
+def _import_mod(name: str):
+    """Import name. On failure, add the tokenizer venv and try once more."""
+    try:
+        return importlib.import_module(name)
+    except Exception:
+        if not _add_venv_site():
+            raise
+        return importlib.import_module(name)
+
+
+def _count_litellm(text: str) -> tuple[int, str]:
+    mod = _import_mod("litellm")
+    return int(mod.token_counter(model="gpt-4o", text=text)), "litellm"
+
+
+def _count_tiktoken(text: str) -> tuple[int, str]:
+    mod = _import_mod("tiktoken")
+    enc = mod.get_encoding("o200k_base")
+    return len(enc.encode(text)), "tiktoken o200k_base"
+
+
 def count_tokens(text: str) -> tuple[int, str]:
-    """tiktoken, else LiteLLM token_counter, else chars/4 labeled approx."""
+    """litellm.token_counter, else tiktoken o200k_base, else chars/4.
+
+    The label is litellm, tiktoken o200k_base, or approx. Empty text is
+    (0, exact) and does not import a tokenizer. tiktoken's BPE file is a
+    read-only fetch; TIKTOKEN_CACHE_DIR is the venv cache when that venv
+    supplied the package. tiktoken is an approximation for non-OpenAI
+    tokenizers, including xAI.
+    """
     raw = text or ""
     if not raw:
         return 0, "exact"
-    try:
-        import tiktoken
-        enc = tiktoken.get_encoding("cl100k_base")
-        return len(enc.encode(raw)), "tiktoken"
-    except Exception:
-        pass
-    try:
-        import litellm
-        return int(litellm.token_counter(model="gpt-4o", text=raw)), "litellm"
-    except Exception:
-        pass
+    if _COUNTERS is not None:
+        return _COUNTERS(raw)
+    for counter in (_count_litellm, _count_tiktoken):
+        try:
+            return counter(raw)
+        except Exception:
+            continue
     return (len(raw) + 3) // 4, "approx"
 
 
@@ -824,9 +884,9 @@ def _run_dir(root: Path, run: str | None, last: bool) -> Path | None:
 
 
 def format_estimate_line(est: dict) -> str:
-    approx = " (approx)" if est.get("token_method") == "approx" else ""
+    label = est.get("token_method") or "approx"
     return (
-        "Compare %s (%s cases) on %s: ~%s input + ~%s output tokens%s = $%s "
+        "Compare %s (%s cases) on %s: ~%s input + ~%s output tokens (%s) = $%s "
         "(%s price $%.2f/$%.2f per 1M, %s, fetched %s). Run it? [y/N]"
         % (
             est["task"],
@@ -834,7 +894,7 @@ def format_estimate_line(est: dict) -> str:
             est["model"],
             f"{est['prompt_tokens']:,}",
             f"{est['completion_tokens']:,}",
-            approx,
+            label,
             est["cost_text"],
             est["provider"],
             est["price_in"],
@@ -845,7 +905,25 @@ def format_estimate_line(est: dict) -> str:
     )
 
 
-def estimate_catalog_fit(
+def _fold_method(current: str, piece: str) -> str:
+    if piece == "approx" or current == "approx":
+        return "approx"
+    if piece and piece != "exact":
+        return piece
+    return current
+
+
+def _require_compare_task(task: str) -> None:
+    if task == "eval-lane":
+        raise ValueError(
+            "eval-lane is not replayable: stored files are probe verdicts, not the prompts the lane sent"
+        )
+    if task not in COMPARE_TASKS:
+        raise ValueError("compare supports catalog-fit and decision-route")
+
+
+def estimate_task(
+    task: str,
     *,
     against: str,
     root: Path | None = None,
@@ -853,10 +931,11 @@ def estimate_catalog_fit(
     last: bool = True,
     today: date | None = None,
 ) -> dict:
+    _require_compare_task(task)
     root_path = repo_root(root)
-    cases = catalog_fit_cases(root_path, run, last)
+    cases = _compare_cases(task, root_path, run, last)
     if not cases:
-        raise ValueError("catalog-fit has no cases")
+        raise ValueError("%s has no cases" % task)
     prompt_tokens = 0
     completion_tokens = 0
     method = "exact"
@@ -865,15 +944,13 @@ def estimate_catalog_fit(
         c_tokens, c_method = count_tokens(case["completion_text"])
         prompt_tokens += p_tokens
         completion_tokens += c_tokens
-        if p_method == "approx" or c_method == "approx":
-            method = "approx"
-        elif method != "approx":
-            method = p_method
+        method = _fold_method(method, p_method)
+        method = _fold_method(method, c_method)
     priced = quote(against, prompt_tokens, completion_tokens, root=root_path)
     stale_days = price_age_days(priced["fetched"], today)
     stale = stale_days > int(priced["stale_after_days"])
     est = {
-        "task": "catalog-fit",
+        "task": task,
         "model": against,
         "cases": len(cases),
         "prompt_tokens": prompt_tokens,
@@ -892,6 +969,19 @@ def estimate_catalog_fit(
     }
     est["line"] = format_estimate_line(est)
     return est
+
+
+def estimate_catalog_fit(
+    *,
+    against: str,
+    root: Path | None = None,
+    run: str | None = None,
+    last: bool = True,
+    today: date | None = None,
+) -> dict:
+    return estimate_task(
+        "catalog-fit", against=against, root=root, run=run, last=last, today=today,
+    )
 
 
 def _confirm(
@@ -976,6 +1066,185 @@ def _verdict_of(text: str, slug: str) -> str | None:
     return verdict if isinstance(verdict, str) else None
 
 
+def _parse_catalog_fit(text: str, case: dict) -> str | None:
+    return _verdict_of(text, str(case.get("slug") or ""))
+
+
+_DECISION_REPLY = (
+    "Reply with one JSON object and no other text:\n"
+    '{"choice":"<criteria key>","confidence":0.0,"why":"one short reason"}\n'
+    "Pick exactly one criteria key. Use a confidence below 0.85 when the state does not settle the choice.\n"
+)
+
+
+def _decision_rules() -> str:
+    """Same procedure text the Laya trial gives the executor. No network."""
+    path = repo_root() / "examples" / "typed-decisions-local" / "trial.py"
+    spec = importlib.util.spec_from_file_location("pfy_decision_prompt", path)
+    if spec is None or spec.loader is None:
+        raise ImportError("trial.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return str(mod.decision_prompt()).strip()
+
+
+def _jev():
+    root = str(repo_root())
+    if root not in sys.path:
+        sys.path.insert(0, root)
+    from scripts import pfy_jev_230 as jev
+    return jev
+
+
+def decision_prompt_for_case(case: dict, rules: str) -> str:
+    """User message for one labeled Choice.
+
+    Live decide_choice is token overlap, not a chat call. typesafe_evaluate
+    posts state plus questions. Compare renders those fields, plus the trial
+    procedure, as this message. The label is not included.
+    """
+    case_id = case.get("id")
+    instructions = case.get("instructions") or ""
+    state = case.get("state")
+    criteria = case.get("criteria") if isinstance(case.get("criteria"), dict) else {}
+    payload = {
+        "id": case_id,
+        "instructions": instructions,
+        "state": state,
+        "criteria": criteria,
+        "questions": {
+            str(case_id): {
+                "type": "choice",
+                "instructions": instructions,
+                "criteria": criteria,
+            }
+        },
+    }
+    body = json.dumps(payload, indent=2, sort_keys=True)
+    return rules.strip() + "\n\n" + _DECISION_REPLY + "\nCASE_JSON:\n" + body
+
+
+def parse_decision_choice(text: str, case: dict) -> str | None:
+    """A JSON choice that is one of the criteria keys. Anything else is None."""
+    keys = case.get("keys")
+    if not isinstance(keys, (list, tuple, set)):
+        criteria = case.get("criteria") if isinstance(case.get("criteria"), dict) else {}
+        keys = list(criteria.keys())
+    allowed = {str(key) for key in keys}
+    found = _choice_in(text, allowed)
+    return found
+
+
+def _choice_in(text: str, allowed: set[str]) -> str | None:
+    raw = (text or "").strip()
+    if raw.startswith("```"):
+        raw = raw.split("\n", 1)[-1]
+        if raw.endswith("```"):
+            raw = raw[: raw.rfind("```")]
+    blobs: list[object] = []
+    try:
+        blobs.append(json.loads(raw))
+    except json.JSONDecodeError:
+        start = raw.find("{")
+        end = raw.rfind("}")
+        if start >= 0 and end > start:
+            try:
+                blobs.append(json.loads(raw[start:end + 1]))
+            except json.JSONDecodeError:
+                return None
+    for blob in blobs:
+        got = _walk_choice(blob, allowed)
+        if got:
+            return got
+    return None
+
+
+def _walk_choice(blob: object, allowed: set[str]) -> str | None:
+    if isinstance(blob, dict):
+        choice = blob.get("choice")
+        if isinstance(choice, str) and choice in allowed:
+            return choice
+        for value in blob.values():
+            got = _walk_choice(value, allowed)
+            if got:
+                return got
+    elif isinstance(blob, list):
+        for item in blob:
+            got = _walk_choice(item, allowed)
+            if got:
+                return got
+    return None
+
+
+def decision_route_cases(root: Path, run: str | None, last: bool) -> list[dict]:
+    """Labeled Jev Choice set. run and last are ignored: this is not a stored batch.
+
+    Local verdict is decide_choice (no model call). Completion text for the
+    estimate is that local choice as JSON.
+    """
+    del run, last
+    path = Path(root) / "data" / "decision-gates" / "laya-trial.cases.v0.json"
+    data = _load_json(path)
+    rows = data.get("cases") if isinstance(data.get("cases"), list) else []
+    rules = _decision_rules()
+    jev = _jev()
+    cases = []
+    for case in rows:
+        if not isinstance(case, dict) or not case.get("id"):
+            continue
+        criteria = case.get("criteria") if isinstance(case.get("criteria"), dict) else {}
+        if not criteria:
+            continue
+        instructions = str(case.get("instructions") or "")
+        rec = jev.decide_choice(case.get("state"), criteria, instructions=instructions)
+        local = rec.get("choice") if isinstance(rec, dict) else None
+        if not isinstance(local, str):
+            local = None
+        golden = case.get("label") if isinstance(case.get("label"), str) else None
+        completion = json.dumps(
+            {
+                "choice": local,
+                "confidence": rec.get("confidence") if isinstance(rec, dict) else None,
+                "why": "local",
+            },
+            sort_keys=True,
+        )
+        packed = {
+            "id": case["id"],
+            "instructions": instructions,
+            "state": case.get("state"),
+            "criteria": criteria,
+            "keys": list(criteria.keys()),
+        }
+        cases.append({
+            "id": case["id"],
+            "slug": case["id"],
+            "prompt": decision_prompt_for_case(packed, rules),
+            "local": local,
+            "golden": golden,
+            "completion_text": completion,
+            "origin": "labeled",
+            "keys": list(criteria.keys()),
+        })
+    return cases
+
+
+def _compare_cases(task: str, root: Path, run: str | None, last: bool) -> list[dict]:
+    if task == "catalog-fit":
+        return catalog_fit_cases(root, run, last)
+    if task == "decision-route":
+        return decision_route_cases(root, run, last)
+    raise ValueError("compare supports catalog-fit and decision-route")
+
+
+def _compare_parse(task: str, text: str, case: dict) -> str | None:
+    if task == "catalog-fit":
+        return _parse_catalog_fit(text, case)
+    if task == "decision-route":
+        return parse_decision_choice(text, case)
+    raise ValueError("compare supports catalog-fit and decision-route")
+
+
 def run_compare(
     task: str,
     *,
@@ -992,10 +1261,9 @@ def run_compare(
     answer: str | None = None,
     input_fn=None,
 ) -> dict:
-    if task not in COMPARE_TASKS:
-        raise ValueError("compare supports catalog-fit")
+    _require_compare_task(task)
     root_path = repo_root(root)
-    est = estimate_catalog_fit(against=against, root=root_path, run=run, last=last, today=today)
+    est = estimate_task(task, against=against, root=root_path, run=run, last=last, today=today)
     print(est["line"])
     stale_note = ""
     if est["stale"]:
@@ -1043,15 +1311,15 @@ def run_compare(
         return result
     lock = _acquire_lock()
     try:
-        cases = catalog_fit_cases(root_path, run, last)
+        cases = _compare_cases(task, root_path, run, last)
         rows = []
         prompt_tokens = 0
         completion_tokens = 0
         for case in cases:
-            text, usage = call_model(case["prompt"], task="catalog-fit", model="cloud:" + against, root=root_path)
+            text, usage = call_model(case["prompt"], task=task, model="cloud:" + against, root=root_path)
             prompt_tokens += int(usage["prompt_tokens"])
             completion_tokens += int(usage["completion_tokens"])
-            cloud = _verdict_of(text, case["slug"])
+            cloud = _compare_parse(task, text, case)
             local = case["local"]
             golden = case["golden"]
             rows.append({
@@ -1129,7 +1397,8 @@ def reminder_line(
     days: int | None = None,
 ) -> str | None:
     """One offer line, or None. Does not call a model."""
-    if task not in COMPARE_TASKS:
+    # The reminder stays on catalog-fit. Other compare tasks do not offer.
+    if task != "catalog-fit":
         return None
     latest = latest_local_run(root)
     if latest is None:
