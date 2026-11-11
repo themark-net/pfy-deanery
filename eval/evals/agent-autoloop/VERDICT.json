@@ -22,9 +22,9 @@
     "per_subject_worktrees": false
   },
   "clause_notes": {
-    "machine_checked_ask": "askFirst is a word list copied into the worker prompt (worker/contract.ts). protocol/rules.ts checks that the list is words. The model decides whether to ask. There is no machine-checked refuse list.",
-    "daily_cap": "Caps are rule parallel, worker.capacity (default 2), and maxActive. No per-day start counter. A cron line that says every day is a schedule, not a cap.",
-    "per_subject_worktrees": "No git worktree add. A rule has one cwd. The only worktree strings are a Claude plugin comment and a recipe key named worktree-busy."
+    "machine_checked_ask": "askFirst is a word list copied into the worker prompt (worker/contract.ts). protocol/rules.ts checks that the list is words. The model decides whether to ask. SECURITY.md says the hub cannot stop an agent that ignores askFirst. access (read, edit, full) and the agent sandbox are permission modes, not an ask rule. There is no machine-checked refuse list.",
+    "daily_cap": "Caps are rule parallel, worker.capacity (default 2), and maxActive. No per-day start counter. Cron text such as every day (kernel/cron.ts describeCron) is a schedule, not a cap.",
+    "per_subject_worktrees": "No git worktree add. A rule has one cwd. plugins/claude/agent.ts passes --disallowedTools=EnterWorktree,ExitWorktree so the Claude agent cannot enter a worktree. The other hit is the recipe key worktree-busy when the working tree is dirty."
   },
   "value_legs": {
     "gap_fill": "fail",
