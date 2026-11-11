@@ -1,0 +1,4 @@
+# Packages the GitHub-hosted eval-structural ubuntu job installs onto the
+# setup-python 3.12 interpreter. setup-python cache: pip keys on this file.
+pyyaml==6.0.3
+pytest==9.2.0

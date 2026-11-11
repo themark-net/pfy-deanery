@@ -32,6 +32,10 @@ jobs:
     timeout-minutes: 30
     # Full suite on this image is over 5 minutes. Four shards by module hash
     # run the same non-test checks and a quarter of the selected modules.
+    # ripgrep cache key. Must match the ubuntu-24.04 universe package
+    # (14.1.0-1). The install step fails a miss if apt gives another version.
+    env:
+      RG_VERSION: "14.1.0"
     strategy:
       fail-fast: false
       matrix:
@@ -41,16 +45,19 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: ci/gha-eval-structural-requirements.txt
       - name: Install PyYAML for the workflow image pin
         run: |
           set -euo pipefail
           # setup-python's interpreter ships neither PyYAML nor pytest (the real
           # pytest gate test needs it). Install into the
           # same absolute PATH python3 the next step runs. Do not apt-install:
-          # that package would not be on this interpreter.
+          # that package would not be on this interpreter. pip's cache is keyed
+          # on ci/gha-eval-structural-requirements.txt.
           pin_py="$(command -v python3)"
           test -n "$pin_py"
-          "$pin_py" -m pip install --disable-pip-version-check -q pyyaml pytest
+          "$pin_py" -m pip install --disable-pip-version-check -q pyyaml pytest -r ci/gha-eval-structural-requirements.txt
       - name: Workflow image pin
         run: |
           set -euo pipefail
@@ -59,14 +66,31 @@ jobs:
           pin_py="$(command -v python3)"
           test -n "$pin_py"
           "$pin_py" scripts/check_workflow_image_pin.py .github/workflows
+      - name: Cache ripgrep
+        id: cache-rg
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/rg-bin
+          key: ripgrep-${{ runner.os }}-${{ runner.arch }}-${{ env.RG_VERSION }}
       - name: Install ripgrep (harness2 sandbox tests need rg)
         timeout-minutes: 5
         run: |
           set -euo pipefail
-          if ! command -v rg >/dev/null 2>&1; then
+          dest="${RUNNER_TEMP}/rg-bin"
+          mkdir -p "$dest"
+          if [ -x "$dest/rg" ]; then
+            echo "ripgrep cache hit"
+          else
+            echo "ripgrep cache miss"
             sudo apt-get update -qq
             sudo apt-get install -y -qq ripgrep
+            cp "$(command -v rg)" "$dest/rg"
+            # Cache key is RG_VERSION. Fail if apt gave a different binary.
+            "$dest/rg" --version | head -1 | grep -F "$RG_VERSION"
           fi
+          echo "$dest" >> "$GITHUB_PATH"
+          export PATH="$dest:$PATH"
+          command -v rg
           rg --version | head -1
       - name: Structural + golden
         run: |
