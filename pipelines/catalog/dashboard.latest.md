@@ -10,8 +10,8 @@ Cards: 137. I2+: 23.
 
 | Stage | Count |
 |-------|------:|
-| I0 | 48 |
-| I1 | 66 |
+| I0 | 47 |
+| I1 | 67 |
 | I2 | 3 |
 | I3 | 20 |
 
@@ -151,7 +151,7 @@ Cards: 137. I2+: 23.
 | llama.cpp ngram-mod | I3 | speed_probe |
 | llm-router | I0 | awareness |
 | LocalHarness | I1 | staged_evaluation |
-| magpie | I0 | awareness |
+| magpie | I1 | awareness |
 | marketing-skills (marketing-council) | I1 | catalog_default |
 | mattpocock/skills | I1 | catalog_default |
 | MCO | I1 | staged_evaluation |

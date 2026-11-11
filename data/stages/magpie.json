@@ -106,6 +106,39 @@
       "date": "2026-11-11",
       "verdict": "eval/integrate/magpie/VERDICT.json",
       "note": "scored after the sandboxed eval: I2 is not reachable; a real install stays a hard stop"
+    },
+    {
+      "kind": "ceiling",
+      "from": "I1",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "R-not-excluded",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable"
+      ],
+      "failed": [
+        {
+          "rule": "HS-runtime-takeover",
+          "detail": "risk_class runtime-takeover"
+        },
+        {
+          "rule": "R-modularity-gate",
+          "detail": "modularity_gate fail"
+        },
+        {
+          "rule": "R-value-gate",
+          "detail": "value_gate fail"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-11",
+      "verdict": "eval/integrate/magpie/VERDICT.json"
     }
   ],
   "hard_stop_scope": "real install only; the sandbox eval is done (2026-11-11, eval/integrate/magpie/sandbox-trial.json)"
