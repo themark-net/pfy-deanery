@@ -230,17 +230,9 @@ class ResolveTests(Isolated):
         self.assertEqual(self.calls, [])
 
     def test_catalog_fit_call_path_uses_the_choice(self) -> None:
-        def transport(req: dict) -> dict:
-            self.calls.append(req)
-            return {"response": "{\"slug\":\"magpie\"}", "prompt_eval_count": 1, "eval_count": 1}
-
-        mc._TRANSPORT = transport
-        text = fit.default_call_model("prompt", model="qwen3.6:35b", host="http://127.0.0.1:9")
-        self.assertIn("magpie", text)
-        self.assertEqual(self.calls[0]["backend"], "local")
-        self.assertTrue(self.calls[0]["url"].startswith("http://127.0.0.1:9/"))
-
-        self.calls.clear()
+        # Local stays on catalog_fit_triage's own Ollama path (load errors and
+        # the recorded fallback live there). Cloud goes through model_choice.
+        self.assertFalse(fit.cloud_selected())
         mc._TRANSPORT = lambda req: self.calls.append(req) or {
             "choices": [{"message": {"content": "{\"ok\":true}"}}],
             "usage": {"prompt_tokens": 2, "completion_tokens": 2},
@@ -249,6 +241,16 @@ class ResolveTests(Isolated):
         self.assertIn("ok", text)
         self.assertEqual(self.calls[0]["backend"], "cloud")
         self.assertIn("/chat/completions", self.calls[0]["url"])
+
+        self.calls.clear()
+        os.environ["PFY_MODEL_CATALOG_FIT"] = "cloud:grok-4.7"
+        try:
+            self.assertTrue(fit.cloud_selected())
+            self.assertTrue(fit.operator_set_model())
+            fit.default_call_model("prompt", model="grok-4.7", host="http://127.0.0.1:9")
+        finally:
+            os.environ.pop("PFY_MODEL_CATALOG_FIT", None)
+        self.assertEqual(self.calls[0]["backend"], "cloud")
 
 
 class SetupTests(Isolated):

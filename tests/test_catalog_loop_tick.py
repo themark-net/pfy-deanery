@@ -38,6 +38,9 @@ COPY_REL = (
     "scripts/integrate_intake.py",
     "scripts/catalog_check.py",
     "pfylib/__init__.py",
+    "pfylib/model_choice.py",
+    "config/model-choice.json",
+    "data/model-prices.json",
     "pfylib/stage_registry.py",
     "pfylib/registry.py",
 )

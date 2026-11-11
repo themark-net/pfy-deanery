@@ -391,10 +391,11 @@ def default_call_model(prompt: str, *, model: str, host: str) -> str:
     When the operator set catalog-fit to cloud, the call goes through
     pfylib.model_choice (LiteLLM proxy, own keys) instead.
     """
-    if cloud_selected():
+    if model.startswith("cloud:") or cloud_selected():
         from pfylib.model_choice import ModelCallError, call_model as mc_call
+        spec = model if model.startswith("cloud:") else "cloud:" + model
         try:
-            text, _usage = mc_call(prompt, task="catalog-fit", model="cloud:" + model)
+            text, _usage = mc_call(prompt, task="catalog-fit", model=spec)
         except ModelCallError as exc:
             raise FitBroken(str(exc)) from exc
         if not isinstance(text, str) or not text.strip():
