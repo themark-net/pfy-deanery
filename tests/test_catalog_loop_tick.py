@@ -157,6 +157,21 @@ def run_tick(td: Path, clone: Path, code: int = 0, ops: Path | None = None, extr
         "GIT_TERMINAL_PROMPT": "0",
     })
     env.pop("PFY_OPS_ROOT", None)
+    env["PFY_MODEL_NO_PAID"] = "1"
+    env["PFY_MODEL_CHOICE_PATH"] = str(td / "model-choice.json")
+    env["PFY_COMPARE_STATE_PATH"] = str(td / "model-compare.json")
+    env["XDG_CONFIG_HOME"] = str(td / "xdg-config")
+    env["XDG_STATE_HOME"] = str(td / "xdg-state")
+    for key in (
+        "PFY_MODEL_CATALOG_FIT",
+        "PFY_MODEL_EVAL_SUITE",
+        "PFY_MODEL_MATRIX",
+        "PFY_MODEL_DECISION_ROUTE",
+        "PFY_MODEL_BUILD_LANE",
+        "PFY_CATFIT_MODEL",
+        "PFY_JEV_MODEL",
+    ):
+        env.pop(key, None)
     for key in (
         "PFY_CATFIT_MOCK",
         "PFY_CATFIT_MODEL",

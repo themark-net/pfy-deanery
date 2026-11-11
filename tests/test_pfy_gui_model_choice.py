@@ -19,24 +19,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from pfylib import model_choice as mc  # noqa: E402
-
-CLEARED = (
-    "PFY_MODEL_CATALOG_FIT",
-    "PFY_MODEL_EVAL_LANE",
-    "PFY_MODEL_EVAL_SUITE",
-    "PFY_MODEL_MATRIX",
-    "PFY_MODEL_DECISION_ROUTE",
-    "PFY_MODEL_BUILD_LANE",
-    "PFY_CATFIT_MODEL",
-    "EVAL_MODEL",
-    "PFY_LOCAL_BUILD_MODEL",
-    "PFY_MODEL_CHOICE_PATH",
-    "PFY_COMPARE_STATE_PATH",
-    "PFY_MODEL_NO_PAID",
-    "HOME",
-    "XDG_CONFIG_HOME",
-    "XDG_STATE_HOME",
-)
+from tests._model_choice_isolation import begin as iso_begin, end as iso_end  # noqa: E402
 
 
 def _load_gui():
@@ -52,16 +35,9 @@ class GuiModelChoiceTests(unittest.TestCase):
         cls.gui = _load_gui()
 
     def setUp(self) -> None:
-        self.tmp = Path(tempfile.mkdtemp(prefix="pfy-gui-model-"))
-        self.saved = {key: os.environ.get(key) for key in CLEARED}
-        for key in CLEARED:
-            os.environ.pop(key, None)
-        os.environ["PFY_MODEL_NO_PAID"] = "1"
+        self.tmp, self.iso_saved = iso_begin(prefix="pfy-gui-model-")
+        self._home = os.environ.get("HOME")
         os.environ["HOME"] = str(self.tmp / "home")
-        os.environ["XDG_CONFIG_HOME"] = str(self.tmp / "xdg-config")
-        os.environ["XDG_STATE_HOME"] = str(self.tmp / "xdg-state")
-        os.environ["PFY_MODEL_CHOICE_PATH"] = str(self.tmp / "user-model-choice.json")
-        os.environ["PFY_COMPARE_STATE_PATH"] = str(self.tmp / "model-compare.json")
         (self.tmp / "home").mkdir()
         self.calls: list[dict] = []
         self._transport = mc._TRANSPORT
@@ -69,12 +45,11 @@ class GuiModelChoiceTests(unittest.TestCase):
 
     def tearDown(self) -> None:
         mc._TRANSPORT = self._transport
-        for key, value in self.saved.items():
-            if value is None:
-                os.environ.pop(key, None)
-            else:
-                os.environ[key] = value
-        shutil.rmtree(self.tmp, ignore_errors=True)
+        if self._home is None:
+            os.environ.pop("HOME", None)
+        else:
+            os.environ["HOME"] = self._home
+        iso_end(self.tmp, self.iso_saved)
 
     def _refuse(self, req: dict) -> dict:
         self.calls.append(req)

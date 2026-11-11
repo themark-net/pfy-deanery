@@ -3,8 +3,6 @@ from __future__ import annotations
 
 import json
 import os
-import shutil
-import tempfile
 import sys
 import unittest
 from pathlib import Path
@@ -14,18 +12,22 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from pfylib import registry, toolsets  # noqa: E402
+from tests._model_choice_isolation import begin as iso_begin, end as iso_end  # noqa: E402
 
 
 
 class _TmpEnv(unittest.TestCase):
-    """Isolated state dir + harness homes; no writes outside the tmp tree."""
+    """Isolated state dir + harness homes; no writes outside the tmp tree.
+
+    plan() resolves decision-route, so model-choice paths stay off the real home.
+    """
 
     KEYS = ("PFY_STATE_DIR", "GROK_HOME", "CODEX_HOME", "CLAUDE_CONFIG_DIR", "TYPESAFE_API_KEY", "PFY_JEV_OFFLINE", "GAB_API_KEY")
 
     def setUp(self):
+        self._iso, self._iso_saved = iso_begin(prefix="pfylib-toolset-")
         self._saved = {k: os.environ.get(k) for k in self.KEYS}
-        self.tmp = Path(tempfile.mkdtemp(prefix="pfylib-test-"))
-        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.tmp = self._iso
         self.state = self.tmp / "state"
         os.environ["PFY_STATE_DIR"] = str(self.state)
         os.environ["GROK_HOME"] = str(self.tmp / "grok-home")
@@ -41,6 +43,7 @@ class _TmpEnv(unittest.TestCase):
                 os.environ.pop(k, None)
             else:
                 os.environ[k] = v
+        iso_end(self._iso, self._iso_saved)
 
 
 class MatrixTests(unittest.TestCase):

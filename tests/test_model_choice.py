@@ -28,26 +28,7 @@ if str(ROOT) not in sys.path:
 from pfylib import cli, model_choice as mc  # noqa: E402
 from pfylib import toolsets  # noqa: E402
 from scripts import catalog_fit_triage as fit  # noqa: E402
-
-CLEARED = (
-    "PFY_MODEL_CATALOG_FIT",
-    "PFY_MODEL_EVAL_LANE",
-    "PFY_MODEL_EVAL_SUITE",
-    "PFY_MODEL_MATRIX",
-    "PFY_MODEL_DECISION_ROUTE",
-    "PFY_MODEL_BUILD_LANE",
-    "PFY_CATFIT_MODEL",
-    "EVAL_MODEL",
-    "PFY_LOCAL_BUILD_MODEL",
-    "PFY_MODEL_CHOICE_PATH",
-    "PFY_COMPARE_STATE_PATH",
-    "PFY_COMPARE_REMIND_DAYS",
-    "PFY_MODEL_NO_PAID",
-    "PFY_ROOT",
-    "HOME",
-    "XDG_CONFIG_HOME",
-    "XDG_STATE_HOME",
-)
+from tests._model_choice_isolation import begin as iso_begin, end as iso_end  # noqa: E402
 
 LINE_RE = re.compile(
     r"Compare catalog-fit \(8 cases\) on grok-4\.7: ~[\d,]+ input \+ ~[\d,]+ output tokens"
@@ -78,16 +59,9 @@ def _cloud_text(prompt: str, labels: dict[str, str]) -> str:
 
 class Isolated(unittest.TestCase):
     def setUp(self) -> None:
-        self.tmp = Path(tempfile.mkdtemp(prefix="pfy-model-choice-"))
-        self.saved = {key: os.environ.get(key) for key in CLEARED}
-        for key in CLEARED:
-            os.environ.pop(key, None)
-        os.environ["PFY_MODEL_NO_PAID"] = "1"
+        self.tmp, self.iso_saved = iso_begin(prefix="pfy-model-choice-")
+        self._home = os.environ.get("HOME")
         os.environ["HOME"] = str(self.tmp / "home")
-        os.environ["XDG_CONFIG_HOME"] = str(self.tmp / "xdg-config")
-        os.environ["XDG_STATE_HOME"] = str(self.tmp / "xdg-state")
-        os.environ["PFY_MODEL_CHOICE_PATH"] = str(self.tmp / "user-model-choice.json")
-        os.environ["PFY_COMPARE_STATE_PATH"] = str(self.tmp / "model-compare.json")
         (self.tmp / "home").mkdir()
         self.calls: list[dict] = []
         self._transport = mc._TRANSPORT
@@ -102,12 +76,11 @@ class Isolated(unittest.TestCase):
     def tearDown(self) -> None:
         mc._TRANSPORT = self._transport
         mc.sys_isatty = self._isatty
-        for key, value in self.saved.items():
-            if value is None:
-                os.environ.pop(key, None)
-            else:
-                os.environ[key] = value
-        shutil.rmtree(self.tmp, ignore_errors=True)
+        if self._home is None:
+            os.environ.pop("HOME", None)
+        else:
+            os.environ["HOME"] = self._home
+        iso_end(self.tmp, self.iso_saved)
 
     def _refuse(self, req: dict) -> dict:
         self.calls.append({"backend": req.get("backend"), "url": req.get("url")})
@@ -300,7 +273,7 @@ class SetupTests(Isolated):
         self.assertFalse(mc.user_config_path().exists())
 
     def test_prompt_enter_keeps_the_row_and_a_value_persists(self) -> None:
-        answers = iter(["", "cloud:grok-4.7", "", "", "", ""])
+        answers = iter(["", "cloud:grok-4.7", "", "", ""])
         old_input = __builtins__["input"] if isinstance(__builtins__, dict) else __builtins__.input
         old_detect = mc.detect_local_models
         try:
@@ -325,7 +298,7 @@ class SetupTests(Isolated):
         self.assertIn("catalog-fit [local:qwen2.5:14b] (fallback)", text)
         backend, model, source = mc.resolve("catalog-fit", root=ROOT)
         self.assertEqual((backend, model, source), ("local", "qwen3.6:35b", "default"))
-        backend, model, source = mc.resolve("eval-lane", root=ROOT)
+        backend, model, source = mc.resolve("eval-suite", root=ROOT)
         self.assertEqual((backend, model, source), ("cloud", "grok-4.7", "user"))
 
     def test_cli_set_and_show(self) -> None:

@@ -380,7 +380,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Run the local-build coding eval")
     parser.add_argument("--only", help="one task id")
     parser.add_argument("--limit", type=int, default=None)
-    parser.add_argument("--model", default=os.environ.get("PFY_LOCAL_BUILD_MODEL") or "qwen3.6:35b")
+    parser.add_argument("--model", default=None, help="Ollama tag (env PFY_LOCAL_BUILD_MODEL, else model-choice)")
     parser.add_argument("--endpoint", default=None)
     parser.add_argument("--timeout", type=float, default=1200)
     parser.add_argument("--test-timeout", type=float, default=600)
@@ -392,7 +392,21 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
     endpoint = _endpoint(args.endpoint)
-    model = args.model.strip()
+    if args.model and str(args.model).strip():
+        model = str(args.model).strip()
+    else:
+        explicit = (os.environ.get("PFY_LOCAL_BUILD_MODEL") or "").strip()
+        if explicit:
+            model = explicit
+        else:
+            root = Path(__file__).resolve().parents[1]
+            if str(root) not in sys.path:
+                sys.path.insert(0, str(root))
+            try:
+                from pfylib.model_choice import runner_choice
+                model = runner_choice("build-lane", transport="ollama", root=root)[1]
+            except Exception:
+                model = "qwen3.6:35b"
     repo = Path(args.repo).resolve() if args.repo else ROOT
     refused = _refuse_main_checkout(repo)
     if refused:

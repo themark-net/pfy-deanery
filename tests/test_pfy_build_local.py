@@ -593,8 +593,21 @@ class LocalBuildTests(unittest.TestCase):
                 "MY_KEY": "abcdkeyvalue",
                 "TMPDIR": str(ROOT / "tmp" / "scratch"),
                 "PFY_LOCAL_BUILD_MODEL": "not-the-flag-model:latest",
+                "PFY_MODEL_NO_PAID": "1",
+                "PFY_MODEL_CHOICE_PATH": str(self.tmp / "model-choice.json"),
+                "PFY_COMPARE_STATE_PATH": str(self.tmp / "model-compare.json"),
+                "XDG_CONFIG_HOME": str(self.tmp / "xdg-config"),
+                "XDG_STATE_HOME": str(self.tmp / "xdg-state"),
             }
         )
+        for key in (
+            "PFY_MODEL_BUILD_LANE",
+            "PFY_MODEL_CATALOG_FIT",
+            "PFY_MODEL_DECISION_ROUTE",
+            "PFY_MODEL_EVAL_SUITE",
+            "PFY_MODEL_MATRIX",
+        ):
+            env.pop(key, None)
         env.update(extra)
         return env
 

@@ -29,9 +29,10 @@ def run_cli(*argv: str) -> tuple[int, str]:
 
 class _Tmp(unittest.TestCase):
     def setUp(self):
+        from tests._model_choice_isolation import begin
+        self._iso, self._iso_saved = begin(prefix="pfylib-cli-")
         self._saved = {k: os.environ.get(k) for k in ("PFY_STATE_DIR", "PFY_CLOUD_BUDGET", "DEPLOY_PROFILE", "CODEX_HOME", "PFY_JEV_OFFLINE")}
-        self.tmp = Path(tempfile.mkdtemp(prefix="pfylib-cli-"))
-        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.tmp = self._iso
         self.state = self.tmp / "state"
         os.environ["PFY_STATE_DIR"] = str(self.state)
         os.environ["CODEX_HOME"] = str(self.tmp / "codex")
@@ -40,11 +41,13 @@ class _Tmp(unittest.TestCase):
         os.environ.pop("DEPLOY_PROFILE", None)
 
     def tearDown(self):
+        from tests._model_choice_isolation import end
         for k, v in self._saved.items():
             if v is None:
                 os.environ.pop(k, None)
             else:
                 os.environ[k] = v
+        end(self._iso, self._iso_saved)
 
 
 class ToolsetCliTests(_Tmp):

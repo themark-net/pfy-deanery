@@ -7,7 +7,23 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MODE="${EVAL_MODE:-single}"  # single | suite | matrix
 TASK="${EVAL_TASK:-001-is-palindrome}"
 BASE="${OPENAI_BASE_URL:-http://host.docker.internal:11435/v1}"
-# Prefer EVAL_MODEL (scored task); fall back to LITELLM_SMOKE_MODEL then qwen2.5:14b
+# EVAL_MODEL, else LITELLM_SMOKE_MODEL, else model_choice for this mode.
+# The cage copy of this script may not have pfylib; the host Makefile resolves
+# first and passes EVAL_MODEL in. A cloud choice is refused (Ollama only).
+if [ -z "${EVAL_MODEL:-}" ] && [ -z "${LITELLM_SMOKE_MODEL:-}" ]; then
+  _task=eval-suite
+  if [ "$MODE" = "matrix" ]; then
+    _task=matrix
+  fi
+  _root="$(cd "$SCRIPT_DIR/../.." && pwd)"
+  if [ -f "$_root/pfylib/model_choice.py" ]; then
+    _got="$(cd "$_root" && python3 -m pfylib.model_choice resolve "$_task" --field model --transport ollama || true)"
+    if [ -n "$_got" ]; then
+      EVAL_MODEL="$_got"
+    fi
+  fi
+  unset _task _root _got
+fi
 MODEL="${EVAL_MODEL:-${LITELLM_SMOKE_MODEL:-qwen2.5:14b}}"
 # Matrix default: capable coders present on this lab host (missing → SKIP cell)
 MODELS="${EVAL_MODELS:-qwen2.5:14b,codestral:22b,deepseek-coder:6.7b-instruct}"

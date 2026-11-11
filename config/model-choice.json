@@ -7,10 +7,6 @@
       "model": "qwen3.6:35b",
       "fallback": "qwen2.5:14b"
     },
-    "eval-lane": {
-      "backend": "local",
-      "model": "qwen2.5:14b"
-    },
     "eval-suite": {
       "backend": "local",
       "model": "qwen2.5:14b"

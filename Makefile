@@ -412,11 +412,25 @@ eval-tier1:
 eval-mvp:
 	@$(MODEL_LOCK) $(MAKE) -C $(HARNESS) eval-mvp
 
+# EVAL_MODEL on the command line or in the environment wins. Otherwise the
+# gate model comes from model_choice (PFY_MODEL_<TASK>, then the saved choice,
+# then config/model-choice.json). A cloud choice is refused: these targets
+# talk to Ollama, not the LiteLLM proxy.
 eval-suite:
-	@$(MODEL_LOCK) $(MAKE) -C $(HARNESS) eval-suite
+	@model='$(EVAL_MODEL)'; \
+	if [ -z "$$model" ]; then \
+	  model="$$(python3 -m pfylib.model_choice resolve eval-suite --field model --transport ollama || true)"; \
+	fi; \
+	if [ -z "$$model" ]; then model=qwen2.5:14b; fi; \
+	$(MODEL_LOCK) $(MAKE) -C $(HARNESS) eval-suite EVAL_MODEL="$$model"
 
 eval-matrix:
-	@$(MODEL_LOCK) $(MAKE) -C $(HARNESS) eval-matrix
+	@model='$(EVAL_MODEL)'; \
+	if [ -z "$$model" ]; then \
+	  model="$$(python3 -m pfylib.model_choice resolve matrix --field model --transport ollama || true)"; \
+	fi; \
+	if [ -z "$$model" ]; then model=qwen2.5:14b; fi; \
+	$(MODEL_LOCK) $(MAKE) -C $(HARNESS) eval-matrix EVAL_MODEL="$$model"
 
 eval-v02:
 	@$(MODEL_LOCK) $(MAKE) -C $(HARNESS) eval-v02

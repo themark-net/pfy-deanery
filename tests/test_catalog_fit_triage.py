@@ -145,6 +145,8 @@ def _flags(results: list) -> list[tuple[str, bool]]:
 
 class CatalogFitTriageTest(unittest.TestCase):
     def setUp(self) -> None:
+        from tests._model_choice_isolation import begin
+        self._iso, self._iso_saved = begin(prefix="pfy-catfit-")
         self._gate = os.environ.get("PFY_JEV_CONF_GATE")
         os.environ["PFY_JEV_CONF_GATE"] = "0.85"
         self._saved = {}
@@ -169,6 +171,34 @@ class CatalogFitTriageTest(unittest.TestCase):
                 os.environ.pop(key, None)
             else:
                 os.environ[key] = value
+        from tests._model_choice_isolation import end
+        end(self._iso, self._iso_saved)
+
+    def test_planted_home_cloud_choice_does_not_leak(self) -> None:
+        """Fail: a cloud choice under a fake HOME becomes the triage model.
+        Recover: PFY_MODEL_CHOICE_PATH and XDG stay on the temp dirs, so the
+        committed local model is what triage resolves.
+        """
+        home = self._iso / "planted-home"
+        planted = home / ".config" / "pfy" / "model-choice.json"
+        planted.parent.mkdir(parents=True)
+        planted.write_text(
+            json.dumps({"tasks": {"catalog-fit": {"backend": "cloud", "model": "grok-4.7"}}}) + "\n",
+            encoding="utf-8",
+        )
+        saved_home = os.environ.get("HOME")
+        os.environ["HOME"] = str(home)
+        try:
+            from pfylib.model_choice import user_config_path
+            self.assertNotEqual(user_config_path(), planted)
+            self.assertFalse(str(user_config_path()).startswith(str(home)))
+            self.assertFalse(fit.cloud_selected())
+            self.assertEqual(fit.default_model(), "qwen3.6:35b")
+        finally:
+            if saved_home is None:
+                os.environ.pop("HOME", None)
+            else:
+                os.environ["HOME"] = saved_home
 
     def _cases(self) -> list[dict]:
         data = json.loads(GATE.read_text(encoding="utf-8"))

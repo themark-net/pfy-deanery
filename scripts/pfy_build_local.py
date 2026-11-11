@@ -293,6 +293,28 @@ def _same_model(left: str, right: str) -> bool:
     return norm(left) == norm(right)
 
 
+def _pick_build_model(flag: str | None) -> str:
+    """--model, else PFY_LOCAL_BUILD_MODEL, else model_choice build-lane.
+
+    The endpoint is Ollama. A cloud choice prints one refusal and the
+    committed local tag is used instead.
+    """
+    if flag is not None and str(flag).strip() != "":
+        return str(flag).strip()
+    raw = os.environ.get("PFY_LOCAL_BUILD_MODEL")
+    if raw is not None and raw.strip() != "":
+        return raw.strip()
+    root = Path(__file__).resolve().parents[1]
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
+    try:
+        from pfylib.model_choice import runner_choice
+        _backend, model, _source = runner_choice("build-lane", transport="ollama", root=root)
+        return model or DEFAULT_MODEL
+    except Exception:
+        return DEFAULT_MODEL
+
+
 def _pick_str(flag: str | None, env_name: str, default: str) -> str:
     if flag is not None and str(flag).strip() != "":
         return str(flag).strip()
@@ -433,7 +455,7 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
         task = path.read_text(encoding="utf-8")
     if args.reap and (not task or not str(task).strip()):
         args.task_text = ""
-        args.model_name = _pick_str(args.model, "PFY_LOCAL_BUILD_MODEL", DEFAULT_MODEL)
+        args.model_name = _pick_build_model(args.model)
         args.endpoint_raw = _pick_str(args.endpoint, "LOCAL_OPENAI_BASE_URL", DEFAULT_ENDPOINT)
         args.test_cmd_s = _pick_str(args.test_cmd, "PFY_LOCAL_BUILD_TEST_CMD", DEFAULT_TEST_CMD)
         args.timeout_s = _pick_float(args.timeout, "PFY_LOCAL_BUILD_TIMEOUT", DEFAULT_TIMEOUT)
@@ -448,7 +470,7 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
         raise UsageError("a task string or --prompt-file is required")
     args.task_text = str(task)
     try:
-        args.model_name = _pick_str(args.model, "PFY_LOCAL_BUILD_MODEL", DEFAULT_MODEL)
+        args.model_name = _pick_build_model(args.model)
         args.endpoint_raw = _pick_str(args.endpoint, "LOCAL_OPENAI_BASE_URL", DEFAULT_ENDPOINT)
         args.test_cmd_s = _pick_str(args.test_cmd, "PFY_LOCAL_BUILD_TEST_CMD", DEFAULT_TEST_CMD)
         args.timeout_s = _pick_float(args.timeout, "PFY_LOCAL_BUILD_TIMEOUT", DEFAULT_TIMEOUT)

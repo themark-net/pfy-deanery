@@ -94,11 +94,27 @@ def load_tests(path: Path):
 
 
 def resolve_model() -> str:
-    return (
-        os.environ.get("EVAL_MODEL")
-        or os.environ.get("LITELLM_SMOKE_MODEL")
-        or "qwen2.5:14b"
-    )
+    """EVAL_MODEL, else LITELLM_SMOKE_MODEL, else model_choice.
+
+    Suite and single-task runs use eval-suite. EVAL_MODE=matrix uses matrix.
+    Both are Ollama-only: a cloud choice is refused and the local default stays.
+    """
+    explicit = (os.environ.get("EVAL_MODEL") or "").strip()
+    if explicit:
+        return explicit
+    smoke = (os.environ.get("LITELLM_SMOKE_MODEL") or "").strip()
+    if smoke:
+        return smoke
+    task = "matrix" if (os.environ.get("EVAL_MODE") or "").strip() == "matrix" else "eval-suite"
+    root = Path(__file__).resolve().parents[2]
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
+    try:
+        from pfylib.model_choice import runner_choice
+        _backend, model, _source = runner_choice(task, transport="ollama", root=root)
+        return model or "qwen2.5:14b"
+    except Exception:
+        return "qwen2.5:14b"
 
 
 def _llama_ngram_or_none(prompt: str, max_tokens: int) -> str | None:

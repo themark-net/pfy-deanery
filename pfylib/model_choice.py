@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 import time
 import urllib.error
 import urllib.request
@@ -25,12 +26,20 @@ from pathlib import Path
 
 TASK_ORDER = (
     "catalog-fit",
-    "eval-lane",
     "eval-suite",
     "matrix",
     "decision-route",
     "build-lane",
 )
+# Runners that cannot call LiteLLM. A cloud choice is refused and the
+# committed local model is kept. catalog-fit is not here: its caller
+# already switches local Ollama vs the LiteLLM proxy.
+RUNNER_TRANSPORT = {
+    "eval-suite": "ollama",
+    "matrix": "ollama",
+    "decision-route": "ollama",
+    "build-lane": "ollama",
+}
 # Alias env is read after PFY_MODEL_<TASK>. PFY_JEV_MODEL is not an alias:
 # that variable is the TypeSafe / Laya id, owned by scripts/pfy_jev_230.py.
 ALIAS_ENV = {
@@ -207,6 +216,52 @@ def resolve(
     ):
         model = fallback
         source = "fallback"
+    return backend, model, source
+
+
+def local_default(task: str, root: Path | None = None) -> str:
+    """Committed local model for task. Cloud defaults in the file are ignored."""
+    raw = committed_tasks(root).get(task)
+    defaults = raw if isinstance(raw, dict) else {}
+    model = str(defaults.get("model") or "").strip()
+    return model or "qwen2.5:14b"
+
+
+def _refuse_cloud(task: str, model: str, kept: str) -> None:
+    print(
+        "model-choice: %s is Ollama-only; cloud:%s refused; keeping %s"
+        % (task, model, kept),
+        file=sys.stderr,
+    )
+
+
+def runner_choice(
+    task: str,
+    *,
+    explicit: str | None = None,
+    transport: str | None = None,
+    root: Path | None = None,
+) -> tuple[str, str, str]:
+    """(backend, model, source) a runner should use.
+
+    explicit is the runner's own flag or env (EVAL_MODEL, --model,
+    PFY_JEV_MODEL). It wins over PFY_MODEL_<TASK>, the saved choice, and
+    the committed default. A cloud choice on an ollama transport prints
+    one refusal line and returns the committed local model.
+    """
+    if task not in TASK_ORDER:
+        raise ValueError("unknown task %s" % task)
+    kind = transport or RUNNER_TRANSPORT.get(task) or "ollama"
+    raw = (explicit or "").strip()
+    if raw:
+        backend, model = parse_spec(raw)
+        source = "flag"
+    else:
+        backend, model, source = resolve(task, root=root)
+    if backend == "cloud" and kind != "litellm":
+        kept = local_default(task, root)
+        _refuse_cloud(task, model, kept)
+        return "local", kept, "refused-cloud"
     return backend, model, source
 
 
@@ -1168,3 +1223,36 @@ def gui_compare(body: dict, *, root: Path | None = None) -> dict:
         return {"ok": False, "ran": False, "error": "UnknownModelPrice: %s" % exc}
     except (PriceCoverageError, CompareBusy, ValueError, ModelCallError) as exc:
         return {"ok": False, "ran": False, "error": str(exc)}
+
+
+def main(argv: list[str] | None = None) -> int:
+    """`python3 -m pfylib.model_choice resolve <task> --field model|backend|spec`."""
+    import argparse
+
+    parser = argparse.ArgumentParser(prog="pfylib.model_choice")
+    sub = parser.add_subparsers(dest="cmd", required=True)
+    res = sub.add_parser("resolve", help="print the model a runner should use")
+    res.add_argument("task")
+    res.add_argument("--field", choices=("model", "backend", "spec"), default="model")
+    res.add_argument("--transport", choices=("ollama", "litellm"), default="")
+    res.add_argument("--explicit", default="", help="runner flag or env value; wins over resolve()")
+    args = parser.parse_args(argv)
+    transport = args.transport or None
+    explicit = args.explicit or None
+    if transport or explicit:
+        backend, model, _source = runner_choice(
+            args.task, explicit=explicit, transport=transport or "ollama",
+        )
+    else:
+        backend, model, _source = resolve(args.task)
+    if args.field == "backend":
+        print(backend)
+    elif args.field == "spec":
+        print("%s:%s" % (backend, model))
+    else:
+        print(model)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

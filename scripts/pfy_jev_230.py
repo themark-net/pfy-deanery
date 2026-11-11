@@ -164,9 +164,25 @@ def laya_shadow_enabled():
 
 
 def laya_shadow_model():
-    """Shadow call model. Unset PFY_JEV_MODEL → english (not jev-1.13.0)."""
+    """Shadow call model.
+
+    PFY_JEV_MODEL wins (the runner's own env, not an alias of
+    PFY_MODEL_DECISION_ROUTE). Otherwise model_choice. This path posts to
+    local laya-serve, not LiteLLM, so a cloud choice is refused and the
+    committed local model is kept. Import failure keeps ``english``.
+    """
     raw = str(os.environ.get("PFY_JEV_MODEL") or "").strip()
-    return raw or LAYA_SHADOW_MODEL
+    if raw:
+        return raw
+    root = Path(__file__).resolve().parents[1]
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
+    try:
+        from pfylib.model_choice import runner_choice
+        _backend, model, _source = runner_choice("decision-route", transport="ollama", root=root)
+        return model or LAYA_SHADOW_MODEL
+    except Exception:
+        return LAYA_SHADOW_MODEL
 
 
 def typesafe_url_is_local(url=None):
