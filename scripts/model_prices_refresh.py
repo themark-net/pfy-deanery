@@ -65,6 +65,19 @@ def http_get(url: str) -> str:
         return resp.read().decode("utf-8", "replace")
 
 
+def fetch_best(url: str, fetch) -> str:
+    """Prefer the docs' markdown twin (<url>.md); both providers serve one and
+    the HTML pages render their tables client-side. Fall back to the page."""
+    md_url = url.rstrip("/") + ".md"
+    try:
+        text = fetch(md_url)
+    except Exception:
+        text = ""
+    if text and "| $" in text:
+        return text
+    return fetch(url)
+
+
 def _plain(text: str) -> str:
     return html.unescape(_TAG.sub("", text or "")).strip()
 
@@ -300,7 +313,7 @@ def refresh(
             text = openai_text
         if text is None:
             try:
-                text = fetch(url)
+                text = fetch_best(url, fetch)
             except Exception:
                 failures.append("%s: fetch failed" % provider)
                 continue

@@ -186,3 +186,27 @@ class PriceRefreshTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class FetchBestTests(unittest.TestCase):
+    """Fail: live HTML renders price tables client-side, so the parse found no models."""
+
+    def test_prefers_markdown_twin_and_falls_back_to_page(self) -> None:
+        import scripts.model_prices_refresh as mpr
+        seen = []
+
+        def fake(url):
+            seen.append(url)
+            if url.endswith(".md"):
+                return "| grok-4.7 (< 200k prompt tokens) | 500k | $2.00 | $0.50 | $6.00 |"
+            return "<html>no table</html>"
+
+        self.assertIn("| $2.00", mpr.fetch_best("https://docs.x.ai/docs/models", fake))
+        self.assertEqual(seen, ["https://docs.x.ai/docs/models.md"])
+
+        def no_md(url):
+            if url.endswith(".md"):
+                raise OSError("404")
+            return "<table>page</table>"
+
+        self.assertEqual(mpr.fetch_best("https://example.test/p", no_md), "<table>page</table>")

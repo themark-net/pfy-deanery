@@ -438,7 +438,7 @@ eval-matrix:
 # .venv/tiktoken-cache (read-only). model_choice sets TIKTOKEN_CACHE_DIR there.
 tokens-venv:
 	python3 -m venv .venv
-	.venv/bin/python -m pip install --disable-pip-version-check 'tiktoken==0.9.0'
+	.venv/bin/python -m pip install --disable-pip-version-check --only-binary=:all: 'tiktoken==0.14.0'
 
 eval-v02:
 	@$(MODEL_LOCK) $(MAKE) -C $(HARNESS) eval-v02
