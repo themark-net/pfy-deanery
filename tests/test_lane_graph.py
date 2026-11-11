@@ -210,6 +210,32 @@ class GraphTests(unittest.TestCase):
         self.assertEqual(len(outline["steps"]), 40)
 
 
+class TraceCapTests(unittest.TestCase):
+    """A busy store (hundreds of unrelated runs) must not pack the graph into one row."""
+
+    def test_only_the_most_recent_traces_are_drawn(self):
+        from pfylib.lane_graph import recent_traces
+
+        spans = []
+        for i in range(30):
+            spans.append({
+                "name": "lane-%02d" % i,
+                "context": {"trace_id": "%032x" % (i + 1), "span_id": "%016x" % (i + 1)},
+                "parent_id": None,
+                "start_time": "2026-11-11T20:%02d:00+00:00" % i,
+                "end_time": "2026-11-11T20:%02d:01+00:00" % i,
+                "attributes": {"deanery.lane_id": "lane-%02d" % i, "deanery.route": "local"},
+            })
+        kept = recent_traces({"data": spans}, cap=8)
+        graph = build_graph(kept)
+        self.assertEqual(sorted(n["lane_id"] for n in graph["nodes"]), ["lane-%02d" % i for i in range(22, 30)])
+        os.environ["PFY_LANE_GRAPH_TRACES"] = "nonsense"
+        try:
+            self.assertEqual(len({s["context"]["trace_id"] for s in recent_traces(spans)}), 8)
+        finally:
+            os.environ.pop("PFY_LANE_GRAPH_TRACES", None)
+
+
 class PhoenixFailureTests(unittest.TestCase):
     def setUp(self):
         self._env = {

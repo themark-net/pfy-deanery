@@ -840,6 +840,37 @@ def _detail(trace_id: str, lane_id: str, spans) -> dict:
     }
 
 
+DEFAULT_TRACES = 8
+
+
+def _trace_cap() -> int:
+    raw = os.environ.get("PFY_LANE_GRAPH_TRACES", "")
+    try:
+        value = int(raw) if raw.strip() else DEFAULT_TRACES
+    except ValueError:
+        value = DEFAULT_TRACES
+    return value if 1 <= value <= 200 else DEFAULT_TRACES
+
+
+def recent_traces(spans, cap: int | None = None) -> list:
+    """Keep the spans of the cap most recent traces (by latest start).
+
+    A busy store holds hundreds of unrelated runs; drawing them all packs the
+    graph into one unreadable row. Phoenix keeps every trace; this only trims
+    what the Runs view paints.
+    """
+    rows = _span_list(spans)
+    cap = _trace_cap() if cap is None else cap
+    latest: dict[str, float] = {}
+    for span in rows:
+        trace = _trace_id(span)
+        when = _parse_time(span.get("start_time")) or 0.0
+        if when >= latest.get(trace, float("-inf")):
+            latest[trace] = when
+    keep = set(sorted(latest, key=lambda trace: latest[trace], reverse=True)[:cap])
+    return [span for span in rows if _trace_id(span) in keep]
+
+
 def lanes_document() -> dict:
     """Payload for GET /lanes. HTTP layer always returns this with status 200."""
     fetched = fetch_spans()
@@ -853,7 +884,7 @@ def lanes_document() -> dict:
             "window_hours": _hours(),
         }
     graph = build_graph(
-        fetched.get("spans") or [],
+        recent_traces(fetched.get("spans") or []),
         project_id=fetched.get("project_id"),
         endpoint=fetched.get("endpoint"),
     )
