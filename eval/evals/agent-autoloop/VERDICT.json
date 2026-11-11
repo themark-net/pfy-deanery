@@ -1,0 +1,68 @@
+{
+  "metric": "next_gate_clauses_present",
+  "threshold": 3,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I1",
+  "intent": "awareness",
+  "pin": "3539184a2c088f85e5623ebc47e7759849be0f72",
+  "pin_status": "unchanged",
+  "head_commit_utc": "2026-11-10T20:06:32Z",
+  "first_commit_date": "2026-11-03",
+  "days_since_first_commit": 7,
+  "quiet_days_required": 30,
+  "quiet_window_met": false,
+  "reran_trial": false,
+  "prior_trial": "eval/integrate/agent-autoloop/results.json",
+  "runs": 0,
+  "clauses": {
+    "machine_checked_ask": false,
+    "daily_cap": false,
+    "per_subject_worktrees": false
+  },
+  "clause_notes": {
+    "machine_checked_ask": "askFirst is a word list copied into the worker prompt (worker/contract.ts). protocol/rules.ts checks that the list is words. The model decides whether to ask. There is no machine-checked refuse list.",
+    "daily_cap": "Caps are rule parallel, worker.capacity (default 2), and maxActive. No per-day start counter. A cron line that says every day is a schedule, not a cap.",
+    "per_subject_worktrees": "No git worktree add. A rule has one cwd. The only worktree strings are a Claude plugin comment and a recipe key named worktree-busy."
+  },
+  "value_legs": {
+    "gap_fill": "fail",
+    "operator_leverage": "fail",
+    "evidence": "pass",
+    "blast_radius": "pass"
+  },
+  "modularity_legs": {
+    "local_code_needed": "pass",
+    "bounded_surface": "pass",
+    "isolatable": "pass",
+    "reversible": "pass"
+  },
+  "intake": {
+    "source": "https://github.com/KKKKhazix/agent-autoloop",
+    "line": "duplicate agent-autoloop data/stages/agent-autoloop.json",
+    "wrote_card": false
+  },
+  "supersede": {
+    "coverage": {
+      "track": "none",
+      "catalog": "none",
+      "evaluate": "none",
+      "integrate": "none"
+    },
+    "checker": {
+      "parts": [],
+      "coverage": {
+        "track": "none",
+        "catalog": "none",
+        "evaluate": "none",
+        "integrate": "none"
+      },
+      "suite": ["track", "catalog", "evaluate", "integrate"],
+      "supersede_candidate": false
+    },
+    "watchlist_row": false,
+    "why": "Agent Autoloop schedules CLI agents from events. It does not watch outside tools, keep a deduped stage catalog, score tools on I0-I4, or wire a catalog tool with a run on main. scripts/supersede_check.py --parts track=none,catalog=none,evaluate=none,integrate=none is not a candidate. No watchlist row."
+  },
+  "why": "Stay I1. The pin matches the prior trial. Zero of the three next-gate clauses are present, and the repo is 7 days old, short of 30 quiet days. Value is 2 of 4. Keep the catalog loop. This lane does not write integration_stage or tier_ceiling."
+}
