@@ -475,6 +475,8 @@ class FrontendRenderTests(unittest.TestCase):
         self.assertTrue(summary["detail_open"])
         self.assertIn("docs/design/LANE-GRAPH-IA.md", summary["tab_body"])
         self.assertNotIn("SHOULD_NOT_APPEAR_FILE_BODY", dom)
+        # The eval lane's outline links to its model-choice row on Loop.
+        self.assertEqual(summary["model_lever"], "eval-lane")
 
 
 def self_raw():

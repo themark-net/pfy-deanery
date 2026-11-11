@@ -47,6 +47,7 @@ The graph polls `GET /lanes` every 5 seconds only while Runs is visible. Selecti
 On this view only:
 
 - Hover, click, tab, **Open in Phoenix**.
+- **Model for <task>** in the outline, when the lane's task class has a model-choice row. It jumps to that row on Loop and focuses it. The choice itself stays on Loop.
 - The legend (not a control).
 
 No endpoint field, no project picker, no time-range form, no settings link. Changing where the next session runs stays on Loop.

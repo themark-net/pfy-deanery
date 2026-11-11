@@ -298,6 +298,7 @@
           label: nodeLabel(node),
           summary: node.summary || node,
           phoenix_url: node.phoenix_url || "",
+          task_class: node.task_class || "",
           route: routeOf(node.route),
           status: node.status || "ok"
         };
@@ -414,6 +415,41 @@
     });
   }
 
+  // Lane task class -> the model-choice row on Loop (pfylib/model_choice TASK_ORDER).
+  function modelTaskOf(taskClass) {
+    var t = String(taskClass || "").toLowerCase();
+    if (!t) return "";
+    if (["catalog-fit", "eval-lane", "eval-suite", "matrix", "decision-route", "build-lane"].indexOf(t) >= 0) return t;
+    if (t.indexOf("eval") === 0) return "eval-lane";
+    if (t.indexOf("build") === 0 || t.indexOf("integrate") === 0) return "build-lane";
+    return "";
+  }
+
+  function paintModelLever(node) {
+    var detail = $("lane-detail");
+    if (!detail) return;
+    var btn = $("lane-model");
+    if (!btn) {
+      btn = document.createElement("button");
+      btn.type = "button";
+      btn.id = "lane-model";
+      detail.appendChild(btn);
+      btn.addEventListener("click", function () {
+        var task = btn.getAttribute("data-model-task") || "";
+        if (typeof window.show === "function") window.show("loop");
+        var sel = document.querySelector('#task-models select.task-model[data-task="' + task + '"]');
+        if (sel) {
+          sel.scrollIntoView({block: "center"});
+          sel.focus();
+        }
+      });
+    }
+    var task = modelTaskOf((node && (node.task_class || (node.summary && node.summary.task_class))) || "");
+    btn.setAttribute("data-model-task", task);
+    btn.textContent = task ? "Model for " + task : "";
+    btn.hidden = !task;
+  }
+
   function paintDetail(detail, node) {
     ensureChrome();
     var panel = $("lane-detail");
@@ -445,6 +481,7 @@
     }
     if (panel) panel._detail = detail;
     paintTab(detail);
+    paintModelLever(node);
     var link = $("lane-phoenix");
     var url = (detail && detail.phoenix_url) || (node && node.phoenix_url) || "";
     if (link) {
@@ -690,7 +727,8 @@
       }),
       legend: !!$("lane-legend"),
       detail_open: !!($("lane-detail") && !$("lane-detail").hidden),
-      tab_body: ($("lane-tab-body") && $("lane-tab-body").textContent) || ""
+      tab_body: ($("lane-tab-body") && $("lane-tab-body").textContent) || "",
+      model_lever: ($("lane-model") && !$("lane-model").hidden && $("lane-model").getAttribute("data-model-task")) || ""
     };
     out.textContent = JSON.stringify(summary);
   }
