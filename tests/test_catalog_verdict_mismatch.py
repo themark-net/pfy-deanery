@@ -6,7 +6,7 @@ while tier_ceiling I1 is named. An operator path at I3 without a main-run
 receipt is flagged with missing-main-receipt and is not demoted.
 The same cards produce the same report on a second run.
 The worktree scan names SkillSpector, not Bumblebee (in a shallow CI
-checkout only as R-main-receipt git-unavailable), and leaves both cards.
+checkout only for an unprovable receipt SHA), and leaves both cards.
 The real cards' stages are read from the card and its promotion_history
 (the last stage promote or demote), not hard-coded, so a promotion by the
 rules (data/promotion-rules.json) does not break this test.
@@ -152,11 +152,16 @@ class VerdictMismatchScanTest(unittest.TestCase):
             self.assertEqual(bumble_card["tier_ceiling"], "I3")
             bumble_lines = [line for line in head.splitlines() if line.startswith("| Bumblebee |")]
             if _shallow():
-                # A depth-1 CI checkout cannot prove the receipt's main_sha is
-                # on origin/main, so the scan names it git-unavailable. That
-                # is the only reason allowed there.
+                # A shallow CI checkout cannot prove the receipt's main_sha is
+                # on origin/main: with no history the scan says
+                # git-unavailable, with the partial history CI fetches it says
+                # receipt-sha-not-on-main. Only those reasons are allowed there.
                 for line in bumble_lines:
-                    self.assertIn("R-main-receipt: git-unavailable", line)
+                    self.assertTrue(
+                        "R-main-receipt: git-unavailable" in line
+                        or "R-main-receipt: receipt-sha-not-on-main" in line,
+                        line,
+                    )
             else:
                 self.assertEqual(bumble_lines, [])
         self.assertEqual(skill.read_bytes(), before_skill)
