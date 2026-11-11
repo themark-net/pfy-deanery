@@ -15,6 +15,7 @@ A cloud backend is returned only when the operator set it.
 from __future__ import annotations
 
 import importlib
+import importlib.util
 import json
 import os
 import sys

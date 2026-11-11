@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+from tests._model_choice_isolation import isolate_env  # noqa: E402
 
 
 def _exe(path: Path, body: str) -> None:
@@ -36,6 +37,7 @@ class SupersedeOfflineStubTest(unittest.TestCase):
                 "PFY_CATALOG_STATE_DIR": str(state),
                 "PFY_CATALOG_OFFLINE": "1",
             })
+            isolate_env(env, state)
             proc = subprocess.run(
                 ["bash", str(ROOT / "scripts" / "catalog_loop.sh"), "tick"],
                 cwd=ROOT,
@@ -51,3 +53,4 @@ class SupersedeOfflineStubTest(unittest.TestCase):
             self.assertEqual(launched.strip(), "")
             latest = (state / "loop.latest.json").read_text()
             self.assertIn("error", latest)
+            self.assertFalse((state / "model-prices-refresh.json").exists())

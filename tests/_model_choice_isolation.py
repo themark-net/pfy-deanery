@@ -64,6 +64,29 @@ def end(tmp: Path, saved: dict) -> None:
     shutil.rmtree(tmp, ignore_errors=True)
 
 
+def isolate_env(env: dict, root: Path) -> dict:
+    """Point a child env at temp model-choice paths and drop task overrides."""
+    root = Path(root)
+    for key in ISOLATED_KEYS:
+        if key in (
+            "PFY_MODEL_NO_PAID",
+            "PFY_MODEL_CHOICE_PATH",
+            "PFY_COMPARE_STATE_PATH",
+            "XDG_CONFIG_HOME",
+            "XDG_STATE_HOME",
+        ):
+            continue
+        env.pop(key, None)
+    env["PFY_MODEL_NO_PAID"] = "1"
+    env["PFY_MODEL_CHOICE_PATH"] = str(root / "model-choice.json")
+    env["PFY_COMPARE_STATE_PATH"] = str(root / "model-compare.json")
+    env["XDG_CONFIG_HOME"] = str(root / "xdg-config")
+    env["XDG_STATE_HOME"] = str(root / "xdg-state")
+    Path(env["XDG_CONFIG_HOME"]).mkdir(parents=True, exist_ok=True)
+    Path(env["XDG_STATE_HOME"]).mkdir(parents=True, exist_ok=True)
+    return env
+
+
 def subprocess_env(base: dict | None = None, root: Path | None = None) -> dict:
     """Child env with the isolated paths. Creates the dirs when missing."""
     env = dict(os.environ if base is None else base)

@@ -563,7 +563,7 @@ done
 
 path_allowed() {
   case "$1" in
-    data/stages/_registry.json|pipelines/catalog/dashboard.latest.md|pipelines/catalog/counts.latest.json|eval/catalog-queue/queue.tsv|eval/catalog-verdicts/CEILING-MISMATCHES.md|eval/catalog-fit/*.json)
+    data/stages/_registry.json|pipelines/catalog/dashboard.latest.md|pipelines/catalog/counts.latest.json|eval/catalog-queue/queue.tsv|eval/catalog-verdicts/CEILING-MISMATCHES.md|eval/catalog-fit/*.json|data/model-prices.json)
       return 0
       ;;
     data/stages/*.json)
@@ -667,6 +667,12 @@ commit_ops() {
   done
   return 1
 }
+
+# Public price pages only. GET, no auth. A failure must not fail the tick.
+# Absent in a test clone: skip. Offline never reaches this line.
+if [ -f scripts/model_prices_refresh.py ]; then
+  python3 scripts/model_prices_refresh.py --state "$STATE" --root "$PWD" || true
+fi
 
 set +e
 commit_generated
