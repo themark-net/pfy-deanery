@@ -1,0 +1,1 @@
+KEEP-OURS I1 keep ours: trial passed (park, resume, crash, cap 4, local model) but it lacks machine-checked hard stops, a daily cap and per-lane worktrees, and adds a Node 24 daemon on a 1-week-old fast-moving codebase

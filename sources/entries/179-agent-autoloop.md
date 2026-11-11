@@ -23,4 +23,4 @@
 | Deploy plugin fires | Pipeline plugin enabled | Leave it disabled; deploys stay a hard stop |
 | Pin drift | `main` moves | Smoke checks this SHA |
 
-- **Status**: Cataloged I0. Next step, if any: eval-auto comparison of one park-and-resume task under Agent Autoloop and under the current catalog-loop lane runner, measuring idle cost, resume correctness and setup effort.
+- **Status**: Evaluated 2026-11-10 against the nimo catalog loop. Verdict: keep ours. Sandboxed trial (eval/integrate/agent-autoloop/run_trial.sh, results.json): park on a card, resume with the answer, card and running lane survive a hub SIGKILL, cap of 4 held, local-model lane ran on Ollama; upstream quick tests 741 pass, 0 fail. Missing for our job: machine-checked hard stops, a daily cap, per-lane worktrees. Stage card data/stages/agent-autoloop.json; the promotion rules set I1.

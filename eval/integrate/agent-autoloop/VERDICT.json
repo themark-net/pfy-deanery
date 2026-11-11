@@ -1,0 +1,12 @@
+{
+  "metric": "replace_or_adopt_part_score",
+  "threshold": 1,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I1",
+  "intent": "awareness",
+  "why": "keep ours: trial passed (park, resume, crash, cap 4, local model) but it lacks machine-checked hard stops, a daily cap and per-lane worktrees, and adds a Node 24 daemon on a 1-week-old fast-moving codebase",
+  "source": "eval/integrate/agent-autoloop/VERDICT",
+  "pin": "3539184a2c088f85e5623ebc47e7759849be0f72"
+}

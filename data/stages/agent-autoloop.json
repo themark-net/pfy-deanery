@@ -1,0 +1,84 @@
+{
+  "name": "Agent Autoloop",
+  "integration_stage": "I1",
+  "intent": "awareness",
+  "entry": "sources/entries/179-agent-autoloop.md",
+  "github": "https://github.com/KKKKhazix/agent-autoloop",
+  "license": "MIT",
+  "pin": "3539184a2c088f85e5623ebc47e7759849be0f72",
+  "risk_class": "none",
+  "notes_doc": "ops:eval/integrate/agent-autoloop/REPORT.md",
+  "uses": "Keep headless CLI agents working from events or a schedule, park a round on a decision card with no process running, and resume the same lane when the card is answered.",
+  "features": [
+    "event-sourced SQLite hub",
+    "decision card ask and answer with zero-process wait",
+    "rule group parallel and worker capacity cap",
+    "event id dedupe",
+    "command, ACP, Codex, Claude and DeepSeek Harness agent plugins",
+    "hop circuit breaker"
+  ],
+  "potential": "low",
+  "next_gate": "Stay at the rules' tier. Keep the nimo catalog loop. Re-run eval/integrate/agent-autoloop/run_trial.sh at a new pin if upstream adds machine-checked ask rules, a daily cap and per-subject worktrees, or once it has 30 days without a breaking format change.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "replacing catalog_loop.sh, catalog_park_retry.py or needs-mark",
+    "curl | sh installer or a service in the real home",
+    "PR delivery plugin (review, merge and deploy)",
+    "Feishu, DingTalk, WeCom, Slack or Discord channels",
+    "a resident hub on nimo"
+  ],
+  "evidence": [
+    "entry:sources/entries/179-agent-autoloop.md",
+    "pin:3539184a2c088f85e5623ebc47e7759849be0f72",
+    "ops:eval/integrate/agent-autoloop/REPORT.md",
+    "eval/integrate/agent-autoloop/VERDICT",
+    "eval/integrate/agent-autoloop/results.json"
+  ],
+  "handoff_by": "llm",
+  "promotion_history": [
+    {
+      "kind": "stage",
+      "from": "I0",
+      "to": "I1",
+      "result": "promote",
+      "passed": [
+        "R-not-excluded",
+        "R-evidence",
+        "R-tier-ceiling"
+      ],
+      "failed": [],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-10",
+      "verdict": "eval/integrate/agent-autoloop/VERDICT.json"
+    },
+    {
+      "kind": "ceiling",
+      "from": "",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "R-not-excluded",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable",
+        "R-modularity-gate"
+      ],
+      "failed": [
+        {
+          "rule": "R-value-gate",
+          "detail": "value_gate fail"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-10",
+      "verdict": "eval/integrate/agent-autoloop/VERDICT.json"
+    }
+  ]
+}

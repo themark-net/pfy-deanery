@@ -1,0 +1,88 @@
+{
+  "run_kind": "eval-trial",
+  "slug": "agent-autoloop",
+  "pin": "3539184a2c088f85e5623ebc47e7759849be0f72",
+  "release_line": "v1.8.1 (2026-11-10); the trial ran the checkout at the pin, not a release",
+  "node": "v24.22.2 (vendored under _vendor; nimo system node is v22, below the >=24 engine)",
+  "sandbox": {
+    "how": "unshare -rn (own user+network namespace, loopback only) + sandlock 0.8.9 --no-supervisor (Landlock fs: read system dirs, the checkout, node, lane scripts; write only the stage dir under ./tmp) + clean env + throwaway HOME; local model reached only through one unix socket forwarded to Ollama",
+    "why_not_supervisor": "sandlock supervisor mode answers readlink on a non-symlink with ENOENT instead of EINVAL, so glibc realpath (Node fs.realpath.native) fails and the hub cannot start; --no-supervisor cannot take --net-allow, hence the namespace",
+    "probe": {
+      "real_home_list": "denied errno 13",
+      "outbound_tcp": "denied errno 101",
+      "host_ollama_tcp": "denied errno 111"
+    }
+  },
+  "upstream_tests": {
+    "cmd": "node --test 'tests/!(simulation).test.ts' (npm test:quick) in the same sandbox",
+    "tests": 767,
+    "pass": 741,
+    "fail": 0,
+    "skipped": 26,
+    "wall_s": 48.7
+  },
+  "trial": {
+    "lanes": {
+      "stub": 6,
+      "local_model": 1,
+      "park": 2,
+      "slow_crash": 1,
+      "duplicate": 1,
+      "paused": 1
+    },
+    "local_model": {
+      "model": "qwen2.5-coder:1.5b via Ollama",
+      "agent": "use: command (one Ollama call per round)",
+      "lane": {
+        "slug": "local-h",
+        "state": "done",
+        "model": "qwen2.5-coder:1.5b",
+        "eval_count": 26,
+        "reply": "A developer can use local-h to perform a quick smoke test on a catalog lane by running a simple command in their terminal."
+      }
+    },
+    "all_lanes_finished_s": 7.2,
+    "max_concurrent": 4,
+    "concurrency_config": "rule group lanes parallel 4, worker.capacity 4",
+    "park_card_opened": true,
+    "agent_processes_while_parked": 0,
+    "hub_rss_kb_while_parked": 108828,
+    "resume_after_answer": true,
+    "resume_answer_seen_by_lane": [
+      "approve"
+    ],
+    "card_survived_hub_sigkill": true,
+    "resume_after_crash": true,
+    "lane_running_during_hub_sigkill": {
+      "finished": true,
+      "lane_starts": 1
+    },
+    "duplicate_event_id": {
+      "starts_before": 1,
+      "starts_after": 1
+    },
+    "paused_rule": {
+      "ran_while_paused": false,
+      "ran_after_resume": false,
+      "note": "an event that arrives while a rule is paused is logged and dropped, not queued"
+    },
+    "runs": 12,
+    "run_states": [
+      "done"
+    ],
+    "open_cards_at_end": 0,
+    "total_wall_s": 71.74
+  },
+  "comparison": {
+    "headless_runs": "tie: both run CLI agents headless; Autoloop via a resident hub + worker, ours via systemd-run units from an hourly timer",
+    "park_and_resume": "Autoloop better at the mechanics (zero-process wait, answer resumes the same lane with the answer in context, card CLI); ours re-opens parks by rule (main green, backoff, 2 retries) which Autoloop has no equivalent for",
+    "decision_cards_vs_hard_stops": "ours better for this job: hard stops are machine-checked rules (data/promotion-rules.json); in Autoloop whether to ask is the agent's judgment from an askFirst list in a Chinese prompt",
+    "concurrency_caps": "Autoloop: running cap only (group parallel, worker.capacity, maxActive), measured max 4; no daily cap, so 20 a day would need our counter",
+    "crash_recovery": "Autoloop better: SQLite event log, card and running lane survived hub SIGKILL, lane ran once; ours: noclobber markers + lock, also idempotent",
+    "per_lane_isolation": "ours better: one git worktree and branch per lane; Autoloop gives a rule-level cwd only, per-lane worktrees would still be our script",
+    "local_models": "tie at the command level (Ollama lane ran); session resume needs a plugin per agent; no Grok Build plugin; opencode is ACP handshake-only upstream",
+    "setup_and_maintenance": "ours cheaper to keep: Autoloop adds Node 24, a resident daemon with an HTTP port and SQLite, Chinese CLI and prompts, and a 1-week-old codebase shipping several releases a day",
+    "license": "MIT (fine)",
+    "activity": "very active but new: first commit 2026-11-03, 186 commits, 4.4k stars, 806 forks, v1.8.1 on 2026-11-10, ~75% of commits by one author"
+  }
+}
