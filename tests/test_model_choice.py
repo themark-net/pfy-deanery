@@ -750,3 +750,33 @@ def time_old() -> float:
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RealBatchReplayTests(unittest.TestCase):
+    """Fail: a real loop batch (non-golden slugs) gave 'catalog-fit has no cases'."""
+
+    def test_non_golden_batch_slugs_replay_from_their_cards(self) -> None:
+        gate = fit.load_gate(ROOT)
+        golden = {c["slug"] for c in gate["cases"] if isinstance(c, dict)}
+        slug = next(
+            p.stem for p in sorted((ROOT / "data" / "stages").glob("*.json"))
+            if not p.name.startswith("_") and p.stem not in golden
+        )
+        with tempfile.TemporaryDirectory() as raw:
+            batch = Path(raw)
+            (batch / f"{slug}.json").write_text(json.dumps({
+                "slug": slug, "verdict": "skip_install", "confidence": 0.9,
+                "fit": False, "overlap_with": None, "reason": "x",
+            }), encoding="utf-8")
+            (batch / "magpie.json").write_text(json.dumps({
+                "slug": "magpie", "verdict": "awareness", "confidence": 0.9,
+                "fit": False, "overlap_with": None, "reason": "x",
+            }), encoding="utf-8")
+            cases = mc.catalog_fit_cases(ROOT, str(batch), False)
+        by = {c["slug"]: c for c in cases}
+        self.assertEqual(set(by), {slug, "magpie"})
+        self.assertIsNone(by[slug]["golden"])
+        self.assertEqual(by[slug]["local"], "skip_install")
+        self.assertEqual(by[slug]["origin"], "run")
+        self.assertIn(slug, by[slug]["prompt"])
+        self.assertEqual(by["magpie"]["golden"], "awareness")

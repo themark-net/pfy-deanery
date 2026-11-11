@@ -830,12 +830,22 @@ def catalog_fit_cases(root: Path, run: str | None, last: bool) -> list[dict]:
                 files[data["slug"]] = (data, path.read_text(encoding="utf-8"))
     cases = []
     chosen = []
+    golden_slugs = set()
     for case in gate["cases"]:
         if not isinstance(case, dict) or not isinstance(case.get("slug"), str):
             continue
+        golden_slugs.add(case["slug"])
         if files and case["slug"] not in files:
             continue
         chosen.append(case)
+    # A real triage batch (eval/catalog-fit/) mostly holds non-golden slugs.
+    # Replay those from their stage card; they have no golden label.
+    for slug in sorted(files):
+        if slug in golden_slugs:
+            continue
+        card_rel = "data/stages/%s.json" % slug
+        if (root / card_rel).is_file():
+            chosen.append({"id": slug, "slug": slug, "card": card_rel})
     for case in chosen:
         slug = case["slug"]
         subject = fit.subject_for_case(root, case)
