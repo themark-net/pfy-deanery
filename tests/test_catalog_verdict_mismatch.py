@@ -5,7 +5,8 @@ stays at I3 while the report names it. A Bumblebee-shaped card stays at I2
 while tier_ceiling I1 is named. An operator path at I3 without a main-run
 receipt is flagged with missing-main-receipt and is not demoted.
 The same cards produce the same report on a second run.
-The worktree scan names SkillSpector, not Bumblebee, and leaves both cards.
+The worktree scan names SkillSpector, not Bumblebee (in a shallow CI
+checkout only as R-main-receipt git-unavailable), and leaves both cards.
 The real cards' stages are read from the card and its promotion_history
 (the last stage promote or demote), not hard-coded, so a promotion by the
 rules (data/promotion-rules.json) does not break this test.
@@ -33,6 +34,12 @@ def _card(name: str, stage: str, evidence: list[str], tier: str, self_pipeline=N
         "uses": "Notes only.",
         "features": ["receipt"],
     }
+
+
+def _shallow() -> bool:
+    proc = subprocess.run(["git", "-C", str(ROOT), "rev-parse", "--is-shallow-repository"],
+                          capture_output=True, text=True)
+    return proc.stdout.strip() == "true"
 
 
 def _rules_stage(card: dict) -> str:
@@ -143,7 +150,15 @@ class VerdictMismatchScanTest(unittest.TestCase):
             # rules moved it there with a main-run receipt, so whatever stage
             # its ledger holds is backed and it is not a mismatch.
             self.assertEqual(bumble_card["tier_ceiling"], "I3")
-            self.assertFalse(any(line.startswith("| Bumblebee |") for line in head.splitlines()))
+            bumble_lines = [line for line in head.splitlines() if line.startswith("| Bumblebee |")]
+            if _shallow():
+                # A depth-1 CI checkout cannot prove the receipt's main_sha is
+                # on origin/main, so the scan names it git-unavailable. That
+                # is the only reason allowed there.
+                for line in bumble_lines:
+                    self.assertIn("R-main-receipt: git-unavailable", line)
+            else:
+                self.assertEqual(bumble_lines, [])
         self.assertEqual(skill.read_bytes(), before_skill)
         self.assertEqual(bumble.read_bytes(), before_bumble)
 
