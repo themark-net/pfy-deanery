@@ -10,8 +10,8 @@ Cards: 135. I2+: 22.
 
 | Stage | Count |
 |-------|------:|
-| I0 | 49 |
-| I1 | 64 |
+| I0 | 48 |
+| I1 | 65 |
 | I2 | 2 |
 | I3 | 20 |
 
@@ -163,7 +163,7 @@ Cards: 135. I2+: 22.
 | Multica | I1 | reference |
 | Muxin | I0 | awareness |
 | neatroots | I3 | ad_hoc_probe |
-| Neuronto ARD Registry | I0 | (missing) |
+| Neuronto ARD Registry | I1 | (missing) |
 | odai | I0 | design_reference |
 | Ollama | I3 | host_runtime |
 | Open Steps | I0 | awareness |
