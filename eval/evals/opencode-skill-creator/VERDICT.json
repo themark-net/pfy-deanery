@@ -1,0 +1,57 @@
+{
+  "metric": "repo_frontmatter_keys_allowed",
+  "threshold": 2,
+  "value": 0,
+  "value_gate": "fail",
+  "modularity_gate": "pass",
+  "proposed_stage": "I0",
+  "intent": "awareness",
+  "sandbox": "sandlock",
+  "pin": "eef1b5e9f9b9a77d744c39eade57a11a8233062ab50e812824c094fb8f627deb",
+  "tool_version": "opencode-skill-creator@0.3.6",
+  "tarball_sha256": "eef1b5e9f9b9a77d744c39eade57a11a8233062ab50e812824c094fb8f627deb",
+  "peer": "@opencode-ai/plugin@1.19.5",
+  "measured": {
+    "repo_frontmatter_keys_allowed": 0,
+    "dist_sha256": "8b0fe965323e87fd9e390bcd2b9e8b6a7dc3d3833a1e3af082070f6fd114d315",
+    "prefix_bytes": 56149420,
+    "lightweight_under_50mb": false,
+    "unsandboxed_lines": 0,
+    "install_exit": 0,
+    "trial_outcome": "ok",
+    "scan_verdict": "CLEAN",
+    "shell_true_valid": true,
+    "good_valid": true,
+    "bad_key_valid": false,
+    "bad_name_valid": false,
+    "missing_valid": false
+  },
+  "value_legs": {
+    "gap_fill": "fail",
+    "operator_leverage": "fail",
+    "evidence": "pass",
+    "blast_radius": "pass"
+  },
+  "modularity_legs": {
+    "local_code_needed": "pass",
+    "bounded_surface": "pass",
+    "isolatable": "pass",
+    "reversible": "pass"
+  },
+  "intake": {
+    "line": "duplicate opencode-skill-creator data/stages/opencode-skill-creator.json",
+    "wrote_card": false
+  },
+  "supersede": {
+    "coverage": {
+      "track": "none",
+      "catalog": "none",
+      "evaluate": "none",
+      "integrate": "none"
+    },
+    "supersede_candidate": false,
+    "watchlist_row": false,
+    "why": "scripts/supersede_check.py --parts track=none,catalog=none,evaluate=none,integrate=none is not a candidate. OpenCode Skill Creator lints skill frontmatter. It does not watch outside sources, keep a deduped tool catalog with stage cards, or score catalog tools on I0-I4. A skill linter is not suite coverage. No watchlist row."
+  },
+  "reason": "repo_frontmatter_keys_allowed is 0, threshold 2. argument-hint valid=False, disable-model valid=False, shell-true valid=True. Value 2 of 4. Prefix bytes 56149420. Lightweight under 50 MB is false. Every install and skill_validate ran through sandlock. unsandboxed_lines is 0. Installed dist/skill-creator.js matches the pinned tarball. Propose the stage from the key gate. The apply script writes the card."
+}
