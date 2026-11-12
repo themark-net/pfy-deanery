@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The subject explicitly lists 'install' and 'real_hosts' in non_goals, states it is 'Off the pfy build path', and has low potential. It serves as a reference read-only tool with no unique gap filling for the local-first catalog mission.",
+  "slug": "muxin",
+  "verdict": "skip_install"
+}

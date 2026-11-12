@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The subject explicitly lists 'install' and 'pipeline dependency' in non_goals, defines itself as 'Reference read only', and has low potential. It does not fill a runtime gap but serves as documentation or code generation templates, making installation unnecessary for the local-first catalog mission.",
+  "slug": "multi-agent-generator",
+  "verdict": "skip_install"
+}

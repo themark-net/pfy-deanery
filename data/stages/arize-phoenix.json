@@ -135,6 +135,40 @@
       "by": "rules",
       "date": "2026-11-11",
       "verdict": "eval/evals/arize-phoenix/VERDICT.json"
+    },
+    {
+      "kind": "stage",
+      "from": "I1",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "R-not-excluded",
+        "R-tier-ceiling",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-modularity-gate",
+        "R-catalog-fit",
+        "R-value-gate",
+        "R-self-pipeline"
+      ],
+      "failed": [
+        {
+          "rule": "R-evidence",
+          "detail": "evidence I1: other, entry, pin, script"
+        },
+        {
+          "rule": "R-main-receipt",
+          "detail": "missing-main-receipt"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-11",
+      "verdict": "eval/evals/arize-phoenix/VERDICT.json"
     }
   ],
   "ceiling_history": [
