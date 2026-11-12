@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "LiveKit is a WebRTC infrastructure provider for real-time communication. It does not fit the local-first catalog mission of evaluating and integrating standalone local tools or filling a stage gap in the Deanery track. It is an external service dependency rather than a local-first application.",
+  "slug": "livekit",
+  "verdict": "skip_install"
+}
