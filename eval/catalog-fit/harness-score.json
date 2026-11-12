@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The subject explicitly states 'Not a Feature GO', 'potential: low', and provides no unique gap for the local-first catalog mission. It is an offline grading tool with no runtime takeover or high blast radius, but lacks the necessity to warrant installation given the safe default of not installing.",
+  "slug": "harness-score",
+  "verdict": "skip_install"
+}

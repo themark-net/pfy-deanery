@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.85,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The tool is explicitly scoped to I0 with low potential and no gate wiring. It functions as a specialized git worktree slot manager which overlaps significantly with standard git workflows or existing catalog utilities like 'catalog_check'. A safe default (standard git worktrees) exists without installing this specific tool, and it does not fill a unique gap in the local-first mission.",
+  "slug": "har",
+  "verdict": "skip_install"
+}

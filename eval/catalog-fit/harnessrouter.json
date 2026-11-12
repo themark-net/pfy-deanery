@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.85,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The subject explicitly states 'potential: low' and 'uses: One self-hosted API in front of many harnesses' with '0 local engines'. It lacks unique gap value for the local-first catalog mission. The non_goals include 'gate_wiring' and 'provider_key', indicating it is not a core integration point but rather an optional routing layer that can be skipped or replaced by existing infrastructure without loss of critical functionality.",
+  "slug": "harnessrouter",
+  "verdict": "skip_install"
+}
