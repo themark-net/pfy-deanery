@@ -1,0 +1,44 @@
+{
+  "download_bytes": 0,
+  "elapsed_s": 0.7894,
+  "emit_exit": 0,
+  "endpoint": "http://127.0.0.1:6006",
+  "graphql": {
+    "num_spans": 1,
+    "project": "deanery",
+    "span_name": "eval-arize-phoenix",
+    "trace_id": "ee359665ec49158fde6e2a6d3137c893"
+  },
+  "healthz": "OK",
+  "installed_version": "21.0.0",
+  "lane_graph": {
+    "lane_id": "eval-arize-phoenix",
+    "name": "eval-arize-phoenix",
+    "ok": true,
+    "phoenix_url": "http://127.0.0.1:6006/projects/UHJvamVjdDo0/traces/ee359665ec49158fde6e2a6d3137c893",
+    "route": "local",
+    "task_class": "eval"
+  },
+  "metric": "span_roundtrip",
+  "ok": true,
+  "pin": "21.0.0",
+  "project": "deanery",
+  "project_id": "UHJvamVjdDo0",
+  "rest": {
+    "found": true,
+    "lane_id": "eval-arize-phoenix",
+    "name": "eval-arize-phoenix",
+    "route": "local",
+    "task_class": "eval"
+  },
+  "span_id": "e2f525d72bed1555",
+  "span_name": "eval-arize-phoenix",
+  "threshold": 1,
+  "trace_id": "ee359665ec49158fde6e2a6d3137c893",
+  "ui_bundle_has_getTraceByOtelId": true,
+  "ui_title": "Phoenix",
+  "ui_trace_http": 200,
+  "unit_touched": false,
+  "value": 1,
+  "venv_bytes": 668491853
+}

@@ -1,0 +1,22 @@
+{
+  "slug": "arize-phoenix",
+  "run_kind": "eval-probe",
+  "pin": "21.0.0",
+  "installed_version": "21.0.0",
+  "metric": "span_roundtrip",
+  "threshold": 1,
+  "value": 1,
+  "outcome": "pass",
+  "endpoint": "http://127.0.0.1:6006",
+  "project": "deanery",
+  "project_id": "UHJvamVjdDo0",
+  "trace_id": "ee359665ec49158fde6e2a6d3137c893",
+  "span_id": "e2f525d72bed1555",
+  "span_name": "eval-arize-phoenix",
+  "ui_trace_http": 200,
+  "elapsed_s": 0.7894,
+  "unit_touched": false,
+  "venv_bytes": 668491853,
+  "download_bytes": 0,
+  "probe": "eval/evals/arize-phoenix/probe.py"
+}

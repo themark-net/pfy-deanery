@@ -1,0 +1,75 @@
+{
+  "metric": "span_roundtrip",
+  "threshold": 1,
+  "value": 1,
+  "value_gate": "pass",
+  "modularity_gate": "pass",
+  "proposed_stage": "I3",
+  "intent": "staged_evaluation",
+  "read_date": "2026-11-11",
+  "pin": "21.0.0",
+  "installed_version": "21.0.0",
+  "endpoint": "http://127.0.0.1:6006",
+  "project": "deanery",
+  "project_id": "UHJvamVjdDo0",
+  "trace_id": "ee359665ec49158fde6e2a6d3137c893",
+  "span_id": "e2f525d72bed1555",
+  "span_name": "eval-arize-phoenix",
+  "elapsed_s": 0.7894,
+  "venv_bytes": 668491853,
+  "download_bytes": 0,
+  "unit_touched": false,
+  "measured": {
+    "span_roundtrip": 1,
+    "healthz": "OK",
+    "ui_title": "Phoenix",
+    "ui_bundle_has_getTraceByOtelId": true,
+    "ui_trace_http": 200,
+    "graphql_num_spans": 1,
+    "graphql_span_name": "eval-arize-phoenix",
+    "rest_lane_id": "eval-arize-phoenix",
+    "rest_route": "local",
+    "lane_route": "local",
+    "lane_task_class": "eval",
+    "phoenix_url": "http://127.0.0.1:6006/projects/UHJvamVjdDo0/traces/ee359665ec49158fde6e2a6d3137c893"
+  },
+  "value_legs": {
+    "gap_fill": "pass",
+    "operator_leverage": "pass",
+    "evidence": "pass",
+    "blast_radius": "pass"
+  },
+  "modularity_legs": {
+    "local_code_needed": "pass",
+    "bounded_surface": "pass",
+    "isolatable": "pass",
+    "reversible": "pass"
+  },
+  "intake": {
+    "url_line": "duplicate arize-phoenix data/stages/arize-phoenix.json",
+    "name_line": "duplicate arize-phoenix data/stages/arize-phoenix.json",
+    "wrote_card": false
+  },
+  "supersede": {
+    "coverage": {
+      "track": "none",
+      "catalog": "none",
+      "evaluate": "none",
+      "integrate": "none"
+    },
+    "checker": {
+      "parts": [],
+      "coverage": {
+        "track": "none",
+        "catalog": "none",
+        "evaluate": "none",
+        "integrate": "none"
+      },
+      "suite": ["track", "catalog", "evaluate", "integrate"],
+      "supersede_candidate": false
+    },
+    "watchlist_row": false,
+    "why": "A loopback trace store. It does not watch outside sources, keep a stage card per tool, score tools on I0-I4, or wire a tool with a run on main. scripts/supersede_check.py --parts track=none,catalog=none,evaluate=none,integrate=none is not a candidate. No watchlist row."
+  },
+  "reason": "Propose I3. span_roundtrip is 1. One CHAIN span eval-arize-phoenix was posted with python3 -m pfylib.otel emit to http://127.0.0.1:6006/v1/traces on the already running loopback collector, pin 21.0.0. Trace ee359665ec49158fde6e2a6d3137c893, span e2f525d72bed1555. The UI bundle calls getTraceByOtelId, and that query returned this trace in project deanery with one span of that name. The trace page returned HTTP 200 with title Phoenix. REST and pfylib.lane_graph both show lane eval-arize-phoenix, route local, task eval. The unit was not enabled or disabled. Venv is 668491853 bytes, above the 50 MB I2 copy bar. Potential is high, so the passing stage is I3. Value gate is 4 of 4. Modularity gate passes. Apply should refuse I3: tier_ceiling is I1, the card evidence list still supports only I1, and there is no main-run receipt. This lane does not edit the card."
+}
