@@ -1,3 +1,5 @@
+PFY Deanery finds, evaluates, and runs AI agent tools. It promotes only what passes real fit checks, runs everything local by default with cost estimates before you spend, and gives you one graph view of the whole pipeline.
+
 # pfy-deanery (Deanery)
 
 **pfy-deanery (Deanery) — Your PFY. It gets sent out, finds the tools, applies the standards, and reports back with receipts.**
