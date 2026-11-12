@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.85,
+  "exit": 0,
+  "fit": true,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "Pipecat provides a specialized framework for building real-time voice agents, filling a distinct gap in the local-first catalog for low-latency, streaming audio pipelines that general-purpose LLM wrappers do not adequately address. Its blast radius is medium (runtime dependency) and it does not rewrite system configs or manage secrets pools.",
+  "slug": "pipecat",
+  "verdict": "fit"
+}
