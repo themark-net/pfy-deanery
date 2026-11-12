@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.85,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The tool is explicitly marked as 'potential: low' and its features (ed25519 bundle, offline verify) are limited to a specific dev pack context. The evaluation notes that the default pack does not hold fetched-skill copies and no gate wiring exists, implying it adds no unique gap or critical functionality for the local-first catalog mission. It is an optional tool with no safe default missing, fitting the skip_install criteria.",
+  "slug": "tracekit",
+  "verdict": "skip_install"
+}

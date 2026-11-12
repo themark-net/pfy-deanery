@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The subject explicitly lists 'install' and 'bootstrap' in non_goals, indicating it is not intended for installation. It serves as a reference or lightweight manager rather than a core tool filling a unique gap with high blast radius.",
+  "slug": "skills-manager",
+  "verdict": "skip_install"
+}

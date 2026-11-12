@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The subject explicitly lists 'install' and 'daemon' in non_goals, indicating it is not intended for installation. The next_gate directive confirms it should stay as an I0 reference with no staged binary, effectively making it a documentation or reference artifact rather than an installable tool. Since the goal is to decide on installation fit, and the subject explicitly rejects installation, it fits the skip_install verdict.",
+  "slug": "sysknife",
+  "verdict": "skip_install"
+}
