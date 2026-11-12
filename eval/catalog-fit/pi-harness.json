@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The subject explicitly lists 'install' and 'code_copy' in its non_goals. The next_gate directive confirms it is not a Feature GO and does not fill the H1 gap. It serves as a reference read-only tool for the Desktop control plane, meaning no installation is required or intended.",
+  "slug": "pi-harness",
+  "verdict": "skip_install"
+}

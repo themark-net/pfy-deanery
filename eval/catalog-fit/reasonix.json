@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The subject explicitly states 'Install stays out' and identifies the local engine path as Ollama, llama-server, LiteLLM, and Strata. It is a reference read with low potential and no unique gap that requires installation.",
+  "slug": "reasonix",
+  "verdict": "skip_install"
+}
