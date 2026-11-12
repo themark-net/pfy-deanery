@@ -190,6 +190,9 @@ pipelines/smoke/bricks/
 pipelines/smoke/renderlint/
 pipelines/smoke/starsling/
 pipelines/smoke/autoloop/
+pipelines/smoke/rustxng/
+pipelines/smoke/commitcheck/
+pipelines/smoke/brainmd/
 
 # Private operator material lives in the pfy-mentat-ops checkout (PFY_OPS_ROOT).
 # These paths moved there on 2026-11-09. scripts/check_public_paths.py also
