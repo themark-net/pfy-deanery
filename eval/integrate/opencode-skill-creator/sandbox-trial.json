@@ -1,0 +1,49 @@
+{
+  "slug": "opencode-skill-creator",
+  "run_kind": "sandbox-trial",
+  "sandbox": "sandlock",
+  "wrapper": "scripts/integrations/sandlock/trial.py (wrap.py --action run, PFY_SANDLOCK=all, SANDLOCK_BIN=confine.py)",
+  "started": "2026-11-12T00:54:56Z",
+  "finished": "2026-11-12T00:54:57Z",
+  "command": [
+    "/usr/bin/node",
+    "./tmp/osc-sandlock/driver.mjs",
+    "./tmp/osc-sandlock/stage/prefix/node_modules/opencode-skill-creator/dist/skill-creator.js",
+    "./eval/evals/opencode-skill-creator/fixtures"
+  ],
+  "exit_code": 0,
+  "unsandboxed_lines": 0,
+  "profile": {
+    "sandbox": "sandlock",
+    "reads": [
+      "/usr",
+      "/lib",
+      "/lib64",
+      "/bin",
+      "/etc",
+      "/usr/bin",
+      "./tmp/osc-sandlock",
+      "./tmp/osc-sandlock/stage/prefix/node_modules/opencode-skill-creator/dist",
+      "./eval/evals/opencode-skill-creator/fixtures",
+      "./tmp/osc-sandlock/stage/prefix",
+      "./tmp/sandlock-trial/opencode-skill-creator/wrap/started",
+      "./tmp/sandlock-trial/opencode-skill-creator/stage",
+      "/dev/null"
+    ],
+    "writes": [
+      "./tmp/sandlock-trial/opencode-skill-creator/wrap/started",
+      "./tmp/sandlock-trial/opencode-skill-creator/stage",
+      "/dev/null"
+    ],
+    "network": "deny",
+    "clean_env": true,
+    "sudo": false,
+    "timeout_sec": 120
+  },
+  "tool_version": "opencode-skill-creator@0.3.6",
+  "pin": "eef1b5e9f9b9a77d744c39eade57a11a8233062ab50e812824c094fb8f627deb",
+  "did": "skill_validate on seven committed fixtures inside sandlock. Auto-update off. XDG and HOME under the stage.",
+  "scan_verdict": "CLEAN",
+  "findings": 0,
+  "outcome": "ok"
+}
