@@ -42,16 +42,18 @@
     "sessions": 4,
     "proc_count": 1,
     "tool_output_marker": true,
+    "session_store_sentinel": 4,
+    "http_prefix_has_sentinel": false,
     "sentinel_confirmed_on_one_session_repeat": true,
     "pss_mb": {
-      "idle_one": 340.428,
-      "after_one_tool_turn": 804.229,
-      "four_tool_turns": 928.253,
-      "extra_session_after_one_tool_turn": 41.341
+      "idle_one": 353.199,
+      "after_one_tool_turn": 778.14,
+      "four_tool_turns": 958.843,
+      "extra_session_after_one_tool_turn": 60.234
     },
     "wall_s": {
-      "first_tool_turn": 0.789,
-      "three_extra_tool_turns_parallel": 0.231
+      "first_tool_turn": 0.774,
+      "three_extra_tool_turns_parallel": 0.229
     },
     "auth_header_seen": true
   },
@@ -95,6 +97,6 @@
     "watchlist_row": false,
     "why": "jcode is a coding-agent harness. It does not watch outside tools, keep a deduped stage catalog, score tools on I0-I4, or wire a catalog tool with a run on main. scripts/supersede_check.py --parts track=none,catalog=none,evaluate=none,integrate=none is not a candidate. No watchlist row."
   },
-  "why": "Propose I1. The v0.99.1 release binary, with a no-auth OpenAI-compatible profile aimed at a loopback stub, completed 4 of 4 tool roundtrips in one process. Extra-session PSS after one tool turn was 0.288 MB, against 41.341 MB for opencode 1.18.32 on the same stub shape. The README additional-session figure of about 3.3 MB was not reproduced: this was one stub turn, not their multi-turn cloud bench, and the catalog pin 9c9003b is a later docs commit than binary 7206efd0c. No model was started. Value is 3 of 4. The unpacked binary is 171324160 bytes, so this is not an I2 copy, and the ceiling is already I1. This lane does not write integration_stage or tier_ceiling.",
+  "why": "Propose I1. The v0.99.1 release binary, with a no-auth OpenAI-compatible profile aimed at a loopback stub, completed 4 of 4 tool roundtrips in one process. Each follow-up request logged one dropped orphaned tool output, and the stub still returned the sentinel. Extra-session PSS after one tool turn was 0.288 MB. OpenCode 1.18.32 on the same stub shape, from the saved rerun, was 60.234 MB extra. An earlier unsaved sample of that shape was 41.341 MB. The HTTP body prefix of 180 characters did not contain the sentinel. The session store had it on all four sessions. The README additional-session figure of about 3.3 MB was not reproduced: this was one stub turn, not their multi-turn cloud bench, and the catalog pin 9c9003b is a later docs commit than binary 7206efd0c. No model was started. Value is 3 of 4. The unpacked binary is 171324160 bytes, so this is not an I2 copy, and the ceiling is already I1. This lane does not write integration_stage or tier_ceiling.",
   "next_gate": "Repeat one tool roundtrip with the same no-auth profile against an already-running local OpenAI-compatible server before any harness swap. Do not use curl|bash. Do not log into the cloud product. Do not copy the binary into the product tree."
 }

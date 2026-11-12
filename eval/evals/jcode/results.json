@@ -41,17 +41,18 @@
     "stub_posts": 12,
     "tool_output_marker": true,
     "auth_header_seen": true,
-    "four_session_reply_text_stored": false,
+    "session_store_sentinel": 4,
+    "http_prefix_has_sentinel": false,
     "one_session_repeat_sentinel": true,
     "pss_mb": {
-      "idle_one": 340.428,
-      "after_one_tool_turn": 804.229,
-      "four_tool_turns": 928.253,
-      "extra_session_after_one_tool_turn": 41.341
+      "idle_one": 353.199,
+      "after_one_tool_turn": 778.14,
+      "four_tool_turns": 958.843,
+      "extra_session_after_one_tool_turn": 60.234
     },
     "wall_s": {
-      "first_tool_turn": 0.789,
-      "three_extra_tool_turns_parallel": 0.231
+      "first_tool_turn": 0.774,
+      "three_extra_tool_turns_parallel": 0.229
     }
   }
 }

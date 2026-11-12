@@ -465,11 +465,13 @@ def main() -> int:
                 turns.append({"ok": False, "error": type(exc).__name__})
                 return
             text = turned.get("output")
+            blob = text if isinstance(text, str) else ("" if text is None else str(text))
             turns.append(
                 {
                     "ok": bool(turned.get("ok")),
+                    "sentinel": "PFY-OK-JCODE" in blob,
                     "error": turned.get("error"),
-                    "output_prefix": (text if isinstance(text, str) else str(text))[:120],
+                    "output_prefix": blob[:120],
                 }
             )
 
@@ -503,6 +505,7 @@ def main() -> int:
             item.join()
         result["extra_turns_wall_s"] = round(time.time() - t1, 3)
         result["turns"] = turns
+        result["tool_roundtrips"] = sum(1 for item in turns if item.get("sentinel"))
         time.sleep(0.4)
         pids = tree_pids(server.pid)
         result["pss_after_n_turns_mb"] = mb(pss_bytes(pids))
@@ -539,7 +542,11 @@ def main() -> int:
         result["nonloop_peers"] = nonloop_peers(server.pid)
         after = home_snap()
         result["real_home_markers_changed"] = before != after
-        result["ok"] = bool(sid) and result["provider_add_rc"] == 0
+        result["ok"] = (
+            result["provider_add_rc"] == 0
+            and result.get("sessions_created") == N
+            and result.get("tool_roundtrips") == N
+        )
         print(json.dumps(result, indent=2))
         return 0 if result["ok"] else 1
     finally:
