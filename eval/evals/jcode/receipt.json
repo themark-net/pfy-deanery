@@ -1,0 +1,22 @@
+{
+  "tool": "jcode",
+  "release": "v0.99.1",
+  "binary_commit": "7206efd0c1dbf49ef38d06b63f3a96a3a7cee611",
+  "catalog_pin": "9c9003b18da0506739988bec461c1760014effcf",
+  "pin_matches_binary": false,
+  "tarball_sha256": "0b2a612de97c6e01ae6de1c0cff555b3460cf8364d1a11d2f8649fc0c9d7a1e6",
+  "binary_bytes": 171324160,
+  "license": "MIT",
+  "curl_bash": false,
+  "auth": "none",
+  "api_key_stored": false,
+  "telemetry": "disabled",
+  "model_started": false,
+  "gpu_used": false,
+  "download_over_25gb": false,
+  "sessions": 4,
+  "tool_roundtrips": 4,
+  "exit_code": 0,
+  "real_home_markers_changed": false,
+  "nonloop_peer_count": 0
+}

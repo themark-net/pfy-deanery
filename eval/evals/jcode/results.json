@@ -1,0 +1,57 @@
+{
+  "release": "v0.99.1",
+  "binary_commit": "7206efd0c1dbf49ef38d06b63f3a96a3a7cee611",
+  "catalog_pin": "9c9003b18da0506739988bec461c1760014effcf",
+  "pin_matches_binary": false,
+  "tarball_sha256": "0b2a612de97c6e01ae6de1c0cff555b3460cf8364d1a11d2f8649fc0c9d7a1e6",
+  "binary_bytes": 171324160,
+  "auth": "none",
+  "telemetry": "JCODE_NO_TELEMETRY=1",
+  "model_started": false,
+  "sessions": 4,
+  "proc_count": 1,
+  "tool_roundtrips": 4,
+  "sentinel_hits": 4,
+  "stub_posts": 8,
+  "stub_path": "/v1/chat/completions",
+  "tools_offered": ["bash", "read"],
+  "auth_header_seen": false,
+  "tool_result_seen": true,
+  "tool_output_marker": true,
+  "stream_used": true,
+  "real_home_markers_changed": false,
+  "nonloop_peers": [],
+  "fds_outside": [],
+  "pss_mb": {
+    "idle_one": 39.617,
+    "after_one_tool_turn": 43.613,
+    "one_turn_plus_three_idle": 43.719,
+    "four_tool_turns": 44.477,
+    "extra_idle_session": 0.035,
+    "extra_session_after_one_tool_turn": 0.288
+  },
+  "wall_s": {
+    "first_tool_turn": 0.11,
+    "three_extra_tool_turns_parallel": 0.109
+  },
+  "opencode_same_stub": {
+    "version": "1.18.32",
+    "sessions": 4,
+    "proc_count": 1,
+    "stub_posts": 12,
+    "tool_output_marker": true,
+    "auth_header_seen": true,
+    "four_session_reply_text_stored": false,
+    "one_session_repeat_sentinel": true,
+    "pss_mb": {
+      "idle_one": 340.428,
+      "after_one_tool_turn": 804.229,
+      "four_tool_turns": 928.253,
+      "extra_session_after_one_tool_turn": 41.341
+    },
+    "wall_s": {
+      "first_tool_turn": 0.789,
+      "three_extra_tool_turns_parallel": 0.231
+    }
+  }
+}
