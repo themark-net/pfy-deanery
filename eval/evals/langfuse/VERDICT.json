@@ -1,0 +1,96 @@
+{
+  "metric": "stage0_legs_present",
+  "threshold": 3,
+  "value": 1,
+  "stage0_legs_present": 1,
+  "value_gate": "fail",
+  "modularity_gate": "fail",
+  "proposed_stage": "I0",
+  "intent": "awareness",
+  "read_pt": "2026-11-11",
+  "source_url": "https://github.com/langfuse/langfuse",
+  "pin": "72399b76e245443f9681ea93b77ca850e1edb55b",
+  "compose_sha256": "317f01c52486c5219fb194d8e15c76d1ed2d78a4a83fd17547949432228b2918",
+  "license_sha256": "9ee6ca42e813fb58bcad18bed834438503bcc997da3b452d3f9ad4af4292b6b3",
+  "ee_license_sha256": "760f5202be4f31f9f8ca43a3c558bebaa5187fa7d7eccad6a32de8392cdccee6",
+  "installed": false,
+  "compose_invoked": false,
+  "images_pulled": false,
+  "download_bytes": 0,
+  "download_over_25gb": false,
+  "langfuse_import": false,
+  "database_host": false,
+  "data_services_up": 0,
+  "data_services_required": 4,
+  "elapsed_s": 0.028,
+  "disk_free_bytes": 299357569024,
+  "mem_available_kib": 81822480,
+  "docker_bin": true,
+  "podman_bin": true,
+  "image_tag_floats": true,
+  "stage0_legs": {
+    "license_open": "pass",
+    "quickstart_under_5min": "fail",
+    "hello_world_local": "fail"
+  },
+  "value_legs": {
+    "gap_fill": "fail",
+    "operator_leverage": "fail",
+    "evidence": "fail",
+    "blast_radius": "pass"
+  },
+  "modularity_legs": {
+    "local_code_needed": "fail",
+    "bounded_surface": "fail",
+    "isolatable": "fail",
+    "reversible": "pass"
+  },
+  "listeners": {
+    "postgres_5432": false,
+    "clickhouse_8123": false,
+    "redis_6379": false,
+    "minio": false,
+    "langfuse_web": false,
+    "langfuse_worker": false,
+    "langfuse_gateway": false,
+    "phoenix_6006": true,
+    "tcp_3000_title": "Grafana",
+    "tcp_9090_cockpit_login_js": true,
+    "tcp_9091_title": "Prometheus Time Series Collection and Processing Server",
+    "tcp_9000_open_not_clickhouse": true,
+    "postgres_comm_without_5432": true
+  },
+  "stack": {
+    "services": 7,
+    "data_stores": ["postgres", "clickhouse", "redis", "minio"],
+    "published_on_all_interfaces": ["3000", "3031", "9090"],
+    "telemetry_enabled_default": true
+  },
+  "intake": {
+    "url_line": "duplicate langfuse data/stages/langfuse.json",
+    "name_line": "duplicate langfuse data/stages/langfuse.json",
+    "wrote_card": false
+  },
+  "supersede": {
+    "coverage": {
+      "track": "none",
+      "catalog": "none",
+      "evaluate": "none",
+      "integrate": "none"
+    },
+    "checker": {
+      "parts": [],
+      "coverage": {
+        "track": "none",
+        "catalog": "none",
+        "evaluate": "none",
+        "integrate": "none"
+      },
+      "suite": ["track", "catalog", "evaluate", "integrate"],
+      "supersede_candidate": false
+    },
+    "watchlist_row": false,
+    "why": "A trace UI with agent graphs, LLM-as-a-judge evals, and a LiteLLM integration. It does not watch outside tools, keep a stage card per tool, score catalog tools on I0-I4, or wire a tool with a run on main. LLM-as-a-judge on traces is not the catalog evaluate lane. scripts/supersede_check.py --parts track=none,catalog=none,evaluate=none,integrate=none is not a candidate. No watchlist row."
+  },
+  "reason": "STAY I0. stage0_legs_present is 1, threshold 3. License leg passes: at pin 72399b76e245443f9681ea93b77ca850e1edb55b the core outside ee/, web/src/ee/, worker/src/ee/, and packages/shared/src/server/ee/ is MIT Expat, and ee/LICENSE is a commercial enterprise license. Quickstart leg fails: the README shows git clone --depth=1 and docker compose up and calls that 5 minutes, and that compose file was not run. It defines 7 services. Web and worker wait until postgres, clickhouse, redis, and minio are healthy. The image tag defaults to floating :4, not this pin. Hello-world leg fails: the printed example sets LANGFUSE_BASE_URL to https://cloud.langfuse.com and was not run. Local probe elapsed 0.028s. data_services_up 0 of 4. database_host false. TCP 5432, 8123, and 6379 refused. A postgres process exists and is not listening on 5432. TCP 9000 accepted and is not ClickHouse (HTTP /ping on 8123 refused, no clickhouse comm). TCP 3000 is Grafana. TCP 9090 serves cockpit/static/login.js. TCP 9091 is Prometheus. Langfuse web, worker, and gateway were not identified. The langfuse Python module is not importable. Docker and podman binaries exist and were not invoked. Download bytes 0. Disk free 299357569024. Phoenix answered on 127.0.0.1:6006 with title Phoenix, which is the loopback sink in ADR-0019. Value gate 1 of 4 (blast radius only: no weight pull, no runtime takeover, MIT core). Modularity fails: the stay is decided from the compose file and these listeners, the unit of run is seven containers, and it does not sit in a cache path. I1 rules would pass on the existing evidence and tier_ceiling I1. This verdict still proposes I0 so a stage-0 failure is not written as staged evaluation. Do not install. Do not point the LiteLLM callback off arize_phoenix. Revisit only when postgres, clickhouse, redis, and object storage are all listening and the loopback sink is no longer enough."
+}

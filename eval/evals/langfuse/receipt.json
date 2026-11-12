@@ -1,0 +1,40 @@
+{
+  "probe": "database-host",
+  "pin": "72399b76e245443f9681ea93b77ca850e1edb55b",
+  "compose_sha256": "317f01c52486c5219fb194d8e15c76d1ed2d78a4a83fd17547949432228b2918",
+  "elapsed_s": 0.028,
+  "exit_code": 0,
+  "installed": false,
+  "compose_invoked": false,
+  "images_pulled": false,
+  "download_bytes": 0,
+  "download_over_25gb": false,
+  "database_host": false,
+  "data_services_up": 0,
+  "data_services_required": 4,
+  "stage0_legs_present": 1,
+  "disk_free_bytes": 299357569024,
+  "mem_available_kib": 81822480,
+  "docker_bin": true,
+  "podman_bin": true,
+  "langfuse_import": false,
+  "identified": {
+    "postgres": false,
+    "clickhouse": false,
+    "redis": false,
+    "minio": false,
+    "langfuse_web": false,
+    "langfuse_worker": false,
+    "langfuse_gateway": false,
+    "phoenix": true
+  },
+  "other_listeners": {
+    "tcp_3000_title": "Grafana",
+    "tcp_9090_cockpit_login_js": true,
+    "tcp_9091_title": "Prometheus Time Series Collection and Processing Server",
+    "tcp_9000_open_not_clickhouse": true,
+    "postgres_comm_without_5432": true
+  },
+  "verdict": "STAY",
+  "proposed_stage": "I0"
+}
