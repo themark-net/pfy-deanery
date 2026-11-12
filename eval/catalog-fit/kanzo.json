@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The subject explicitly lists 'install' and 'cargo_build' in non_goals. It is designated as a reference-only tool with low potential and no unique gap filling that requires installation. A safe default exists (not installing).",
+  "slug": "kanzo",
+  "verdict": "skip_install"
+}

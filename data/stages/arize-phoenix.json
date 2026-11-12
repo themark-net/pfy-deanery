@@ -23,7 +23,7 @@
     "scripts/phoenix_service.sh",
     "docs/ops/phoenix.md"
   ],
-  "tier_ceiling": "I1",
+  "tier_ceiling": "I3",
   "risk_class": "none",
   "github": "https://github.com/arize-ai/phoenix",
   "license": "Elastic-2.0",
@@ -74,6 +74,92 @@
       "by": "rules",
       "date": "2026-11-11",
       "verdict": "VERDICT.json"
+    },
+    {
+      "kind": "stage",
+      "from": "I1",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "R-not-excluded",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-modularity-gate",
+        "R-catalog-fit",
+        "R-value-gate",
+        "R-self-pipeline"
+      ],
+      "failed": [
+        {
+          "rule": "R-evidence",
+          "detail": "evidence I1: other, entry, pin, script"
+        },
+        {
+          "rule": "R-tier-ceiling",
+          "detail": "tier_ceiling I1 caps I3"
+        },
+        {
+          "rule": "R-main-receipt",
+          "detail": "missing-main-receipt"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-11",
+      "verdict": "eval/evals/arize-phoenix/VERDICT.json"
+    },
+    {
+      "kind": "ceiling",
+      "from": "I1",
+      "to": "I3",
+      "result": "raise",
+      "passed": [
+        "R-not-excluded",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable",
+        "R-modularity-gate",
+        "R-value-gate",
+        "R-catalog-fit"
+      ],
+      "failed": [],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-11",
+      "verdict": "eval/evals/arize-phoenix/VERDICT.json"
+    }
+  ],
+  "ceiling_history": [
+    {
+      "from": "I1",
+      "to": "I3",
+      "by": "catalog_loop",
+      "date": "2026-11-11",
+      "reason": "rules passed for I3: R-not-excluded, HS-live-money, HS-release-deploy, HS-secrets, HS-runtime-takeover, HS-gpu-unapproved, HS-pull-over-25gb-unapproved, R-classifiable, R-modularity-gate, R-value-gate, R-catalog-fit",
+      "evidence": [
+        "eval/evals/arize-phoenix/VERDICT.json"
+      ],
+      "rules": [
+        "R-not-excluded",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable",
+        "R-modularity-gate",
+        "R-value-gate",
+        "R-catalog-fit"
+      ]
     }
   ]
 }

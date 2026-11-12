@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.85,
+  "exit": 0,
+  "fit": true,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "Fills a specific gap for local-first German/English reasoning via MoE architecture using patched llama.cpp. Blast radius is low (runtime smoke test only). No safe default exists for this specific open-weights MoE configuration in the current catalog.",
+  "slug": "kolibri-1",
+  "verdict": "fit"
+}
