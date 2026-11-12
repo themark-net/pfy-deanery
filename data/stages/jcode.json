@@ -1,6 +1,6 @@
 {
   "name": "jcode",
-  "integration_stage": "I0",
+  "integration_stage": "I1",
   "uses": "",
   "features": [],
   "potential": "ambiguous",
@@ -17,5 +17,23 @@
   "risk_class": "none",
   "github": "https://github.com/1jehuang/jcode",
   "license": "MIT",
-  "pin": "9c9003b18da0506739988bec461c1760014effcf"
+  "pin": "9c9003b18da0506739988bec461c1760014effcf",
+  "promotion_history": [
+    {
+      "kind": "stage",
+      "from": "I0",
+      "to": "I1",
+      "result": "promote",
+      "passed": [
+        "R-not-excluded",
+        "R-evidence",
+        "R-tier-ceiling"
+      ],
+      "failed": [],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-11",
+      "verdict": "VERDICT.json"
+    }
+  ]
 }
