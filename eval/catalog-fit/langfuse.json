@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The subject explicitly lists non-goals excluding all necessary infrastructure dependencies (Postgres, ClickHouse, Redis, object storage). Without these, it cannot function as a trace sink or agent graph recorder. The blast radius for attempting to install is high due to missing runtime requirements, and the tool is off-mission for this specific machine's constraints.",
+  "slug": "langfuse",
+  "verdict": "awareness"
+}

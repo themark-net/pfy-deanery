@@ -10,8 +10,8 @@ Cards: 139. I2+: 23.
 
 | Stage | Count |
 |-------|------:|
-| I0 | 48 |
-| I1 | 68 |
+| I0 | 47 |
+| I1 | 69 |
 | I2 | 3 |
 | I3 | 20 |
 
@@ -135,7 +135,7 @@ Cards: 139. I2+: 23.
 | Hyperframes | I1 | catalog_default |
 | imcodes | I0 | awareness |
 | Jamon Holmgren agentic setup | I1 | catalog_default |
-| jcode | I0 | (missing) |
+| jcode | I1 | (missing) |
 | JevAgentHarness | I1 | staged_evaluation |
 | kanbots | I1 | catalog_default |
 | Kander | I1 | staged_evaluation |
