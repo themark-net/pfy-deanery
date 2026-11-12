@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The subject explicitly states 'No gate wiring in this lane' and 'runtime stays out', indicating it does not integrate into the Deanery workflow. It adds no unique gap as it is a receipt sealing tool for skill workflows which are already handled by the catalog's evaluation framework. A safe default exists (no install) as the tool is not required for the local-first mission.",
+  "slug": "runx",
+  "verdict": "skip_install"
+}

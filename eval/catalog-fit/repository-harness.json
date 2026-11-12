@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The subject explicitly states 'Do not install into pfy-deanery' and lists 'install into pfy-deanery' as a non-goal. It serves to maintain an existing AGENTS.md rather than filling a new catalog gap.",
+  "slug": "repository-harness",
+  "verdict": "skip_install"
+}
