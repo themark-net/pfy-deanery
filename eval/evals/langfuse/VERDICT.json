@@ -63,6 +63,29 @@
   "stack": {
     "services": 7,
     "data_stores": ["postgres", "clickhouse", "redis", "minio"],
+    "depends_on": {
+      "langfuse-worker": ["postgres", "minio", "redis", "clickhouse"],
+      "langfuse-web": ["postgres", "minio", "redis", "clickhouse"],
+      "langfuse-ai-gateway": ["langfuse-web"]
+    },
+    "images": {
+      "langfuse-worker": "docker.langfuse.com/langfuse/langfuse-worker:${LANGFUSE_IMAGE_TAG:-4}",
+      "langfuse-web": "docker.langfuse.com/langfuse/langfuse:${LANGFUSE_IMAGE_TAG:-4}",
+      "langfuse-ai-gateway": "docker.langfuse.com/langfuse/ai-gateway:${LANGFUSE_AI_GATEWAY_IMAGE_TAG:-${LANGFUSE_IMAGE_TAG:-4}}",
+      "clickhouse": "docker.io/clickhouse/clickhouse-server:26.3.62.3",
+      "minio": "cgr.dev/chainguard/minio",
+      "redis": "docker.io/redis:7",
+      "postgres": "docker.io/postgres:${POSTGRES_VERSION:-17}"
+    },
+    "ports": {
+      "langfuse-worker": ["127.0.0.1:3030:3030"],
+      "langfuse-web": ["3000:3000"],
+      "langfuse-ai-gateway": ["${LANGFUSE_AI_GATEWAY_PORT:-3031}:${LANGFUSE_AI_GATEWAY_PORT:-3031}"],
+      "clickhouse": ["127.0.0.1:8123:8123", "127.0.0.1:9000:9000"],
+      "minio": ["9090:9000", "127.0.0.1:9091:9001"],
+      "redis": ["127.0.0.1:6379:6379"],
+      "postgres": ["127.0.0.1:5432:5432"]
+    },
     "published_on_all_interfaces": ["3000", "3031", "9090"],
     "telemetry_enabled_default": true
   },
@@ -92,5 +115,5 @@
     "watchlist_row": false,
     "why": "A trace UI with agent graphs, LLM-as-a-judge evals, and a LiteLLM integration. It does not watch outside tools, keep a stage card per tool, score catalog tools on I0-I4, or wire a tool with a run on main. LLM-as-a-judge on traces is not the catalog evaluate lane. scripts/supersede_check.py --parts track=none,catalog=none,evaluate=none,integrate=none is not a candidate. No watchlist row."
   },
-  "reason": "STAY I0. stage0_legs_present is 1, threshold 3. License leg passes: at pin 72399b76e245443f9681ea93b77ca850e1edb55b the core outside ee/, web/src/ee/, worker/src/ee/, and packages/shared/src/server/ee/ is MIT Expat, and ee/LICENSE is a commercial enterprise license. Quickstart leg fails: the README shows git clone --depth=1 and docker compose up and calls that 5 minutes, and that compose file was not run. It defines 7 services. Web and worker wait until postgres, clickhouse, redis, and minio are healthy. The image tag defaults to floating :4, not this pin. Hello-world leg fails: the printed example sets LANGFUSE_BASE_URL to https://cloud.langfuse.com and was not run. Local probe elapsed 0.028s. data_services_up 0 of 4. database_host false. TCP 5432, 8123, and 6379 refused. A postgres process exists and is not listening on 5432. TCP 9000 accepted and is not ClickHouse (HTTP /ping on 8123 refused, no clickhouse comm). TCP 3000 is Grafana. TCP 9090 serves cockpit/static/login.js. TCP 9091 is Prometheus. Langfuse web, worker, and gateway were not identified. The langfuse Python module is not importable. Docker and podman binaries exist and were not invoked. Download bytes 0. Disk free 299357569024. Phoenix answered on 127.0.0.1:6006 with title Phoenix, which is the loopback sink in ADR-0019. Value gate 1 of 4 (blast radius only: no weight pull, no runtime takeover, MIT core). Modularity fails: the stay is decided from the compose file and these listeners, the unit of run is seven containers, and it does not sit in a cache path. I1 rules would pass on the existing evidence and tier_ceiling I1. This verdict still proposes I0 so a stage-0 failure is not written as staged evaluation. Do not install. Do not point the LiteLLM callback off arize_phoenix. Revisit only when postgres, clickhouse, redis, and object storage are all listening and the loopback sink is no longer enough."
+  "reason": "STAY I0. stage0_legs_present is 1, threshold 3. License leg passes: at pin 72399b76e245443f9681ea93b77ca850e1edb55b the core outside ee/, web/src/ee/, worker/src/ee/, and packages/shared/src/server/ee/ is MIT Expat, and ee/LICENSE is a commercial enterprise license. Quickstart leg fails: the README shows git clone --depth=1 and docker compose up and calls that 5 minutes, and that compose file was not run. It defines 7 services. Web and worker wait until postgres, minio, redis, and clickhouse are healthy. The gateway waits on langfuse-web only. Worker and web default to ${LANGFUSE_IMAGE_TAG:-4}. The gateway defaults to ${LANGFUSE_AI_GATEWAY_IMAGE_TAG:-${LANGFUSE_IMAGE_TAG:-4}}. That default is not this git pin. ClickHouse is clickhouse-server:26.3.62.3. Redis is redis:7. Postgres defaults to ${POSTGRES_VERSION:-17}. MinIO is cgr.dev/chainguard/minio with no tag. Hello-world leg fails: the printed example sets LANGFUSE_BASE_URL to https://cloud.langfuse.com and was not run. Local probe elapsed 0.028s. data_services_up 0 of 4. database_host false. TCP 5432, 8123, and 6379 refused. A postgres process exists and is not listening on 5432. TCP 9000 accepted and is not ClickHouse (HTTP /ping on 8123 refused, no clickhouse comm). TCP 3000 is Grafana. TCP 9090 serves cockpit/static/login.js. TCP 9091 is Prometheus. Langfuse web, worker, and gateway were not identified. The langfuse Python module is not importable. Docker and podman binaries exist and were not invoked. Download bytes 0. Disk free 299357569024. Phoenix answered on 127.0.0.1:6006 with title Phoenix, which is the loopback sink in ADR-0019. Value gate 1 of 4 (blast radius only: no weight pull, no runtime takeover, MIT core). Modularity fails: the stay is decided from the compose file and these listeners, the unit of run is seven containers, and it does not sit in a cache path. I1 rules would pass on the existing evidence and tier_ceiling I1. This verdict still proposes I0 so a stage-0 failure is not written as staged evaluation. Do not install. Do not point the LiteLLM callback off arize_phoenix. Revisit only when postgres, clickhouse, redis, and object storage are all listening and the loopback sink is no longer enough."
 }

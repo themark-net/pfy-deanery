@@ -1,0 +1,38 @@
+{
+  "pin": "72399b76e245443f9681ea93b77ca850e1edb55b",
+  "services": [
+    "langfuse-worker",
+    "langfuse-web",
+    "langfuse-ai-gateway",
+    "clickhouse",
+    "minio",
+    "redis",
+    "postgres"
+  ],
+  "depends_on": {
+    "langfuse-worker": ["postgres", "minio", "redis", "clickhouse"],
+    "langfuse-web": ["postgres", "minio", "redis", "clickhouse"],
+    "langfuse-ai-gateway": ["langfuse-web"]
+  },
+  "images": {
+    "langfuse-worker": "docker.langfuse.com/langfuse/langfuse-worker:${LANGFUSE_IMAGE_TAG:-4}",
+    "langfuse-web": "docker.langfuse.com/langfuse/langfuse:${LANGFUSE_IMAGE_TAG:-4}",
+    "langfuse-ai-gateway": "docker.langfuse.com/langfuse/ai-gateway:${LANGFUSE_AI_GATEWAY_IMAGE_TAG:-${LANGFUSE_IMAGE_TAG:-4}}",
+    "clickhouse": "docker.io/clickhouse/clickhouse-server:26.3.62.3",
+    "minio": "cgr.dev/chainguard/minio",
+    "redis": "docker.io/redis:7",
+    "postgres": "docker.io/postgres:${POSTGRES_VERSION:-17}"
+  },
+  "ports": {
+    "langfuse-worker": ["127.0.0.1:3030:3030"],
+    "langfuse-web": ["3000:3000"],
+    "langfuse-ai-gateway": ["${LANGFUSE_AI_GATEWAY_PORT:-3031}:${LANGFUSE_AI_GATEWAY_PORT:-3031}"],
+    "clickhouse": ["127.0.0.1:8123:8123", "127.0.0.1:9000:9000"],
+    "minio": ["9090:9000", "127.0.0.1:9091:9001"],
+    "redis": ["127.0.0.1:6379:6379"],
+    "postgres": ["127.0.0.1:5432:5432"]
+  },
+  "published_on_all_interfaces": ["3000", "3031", "9090"],
+  "telemetry_enabled_default": true,
+  "env_copied": false
+}
