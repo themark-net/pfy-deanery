@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The subject explicitly states 'no install gate' and 'Not an install gate'. It provides markdown checklists which are static text resources that do not require installation to be used by agents. The potential is rated 'low' and it adds no unique functional gap that requires a software package. A safe default (using existing checklist formats or manual review) exists without installing this tool.",
+  "slug": "trailofbits-skills",
+  "verdict": "skip_install"
+}
