@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The subject describes a set of user habits and prompt strategies (e.g., 'one topic per chat', 'session note') rather than an installable software tool. It explicitly excludes runtime dependencies, code, and feature integration. Since it is not a tool that can be installed or integrated into the local-first catalog, and no unique gap exists for a non-tool, it should be skipped.",
+  "slug": "ruben-hassid-context-token-hacks",
+  "verdict": "skip_install"
+}

@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.85,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The subject explicitly states 'potential: low' and lists 'robrain_install' and 'gate_wiring' in non_goals. The next gate requires beating token overlap on all 10 tasks with no API key and no local model, which is a high bar for an offline probe with low potential. A safe default exists (standard vector search or existing cataloged tools) without installing this specific tool.",
+  "slug": "robrain",
+  "verdict": "skip_install"
+}

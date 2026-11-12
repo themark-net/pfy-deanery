@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The subject explicitly lists 'install' and 'agent_home_writes' in non_goals. It is designated as a reference read for context lifetimes and file policy, not an installable tool. A safe default exists (reference only) without installing.",
+  "slug": "teaql-agent-kit",
+  "verdict": "skip_install"
+}
