@@ -171,36 +171,28 @@ class PerFileReviewTests(unittest.TestCase):
             self.assertIn(name, names)
 
     def test_one_file_over_the_cap_stops_before_the_gate(self) -> None:
-        """One file over the cap is review-file-too-large before the post-change gate.
+        """One file over the cap is split into review parts and still published.
 
-        Fail: the runner spends the full gate, then refuses, or it truncates
-        the file and still publishes lines the reviewer did not see.
-        Recover: phase=precheck, the gate log stays at the pre-agent line,
-        no review call, no commit. Split the file and rerun.
+        Fail: the runner refuses review-file-too-large, or a part omits lines.
+        Recover: more than one review prompt, the gate runs, every x is shown.
         """
         grok = _write_exe(
             self.side / "grok.py",
             _accept_grok(self.log, "Path('wide.py').write_text('x' * 20000, encoding='utf-8')"),
         )
-        head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
         proc = self._run(grok, "add a long marker file")
         text = (proc.stdout or "") + (proc.stderr or "")
-        self.assertEqual(proc.returncode, 1, text)
+        self.assertEqual(proc.returncode, 0, text)
         payload = self._receipt()
-        self.assertEqual(payload["status"], "FAIL", text)
-        self.assertEqual(payload["reason"], "review-file-too-large")
-        self.assertEqual(payload.get("phase"), "precheck", payload)
-        self.assertEqual(payload["attempts"][0].get("phase"), "precheck")
-        self.assertIn("wide.py", payload["recovery"])
-        self.assertIn("too large", payload["recovery"].lower())
-        self.assertEqual(self._reviews(), [])
-        self.assertIsNone(payload["branch"])
-        self.assertIsNone(payload["commit"])
-        self.assertIsNone(payload["gate"]["after"])
-        self.assertEqual(self.gate_log.read_text(encoding="utf-8"), "seen=False\n")
-        self.assertEqual(len(payload["attempts"]), 1, payload["attempts"])
-        self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
-        self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
+        self.assertEqual(payload["status"], "PASS", text)
+        self.assertEqual(payload["reason"], "ok")
+        self.assertIsNotNone(payload["commit"])
+        self.assertIn("seen=True", self.gate_log.read_text(encoding="utf-8"))
+        reviews = self._reviews()
+        self.assertGreater(len(reviews), 1, [len(item) for item in reviews])
+        shown = "".join(_diff_sections(item) for item in reviews)
+        self.assertGreaterEqual(shown.count("x"), 20000)
+        self.assertNotIn("...[diff truncated]", shown)
 
     def test_env_and_flag_change_the_file_cap(self) -> None:
         """PFY_REVIEW_FILE_CAP and --review-file-cap replace the default 12000.
@@ -239,15 +231,16 @@ class PerFileReviewTests(unittest.TestCase):
             extra=["--review-file-cap", "100"],
         )
         text = (proc.stdout or "") + (proc.stderr or "")
-        self.assertEqual(proc.returncode, 1, text)
+        self.assertEqual(proc.returncode, 0, text)
         payload = self._receipt()
-        self.assertEqual(payload["reason"], "review-file-too-large", text)
-        self.assertEqual(payload.get("phase"), "precheck")
-        self.assertIn("wide.py", payload["recovery"])
-        self.assertIn("100 characters", payload["recovery"])
-        self.assertEqual(self._reviews(), [])
-        self.assertEqual(self.gate_log.read_text(encoding="utf-8"), "seen=False\n")
-        self.assertIsNone(payload["commit"])
+        self.assertEqual(payload["status"], "PASS", text)
+        reviews = self._reviews()
+        self.assertGreater(len(reviews), 1, reviews)
+        for prompt in reviews:
+            self.assertLessEqual(len(_diff_sections(prompt)), 100)
+        self.assertGreaterEqual("".join(_diff_sections(item) for item in reviews).count("z"), 400)
+        self.assertIn("seen=True", self.gate_log.read_text(encoding="utf-8"))
+        self.assertIsNotNone(payload["commit"])
 
         self.gate_log.write_text("", encoding="utf-8")
         self.log.write_text("", encoding="utf-8")
@@ -258,12 +251,14 @@ class PerFileReviewTests(unittest.TestCase):
             env={"PFY_REVIEW_FILE_CAP": "30000"},
         )
         text = (proc.stdout or "") + (proc.stderr or "")
-        self.assertEqual(proc.returncode, 1, text)
+        self.assertEqual(proc.returncode, 0, text)
         payload = self._receipt()
-        self.assertEqual(payload["reason"], "review-file-too-large", text)
-        self.assertEqual(payload.get("phase"), "precheck")
-        self.assertIn("100 characters", payload["recovery"])
-        self.assertEqual(self.gate_log.read_text(encoding="utf-8"), "seen=False\n")
+        self.assertEqual(payload["status"], "PASS", text)
+        reviews = self._reviews()
+        self.assertGreater(len(reviews), 1, reviews)
+        for prompt in reviews:
+            self.assertLessEqual(len(_diff_sections(prompt)), 100)
+        self.assertIn("seen=True", self.gate_log.read_text(encoding="utf-8"))
 
     def test_missing_tools_record_git_grep_on_each_prompt(self) -> None:
         """A missing impact tool does not fail the build.

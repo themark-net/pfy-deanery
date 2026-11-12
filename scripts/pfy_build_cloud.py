@@ -46,6 +46,31 @@ if str(_ROOT) not in sys.path:
 
 from pfylib.build_phase_clock import PhaseClock, install_build_phases  # noqa: E402
 from pfylib.build_preflight import classify_cloud_failure  # noqa: E402
+from pfylib.review_chunks import (  # noqa: E402
+    BuildAlreadyRunning,
+    ReviewBudgetExceeded,
+    acquire_repo_lock,
+    assert_review_budget,
+    change_impact_map,
+    collect_call_usage,
+    diff_sha,
+    estimate_for_run,
+    estimate_is_confirmed,
+    excluded_generated_receipt,
+    file_part_label,
+    format_estimate_line,
+    format_spend_line,
+    gate_edit_allowed,
+    link_legacy_cloud_lock,
+    load_price_table,
+    pack_review_prompts,
+    partition_untracked_generated,
+    review_preamble,
+    review_reuse_allowed,
+    round_manifest,
+    stop_group_for_timeout,
+    usage_receipt,
+)
 
 _NOT_SIGNED_IN = re.compile(r"not signed in", re.IGNORECASE)
 
@@ -590,6 +615,12 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--dry-run", action="store_true", help="write a receipt and start no grok")
     parser.add_argument("--reap", action="store_true", help="recover a cloud pid with no receipt")
     parser.add_argument("--keep-worktree", action="store_true", help="keep the worktree after the run")
+    parser.add_argument(
+        "--drop-worktree",
+        action="store_true",
+        help="remove the worktree on a non-PASS that left edits",
+    )
+    parser.add_argument("--yes", action="store_true", help="proceed without the cost prompt")
     parser.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT, help="seconds for one grok call")
     parser.add_argument(
         "--review-file-cap",
@@ -763,6 +794,13 @@ def failure_recovery(reason: str, task: str, detail: str = "") -> str:
             "not reviewed or published. Split that file and rerun ./pfy build %s."
             % (shown, DIFF_CAP, quoted)
         )
+    if reason == "review-budget-exceeded":
+        return (
+            "The review is over the sanity ceiling, so it was not sent. "
+            "Split the task and rerun ./pfy build %s." % quoted
+        )
+    if reason == "estimate-declined":
+        return "The cost estimate was declined. No Grok call was made."
     if reason == "review-binary-change":
         return (
             "The attempt added or changed a binary file the reviewer cannot read, so it "
@@ -877,7 +915,9 @@ def _extract_reasons(text: str) -> list[str]:
     return reasons
 
 
-def implement_prompt(task: str, test_cmd: str, feedback: str, previous_diff: str) -> str:
+def implement_prompt(
+    task: str, test_cmd: str, feedback: str, previous_diff: str, targeted: bool = False
+) -> str:
     base = (
         "%s\n"
         "Work only in this directory. Edit files to complete the task. "
@@ -890,10 +930,13 @@ def implement_prompt(task: str, test_cmd: str, feedback: str, previous_diff: str
     shown = redact(previous_diff or "")
     if len(shown) > DIFF_CAP:
         shown = shown[:DIFF_CAP] + "\n...[diff truncated]\n"
+    head = ""
+    if targeted:
+        head = "Fix only these files. Do not rewrite accepted files.\n\n"
     return (
         base
-        + "\n\nThe previous attempt was rejected.\nReasons:\n%s\n\nPrevious diff:\n%s\n"
-        % (redact(feedback or ""), shown)
+        + "\n\n%sThe previous attempt was rejected.\nReasons:\n%s\n\nPrevious diff:\n%s\n"
+        % (head, redact(feedback or ""), shown)
     )
 
 
@@ -951,219 +994,13 @@ def review_refusal(diff_text: str) -> str | None:
     return None
 
 
-_DEF_LINE = re.compile(r"^(?:async\s+def|def|class)\s+([A-Za-z_][A-Za-z0-9_]*)\b")
-
-
-def changed_symbols(diff_text: str) -> list[str]:
-    """def/class names touched by the diff, in first-seen order."""
-    found: list[str] = []
-    seen: set[str] = set()
-    for raw in (diff_text or "").splitlines():
-        if not raw or raw[:1] not in "+- ":
-            continue
-        if raw.startswith(("+++", "---")):
-            continue
-        match = _DEF_LINE.match(raw[1:].strip())
-        if not match:
-            continue
-        name = match.group(1)
-        if name in seen:
-            continue
-        seen.add(name)
-        found.append(name)
-        if len(found) >= 15:
-            break
-    return found
-
-
-def _tool_bin(env_name: str, program: str, fallbacks: list[Path]) -> Path | None:
-    """Resolve a cataloged impact binary.
-
-    A set env var is the only candidate, including when it names a missing
-    file, so a test can hide the host binary. Unset means PATH, then the
-    known install path.
-    """
-    if env_name in os.environ:
-        raw = os.environ[env_name].strip()
-        if not raw:
-            return None
-        path = Path(raw)
-        if path.is_file() and os.access(path, os.X_OK):
-            return path
-        return None
-    found = shutil.which(program)
-    if found:
-        return Path(found)
-    for path in fallbacks:
-        if path.is_file() and os.access(path, os.X_OK):
-            return path
-    return None
-
-
-def _run_tool(argv: list[str], cwd: Path, timeout: float = 12) -> tuple[int, str]:
-    try:
-        proc = subprocess.run(
-            argv,
-            cwd=str(cwd),
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            check=False,
-        )
-    except (OSError, subprocess.TimeoutExpired):
-        return 1, ""
-    return proc.returncode, proc.stdout or ""
-
-
-def _usable_tool_text(text: str) -> str:
-    body = (text or "").strip()
-    if not body:
-        return ""
-    if body.startswith("{") and '"error"' in body[:400]:
-        return ""
-    return body
-
-
-def _cm_project(worktree: Path, stdout: str) -> str | None:
-    start = (stdout or "").find("{")
-    if start < 0:
-        return None
-    try:
-        data = json.loads(stdout[start:])
-    except json.JSONDecodeError:
-        return None
-    projects = data.get("projects") if isinstance(data, dict) else None
-    if not isinstance(projects, list):
-        return None
-    wanted = {str(worktree.resolve())}
-    top = _git(worktree, ["rev-parse", "--show-toplevel"])
-    if top.returncode == 0 and (top.stdout or "").strip():
-        try:
-            wanted.add(str(Path(top.stdout.strip()).resolve()))
-        except OSError:
-            pass
-    for proj in projects:
-        if not isinstance(proj, dict):
-            continue
-        name = str(proj.get("name") or "").strip()
-        root = str(proj.get("root_path") or "").strip()
-        if not name or not root:
-            continue
-        try:
-            if str(Path(root).resolve()) in wanted:
-                return name
-        except OSError:
-            continue
-    return None
-
-
-def _cm_map(worktree: Path, symbols: list[str]) -> str:
-    if not symbols:
-        return ""
-    home = os.environ.get("HOME") or str(Path.home())
-    cache_root = os.environ.get("PFY_TOOL_CACHE") or str(Path(home) / ".cache" / "pfy")
-    binary = _tool_bin(
-        "PFY_CODEBASE_MEMORY",
-        "codebase-memory-mcp",
-        [
-            Path(cache_root) / "bin" / "codebase-memory-mcp",
-            (Path.home() / ".local/bin/codebase-memory-mcp"),
-        ],
-    )
-    if binary is None:
-        return ""
-    code, out = _run_tool([str(binary), "cli", "list_projects"], worktree)
-    if code != 0:
-        return ""
-    project = _cm_project(worktree, out)
-    if not project:
-        return ""
-    chunks: list[str] = []
-    for name in symbols:
-        code, traced = _run_tool(
-            [
-                str(binary),
-                "cli",
-                "trace_path",
-                "--function-name",
-                name,
-                "--project",
-                project,
-                "--direction",
-                "both",
-            ],
-            worktree,
-        )
-        usable = _usable_tool_text(traced)
-        if code != 0 or not usable:
-            continue
-        chunks.append(usable)
-    return "\n".join(chunks)
-
-
-def _tsa_map(worktree: Path, paths: list[str]) -> str:
-    binary = _tool_bin(
-        "PFY_TSA_BIN",
-        "tree-sitter-analyzer",
-        [Path.home() / "DEVELOP/pfy-mentat/tmp/tree-sitter-analyzer/.venv/bin/tree-sitter-analyzer"],
-    )
-    if binary is None:
-        return ""
-    argv = [str(binary), "--change-impact", "--format", "json", "--change-impact-no-tests"]
-    for path in paths[:20]:
-        argv.extend(["--change-impact-scope", path])
-    code, out = _run_tool(argv, worktree, timeout=20)
-    if code != 0:
-        return ""
-    return _usable_tool_text(out)
-
-
-def _git_grep_map(worktree: Path, symbols: list[str]) -> str:
-    if not symbols:
-        return "no changed symbols"
-    lines: list[str] = []
-    for name in symbols:
-        proc = _git(worktree, ["grep", "-n", "-I", "-F", "--untracked", "-e", name])
-        text = (proc.stdout or "").strip()
-        if not text:
-            continue
-        lines.append("symbol %s" % name)
-        lines.extend(text.splitlines()[:8])
-    if not lines:
-        return "no changed symbols"
-    return "\n".join(lines)
-
-
-def _bound_text(text: str, cap: int = TAIL_CAP) -> str:
-    if len(text) <= cap:
-        return text
-    return text[:cap] + "\n...[impact truncated]\n"
-
-
-def change_impact_map(worktree: Path, diff_text: str, paths: list[str]) -> tuple[str, str]:
-    """Callers and callees for one review. Never raises.
-
-    Prefer codebase-memory-mcp (cataloged CLI), then Tree-sitter Analyzer
-    --change-impact (catalog entry 121), then git grep of changed symbol
-    names. A missing or failing tool is not a build failure.
-    """
-    try:
-        symbols = changed_symbols(diff_text)
-        mapped = _cm_map(worktree, symbols)
-        if mapped:
-            return _bound_text(mapped), "codebase-memory-mcp"
-        mapped = _tsa_map(worktree, paths)
-        if mapped:
-            return _bound_text(mapped), "tree-sitter-analyzer"
-        return _bound_text(_git_grep_map(worktree, symbols)), "git-grep"
-    except Exception:
-        return "no changed symbols", "git-grep"
-
-
-def review_prompt(task: str, diff_text: str, gate_tail: str, impact_map: str = "") -> str:
+def review_prompt(
+    task: str, diff_text: str, gate_tail: str, impact_map: str = "", preamble: str = ""
+) -> str:
     # One file hunk. Never cut it: an accept must have seen every line (#308).
     shown = redact(diff_text or "")
     impact = redact(impact_map or "no changed symbols")
+    pre = (preamble.rstrip() + "\n\n") if preamble else ""
     return (
         "%s\n"
         "Reply with a line `verdict: accept` or `verdict: reject`.\n"
@@ -1173,8 +1010,8 @@ def review_prompt(task: str, diff_text: str, gate_tail: str, impact_map: str = "
         "deletes a test or an assertion, prints a token, key, secret, or password, "
         "replaces a content hash with a marker or drops a check that would hide an edit, "
         "adds a recursive delete, or writes a command aimed at the filesystem root.\n\n"
-        "Task:\n%s\n\nChange-impact map:\n%s\n\nDiff:\n%s\n\nGate:\n%s\n"
-        % (REVIEW_MARKER, (task or "")[:4000], impact, shown, redact(gate_tail or "")[:TAIL_CAP])
+        "Task:\n%s\n\n%sChange-impact map:\n%s\n\nDiff:\n%s\n\nGate:\n%s\n"
+        % (REVIEW_MARKER, (task or "")[:4000], pre, impact, shown, redact(gate_tail or "")[:TAIL_CAP])
     )
 
 
@@ -1393,13 +1230,15 @@ def tests_tampered(worktree: Path, snap: dict[str, str], writable: list[str] | N
             continue
         try:
             if hashlib.sha256(path.read_bytes()).hexdigest() != digest:
+                if gate_edit_allowed(worktree, rel):
+                    continue
                 bad.append(rel)
         except OSError:
             bad.append(rel)
     for rel in _new_protected(worktree, snap):
         if rel in bad:
             continue
-        if not _writable_test(rel, allowed):
+        if not _writable_test(rel, allowed) and not gate_edit_allowed(worktree, rel):
             bad.append(rel)
     return bad
 
@@ -1499,7 +1338,7 @@ def run_command(
         try:
             out, err = proc.communicate(timeout=timeout)
         except subprocess.TimeoutExpired:
-            _kill_pgid(proc.pid)
+            stop_group_for_timeout(proc.pid, kill_grace=KILL_GRACE_SECONDS)
             try:
                 out, err = proc.communicate(timeout=5)
             except subprocess.TimeoutExpired:
@@ -1582,9 +1421,21 @@ class CloudBuild:
         self.impact_source = ""
         self._attempt_phase = ""
         self._attempt_file = ""
+        self._attempt_note = ""
         self.phase_clock = phase_clock or PhaseClock()
         self._pid_lock = threading.Lock()
         self._lock_fd: int | None = None
+        self._repo_lock = None
+        self._accepts: dict = {}
+        self._rejected_files: list = []
+        self._targeted_retry = False
+        self._loop_salvage = False
+        self._pending_feedback = ""
+        self._seen_usage: set = set()
+        self.usage_sessions: list = []
+        self.estimate: dict | None = None
+        self.excluded_paths: list = []
+        self._prices = load_price_table()
         self._suppress_gate = False
         self._suppress_phases = frozenset()
         install_build_phases(self, self.phase_clock, grok_phase_name)
@@ -1786,6 +1637,7 @@ class CloudBuild:
             shutil.rmtree(dest.parent / ("recheck-hooks-" + sha[:12]), ignore_errors=True)
 
     def grok_call(self, prompt: str) -> tuple[str, int, str, str]:
+        started = time.time()
         if not self.grok:
             return "missing", 127, "", "grok missing"
         argv = [
@@ -1836,6 +1688,19 @@ class CloudBuild:
                     on_start=self.save_pid,
                 )
         self.save_pid()
+        phase = "review" if REVIEW_MARKER in (prompt or "") else "implement"
+        if self.worktree is not None:
+            try:
+                rows = collect_call_usage(
+                    self.worktree,
+                    started,
+                    phase,
+                    self._prices,
+                    self._seen_usage,
+                )
+            except Exception:
+                rows = []
+            self.usage_sessions.extend(rows)
         return status, code, out, err
 
     def record(self, number: int, status: str, reason: str, output: str = "") -> None:
@@ -1854,6 +1719,9 @@ class CloudBuild:
             row["phase"] = self._attempt_phase
         if self._attempt_file:
             row["file"] = self._attempt_file
+        if self._attempt_note:
+            row["note"] = self._attempt_note
+            self._attempt_note = ""
         # The worktree is removed when the run fails. Keep the rejected patch
         # on the receipt so a later timeout does not leave prose tails only.
         if reason == "review-rejected" and self.worktree is not None:
@@ -2017,12 +1885,34 @@ class CloudBuild:
         self.branch = None
         self.commit = None
 
+    def _tree_has_edits(self) -> bool:
+        if self.worktree is None or not self.worktree.exists():
+            return False
+        try:
+            return bool(files_changed(self.worktree))
+        except Exception:
+            return False
+
     def drop_worktree(self) -> None:
         if self.worktree is None:
             self.worktree_removed = False
             return
-        if self.args.keep_worktree:
+        keep = False
+        if getattr(self.args, "drop_worktree", False):
+            keep = False
+        elif self.args.keep_worktree:
+            keep = True
+        elif self.status != "PASS" and self._tree_has_edits():
+            keep = True
+        if keep:
             self.worktree_removed = False
+            if self.status != "PASS" and self.worktree is not None:
+                hint = (
+                    "Worktree kept at %s. Resume from that tree or pass --drop-worktree."
+                    % self.worktree
+                )
+                if hint not in (self.recovery or ""):
+                    self.recovery = ((self.recovery or "").rstrip() + "\n" + hint).strip()
             return
         _git(self.repo, ["worktree", "remove", "--force", str(self.worktree)])
         if self.worktree.exists():
@@ -2070,6 +1960,7 @@ class CloudBuild:
                 "verdict": self.review.get("verdict"),
                 "reasons": list(self.review.get("reasons") or []),
                 "truncated": bool(self.review.get("truncated", False)),
+                "files": list(self.review.get("files") or []),
             },
             "attempts": self.attempts,
             "gate": {
@@ -2089,6 +1980,17 @@ class CloudBuild:
             payload["phase"] = self.precheck_phase
         if self.impact_source:
             payload["impact"] = {"source": self.impact_source}
+        payload["excluded_generated"] = excluded_generated_receipt(self.excluded_paths)
+        payload["usage"] = usage_receipt(self.usage_sessions)
+        if self.estimate:
+            payload["estimate"] = {
+                "usd": self.estimate.get("usd"),
+                "low": self.estimate.get("low"),
+                "high": self.estimate.get("high"),
+                "basis": self.estimate.get("basis"),
+            }
+        if self.usage_sessions:
+            print(format_spend_line(self.usage_sessions))
         try:
             write_receipt(self.receipt_path, payload)
         except OSError as exc:
@@ -2117,53 +2019,52 @@ class CloudBuild:
         return self.exit_code
 
     def _acquire_run_lock(self) -> str | None:
-        """Take an exclusive non-blocking lock on <repo>/tmp/cloud-build.lock.
+        """One lock in the git common dir, held until finish.
 
-        None means this run holds it until finish. build-busy means another
-        live run holds it. worktree-failed means tmp cannot be written.
-        Without fcntl (not POSIX) the run goes on unlocked. The lock lives in
-        this clone's tmp/, so two separate clones never block each other.
+        <repo>/tmp/cloud-build.lock is a symlink to that inode so an existing
+        probe flocks the same lock. Without fcntl the run goes on unlocked.
         """
         try:
-            import fcntl
-        except ImportError:
-            print("note: fcntl is not available, so this build runs without the repo lock", file=sys.stderr)
-            return None
-
-        path = self.repo / "tmp" / "cloud-build.lock"
-        try:
-            path.parent.mkdir(parents=True, exist_ok=True)
-            fd = os.open(path, os.O_CREAT | os.O_RDWR | os.O_CLOEXEC, 0o644)
-        except OSError:
-            self.recovery_detail = "unwritable"
-            return "worktree-failed"
-        try:
-            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError:
-            os.close(fd)
+            self._repo_lock = acquire_repo_lock(self.repo, worktree="")
+        except BuildAlreadyRunning:
             return "build-busy"
         except OSError:
-            os.close(fd)
             self.recovery_detail = "unwritable"
             return "worktree-failed"
-        self._lock_fd = fd
+        if getattr(self._repo_lock, "noop", False):
+            print(
+                "note: fcntl is not available, so this build runs without the repo lock",
+                file=sys.stderr,
+            )
+            return None
+        try:
+            link_legacy_cloud_lock(self.repo, self._repo_lock)
+        except OSError:
+            self.recovery_detail = "unwritable"
+            return "worktree-failed"
         return None
 
     def _release_run_lock(self) -> None:
+        lock = self._repo_lock
+        self._repo_lock = None
+        if lock is not None:
+            lock.release()
+            return
         fd = self._lock_fd
         if fd is None:
             return
-        import fcntl
-
         self._lock_fd = None
-        try:
-            fcntl.flock(fd, fcntl.LOCK_UN)
-        except OSError:
-            pass
         try:
             os.close(fd)
         except OSError:
             pass
+
+    def _publish_estimate(self) -> bool:
+        """Print the cost estimate. True when an interactive caller declines."""
+        attempts = max(1, self.max_attempts)
+        self.estimate = estimate_for_run(self._prices, "grok-4.7", attempts, attempts)
+        print(format_estimate_line(self.estimate, attempts), file=sys.stderr, flush=True)
+        return not estimate_is_confirmed(self.args)
 
     def _gate_timeout_fail(self, number: int, output: str) -> int:
         self.recovery_detail = "gate"
@@ -2323,6 +2224,14 @@ class CloudBuild:
         if missing_grok:
             self.record(0, "FAIL", "unauthenticated", "")
             return self.fail("FAIL", "unauthenticated", EXIT_FAIL, auth_recovery(self.args.task_text))
+        if self._publish_estimate():
+            self.record(0, "FAIL", "estimate-declined", "")
+            return self.fail(
+                "FAIL",
+                "estimate-declined",
+                EXIT_USAGE,
+                failure_recovery("estimate-declined", self.args.task_text),
+            )
         problem = self.prepare_worktree()
         if problem:
             return self.fail(
@@ -2332,6 +2241,8 @@ class CloudBuild:
                 worktree_recovery(self.args.task_text, self.base_ref, self.recovery_detail or "add-failed"),
             )
         assert self.worktree is not None
+        if self._repo_lock is not None:
+            self._repo_lock.update_worktree(str(self.worktree))
         # Run budget is --timeout times the attempt count. One grok call stays
         # at --timeout, except a review-reject retry, which may use the time
         # still left so the per-call cap does not abort it early. Nothing runs
@@ -2351,6 +2262,25 @@ class CloudBuild:
             else:
                 self.args.timeout = min(call_cap, left) if left > 0 else 0.05
             return left
+
+        def plan_retry(
+            number: int, normal_feedback: str, normal_previous: str, targeted: bool = False
+        ) -> str:
+            """Set the next prompt. 'timeout' ends a salvage with no attempts left."""
+            nonlocal feedback, previous_diff
+            if self._loop_salvage:
+                feedback = "previous attempt timed out; continue from the current tree"
+                previous_diff = ""
+                self._targeted_retry = False
+                if number < self.max_attempts and time_left() > 1.0:
+                    return "continue"
+                return "timeout"
+            feedback = normal_feedback
+            previous_diff = normal_previous
+            self._targeted_retry = bool(targeted)
+            if number < self.max_attempts:
+                return "continue"
+            return "stop"
 
         def as_reject(number: int | None, output: str, timed_out: bool) -> int:
             self.review = {
@@ -2386,7 +2316,13 @@ class CloudBuild:
         feedback = ""
         previous_diff = ""
         for number in range(1, self.max_attempts + 1):
+            self._loop_salvage = False
             self.review = {"verdict": None, "reasons": []}
+            if self._pending_feedback:
+                feedback = self._pending_feedback
+                previous_diff = ""
+                self._pending_feedback = ""
+                self._targeted_retry = False
             if self.state.interrupted:
                 self.record(number, "FAIL", "interrupted", "")
                 return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
@@ -2394,8 +2330,15 @@ class CloudBuild:
                 return as_reject(None, "", False)
             arm(last_reject is not None)
             status, code, out, err = self.grok_call(
-                implement_prompt(self.args.task_text, self.args.test_cmd, feedback, previous_diff)
+                implement_prompt(
+                    self.args.task_text,
+                    self.args.test_cmd,
+                    feedback,
+                    previous_diff,
+                    targeted=self._targeted_retry,
+                )
             )
+            self._targeted_retry = False
             output = (out or "") + ("\n" + err if err else "")
             if status == "interrupted" or self.state.interrupted:
                 self.record(number, "FAIL", "interrupted", output)
@@ -2403,8 +2346,13 @@ class CloudBuild:
             if status == "timeout":
                 if last_reject is not None:
                     return as_reject(number, output, True)
-                self.record(number, "TIMEOUT", "timeout", output)
-                return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")
+                peek, _peek_excluded = partition_untracked_generated(
+                    self.worktree, files_changed(self.worktree)
+                )
+                if not peek:
+                    self.record(number, "TIMEOUT", "timeout", output)
+                    return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")
+                self._loop_salvage = True
             if status == "missing":
                 self.record(number, "FAIL", "unauthenticated", output)
                 return self.fail("FAIL", "unauthenticated", EXIT_FAIL, auth_recovery(self.args.task_text))
@@ -2415,50 +2363,43 @@ class CloudBuild:
             if kind == "unauthenticated":
                 self.record(number, "FAIL", "unauthenticated", output)
                 return self.fail("FAIL", "unauthenticated", EXIT_FAIL, auth_recovery(self.args.task_text))
-            changed = files_changed(self.worktree)
+            changed, excluded_now = partition_untracked_generated(
+                self.worktree, files_changed(self.worktree)
+            )
+            for rel in excluded_now:
+                if rel not in self.excluded_paths:
+                    self.excluded_paths.append(rel)
             protected_hits = [path for path in changed if _protected(path)]
             if protected_hits:
-                feedback = "protected-path-changed: %s" % ", ".join(protected_hits)
-                self.record(number, "FAIL", "protected-path-changed", output)
                 self.recovery_detail = ", ".join(protected_hits)
-                previous_diff = ""
-                if number < self.max_attempts:
+                action = plan_retry(
+                    number, "protected-path-changed: %s" % ", ".join(protected_hits), ""
+                )
+                if action == "timeout":
+                    self.record(number, "TIMEOUT", "timeout", output)
+                    return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")
+                self.record(number, "FAIL", "protected-path-changed", output)
+                if action == "continue":
                     continue
                 return self.fail("FAIL", "protected-path-changed", EXIT_FAIL, "")
             bad_tests = tests_tampered(
                 self.worktree, base_tests, list(self.args.writable_test or [])
             )
             if bad_tests:
-                feedback = "gate failed: tests-tampered\n%s" % "\n".join(bad_tests)
+                action = plan_retry(
+                    number,
+                    "gate failed: tests-tampered\n%s" % "\n".join(bad_tests),
+                    capture_diff(self.worktree, changed),
+                )
+                if action == "timeout":
+                    self.record(number, "TIMEOUT", "timeout", output)
+                    return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")
                 self.record(number, "FAIL", "tests-tampered", output)
-                previous_diff = capture_diff(self.worktree, changed)
-                if number < self.max_attempts:
+                if action == "continue":
                     continue
                 return self.fail("FAIL", "tests-tampered", EXIT_FAIL, "")
-            # Size guard before the post-change gate. An oversize file used to
-            # wait out the full gate and then die as review-diff-too-large.
-            if changed and not self.args.no_review:
-                cap = review_file_cap(self.args)
-                over = first_over_cap(capture_diff_files(self.worktree, changed), cap)
-                if over:
-                    self.recovery_detail = over
-                    self.review = {
-                        "verdict": "refused",
-                        "reasons": ["review-file-too-large"],
-                        "truncated": False,
-                    }
-                    self.precheck_phase = "precheck"
-                    self._attempt_phase = "precheck"
-                    self._attempt_file = over
-                    self.record(number, "FAIL", "review-file-too-large", output)
-                    self._attempt_phase = ""
-                    self._attempt_file = ""
-                    return self.fail(
-                        "FAIL",
-                        "review-file-too-large",
-                        EXIT_FAIL,
-                        file_cap_recovery(self.args.task_text, over, cap),
-                    )
+            # Text over the per-file cap is split into review parts. Binary
+            # diffs are still refused later. The post-change gate runs either way.
             # Overlap the post-change gate and the flake gate on the daily
             # default command. Both still run. A custom --test-cmd stays
             # serial: those gates share invocation order. PFY_BUILD_SERIAL_GATES=1,
@@ -2488,17 +2429,25 @@ class CloudBuild:
             if after.get("rewrote"):
                 return self._gate_rewrote_fail(number, output + "\n" + str(after.get("tail") or ""))
             if not changed:
-                feedback = "no-change\n%s" % (after.get("tail") or "")
+                action = plan_retry(number, "no-change\n%s" % (after.get("tail") or ""), "")
+                if action == "timeout":
+                    self.record(number, "TIMEOUT", "timeout", output)
+                    return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")
                 self.record(number, "FAIL", "no-change", output)
-                previous_diff = ""
-                if number < self.max_attempts:
+                if action == "continue":
                     continue
                 return self.fail("FAIL", "no-change", EXIT_FAIL, "")
             if after.get("exit") != 0 or not after.get("started"):
-                feedback = "gate failed: tests\n%s" % (after.get("tail") or "")
+                action = plan_retry(
+                    number,
+                    "gate failed: tests\n%s" % (after.get("tail") or ""),
+                    capture_diff(self.worktree, changed),
+                )
+                if action == "timeout":
+                    self.record(number, "TIMEOUT", "timeout", output)
+                    return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")
                 self.record(number, "FAIL", "tests", output)
-                previous_diff = capture_diff(self.worktree, changed)
-                if number < self.max_attempts:
+                if action == "continue":
                     continue
                 return self.fail("FAIL", "tests", EXIT_FAIL, "")
             if again is None:
@@ -2513,10 +2462,16 @@ class CloudBuild:
             if again.get("rewrote"):
                 return self._gate_rewrote_fail(number, output + "\n" + str(again.get("tail") or ""))
             if again.get("exit") != 0 or not again.get("started"):
-                feedback = "gate failed: tests-flaky\n%s" % (again.get("tail") or "")
+                action = plan_retry(
+                    number,
+                    "gate failed: tests-flaky\n%s" % (again.get("tail") or ""),
+                    capture_diff(self.worktree, changed),
+                )
+                if action == "timeout":
+                    self.record(number, "TIMEOUT", "timeout", output)
+                    return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")
                 self.record(number, "FAIL", "tests-flaky", output)
-                previous_diff = capture_diff(self.worktree, changed)
-                if number < self.max_attempts:
+                if action == "continue":
                     continue
                 return self.fail("FAIL", "tests-flaky", EXIT_FAIL, "")
             diff_pairs = capture_diff_files(self.worktree, changed)
@@ -2566,18 +2521,72 @@ class CloudBuild:
                     return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
                 self.impact_source = impact_source
                 gate_tail = str(again.get("tail") or "")
-                prompts = [
-                    review_prompt(self.args.task_text, chunk, gate_tail, impact_text)
-                    for path, chunk in sorted(diff_pairs, key=lambda item: item[0])
-                    if chunk and not _binary_chunk(chunk)
-                ]
-                if not prompts:
-                    prompts = [review_prompt(self.args.task_text, diff_text, gate_tail, impact_text)]
+                shown_files = []
+                for path, chunk in sorted(diff_pairs, key=lambda item: item[0]):
+                    if not chunk or _binary_chunk(chunk):
+                        continue
+                    shown_files.append((path, redact(chunk)))
+                sha_by_path = {path: diff_sha(text) for path, text in shown_files}
+                fresh = []
+                reused_rows = []
+                for path, text in shown_files:
+                    if review_reuse_allowed(
+                        self.worktree, path, sha_by_path[path], memory=self._accepts
+                    ):
+                        reused_rows.append(
+                            {"path": path, "reused": True, "verdict": "accept", "reasons": []}
+                        )
+                        continue
+                    fresh.append({"path": path, "text": text})
+                packs = pack_review_prompts(
+                    fresh, review_file_cap(self.args), pack_multiple=False
+                )
+                manifest = round_manifest(shown_files)
+                all_paths = [path for path, _text in shown_files]
+                prompts = []
+                meta = []
+                for pack in packs:
+                    item = pack[0]
+                    others = [path for path in all_paths if path != item["path"]]
+                    preamble = review_preamble(file_part_label(item), others, manifest)
+                    prompts.append(
+                        review_prompt(
+                            self.args.task_text,
+                            item["text"],
+                            gate_tail,
+                            impact_text,
+                            preamble=preamble,
+                        )
+                    )
+                    meta.append(item)
+                if not prompts and not reused_rows:
+                    prompts = [
+                        review_prompt(self.args.task_text, diff_text, gate_tail, impact_text)
+                    ]
+                    meta = [
+                        {
+                            "path": shown_files[0][0] if shown_files else "(diff)",
+                            "part": 1,
+                            "parts": 1,
+                            "text": diff_text,
+                        }
+                    ]
+                try:
+                    assert_review_budget(
+                        sum(len(text) for _path, text in shown_files), len(prompts)
+                    )
+                except ReviewBudgetExceeded as exc:
+                    self._undo_commit(keep_edits=True)
+                    self.record(
+                        number, "FAIL", "review-budget-exceeded", output + "\n" + str(exc)
+                    )
+                    return self.fail("FAIL", "review-budget-exceeded", EXIT_FAIL, "")
                 review_rows, recheck_row = self._overlap_review_recheck(sha, prompts)
                 recheck_reason, recheck_tail = recheck_row
                 self.recheck_tail = recheck_tail
                 verdicts: list[str] = []
-                reasons: list[str] = []
+                prompt_reasons: list[list[str]] = []
+                review_cut = ""
                 for review_status, review_code, review_out, review_err in review_rows:
                     review_output = (review_out or "") + ("\n" + review_err if review_err else "")
                     output = output + "\n" + review_output
@@ -2587,6 +2596,13 @@ class CloudBuild:
                         return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
                     if review_status == "timeout":
                         self._undo_commit(keep_edits=True)
+                        if self._loop_salvage and number < self.max_attempts and time_left() > 1.0:
+                            feedback = "previous attempt timed out; continue from the current tree"
+                            previous_diff = ""
+                            self._targeted_retry = False
+                            self.record(number, "TIMEOUT", "timeout", output)
+                            review_cut = "salvage"
+                            break
                         if last_reject is not None:
                             return as_reject(number, output, True)
                         self.record(number, "TIMEOUT", "timeout", output)
@@ -2610,38 +2626,98 @@ class CloudBuild:
                         )
                     one_verdict, one_reasons = parse_verdict(review_output)
                     verdicts.append(one_verdict)
-                    reasons.extend(one_reasons)
+                    prompt_reasons.append(list(one_reasons or []))
+                if review_cut == "salvage":
+                    continue
                 # A non-zero review exit stops the remaining files. A short
                 # list must not count as every file accepted (#308).
-                if (
-                    len(review_rows) < len(prompts)
-                    or not verdicts
-                    or any(item != "accept" for item in verdicts)
-                ):
-                    verdict = "reject"
-                    if not reasons:
-                        reasons = ["review-rejected"]
-                else:
-                    verdict = "accept"
+                by_path: dict[str, dict] = {}
+                for item, one_verdict, one_reasons in zip(meta, verdicts, prompt_reasons):
+                    slot = by_path.setdefault(
+                        item["path"],
+                        {"verdicts": [], "reasons": [], "parts": int(item.get("parts") or 1)},
+                    )
+                    slot["verdicts"].append(one_verdict)
+                    slot["reasons"].extend(one_reasons)
+                files_out = list(reused_rows)
+                rejected_rows = []
+                fresh_ok = len(review_rows) >= len(prompts) and (
+                    not prompts or len(verdicts) >= len(prompts)
+                )
+                if prompts and not verdicts:
+                    fresh_ok = False
+                for path, slot in by_path.items():
+                    ok = len(slot["verdicts"]) >= slot["parts"] and all(
+                        item == "accept" for item in slot["verdicts"]
+                    )
+                    if ok:
+                        files_out.append(
+                            {"path": path, "reused": False, "verdict": "accept", "reasons": []}
+                        )
+                    else:
+                        fresh_ok = False
+                        why = slot["reasons"] or ["review-rejected"]
+                        row = {"path": path, "reused": False, "verdict": "reject", "reasons": why}
+                        files_out.append(row)
+                        rejected_rows.append(row)
+                if not prompts and reused_rows and not by_path:
+                    fresh_ok = True
+                if not shown_files and not prompts:
+                    fresh_ok = False
+                verdict = "accept" if fresh_ok else "reject"
+                reasons = []
+                for row in rejected_rows:
+                    reasons.extend(row["reasons"])
+                if verdict != "accept" and not reasons:
+                    reasons = ["review-rejected"]
+                hard_reject = False
                 if verdict == "accept" and (
                     diff_aims_at_root(diff_text) or diff_drops_linked_content(diff_text)
                 ):
                     verdict = "reject"
                     reasons = ["review-rejected"]
+                    hard_reject = True
+                if not hard_reject:
+                    for path, slot in by_path.items():
+                        if (
+                            len(slot["verdicts"]) >= slot["parts"]
+                            and all(item == "accept" for item in slot["verdicts"])
+                            and path in sha_by_path
+                        ):
+                            self._accepts[(path, sha_by_path[path])] = "accept"
                 self.review = {
                     "verdict": verdict,
                     "reasons": reasons,
                     "truncated": review_truncated,
+                    "files": files_out,
                 }
                 if verdict != "accept":
                     self._undo_commit(keep_edits=True)
-                    feedback = "review-rejected\n%s" % "\n".join(reasons)
-                    previous_diff = diff_text
+                    self._rejected_files = [row["path"] for row in rejected_rows]
+                    detail = "\n".join(
+                        "%s: %s" % (row["path"], "; ".join(row["reasons"]) or "review-rejected")
+                        for row in rejected_rows
+                    )
+                    normal_feedback = detail or ("review-rejected\n%s" % "\n".join(reasons))
+                    action = plan_retry(
+                        number, normal_feedback, diff_text, targeted=bool(self._rejected_files)
+                    )
+                    if action == "timeout":
+                        self.record(number, "TIMEOUT", "timeout", output)
+                        return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")
                     last_reject = list(reasons) if reasons else ["review-rejected"]
                     self.record(number, "PASS-REJECTED", "review-rejected", output)
-                    if number < self.max_attempts:
+                    if action == "continue":
                         continue
-                    return self.fail("FAIL", "review-rejected", EXIT_FAIL, "")
+                    named = "\n".join(
+                        "Rejected files: %s (%s)"
+                        % (row["path"], "; ".join(row["reasons"]) or "review-rejected")
+                        for row in rejected_rows
+                    )
+                    recovery = failure_recovery("review-rejected", self.args.task_text)
+                    if named:
+                        recovery = recovery + "\n" + named
+                    return self.fail("FAIL", "review-rejected", EXIT_FAIL, recovery)
                 if recheck_reason == "timeout":
                     self._undo_commit(keep_edits=False)
                     return self._gate_timeout_fail(number, output + "\n" + (recheck_tail or ""))
@@ -2654,10 +2730,16 @@ class CloudBuild:
                     return self._gate_rewrote_fail(number, output + "\n" + (recheck_tail or ""))
                 if recheck_reason:
                     self._undo_commit(keep_edits=False)
-                    feedback = "commit-recheck-failed\n%s" % (self.recheck_tail or "")
-                    previous_diff = diff_text
+                    action = plan_retry(
+                        number,
+                        "commit-recheck-failed\n%s" % (self.recheck_tail or ""),
+                        diff_text,
+                    )
+                    if action == "timeout":
+                        self.record(number, "TIMEOUT", "timeout", output)
+                        return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")
                     self.record(number, "FAIL", recheck_reason, output)
-                    if number < self.max_attempts:
+                    if action == "continue":
                         continue
                     return self.fail("FAIL", recheck_reason, EXIT_FAIL, "")
                 with self.phase_clock.phase("commit"):
@@ -2668,31 +2750,50 @@ class CloudBuild:
                     self.review = {"verdict": "reject", "reasons": ["review-rejected"]}
                     last_reject = ["review-rejected"]
                     if linked:
-                        feedback = (
+                        normal_feedback = (
                             "review-rejected\n"
                             "a symlink record stored :target and dropped the linked file bytes"
                         )
                     else:
-                        feedback = "review-rejected\nrecursive delete aimed at the filesystem root"
-                    previous_diff = diff_text
+                        normal_feedback = (
+                            "review-rejected\nrecursive delete aimed at the filesystem root"
+                        )
+                    action = plan_retry(number, normal_feedback, diff_text)
+                    if action == "timeout":
+                        self.record(number, "TIMEOUT", "timeout", output)
+                        return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")
                     self.record(number, "PASS-REJECTED", "review-rejected", output)
-                    if number < self.max_attempts:
+                    if action == "continue":
                         continue
-                    return self.fail("FAIL", "review-rejected", EXIT_FAIL, "")
+                    return self.fail(
+                        "FAIL",
+                        "review-rejected",
+                        EXIT_FAIL,
+                        failure_recovery("review-rejected", self.args.task_text),
+                    )
                 self.review = {"verdict": "skipped", "reasons": []}
                 arm(False)
                 err = self.commit_paths(changed)
             if err == "timeout":
                 return self._gate_timeout_fail(number, output)
-            if err == "commit-recheck-failed" and number < self.max_attempts:
-                feedback = "commit-recheck-failed\n%s" % (self.recheck_tail or "")
-                previous_diff = diff_text
-                self.record(number, "FAIL", err, output)
-                continue
+            if err == "commit-recheck-failed":
+                action = plan_retry(
+                    number,
+                    "commit-recheck-failed\n%s" % (self.recheck_tail or ""),
+                    diff_text,
+                )
+                if action == "timeout":
+                    self.record(number, "TIMEOUT", "timeout", output)
+                    return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")
+                if action == "continue":
+                    self.record(number, "FAIL", err, output)
+                    continue
             if err:
                 self.record(number, "FAIL", err, output)
                 code_out = EXIT_FAIL
                 return self.fail("FAIL", err, code_out, "")
+            if self._loop_salvage:
+                self._attempt_note = "salvaged-after-timeout"
             self.record(number, "PASS", "ok", output)
             self.status = "PASS"
             self.reason = "ok"
@@ -2715,11 +2816,49 @@ def missing_base(args, repo: Path, ref: str) -> int:
 
 
 def _dry_run(args, repo: Path, base: str, receipt: Path) -> int:
+    attempts = 1 if getattr(args, "no_review", False) else int(getattr(args, "retries", 0) or 0) + 1
+    attempts = max(1, attempts)
+    estimate = estimate_for_run(load_price_table(), "grok-4.7", attempts, attempts)
+    print(format_estimate_line(estimate, attempts), file=sys.stderr, flush=True)
+    if not estimate_is_confirmed(args):
+        payload = {
+            "schema": SCHEMA,
+            "status": "FAIL",
+            "reason": "estimate-declined",
+            "exit_code": EXIT_USAGE,
+            "branch": None,
+            "commit": None,
+            "base": base,
+            "review": {"verdict": None, "reasons": []},
+            "attempts": [],
+            "gate": {"cmd": args.test_cmd, "before": None, "after": None},
+            "recovery": failure_recovery("estimate-declined", args.task_text),
+            "pushed": False,
+            "worktree_removed": False,
+            "task": args.task_text,
+            "estimate": {
+                "usd": estimate.get("usd"),
+                "low": estimate.get("low"),
+                "high": estimate.get("high"),
+                "basis": estimate.get("basis"),
+            },
+            "finished_at": _now(),
+        }
+        write_receipt(receipt, payload)
+        print("FAIL: estimate-declined", file=sys.stderr)
+        print(payload["recovery"], file=sys.stderr)
+        return EXIT_USAGE
     payload = {
         "schema": SCHEMA,
         "status": "DRY-RUN",
         "reason": "dry-run",
         "exit_code": EXIT_OK,
+        "estimate": {
+            "usd": estimate.get("usd"),
+            "low": estimate.get("low"),
+            "high": estimate.get("high"),
+            "basis": estimate.get("basis"),
+        },
         "branch": None,
         "commit": None,
         "base": base,

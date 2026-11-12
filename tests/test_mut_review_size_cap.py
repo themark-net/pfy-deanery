@@ -1,6 +1,7 @@
 """Size cap of the local review loop. Kills mutants R7, R8, and R9.
 
-A green patch over 3 counted files or 250 added plus removed lines is
+With --max-files 3 --max-lines 250 (the defaults are larger now), a green
+patch over 3 counted files or 250 added plus removed lines is
 PASS-REJECTED and is not committed. The reviewer is not asked. Narrowing
 back to the cap lets the same task pass.
 
@@ -43,7 +44,7 @@ class SizeCapTests(unittest.TestCase):
         }
         return self.inner.run_build(
             "plan",
-            extra=["--retries", retries],
+            extra=["--retries", retries, "--max-files", "3", "--max-lines", "250"],
             env_extra=env,
             timeout=timeout,
             task=task,

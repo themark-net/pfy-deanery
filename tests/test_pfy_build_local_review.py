@@ -46,8 +46,8 @@ class ReviewHelpTests(unittest.TestCase):
         text = " ".join((proc.stdout or "").split())
         self.assertIn("Review is on by default", text)
         self.assertIn("--no-review", text)
-        self.assertIn("3 changed files", text)
-        self.assertIn("250 added plus removed lines", text)
+        self.assertIn("40 changed files", text)
+        self.assertIn("4000 added plus removed lines", text)
 
 
 class ReviewLoopTests(unittest.TestCase):
@@ -1366,8 +1366,8 @@ class ReviewLoopTests(unittest.TestCase):
         return data
 
     def test_diff_over_the_prompt_cap_is_not_committed(self):
-        # One line is already over the 8000-character reviewer cap. The tail
-        # sits past that cut. A silent slice would commit the tail unseen.
+        # One line is over the 8000-character pack cap. The tail must still be
+        # shown in some review prompt, then committed. A silent slice would hide it.
         body = "PAD = '" + ("x" * 9000) + "'\nEVIL_TAIL = 1\n"
         task = "fix add so one plus one is two\nfiles: src/calc.py, src/helper.py\n"
         proc, receipt = self._run(
@@ -1375,14 +1375,23 @@ class ReviewLoopTests(unittest.TestCase):
             [{"mode": "fix", "write": {"src/helper.py": body}}],
             extra=["--retries", "2"],
         )
-        data = self._assert_refused_before_review(proc, receipt, "review-diff-too-large")
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "PASS", data)
+        self.assertIsNotNone(data["commit"])
         self.assertIn("src/helper.py", data["files_changed"])
-        patch = (receipt / "attempt-1" / "patch.diff").read_text(encoding="utf-8")
-        self.assertIn("EVIL_TAIL = 1", patch)
-        self.assertGreater(len(patch), 8000)
+        reviewed = [
+            payload["messages"][0]["content"]
+            for path, payload in self.inner.httpd.posts
+            if "chat" in path and isinstance(payload, dict) and "pfy-review-v1" in json.dumps(payload)
+        ]
+        self.assertGreater(len(reviewed), 1, reviewed)
+        self.assertTrue(any("EVIL_TAIL = 1" in item for item in reviewed))
+        self.assertGreaterEqual("".join(reviewed).count("x"), 9000)
+        self.inner.assert_clean_origin()
 
     def test_many_short_lines_over_the_prompt_cap_are_not_committed(self):
-        # 201 lines is under the 250-line cap and still over 8000 characters.
+        # 201 lines is under the line cap and still over 8000 characters.
         body = "".join(
             "V%03d = 'ordinary padding line for size %03d'\n" % (i, i) for i in range(200)
         ) + "EVIL_TAIL2 = 1\n"
@@ -1394,11 +1403,21 @@ class ReviewLoopTests(unittest.TestCase):
             [{"mode": "fix", "write": {"src/helper.py": body}}],
             extra=["--retries", "2"],
         )
-        data = self._assert_refused_before_review(proc, receipt, "review-diff-too-large")
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        data = self._receipt(proc, receipt)
+        self.assertEqual(data["status"], "PASS", data)
+        self.assertIsNotNone(data["commit"])
         self.assertIn("src/helper.py", data["files_changed"])
-        patch = (receipt / "attempt-1" / "patch.diff").read_text(encoding="utf-8")
-        self.assertIn("EVIL_TAIL2 = 1", patch)
-        self.assertIn("V199 = ", patch)
+        reviewed = [
+            payload["messages"][0]["content"]
+            for path, payload in self.inner.httpd.posts
+            if "chat" in path and isinstance(payload, dict) and "pfy-review-v1" in json.dumps(payload)
+        ]
+        self.assertGreater(len(reviewed), 1, len(reviewed))
+        joined = "\n".join(reviewed)
+        self.assertIn("EVIL_TAIL2 = 1", joined)
+        self.assertIn("V199 = ", joined)
+        self.inner.assert_clean_origin()
 
     def test_tracked_binary_edit_is_not_committed(self):
         blob = self.inner.repo / "src" / "blob.bin"

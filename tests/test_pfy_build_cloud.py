@@ -820,13 +820,21 @@ class CloudBuildRetryTests(unittest.TestCase):
         self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
 
     def test_review_diff_over_the_cap_is_refused_and_not_published(self) -> None:
-        payload, review, head, text = self._review_cap_case(
-            "long", "Path('wide.py').write_text('x' * 20000, encoding='utf-8')", "add a long marker file", 1
+        # A text diff over the old per-file cap is split and reviewed, not refused.
+        payload, review, _head, text = self._review_cap_case(
+            "long", "Path('wide.py').write_text('x' * 20000, encoding='utf-8')", "add a long marker file", 0
         )
-        self._assert_refused_unpublished(payload, review, head, text, "review-file-too-large")
-        self.assertIn("too large", payload["recovery"].lower())
-        self.assertIn("wide.py", payload["recovery"])
-        self.assertEqual(payload.get("phase"), "precheck")
+        self.assertEqual(payload["status"], "PASS", text)
+        self.assertEqual(payload["review"]["verdict"], "accept")
+        self.assertGreater(len(review), 1, [len(item) for item in review])
+        shown = []
+        for prompt in review:
+            start = prompt.find("\nDiff:\n")
+            end = prompt.find("\n\nGate:\n")
+            shown.append(prompt[start:end])
+        self.assertGreaterEqual("".join(shown).count("x"), 20000)
+        self.assertNotIn("review-file-too-large", text)
+        self.assertIsNotNone(payload["commit"])
 
     def test_new_binary_file_is_refused_and_not_published(self) -> None:
         payload, review, head, text = self._review_cap_case(
@@ -885,8 +893,10 @@ class CloudBuildRetryTests(unittest.TestCase):
             )
         )
         self.assertEqual(payload["reason"], "review-rejected")
-        self.assertTrue(payload["worktree_removed"])
+        self.assertFalse(payload["worktree_removed"])
         self.assertFalse((self.repo / "tmp" / "cloud-build").exists())
+        self.assertIn("kept.py", payload["recovery"])
+        self.assertIn("Worktree kept", payload["recovery"])
         attempt = payload["attempts"][0]
         self.assertEqual(attempt["reason"], "review-rejected")
         diff = attempt["diff"]

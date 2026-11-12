@@ -57,6 +57,24 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from pfylib.bot_interface import _scrub, _which_opencode, opencode_config  # noqa: E402
+from pfylib.review_chunks import (  # noqa: E402
+    BuildAlreadyRunning,
+    ReviewBudgetExceeded,
+    acquire_repo_lock,
+    assert_review_budget,
+    change_impact_map,
+    diff_sha,
+    excluded_generated_receipt,
+    file_part_label,
+    gate_edit_allowed,
+    pack_review_prompts,
+    partition_untracked_generated,
+    review_preamble,
+    review_reuse_allowed,
+    round_manifest,
+    split_diff_by_file,
+    stop_group_for_timeout,
+)
 
 EXIT_OK = 0
 EXIT_FAIL = 1
@@ -95,8 +113,8 @@ DEFAULT_TEST_TIMEOUT = 600
 DEFAULT_OVERALL_TIMEOUT = 7200.0
 DEFAULT_MIN_FREE_GB = 32.0
 DEFAULT_RETRIES = 2
-DEFAULT_MAX_FILES = 3
-DEFAULT_MAX_LINES = 250
+DEFAULT_MAX_FILES = 40
+DEFAULT_MAX_LINES = 4000
 REVIEW_MARKER = "pfy-review-v1"
 SCOPE_SKIPPED_NOTE = "scope check skipped: no allow list"
 DIFF_PROMPT_CAP = 8000
@@ -367,7 +385,7 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
         description=(
             "Headless local-model build. One task, one tested branch, no push. "
             "Review is on by default (--no-review turns it off). "
-            "A green patch is rejected above 3 changed files or 250 added plus removed lines."
+            "A green patch is rejected above 40 changed files or 4000 added plus removed lines."
         ),
     )
     parser.add_argument("task", nargs="?", help="task text")
@@ -396,6 +414,11 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser.add_argument("--prompt-file", default=None, help="read the task from this file")
     parser.add_argument("--receipt-dir", default=None, help="directory for receipt.json")
     parser.add_argument("--keep-worktree", action="store_true", help="keep the worktree after PASS")
+    parser.add_argument(
+        "--drop-worktree",
+        action="store_true",
+        help="remove the worktree even when the run does not PASS",
+    )
     parser.add_argument("--dry-run", action="store_true", help="pre-flight only: start nothing, load nothing")
     parser.add_argument("--run-tests-on-timeout", action="store_true", help="run the gate after TIMEOUT")
     parser.add_argument("--keep-model", action="store_true", help="do not unload at the end")
@@ -429,13 +452,13 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
         "--max-files",
         type=int,
         default=None,
-        help="changed files allowed, not counting a test file the test command names (default 3)",
+        help="changed files allowed, not counting a test file the test command names (default 40)",
     )
     parser.add_argument(
         "--max-lines",
         type=int,
         default=None,
-        help="added plus removed lines allowed (default 250)",
+        help="added plus removed lines allowed (default 4000)",
     )
     parser.add_argument("--allow-path", action="append", default=[], help="glob the patch may change (repeatable)")
     parser.add_argument(
@@ -638,7 +661,7 @@ def run_bounded(cmd: list[str], env: dict, cwd: Path, timeout: float, state: Sta
             break
         if time.monotonic() >= deadline:
             status = "timeout"
-            _kill_pgid(pgid)
+            stop_group_for_timeout(pgid, kill_grace=KILL_GRACE_SECONDS)
             break
         # The leader can exit and leave children holding the pipes.
         # Reap the group now so a background child cannot sit out the timeout.
@@ -1050,6 +1073,13 @@ def _acquire_lock(path: Path) -> object | None:
 def _release_lock(fd) -> None:
     if fd is None:
         return
+    release = getattr(fd, "release", None)
+    if callable(release) and not hasattr(fd, "fileno"):
+        try:
+            release()
+        except OSError:
+            pass
+        return
     try:
         fcntl.flock(fd.fileno(), fcntl.LOCK_UN)
     except OSError:
@@ -1058,6 +1088,14 @@ def _release_lock(fd) -> None:
         fd.close()
     except OSError:
         pass
+
+
+def _acquire_repo_run_lock(repo: Path, worktree: str = ""):
+    """The shared git-common lock. None means another live run holds it."""
+    try:
+        return acquire_repo_lock(repo, worktree=worktree or "")
+    except BuildAlreadyRunning:
+        return None
 
 
 def _ollama_tags(root: str) -> tuple[list[dict] | None, str | None]:
@@ -1164,7 +1202,9 @@ def _write_config(home: Path, base: str, model: str) -> Path:
     return path
 
 
-def _agent_prompt(task: str, test_cmd: str, feedback: str = "", previous_diff: str = "") -> str:
+def _agent_prompt(
+    task: str, test_cmd: str, feedback: str = "", previous_diff: str = "", targeted: bool = False
+) -> str:
     base = (
         "Work only in this directory. Edit files. Run the tests yourself. "
         "Do not commit. Do not touch anything outside this directory.\n\n"
@@ -1176,10 +1216,13 @@ def _agent_prompt(task: str, test_cmd: str, feedback: str = "", previous_diff: s
     shown = redact(previous_diff or "")
     if len(shown) > DIFF_PROMPT_CAP:
         shown = shown[:DIFF_PROMPT_CAP] + "\n...[diff truncated]\n"
+    head = ""
+    if targeted:
+        head = "Fix only these files. Do not rewrite accepted files.\n\n"
     return (
         base
-        + "\n\nThe previous attempt was rejected.\nReasons:\n%s\n\nPrevious diff:\n%s\n"
-        % (redact(feedback or ""), shown)
+        + "\n\n%sThe previous attempt was rejected.\nReasons:\n%s\n\nPrevious diff:\n%s\n"
+        % (head, redact(feedback or ""), shown)
     )
 
 
@@ -1554,6 +1597,8 @@ def tests_tampered(worktree: Path, snapshot: dict[str, str], writable: list[str]
             continue
         try:
             if _sha256_file(path) != digest:
+                if gate_edit_allowed(worktree, rel):
+                    continue
                 bad.append(rel)
         except OSError:
             bad.append(rel)
@@ -1564,6 +1609,8 @@ def tests_tampered(worktree: Path, snapshot: dict[str, str], writable: list[str]
         if not _is_gate_file(rel):
             continue
         if writable and _protected(rel, writable):
+            continue
+        if gate_edit_allowed(worktree, rel):
             continue
         bad.append(rel)
     return bad
@@ -2127,9 +2174,8 @@ def _reap_only(args) -> int:
     except UsageError as exc:
         print("FAIL: %s" % exc, file=sys.stderr)
         return EXIT_USAGE
-    lock_path = repo / "tmp" / "local-build.lock"
-    fd = _acquire_lock(lock_path)
-    if fd is None:
+    lock = _acquire_repo_run_lock(repo)
+    if lock is None:
         print("BLOCKED: another run", file=sys.stderr)
         return EXIT_BLOCKED
     try:
@@ -2137,11 +2183,15 @@ def _reap_only(args) -> int:
         print("reaped: %s" % (", ".join(notes) or "none"))
         return EXIT_OK
     finally:
-        try:
-            lock_path.unlink()
-        except OSError:
+        _release_lock(lock)
+        leftover = repo / "tmp" / "local-build.lock"
+        if leftover.is_symlink():
             pass
-        _release_lock(fd)
+        elif leftover.is_file():
+            try:
+                leftover.unlink()
+            except OSError:
+                pass
 
 
 def tree_digest(worktree: Path) -> str:
@@ -2798,8 +2848,6 @@ def _review_refusal(diff_text: str, diff_stats: dict) -> str | None:
     """
     if diff_stats.get("binary") or _binary_diff_marker(diff_text):
         return "review-binary-change"
-    if len(redact(diff_text or "")) > DIFF_PROMPT_CAP:
-        return "review-diff-too-large"
     return None
 
 
@@ -3011,8 +3059,27 @@ def _stale_worktree_dirs(repo: Path) -> list[Path]:
         entries = list(base.iterdir())
     except OSError:
         return []
-    found = [entry for entry in entries if entry.name.startswith("local-build-")]
+    # A non-PASS run that kept its edits leaves tmp/kept-<name>. That tree is
+    # salvage, not stale: the next run must not sweep it. Delete the marker
+    # (or the tree with git worktree remove) to let the sweep take it.
+    found = [
+        entry
+        for entry in entries
+        if entry.name.startswith("local-build-")
+        and not (base / (KEPT_MARKER_PREFIX + entry.name)).exists()
+    ]
     return sorted(found, key=lambda entry: entry.name)
+
+
+KEPT_MARKER_PREFIX = "kept-"
+
+
+def _mark_kept(repo: Path, worktree: Path, reason: str) -> None:
+    try:
+        marker = repo / "tmp" / (KEPT_MARKER_PREFIX + worktree.name)
+        marker.write_text("%s\n" % (reason or "kept"), encoding="utf-8")
+    except OSError:
+        pass
 
 
 def _drop_stale_worktree(repo: Path, path: Path) -> None:
@@ -3110,6 +3177,7 @@ def _run_model_review(
     state: State,
     repo: Path,
     call_limit: float | None = None,
+    accept_memory: dict | None = None,
 ) -> tuple[str, dict | None]:
     """Return (status, review).
 
@@ -3126,96 +3194,208 @@ def _run_model_review(
             "reasons": ["review-endpoint-not-local"],
             "raw_tail": "",
         }
-    prompt = _review_prompt(task, redact(diff_text), redact(gate_tail or ""))
-    body = {
-        "model": args.model_name,
-        "messages": [{"role": "user", "content": prompt}],
-        "temperature": 0,
-        "stream": False,
-    }
+    memory = accept_memory if isinstance(accept_memory, dict) else None
+    redacted_diff = redact(diff_text or "")
+    shown = []
+    for path, chunk in split_diff_by_file(redacted_diff):
+        if not chunk or _binary_diff_marker(chunk):
+            continue
+        shown.append((path, chunk))
+    if not shown and redacted_diff.strip():
+        shown = [("(diff)", redacted_diff)]
+    fresh_items = []
+    reused_rows = []
+    for path, text in shown:
+        sha = diff_sha(text)
+        if memory is not None and review_reuse_allowed(worktree, path, sha, memory=memory):
+            reused_rows.append(
+                {"path": path, "reused": True, "verdict": "accept", "reasons": []}
+            )
+            continue
+        fresh_items.append({"path": path, "text": text, "sha": sha})
+    if not fresh_items and reused_rows:
+        return "accept", {
+            "verdict": "accept",
+            "reasons": [],
+            "raw_tail": "",
+            "files": reused_rows,
+        }
+    packs = pack_review_prompts(
+        [{"path": item["path"], "text": item["text"]} for item in fresh_items],
+        DIFF_PROMPT_CAP,
+        pack_multiple=True,
+    )
+    try:
+        assert_review_budget(sum(len(text) for _path, text in shown), len(packs))
+    except ReviewBudgetExceeded as exc:
+        return "reject", {
+            "verdict": "reject",
+            "reasons": ["review-budget-exceeded"],
+            "raw_tail": str(exc)[:500],
+            "files": [],
+        }
+    sha_of = {item["path"]: item["sha"] for item in fresh_items}
+    manifest = round_manifest(shown)
+    all_paths = [path for path, _text in shown]
+    try:
+        impact_text, _impact_source = change_impact_map(worktree, redacted_diff, all_paths)
+    except Exception:
+        impact_text = "no changed symbols"
+    prompts = []
+    prompt_paths = []
+    for pack in packs:
+        sections = ["Change-impact map:\n%s" % (impact_text or "no changed symbols")]
+        paths = []
+        for item in pack:
+            others = [path for path in all_paths if path != item["path"]]
+            sections.append(review_preamble(file_part_label(item), others, manifest))
+            sections.append("Diff:\n%s" % item["text"])
+            paths.append(item["path"])
+        prompts.append(_review_prompt(task, "\n\n".join(sections), redact(gate_tail or "")))
+        prompt_paths.append(paths)
+    if not prompts and not reused_rows:
+        prompts = [_review_prompt(task, redacted_diff, redact(gate_tail or ""))]
+        prompt_paths = [[shown[0][0] if shown else "(diff)"]]
+    if not prompts:
+        return "reject", {
+            "verdict": "reject",
+            "reasons": ["review-empty-diff"],
+            "raw_tail": "",
+            "files": [],
+        }
     tmp = worktree / "tmp"
     tmp.mkdir(parents=True, exist_ok=True)
     (tmp / "review-home").mkdir(parents=True, exist_ok=True)
     body_path = tmp / "pfy-review-body.json"
     out_path = tmp / "pfy-review-out.json"
     script_path = tmp / "pfy-review-post.py"
-    if out_path.exists():
-        out_path.unlink()
-    body_path.write_text(json.dumps(body), encoding="utf-8")
     script_path.write_text(_REVIEW_POSTER, encoding="utf-8")
-    child = _child_env(
-        {
-            "TMPDIR": str(tmp),
-            "HOME": str(tmp / "review-home"),
-            "PYTHONDONTWRITEBYTECODE": "1",
-            "OPENAI_BASE_URL": openai_base,
-            "PFY_REVIEW_BODY": str(body_path),
-            "PFY_REVIEW_OUT": str(out_path),
-            "PFY_REVIEW_HTTP_TIMEOUT": str(float(args.timeout_s) + 30.0),
+    part_verdicts: dict[str, list[str]] = {}
+    reasons_all: list[str] = []
+    raw_tail = ""
+    files_out = list(reused_rows)
+    sent = 0
+    for prompt, paths in zip(prompts, prompt_paths):
+        sent += 1
+        body = {
+            "model": args.model_name,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0,
+            "stream": False,
         }
-    )
-    try:
-        prepared = prepare_sandbox(
-            _review_poster_argv(script_path),
-            worktree,
-            hide=hide_paths(repo, worktree),
-            endpoint=openai_base,
-            unsafe=bool(args.unsafe_no_sandbox),
+        if out_path.exists():
+            out_path.unlink()
+        body_path.write_text(json.dumps(body), encoding="utf-8")
+        child = _child_env(
+            {
+                "TMPDIR": str(tmp),
+                "HOME": str(tmp / "review-home"),
+                "PYTHONDONTWRITEBYTECODE": "1",
+                "OPENAI_BASE_URL": openai_base,
+                "PFY_REVIEW_BODY": str(body_path),
+                "PFY_REVIEW_OUT": str(out_path),
+                "PFY_REVIEW_HTTP_TIMEOUT": str(float(args.timeout_s) + 30.0),
+            }
         )
-    except SandboxUnavailable as exc:
-        return "sandbox", {"verdict": "reject", "reasons": [exc.reason], "raw_tail": str(exc)}
-    if prepared.mode == "bwrap-unshare-net":
-        child["OPENAI_BASE_URL"] = "http://127.0.0.1:%d/v1" % port
-    child.update(lockdown_env(worktree))
-    limit = float(args.timeout_s)
-    cut_by_overall = False
-    if call_limit is not None and call_limit < limit:
-        limit = call_limit
-        cut_by_overall = True
-    if limit <= 0:
-        return "overall-timeout", None
-    try:
-        with _otel_llm(args.model_name, openai_base, "local.review", child):
-            run_status, _code, out, err = run_bounded(
-                prepared.argv, child, worktree, limit, state
+        try:
+            prepared = prepare_sandbox(
+                _review_poster_argv(script_path),
+                worktree,
+                hide=hide_paths(repo, worktree),
+                endpoint=openai_base,
+                unsafe=bool(args.unsafe_no_sandbox),
             )
-    finally:
-        prepared.close()
-    if run_status == "interrupted":
-        return "interrupted", None
-    if run_status == "mem-edge":
-        return "mem-edge", None
-    if run_status == "timeout" and cut_by_overall:
-        return "overall-timeout", None
-    # A bounded-call timeout often leaves no out file. That is an outage,
-    # not a poster crash. Check it before the missing-file path.
-    if run_status == "timeout":
-        return "unavailable", {
-            "verdict": "reviewer-unavailable",
-            "reasons": ["reviewer-unavailable"],
-            "raw_tail": "review call timed out",
-        }
-    raw = ""
-    try:
-        raw = out_path.read_text(encoding="utf-8")
-    except OSError:
-        # The poster exited and never opened the out file. Stdout is not a verdict.
-        tail = redact(((out or "") + "\n" + (err or "")).strip())[:500]
-        return "crashed", {
+        except SandboxUnavailable as exc:
+            return "sandbox", {"verdict": "reject", "reasons": [exc.reason], "raw_tail": str(exc)}
+        if prepared.mode == "bwrap-unshare-net":
+            child["OPENAI_BASE_URL"] = "http://127.0.0.1:%d/v1" % port
+        child.update(lockdown_env(worktree))
+        limit = float(args.timeout_s)
+        cut_by_overall = False
+        if call_limit is not None and call_limit < limit:
+            limit = call_limit
+            cut_by_overall = True
+        if limit <= 0:
+            prepared.close()
+            return "overall-timeout", None
+        try:
+            with _otel_llm(args.model_name, openai_base, "local.review", child):
+                run_status, _code, out, err = run_bounded(
+                    prepared.argv, child, worktree, limit, state
+                )
+        finally:
+            prepared.close()
+        if run_status == "interrupted":
+            return "interrupted", None
+        if run_status == "mem-edge":
+            return "mem-edge", None
+        if run_status == "timeout" and cut_by_overall:
+            return "overall-timeout", None
+        if run_status == "timeout":
+            return "unavailable", {
+                "verdict": "reviewer-unavailable",
+                "reasons": ["reviewer-unavailable"],
+                "raw_tail": "review call timed out",
+            }
+        try:
+            raw = out_path.read_text(encoding="utf-8")
+        except OSError:
+            tail = redact(((out or "") + "\n" + (err or "")).strip())[:500]
+            return "crashed", {
+                "verdict": "reject",
+                "reasons": ["review-crashed"],
+                "raw_tail": tail,
+            }
+        if _review_transport_error(raw) or _review_outage_kind(raw):
+            return "unavailable", {
+                "verdict": "reviewer-unavailable",
+                "reasons": ["reviewer-unavailable"],
+                "raw_tail": redact(raw[:500])[:500],
+            }
+        content = _content_from_model_body(raw)
+        verdict, reasons, one_tail = _parse_verdict(content)
+        raw_tail = redact(one_tail)[:500]
+        for path in paths:
+            part_verdicts.setdefault(path, []).append(verdict)
+        if verdict != "accept":
+            reasons_all.extend(reasons or ["review-rejected"])
+            break
+    if memory is not None:
+        for path, verdicts in part_verdicts.items():
+            expected = sum(1 for group in prompt_paths if path in group)
+            if (
+                path in sha_of
+                and verdicts
+                and len(verdicts) >= expected
+                and all(item == "accept" for item in verdicts)
+            ):
+                memory[(path, sha_of[path])] = "accept"
+    rejected = any(
+        any(item != "accept" for item in verdicts) for verdicts in part_verdicts.values()
+    ) or sent < len(prompts)
+    for path, verdicts in part_verdicts.items():
+        ok = bool(verdicts) and all(item == "accept" for item in verdicts)
+        files_out.append(
+            {
+                "path": path,
+                "reused": False,
+                "verdict": "accept" if ok else "reject",
+                "reasons": [] if ok else list(reasons_all),
+            }
+        )
+    if rejected:
+        return "reject", {
             "verdict": "reject",
-            "reasons": ["review-crashed"],
-            "raw_tail": tail,
+            "reasons": reasons_all or ["review-rejected"],
+            "raw_tail": raw_tail,
+            "files": files_out,
         }
-    # An HTTP error is the same outage. A verdict reject is a later return and is retried.
-    if _review_transport_error(raw) or _review_outage_kind(raw):
-        return "unavailable", {
-            "verdict": "reviewer-unavailable",
-            "reasons": ["reviewer-unavailable"],
-            "raw_tail": redact(raw[:500])[:500],
-        }
-    content = _content_from_model_body(raw)
-    verdict, reasons, raw_tail = _parse_verdict(content)
-    return verdict, {"verdict": verdict, "reasons": reasons, "raw_tail": redact(raw_tail)[:500]}
+    return "accept", {
+        "verdict": "accept",
+        "reasons": [],
+        "raw_tail": raw_tail,
+        "files": files_out,
+    }
 
 
 def build_local(argv: list[str] | None = None) -> int:
@@ -3250,6 +3430,9 @@ def build_local(argv: list[str] | None = None) -> int:
     tests_before = None
     tests_after = None
     changed: list[str] = []
+    salvage_mode = False
+    excluded_paths: list[str] = []
+    last_review_files: list = []
     agent_log: Path | None = None
     agent_seconds = 0.0
     attempts_used = 0
@@ -3276,7 +3459,25 @@ def build_local(argv: list[str] | None = None) -> int:
     watcher = None
 
     def finish() -> int:
-        nonlocal unloaded, git_saved, prepared
+        nonlocal unloaded, git_saved, prepared, status, reason, exit_code, recovery, worktree
+        if (
+            salvage_mode
+            and status != "PASS"
+            and status != "BLOCKED"
+            and reason not in ("interrupted", "mem-edge", "dry-run")
+        ):
+            status, reason, exit_code = "TIMEOUT", "timeout", EXIT_TIMEOUT
+        if status != "PASS" and worktree is not None and repo is not None and changed:
+            if getattr(args, "drop_worktree", False):
+                _drop_worktree(repo, worktree)
+            else:
+                _mark_kept(repo, worktree, reason)
+                hint = (
+                    "Worktree kept at %s. Resume from that tree or pass --drop-worktree."
+                    % worktree
+                )
+                if hint not in (recovery or ""):
+                    recovery = ((recovery or "").rstrip() + "\n" + hint).strip()
         if git_saved is not None and worktree is not None:
             restore_worktree_git(worktree, git_saved)
             git_saved = None
@@ -3312,7 +3513,9 @@ def build_local(argv: list[str] | None = None) -> int:
                     "max_lines": int(args.max_lines_n),
                     "allow_path": list(args.allow_path or []),
                     "require_wiring": list(args.require_wiring or []),
+                    "files": list(last_review_files),
                 },
+                "excluded_generated": excluded_generated_receipt(excluded_paths),
                 "warnings": list(dict.fromkeys([*warnings, *([scope_warning] if scope_warning else [])])),
                 "stale_worktrees": list(stale_worktrees),
                 "sandbox_extra_rw": list(sandbox_extra_rw),
@@ -3377,7 +3580,7 @@ def build_local(argv: list[str] | None = None) -> int:
         receipt_path = receipt_dir / "receipt.json"
 
         lock_path = repo / "tmp" / "local-build.lock"
-        state.lock_fd = _acquire_lock(lock_path)
+        state.lock_fd = _acquire_repo_run_lock(repo)
         if state.lock_fd is None:
             receipt_dir.mkdir(parents=True, exist_ok=True)
             status, reason, exit_code = "BLOCKED", "another run", EXIT_BLOCKED
@@ -3474,6 +3677,9 @@ def build_local(argv: list[str] | None = None) -> int:
         max_attempts = 1 if not args.review else 1 + int(args.retries_n)
         feedback = ""
         previous_diff = ""
+        reuse_worktree = False
+        review_targeted = False
+        accept_memory: dict = {}
         commit_ready = False
         pid_written = False
         watcher_started = False
@@ -3509,6 +3715,8 @@ def build_local(argv: list[str] | None = None) -> int:
             dest = receipt_dir / ("attempt-%d" % number) / "receipt.json"
             _write_receipt(dest, payload)
             attempt_receipts.append(str(dest))
+            if salvage_mode and attempt_status == "PASS":
+                payload["note"] = "salvaged-after-timeout"
             if diff_text:
                 try:
                     (dest.parent / "patch.diff").write_text(redact(diff_text), encoding="utf-8")
@@ -3563,6 +3771,19 @@ def build_local(argv: list[str] | None = None) -> int:
                 return _finish_overall(checks, model_review)
             return None
 
+        def _note_salvage_retry() -> bool:
+            nonlocal feedback, previous_diff, reuse_worktree, salvage_mode, review_targeted
+            if not salvage_mode:
+                return False
+            if attempts_used < max_attempts and (loop_deadline - time.monotonic()) > 1:
+                feedback = "previous attempt timed out; continue from the current tree"
+                previous_diff = ""
+                review_targeted = False
+                reuse_worktree = True
+                salvage_mode = False
+                return True
+            return False
+
         while attempts_used < max_attempts:
             if time.monotonic() >= loop_deadline:
                 recovery = _OVERALL_RECOVERY
@@ -3584,22 +3805,27 @@ def build_local(argv: list[str] | None = None) -> int:
             model_review = None
             agent_cut = False
 
-            if worktree is not None:
-                if git_saved is not None:
-                    restore_worktree_git(worktree, git_saved)
-                    git_saved = None
-                if prepared is not None:
-                    prepared.close()
-                    prepared = None
-                _drop_worktree(repo, worktree)
-                worktree = None
-
-            added = _git(repo, ["worktree", "add", "--detach", str(wt_path), base_ref])
-            if added.returncode != 0:
-                status, reason, exit_code = "FAIL", "worktree-failed", EXIT_FAIL
-                _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "worktree-failed", None, None, diff_stats, "")
-                return finish()
+            kept_tree = bool(reuse_worktree and worktree is not None and worktree.exists())
+            if kept_tree:
+                reuse_worktree = False
+            else:
+                if worktree is not None:
+                    if git_saved is not None:
+                        restore_worktree_git(worktree, git_saved)
+                        git_saved = None
+                    if prepared is not None:
+                        prepared.close()
+                        prepared = None
+                    _drop_worktree(repo, worktree)
+                    worktree = None
+                added = _git(repo, ["worktree", "add", "--detach", str(wt_path), base_ref])
+                if added.returncode != 0:
+                    status, reason, exit_code = "FAIL", "worktree-failed", EXIT_FAIL
+                    _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "worktree-failed", None, None, diff_stats, "")
+                    return finish()
             worktree = wt_path
+            if state.lock_fd is not None and hasattr(state.lock_fd, "update_worktree"):
+                state.lock_fd.update_worktree(str(worktree))
             home = worktree / "tmp" / "opencode.home"
             _ensure_tmp_excluded(worktree, _child_env({"TMPDIR": str(worktree / "tmp")}))
             (worktree / "tmp").mkdir(parents=True, exist_ok=True)
@@ -3660,7 +3886,8 @@ def build_local(argv: list[str] | None = None) -> int:
                 )
                 return finish()
 
-            test_snapshot = snapshot_tests(worktree, args.test_cmd_s)
+            if not kept_tree or not test_snapshot:
+                test_snapshot = snapshot_tests(worktree, args.test_cmd_s)
             config = _write_config(home, openai_base, args.model_name)
             try:
                 shutil.copy(config, receipt_dir / "opencode.json")
@@ -3668,7 +3895,14 @@ def build_local(argv: list[str] | None = None) -> int:
                 pass
             child = _opencode_env(home, worktree, openai_base, config)
             child.update(lockdown_env(worktree))
-            prompt = _agent_prompt(args.task_text, args.test_cmd_s, feedback, previous_diff)
+            prompt = _agent_prompt(
+                args.task_text,
+                args.test_cmd_s,
+                feedback,
+                previous_diff,
+                targeted=review_targeted,
+            )
+            review_targeted = False
             cmd = [binary, "run", "--pure", "--model", "ollama/%s" % args.model_name, "--variant", "none", prompt]
             git_saved = isolate_worktree_git(worktree)
             stub_binds = _stub_extra_rw()
@@ -3736,11 +3970,32 @@ def build_local(argv: list[str] | None = None) -> int:
             if run_status == "timeout" and agent_cut:
                 return _finish_overall()
             if run_status == "timeout" and not args.run_tests_on_timeout:
-                status, reason, exit_code = "TIMEOUT", "timeout", EXIT_TIMEOUT
-                _record_attempt(attempts_used, attempt_t0, mem_snap, "TIMEOUT", "timeout", None, None, diff_stats, "")
-                return finish()
+                peek, excluded_now = partition_untracked_generated(
+                    worktree, files_changed(worktree, test_env)
+                )
+                for rel in excluded_now:
+                    if rel not in excluded_paths:
+                        excluded_paths.append(rel)
+                if not peek:
+                    status, reason, exit_code = "TIMEOUT", "timeout", EXIT_TIMEOUT
+                    _record_attempt(attempts_used, attempt_t0, mem_snap, "TIMEOUT", "timeout", None, None, diff_stats, "")
+                    return finish()
+                salvage_mode = True
 
             changed = files_changed(worktree, test_env)
+            changed, excluded_now = partition_untracked_generated(worktree, changed)
+            for rel in excluded_now:
+                if rel not in excluded_paths:
+                    excluded_paths.append(rel)
+            if (
+                not changed
+                and excluded_now
+                and all(_commit_excluded(rel) for rel in excluded_now)
+            ):
+                # Pytest cache and bytecode are the old commit exclusion:
+                # review once, then no-reviewable-change. build/, dist/, and
+                # egg-info stay out of this path so they are not reviewed.
+                changed = list(excluded_now)
             diff_text, diff_stats = _collect_diff(worktree, test_env, changed)
             reviewed_digests = {rel: _reviewed_digest(worktree, rel) for rel in changed}
             if not changed and run_status == "done" and isinstance(agent_code, int) and agent_code != 0:
@@ -3774,6 +4029,8 @@ def build_local(argv: list[str] | None = None) -> int:
                 feedback = _no_change_feedback(tests_after)
                 if _can_retry(args.review, attempts_used, max_attempts, "no-change"):
                     _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "no-change", None, None, diff_stats, diff_text)
+                    if _note_salvage_retry():
+                        continue
                     previous_diff = diff_text
                     continue
                 status, reason, exit_code = "FAIL", "no-change", EXIT_FAIL
@@ -3786,6 +4043,8 @@ def build_local(argv: list[str] | None = None) -> int:
                     _record_attempt(
                         attempts_used, attempt_t0, mem_snap, "FAIL", "protected-path-changed", None, None, diff_stats, diff_text
                     )
+                    if _note_salvage_retry():
+                        continue
                     previous_diff = diff_text
                     continue
                 status, reason, exit_code = "FAIL", "protected-path-changed", EXIT_FAIL
@@ -3807,6 +4066,8 @@ def build_local(argv: list[str] | None = None) -> int:
                 feedback = _gate_feedback(gate, tests_after)
                 if _can_retry(args.review, attempts_used, max_attempts, gate):
                     _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", gate, None, None, diff_stats, diff_text)
+                    if _note_salvage_retry():
+                        continue
                     previous_diff = diff_text
                     continue
                 status, reason, exit_code = "FAIL", gate, EXIT_FAIL
@@ -3819,6 +4080,8 @@ def build_local(argv: list[str] | None = None) -> int:
                     _record_attempt(
                         attempts_used, attempt_t0, mem_snap, "FAIL", "tests-tampered", None, None, diff_stats, diff_text
                     )
+                    if _note_salvage_retry():
+                        continue
                     previous_diff = diff_text
                     continue
                 status, reason, exit_code = "FAIL", "tests-tampered", EXIT_FAIL
@@ -3843,6 +4106,8 @@ def build_local(argv: list[str] | None = None) -> int:
                 feedback = _gate_feedback("tests-flaky", again)
                 if _can_retry(args.review, attempts_used, max_attempts, "tests-flaky"):
                     _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "tests-flaky", None, None, diff_stats, diff_text)
+                    if _note_salvage_retry():
+                        continue
                     previous_diff = diff_text
                     continue
                 status, reason, exit_code = "FAIL", "tests-flaky", EXIT_FAIL
@@ -3883,7 +4148,7 @@ def build_local(argv: list[str] | None = None) -> int:
                 )
                 return finish()
             gated_tree = tree_digest(worktree)
-            if run_status == "timeout":
+            if run_status == "timeout" and not salvage_mode:
                 if agent_cut:
                     return _finish_overall()
                 status, reason, exit_code = "TIMEOUT", "timeout", EXIT_TIMEOUT
@@ -3943,6 +4208,11 @@ def build_local(argv: list[str] | None = None) -> int:
             if reasons:
                 feedback = "\n".join(reasons)
                 previous_diff = diff_text
+                if _note_salvage_retry():
+                    _record_attempt(
+                        attempts_used, attempt_t0, mem_snap, "PASS-REJECTED", "review-rejected", checks, None, diff_stats, diff_text
+                    )
+                    continue
                 if attempts_used >= max_attempts:
                     status, reason, exit_code = "PASS-REJECTED", "review-rejected", EXIT_FAIL
                     _record_attempt(
@@ -4004,7 +4274,10 @@ def build_local(argv: list[str] | None = None) -> int:
                 state,
                 repo,
                 call_limit=remain,
+                accept_memory=accept_memory,
             )
+            if isinstance(model_review, dict) and model_review.get("files"):
+                last_review_files = list(model_review["files"])
             if review_status == "overall-timeout":
                 return _finish_overall(checks, model_review)
             if review_status == "unavailable":
@@ -4085,8 +4358,22 @@ def build_local(argv: list[str] | None = None) -> int:
                 )
                 return finish()
             if review_status != "accept":
+                if _note_salvage_retry():
+                    _record_attempt(
+                        attempts_used,
+                        attempt_t0,
+                        mem_snap,
+                        "PASS-REJECTED",
+                        "review-rejected",
+                        checks,
+                        model_review,
+                        diff_stats,
+                        diff_text,
+                    )
+                    continue
                 feedback = "\n".join((model_review or {}).get("reasons") or ["review-unparseable"])
                 previous_diff = diff_text
+                review_targeted = True
                 if attempts_used >= max_attempts:
                     status, reason, exit_code = "PASS-REJECTED", "review-rejected", EXIT_FAIL
                     _record_attempt(
@@ -4170,7 +4457,7 @@ def build_local(argv: list[str] | None = None) -> int:
         branch = branch_name
         commit = (sha.stdout or "").strip() or None
         status, reason, exit_code = "PASS", "ok", EXIT_OK
-        if not args.keep_worktree:
+        if getattr(args, "drop_worktree", False) or not args.keep_worktree:
             _git(repo, ["worktree", "remove", str(worktree)])
         return finish()
     except SandboxUnavailable as exc:

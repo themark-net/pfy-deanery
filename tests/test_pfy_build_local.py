@@ -598,6 +598,8 @@ class LocalBuildTests(unittest.TestCase):
                 "PFY_COMPARE_STATE_PATH": str(self.tmp / "model-compare.json"),
                 "XDG_CONFIG_HOME": str(self.tmp / "xdg-config"),
                 "XDG_STATE_HOME": str(self.tmp / "xdg-state"),
+                "PFY_CODEBASE_MEMORY": str(self.tmp / "no-such-impact-tool"),
+                "PFY_TSA_BIN": str(self.tmp / "no-such-impact-tool"),
             }
         )
         for key in (
@@ -879,6 +881,16 @@ class LocalBuildTests(unittest.TestCase):
         self.assertIsNotNone(live)
         self.assertNotEqual(Path(live).name, "local-build-previous")
         self.assertFalse((Path(live) / "STALE.txt").exists())
+
+    def test_kept_salvage_worktree_survives_the_next_sweep(self):
+        kept = self._plant_worktree("local-build-salvaged")
+        (self.repo / "tmp" / "kept-local-build-salvaged").write_text("timeout\n", encoding="utf-8")
+        stale = self._plant_worktree("local-build-previous")
+        proc, receipt = self.run_build("noop", extra=["--retries", "0"])
+        data = self.assert_no_commit(proc, receipt)
+        self.assertNotIn("local-build-salvaged", data["stale_worktrees"])
+        self.assertTrue((kept / "STALE.txt").exists(), proc.stdout + proc.stderr)
+        self.assertFalse(stale.exists())
 
     def test_unstaleable_worktree_stops_before_add(self):
         stale = self.repo / "tmp" / "local-build-stuck"
@@ -1955,8 +1967,12 @@ class GateTests(unittest.TestCase):
             path = root / "pkg" / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("cheat\n", encoding="utf-8")
-            bad = BUILD.tests_tampered(root, snap, [])
-            self.assertIn("pkg/" + name, [item.replace("\\", "/") for item in bad], name)
+            bad = [item.replace("\\", "/") for item in BUILD.tests_tampered(root, snap, [])]
+            if name == "pyproject.toml":
+                # A new pyproject with no test-config table is not a gate edit.
+                self.assertNotIn("pkg/" + name, bad, name)
+            else:
+                self.assertIn("pkg/" + name, bad, name)
             path.unlink()
         (root / ".gitignore").write_text("*\n", encoding="utf-8")
         bad = BUILD.tests_tampered(root, snap, [])
