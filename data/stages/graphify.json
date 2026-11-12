@@ -99,6 +99,37 @@
       "by": "rules",
       "date": "2026-11-11",
       "verdict": "eval/evq1107/graphify/VERDICT.json"
+    },
+    {
+      "kind": "ceiling",
+      "from": "I0",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "R-not-excluded",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable",
+        "R-modularity-gate"
+      ],
+      "failed": [
+        {
+          "rule": "R-value-gate",
+          "detail": "value_gate fail"
+        },
+        {
+          "rule": "R-catalog-fit",
+          "detail": "catalog-fit skip_install caps I1"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-11",
+      "verdict": "eval/evq1107/graphify/VERDICT.json"
     }
   ]
 }

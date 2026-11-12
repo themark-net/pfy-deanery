@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The subject is explicitly a paid voice coding product with low potential and serves only as a reference. It does not fill a local-first software gap, has no safe default to replace (as it's not a tool), and its 'next_gate' status indicates it should not proceed. It adds no unique value to the catalog.",
+  "slug": "freeapp",
+  "verdict": "skip_install"
+}

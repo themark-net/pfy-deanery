@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.85,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The subject explicitly states 'install by default' is a non-goal and its potential is low. It serves as a specialized triage tool for diffs rather than filling a core catalog gap with high utility. A safe default exists (not installing) given the explicit constraints and limited scope.",
+  "slug": "graphify",
+  "verdict": "skip_install"
+}

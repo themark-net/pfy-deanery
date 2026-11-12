@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.85,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The tool is explicitly marked as having 'low' potential and the next gate requires a significantly smaller binary (under 50 MB) which the current version exceeds. The non-goals list explicitly excludes replacing existing tools like codebase-memory or write-guard, indicating it does not fill a unique gap in the current catalog. A safe default exists for governed GraphQL/MCP access without installing this specific heavy binary.",
+  "slug": "graphjin",
+  "verdict": "skip_install"
+}

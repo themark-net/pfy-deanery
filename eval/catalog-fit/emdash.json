@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "Explicitly marked with non_goals install and catalog_hold. The tool is a desktop app for coding-agent CLIs, not a local-first infrastructure component fitting the Deanery mission. It adds no unique gap to the catalog and has high blast radius if installed as it rewrites agent home configs.",
+  "slug": "emdash",
+  "verdict": "skip_install"
+}
