@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.85,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The tool provides frontmatter and naming checks which are low-value linting tasks. The non_goals explicitly exclude writing to ~/.config/opencode, avoiding high blast radius, but the functionality is redundant with existing validation mechanisms or can be handled by safe defaults without installing a dedicated tool. It adds no unique gap that justifies installation.",
+  "slug": "opencode-skill-creator",
+  "verdict": "skip_install"
+}

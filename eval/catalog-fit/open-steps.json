@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The tool is explicitly marked as 'low' potential and its functionality (one-shot stop nag based on git fingerprint) is optional with no unique gap filled for the Deanery catalog. The subject itself advises against wiring a gate and indicates it does not handle critical timeouts or failures, making it safe to skip.",
+  "slug": "open-steps",
+  "verdict": "skip_install"
+}

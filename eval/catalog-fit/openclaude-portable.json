@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The subject explicitly states 'No install' and serves as a reference read only. It does not fill a functional gap but rather documents an existing state or alternative path without adding unique value to the active catalog.",
+  "slug": "openclaude-portable",
+  "verdict": "skip_install"
+}

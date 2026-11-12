@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The subject explicitly defines itself as a reference skill with 'potential: low' and lists 'skill_install', 'dsh_install', and 'gate_wiring' in non_goals. It adds no unique gap to the cataloged tools and has no safe default that requires installation, fitting the skip_install criteria for optional items with no unique value.",
+  "slug": "odai",
+  "verdict": "skip_install"
+}
