@@ -1162,6 +1162,42 @@
       "by": "rules",
       "date": "2026-11-13",
       "verdict": "eval/integrate/bumblebee/VERDICT.json"
+    },
+    {
+      "kind": "stage",
+      "from": "I3",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "R-not-excluded",
+        "R-evidence",
+        "R-tier-ceiling",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-modularity-gate",
+        "S-sandlock-verdict",
+        "R-catalog-fit",
+        "R-value-gate",
+        "R-main-receipt",
+        "R-self-pipeline",
+        "S-sandlock-trial-clean",
+        "S-profile-readonly",
+        "S-wiring"
+      ],
+      "failed": [
+        {
+          "rule": "S-ci-green",
+          "detail": "eval-structural not green on origin/main df843496"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-13",
+      "verdict": "eval/integrate/bumblebee/VERDICT.json"
     }
   ]
 }
