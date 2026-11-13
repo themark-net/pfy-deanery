@@ -319,3 +319,7 @@ Agent Autoloop. Each reads the pinned GitHub commit JSON through `$RENDERLINT_FE
 Entries 182-184 (`smoke_182.py`, `smoke_183.py`, `smoke_184.py`) are commit-metadata receipts for RustXNG, Commit Check and
 brain.md. Each reads the pinned GitHub commit JSON through `$RUSTXNG_FETCH_BIN` / `$COMMITCHECK_FETCH_BIN` /
 `$BRAINMD_FETCH_BIN` or a stdlib fetch, checks the SHA, and exits 2 without installing anything. `PFY_XINTAKE_TIMEOUT` overrides the timeout.
+
+Entries 185-187 (`smoke_185.py`, `smoke_186.py`, `smoke_187.py`) are commit-metadata receipts for QWED, Agent Cockpit and
+OpenKB. Each reads the pinned GitHub commit JSON through `$QWED_FETCH_BIN` / `$AGENTCOCKPIT_FETCH_BIN` /
+`$OPENKB_FETCH_BIN` or a stdlib fetch, checks the SHA, and exits 2 without installing anything. `PFY_XINTAKE_TIMEOUT` overrides the timeout.
