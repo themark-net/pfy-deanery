@@ -196,6 +196,9 @@ pipelines/smoke/brainmd/
 pipelines/smoke/qwed/
 pipelines/smoke/agentcockpit/
 pipelines/smoke/openkb/
+pipelines/smoke/argus/
+pipelines/smoke/agentlint/
+pipelines/smoke/harnesseng/
 
 # Private operator material lives in the pfy-mentat-ops checkout (PFY_OPS_ROOT).
 # These paths moved there on 2026-11-09. scripts/check_public_paths.py also
