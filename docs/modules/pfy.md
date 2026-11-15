@@ -40,6 +40,8 @@
 
 Root `./pfy` is a 100755 wrapper that execs `scripts/pfy`. Detector is invoked with `bash`.
 
+**Model choice:** `./pfy model-choice` and a TTY `./pfy setup` pick local or cloud per task. The choice is stored outside the repo. `./pfy compare` prints a token estimate and waits for yes. Gap table: [model-choice-audit.md](../ops/model-choice-audit.md).
+
 **Attach mode (#208 / #213 / #215):** HTML+tk select `bare` | `orchestration` | `code-graph`; paint `using: <mode>`. Orchestration starts a multi-step local loop (prove or FAIL+next) and Loop shows last evidence. Code-graph hands Axon or paints `path=codebase-memory (not axon)`. Named start and in-window Attach (OpenCode | Hermes | Grok | Codex | Claude) hand off skills/AGENTS/prompts/env or FAIL+next. [attach-mode.md](attach-mode.md) · [code-graph.md](code-graph.md).
 
 **Attach Codex usable (#220):** HTML+tk **Attach codex** and `./pfy start codex` prove models list + one smoke on the FreeToken-first live base before attached paint / exec. Missing Codex is FAIL + installer, never a silent stub. [codex-adapter.md](codex-adapter.md).
