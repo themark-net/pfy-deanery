@@ -817,6 +817,7 @@ class LocalBuildTests(unittest.TestCase):
             "TIMEOUT",
             "BLOCKED",
             "ABORTED",
+            "FLAKY",
         )
         self.assertEqual(sorted(BUILD.LABELS), sorted(documented))
         self.assertEqual(len(BUILD.LABELS), len(set(BUILD.LABELS)))
