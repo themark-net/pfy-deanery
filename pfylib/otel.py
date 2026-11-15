@@ -328,6 +328,23 @@ def _clean_value(key: str, value):
     return redact(str(value), limit=limit)
 
 
+def _round_id(bound) -> str:
+    """Task round, separate from the wrap attempt stored on deanery.iteration.
+
+    DEANERY_ROUND wins, then DEANERY_TASK_ID, then DEANERY_ITERATION.
+    Empty when none of those are set. A bound round_id wins over the env.
+    """
+    if bound is not None:
+        raw = getattr(bound, "round_id", None)
+        if raw is not None and str(raw).strip() != "":
+            return str(raw).strip()
+    for key in ("DEANERY_ROUND", "DEANERY_TASK_ID", "DEANERY_ITERATION"):
+        raw = os.environ.get(key)
+        if raw is not None and str(raw).strip() != "":
+            return str(raw).strip()
+    return ""
+
+
 def _defaults() -> dict:
     bound = _bound_var.get()
     def pick(field: str, env: str, fallback=""):
@@ -353,6 +370,7 @@ def _defaults() -> dict:
         "deanery.task_class": str(pick("task_class", "DEANERY_TASK_CLASS", "") or ""),
         "deanery.route": route,
         "deanery.iteration": iteration,
+        "deanery.round_id": _round_id(bound),
     }
     model = pick("model", "", None)
     provider = pick("provider", "", None)
