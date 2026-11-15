@@ -46,7 +46,12 @@ _ROOT = Path(__file__).resolve().parents[1]
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
-from pfylib.build_flake import flake_verdict, run_clean_clones  # noqa: E402
+from pfylib.build_flake import (  # noqa: E402
+    flake_verdict,
+    port_warning_lines,
+    run_clean_clones,
+    scan_fixed_ports,
+)
 from pfylib.build_phase_clock import PhaseClock, install_build_phases  # noqa: E402
 from pfylib.build_preflight import classify_cloud_failure  # noqa: E402
 from pfylib.review_chunks import (  # noqa: E402
@@ -141,9 +146,13 @@ or --max-cost. A cap under the estimate does not start Grok.
 --agentlint scans the diff with local AgentLint. Off by default.
 PFY_AGENTLINT=1 is the same switch. A missing binary warns and continues.
 --flake-runs N replaces the same-tree second gate with N clean-clone
-re-runs. Omitted keeps that second gate (reason tests-flaky). 0 skips
-both. A failed re-run is status FLAKY and is not retried.
+re-runs and adds their time to the wall quote. They are tests, so the
+dollar quote does not grow. Omitted keeps that second gate (reason
+tests-flaky). 0 skips both and does not add wall time.
+A failed re-run is status FLAKY and is not retried.
 PFY_BUILD_FLAKE_RUNS is not read on this route.
+A literal non-zero bind or listen in a test file is a warning on the
+receipt. It does not fail the build. Port 0 is not listed.
 """
 
 _PEM = re.compile(
@@ -691,7 +700,9 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
             "opt-in clean-clone re-runs after a green post-change gate. "
             "Omitted keeps the same-tree second gate (reason tests-flaky). "
             "0 skips that second gate and the clean clones. "
-            "A positive count replaces the same-tree second gate. "
+            "A positive count replaces the same-tree second gate and "
+            "adds those re-runs to the wall quote. They are tests, so the "
+            "dollar quote does not grow. "
             "A failure is status FLAKY and is not retried. "
             "PFY_BUILD_FLAKE_RUNS is not read on this route"
         ),
@@ -1551,6 +1562,8 @@ class CloudBuild:
         self.gate_before = None
         self.gate_after = None
         self.flake_report = None
+        self.fixed_ports: list = []
+        self.port_warnings: list = []
         self.worktree_removed = False
         self.finished = False
         self.max_attempts = 1 if args.no_review else args.retries + 1
@@ -1714,6 +1727,16 @@ class CloudBuild:
         elif gate_tree_manifest(where) != before_tree:
             record["rewrote"] = True
         return record
+
+    def _note_fixed_ports(self) -> None:
+        """Warn on literal non-zero binds. The build still continues."""
+        if self.worktree is None:
+            return
+        self.fixed_ports = scan_fixed_ports(self.worktree)
+        for line in port_warning_lines(self.fixed_ports):
+            if line not in self.port_warnings:
+                self.port_warnings.append(line)
+                print(line, file=sys.stderr)
 
     def _run_clean_flake(self, number: int, output: str) -> int | None:
         """Re-run a green post-change gate from exports of the result tree.
@@ -2251,6 +2274,9 @@ class CloudBuild:
         payload["excluded_generated"] = excluded_generated_receipt(self.excluded_paths)
         if self.flake_report is not None:
             payload["flake"] = self.flake_report
+        payload["fixed_ports"] = list(self.fixed_ports)
+        if self.port_warnings:
+            payload["warnings"] = list(self.port_warnings)
         payload["usage"] = usage_receipt(self.usage_sessions)
         if self.estimate:
             payload["choice"] = self.choice
@@ -2342,6 +2368,7 @@ class CloudBuild:
             attempts,
             reviews,
             self._prices,
+            flake_runs=quoted_flake_runs(self.args),
         )
         print(format_route_banner(self.choice, self.estimate, self.alternative, attempts), file=sys.stderr, flush=True)
         reason = cost_block_reason(self.args, self.estimate)
@@ -2759,6 +2786,7 @@ class CloudBuild:
                 if action == "continue":
                     continue
                 return self.fail("FAIL", "tests", EXIT_FAIL, "")
+            self._note_fixed_ports()
             if clean_n is not None:
                 stopped = self._run_clean_flake(number, output)
                 if stopped is not None:
@@ -3140,13 +3168,34 @@ def missing_base(args, repo: Path, ref: str) -> int:
     )
 
 
+def quoted_flake_runs(args) -> int:
+    """Clean-clone count on the pre-spend quote.
+
+    Omitted and 0 add no wall. PFY_BUILD_FLAKE_RUNS is not read here.
+    """
+    raw = getattr(args, "flake_runs", None)
+    if raw is None:
+        return 0
+    try:
+        count = int(raw)
+    except (TypeError, ValueError):
+        return 0
+    return count if count > 0 else 0
+
+
 def _dry_run(args, repo: Path, base: str, receipt: Path) -> int:
     attempts = 1 if getattr(args, "no_review", False) else int(getattr(args, "retries", 0) or 0) + 1
     attempts = max(1, attempts)
     reviews = 0 if getattr(args, "no_review", False) else attempts
     why = "pfy build defaults to cloud Grok; pass --local for Ollama qwen3.6:35b at $0"
     choice, estimate, alternative = build_route_quotes(
-        "cloud", "grok-4.7", why, attempts, reviews, load_price_table()
+        "cloud",
+        "grok-4.7",
+        why,
+        attempts,
+        reviews,
+        load_price_table(),
+        flake_runs=quoted_flake_runs(args),
     )
     print(format_route_banner(choice, estimate, alternative, attempts), file=sys.stderr, flush=True)
     # Dry-run does not call Grok, so it does not ask. The receipt still records the quote.

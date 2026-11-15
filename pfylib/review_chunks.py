@@ -32,7 +32,8 @@ STATIC_SMALL_HIGH = 0.36
 STATIC_ROUND_LOW = 1.50
 STATIC_ROUND_HIGH = 6.0
 # No receipt history: one cloud call is 10-20 min. Local MVP loop is about 20-65 min.
-# Clean-clone flake re-runs are tests, not model calls. Quoted on the local side only.
+# Clean-clone flake re-runs are tests, not model calls. Local always quotes them.
+# Cloud quotes them only when --flake-runs N is passed: wall grows, dollars do not.
 STATIC_CLOUD_WALL_LOW = 600
 STATIC_CLOUD_WALL_HIGH = 1200
 STATIC_LOCAL_WALL_LOW = 1200
@@ -502,12 +503,20 @@ def _attach_wall(est, route, attempts, flake_runs=0):
         est["wall_high_s"] = max(_p90(walls), _median(walls))
         est["wall_basis"] = "history wall sessions %d" % len(walls)
         if flake_n and route == "local":
+            # Local history already includes the default re-runs, so the
+            # basis names them and the minutes stay the recorded wall.
+            est["wall_basis"] += "; %d flake-gate re-run(s) in the quote" % flake_n
+        elif flake_n and route == "cloud":
+            # Cloud history does not include this opt-in. Add the re-runs
+            # on top, or the banner hides them behind a past wall.
+            est["wall_low_s"] += flake_n * STATIC_FLAKE_WALL_LOW
+            est["wall_high_s"] += flake_n * STATIC_FLAKE_WALL_HIGH
             est["wall_basis"] += "; %d flake-gate re-run(s) in the quote" % flake_n
         return est
     calls = max(1, int(attempts))
+    extra_low = flake_n * STATIC_FLAKE_WALL_LOW
+    extra_high = flake_n * STATIC_FLAKE_WALL_HIGH
     if route == "local":
-        extra_low = flake_n * STATIC_FLAKE_WALL_LOW
-        extra_high = flake_n * STATIC_FLAKE_WALL_HIGH
         est["wall_low_s"] = STATIC_LOCAL_WALL_LOW + extra_low
         est["wall_high_s"] = STATIC_LOCAL_WALL_HIGH + extra_high
         if flake_n:
@@ -517,18 +526,26 @@ def _attach_wall(est, route, attempts, flake_runs=0):
         else:
             est["wall_basis"] = "static floor local 20-65 min"
     else:
-        est["wall_low_s"] = STATIC_CLOUD_WALL_LOW * calls
-        est["wall_high_s"] = STATIC_CLOUD_WALL_HIGH * calls
-        est["wall_basis"] = "static floor cloud %d call(s) at 10-20 min" % calls
+        est["wall_low_s"] = STATIC_CLOUD_WALL_LOW * calls + extra_low
+        est["wall_high_s"] = STATIC_CLOUD_WALL_HIGH * calls + extra_high
+        if flake_n:
+            est["wall_basis"] = (
+                "static floor cloud %d call(s) at 10-20 min + %d flake-gate re-run(s)"
+                % (calls, flake_n)
+            )
+        else:
+            est["wall_basis"] = "static floor cloud %d call(s) at 10-20 min" % calls
     return est
 
 
-def estimate_for_run(prices, model="grok-4.7", attempts=1, review_prompts=1):
+def estimate_for_run(prices, model="grok-4.7", attempts=1, review_prompts=1, flake_runs=0):
     """Historical medians when they exist, otherwise the no-history formula.
 
     A $0 cloud quote (empty price table, or a history of zeros) uses the
     documented static floor so a paid route is never shown as free.
     review_prompts is packed review calls, not one call per file.
+    flake_runs adds wall time only. The re-runs are tests, so usd stays
+    the model quote. Callers pass 0 unless the operator set --flake-runs.
     """
     hist = _history_costs()
     pooled = hist["all"]
@@ -554,7 +571,7 @@ def estimate_for_run(prices, model="grok-4.7", attempts=1, review_prompts=1):
     est["route"] = "cloud"
     est["model"] = model
     est["review_prompts"] = int(review_prompts)
-    return _attach_wall(est, "cloud", attempts, flake_runs=0)
+    return _attach_wall(est, "cloud", attempts, flake_runs=flake_runs)
 
 
 def local_zero_estimate(model, review_prompts=0, flake_runs=0):
@@ -623,6 +640,7 @@ def estimate_receipt(chosen, other):
             "basis": est.get("basis"),
             "wall_low_s": est.get("wall_low_s"),
             "wall_high_s": est.get("wall_high_s"),
+            "wall_basis": est.get("wall_basis") or "",
             "review_prompts": int(est.get("review_prompts") or 0),
             "flake_runs": int(est.get("flake_runs") or 0),
         }
@@ -645,12 +663,21 @@ def build_route_quotes(
     """Cloud quote from history or the static floor, and the local $0 alternative.
 
     review_prompts is packed review calls (small files share one prompt).
-    flake_runs is quoted on the local side only (clean-clone tests, $0).
+    flake_runs is quoted on the route that is about to run. The re-runs are
+    tests at $0. On cloud, pass the flag count (0 when omitted). On local,
+    pass the resolved count. The other route stays at 0 so the alternative
+    does not inherit this run's extra wall.
     """
-    cloud = estimate_for_run(prices, "grok-4.7", attempts, review_prompts)
+    if route == "cloud":
+        cloud_flake, local_flake = flake_runs, 0
+    else:
+        cloud_flake, local_flake = 0, flake_runs
+    cloud = estimate_for_run(
+        prices, "grok-4.7", attempts, review_prompts, flake_runs=cloud_flake
+    )
     shown_local = model if route == "local" else (local_model or "qwen3.6:35b")
     local = local_zero_estimate(
-        shown_local, review_prompts=review_prompts, flake_runs=flake_runs
+        shown_local, review_prompts=review_prompts, flake_runs=local_flake
     )
     if route == "local":
         chosen, other = local, cloud
@@ -670,7 +697,7 @@ def format_estimate_line(est, attempts):
     flake = int(est.get("flake_runs") or 0)
     flake_note = ""
     if flake:
-        flake_note = " + %d flake-gate re-run(s)" % flake
+        flake_note = " + %d flake-gate re-run(s) (tests, $0)" % flake
     return (
         "cost estimate: ~$%s (range $%s-$%s) for %d attempt(s) %s%s; basis: %s"
         % (
