@@ -7,11 +7,13 @@ from __future__ import annotations
 
 import argparse
 import importlib.util
+import ipaddress
 import json
 import os
 import re
 import sys
 from pathlib import Path
+from urllib.parse import urlparse
 
 
 def _normalize_ascii_punct(s: str) -> str:
@@ -91,6 +93,148 @@ def load_tests(path: Path):
     if not hasattr(mod, "run_tests"):
         raise RuntimeError("test_task.py must define run_tests(ns) -> list[str]")
     return mod.run_tests
+
+
+def _host_is_local_stdlib(url: str) -> bool:
+    """Same rule as pfylib.model_choice.host_is_local. Used when that import fails."""
+    raw = (url or "").strip()
+    if not raw:
+        return False
+    if "://" not in raw:
+        raw = "http://" + raw
+    host = (urlparse(raw).hostname or "").lower().rstrip(".")
+    if not host:
+        return False
+    if host in {"localhost", "host.docker.internal"} or host.endswith(".local"):
+        return True
+    try:
+        ip = ipaddress.ip_address(host)
+    except ValueError:
+        return False
+    doc = ("192.0.2.0/24", "198.51.100.0/24", "203.0.113.0/24") if ip.version == 4 else ("2001:db8::/32",)
+    if any(ip in ipaddress.ip_network(net) for net in doc):
+        return False
+    return bool(ip.is_loopback or ip.is_private or ip.is_link_local or ip.is_unspecified)
+
+
+def _host_is_local(url: str) -> bool:
+    try:
+        from pfylib.model_choice import host_is_local
+    except ImportError:
+        return _host_is_local_stdlib(url)
+    return host_is_local(url)
+
+
+def _paid_host_block(
+    base: str,
+    model_name: str,
+    prompt: str,
+    max_tokens: int,
+    *,
+    yes: bool,
+    max_usd: float | None,
+    paid_ok: bool,
+    isatty: bool,
+    answer: str | None,
+) -> str | None:
+    """None when the chat host may be called. Otherwise the refusal text.
+
+    Local hosts, including the harness default, are $0 and are not asked.
+    A public host with only the local ollama:* price is refused. That $0
+    row is not a paid quote.
+    """
+    if _host_is_local(base):
+        return None
+    local_alt = (
+        "model choice: host %s is not local. "
+        "Local alternative is http://host.docker.internal:11435/v1 at $0 "
+        "(unset OPENAI_BASE_URL)."
+        % base
+    )
+    print(local_alt, file=sys.stderr)
+    try:
+        from pfylib.model_choice import (
+            ModelCallError,
+            PriceCoverageError,
+            UnknownModelPrice,
+            _confirm,
+            _paid_blocked,
+            count_tokens,
+            price_age_days,
+            quote,
+        )
+    except ImportError:
+        return (
+            "no price helper on this copy. No model was called. %s" % local_alt
+        )
+    prompt_tokens, method = count_tokens(prompt)
+    completion = max_tokens if max_tokens and max_tokens > 0 else 512
+    try:
+        priced = quote(model_name, prompt_tokens, completion)
+    except (UnknownModelPrice, PriceCoverageError) as exc:
+        return "%s. No model was called. %s" % (exc, local_alt)
+    provider = str(priced.get("provider") or "")
+    if provider.lower() == "local" or (
+        float(priced["price_in"]) <= 0 and float(priced["price_out"]) <= 0
+    ):
+        return (
+            "no paid price for %r on a non-local host. No model was called. %s"
+            % (model_name, local_alt)
+        )
+    stale_days = price_age_days(priced["fetched"])
+    stale = stale_days > int(priced["stale_after_days"])
+    line = (
+        "cost estimate: $%s for %s prompt tokens + %s completion-token allowance (%s) "
+        "on %s (%s $%.2f/$%.2f per 1M, %s, fetched %s). "
+        "No call is sent until you say yes."
+        % (
+            priced["cost_text"],
+            f"{prompt_tokens:,}",
+            f"{completion:,}",
+            method,
+            model_name,
+            provider,
+            priced["price_in"],
+            priced["price_out"],
+            priced["source_short"],
+            priced["fetched"],
+        )
+    )
+    print(line, file=sys.stderr)
+    if stale:
+        print(
+            "Price for %s was fetched %s (older than %s days)."
+            % (model_name, priced["fetched"], priced["stale_after_days"]),
+            file=sys.stderr,
+        )
+    if paid_ok and stale:
+        return "stale price. No model was called. %s" % local_alt
+    if not paid_ok:
+        # A covering cap, or --yes plus that cap, is the off-TTY approval.
+        # On a TTY with neither, one line (y or yes) is the approval.
+        if bool(isatty) and not yes and answer is None and max_usd is None and not stale:
+            try:
+                answer = input("").strip()
+            except EOFError:
+                answer = ""
+        try:
+            block = _confirm(
+                yes=bool(yes),
+                max_usd=max_usd,
+                cost=float(priced["cost_usd"]),
+                cost_text=priced["cost_text"],
+                isatty=bool(isatty),
+                answer=answer,
+                stale=stale,
+                accept_stale=False,
+            )
+        except ModelCallError as exc:
+            return "%s. No model was called. %s" % (exc, local_alt)
+        if block:
+            return "%s. No model was called. %s %s" % (block, line, local_alt)
+    if _paid_blocked():
+        return "paid cloud call blocked. No model was called. %s" % local_alt
+    return None
 
 
 def resolve_model() -> str:
@@ -232,6 +376,11 @@ def score_task(
     base: str | None = None,
     api_key: str | None = None,
     max_tokens: int = 512,
+    yes: bool = False,
+    max_usd: float | None = None,
+    paid_ok: bool = False,
+    isatty: bool = False,
+    answer: str | None = None,
 ) -> dict:
     """Run one task; return result dict with pass/failures (never raises for score fails)."""
     task_dir = tasks_root / task
@@ -255,6 +404,26 @@ def score_task(
     litellm_model = f"openai/{model_name}"
 
     prompt = prompt_path.read_text(encoding="utf-8")
+    block = _paid_host_block(
+        base,
+        model_name,
+        prompt,
+        max_tokens,
+        yes=yes,
+        max_usd=max_usd,
+        paid_ok=paid_ok,
+        isatty=isatty,
+        answer=answer,
+    )
+    if block:
+        return {
+            "task": task,
+            "model": litellm_model,
+            "pass": False,
+            "failures": [block],
+            "error": "paid_host",
+            "skip": False,
+        }
     try:
         raw = _chat_completion(
             model_name=model_name,
@@ -326,13 +495,29 @@ def main() -> int:
         type=Path,
         default=Path(__file__).resolve().parent / "tasks",
     )
+    ap.add_argument("--yes", action="store_true", help="accept the printed estimate")
+    ap.add_argument("--approve-cost", action="store_true", help="same as --yes; still needs a cap")
+    ap.add_argument("--max-usd", type=float, default=None, help="USD cap; at or above the estimate is approval")
+    ap.add_argument("--max-cost", type=float, default=None, help="alias of --max-usd")
     args = ap.parse_args()
 
     model_name = resolve_model()
     base = os.environ.get("OPENAI_BASE_URL", "http://host.docker.internal:11435/v1").rstrip("/")
     print(f"eval tier1: task={args.task} base={base} model=openai/{model_name}", flush=True)
-
-    result = score_task(args.task, args.tasks_root, model_name=model_name, base=base)
+    try:
+        tty = sys.stdin.isatty()
+    except Exception:
+        tty = False
+    cap = args.max_usd if args.max_usd is not None else args.max_cost
+    result = score_task(
+        args.task,
+        args.tasks_root,
+        model_name=model_name,
+        base=base,
+        yes=bool(args.yes or args.approve_cost),
+        max_usd=cap,
+        isatty=tty,
+    )
     print(
         f"eval: model_output_chars={result.get('raw_chars', '?')} "
         f"code_chars={result.get('code_chars', '?')}",
@@ -345,6 +530,12 @@ def main() -> int:
         ),
         flush=True,
     )
+
+    if result.get("error") == "paid_host":
+        print("SCORE: SKIP", flush=True)
+        for failure in result.get("failures") or []:
+            print(f"  - {failure}", flush=True)
+        return 2
 
     if result.get("error") == "exec":
         print(f"SCORE: FAIL ({result['failures'][0]})", flush=True)

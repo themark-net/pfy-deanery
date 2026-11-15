@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import importlib
 import importlib.util
+import ipaddress
 import json
 import os
 import sys
@@ -27,6 +28,7 @@ import urllib.request
 from datetime import date, datetime, timezone
 from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
+from urllib.parse import urlparse
 
 TASK_ORDER = (
     "catalog-fit",
@@ -387,6 +389,32 @@ def litellm_base() -> str:
 def ollama_host(host: str | None = None) -> str:
     raw = (host or os.environ.get("PFY_CATFIT_HOST") or os.environ.get("OLLAMA_HOST") or DEFAULT_OLLAMA).strip()
     return raw or DEFAULT_OLLAMA
+
+
+def host_is_local(url: str) -> bool:
+    """True for loopback, private, link-local, localhost, .local, and host.docker.internal.
+
+    A public name or a public IP is not local. Empty is not local.
+    """
+    raw = (url or "").strip()
+    if not raw:
+        return False
+    if "://" not in raw:
+        raw = "http://" + raw
+    host = (urlparse(raw).hostname or "").lower().rstrip(".")
+    if not host:
+        return False
+    if host in {"localhost", "host.docker.internal"} or host.endswith(".local"):
+        return True
+    try:
+        ip = ipaddress.ip_address(host)
+    except ValueError:
+        return False
+    # Python marks the documentation ranges as private. They are not a machine.
+    doc = ("192.0.2.0/24", "198.51.100.0/24", "203.0.113.0/24") if ip.version == 4 else ("2001:db8::/32",)
+    if any(ip in ipaddress.ip_network(net) for net in doc):
+        return False
+    return bool(ip.is_loopback or ip.is_private or ip.is_link_local or ip.is_unspecified)
 
 
 def _paid_blocked() -> bool:

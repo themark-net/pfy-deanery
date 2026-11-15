@@ -33,6 +33,8 @@ Gates: [eval-gates-and-ux-uat.md](../../docs/ops/eval-gates-and-ux-uat.md) (HD #
 
 Hidden tests score **pass/fail**. Path: LiteLLM → host Ollama (same as litellm smoke).
 
+A public `OPENAI_BASE_URL` prints the estimate and does not send until it is accepted: `y` on a TTY, or `--yes` with a covering `--max-usd` off a TTY. A covering cap alone is also approval. The default `http://host.docker.internal:11435/v1` stays local and does not ask. A local-priced tag on a public host is refused. `run_suite.py` does not add those flags, so a public base fails the cell closed and does not send.
+
 ## Golden tasks
 
 Cards live in [`data/golden-tasks/`](../../data/golden-tasks/). Deterministic validate:
