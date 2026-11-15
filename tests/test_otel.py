@@ -102,6 +102,38 @@ class RedactionTests(unittest.TestCase):
         self.assertIn("[REDACTED]", dumped)
         self.assertIn("deanery.route", handle.attributes)
         self.assertEqual(handle.attributes["deanery.iteration"], 0)
+        self.assertEqual(handle.attributes["deanery.round_id"], "")
+
+    def test_round_id_survives_when_iteration_is_the_wrap_attempt(self) -> None:
+        """The eval round stays on deanery.round_id when the span records the attempt.
+
+        Fail: deanery.iteration is overwritten with the attempt and the round
+        env is dropped, so rounds can only be told apart by time.
+        Recover: iteration stays the attempt, and round_id keeps the env.
+        DEANERY_ROUND wins over DEANERY_ITERATION when both are set.
+        """
+        os.environ["DEANERY_ITERATION"] = "4"
+        os.environ.pop("DEANERY_ROUND", None)
+        os.environ.pop("DEANERY_TASK_ID", None)
+        try:
+            with otel.span("grok", **{"deanery.iteration": 1}) as handle:
+                pass
+            self.assertEqual(handle.attributes["deanery.iteration"], 1)
+            self.assertEqual(handle.attributes["deanery.round_id"], "4")
+            os.environ["DEANERY_ROUND"] = "R2"
+            with otel.span("grok", **{"deanery.iteration": 2}) as handle:
+                pass
+            self.assertEqual(handle.attributes["deanery.iteration"], 2)
+            self.assertEqual(handle.attributes["deanery.round_id"], "R2")
+            os.environ["DEANERY_TASK_ID"] = "task-9"
+            os.environ.pop("DEANERY_ROUND", None)
+            with otel.span("grok", **{"deanery.iteration": 1}) as handle:
+                pass
+            self.assertEqual(handle.attributes["deanery.round_id"], "task-9")
+        finally:
+            os.environ.pop("DEANERY_ITERATION", None)
+            os.environ.pop("DEANERY_ROUND", None)
+            os.environ.pop("DEANERY_TASK_ID", None)
 
     def test_ordinary_words_and_file_paths_stay(self) -> None:
         mark = self.mark

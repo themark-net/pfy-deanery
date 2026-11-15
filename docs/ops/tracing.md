@@ -30,7 +30,8 @@ Every Deanery span sets these. Empty string means "not known". `deanery.route` i
 | `deanery.parent_lane` | Lane that started this one |
 | `deanery.task_class` | `catalog-loop`, `eval`, `integrate`, `catalog-fit`, `build` |
 | `deanery.route` | `local`, `cloud`, or `unknown` |
-| `deanery.iteration` | Loop or retry count, integer |
+| `deanery.iteration` | Wrap attempt when the caller sets it, else the `DEANERY_ITERATION` env, integer |
+| `deanery.round_id` | Task round. `DEANERY_ROUND`, else `DEANERY_TASK_ID`, else `DEANERY_ITERATION`. Empty when none are set. Stays put when `deanery.iteration` is overwritten with the wrap attempt |
 | `openinference.span.kind` | `CHAIN`, `LLM`, `TOOL`, or `AGENT` |
 | `openinference.project.name` | Resource attribute `deanery` (the Phoenix project) |
 | `service.name` | Resource attribute `deanery` |
