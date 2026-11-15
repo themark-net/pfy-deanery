@@ -11,7 +11,9 @@ Exit codes:
   0  PASS, or a clean --dry-run, or --reap
   1  FAIL (review reject, no-change spent, scope mismatch, unauthenticated,
         interrupted, gate spent, worktree-failed). A base ref that cannot
-        be checked out is worktree-failed, not usage.
+        be checked out is worktree-failed, not usage. Status FLAKY is also
+        exit 1: a clean-clone re-run failed after --flake-runs N. That flag
+        is off unless passed, and PFY_BUILD_FLAKE_RUNS is not read here.
   2  usage (missing task or repo)
   3  TIMEOUT (grok)
   4  BLOCKED (rate-limit)
@@ -44,6 +46,7 @@ _ROOT = Path(__file__).resolve().parents[1]
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
+from pfylib.build_flake import flake_verdict, run_clean_clones  # noqa: E402
 from pfylib.build_phase_clock import PhaseClock, install_build_phases  # noqa: E402
 from pfylib.build_preflight import classify_cloud_failure  # noqa: E402
 from pfylib.review_chunks import (  # noqa: E402
@@ -137,6 +140,10 @@ dollar range, and a wall-time range. Off a TTY, pass --yes, --approve-cost,
 or --max-cost. A cap under the estimate does not start Grok.
 --agentlint scans the diff with local AgentLint. Off by default.
 PFY_AGENTLINT=1 is the same switch. A missing binary warns and continues.
+--flake-runs N replaces the same-tree second gate with N clean-clone
+re-runs. Omitted keeps that second gate (reason tests-flaky). 0 skips
+both. A failed re-run is status FLAKY and is not retried.
+PFY_BUILD_FLAKE_RUNS is not read on this route.
 """
 
 _PEM = re.compile(
@@ -676,9 +683,24 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
             "Off by default. A missing binary warns and continues"
         ),
     )
+    parser.add_argument(
+        "--flake-runs",
+        type=int,
+        default=None,
+        help=(
+            "opt-in clean-clone re-runs after a green post-change gate. "
+            "Omitted keeps the same-tree second gate (reason tests-flaky). "
+            "0 skips that second gate and the clean clones. "
+            "A positive count replaces the same-tree second gate. "
+            "A failure is status FLAKY and is not retried. "
+            "PFY_BUILD_FLAKE_RUNS is not read on this route"
+        ),
+    )
     args = parser.parse_args(argv)
     if args.retries < 0:
         raise UsageError("--retries must be >= 0")
+    if args.flake_runs is not None and args.flake_runs < 0:
+        raise UsageError("--flake-runs must be >= 0")
     if args.timeout <= 0:
         raise UsageError("--timeout must be > 0")
     if args.review_timeout is not None and args.review_timeout <= 0:
@@ -741,6 +763,7 @@ TERMINAL_FAILURE_REASONS = (
     "tests",
     "tests-flaky",
     "tests-tampered",
+    "flaky",
     "timeout",
     "unauthenticated",
     "worktree-failed",
@@ -883,6 +906,13 @@ def failure_recovery(reason: str, task: str, detail: str = "") -> str:
         ),
         "tests": "The gate stayed red. Read the receipt gate tail, then rerun ./pfy build %s.",
         "tests-flaky": "The gate passed once and failed once. Rerun ./pfy build %s.",
+        "flaky": (
+            "The post-change gate passed and a clean-clone re-run failed. "
+            "Status FLAKY. Nothing was committed. "
+            "Make the test pass from a clean tree with a fresh HOME, "
+            "or pass --flake-runs 0 to skip the re-runs. "
+            "Then rerun ./pfy build %s."
+        ),
         "gate-rewrote": (
             "The gate changed files in the worktree, or git could not list them. "
             "Make the gate only check, not write files, then rerun ./pfy build %s."
@@ -1445,6 +1475,43 @@ def before_gate_block(record: dict | None, test_cmd: str) -> str | None:
     return None
 
 
+def _anchor_exported_git(dest: Path) -> str | None:
+    """Give a clean-clone export its own git dir.
+
+    The export skips .git. Without a nested repo, git walks up to the
+    caller and a gate that runs git sees the parent tree. None means
+    the anchor committed. A string is the failure tail.
+    """
+    hooks = dest / "tmp" / "empty-hooks"
+    try:
+        hooks.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        return "clone git anchor failed"
+    git_base = [
+        "git",
+        "-C",
+        str(dest),
+        "-c",
+        "user.name=%s" % AUTHOR_NAME,
+        "-c",
+        "user.email=%s" % AUTHOR_EMAIL,
+        "-c",
+        "commit.gpgsign=false",
+        "-c",
+        "core.hooksPath=%s" % hooks,
+    ]
+    init = subprocess.run([*git_base, "init", "-q"], capture_output=True, check=False)
+    added = subprocess.run([*git_base, "add", "-A"], capture_output=True, check=False)
+    committed = subprocess.run(
+        [*git_base, "commit", "-q", "--allow-empty", "-m", "flake"],
+        capture_output=True,
+        check=False,
+    )
+    if init.returncode != 0 or added.returncode != 0 or committed.returncode != 0:
+        return "clone git anchor failed"
+    return None
+
+
 class CloudBuild:
     def __init__(
         self,
@@ -1483,6 +1550,7 @@ class CloudBuild:
         self.review = {"verdict": None, "reasons": []}
         self.gate_before = None
         self.gate_after = None
+        self.flake_report = None
         self.worktree_removed = False
         self.finished = False
         self.max_attempts = 1 if args.no_review else args.retries + 1
@@ -1550,7 +1618,7 @@ class CloudBuild:
             tmp.write_text(json.dumps(payload), encoding="utf-8")
             os.replace(tmp, self.pid_path)
 
-    def gate(self, cwd: Path | None = None) -> dict:
+    def gate(self, cwd: Path | None = None, env: dict[str, str] | None = None) -> dict:
         argv = shlex.split(self.args.test_cmd or "")
         if not argv:
             return {"cmd": self.args.test_cmd, "exit": None, "tail": "empty test command", "started": False}
@@ -1559,7 +1627,11 @@ class CloudBuild:
             return {"cmd": self.args.test_cmd, "exit": None, "tail": "no worktree", "started": False}
         # The product gate must not read the operator's secret env. Grok still
         # uses child_env(), because an operator login may live there.
-        env = self.child_env()
+        # A clean-clone re-run passes a fresh HOME and does not inherit tokens.
+        if env is None:
+            env = self.child_env()
+        else:
+            env = {str(key): str(value) for key, value in env.items()}
         # A second tree (flake copy or commit extract) gets its own temp dir.
         # Sharing the worktree temp dir would let overlapped gates collide.
         if (
@@ -1642,6 +1714,59 @@ class CloudBuild:
         elif gate_tree_manifest(where) != before_tree:
             record["rewrote"] = True
         return record
+
+    def _run_clean_flake(self, number: int, output: str) -> int | None:
+        """Re-run a green post-change gate from exports of the result tree.
+
+        None means the build continues. Count 0 records flake.skipped and
+        does not run the same-tree second gate. A failed re-run is FLAKY
+        and is not retried. Timeout and interrupt stay those statuses.
+        """
+        count = int(getattr(self.args, "flake_runs", 0) or 0)
+        if count <= 0:
+            self.flake_report = {"runs": 0, "skipped": True, "results": []}
+            return None
+
+        def run_one(index: int, dest: Path, env: dict) -> dict:
+            anchor = _anchor_exported_git(dest)
+            if anchor:
+                return {"run": index, "exit": None, "ok": False, "tail": anchor, "stop": ""}
+            rec = self.gate(dest, env=env)
+            aborted = rec.get("aborted") or ""
+            stop = ""
+            if aborted == "timeout":
+                stop = "timeout"
+            elif aborted == "interrupted" or self.state.interrupted:
+                stop = "interrupted"
+            ok = (
+                not stop
+                and bool(rec.get("started"))
+                and rec.get("exit") == 0
+                and not rec.get("rewrote")
+            )
+            return {
+                "run": index,
+                "exit": rec.get("exit"),
+                "ok": bool(ok),
+                "tail": rec.get("tail") or "",
+                "stop": stop,
+            }
+
+        rows = run_clean_clones(self.worktree, count, self.repo / "tmp", self.stamp, run_one)
+        self.flake_report = {"runs": len(rows), "skipped": False, "results": rows}
+        verdict = flake_verdict(rows)
+        if verdict == "ok":
+            return None
+        tail = "\n".join(str(row.get("tail") or "") for row in rows)
+        joined = output + ("\n" + tail if tail else "")
+        if verdict == "timeout":
+            return self._gate_timeout_fail(number, joined)
+        if verdict == "interrupted":
+            self.record(number, "FAIL", "interrupted", joined)
+            return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
+        print("FLAKY: clean-clone gate failed", file=sys.stderr)
+        self.record(number, "FLAKY", "flaky", joined)
+        return self.fail("FLAKY", "flaky", EXIT_FAIL, failure_recovery("flaky", self.args.task_text))
 
     def recheck_sha(self, sha: str) -> tuple[str | None, str]:
         """Run the gate on a fresh extract of sha. None means it passed."""
@@ -2124,6 +2249,8 @@ class CloudBuild:
         if self.impact_source:
             payload["impact"] = {"source": self.impact_source}
         payload["excluded_generated"] = excluded_generated_receipt(self.excluded_paths)
+        if self.flake_report is not None:
+            payload["flake"] = self.flake_report
         payload["usage"] = usage_receipt(self.usage_sessions)
         if self.estimate:
             payload["choice"] = self.choice
@@ -2580,16 +2707,23 @@ class CloudBuild:
             # serial: those gates share invocation order. PFY_BUILD_SERIAL_GATES=1,
             # a tree with no edits, or a failed copy keeps that same order,
             # and a red first gate does not start the second.
+            # --flake-runs replaces that second gate. Omitted keeps it, and
+            # PFY_BUILD_FLAKE_RUNS is not read, so a local env cannot change
+            # this clock. 0 skips the second gate and the clean clones.
             # arm(False) puts the gate back on the per-call cap. A review-reject
             # retry may have raised args.timeout to the time still left.
             arm(False)
-            custom_gate = (self.args.test_cmd or "").strip() != DEFAULT_TEST_CMD
-            serial = (
-                os.environ.get("PFY_BUILD_SERIAL_GATES") == "1"
-                or not changed
-                or custom_gate
-            )
-            pair = None if serial else self._parallel_post_gates()
+            clean_n = getattr(self.args, "flake_runs", None)
+            if clean_n is not None:
+                pair = None
+            else:
+                custom_gate = (self.args.test_cmd or "").strip() != DEFAULT_TEST_CMD
+                serial = (
+                    os.environ.get("PFY_BUILD_SERIAL_GATES") == "1"
+                    or not changed
+                    or custom_gate
+                )
+                pair = None if serial else self._parallel_post_gates()
             if pair is None:
                 after = self.gate()
                 again = None
@@ -2625,30 +2759,35 @@ class CloudBuild:
                 if action == "continue":
                     continue
                 return self.fail("FAIL", "tests", EXIT_FAIL, "")
-            if again is None:
-                arm(False)
-                again = self.gate()
-            self.gate_after = again
-            if again.get("aborted") == "timeout":
-                return self._gate_timeout_fail(number, output + "\n" + str(again.get("tail") or ""))
-            if self.state.interrupted or again.get("aborted") == "interrupted":
-                self.record(number, "FAIL", "interrupted", output)
-                return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
-            if again.get("rewrote"):
-                return self._gate_rewrote_fail(number, output + "\n" + str(again.get("tail") or ""))
-            if again.get("exit") != 0 or not again.get("started"):
-                action = plan_retry(
-                    number,
-                    "gate failed: tests-flaky\n%s" % (again.get("tail") or ""),
-                    capture_diff(self.worktree, changed),
-                )
-                if action == "timeout":
-                    self.record(number, "TIMEOUT", "timeout", output)
-                    return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")
-                self.record(number, "FAIL", "tests-flaky", output)
-                if action == "continue":
-                    continue
-                return self.fail("FAIL", "tests-flaky", EXIT_FAIL, "")
+            if clean_n is not None:
+                stopped = self._run_clean_flake(number, output)
+                if stopped is not None:
+                    return stopped
+            else:
+                if again is None:
+                    arm(False)
+                    again = self.gate()
+                self.gate_after = again
+                if again.get("aborted") == "timeout":
+                    return self._gate_timeout_fail(number, output + "\n" + str(again.get("tail") or ""))
+                if self.state.interrupted or again.get("aborted") == "interrupted":
+                    self.record(number, "FAIL", "interrupted", output)
+                    return self.fail("FAIL", "interrupted", EXIT_FAIL, "")
+                if again.get("rewrote"):
+                    return self._gate_rewrote_fail(number, output + "\n" + str(again.get("tail") or ""))
+                if again.get("exit") != 0 or not again.get("started"):
+                    action = plan_retry(
+                        number,
+                        "gate failed: tests-flaky\n%s" % (again.get("tail") or ""),
+                        capture_diff(self.worktree, changed),
+                    )
+                    if action == "timeout":
+                        self.record(number, "TIMEOUT", "timeout", output)
+                        return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")
+                    self.record(number, "FAIL", "tests-flaky", output)
+                    if action == "continue":
+                        continue
+                    return self.fail("FAIL", "tests-flaky", EXIT_FAIL, "")
             diff_pairs = capture_diff_files(self.worktree, changed)
             diff_text = "\n".join(chunk for _path, chunk in diff_pairs if chunk)
             if not self.args.no_review:
