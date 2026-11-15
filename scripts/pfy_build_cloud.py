@@ -135,6 +135,8 @@ Daily cloud build.
 Before Grok starts, the runner prints the cloud vs local choice, a low-high
 dollar range, and a wall-time range. Off a TTY, pass --yes, --approve-cost,
 or --max-cost. A cap under the estimate does not start Grok.
+--agentlint scans the diff with local AgentLint. Off by default.
+PFY_AGENTLINT=1 is the same switch. A missing binary warns and continues.
 """
 
 _PEM = re.compile(
@@ -666,6 +668,14 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         default=None,
         help="grok binary (default: env PFY_BUILD_GROK, else grok on PATH)",
     )
+    parser.add_argument(
+        "--agentlint",
+        action="store_true",
+        help=(
+            "scan the attempt diff with local AgentLint (also PFY_AGENTLINT=1). "
+            "Off by default. A missing binary warns and continues"
+        ),
+    )
     args = parser.parse_args(argv)
     if args.retries < 0:
         raise UsageError("--retries must be >= 0")
@@ -734,6 +744,7 @@ TERMINAL_FAILURE_REASONS = (
     "timeout",
     "unauthenticated",
     "worktree-failed",
+    "agentlint-blocked",
 )
 
 
@@ -851,6 +862,13 @@ def failure_recovery(reason: str, task: str, detail: str = "") -> str:
             "The attempt changed a protected path (%s). "
             "Remove that change and rerun ./pfy build %s. "
             "auth.json, .env, and grok-home stay out of the commit."
+            % (shown, quoted)
+        )
+    if reason == "agentlint-blocked":
+        shown = (detail or "").strip() or "a blocking rule"
+        return (
+            "AgentLint blocked the attempt (%s). "
+            "Remove that change and rerun ./pfy build %s."
             % (shown, quoted)
         )
     lines = {
@@ -1053,6 +1071,25 @@ def grok_phase_name(prompt: str) -> str:
     if REVIEW_MARKER in (prompt or ""):
         return "review"
     return "agent"
+
+
+def _agentlint_enabled(args) -> bool:
+    """True only for the flag or the exact env value 1."""
+    if getattr(args, "agentlint", False):
+        return True
+    return os.environ.get("PFY_AGENTLINT") == "1"
+
+
+def _scan_agentlint(worktree: Path, paths: list[str], cache_root: Path) -> tuple[str, str]:
+    import importlib.util
+
+    path = _ROOT / "scripts" / "integrations" / "agentlint" / "guard.py"
+    spec = importlib.util.spec_from_file_location("pfy_agentlint_guard", path)
+    if spec is None or spec.loader is None:
+        return "", "agentlint-fallback: guard.py missing; check skipped"
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.scan(worktree, paths, cache_root)
 
 
 def files_changed(worktree: Path) -> list[str]:
@@ -2502,6 +2539,23 @@ class CloudBuild:
                 if action == "continue":
                     continue
                 return self.fail("FAIL", "protected-path-changed", EXIT_FAIL, "")
+            if _agentlint_enabled(self.args):
+                blocked, warning = _scan_agentlint(
+                    self.worktree, changed, self.repo / "tmp" / "agentlint-guard"
+                )
+                if warning:
+                    print(redact(warning), file=sys.stderr)
+                if blocked:
+                    shown = redact(blocked)
+                    self.recovery_detail = shown
+                    action = plan_retry(number, "agentlint-blocked: %s" % shown, "")
+                    if action == "timeout":
+                        self.record(number, "TIMEOUT", "timeout", output)
+                        return self.fail("TIMEOUT", "timeout", EXIT_TIMEOUT, "")
+                    self.record(number, "FAIL", "agentlint-blocked", output)
+                    if action == "continue":
+                        continue
+                    return self.fail("FAIL", "agentlint-blocked", EXIT_FAIL, "")
             bad_tests = tests_tampered(
                 self.worktree, base_tests, list(self.args.writable_test or [])
             )

@@ -45,6 +45,7 @@ The runner does not read `auth.json`. Grok uses the operator login that already 
 | `--yes` | Accept the printed cloud estimate. Off a TTY this is required unless `--approve-cost` or a covering `--max-cost` is set. `PFY_BUILD_YES=1` is the same approval. |
 | `--approve-cost` | Same as `--yes`. |
 | `--max-cost USD` | Refuse when the estimate is above this cap. A cap at or above the estimate is itself approval. |
+| `--agentlint` | Optional local AgentLint scan of the attempt diff. Off by default. `PFY_AGENTLINT=1` is the same switch. Any other value of that variable leaves the scan off. |
 
 A safe `.gitignore` line for generated output, and a `pyproject.toml` edit that does not change a test table, are allowed without a flag. Gate-weakening edits still need `--writable-test`. A `tests-tampered` failure names that flag and the path. Protected paths are the pregate gate-hash basenames (`conftest.py`, `pytest.ini`, `tox.ini`, `setup.cfg`, `pyproject.toml`, `sitecustomize.py`, `usercustomize.py`, `.gitignore`, `.gitattributes`, anywhere in the tree), plus `examples/eval-harness/`, `.github/workflows/`, `scripts/pregate.sh`, `scripts/pfy`, and `scripts/pfy_build_cloud.py`.
 
@@ -123,6 +124,17 @@ The runner does not read `auth.json`. A rate limit does not auto-start `--local`
 | `estimate-declined` | 2 usage | `status` `FAIL`, `reason` `estimate-declined`, no branch. Grok was not started. | Rerun with `--yes`, `--approve-cost`, or a higher `--max-cost`. |
 | `interrupted` | 1 FAIL | `status` `FAIL`, `reason` `interrupted`. No branch. SIGINT or SIGTERM. | The grok process group is signaled. Rerun the same command when the task should run again. |
 | `ABORTED` | `--reap` exits 0. The killed run wrote nothing. | `status` `ABORTED`, `reason` `no-receipt`, for a cloud pid-file entry whose receipt is missing. | After SIGKILL, run `./pfy build --reap`. Reap signals only pgids in `tmp/cloud-build.pids.json`. It does not signal pgids listed only in `tmp/local-build.pids.json`. |
+| `agentlint-blocked` | 1 FAIL when retries are spent. The attempt counts while retries remain. | `reason` `agentlint-blocked`. No branch. | An AgentLint error blocked a changed file. Remove that change and rerun `./pfy build`. Warnings do not fail the build. A missing binary prints `agentlint-fallback` and the build continues. |
+
+## Optional AgentLint scan
+
+Off by default. `./pfy build "<task>" --agentlint` turns it on. `PFY_AGENTLINT` must be the exact value `1` to turn it on without the flag.
+
+The scan is a local `agentlint check` of each changed text file. Pin `agentlint==2.12.0` under `./tmp/agentlint-venv`. It is not a project dependency. `PFY_AGENTLINT_BIN` names the binary when the pin lives somewhere else inside the worktree. Install and the trial table are in [the AgentLint trial note](../../eval/agentlint-trial/README.md).
+
+A missing binary, a crash, or a timeout prints `agentlint-fallback` and that file is allowed. An error fails the attempt with `agentlint-blocked` and retries the way a protected path does. A warning is printed and the build continues. The child process has AgentChute forced off: the license variable, the API URL, and the enable flag are dropped, and the credentials file is an empty object. The scan does not open a network connection.
+
+The hook reads changed file text. Shell commands such as a package publish, `rm` of a home directory, or a redirect onto `.env` are outside the diff, so this scan does not see them. The measured catches and the two warn-only false positives are in the trial note.
 
 ## Receipt rules
 
@@ -137,6 +149,8 @@ Default protect globs include `auth.json`, `.env`, `*.pem`, and `pipelines/dogfo
 | Piece | Path |
 |-------|------|
 | Cloud runner | `scripts/pfy_build_cloud.py` |
+| Optional AgentLint scan | `scripts/integrations/agentlint/guard.py` |
+| AgentLint trial | [eval/agentlint-trial/README.md](../../eval/agentlint-trial/README.md) |
 | Dispatch and help | `scripts/pfy` (cloud lane owns the build help text) |
 | Jev dogfood wrap | [scripts/pfy_build_p.py](../../scripts/pfy_build_p.py) |
 | Local opt-in runner | [scripts/pfy_build_local.py](../../scripts/pfy_build_local.py) |
