@@ -327,3 +327,7 @@ OpenKB. Each reads the pinned GitHub commit JSON through `$QWED_FETCH_BIN` / `$A
 Entries 188-190 (`smoke_188.py`, `smoke_189.py`, `smoke_190.py`) are commit-metadata receipts for Argus, AgentLint and
 Learn Harness Engineering. Each reads the pinned GitHub commit JSON through `$ARGUS_FETCH_BIN` / `$AGENTLINT_FETCH_BIN` /
 `$HARNESSENG_FETCH_BIN` or a stdlib fetch, checks the SHA, and exits 2 without installing anything. `PFY_XINTAKE_TIMEOUT` overrides the timeout.
+
+Entries 191-193 (`smoke_191.py`, `smoke_192.py`, `smoke_193.py`) are commit-metadata receipts for AI Session Search,
+book-to-skill and Evener. Each reads the pinned GitHub commit JSON through `$AISE_FETCH_BIN` / `$BOOKTOSKILL_FETCH_BIN` /
+`$EVENER_FETCH_BIN` or a stdlib fetch, checks the SHA, and exits 2 without installing anything. `PFY_XINTAKE_TIMEOUT` overrides the timeout.
