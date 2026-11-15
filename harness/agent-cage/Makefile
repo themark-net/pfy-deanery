@@ -839,7 +839,10 @@ write-guard-overlay-install: ensure-project
 EVAL_EXAMPLE := $(CATALOG_ROOT)/examples/eval-harness
 EVAL_TASK ?= 001-is-palindrome
 # Defaults overridden by eval-select-models / eval-auto when fit selection runs.
-EVAL_MODEL ?= qwen2.5:14b
+# Repo-root `make eval-suite` and `make eval-matrix` pass the resolved tag
+# (qwen3.6:35b, or qwen2.5:14b when that tag is not listed). This default is
+# the committed model when those targets did not run.
+EVAL_MODEL ?= qwen3.6:35b
 EVAL_MODELS ?= qwen2.5:14b,codestral:22b,deepseek-coder:6.7b-instruct
 EVAL_GATE_MODEL ?= $(EVAL_MODEL)
 EVAL_MODE ?= single

@@ -8,8 +8,11 @@ MODE="${EVAL_MODE:-single}"  # single | suite | matrix
 TASK="${EVAL_TASK:-001-is-palindrome}"
 BASE="${OPENAI_BASE_URL:-http://host.docker.internal:11435/v1}"
 # EVAL_MODEL, else LITELLM_SMOKE_MODEL, else model_choice for this mode.
-# The cage copy of this script may not have pfylib; the host Makefile resolves
-# first and passes EVAL_MODEL in. A cloud choice is refused (Ollama only).
+# --probe-tags lists local tags (no pull). qwen3.6:35b is the default.
+# qwen2.5:14b is used when that default is not listed, or when resolve
+# prints nothing. The cage copy of this script may not have pfylib; the
+# host Makefile resolves first and passes EVAL_MODEL in. A cloud choice
+# is refused (Ollama only).
 if [ -z "${EVAL_MODEL:-}" ] && [ -z "${LITELLM_SMOKE_MODEL:-}" ]; then
   _task=eval-suite
   if [ "$MODE" = "matrix" ]; then
@@ -17,13 +20,14 @@ if [ -z "${EVAL_MODEL:-}" ] && [ -z "${LITELLM_SMOKE_MODEL:-}" ]; then
   fi
   _root="$(cd "$SCRIPT_DIR/../.." && pwd)"
   if [ -f "$_root/pfylib/model_choice.py" ]; then
-    _got="$(cd "$_root" && python3 -m pfylib.model_choice resolve "$_task" --field model --transport ollama || true)"
+    _got="$(cd "$_root" && python3 -m pfylib.model_choice resolve "$_task" --field model --transport ollama --probe-tags || true)"
     if [ -n "$_got" ]; then
       EVAL_MODEL="$_got"
     fi
   fi
   unset _task _root _got
 fi
+# Committed fallback, only when resolve printed nothing.
 MODEL="${EVAL_MODEL:-${LITELLM_SMOKE_MODEL:-qwen2.5:14b}}"
 # Matrix default: capable coders present on this lab host (missing → SKIP cell)
 MODELS="${EVAL_MODELS:-qwen2.5:14b,codestral:22b,deepseek-coder:6.7b-instruct}"
@@ -54,7 +58,7 @@ mode = os.environ.get("EVAL_MODE", "single")
 if mode == "matrix":
     want_list = [m.strip() for m in os.environ.get("EVAL_MODELS", "").split(",") if m.strip()]
     if not want_list:
-        want_list = [os.environ.get("EVAL_MODEL", "qwen2.5:14b")]
+        want_list = [os.environ.get("EVAL_MODEL", "qwen3.6:35b")]
     missing = [w for w in want_list if w not in names]
     print(f"  ollama models: {len(names)}; matrix want={want_list}; missing={missing or 'none'}")
     gate = os.environ.get("EVAL_GATE_MODEL") or want_list[0]
@@ -62,7 +66,7 @@ if mode == "matrix":
         print(f"error: gate model {gate!r} not on Ollama — pull on host or re-run make eval-select-models", file=sys.stderr)
         sys.exit(2)
 else:
-    want = os.environ.get("EVAL_MODEL") or os.environ.get("LITELLM_SMOKE_MODEL", "qwen2.5:14b")
+    want = os.environ.get("EVAL_MODEL") or os.environ.get("LITELLM_SMOKE_MODEL", "qwen3.6:35b")
     if want not in names:
         print(f"error: model {want!r} not on Ollama — pull on host or re-run make eval-select-models", file=sys.stderr)
         sys.exit(2)

@@ -415,12 +415,14 @@ eval-mvp:
 
 # EVAL_MODEL on the command line or in the environment wins. Otherwise the
 # gate model comes from model_choice (PFY_MODEL_<TASK>, then the saved choice,
-# then config/model-choice.json). A cloud choice is refused: these targets
-# talk to Ollama, not the LiteLLM proxy.
+# then config/model-choice.json). --probe-tags lists local tags with GET
+# /api/tags and does not pull. If qwen3.6:35b is not listed and qwen2.5:14b
+# is, the resolver prints that fallback. A cloud choice is refused. The
+# qwen2.5:14b literal runs only when resolve prints nothing.
 eval-suite:
 	@model='$(EVAL_MODEL)'; \
 	if [ -z "$$model" ]; then \
-	  model="$$(python3 -m pfylib.model_choice resolve eval-suite --field model --transport ollama || true)"; \
+	  model="$$(python3 -m pfylib.model_choice resolve eval-suite --field model --transport ollama --probe-tags || true)"; \
 	fi; \
 	if [ -z "$$model" ]; then model=qwen2.5:14b; fi; \
 	$(MODEL_LOCK) $(MAKE) -C $(HARNESS) eval-suite EVAL_MODEL="$$model"
@@ -428,7 +430,7 @@ eval-suite:
 eval-matrix:
 	@model='$(EVAL_MODEL)'; \
 	if [ -z "$$model" ]; then \
-	  model="$$(python3 -m pfylib.model_choice resolve matrix --field model --transport ollama || true)"; \
+	  model="$$(python3 -m pfylib.model_choice resolve matrix --field model --transport ollama --probe-tags || true)"; \
 	fi; \
 	if [ -z "$$model" ]; then model=qwen2.5:14b; fi; \
 	$(MODEL_LOCK) $(MAKE) -C $(HARNESS) eval-matrix EVAL_MODEL="$$model"

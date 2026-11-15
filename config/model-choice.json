@@ -9,11 +9,13 @@
     },
     "eval-suite": {
       "backend": "local",
-      "model": "qwen2.5:14b"
+      "model": "qwen3.6:35b",
+      "fallback": "qwen2.5:14b"
     },
     "matrix": {
       "backend": "local",
-      "model": "qwen2.5:14b"
+      "model": "qwen3.6:35b",
+      "fallback": "qwen2.5:14b"
     },
     "decision-route": {
       "backend": "local",

@@ -237,11 +237,14 @@ def _paid_host_block(
     return None
 
 
-def resolve_model() -> str:
+def resolve_model(local_tags: list[str] | None = None, *, probe: bool = False) -> str:
     """EVAL_MODEL, else LITELLM_SMOKE_MODEL, else model_choice.
 
     Suite and single-task runs use eval-suite. EVAL_MODE=matrix uses matrix.
-    Both are Ollama-only: a cloud choice is refused and the local default stays.
+    Both are Ollama-only: a cloud choice is refused and the committed local
+    model stays. local_tags, or probe=True (GET /api/tags, no pull), may
+    select the committed qwen2.5:14b fallback when qwen3.6:35b is not listed.
+    An empty tag list keeps qwen3.6:35b. EVAL_MODEL does not switch.
     """
     explicit = (os.environ.get("EVAL_MODEL") or "").strip()
     if explicit:
@@ -254,11 +257,16 @@ def resolve_model() -> str:
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
     try:
-        from pfylib.model_choice import runner_choice
-        _backend, model, _source = runner_choice(task, transport="ollama", root=root)
-        return model or "qwen2.5:14b"
+        from pfylib.model_choice import detect_local_models, runner_choice
+        tags = local_tags
+        if tags is None and probe:
+            tags = detect_local_models()
+        _backend, model, _source = runner_choice(
+            task, transport="ollama", root=root, local_tags=tags,
+        )
+        return model or "qwen3.6:35b"
     except Exception:
-        return "qwen2.5:14b"
+        return "qwen3.6:35b"
 
 
 def _llama_ngram_or_none(prompt: str, max_tokens: int) -> str | None:
@@ -501,7 +509,7 @@ def main() -> int:
     ap.add_argument("--max-cost", type=float, default=None, help="alias of --max-usd")
     args = ap.parse_args()
 
-    model_name = resolve_model()
+    model_name = resolve_model(probe=True)
     base = os.environ.get("OPENAI_BASE_URL", "http://host.docker.internal:11435/v1").rstrip("/")
     print(f"eval tier1: task={args.task} base={base} model=openai/{model_name}", flush=True)
     try:

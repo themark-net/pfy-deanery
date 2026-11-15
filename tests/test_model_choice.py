@@ -264,11 +264,11 @@ class ResolveTests(Isolated):
         self.assertGreater(usage["prompt_tokens"], 0)
 
     def test_default_local_tasks_retry_the_fallback_when_the_tag_is_missing(self) -> None:
-        """Fail: qwen3.6:35b missing aborts build-lane and decision-route.
-        Recover: one fake-backend retry on qwen2.5:14b. eval-suite stays on
-        its committed 14b tag and does not invent a second model.
+        """Fail: qwen3.6:35b missing aborts the local default tasks.
+        Recover: one fake-backend retry on qwen2.5:14b. An explicit other
+        tag does not switch.
         """
-        for task in ("build-lane", "decision-route"):
+        for task in ("build-lane", "decision-route", "eval-suite", "matrix"):
             seen: list[str] = []
 
             def transport(req: dict, seen: list[str] = seen) -> dict:
@@ -283,17 +283,6 @@ class ResolveTests(Isolated):
             self.assertEqual(seen, ["qwen3.6:35b", "qwen2.5:14b"])
             self.assertIn("ok", text)
             self.assertEqual(usage["prompt_tokens"], 3)
-
-        seen = []
-
-        def suite_transport(req: dict) -> dict:
-            seen.append(req["body"]["model"])
-            return {"error": "model not found"}
-
-        mc._TRANSPORT = suite_transport
-        with self.assertRaises(mc.ModelCallError):
-            mc.call_model("prompt", task="eval-suite", root=ROOT)
-        self.assertEqual(seen, ["qwen2.5:14b"])
 
         seen = []
 

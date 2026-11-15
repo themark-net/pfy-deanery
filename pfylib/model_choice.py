@@ -254,6 +254,7 @@ def runner_choice(
     explicit: str | None = None,
     transport: str | None = None,
     root: Path | None = None,
+    local_tags: list[str] | None = None,
 ) -> tuple[str, str, str]:
     """(backend, model, source) a runner should use.
 
@@ -261,6 +262,9 @@ def runner_choice(
     PFY_JEV_MODEL). It wins over PFY_MODEL_<TASK>, the saved choice, and
     the committed default. A cloud choice on an ollama transport prints
     one refusal line and returns the committed local model.
+    local_tags, when passed, may select the committed fallback. An explicit
+    flag does not. An empty list means detection failed, so the preferred
+    local model stays.
     """
     if task not in TASK_ORDER:
         raise ValueError("unknown task %s" % task)
@@ -270,7 +274,7 @@ def runner_choice(
         backend, model = parse_spec(raw)
         source = "flag"
     else:
-        backend, model, source = resolve(task, root=root)
+        backend, model, source = resolve(task, root=root, local_tags=local_tags)
     if backend == "cloud" and kind != "litellm":
         kept = local_default(task, root)
         _refuse_cloud(task, model, kept)
@@ -1670,15 +1674,37 @@ def main(argv: list[str] | None = None) -> int:
     res.add_argument("--field", choices=("model", "backend", "spec"), default="model")
     res.add_argument("--transport", choices=("ollama", "litellm"), default="")
     res.add_argument("--explicit", default="", help="runner flag or env value; wins over resolve()")
+    res.add_argument("--tags", default="", help="comma-separated local tags; no network")
+    res.add_argument(
+        "--probe-tags",
+        action="store_true",
+        help="GET /api/tags (no pull). Failure keeps the preferred local model.",
+    )
     args = parser.parse_args(argv)
     transport = args.transport or None
     explicit = args.explicit or None
-    if transport or explicit:
-        backend, model, _source = runner_choice(
-            args.task, explicit=explicit, transport=transport or "ollama",
+    raw_tags = (args.tags or "").strip()
+    if raw_tags:
+        tags: list[str] | None = [part.strip() for part in raw_tags.split(",") if part.strip()]
+    elif args.probe_tags:
+        tags = detect_local_models()
+    else:
+        tags = None
+    if transport or explicit or tags is not None:
+        backend, model, source = runner_choice(
+            args.task,
+            explicit=explicit,
+            transport=transport or "ollama",
+            local_tags=tags,
         )
     else:
-        backend, model, _source = resolve(args.task)
+        backend, model, source = resolve(args.task, local_tags=tags)
+    if source == "fallback":
+        print(
+            "model-choice: %s fallback %s -> %s (not in tags)"
+            % (args.task, local_default(args.task), model),
+            file=sys.stderr,
+        )
     if args.field == "backend":
         print(backend)
     elif args.field == "spec":

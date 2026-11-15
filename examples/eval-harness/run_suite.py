@@ -27,13 +27,13 @@ def list_tasks(tasks_root: Path) -> list[str]:
 
 def parse_models(raw: str | None) -> list[str]:
     if not raw or not raw.strip():
-        return [resolve_model()]
+        return [resolve_model(probe=True)]
     out: list[str] = []
     for part in raw.split(","):
         m = part.strip()
         if m and m not in out:
             out.append(m)
-    return out or [resolve_model()]
+    return out or [resolve_model(probe=True)]
 
 
 def ollama_names(base: str) -> set[str] | None:
@@ -97,7 +97,7 @@ def main() -> int:
     ap.add_argument(
         "--models",
         default="",
-        help="Comma-separated Ollama model names (default: EVAL_MODEL or qwen2.5:14b)",
+        help="Comma-separated Ollama model names (default: model-choice for this mode)",
     )
     ap.add_argument(
         "--gate-model",

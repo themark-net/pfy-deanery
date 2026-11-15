@@ -31,7 +31,7 @@ Nothing new was adopted. No second router, no second GUI page.
 
 - User override is config (`~/.config/pfy/`), compare history is state (`~/.local/state/pfy/`), same family as the setup ledger. Not in the repo.
 - Unprefixed model names stay local. Only `backend: cloud` or a `cloud:` prefix selects cloud. Nothing silently switches.
-- catalog-fit default is local `qwen3.6:35b`, fallback local `qwen2.5:14b` when detected tags omit the preferred tag, or when Ollama says the tag is missing. Fallback never goes to cloud.
+- catalog-fit, eval-suite, and matrix default to local `qwen3.6:35b`, fallback local `qwen2.5:14b` when detected tags omit the preferred tag, or when Ollama says the tag is missing. Fallback never goes to cloud. An explicit env or `EVAL_MODEL` does not switch.
 - `PFY_CATFIT_MODEL` is an alias under `PFY_MODEL_CATALOG_FIT`. `PFY_JEV_MODEL` is not an alias.
 - Golden replay does not take a model (`requires_llm` false). Selectable classes: catalog-fit, eval-suite, matrix, decision-route, build-lane. eval-lane was removed: `scripts/eval_lane.sh` calls grok with no model flag, and the catalog loop, `loop_worktree`, and `scripts/pfy_build_p.py` do not take a model.
 - Compare tasks plug in through one adapter each (cases, prompt, verdict parser): catalog-fit and decision-route. eval-lane is not replayable. `eval/` and `eval/catalog-verdicts` store probe verdicts, not the prompts the lane sent. eval-suite, matrix, and build-lane have no labeled replay set here.
@@ -62,8 +62,8 @@ A cloud choice takes effect only on a LiteLLM transport. catalog-fit already swi
 
 | Task | Where the model is read | Explicit override | Cloud choice |
 |------|-------------------------|-------------------|--------------|
-| eval-suite | Host `make eval-suite` and `examples/eval-harness/run_scored_task.py` / `run-in-cage.sh` | `EVAL_MODEL`, then `LITELLM_SMOKE_MODEL` | Refused. Keeps `qwen2.5:14b` (or the committed local tag). The cage copy does not include `pfylib`, so the host Makefile resolves and passes `EVAL_MODEL`. An empty value is not passed. |
-| matrix | Same harness, `EVAL_MODE=matrix` | `EVAL_MODEL` sets the gate only. `EVAL_MODELS` stays the column list. | Same refusal. Gate falls back to `qwen2.5:14b`. |
+| eval-suite | Host `make eval-suite` and `examples/eval-harness/run_scored_task.py` / `run-in-cage.sh` | `EVAL_MODEL`, then `LITELLM_SMOKE_MODEL` | Refused. Keeps `qwen3.6:35b`. If detected tags omit that tag and list `qwen2.5:14b`, the gate uses the fallback. `EVAL_MODEL` and `PFY_MODEL_EVAL_SUITE` do not switch. The cage copy does not include `pfylib`, so the host Makefile resolves with `--probe-tags` and passes `EVAL_MODEL`. An empty value is not passed. |
+| matrix | Same harness, `EVAL_MODE=matrix` | `EVAL_MODEL` sets the gate only. `EVAL_MODELS` stays the column list. | Same refusal and the same fallback. `PFY_MODEL_MATRIX` does not switch. |
 | decision-route | `laya_shadow_model()` in `scripts/pfy_jev_230.py` | `PFY_JEV_MODEL` | Refused. Keeps `qwen3.6:35b`. The shadow posts to local laya-serve. `typesafe_model()` is not wired. `examples/typed-decisions-local/trial.py` still pins `PFY_JEV_MODEL=english` when unset. |
 | build-lane | `scripts/pfy_build_local.py` `_pick_build_model` and `scripts/pfy_local_build_eval.py` | `--model`, then `PFY_LOCAL_BUILD_MODEL` | Refused. Keeps `qwen3.6:35b`. Endpoint stays the local Ollama base. `scripts/pfy_build_p.py` has no model argument. |
 
