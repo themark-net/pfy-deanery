@@ -51,7 +51,7 @@ Status words: MET (closed, including this pass), ALREADY-FIXED (true on main bef
 
 - `call_model` cloud path, and catalog-fit when it uses that path: estimate, then the yes rules. `run_compare` sets `paid_ok` so a compare does not prompt twice.
 - `egm_review.py`: same yes rules, fake grok in tests, before any reviewer process.
-- `build-lane` and `decision-route` fallback keys in `config/model-choice.json`. `pfy build --local` applies the fallback only for the default tag, against a fake tag list. `call_model` retries once when Ollama says the tag is missing. eval-suite and matrix stay on `qwen2.5:14b` with no fallback key.
+- `build-lane` and `decision-route` fallback keys in `config/model-choice.json`. `pfy build --local` applies the fallback only for the default tag, against a fake tag list. `call_model` retries once when the committed default tag is missing. An explicit other tag does not switch. eval-suite and matrix stay on `qwen2.5:14b` with no fallback key.
 - Off-TTY `./pfy setup` prints the set command. That hint is not covered by a test, because `cmd_setup` runs `make env-init`.
 
 ## Left open

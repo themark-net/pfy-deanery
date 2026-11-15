@@ -598,8 +598,13 @@ def _call_local(prompt: str, model: str, *, host: str | None, root: Path | None,
     })
     if _missing_model(data):
         defaults = committed_tasks(root).get(task) or {}
-        fallback = str(defaults.get("fallback") or "").strip() if isinstance(defaults, dict) else ""
-        if fallback and fallback != model:
+        fallback = ""
+        preferred = ""
+        if isinstance(defaults, dict):
+            fallback = str(defaults.get("fallback") or "").strip()
+            preferred = str(defaults.get("model") or "").strip()
+        # Only the committed default retries. An explicit tag stays put.
+        if fallback and preferred and model == preferred and fallback != model:
             return _call_local(prompt, fallback, host=host, root=root, task=task)
         raise ModelCallError(str(data.get("error") or "ollama model missing"))
     text = data.get("response") if isinstance(data, dict) else None

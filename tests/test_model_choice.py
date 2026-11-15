@@ -295,6 +295,17 @@ class ResolveTests(Isolated):
             mc.call_model("prompt", task="eval-suite", root=ROOT)
         self.assertEqual(seen, ["qwen2.5:14b"])
 
+        seen = []
+
+        def explicit_transport(req: dict) -> dict:
+            seen.append(req["body"]["model"])
+            return {"error": "model not found"}
+
+        mc._TRANSPORT = explicit_transport
+        with self.assertRaises(mc.ModelCallError):
+            mc.call_model("prompt", task="build-lane", model="local:custom:9b", root=ROOT)
+        self.assertEqual(seen, ["custom:9b"])
+
     def test_paid_cloud_socket_is_blocked_when_no_transport_is_injected(self) -> None:
         """Off a TTY the estimate gate stops first. A covering yes still cannot
         open a real cloud socket while PFY_MODEL_NO_PAID=1 and no transport
