@@ -267,7 +267,11 @@ class PreambleTrimTests(unittest.TestCase):
             state = td / "state"
             with mock.patch.dict(
                 os.environ,
-                {"PFY_STATE_DIR": str(state), "RECORD_DIR": str(record)},
+                {
+                    "PFY_STATE_DIR": str(state),
+                    "RECORD_DIR": str(record),
+                    "PFY_BUILD_YES": "1",
+                },
                 clear=False,
             ):
                 rc = build.build_p(
@@ -436,7 +440,11 @@ class SkillsBundleTests(unittest.TestCase):
         record = td / "record"
         self._fake_grok(fake_bin, record)
         path_env = "%s%s%s" % (fake_bin, os.pathsep, os.environ.get("PATH", ""))
-        env = {"PFY_STATE_DIR": str(td / "state"), "RECORD_DIR": str(record)}
+        env = {
+            "PFY_STATE_DIR": str(td / "state"),
+            "RECORD_DIR": str(record),
+            "PFY_BUILD_YES": "1",
+        }
         if extra_env:
             env.update(extra_env)
         err = io.StringIO()

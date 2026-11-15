@@ -1009,12 +1009,15 @@ def _confirm(
     """None when the run may proceed. Otherwise a block reason."""
     if stale and not accept_stale:
         return "stale price"
-    if yes:
-        if max_usd is None:
-            return "--yes requires --max-usd"
+    cap_ok = False
+    if max_usd is not None:
         cap = Decimal(str(max_usd)).quantize(Decimal("0.0001"), rounding=ROUND_HALF_UP)
         if Decimal(cost_text) > cap:
             return "estimate $%s exceeds --max-usd %s" % (cost_text, max_usd)
+        cap_ok = True
+    if yes and not cap_ok:
+        return "--yes requires --max-usd"
+    if yes or cap_ok:
         return None
     if not isatty:
         return "no TTY"
@@ -1275,6 +1278,23 @@ def run_compare(
     _require_compare_task(task)
     root_path = repo_root(root)
     est = estimate_task(task, against=against, root=root_path, run=run, last=last, today=today)
+    print("model choice: cloud %s" % against)
+    print(
+        "why: paid compare; the recorded local run stays $0 and is not called again"
+    )
+    print("alternative local: $0 (range $0-$0); basis: recorded local run, no new spend")
+    cases_n = max(1, int(est.get("cases") or 1))
+    est["wall_low_s"] = 5 * cases_n
+    est["wall_high_s"] = 30 * cases_n
+    est["wall_basis"] = "static floor 5-30s per case, no compare duration history"
+    print(
+        "cloud wall: %d-%d min (%s)"
+        % (
+            max(1, int(round(est["wall_low_s"] / 60.0))),
+            max(1, int(round(est["wall_high_s"] / 60.0))),
+            est["wall_basis"],
+        )
+    )
     print(est["line"])
     stale_note = ""
     if est["stale"]:
@@ -1356,6 +1376,12 @@ def run_compare(
                 "prompt_tokens": prompt_tokens,
                 "completion_tokens": completion_tokens,
             },
+            "choice": {
+                "route": "cloud",
+                "model": against,
+                "why": "paid compare; the recorded local run stays $0 and is not called again",
+            },
+            "actual": {"usd": actual["cost_usd"], "source": "token quote"},
         }
         dest = _out_path(out, task)
         _atomic_write(dest, json.dumps(payload, indent=2, sort_keys=True) + "\n")

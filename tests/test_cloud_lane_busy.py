@@ -70,6 +70,7 @@ class SecondCloudBuildIsBusy(_Base):
         head = _git(self.repo, "rev-parse", "HEAD").stdout.strip()
         env = os.environ.copy()
         env["PYTHONDONTWRITEBYTECODE"] = "1"
+        env["PFY_BUILD_YES"] = "1"
         self.proc = subprocess.Popen(self.argv("add alpha", grok_a, gate, "receipt-a"), cwd=str(self.repo),
                                      env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                      start_new_session=True)
