@@ -4,7 +4,7 @@
 **Code:** `pfylib/build_flake.py`, `pfylib/build_size.py`, hook in `scripts/pfy_build_local.py`
 **Related ADR / Decisions:** Decision recorded in this file. No new ADR number.
 
-Cloud `./pfy build` is a different runner. See [pfy-build.md](pfy-build.md). This page is only the local flake gate and the size presets.
+Cloud `./pfy build` is a different runner. See [pfy-build.md](pfy-build.md). This page is only the local flake gate and the size presets. Cost confirmation, packed review quotes, and `--yes` / `--max-cost` live in that cloud module doc, not here. The local receipt still records `estimate.flake_runs` and `estimate.review_prompts` so the $0 banner names those extras.
 
 ## Operator
 
@@ -87,6 +87,7 @@ The clean-clone environment keeps `PATH`, sets `HOME` and `TMPDIR` under the clo
 - The export skips `.git`, `tmp`, caches, and `*.pyc`, so the clone does not share the live git dir.
 - The state file the gate writes stays out of the commit when it was created after the diff snapshot. The commit recheck extracts the commit, so it does not see that file.
 - File overage stays `PASS-REJECTED` / `review-rejected`. Line overage stays `FAIL` / `review-diff-over-line-cap` and is not retried.
+- Size and tamper recovery both name the flag, then the rerun line: `--max-files` / `--max-lines` / `--size product` for caps, `--writable-test <path>` for a protected file.
 - The line-cap message names `--max-lines`. It also names `--size product` only when the line cap was not explicit and both dimensions fit the product preset.
 - The file-cap reason names `--max-files`. It also names `--size product` only when the file cap was not explicit and the file count fits the product preset.
 - Port 0 is omitted. `listen` below 1024 is omitted.
