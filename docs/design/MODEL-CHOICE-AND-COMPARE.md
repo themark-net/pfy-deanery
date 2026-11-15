@@ -81,7 +81,7 @@ A cloud choice takes effect only on a LiteLLM transport. catalog-fit already swi
 
 - eval-lane as a task class or a compare. No runner takes a model, and the stored verdict files are not the prompts the lane sent.
 - Compare for eval-suite, matrix, and build-lane until a labeled replay set exists. Matrix model choice sets the gate only. `EVAL_MODELS` stays the column list.
-- `typesafe_model()` stays `PFY_JEV_MODEL` or `jev-1.13.0`. TypeSafe is not LiteLLM.
+- `typesafe_model()` stays `PFY_JEV_MODEL` or `jev-1.13.0`. TypeSafe is not LiteLLM. A cloud `typesafe_evaluate` does not POST until a price row with provider TypeSafe exists and the yes rules pass. No row was added.
 - `scripts/pfy_build_p.py` has no model argument.
 - `make tokens-venv` is the install path for tiktoken. This slice does not run it.
 - The price job is not pointed at the live docs from tests or from this change. Fixtures cover the parser. A loop tick online will GET the pages, at most weekly, and leave the file alone if the parse is not confident.

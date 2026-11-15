@@ -704,8 +704,114 @@ def mini_jev_choice(state, criteria, *, instructions=""):
     return rec
 
 
-def typesafe_evaluate(state, questions, ROOT=None):
-    """Optional TypeSafe cloud. Key missing → FAIL+next (no operator drip)."""
+def _typesafe_cloud_block(state, questions, *, root, yes, max_usd, paid_ok, isatty, answer):
+    """None when a cloud TypeSafe POST may start. Otherwise the refusal text.
+
+    There is no TypeSafe row in the repo price table. This does not invent one.
+    A row whose provider is not TypeSafe does not count, so a grok tag cannot
+    borrow an xAI price for this POST. Local laya-serve never reaches here.
+    """
+    from pfylib.model_choice import (
+        CLOUD_COMPLETION_ALLOWANCE,
+        ModelCallError,
+        PriceCoverageError,
+        UnknownModelPrice,
+        _confirm,
+        count_tokens,
+        price_age_days,
+        quote,
+        sys_isatty,
+    )
+
+    model = typesafe_model()
+    choice = (
+        "model choice: cloud TypeSafe %s. "
+        "Local alternative is CUA-S1-FORMS (decide_choice, $0, no POST)."
+        % model
+    )
+    print(choice, file=sys.stderr)
+    body = json.dumps(
+        {"state": state, "model": model, "questions": questions},
+        sort_keys=True,
+    )
+    prompt_tokens, method = count_tokens(body)
+    try:
+        priced = quote(model, prompt_tokens, CLOUD_COMPLETION_ALLOWANCE, root=root)
+    except (UnknownModelPrice, PriceCoverageError) as exc:
+        return "%s. No model was called. %s" % (exc, choice)
+    if str(priced.get("provider") or "").strip().lower() != "typesafe":
+        return "no TypeSafe price for %r. No model was called. %s" % (model, choice)
+    stale_days = price_age_days(priced["fetched"])
+    stale = stale_days > int(priced["stale_after_days"])
+    line = (
+        "cost estimate: $%s for %s prompt tokens + %s completion-token allowance (%s) "
+        "on %s (%s $%.2f/$%.2f per 1M, %s, fetched %s). "
+        "No call is sent until you say yes."
+        % (
+            priced["cost_text"],
+            "{:,}".format(prompt_tokens),
+            "{:,}".format(CLOUD_COMPLETION_ALLOWANCE),
+            method,
+            model,
+            priced["provider"],
+            priced["price_in"],
+            priced["price_out"],
+            priced["source_short"],
+            priced["fetched"],
+        )
+    )
+    print(line, file=sys.stderr)
+    if stale:
+        print(
+            "Price for %s was fetched %s (older than %s days)."
+            % (model, priced["fetched"], priced["stale_after_days"]),
+            file=sys.stderr,
+        )
+    if paid_ok:
+        if stale:
+            return "stale price. No model was called. %s" % choice
+        return None
+    tty = sys_isatty() if isatty is None else bool(isatty)
+    if tty and not yes and answer is None and isatty is None:
+        try:
+            answer = input("").strip()
+        except EOFError:
+            answer = ""
+    try:
+        block = _confirm(
+            yes=bool(yes),
+            max_usd=max_usd,
+            cost=float(priced["cost_usd"]),
+            cost_text=priced["cost_text"],
+            isatty=tty,
+            answer=answer,
+            stale=stale,
+            accept_stale=False,
+        )
+    except ModelCallError as exc:
+        return "%s. No model was called. %s" % (exc, choice)
+    if block:
+        return "%s. No model was called. %s %s" % (block, line, choice)
+    return None
+
+
+def typesafe_evaluate(
+    state,
+    questions,
+    ROOT=None,
+    *,
+    yes=False,
+    max_usd=None,
+    paid_ok=False,
+    isatty=None,
+    answer=None,
+):
+    """Optional TypeSafe cloud. Key missing → FAIL+next (no operator drip).
+
+    A cloud URL prints the local CUA-S1-FORMS alternative at $0 and does not
+    POST until a TypeSafe price is shown and the yes rules pass. A local
+    PFY_JEV_TYPESAFE_URL is the laya-serve path and is not this gate.
+    """
     key = typesafe_key()
     if not key:
         return fail(
@@ -726,6 +832,39 @@ def typesafe_evaluate(state, questions, ROOT=None):
             chip_typesafe=CHIP_TYPESAFE_OPT,
             engine="typesafe",
         )
+    if not typesafe_url_is_local():
+        reason = _typesafe_cloud_block(
+            state,
+            questions,
+            root=ROOT,
+            yes=yes,
+            max_usd=max_usd,
+            paid_ok=paid_ok,
+            isatty=isatty,
+            answer=answer,
+        )
+        if reason:
+            return fail(
+                "decision",
+                reason,
+                "use local CUA-S1-FORMS ($0, no POST) or accept a TypeSafe price",
+                path="typesafe",
+                chip_typesafe=CHIP_TYPESAFE_OPT,
+                engine="typesafe",
+                model=typesafe_model(),
+            )
+        from pfylib.model_choice import _paid_blocked
+
+        if _paid_blocked():
+            return fail(
+                "decision",
+                "paid cloud call blocked. No model was called.",
+                "use local CUA-S1-FORMS ($0, no POST)",
+                path="typesafe",
+                chip_typesafe=CHIP_TYPESAFE_OPT,
+                engine="typesafe",
+                model=typesafe_model(),
+            )
     body = json.dumps(
         {
             "state": state,
