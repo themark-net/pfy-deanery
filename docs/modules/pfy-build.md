@@ -50,7 +50,7 @@ A safe `.gitignore` line for generated output, and a `pyproject.toml` edit that 
 | Code | When |
 |------|------|
 | 0 | PASS, dry-run, or `--reap` |
-| 1 | FAIL |
+| 1 | FAIL, and FLAKY when `--flake-runs` is set |
 | 2 | usage |
 | 3 | TIMEOUT |
 | 4 | BLOCKED |
@@ -63,7 +63,7 @@ A safe `.gitignore` line for generated output, and a `pyproject.toml` edit that 
 
 Before Grok starts, stderr shows `model choice:`, `why:`, the cloud range (`cost estimate:`), a wall-time range, and the local alternative at $0 (`qwen3.6:35b` via Ollama). Recent receipts under `pipelines/dogfood/build-cloud/` supply the dollar history and `wall_seconds` when they exist. `PFY_COST_HISTORY_ROOT` overrides that search. With no history the token price table is used. If that quote is $0, one implement call uses the static floor $0.20-$0.36 and a longer round (more than one model call) uses $1.50-$6. Cloud wall with no history is 10-20 minutes per attempt. Local wall with no history is 20-65 minutes, plus the clean-clone flake-gate re-runs when those are on.
 
-The cloud dollar quote counts packed review prompts (small files share one prompt; chunks that do not fit run together), not one call per file. `--local` is $0. Its receipt `estimate` still records `review_prompts` and `flake_runs` so the cloud alternative includes those packed reviews, and the local wall includes the flake-gate re-runs. Cloud does not quote extra flake-gate spend: its same-tree flake gate overlaps the post-change gate.
+The cloud dollar quote counts packed review prompts (small files share one prompt; chunks that do not fit run together), not one call per file. `--local` is $0. Its receipt `estimate` still records `review_prompts` and `flake_runs` so the cloud alternative includes those packed reviews, and the local wall includes the flake-gate re-runs. Cloud does not quote extra flake-gate spend: the default same-tree second gate overlaps the post-change gate. `--flake-runs N` is off unless passed. Those clean-clone re-runs are tests, not extra model spend, and they are not added to the dollar or wall quote. See [pfy-build-flake-size.md](pfy-build-flake-size.md).
 
 On a TTY the question is `Proceed? [y/N]`. Off a TTY the run exits 2 unless `--yes`, `--approve-cost`, or `PFY_BUILD_YES=1`, or `--max-cost` is at least the estimate. A lower cap exits 2 even with `--yes`. Receipt `reason` is `estimate-declined` and `actual.source` is `not-run`. No model was called. `--local` prints $0 and does not ask. `--dry-run` prints the same choice and does not ask. `./pfy build -p` uses the same rule before `grok -p`. `./pfy compare` never starts a paid run on its own: `--yes` still needs `--max-usd` or `--max-cost`, and a covering cap is enough by itself.
 
@@ -92,6 +92,7 @@ The runner does not read `auth.json`. A rate limit does not auto-start `--local`
 | `rate-limit` | 4 BLOCKED | `status` `BLOCKED`, `reason` `rate-limit`, no branch | `recovery` is the exact `./pfy build --local "<task>"` command. This run does not start it. A rate limit does not auto-start `--local`. |
 | `unauthenticated` | 1 FAIL | `status` `FAIL`, `reason` `unauthenticated`, no branch | Run grok once to log in, then rerun the same `./pfy build`. The runner does not read `auth.json` and does not suggest `--local`. |
 | gate red | 1 FAIL when retries are spent. The exit stays open while retries remain. | Attempt `reason` `tests`, `tests-flaky`, or `tests-tampered`. Final `status` `FAIL` when spent. No branch. | The next grok call gets the gate tail. When retries are spent, fix the task or the test command and rerun. The failed tree is not committed. |
+| `FLAKY` | 1. No retry. Only when `--flake-runs` is set. | `status` `FLAKY`, `reason` `flaky`, `flake.results` per run. No branch. The flag omitted does not write `flake`. | The post-change gate passed and a clean-clone re-run failed. Make the test pass from a clean tree with a fresh `HOME`, or pass `--flake-runs 0` to skip the re-runs, then rerun `./pfy build`. Nothing was committed. This is not `tests-flaky`. |
 | `gate-missing` | 2 usage | The gate binary was not found. No grok call. | Pass `--test-cmd` with a command that exists. The default is `python3 -m unittest discover -s tests -t .`. |
 | `gate-unusable` | 2 usage | The default unittest command failed with an import error before any edit. No grok call. | Pass `--test-cmd` with an interpreter that can import this repo. A custom gate that fails an assertion still retries. |
 | `review-rejected` | 1 FAIL when retries are spent. The exit stays open while retries remain. | Attempt `status` `PASS-REJECTED`, `reason` `review-rejected`, `review.verdict` `reject`. Final `status` `FAIL` when spent. No branch. | The next grok call gets the reject reasons and the previous diff. When retries are spent, rerun with a tighter task, or pass `--no-review` only when an unreviewed commit is acceptable. One rejected file rejects the whole build. |

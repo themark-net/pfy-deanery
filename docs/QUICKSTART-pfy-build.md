@@ -167,6 +167,7 @@ On a task repo, `rev-parse` the branch named in the receipt, then `git push orig
 | Auth failure or grok missing | 1 | `FAIL`, `reason` `unauthenticated`, no branch | Run grok once to log in, then rerun the same `./pfy build`. Recovery does not use `--local`. |
 | Gate red, retries left | stays open | Attempt `FAIL`, `reason` `tests`, `tests-flaky`, or `tests-tampered` | The next grok call gets the gate tail. A later attempt may PASS. |
 | Gate red, retries spent | 1 | `FAIL`, that gate reason, `attempts` length 3 by default, no branch | Fix the task or the test command and rerun. The failed tree is not committed. |
+| Clean-clone flake (`--flake-runs N`) | 1 | `FLAKY`, `reason` `flaky`, `flake.results`, no branch | Off unless the flag is passed. Make the test pass from a clean tree with a fresh `HOME`, or pass `--flake-runs 0`. Not retried. Omitting the flag keeps `tests-flaky`. |
 | Review reject, retries left | stays open | Attempt `PASS-REJECTED`, `reason` `review-rejected`, `review.verdict` `reject` | The next grok call gets the reject reasons and the previous diff. |
 | Review reject, retries spent | 1 | `FAIL`, `reason` `review-rejected`, no branch | Rerun with a tighter task, or `--no-review` only when you accept an unreviewed commit. Default stays reviewed. |
 | No-change | 1 when retries are spent | Attempt `reason` `no-change`, no branch | The gate still runs. Feedback includes the gate tail. A green gate with an empty diff is still `no-change`. |
