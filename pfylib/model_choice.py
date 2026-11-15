@@ -862,7 +862,10 @@ def task_lines(*, root: Path | None = None, local_tags: list[str] | None = None)
     lines = ["TASK MODELS", "  why       per-task local or cloud. Cloud only when you set it."]
     for row in doc["tasks"]:
         lines.append("  %-16s %-6s %s" % (row["task"], row["backend"], row["model"]))
-    lines.append("  compare   Compare last local catalog-fit run")
+    lines.append(
+        "  compare   %s against %s"
+        % ("|".join(COMPARE_TASKS), "|".join(SUGGEST_CLOUD))
+    )
     return lines
 
 
@@ -900,6 +903,18 @@ def setup_from_args(args) -> int | None:
     if asked and not yes:
         _prompt(root=getattr(args, "root", None))
     return 0
+
+
+def off_tty_setup_hint() -> str:
+    """The no-TTY setup lines. Testable without make env-init."""
+    return (
+        "model choice: no TTY. Set a row with: ./pfy model-choice set <task> <local:model|cloud:model>\n"
+        "Off a TTY, cloud is saved only by that explicit set. The committed default stays local."
+    )
+
+
+def print_off_tty_setup_hint() -> None:
+    print(off_tty_setup_hint())
 
 
 def sys_isatty() -> bool:

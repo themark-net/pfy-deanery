@@ -359,6 +359,14 @@ class Win:
         self.bbulk = ttk.Button(self.acts, text="Bulk — stay on this machine", command=lambda: self.set_loop_task("bulk"))
         self.binteractive = ttk.Button(self.acts, text="Interactive — local first", command=lambda: self.set_loop_task("interactive"))
         self.bhard = ttk.Button(self.acts, text="Hard — allow cloud", command=lambda: self.set_loop_task("hard"))
+        try:
+            from pfylib.model_choice import COMPARE_TASKS, SUGGEST_CLOUD
+        except Exception:
+            COMPARE_TASKS, SUGGEST_CLOUD = ("catalog-fit", "decision-route"), ("grok-4.7", "gpt-6.1-sol")
+        self.ctask = ttk.Combobox(self.acts, values=list(COMPARE_TASKS), width=16, state="readonly")
+        self.ctask.set(COMPARE_TASKS[0])
+        self.cagainst = ttk.Combobox(self.acts, values=list(SUGGEST_CLOUD), width=14, state="readonly")
+        self.cagainst.set(SUGGEST_CLOUD[0])
         self.bcmp = ttk.Button(self.acts, text="Compare last local run", command=self.compare_last_local)
         self.blocal = ttk.Button(self.acts, text="local", command=lambda: self.wizard_step("lane", "local"))
         self.bcloud = ttk.Button(self.acts, text="cloud/subscription", command=lambda: self.wizard_step("lane", "cloud/subscription"))
@@ -405,8 +413,16 @@ class Win:
     def compare_last_local(self):
         """Estimate first. A second click with the shown cap is the yes."""
         pending = getattr(self, "_compare_offer", None)
+        task = ""
+        against = ""
+        if getattr(self, "ctask", None) is not None:
+            task = str(self.ctask.get() or "")
+        if getattr(self, "cagainst", None) is not None:
+            against = str(self.cagainst.get() or "")
+        task = task or "catalog-fit"
+        against = against or "grok-4.7"
         if not pending:
-            result = confirm_compare(yes=False, isatty=False)
+            result = confirm_compare(task=task, against=against, yes=False, isatty=False)
             self._compare_offer = result
             self.msg = result.get("line") or result.get("error") or "FAIL compare"
             self.render()
@@ -416,7 +432,13 @@ class Win:
             self._compare_offer = None
             self.render()
             return
-        result = confirm_compare(yes=True, max_usd=pending.get("cost_usd"), isatty=False)
+        result = confirm_compare(
+            task=pending.get("task") or task,
+            against=pending.get("against") or against,
+            yes=True,
+            max_usd=pending.get("cost_usd"),
+            isatty=False,
+        )
         self._compare_offer = None
         if result.get("ran"):
             self.msg = "compared %s" % (result.get("out") or "")
@@ -1212,7 +1234,7 @@ class Win:
             self.paint_catalog("FAIL clipboard — select the prompt", True)
 
     def pack_acts(self, names):
-        forget = [self.bgrok, self.bopen, self.bhermes, self.bcodex, self.bclaude, self.bgab, self.bbare, self.borch, self.bgraph, self.bsi, self.bsiopen, self.bsifold, self.bsitask, self.bcopyep, self.bcopyst, self.brefresh, self.bcopy, self.bstage, self.benv, self.bpull, self.btest, self.breco, self.btry, self.pullname, self.sst, self.est, self.pst, self.rst, self.tst, self.ast, self.cst, self.sist, self.siabs, self.sirel, self.sitask, self.ewhat, self.siopenst, self.toolst, self.recst, self.tryst, self.catname, self.bask, self.bqueue, self.bcatcopy, self.catst, self.bsess, self.bbulk, self.binteractive, self.bhard, self.bcmp, self.blocal, self.bcloud, self.bofree, self.bcatalog, self.bhopenc, self.bhgrok, self.bhhermes, self.bhcodex, self.bhclaude, self.bhgab, self.bdecoff, self.bdeccua, self.bdects, self.bdecmj]
+        forget = [self.bgrok, self.bopen, self.bhermes, self.bcodex, self.bclaude, self.bgab, self.bbare, self.borch, self.bgraph, self.bsi, self.bsiopen, self.bsifold, self.bsitask, self.bcopyep, self.bcopyst, self.brefresh, self.bcopy, self.bstage, self.benv, self.bpull, self.btest, self.breco, self.btry, self.pullname, self.sst, self.est, self.pst, self.rst, self.tst, self.ast, self.cst, self.sist, self.siabs, self.sirel, self.sitask, self.ewhat, self.siopenst, self.toolst, self.recst, self.tryst, self.catname, self.bask, self.bqueue, self.bcatcopy, self.catst, self.bsess, self.bbulk, self.binteractive, self.bhard, self.ctask, self.cagainst, self.bcmp, self.blocal, self.bcloud, self.bofree, self.bcatalog, self.bhopenc, self.bhgrok, self.bhhermes, self.bhcodex, self.bhclaude, self.bhgab, self.bdecoff, self.bdeccua, self.bdects, self.bdecmj]
         forget.extend(self.tool_btns.values())
         for w in forget:
             try: w.pack_forget()
@@ -1220,7 +1242,7 @@ class Win:
         order = {
             "grok": self.bgrok, "open": self.bopen, "hermes": self.bhermes, "codex": self.bcodex, "claude": self.bclaude, "gab": self.bgab,
             "bare": self.bbare, "orch": self.borch, "graph": self.bgraph,
-            "sess": self.bsess, "bulk": self.bbulk, "interactive": self.binteractive, "hard": self.bhard, "cmp": self.bcmp,
+            "sess": self.bsess, "bulk": self.bbulk, "interactive": self.binteractive, "hard": self.bhard, "ctask": self.ctask, "cagainst": self.cagainst, "cmp": self.bcmp,
             "local": self.blocal, "cloud": self.bcloud, "ofree": self.bofree, "catalog": self.bcatalog,
             "hopenc": self.bhopenc, "hgrok": self.bhgrok, "hhermes": self.bhhermes, "hcodex": self.bhcodex, "hclaude": self.bhclaude, "hgab": self.bhgab,
             "decoff": self.bdecoff, "deccua": self.bdeccua, "dects": self.bdects, "decmj": self.bdecmj,
@@ -1293,7 +1315,7 @@ class Win:
                 txt += "\nwhat       " + what
             if stub: txt += f"\nFAIL       {s.get('blocked_copy') or GROK_USE}"
             if self.msg: txt += "\n" + self.msg
-            self.pack_acts(["bulk", "interactive", "hard", "cmp", "sess", "env", "copyep", "copyst", "est", "ast"])
+            self.pack_acts(["bulk", "interactive", "hard", "ctask", "cagainst", "cmp", "sess", "env", "copyep", "copyst", "est", "ast"])
         elif self.view == "engine":
             u = s.get("usage") if isinstance(s.get("usage"), dict) else {}
             sr = s.get("status_runtime") or {}
@@ -1349,7 +1371,7 @@ class Win:
                 nxt = u.get("next_step") or "Launch env or ./pfy up"
                 txt += f"\n{fail}\nnext       {nxt}"
             txt += "\n" + task_model_block()
-            self.pack_acts(["refresh", "copyep", "est", "cmp", "test", "pullname", "pull", "reco", "try", "tst", "pst", "rst", "recst", "tryst"])
+            self.pack_acts(["refresh", "copyep", "est", "ctask", "cagainst", "cmp", "test", "pullname", "pull", "reco", "try", "tst", "pst", "rst", "recst", "tryst"])
         elif self.view == "stage":
             sl = stage.get("live") or "SKIP"
             txt = f"STAGE\nEnvironment check. SKIP means a piece is missing — not a fake pass.\nenv-stage   {sl}"

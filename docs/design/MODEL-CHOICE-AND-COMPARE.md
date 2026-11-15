@@ -21,7 +21,7 @@ Nothing new was adopted. No second router, no second GUI page.
 
 ## Software factory
 
-1. **Trigger.** Operator, in setup, on the Loop or Engine view, or `./pfy model-choice set`. Compare: `./pfy compare catalog-fit --against <model>` or `./pfy compare decision-route --against <model>`, or the Loop / Engine "Compare last local catalog-fit run" button. Reminder: `./pfy status` and one call at the end of `scripts/catalog_loop.sh`, only when the last compare is older than 14 days and a newer `eval/catalog-fit/*.json` exists. The reminder stays on catalog-fit. Price refresh: the online half of that same loop, at most once per 7 days. `PFY_CATALOG_OFFLINE=1` skips it.
+1. **Trigger.** Operator, in setup, on the Loop or Engine view, or `./pfy model-choice set`. Compare: `./pfy compare catalog-fit --against <model>` or `./pfy compare decision-route --against <model>`, or the Loop / Engine "Compare last local run" control (task `catalog-fit` or `decision-route`, against `grok-4.7` or `gpt-6.1-sol`). Reminder: `./pfy status` and one call at the end of `scripts/catalog_loop.sh`, only when the last compare is older than 14 days and a newer `eval/catalog-fit/*.json` exists. The reminder stays on catalog-fit. Price refresh: the online half of that same loop, at most once per 7 days. `PFY_CATALOG_OFFLINE=1` skips it.
 2. **Reads / writes.** Reads committed `config/model-choice.json`, user override `XDG_CONFIG_HOME/pfy/model-choice.json` (default `~/.config/pfy/`), `PFY_MODEL_<TASK>`, LiteLLM yaml model names, Ollama `GET /api/tags` (no pull), `data/model-prices.json`, the public `source` URLs in that file (GET, no auth), catalog-fit goldens and `eval/catalog-fit/`, and `data/decision-gates/laya-trial.cases.v0.json`. Writes the user override, `XDG_STATE_HOME/pfy/model-compare.json`, `./tmp/compare-*.json`, and, when a price parse is confident, `in` / `out` / existing `cached_in` or `long_context` plus `fetched` in `data/model-prices.json`. The 7-day stamp lives under the loop STATE dir (`model-prices-refresh.json`), outside the repo. Cloud POST goes to the LiteLLM proxy only after a yes. The price job never POSTs.
 3. **Triggers next.** A saved choice is what `resolve(task)` returns. catalog-fit triage and the runners below call it (or `runner_choice`). Compare writes a verdict diff. Nothing starts a lane, a pull, or another compare.
 4. **Human re-enters.** Every cloud backend is an explicit config or `cloud:` value. Compare prints the cloud model, why the recorded local run stays $0, a wall-time range, and the price line. It waits for `y` / `yes` on a TTY, or `--yes` plus `--max-usd` / `--max-cost`, or a cap that covers the estimate. It never auto-runs. The reminder only prints a command.
@@ -46,7 +46,7 @@ Nothing new was adopted. No second router, no second GUI page.
 
 Sidebar stays Loop / Engine / Stage / Attach.
 
-Loop, under "1. Where work runs" (local compute | cloud orchestration): one row per task class. Local and cloud are buttons. The select lists models. The current choice is selected. "Compare last local catalog-fit run" sits on that step because that is the work being checked. The first click returns the price line from `./pfy compare`. "Run it" sends that cost back with confirm. The server recomputes and refuses if the cap is below the estimate.
+Loop, under "1. Where work runs" (local compute | cloud orchestration): one row per task class. Local and cloud are buttons. The select lists models. The current choice is selected. "Compare last local run" sits on that step with a task select (`catalog-fit`, `decision-route`) and an against select (`grok-4.7`, `gpt-6.1-sol`). The first click returns the price line from `./pfy compare` for that pair. "Run it" sends that offer's task, against, and cost with confirm. The server recomputes and refuses if the cap is below the estimate. Engine repeats the same control.
 
 Engine shows the same rows. The local model and the per-task choice are the same subject.
 
@@ -74,7 +74,7 @@ A cloud choice takes effect only on a LiteLLM transport. catalog-fit already swi
 1. Operator opens Loop or runs `./pfy setup`. Each task shows `local` and the committed model.
 2. They set catalog-fit to `cloud:grok-4.7` or leave it local.
 3. Later, status prints: it will cost about a few cents to check the last local catalog-fit run.
-4. They run `./pfy compare catalog-fit --against grok-4.7` or `./pfy compare decision-route --against grok-4.7`. The process prints the token line (with the counter name), the provider, the source, and the fetched date, then waits.
+4. They run `./pfy compare catalog-fit --against grok-4.7` or `./pfy compare decision-route --against gpt-6.1-sol`, or they pick that pair on Loop or Engine and click Compare last local run. The process prints the token line (with the counter name), the provider, the source, and the fetched date, then waits.
 5. `y`, `--yes --max-usd <limit>` (or `--max-cost`), or a covering cap alone runs one cloud call per case through LiteLLM. The diff lands in `./tmp` and records `choice` plus `actual`. `n`, a closed stdin, a stale price, an unknown model, or a cap below the estimate runs nothing. A second compare while the lock is held does not run. Paid compare never auto-runs.
 
 ## Deferred

@@ -69,7 +69,8 @@ class GuiModelChoiceTests(unittest.TestCase):
         self.assertIn("catalog-fit", block)
         self.assertIn("local", block)
         self.assertIn("qwen3.6:35b", block)
-        self.assertIn("Compare last local", block)
+        self.assertIn("compare", block)
+        self.assertIn("catalog-fit|decision-route", block)
         self.assertNotIn("grok-4.7", block.split("compare", 1)[0])
 
     def test_compare_control_returns_the_price_line_and_does_not_call(self) -> None:
@@ -100,7 +101,7 @@ class GuiModelChoiceTests(unittest.TestCase):
         self.assertIn('data-spec="local:', html)
         self.assertIn("cloud", html)
         page = (ROOT / "gui" / "operator" / "frontend" / "index.html").read_text(encoding="utf-8")
-        self.assertEqual(page.count("Compare last local catalog-fit run"), 2)
+        self.assertEqual(page.count("Compare last local run"), 2)
         self.assertIn('id=task-models', page)
         self.assertIn('id=task-models-engine', page)
         script = (ROOT / "gui" / "operator" / "frontend" / "app-ui.js").read_text(encoding="utf-8")
@@ -141,6 +142,95 @@ class GuiModelChoiceTests(unittest.TestCase):
         self.assertFalse(blocked.get("ran"))
         self.assertIn("exceeds", blocked.get("blocked") or blocked.get("line") or "")
         self.assertEqual(self.calls, [])
+
+    def test_screen_offers_decision_route_and_gpt_and_does_not_price_in_js(self) -> None:
+        """Fail: Loop/Engine still hardcode catalog-fit vs grok-4.7.
+
+        Recover: both views list the CLI compare tasks and against models,
+        the first click posts confirm:false with those values, and Run it
+        spends only the offer's task/against under the shown cap.
+        """
+        page = (ROOT / "gui" / "operator" / "frontend" / "index.html").read_text(encoding="utf-8")
+        self.assertEqual(page.count("js-compare-box"), 2)
+        self.assertEqual(page.count("js-compare-task"), 2)
+        self.assertEqual(page.count("js-compare-against"), 2)
+        self.assertEqual(page.count("Compare last local run"), 2)
+        self.assertIn("value=catalog-fit selected", page)
+        self.assertIn("value=grok-4.7 selected", page)
+        for task in mc.COMPARE_TASKS:
+            self.assertGreaterEqual(page.count("value=%s" % task), 2, task)
+        for model in mc.SUGGEST_CLOUD:
+            self.assertGreaterEqual(page.count("value=%s" % model), 2, model)
+        script = (ROOT / "gui" / "operator" / "frontend" / "app-ui.js").read_text(encoding="utf-8")
+        self.assertIn("compareFields", script)
+        self.assertIn("task:f.task", script)
+        self.assertIn("against:f.against", script)
+        self.assertIn("confirm:false", script)
+        self.assertIn("confirm:true", script)
+        self.assertIn("compareOffer.task", script)
+        self.assertIn("compareOffer.against", script)
+        self.assertIn("max_usd:compareOffer.cost_usd", script)
+        self.assertNotIn("task:'catalog-fit'", script)
+        self.assertNotIn('task:"catalog-fit"', script)
+        self.assertNotIn("against:'grok-4.7'", script)
+        self.assertNotIn("per 1M", script)
+        self.assertNotIn("price_in", script)
+        gui_src = (ROOT / "scripts" / "pfy-gui.py").read_text(encoding="utf-8")
+        self.assertIn("COMPARE_TASKS", gui_src)
+        self.assertIn("SUGGEST_CLOUD", gui_src)
+        self.assertIn("self.ctask", gui_src)
+        self.assertIn("self.cagainst", gui_src)
+        self.assertIn('pending.get("task")', gui_src)
+        self.assertIn('pending.get("against")', gui_src)
+
+    def test_loop_text_names_both_compare_tasks_and_against_models(self) -> None:
+        body = self.gui.loop_text(
+            {"modules": [], "hedge": {}},
+            "SKIP",
+            "(none)",
+            "(none)",
+            "gui",
+            "",
+        )
+        block = body.split("WORK CLASS", 1)[0]
+        self.assertIn("catalog-fit", block)
+        self.assertIn("decision-route", block)
+        self.assertIn("grok-4.7", block)
+        self.assertIn("gpt-6.1-sol", block)
+
+    def test_confirm_path_quotes_gpt_on_decision_route_and_does_not_call(self) -> None:
+        preview = self.gui.confirm_compare(
+            task="decision-route",
+            against="gpt-6.1-sol",
+            yes=False,
+            isatty=False,
+            root=ROOT,
+            out=str(self.tmp / "out-decision.json"),
+        )
+        self.assertFalse(preview.get("ran"))
+        self.assertEqual(preview.get("task"), "decision-route")
+        self.assertEqual(preview.get("against"), "gpt-6.1-sol")
+        line = preview.get("line") or ""
+        self.assertIn("decision-route (48 cases)", line)
+        self.assertIn("gpt-6.1-sol", line)
+        self.assertIn("OpenAI", line)
+        self.assertIn("developers.openai.com", line)
+        self.assertIn("fetched 2026-11-11", line)
+        self.assertEqual(self.calls, [])
+        self.assertTrue(preview.get("needs_confirm"), preview)
+        blocked = mc.gui_compare(
+            {
+                "task": "decision-route",
+                "against": "gpt-6.1-sol",
+                "confirm": True,
+                "max_usd": 0.0001,
+            },
+            root=ROOT,
+        )
+        self.assertFalse(blocked.get("ran"))
+        self.assertIn("exceeds", blocked.get("blocked") or blocked.get("line") or "")
+        self.assertEqual(self.calls, [])
+        self.assertFalse((self.tmp / "out-decision.json").exists())
 
 
 if __name__ == "__main__":

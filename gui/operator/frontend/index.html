@@ -125,8 +125,20 @@ noscript .fail{padding:16px;display:block}
       <p class=why>Each task keeps the model already chosen. Cloud stays off until you set it on this row. Enter is not required: the current choice is selected.</p>
     </div>
     <div id=task-models class=task-models></div>
-    <div class=acts>
-      <button type=button class="primary js-compare-fit">Compare last local catalog-fit run</button>
+    <div class="acts js-compare-box">
+      <label class=muted>task
+        <select class=js-compare-task>
+          <option value=catalog-fit selected>catalog-fit</option>
+          <option value=decision-route>decision-route</option>
+        </select>
+      </label>
+      <label class=muted>against
+        <select class=js-compare-against>
+          <option value=grok-4.7 selected>grok-4.7</option>
+          <option value=gpt-6.1-sol>gpt-6.1-sol</option>
+        </select>
+      </label>
+      <button type=button class="primary js-compare-fit">Compare last local run</button>
       <button type=button class="js-compare-run" hidden>Run it</button>
     </div>
     <p class="attach-result js-compare-msg"></p>
@@ -201,8 +213,20 @@ noscript .fail{padding:16px;display:block}
       <p class=why>Same choice as Loop. Local is this machine. Cloud is the LiteLLM proxy, and only after you pick it.</p>
     </div>
     <div id=task-models-engine class=task-models></div>
-    <div class=acts>
-      <button type=button class="primary js-compare-fit">Compare last local catalog-fit run</button>
+    <div class="acts js-compare-box">
+      <label class=muted>task
+        <select class=js-compare-task>
+          <option value=catalog-fit selected>catalog-fit</option>
+          <option value=decision-route>decision-route</option>
+        </select>
+      </label>
+      <label class=muted>against
+        <select class=js-compare-against>
+          <option value=grok-4.7 selected>grok-4.7</option>
+          <option value=gpt-6.1-sol>gpt-6.1-sol</option>
+        </select>
+      </label>
+      <button type=button class="primary js-compare-fit">Compare last local run</button>
       <button type=button class="js-compare-run" hidden>Run it</button>
     </div>
     <p class="attach-result js-compare-msg"></p>

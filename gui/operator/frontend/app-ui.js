@@ -336,10 +336,17 @@ async function refreshTaskModels(){
 function paintCompare(text){
   document.querySelectorAll('.js-compare-msg').forEach(el=>{el.textContent=text||'';});
 }
+function compareFields(el){
+  const box=el.closest('.js-compare-box')||document;
+  const taskSel=box.querySelector('.js-compare-task');
+  const againstSel=box.querySelector('.js-compare-against');
+  return {task:(taskSel&&taskSel.value)||'catalog-fit', against:(againstSel&&againstSel.value)||'grok-4.7'};
+}
 document.querySelectorAll('.js-compare-fit').forEach(btn=>{
   btn.addEventListener('click', async ()=>{
     paintCompare('checking cost…');
-    const j=await postCompare({task:'catalog-fit', against:'grok-4.7', confirm:false});
+    const f=compareFields(btn);
+    const j=await postCompare({task:f.task, against:f.against, confirm:false});
     compareOffer=j;
     paintCompare((j&&j.line)||(j&&j.error)||'FAIL compare');
     document.querySelectorAll('.js-compare-run').forEach(run=>{run.hidden=!(j&&j.needs_confirm);});
@@ -348,7 +355,7 @@ document.querySelectorAll('.js-compare-fit').forEach(btn=>{
 document.querySelectorAll('.js-compare-run').forEach(btn=>{
   btn.addEventListener('click', async ()=>{
     if(!compareOffer) return;
-    const j=await postCompare({task:'catalog-fit', against:compareOffer.against||'grok-4.7', confirm:true, max_usd:compareOffer.cost_usd});
+    const j=await postCompare({task:compareOffer.task||'catalog-fit', against:compareOffer.against||'grok-4.7', confirm:true, max_usd:compareOffer.cost_usd});
     compareOffer=null;
     document.querySelectorAll('.js-compare-run').forEach(run=>{run.hidden=true;});
     paintCompare(j.ran?('wrote '+(j.out||'')):(j.error||j.blocked||j.line||'not run'));
