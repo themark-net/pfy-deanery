@@ -38,7 +38,7 @@ class GuiModelChoiceTests(unittest.TestCase):
         self.tmp, self.iso_saved = iso_begin(prefix="pfy-gui-model-")
         self._home = os.environ.get("HOME")
         os.environ["HOME"] = str(self.tmp / "home")
-        (self.tmp / "home").mkdir()
+        (self.tmp / "home").mkdir(exist_ok=True)
         self.calls: list[dict] = []
         self._transport = mc._TRANSPORT
         mc._TRANSPORT = self._refuse

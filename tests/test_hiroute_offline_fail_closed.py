@@ -85,8 +85,79 @@ class HirouteOfflineFailClosedTest(unittest.TestCase):
             work.rmdir()
 
     def test_routing_list_success_writes_receipt(self):
-        work = pathlib.Path(tempfile.mkdtemp(dir="/tmp"))
+        # The script cds to its repo root and requires HEAD to be an ancestor
+        # of origin/main. Drive a copy of the script from a temp repo so this
+        # check does not depend on the checkout that is running the tests.
+        work = pathlib.Path(tempfile.mkdtemp(prefix="hiroute-ok-", dir="/tmp"))
         try:
+            repo = work / "repo"
+            remote = work / "remote.git"
+            repo.mkdir()
+            env = os.environ.copy()
+            env["GIT_AUTHOR_NAME"] = "hiroute"
+            env["GIT_AUTHOR_EMAIL"] = "hiroute@example.com"
+            env["GIT_COMMITTER_NAME"] = "hiroute"
+            env["GIT_COMMITTER_EMAIL"] = "hiroute@example.com"
+            subprocess.run(
+                ["git", "init", "-b", "main"],
+                cwd=repo,
+                env=env,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            (repo / "README").write_text("ok\n", encoding="utf-8")
+            subprocess.run(
+                ["git", "add", "README"],
+                cwd=repo,
+                env=env,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            subprocess.run(
+                ["git", "commit", "-m", "init"],
+                cwd=repo,
+                env=env,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            subprocess.run(
+                ["git", "clone", "--bare", str(repo), str(remote)],
+                env=env,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            subprocess.run(
+                ["git", "remote", "add", "origin", str(remote)],
+                cwd=repo,
+                env=env,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            subprocess.run(
+                ["git", "fetch", "origin"],
+                cwd=repo,
+                env=env,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            subprocess.run(
+                ["git", "branch", "--set-upstream-to=origin/main", "main"],
+                cwd=repo,
+                env=env,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            dest_script = repo / "eval" / "integrate" / "hiroute" / "run-on-main.sh"
+            dest_script.parent.mkdir(parents=True)
+            dest_script.write_text(SCRIPT.read_text(encoding="utf-8"), encoding="utf-8")
+            dest_script.chmod(dest_script.stat().st_mode | stat.S_IEXEC)
             hi = work / "hiroute"
             dest = work / "receipt.json"
             marker = work / "missing-marker"
@@ -108,13 +179,14 @@ class HirouteOfflineFailClosedTest(unittest.TestCase):
                 encoding="utf-8",
             )
             hi.chmod(hi.stat().st_mode | stat.S_IEXEC)
-            env = os.environ.copy()
             env["HIROUTE_BIN"] = str(hi)
             env["PFY_HIROUTE_LANE_MARKER"] = str(marker)
             env["HIROUTE_CACHE"] = str(work / "cache")
+            env["HOME"] = str(work / "home")
+            (work / "home").mkdir()
             proc = subprocess.run(
-                ["/bin/bash", str(SCRIPT), str(dest)],
-                cwd=ROOT,
+                ["/bin/bash", str(dest_script), str(dest)],
+                cwd=repo,
                 env=env,
                 capture_output=True,
                 text=True,

@@ -62,7 +62,7 @@ class Isolated(unittest.TestCase):
         self.tmp, self.iso_saved = iso_begin(prefix="pfy-model-choice-")
         self._home = os.environ.get("HOME")
         os.environ["HOME"] = str(self.tmp / "home")
-        (self.tmp / "home").mkdir()
+        (self.tmp / "home").mkdir(exist_ok=True)
         self.calls: list[dict] = []
         self._transport = mc._TRANSPORT
         self._counters = mc._COUNTERS
@@ -248,6 +248,10 @@ class SetupTests(Isolated):
         path = mc.user_config_path()
         self.assertTrue(path.is_file())
         self.assertFalse(str(path).startswith(str(ROOT)))
+        self.assertTrue(str(path).startswith(str(self.tmp)))
+        self.assertEqual(os.environ.get("HOME"), str(self.tmp / "home"))
+        self.assertEqual(os.environ.get("XDG_CONFIG_HOME"), str(self.tmp / "xdg-config"))
+        self.assertEqual(os.environ.get("XDG_STATE_HOME"), str(self.tmp / "xdg-state"))
         stored = json.loads(path.read_text(encoding="utf-8"))
         self.assertEqual(stored["tasks"]["catalog-fit"], {"backend": "cloud", "model": "grok-4.7"})
         committed = json.loads((ROOT / "config" / "model-choice.json").read_text(encoding="utf-8"))

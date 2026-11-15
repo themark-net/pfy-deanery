@@ -13,6 +13,8 @@ from pathlib import Path
 # Names that can change resolve() or the compare ledger. Cleared, then the
 # four paths below are pointed at the temp dir.
 ISOLATED_KEYS = (
+    "HOME",
+    "TMPDIR",
     "PFY_MODEL_CATALOG_FIT",
     "PFY_MODEL_EVAL_LANE",
     "PFY_MODEL_EVAL_SUITE",
@@ -56,8 +58,14 @@ def _mkdtemp_outside_repo(prefix: str) -> Path:
 def begin(prefix: str = "pfy-mc-iso-") -> tuple[Path, dict]:
     tmp = _mkdtemp_outside_repo(prefix)
     saved = {key: os.environ.get(key) for key in ISOLATED_KEYS}
+    saved["_tempfile_tempdir"] = tempfile.tempdir
     for key in ISOLATED_KEYS:
         os.environ.pop(key, None)
+    home = tmp / "home"
+    home.mkdir()
+    os.environ["HOME"] = str(home)
+    os.environ["TMPDIR"] = str(tmp)
+    tempfile.tempdir = str(tmp)
     os.environ["PFY_MODEL_NO_PAID"] = "1"
     os.environ["PFY_MODEL_CHOICE_PATH"] = str(tmp / "model-choice.json")
     os.environ["PFY_COMPARE_STATE_PATH"] = str(tmp / "model-compare.json")
@@ -69,6 +77,7 @@ def begin(prefix: str = "pfy-mc-iso-") -> tuple[Path, dict]:
 
 
 def end(tmp: Path, saved: dict) -> None:
+    tempfile.tempdir = saved.pop("_tempfile_tempdir", tempfile.tempdir)
     for key, value in saved.items():
         if value is None:
             os.environ.pop(key, None)
@@ -95,6 +104,10 @@ def isolate_env(env: dict, root: Path) -> dict:
     env["PFY_COMPARE_STATE_PATH"] = str(root / "model-compare.json")
     env["XDG_CONFIG_HOME"] = str(root / "xdg-config")
     env["XDG_STATE_HOME"] = str(root / "xdg-state")
+    home = root / "home"
+    home.mkdir(parents=True, exist_ok=True)
+    env["HOME"] = str(home)
+    env["TMPDIR"] = str(root)
     Path(env["XDG_CONFIG_HOME"]).mkdir(parents=True, exist_ok=True)
     Path(env["XDG_STATE_HOME"]).mkdir(parents=True, exist_ok=True)
     return env
@@ -116,4 +129,8 @@ def subprocess_env(base: dict | None = None, root: Path | None = None) -> dict:
     env["PFY_COMPARE_STATE_PATH"] = env.get("PFY_COMPARE_STATE_PATH") or str(root / "model-compare.json")
     env["XDG_CONFIG_HOME"] = env.get("XDG_CONFIG_HOME") or str(config)
     env["XDG_STATE_HOME"] = env.get("XDG_STATE_HOME") or str(state)
+    home = root / "home"
+    home.mkdir(parents=True, exist_ok=True)
+    env["HOME"] = env.get("HOME") or str(home)
+    env["TMPDIR"] = env.get("TMPDIR") or str(root)
     return env
