@@ -163,26 +163,56 @@ def laya_shadow_enabled():
     )
 
 
-def laya_shadow_model():
-    """Shadow call model.
+def laya_shadow_choice(local_tags=None):
+    """Return (model, source) for the local laya-serve shadow POST.
 
     PFY_JEV_MODEL wins (the runner's own env, not an alias of
     PFY_MODEL_DECISION_ROUTE). Otherwise model_choice. This path posts to
     local laya-serve, not LiteLLM, so a cloud choice is refused and the
     committed local model is kept. Import failure keeps ``english``.
+    local_tags, when passed, may select the committed fallback. An empty
+    list means detection failed, so the preferred local model stays.
     """
     raw = str(os.environ.get("PFY_JEV_MODEL") or "").strip()
     if raw:
-        return raw
+        return raw, "flag"
     root = Path(__file__).resolve().parents[1]
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
     try:
         from pfylib.model_choice import runner_choice
-        _backend, model, _source = runner_choice("decision-route", transport="ollama", root=root)
-        return model or LAYA_SHADOW_MODEL
+        _backend, model, source = runner_choice(
+            "decision-route",
+            transport="ollama",
+            root=root,
+            local_tags=local_tags,
+        )
+        return (model or LAYA_SHADOW_MODEL), source
     except Exception:
-        return LAYA_SHADOW_MODEL
+        return LAYA_SHADOW_MODEL, "default"
+
+
+def laya_shadow_model(local_tags=None):
+    """Shadow call model. See laya_shadow_choice for source and fallback."""
+    model, _source = laya_shadow_choice(local_tags=local_tags)
+    return model
+
+
+def _laya_missing_model(rec):
+    err = str((rec or {}).get("error") or "")
+    return "not found" in err.lower() or "404" in err
+
+
+def _laya_committed_pair(root=None):
+    """Preferred and fallback tags from config/model-choice.json."""
+    try:
+        from pfylib.model_choice import committed_tasks, local_default
+        preferred = local_default("decision-route", root)
+        raw = committed_tasks(root).get("decision-route") or {}
+        fallback = str((raw if isinstance(raw, dict) else {}).get("fallback") or "").strip()
+        return preferred, fallback
+    except Exception:
+        return "", ""
 
 
 def typesafe_url_is_local(url=None):
@@ -315,7 +345,10 @@ def maybe_laya_shadow(rec, state, criteria, *, instructions="", qid="shadow"):
 
     Flag off → identity (no network, no shadow key). Flag on + disagree or
     Laya error → escalate (exit 3). Flag on + agree → leave CUA ready and
-    attach a shadow log. Never calls cloud TypeSafe.
+    attach a shadow log. Never calls cloud TypeSafe. A 404 or "not found"
+    on the committed default tag retries once on the committed fallback.
+    PFY_JEV_MODEL and a saved other tag do not retry. typesafe_model() is
+    not this path.
     """
     if not laya_shadow_enabled():
         return rec
@@ -361,28 +394,45 @@ def maybe_laya_shadow(rec, state, criteria, *, instructions="", qid="shadow"):
             "criteria": criteria,
         }
     }
-    saved_model = os.environ.get("PFY_JEV_MODEL")
-    injected_key = False
-    os.environ["PFY_JEV_MODEL"] = model
-    if not typesafe_key():
-        os.environ["TYPESAFE_API_KEY"] = LAYA_SHADOW_DUMMY_KEY
-        injected_key = True
-    try:
-        laya_rec = typesafe_evaluate(state, questions)
-    except Exception as e:
-        laya_rec = fail(
-            "decision",
-            "Laya shadow: %s" % str(e)[:120],
-            NEXT_LOW,
-            engine="laya",
+
+    def _post(model_name):
+        saved_model = os.environ.get("PFY_JEV_MODEL")
+        injected_key = False
+        os.environ["PFY_JEV_MODEL"] = model_name
+        if not typesafe_key():
+            os.environ["TYPESAFE_API_KEY"] = LAYA_SHADOW_DUMMY_KEY
+            injected_key = True
+        try:
+            try:
+                return typesafe_evaluate(state, questions)
+            except Exception as e:
+                return fail(
+                    "decision",
+                    "Laya shadow: %s" % str(e)[:120],
+                    NEXT_LOW,
+                    engine="laya",
+                )
+        finally:
+            if saved_model is None:
+                os.environ.pop("PFY_JEV_MODEL", None)
+            else:
+                os.environ["PFY_JEV_MODEL"] = saved_model
+            if injected_key:
+                os.environ.pop("TYPESAFE_API_KEY", None)
+
+    laya_rec = _post(model)
+    fallback_from = None
+    root = Path(__file__).resolve().parents[1]
+    preferred, fallback = _laya_committed_pair(root)
+    if _laya_missing_model(laya_rec) and model == preferred and fallback and fallback != model:
+        print(
+            "decision-route: fallback %s -> %s (%s)"
+            % (model, fallback, str(laya_rec.get("error") or "model missing")[:120]),
+            file=sys.stderr,
         )
-    finally:
-        if saved_model is None:
-            os.environ.pop("PFY_JEV_MODEL", None)
-        else:
-            os.environ["PFY_JEV_MODEL"] = saved_model
-        if injected_key:
-            os.environ.pop("TYPESAFE_API_KEY", None)
+        fallback_from = model
+        laya_rec = _post(fallback)
+        model = fallback
     latency = round(time.perf_counter() - t0, 4)
     answers = laya_rec.get("answers") if isinstance(laya_rec, dict) else {}
     ans = {}
@@ -410,6 +460,8 @@ def maybe_laya_shadow(rec, state, criteria, *, instructions="", qid="shadow"):
         "action": "pass",
         "latency_s": latency,
     }
+    if fallback_from:
+        shadow["fallback_from"] = fallback_from
     if laya_choice is None:
         shadow["error"] = str(
             laya_rec.get("error") or laya_rec.get("copy") or "Laya shadow returned no choice"

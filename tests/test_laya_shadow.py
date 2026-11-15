@@ -2,11 +2,14 @@
 from __future__ import annotations
 
 import importlib.util
+import io
 import os
 import unittest
+from contextlib import redirect_stderr
 from unittest import mock
 
 ROOT = __import__("pathlib").Path(__file__).resolve().parents[1]
+from tests._model_choice_isolation import begin, end  # noqa: E402
 
 
 def _load():
@@ -217,6 +220,116 @@ class LayaShadowFlagTests(unittest.TestCase):
             ev.assert_not_called()
         self.assertIs(out, ready)
         self.assertNotIn("shadow", out)
+
+
+class LayaShadowFallbackTests(unittest.TestCase):
+    """Fail: a missing default laya tag aborts, or typesafe_model is retargeted.
+    Recover: one fake POST retry on qwen2.5:14b. PFY_JEV_MODEL and a saved
+    other tag stay put. typesafe_model stays jev-1.13.0.
+    """
+
+    def setUp(self):
+        self._saved = {k: os.environ.get(k) for k in ENV_KEYS}
+        for k in ENV_KEYS:
+            os.environ.pop(k, None)
+        self.tmp, self.iso = begin(prefix="pfy-laya-fb-")
+
+    def tearDown(self):
+        end(self.tmp, self.iso)
+        for k, v in self._saved.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+
+    def test_fake_tags_select_the_committed_fallback(self):
+        self.assertEqual(
+            jev.laya_shadow_model(local_tags=["qwen2.5:14b"]),
+            "qwen2.5:14b",
+        )
+        self.assertEqual(
+            jev.laya_shadow_model(local_tags=["other:1b"]),
+            "qwen3.6:35b",
+        )
+        self.assertEqual(jev.laya_shadow_model(local_tags=[]), "qwen3.6:35b")
+        os.environ["PFY_JEV_MODEL"] = "english"
+        self.assertEqual(
+            jev.laya_shadow_model(local_tags=["qwen2.5:14b"]),
+            "english",
+        )
+
+    def test_typesafe_model_stays_off_model_choice(self):
+        os.environ.pop("PFY_JEV_MODEL", None)
+        self.assertEqual(jev.laya_shadow_model(), "qwen3.6:35b")
+        self.assertEqual(jev.typesafe_model(), "jev-1.13.0")
+
+    def test_load_error_retries_the_fallback_once_unless_the_model_is_explicit(self):
+        os.environ["PFY_JEV_LAYA_SHADOW"] = "1"
+        os.environ["PFY_JEV_TYPESAFE_URL"] = "http://127.0.0.1:8765/v1/systemone"
+        ready = _ready_choice()
+        cua_choice = ready.get("choice")
+        seen: list[str] = []
+
+        def fake_eval(state, questions, ROOT=None):
+            model = jev.typesafe_model()
+            seen.append(model)
+            if model == "qwen3.6:35b":
+                return jev.fail(
+                    "decision",
+                    "TypeSafe HTTP 404",
+                    jev.NEXT_KEY,
+                    engine="typesafe",
+                    model=model,
+                )
+            if model != "qwen2.5:14b":
+                raise AssertionError(model)
+            qid = next(iter(questions))
+            return {
+                "ok": True,
+                "answers": {qid: {"choice": cua_choice, "confidence": 0.2}},
+                "model": model,
+            }
+
+        err = io.StringIO()
+        with redirect_stderr(err):
+            with mock.patch.object(jev, "typesafe_evaluate", side_effect=fake_eval):
+                rec = jev.maybe_laya_shadow(ready, STATE, CRITERIA, qid="case")
+        self.assertEqual(seen, ["qwen3.6:35b", "qwen2.5:14b"])
+        self.assertTrue(rec.get("auto_act"))
+        shadow = rec.get("shadow") or {}
+        self.assertEqual(shadow.get("model"), "qwen2.5:14b")
+        self.assertEqual(shadow.get("fallback_from"), "qwen3.6:35b")
+        self.assertEqual(shadow.get("action"), "pass")
+        self.assertIn(
+            "decision-route: fallback qwen3.6:35b -> qwen2.5:14b",
+            err.getvalue(),
+        )
+        self.assertEqual(jev.typesafe_model(), "jev-1.13.0")
+
+        seen.clear()
+        os.environ["PFY_JEV_MODEL"] = "english"
+        err = io.StringIO()
+        with redirect_stderr(err):
+            with mock.patch.object(jev, "typesafe_evaluate", side_effect=fake_eval):
+                rec = jev.maybe_laya_shadow(ready, STATE, CRITERIA, qid="case")
+        self.assertEqual(seen, ["english"])
+        self.assertFalse(rec.get("auto_act"))
+        self.assertNotIn("fallback qwen3.6:35b", err.getvalue())
+        shadow = rec.get("shadow") or {}
+        self.assertNotIn("fallback_from", shadow)
+        os.environ.pop("PFY_JEV_MODEL", None)
+
+        seen.clear()
+        from pfylib import model_choice as mc
+
+        mc.save_task("decision-route", "local", "custom:9b")
+        err = io.StringIO()
+        with redirect_stderr(err):
+            with mock.patch.object(jev, "typesafe_evaluate", side_effect=fake_eval):
+                rec = jev.maybe_laya_shadow(ready, STATE, CRITERIA, qid="case")
+        self.assertEqual(seen, ["custom:9b"])
+        self.assertFalse(rec.get("auto_act"))
+        self.assertNotIn("fallback qwen3.6:35b", err.getvalue())
 
 
 if __name__ == "__main__":
