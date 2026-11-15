@@ -25,9 +25,9 @@ Status words: MET (closed, including this pass), ALREADY-FIXED (true on main bef
 |-------------|----------------------|---------------------|----------------------|-----------|--------------------------|--------|
 | `./pfy model-choice` show, set, prompt | CLI per task | Not this verb | Shows the committed row | No model call | Writes the user file | ALREADY-FIXED |
 | `./pfy setup` on a TTY | Prompts each task. Enter keeps the row | Not this verb | Shows the committed row | No model call | Save writes the user file | ALREADY-FIXED |
-| `./pfy setup` off a TTY | Prints `./pfy model-choice set <task> <local:model\|cloud:model>` and says the committed default stays local | Not this verb | Does not switch the row | No model call | The set command writes the user file | MET |
+| `./pfy setup` off a TTY | Prints `./pfy model-choice set <task> <local:model\|cloud:model>` and says the committed default stays local. The lines come from `print_off_tty_setup_hint()` so a test can read them without `make env-init` | Not this verb | Does not switch the row | No model call | The set command writes the user file | MET |
 | Operator Loop and Engine task rows | Local and cloud buttons, prefilled from `resolve` | Separate row below | Same committed defaults | Choice does not spend | Same user file | ALREADY-FIXED |
-| Operator "Compare last local catalog-fit run" | Against `grok-4.7` only | First click returns the price line. "Run it" sends that cost. The server recomputes | Local side is the recorded catalog-fit run | Refuses when the cap is under the estimate | Compare state file | GAP |
+| Operator Loop and Engine "Compare last local run" | `catalog-fit` or `decision-route` against `grok-4.7` or `gpt-6.1-sol`. Defaults stay catalog-fit / grok-4.7 | First click returns the price line for the selected pair. "Run it" sends that offer's task, against, and cost. The server recomputes | Local side is the recorded run for that task | Refuses when the cap is under the estimate | Compare state file | MET |
 | `./pfy compare catalog-fit` and `./pfy compare decision-route` | `--against grok-4.7` or `gpt-6.1-sol` | Estimate from counted tokens and the price table, then `y` or a cap | Local side is the recorded run, not a new local call | Off a TTY needs the flag. Unknown model and stale price do not send | Compare state file | ALREADY-FIXED |
 | `./pfy status` compare reminder | Names the command | Prints only. Does not price a send | Catalog-fit only | No spend | Reads the compare state file | ALREADY-FIXED |
 | `./pfy build` cloud route and `./pfy build -p` | The route is the choice. Local is the other command | Not a past-result compare | Cloud model is the build route's model | Estimate, then yes. Off a TTY needs the flag. Local prints `$0` and does not ask | Not a model-choice row | ALREADY-FIXED |
@@ -52,7 +52,7 @@ Status words: MET (closed, including this pass), ALREADY-FIXED (true on main bef
 - `call_model` cloud path, and catalog-fit when it uses that path: estimate, then the yes rules. `run_compare` sets `paid_ok` so a compare does not prompt twice.
 - `egm_review.py`: same yes rules, fake grok in tests, before any reviewer process.
 - `build-lane` and `decision-route` fallback keys in `config/model-choice.json`. `pfy build --local` applies the fallback only for the default tag, against a fake tag list. `call_model` retries once when the committed default tag is missing. An explicit other tag does not switch.
-- Off-TTY `./pfy setup` prints the set command. That hint is not covered by a test, because `cmd_setup` runs `make env-init`.
+- Off-TTY `./pfy setup` prints the set command. `print_off_tty_setup_hint()` holds those lines so a test can read them without `make env-init`.
 
 ## Closed after the gap table
 
@@ -60,10 +60,11 @@ Status words: MET (closed, including this pass), ALREADY-FIXED (true on main bef
 - `examples/eval-harness/run_scored_task.py`: a public `OPENAI_BASE_URL` prints the estimate and does not send until `y` on a TTY, or the yes rules off a TTY. Local hosts do not ask.
 - `scripts/egm_review.py --local`: Ollama at $0, no grok process. A non-local `PFY_EGM_LOCAL_URL` does not connect.
 - eval-suite and matrix use the same fallback key as the other local tasks. The default is `qwen3.6:35b`. `make eval-suite`, `make eval-matrix`, the harness copies of those targets (so `make eval-v02` is included), and `examples/eval-harness/run-in-cage.sh` resolve with `--probe-tags`. A fake tag list selects `qwen2.5:14b`. `EVAL_MODEL`, `PFY_MODEL_EVAL_SUITE`, and `PFY_MODEL_MATRIX` do not switch. The choice prompt shows the fallback row. `EVAL_MODELS` stays the column list. No model pull.
+- Loop and Engine compare controls offer `catalog-fit` or `decision-route` against `grok-4.7` or `gpt-6.1-sol`. First click still only returns the price line. "Run it" posts the offer's task, against, and `max_usd`. JS does not price a run. tk uses the same lists. Defaults stay catalog-fit / grok-4.7.
+- Off-TTY `./pfy setup` hint is printed by `print_off_tty_setup_hint()` before `make env-init`. The test calls that helper and does not run setup.
 
 ## Left open
 
-- The operator screen compare button is catalog-fit against `grok-4.7` only. The CLI already accepts `gpt-6.1-sol` and `decision-route`. The screen was not changed: this pass had no browser check.
 - `laya_shadow_model()` does not load through `call_model`, so the new fallback key does not rescue a missing laya tag.
 - `run_suite.py` does not grow yes flags. A public base fails that cell closed. The failure text is the refusal, and the suite does not send. The single-task CLI is what accepts the estimate.
 
@@ -73,6 +74,6 @@ Status words: MET (closed, including this pass), ALREADY-FIXED (true on main bef
 
 ## Next
 
-Default if nobody picks: leave the screen button on catalog-fit versus `grok-4.7`, and leave the lane scripts parked.
+Default if nobody picks: leave the lane scripts parked.
 
-If the next change is chosen: teach the Loop and Engine compare control to offer `gpt-6.1-sol` and `decision-route`, then verify that confirm path in a browser. Second, teach `laya_shadow_model()` to retry `qwen2.5:14b` on a fake load error without pointing `typesafe_model()` at model-choice.
+If the next change is chosen: teach `laya_shadow_model()` to retry `qwen2.5:14b` on a fake load error without pointing `typesafe_model()` at model-choice.

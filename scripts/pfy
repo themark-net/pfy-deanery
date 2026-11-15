@@ -1047,8 +1047,7 @@ cmd_setup() {
   if [[ -t 0 ]]; then
     python3 "$ROOT/pfylib/cli.py" model-choice prompt || true
   else
-    echo "model choice: no TTY. Set a row with: ./pfy model-choice set <task> <local:model|cloud:model>"
-    echo "Off a TTY, cloud is saved only by that explicit set. The committed default stays local."
+    python3 -c 'import sys; sys.path.insert(0, "'"$ROOT"'"); from pfylib.model_choice import print_off_tty_setup_hint; print_off_tty_setup_hint()' || true
   fi
   (cd "$ROOT" && make env-init)
   if [[ -f "$ROOT/.env" ]]; then

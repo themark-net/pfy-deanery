@@ -400,6 +400,30 @@ class SetupTests(Isolated):
         self.assertIsNone(code)
         self.assertFalse(mc.user_config_path().exists())
 
+    def test_off_tty_setup_hint_names_the_set_command_and_writes_nothing(self) -> None:
+        """Fail: the hint lives only in bash behind make env-init.
+
+        Recover: print_off_tty_setup_hint names the set command, says the
+        committed default stays local, and does not write the user file.
+        """
+        text = mc.off_tty_setup_hint()
+        self.assertIn("./pfy model-choice set <task> <local:model|cloud:model>", text)
+        self.assertIn("committed default stays local", text)
+        self.assertNotIn("make env-init", text)
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            mc.print_off_tty_setup_hint()
+        self.assertEqual(buf.getvalue().strip(), text.strip())
+        self.assertFalse(mc.user_config_path().exists())
+        backend, model, source = mc.resolve("catalog-fit", root=ROOT)
+        self.assertEqual((backend, model, source), ("local", "qwen3.6:35b", "default"))
+        pfy = (ROOT / "scripts" / "pfy").read_text(encoding="utf-8")
+        hint_at = pfy.find("print_off_tty_setup_hint")
+        init_at = pfy.find("make env-init")
+        self.assertNotEqual(hint_at, -1)
+        self.assertGreater(init_at, hint_at)
+        self.assertIn("model-choice prompt", pfy)
+
     def test_prompt_enter_keeps_the_row_and_a_value_persists(self) -> None:
         answers = iter(["", "cloud:grok-4.7", "", "", ""])
         old_input = __builtins__["input"] if isinstance(__builtins__, dict) else __builtins__.input

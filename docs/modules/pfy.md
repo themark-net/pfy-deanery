@@ -40,7 +40,7 @@
 
 Root `./pfy` is a 100755 wrapper that execs `scripts/pfy`. Detector is invoked with `bash`.
 
-**Model choice:** `./pfy model-choice` and a TTY `./pfy setup` pick local or cloud per task. The choice is stored outside the repo. `./pfy compare` prints a token estimate and waits for yes. Gap table: [model-choice-audit.md](../ops/model-choice-audit.md).
+**Model choice:** `./pfy model-choice` and a TTY `./pfy setup` pick local or cloud per task. Off a TTY, setup prints `./pfy model-choice set <task> <local:model|cloud:model>` and keeps the committed local default (`print_off_tty_setup_hint()`, before `make env-init`). The choice is stored outside the repo. `./pfy compare catalog-fit|decision-route --against grok-4.7|gpt-6.1-sol` prints a token estimate and waits for yes. Loop and Engine offer the same task and against lists; the first click is the price line. Gap table: [model-choice-audit.md](../ops/model-choice-audit.md).
 
 **Attach mode (#208 / #213 / #215):** HTML+tk select `bare` | `orchestration` | `code-graph`; paint `using: <mode>`. Orchestration starts a multi-step local loop (prove or FAIL+next) and Loop shows last evidence. Code-graph hands Axon or paints `path=codebase-memory (not axon)`. Named start and in-window Attach (OpenCode | Hermes | Grok | Codex | Claude) hand off skills/AGENTS/prompts/env or FAIL+next. [attach-mode.md](attach-mode.md) · [code-graph.md](code-graph.md).
 
