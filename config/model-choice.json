@@ -17,11 +17,13 @@
     },
     "decision-route": {
       "backend": "local",
-      "model": "qwen3.6:35b"
+      "model": "qwen3.6:35b",
+      "fallback": "qwen2.5:14b"
     },
     "build-lane": {
       "backend": "local",
-      "model": "qwen3.6:35b"
+      "model": "qwen3.6:35b",
+      "fallback": "qwen2.5:14b"
     }
   }
 }

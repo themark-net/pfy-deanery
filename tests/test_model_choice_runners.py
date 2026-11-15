@@ -122,21 +122,21 @@ class RunnerChoiceTests(unittest.TestCase):
 
     def test_build_lane_flag_and_env_beat_choice(self) -> None:
         build = _load("pfy_build_local_runner", "scripts/pfy_build_local.py")
-        self.assertEqual(build._pick_build_model(None), "qwen3.6:35b")
+        self.assertEqual(build._pick_build_model(None), ("qwen3.6:35b", "default"))
         mc.save_task("build-lane", "local", "saved:9b")
-        self.assertEqual(build._pick_build_model(None), "saved:9b")
+        self.assertEqual(build._pick_build_model(None), ("saved:9b", "user"))
         os.environ["PFY_MODEL_BUILD_LANE"] = "local:from-pfy:1b"
-        self.assertEqual(build._pick_build_model(None), "from-pfy:1b")
+        self.assertEqual(build._pick_build_model(None), ("from-pfy:1b", "env"))
         os.environ["PFY_LOCAL_BUILD_MODEL"] = "from-runner-env:2b"
-        self.assertEqual(build._pick_build_model(None), "from-runner-env:2b")
-        self.assertEqual(build._pick_build_model("from-flag:3b"), "from-flag:3b")
+        self.assertEqual(build._pick_build_model(None), ("from-runner-env:2b", "env"))
+        self.assertEqual(build._pick_build_model("from-flag:3b"), ("from-flag:3b", "flag"))
 
         os.environ.pop("PFY_LOCAL_BUILD_MODEL", None)
         os.environ["PFY_MODEL_BUILD_LANE"] = "cloud:grok-4.7"
         buf = io.StringIO()
         with redirect_stderr(buf):
             model = build._pick_build_model(None)
-        self.assertEqual(model, "qwen3.6:35b")
+        self.assertEqual(model, ("qwen3.6:35b", "refused-cloud"))
         self.assertIn("build-lane is Ollama-only", buf.getvalue())
         self.assertEqual(self.calls, [])
 

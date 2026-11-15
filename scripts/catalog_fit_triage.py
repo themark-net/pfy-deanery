@@ -20,7 +20,12 @@ string). The model comes from pfylib.model_choice (config/model-choice.json,
 the saved operator choice, PFY_MODEL_CATALOG_FIT; PFY_CATFIT_MODEL is an
 alias) and defaults to qwen3.6:35b. When that
 variable is unset, a missing tag or a generate load error retries once with
-qwen2.5:14b (PFY_CATFIT_FALLBACK_MODEL). The host defaults to
+qwen2.5:14b (PFY_CATFIT_FALLBACK_MODEL). A cloud choice prints the token
+estimate and does not call until --yes with a covering --max-usd, or a
+covering cap alone. Off a TTY there is no prompt, so one of those is
+required. The catalog loop does not pass them, so a saved cloud choice
+does not spend from the loop.
+The host defaults to
 http://127.0.0.1:11434 (PFY_CATFIT_HOST, else OLLAMA_HOST). --write stores
 eval/catalog-fit/<slug>.json for a schema-valid payload (exit 0 or 3). Exit 1
 writes nothing. pending triages I0 cards that have no fit file yet.
@@ -395,7 +400,13 @@ def default_call_model(prompt: str, *, model: str, host: str) -> str:
         from pfylib.model_choice import ModelCallError, call_model as mc_call
         spec = model if model.startswith("cloud:") else "cloud:" + model
         try:
-            text, _usage = mc_call(prompt, task="catalog-fit", model=spec)
+            text, _usage = mc_call(
+                prompt,
+                task="catalog-fit",
+                model=spec,
+                yes=_PAID_YES,
+                max_usd=_PAID_MAX_USD,
+            )
         except ModelCallError as exc:
             raise FitBroken(str(exc)) from exc
         if not isinstance(text, str) or not text.strip():
@@ -456,6 +467,17 @@ def default_call_model(prompt: str, *, model: str, host: str) -> str:
 # Tests replace these. CI passes a mock and does not call them.
 call_model = default_call_model
 model_installed = default_model_installed
+
+# Set by the CLI before a cloud triage. The loop does not set these.
+_PAID_YES = False
+_PAID_MAX_USD: float | None = None
+
+
+def set_paid_gate(yes: bool, max_usd: float | None) -> None:
+    """Remember the operator's cost answer for this process."""
+    global _PAID_YES, _PAID_MAX_USD
+    _PAID_YES = bool(yes)
+    _PAID_MAX_USD = max_usd
 
 
 def _note_fallback(src: str, dst: str, reason: str) -> None:
@@ -830,28 +852,40 @@ def _mock_from_args(flag: str) -> dict | None:
     return load_mock_file(Path(raw))
 
 
+def _paid_cap(args) -> float | None:
+    if getattr(args, "max_usd", None) is not None:
+        return args.max_usd
+    return getattr(args, "max_cost", None)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Local-model catalog-fit triage. Does not pull a model.")
     parser.add_argument("--root", default=str(ROOT))
+    paid = argparse.ArgumentParser(add_help=False)
+    paid.add_argument("--yes", action="store_true", help="accept the printed cloud estimate")
+    paid.add_argument("--approve-cost", action="store_true", help="same as --yes; still needs a cap")
+    paid.add_argument("--max-usd", type=float, default=None, help="USD cap; at or above the estimate is approval")
+    paid.add_argument("--max-cost", type=float, default=None, help="alias of --max-usd")
     sub = parser.add_subparsers(dest="cmd", required=True)
-    triage_p = sub.add_parser("triage", help="Triage one slug")
+    triage_p = sub.add_parser("triage", parents=[paid], help="Triage one slug")
     triage_p.add_argument("slug")
     triage_p.add_argument("--mock", default="")
     triage_p.add_argument("--model", default="")
     triage_p.add_argument("--host", default="")
     triage_p.add_argument("--write", action="store_true")
-    pending_p = sub.add_parser("pending", help="Triage I0 cards that have no fit file")
+    pending_p = sub.add_parser("pending", parents=[paid], help="Triage I0 cards that have no fit file")
     pending_p.add_argument("--limit", default="")
     pending_p.add_argument("--mock", default="")
     pending_p.add_argument("--model", default="")
     pending_p.add_argument("--host", default="")
     pending_p.add_argument("--write", action="store_true")
-    replay_p = sub.add_parser("replay", help="Replay the labeled goldens")
+    replay_p = sub.add_parser("replay", parents=[paid], help="Replay the labeled goldens")
     replay_p.add_argument("--mock", default="")
     replay_p.add_argument("--model", default="")
     replay_p.add_argument("--host", default="")
     replay_p.add_argument("--out", default="tmp")
     args = parser.parse_args(argv)
+    set_paid_gate(bool(args.yes or args.approve_cost), _paid_cap(args))
     root = Path(args.root).expanduser()
     if not root.is_absolute():
         root = (Path.cwd() / root).resolve()

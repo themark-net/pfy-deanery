@@ -90,7 +90,7 @@ class EgmReviewTest(unittest.TestCase):
 
         shutil.rmtree(self.root, ignore_errors=True)
 
-    def run_review(self, extra=None, env=None, max_turns="2"):
+    def run_review(self, extra=None, env=None, max_turns="2", stdin=None):
         argv = [
             sys.executable,
             str(SCRIPT),
@@ -113,6 +113,7 @@ class EgmReviewTest(unittest.TestCase):
             argv,
             cwd=self.root,
             env=self.env if env is None else env,
+            stdin=stdin,
             capture_output=True,
             text=True,
             check=False,
@@ -126,8 +127,51 @@ class EgmReviewTest(unittest.TestCase):
                     rows.append(json.loads(line))
         return rows
 
+    def test_off_tty_does_not_call_grok_until_the_estimate_is_accepted(self):
+        """Fail: the fake grok runs with no cost line.
+        Recover: off a TTY the process exits 2 until --yes and a covering
+        --max-cost, and the same review then runs.
+        """
+        # DEVNULL keeps stdin off a TTY even when the runner itself is a terminal.
+        off = subprocess.DEVNULL
+        proc = self.run_review(stdin=off)
+        blob = proc.stdout + proc.stderr
+        self.assertEqual(proc.returncode, 2, blob)
+        self.assertIn("cost estimate: $", blob)
+        self.assertIn("grok-4.7", blob)
+        self.assertIn("no TTY", blob)
+        self.assertIn("No model was called", blob)
+        self.assertFalse(self.log.exists(), blob)
+        report = json.loads(self.out.read_text(encoding="utf-8"))
+        self.assertFalse(report["ok"])
+        self.assertEqual(report["goldfish"], [])
+
+        if self.out.exists():
+            self.out.unlink()
+        proc = self.run_review(extra=["--yes"], stdin=off)
+        blob = proc.stdout + proc.stderr
+        self.assertEqual(proc.returncode, 2, blob)
+        self.assertIn("--yes requires --max-usd", blob)
+        self.assertFalse(self.log.exists(), blob)
+
+        if self.out.exists():
+            self.out.unlink()
+        proc = self.run_review(extra=["--yes", "--max-cost", "0"], stdin=off)
+        blob = proc.stdout + proc.stderr
+        self.assertEqual(proc.returncode, 2, blob)
+        self.assertIn("exceeds --max-usd", blob)
+        self.assertFalse(self.log.exists(), blob)
+
+        if self.out.exists():
+            self.out.unlink()
+        proc = self.run_review(extra=["--yes", "--max-cost", "50"], stdin=off)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertTrue(self.calls())
+        report = json.loads(self.out.read_text(encoding="utf-8"))
+        self.assertTrue(report["ok"])
+
     def test_stub_review_is_isolated_and_records_findings(self):
-        proc = self.run_review()
+        proc = self.run_review(extra=["--yes", "--max-cost", "50"])
         self.assertEqual(proc.returncode, 0, proc.stderr)
         report = json.loads(self.out.read_text(encoding="utf-8"))
         self.assertTrue(report["ok"])
@@ -163,7 +207,7 @@ class EgmReviewTest(unittest.TestCase):
 
     def test_one_goldfish_failure_keeps_the_other_and_exits_1(self):
         self.env["EGM_FAKE_FAIL"] = "critic"
-        proc = self.run_review()
+        proc = self.run_review(extra=["--yes", "--max-cost", "50"])
         self.assertEqual(proc.returncode, 1, proc.stdout)
         self.assertIn("Rerun scripts/egm_review.py", proc.stderr)
         report = json.loads(self.out.read_text(encoding="utf-8"))

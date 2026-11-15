@@ -365,26 +365,62 @@ def _same_model(left: str, right: str) -> bool:
     return norm(left) == norm(right)
 
 
-def _pick_build_model(flag: str | None) -> str:
-    """--model, else PFY_LOCAL_BUILD_MODEL, else model_choice build-lane.
+def _pick_build_model(flag: str | None) -> tuple[str, str]:
+    """(model, source). --model, else PFY_LOCAL_BUILD_MODEL, else model_choice.
 
     The endpoint is Ollama. A cloud choice prints one refusal and the
-    committed local tag is used instead.
+    committed local tag is used instead. source is flag, env, or whatever
+    runner_choice reports (user, default, fallback, refused-cloud).
     """
     if flag is not None and str(flag).strip() != "":
-        return str(flag).strip()
+        return str(flag).strip(), "flag"
     raw = os.environ.get("PFY_LOCAL_BUILD_MODEL")
     if raw is not None and raw.strip() != "":
-        return raw.strip()
+        return raw.strip(), "env"
     root = Path(__file__).resolve().parents[1]
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
     try:
         from pfylib.model_choice import runner_choice
-        _backend, model, _source = runner_choice("build-lane", transport="ollama", root=root)
-        return model or DEFAULT_MODEL
+        _backend, model, source = runner_choice("build-lane", transport="ollama", root=root)
+        return model or DEFAULT_MODEL, source or "default"
     except Exception:
-        return DEFAULT_MODEL
+        return DEFAULT_MODEL, "default"
+
+
+def _apply_default_fallback(args) -> None:
+    """Switch the default tag to the committed fallback when only that tag is listed.
+
+    An explicit --model, env model, or saved choice is left alone. A down
+    Ollama is left alone so the later check still reports no-model.
+    """
+    if getattr(args, "model_source", "") != "default":
+        return
+    root = Path(__file__).resolve().parents[1]
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
+    try:
+        from pfylib.model_choice import committed_tasks
+        raw = committed_tasks(root).get("build-lane") or {}
+    except Exception:
+        return
+    fallback = str(raw.get("fallback") or "").strip() if isinstance(raw, dict) else ""
+    if not fallback or fallback == args.model_name:
+        return
+    ollama_root, _base = _endpoint_pair(args.endpoint_raw)
+    tags, err = _ollama_tags(ollama_root)
+    if err or not tags:
+        return
+    if _tag_of(args.model_name, tags) is not None:
+        return
+    if _tag_of(fallback, tags) is None:
+        return
+    print(
+        "build-lane: fallback %s -> %s (not in tags)" % (args.model_name, fallback),
+        file=sys.stderr,
+    )
+    args.model_name = fallback
+    args.model_source = "fallback"
 
 
 def _pick_str(flag: str | None, env_name: str, default: str) -> str:
@@ -579,7 +615,7 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
         task = path.read_text(encoding="utf-8")
     if args.reap and (not task or not str(task).strip()):
         args.task_text = ""
-        args.model_name = _pick_build_model(args.model)
+        args.model_name, args.model_source = _pick_build_model(args.model)
         args.endpoint_raw = _pick_str(args.endpoint, "LOCAL_OPENAI_BASE_URL", DEFAULT_ENDPOINT)
         args.test_cmd_s = _pick_str(args.test_cmd, "PFY_LOCAL_BUILD_TEST_CMD", DEFAULT_TEST_CMD)
         args.timeout_s = _pick_float(args.timeout, "PFY_LOCAL_BUILD_TIMEOUT", DEFAULT_TIMEOUT)
@@ -594,7 +630,7 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
         raise UsageError("a task string or --prompt-file is required")
     args.task_text = str(task)
     try:
-        args.model_name = _pick_build_model(args.model)
+        args.model_name, args.model_source = _pick_build_model(args.model)
         args.endpoint_raw = _pick_str(args.endpoint, "LOCAL_OPENAI_BASE_URL", DEFAULT_ENDPOINT)
         args.test_cmd_s = _pick_str(args.test_cmd, "PFY_LOCAL_BUILD_TEST_CMD", DEFAULT_TEST_CMD)
         args.timeout_s = _pick_float(args.timeout, "PFY_LOCAL_BUILD_TIMEOUT", DEFAULT_TIMEOUT)
@@ -3688,10 +3724,13 @@ def build_local(argv: list[str] | None = None) -> int:
     state.min_avail = mem_available_gib(mem_start)
     stop_watch = threading.Event()
     watcher = None
+    _apply_default_fallback(args)
     if args.model and str(args.model).strip():
         local_why = "flag --model %s" % args.model_name
     elif os.environ.get("PFY_LOCAL_BUILD_MODEL", "").strip():
         local_why = "PFY_LOCAL_BUILD_MODEL=%s" % args.model_name
+    elif getattr(args, "model_source", "") == "fallback":
+        local_why = "build-lane fallback %s because qwen3.6:35b was not in tags" % args.model_name
     else:
         local_why = "flag --local; build-lane default is %s" % args.model_name
     attempts_n = 1 if not args.review else 1 + int(args.retries_n)

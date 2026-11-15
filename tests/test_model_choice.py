@@ -16,7 +16,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from datetime import date, datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
@@ -198,10 +198,127 @@ class ResolveTests(Isolated):
             mc.call_model("prompt", task="catalog-fit", root=ROOT)
         self.assertEqual(seen, ["qwen3.6:35b", "qwen2.5:14b"])
 
+    def test_cloud_call_prints_the_estimate_and_does_not_send_without_yes(self) -> None:
+        """Fail: a cloud socket runs with no estimate and no yes.
+        Recover: the line shows tokens and the table price, off-TTY needs
+        --yes plus a covering cap, and only then does the fake backend run.
+        """
+        mc._TRANSPORT = self._cloud
+        err = io.StringIO()
+        with redirect_stderr(err):
+            with self.assertRaises(mc.ModelCallError) as caught:
+                mc.call_model(
+                    "hello cloud",
+                    task="catalog-fit",
+                    model="cloud:grok-4.7",
+                    root=ROOT,
+                )
+        self.assertEqual(self.calls, [])
+        self.assertIn("no TTY", str(caught.exception))
+        self.assertIn("No model was called", str(caught.exception))
+        shown = err.getvalue()
+        self.assertIn("grok-4.7", shown)
+        self.assertIn("cost estimate: $", shown)
+        self.assertIn("approx", shown)
+        self.assertIn("fetched", shown)
+        err = io.StringIO()
+        with redirect_stderr(err):
+            with self.assertRaises(mc.ModelCallError) as caught:
+                mc.call_model(
+                    "hello cloud",
+                    task="catalog-fit",
+                    model="cloud:grok-4.7",
+                    root=ROOT,
+                    yes=True,
+                )
+        self.assertEqual(self.calls, [])
+        self.assertIn("--yes requires --max-usd", str(caught.exception))
+        err = io.StringIO()
+        with redirect_stderr(err):
+            with self.assertRaises(mc.ModelCallError) as caught:
+                mc.call_model(
+                    "hello cloud",
+                    task="catalog-fit",
+                    model="cloud:grok-4.7",
+                    root=ROOT,
+                    yes=True,
+                    max_usd=0,
+                )
+        self.assertEqual(self.calls, [])
+        self.assertIn("exceeds --max-usd", str(caught.exception))
+        err = io.StringIO()
+        with redirect_stderr(err):
+            text, usage = mc.call_model(
+                "hello cloud",
+                task="catalog-fit",
+                model="cloud:grok-4.7",
+                root=ROOT,
+                yes=True,
+                max_usd=50,
+            )
+        self.assertIn("verdict", text)
+        self.assertEqual(len(self.calls), 1)
+        self.assertEqual(self.calls[0]["backend"], "cloud")
+        self.assertEqual(self.calls[0]["body"]["max_tokens"], mc.CLOUD_COMPLETION_ALLOWANCE)
+        self.assertIn("cost estimate: $", err.getvalue())
+        self.assertGreater(usage["prompt_tokens"], 0)
+
+    def test_default_local_tasks_retry_the_fallback_when_the_tag_is_missing(self) -> None:
+        """Fail: qwen3.6:35b missing aborts build-lane and decision-route.
+        Recover: one fake-backend retry on qwen2.5:14b. eval-suite stays on
+        its committed 14b tag and does not invent a second model.
+        """
+        for task in ("build-lane", "decision-route"):
+            seen: list[str] = []
+
+            def transport(req: dict, seen: list[str] = seen) -> dict:
+                seen.append(req["body"]["model"])
+                self.assertEqual(req["backend"], "local")
+                if req["body"]["model"] == "qwen3.6:35b":
+                    return {"error": "model not found"}
+                return {"response": "{\"ok\":true}", "prompt_eval_count": 3, "eval_count": 1}
+
+            mc._TRANSPORT = transport
+            text, usage = mc.call_model("prompt", task=task, root=ROOT)
+            self.assertEqual(seen, ["qwen3.6:35b", "qwen2.5:14b"])
+            self.assertIn("ok", text)
+            self.assertEqual(usage["prompt_tokens"], 3)
+
+        seen = []
+
+        def suite_transport(req: dict) -> dict:
+            seen.append(req["body"]["model"])
+            return {"error": "model not found"}
+
+        mc._TRANSPORT = suite_transport
+        with self.assertRaises(mc.ModelCallError):
+            mc.call_model("prompt", task="eval-suite", root=ROOT)
+        self.assertEqual(seen, ["qwen2.5:14b"])
+
     def test_paid_cloud_socket_is_blocked_when_no_transport_is_injected(self) -> None:
+        """Off a TTY the estimate gate stops first. A covering yes still cannot
+        open a real cloud socket while PFY_MODEL_NO_PAID=1 and no transport
+        is injected.
+        """
         mc._TRANSPORT = None
-        with self.assertRaises(mc.ModelCallError) as caught:
-            mc.call_model("prompt", task="catalog-fit", model="cloud:grok-4.7", root=ROOT)
+        err = io.StringIO()
+        with redirect_stderr(err):
+            with self.assertRaises(mc.ModelCallError) as caught:
+                mc.call_model("prompt", task="catalog-fit", model="cloud:grok-4.7", root=ROOT)
+        self.assertIn("no TTY", str(caught.exception))
+        self.assertIn("No model was called", str(caught.exception))
+        self.assertIn("cost estimate: $", err.getvalue())
+        self.assertEqual(self.calls, [])
+        with redirect_stderr(io.StringIO()):
+            with self.assertRaises(mc.ModelCallError) as caught:
+                mc.call_model(
+                    "prompt",
+                    task="catalog-fit",
+                    model="cloud:grok-4.7",
+                    root=ROOT,
+                    yes=True,
+                    max_usd=50,
+                )
         self.assertIn("paid cloud call blocked", str(caught.exception))
         self.assertEqual(self.calls, [])
 
@@ -213,20 +330,24 @@ class ResolveTests(Isolated):
             "choices": [{"message": {"content": "{\"ok\":true}"}}],
             "usage": {"prompt_tokens": 2, "completion_tokens": 2},
         }
-        text = fit.default_call_model("prompt", model="cloud:grok-4.7", host="http://127.0.0.1:9")
-        self.assertIn("ok", text)
-        self.assertEqual(self.calls[0]["backend"], "cloud")
-        self.assertIn("/chat/completions", self.calls[0]["url"])
+        with self.assertRaises(fit.FitBroken) as caught:
+            fit.default_call_model("prompt", model="cloud:grok-4.7", host="http://127.0.0.1:9")
+        self.assertIn("no TTY", str(caught.exception))
+        self.assertEqual(self.calls, [])
 
         self.calls.clear()
         os.environ["PFY_MODEL_CATALOG_FIT"] = "cloud:grok-4.7"
         try:
             self.assertTrue(fit.cloud_selected())
             self.assertTrue(fit.operator_set_model())
-            fit.default_call_model("prompt", model="grok-4.7", host="http://127.0.0.1:9")
+            fit.set_paid_gate(True, 50)
+            text = fit.default_call_model("prompt", model="grok-4.7", host="http://127.0.0.1:9")
         finally:
+            fit.set_paid_gate(False, None)
             os.environ.pop("PFY_MODEL_CATALOG_FIT", None)
+        self.assertIn("ok", text)
         self.assertEqual(self.calls[0]["backend"], "cloud")
+        self.assertIn("/chat/completions", self.calls[0]["url"])
 
 
 class SetupTests(Isolated):

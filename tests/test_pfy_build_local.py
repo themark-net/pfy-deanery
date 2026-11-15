@@ -1084,6 +1084,71 @@ class LocalBuildTests(unittest.TestCase):
         proc, receipt = self.run_build("fix")
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
 
+    def test_missing_default_tag_uses_the_fallback_and_an_explicit_model_does_not(self):
+        """Fail: qwen3.6:35b absent blocks even when qwen2.5:14b is listed.
+        Recover: the default switches to the fallback tag. An explicit
+        --model that is absent stays blocked, and the preferred tag is
+        used again once it is listed.
+        """
+        self.httpd.tags = [{"name": "qwen2.5:14b", "size": 1024 ** 3}]
+        cmd, receipt = self.command("fix", extra=["--dry-run"])
+        idx = cmd.index("--model")
+        del cmd[idx:idx + 2]
+        self.assertNotIn("fixture:small", cmd)
+        proc = subprocess.run(
+            cmd,
+            cwd=self.repo,
+            env=self.env("fix", PFY_LOCAL_BUILD_MODEL=""),
+            text=True,
+            capture_output=True,
+            timeout=60,
+        )
+        blob = proc.stdout + proc.stderr
+        self.assertEqual(proc.returncode, 0, blob)
+        data = self.receipt(proc, receipt)
+        self.assertEqual(data["reason"], "dry-run")
+        self.assertEqual(data["model"], "qwen2.5:14b")
+        self.assertIn("fallback qwen3.6:35b -> qwen2.5:14b", blob)
+        self.assert_agent_did_not_start()
+
+        cmd, receipt = self.command("fix", extra=["--dry-run"])
+        cmd[cmd.index("--model") + 1] = "qwen3.6:35b"
+        proc = subprocess.run(
+            cmd,
+            cwd=self.repo,
+            env=self.env("fix"),
+            text=True,
+            capture_output=True,
+            timeout=60,
+        )
+        blob = proc.stdout + proc.stderr
+        self.assertEqual(proc.returncode, 4, blob)
+        data = self.receipt(proc, receipt)
+        self.assertEqual(data["reason"], "no-model")
+        self.assertNotIn("fallback qwen3.6:35b", blob)
+        self.assert_agent_did_not_start()
+
+        self.httpd.tags = [
+            {"name": "qwen3.6:35b", "size": 1024 ** 3},
+            {"name": "qwen2.5:14b", "size": 1024 ** 3},
+        ]
+        cmd, receipt = self.command("fix", extra=["--dry-run"])
+        idx = cmd.index("--model")
+        del cmd[idx:idx + 2]
+        proc = subprocess.run(
+            cmd,
+            cwd=self.repo,
+            env=self.env("fix", PFY_LOCAL_BUILD_MODEL=""),
+            text=True,
+            capture_output=True,
+            timeout=60,
+        )
+        blob = proc.stdout + proc.stderr
+        self.assertEqual(proc.returncode, 0, blob)
+        data = self.receipt(proc, receipt)
+        self.assertEqual(data["model"], "qwen3.6:35b")
+        self.assertNotIn("fallback qwen3.6:35b", blob)
+
     def test_ollama_down_is_no_model_and_recovers(self):
         proc, receipt = self.run_build("fix", extra=["--endpoint", "http://127.0.0.1:9/v1"])
         self.assertEqual(proc.returncode, 4, proc.stdout + proc.stderr)

@@ -30,6 +30,10 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 MAX_TURNS = 4
 CALL_TIMEOUT_S = 180
 ATTEMPTS = 2
@@ -329,7 +333,88 @@ def normalize_findings(data: dict) -> list[dict]:
     return out
 
 
-def review(ticket_path: Path, cited_path: Path, out_path: Path, scratch: Path, max_turns: int, personas: list[str]) -> int:
+def _paid_block(ticket: str, cited: str, personas: list[str], *, yes: bool, max_usd: float | None) -> str | None:
+    """None when Grok may start. Otherwise a sentence. No process is spawned.
+
+    The ceiling counts the elephant prompt once per draft and per persona,
+    plus a 512-token completion allowance on each of those calls. Prices
+    are grok-4.7 from data/model-prices.json.
+    """
+    from pfylib.model_choice import (
+        ModelCallError,
+        PriceCoverageError,
+        UnknownModelPrice,
+        _confirm,
+        count_tokens,
+        price_age_days,
+        quote,
+        sys_isatty,
+    )
+
+    prompt = elephant_prompt(ticket, cited)
+    prompt_tokens, method = count_tokens(prompt)
+    calls = 1 + len(personas)
+    try:
+        priced = quote("grok-4.7", prompt_tokens * calls, 512 * calls)
+    except (UnknownModelPrice, PriceCoverageError) as exc:
+        return "%s. No model was called." % exc
+    stale_days = price_age_days(priced["fetched"])
+    stale = stale_days > int(priced["stale_after_days"])
+    print(
+        "model choice: cloud grok-4.7",
+        file=sys.stderr,
+    )
+    print(
+        "why: advisory Elephant-Goldfish review; local alternative is not this command",
+        file=sys.stderr,
+    )
+    print(
+        "cost estimate: $%s for %s prompt tokens x %s calls + %s completion-token allowance (%s) "
+        "on grok-4.7 (%s $%.2f/$%.2f per 1M, %s, fetched %s). "
+        "No call is sent until you say yes."
+        % (
+            priced["cost_text"],
+            f"{prompt_tokens:,}",
+            calls,
+            f"{512 * calls:,}",
+            method,
+            priced["provider"],
+            priced["price_in"],
+            priced["price_out"],
+            priced["source_short"],
+            priced["fetched"],
+        ),
+        file=sys.stderr,
+    )
+    try:
+        block = _confirm(
+            yes=bool(yes),
+            max_usd=max_usd,
+            cost=float(priced["cost_usd"]),
+            cost_text=priced["cost_text"],
+            isatty=sys_isatty(),
+            answer=None,
+            stale=stale,
+            accept_stale=False,
+        )
+    except ModelCallError as exc:
+        return "%s. No model was called." % exc
+    if not block:
+        return None
+    return "%s. No model was called." % block
+
+
+def review(
+    ticket_path: Path,
+    cited_path: Path,
+    out_path: Path,
+    scratch: Path,
+    max_turns: int,
+    personas: list[str],
+    *,
+    yes: bool = False,
+    max_usd: float | None = None,
+) -> int:
     binary = grok_bin()
     report: dict = {
         "ok": False,
@@ -356,6 +441,11 @@ def review(ticket_path: Path, cited_path: Path, out_path: Path, scratch: Path, m
             return code
         ticket = ticket_path.read_text(encoding="utf-8")
         cited = cited_path.read_text(encoding="utf-8")
+        block = _paid_block(ticket, cited, personas, yes=yes, max_usd=max_usd)
+        if block:
+            report["error"] = block
+            code = 2
+            return code
         elephant_dir = scratch / "elephant"
         elephant_dir.mkdir(parents=True, exist_ok=True)
         (elephant_dir / "ticket.md").write_text(ticket, encoding="utf-8")
@@ -466,6 +556,10 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--out", required=True, type=Path)
     parser.add_argument("--scratch", type=Path)
     parser.add_argument("--max-turns", type=int, default=2)
+    parser.add_argument("--yes", action="store_true", help="accept the printed estimate")
+    parser.add_argument("--approve-cost", action="store_true", help="same as --yes; still needs a cap")
+    parser.add_argument("--max-usd", type=float, default=None, help="USD cap; at or above the estimate is approval")
+    parser.add_argument("--max-cost", type=float, default=None, help="alias of --max-usd")
     parser.add_argument(
         "--personas",
         default="readiness,critic,codebase",
@@ -487,7 +581,17 @@ def main(argv: list[str] | None = None) -> int:
     scratch = args.scratch
     if scratch is None:
         scratch = Path(tempfile.mkdtemp(prefix="egm-review-"))
-    return review(args.ticket, args.cited, args.out, scratch, args.max_turns, personas)
+    cap = args.max_usd if args.max_usd is not None else args.max_cost
+    return review(
+        args.ticket,
+        args.cited,
+        args.out,
+        scratch,
+        args.max_turns,
+        personas,
+        yes=bool(args.yes or args.approve_cost),
+        max_usd=cap,
+    )
 
 
 if __name__ == "__main__":

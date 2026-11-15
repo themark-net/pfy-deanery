@@ -11,6 +11,8 @@ and does not read secret values into logs.
 resolve(task) -> (backend, model, source)
 source is env, alias, user, default, or fallback.
 A cloud backend is returned only when the operator set it.
+A cloud call_model prints the estimate and does not send until the same
+yes rules as compare. paid_ok is for a caller that already did that.
 """
 from __future__ import annotations
 
@@ -55,6 +57,10 @@ REMIND_DAYS = 14
 LOCK_STALE_S = 3600
 DEFAULT_OLLAMA = "http://127.0.0.1:11434"
 DEFAULT_LITELLM = "http://127.0.0.1:4000/v1"
+# A fresh cloud call has no measured completion. The allowance is the
+# max_tokens sent with that call, so the printed price bounds the request.
+# Compare passes paid_ok and does not add this cap.
+CLOUD_COMPLETION_ALLOWANCE = 512
 
 # Tests inject this. Production leaves it None and uses HTTP.
 # A cloud socket is refused while PFY_MODEL_NO_PAID=1 and this is None.
@@ -447,8 +453,19 @@ def call_model(
     host: str | None = None,
     backend: str | None = None,
     root: Path | None = None,
+    paid_ok: bool = False,
+    yes: bool = False,
+    max_usd: float | None = None,
+    isatty: bool | None = None,
+    answer: str | None = None,
 ) -> tuple[str, dict]:
-    """Return (text, usage). Local is Ollama. Cloud is the LiteLLM proxy."""
+    """Return (text, usage). Local is Ollama. Cloud is the LiteLLM proxy.
+
+    A cloud call prints the token estimate first. It sends after y on a
+    TTY, or when yes is paired with a covering max_usd, or when that cap
+    alone covers the estimate. Off a TTY with neither, it does not send.
+    paid_ok is for a caller that already showed that estimate and got a yes.
+    """
     resolved_backend, resolved_model, _source = resolve(task, root=root)
     chosen_backend, chosen_model = resolved_backend, resolved_model
     if backend in ("local", "cloud"):
@@ -461,21 +478,93 @@ def call_model(
             if backend not in ("local", "cloud"):
                 chosen_backend = "local"
     if chosen_backend == "cloud":
+        if not paid_ok:
+            _gate_unapproved_cloud(
+                prompt,
+                chosen_model,
+                root=root,
+                yes=yes,
+                max_usd=max_usd,
+                isatty=isatty,
+                answer=answer,
+            )
+            return _call_cloud(prompt, chosen_model, max_tokens=CLOUD_COMPLETION_ALLOWANCE)
         return _call_cloud(prompt, chosen_model)
     return _call_local(prompt, chosen_model, host=host, root=root, task=task)
 
 
-def _call_cloud(prompt: str, model: str) -> tuple[str, dict]:
+def _gate_unapproved_cloud(
+    prompt: str,
+    model: str,
+    *,
+    root: Path | None,
+    yes: bool,
+    max_usd: float | None,
+    isatty: bool | None,
+    answer: str | None,
+) -> None:
+    """Print the price line. Raise ModelCallError when the call must not start."""
+    prompt_tokens, method = count_tokens(prompt)
+    completion_tokens = CLOUD_COMPLETION_ALLOWANCE
+    try:
+        priced = quote(model, prompt_tokens, completion_tokens, root=root)
+    except (UnknownModelPrice, PriceCoverageError) as exc:
+        raise ModelCallError("%s. No model was called." % exc) from exc
+    stale_days = price_age_days(priced["fetched"])
+    stale = stale_days > int(priced["stale_after_days"])
+    print(
+        "cost estimate: $%s for %s prompt tokens + %s completion-token allowance (%s) "
+        "on %s (%s $%.2f/$%.2f per 1M, %s, fetched %s). "
+        "No call is sent until you say yes."
+        % (
+            priced["cost_text"],
+            f"{prompt_tokens:,}",
+            f"{completion_tokens:,}",
+            method,
+            model,
+            priced["provider"],
+            priced["price_in"],
+            priced["price_out"],
+            priced["source_short"],
+            priced["fetched"],
+        ),
+        file=sys.stderr,
+    )
+    if stale:
+        print(
+            "Price for %s was fetched %s (older than %s days)."
+            % (model, priced["fetched"], priced["stale_after_days"]),
+            file=sys.stderr,
+        )
+    tty = sys_isatty() if isatty is None else isatty
+    block = _confirm(
+        yes=bool(yes),
+        max_usd=max_usd,
+        cost=float(priced["cost_usd"]),
+        cost_text=priced["cost_text"],
+        isatty=tty,
+        answer=answer,
+        stale=stale,
+        accept_stale=False,
+    )
+    if block:
+        raise ModelCallError("%s. No model was called." % block)
+
+
+def _call_cloud(prompt: str, model: str, *, max_tokens: int | None = None) -> tuple[str, dict]:
     base = litellm_base()
     url = base if base.endswith("/chat/completions") else base.rstrip("/") + "/chat/completions"
+    body: dict = {
+        "model": model,
+        "temperature": 0,
+        "messages": [{"role": "user", "content": prompt}],
+    }
+    if max_tokens is not None:
+        body["max_tokens"] = max_tokens
     data = post_json({
         "backend": "cloud",
         "url": url,
-        "body": {
-            "model": model,
-            "temperature": 0,
-            "messages": [{"role": "user", "content": prompt}],
-        },
+        "body": body,
     })
     if data.get("error"):
         raise ModelCallError("litellm response missing")
@@ -1347,7 +1436,13 @@ def run_compare(
         prompt_tokens = 0
         completion_tokens = 0
         for case in cases:
-            text, usage = call_model(case["prompt"], task=task, model="cloud:" + against, root=root_path)
+            text, usage = call_model(
+                case["prompt"],
+                task=task,
+                model="cloud:" + against,
+                root=root_path,
+                paid_ok=True,
+            )
             prompt_tokens += int(usage["prompt_tokens"])
             completion_tokens += int(usage["completion_tokens"])
             cloud = _compare_parse(task, text, case)
