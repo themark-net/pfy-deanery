@@ -36,6 +36,7 @@ def _run(argv: list[str], cwd: Path) -> subprocess.CompletedProcess:
     env = os.environ.copy()
     env["TMPDIR"] = str(SCRATCH)
     env["PYTHONDONTWRITEBYTECODE"] = "1"
+    env["PFY_BUILD_YES"] = "1"
     env["GIT_TERMINAL_PROMPT"] = "0"
     return subprocess.run(
         argv,

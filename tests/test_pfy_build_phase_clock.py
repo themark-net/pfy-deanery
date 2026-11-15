@@ -38,6 +38,8 @@ def _run(argv, cwd, env=None, timeout=60):
     merged["PYTHONDONTWRITEBYTECODE"] = "1"
     if env:
         merged.update(env)
+    if env is None or "PFY_BUILD_YES" not in env:
+        merged["PFY_BUILD_YES"] = "1"
     return subprocess.run(
         argv,
         cwd=cwd,
@@ -414,6 +416,7 @@ class CloudPhaseReceiptTests(unittest.TestCase):
                 **os.environ,
                 "TMPDIR": str(SCRATCH),
                 "PYTHONDONTWRITEBYTECODE": "1",
+                "PFY_BUILD_YES": "1",
                 "PFY_GATE_LOG": str(log),
             },
             text=True,
@@ -660,6 +663,7 @@ class CloudPhaseReceiptTests(unittest.TestCase):
                 **os.environ,
                 "TMPDIR": str(SCRATCH),
                 "PYTHONDONTWRITEBYTECODE": "1",
+                "PFY_BUILD_YES": "1",
                 "PFY_GATE_LOG": str(log),
             },
             text=True,

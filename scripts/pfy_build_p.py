@@ -55,9 +55,16 @@ follow-out). Symlinks are not followed. Bytes are decoded as UTF-8
 Exit codes:
   0  READY (dry-run complete, or grok finished)
   1  FAIL (grok missing / unauthenticated / bundled missing / apply/smoke/grok hard fail)
-  2  usage
+  2  usage (blank prompt, or the cost estimate was declined before grok -p)
   3  reserved (decision escalate is logged; build still proceeds unless
      PFY_BUILD_ABORT_ON_ESCALATE=1)
+
+Before grok -p, the run prints the cloud choice against local qwen3.6:35b at
+$0, a low-high dollar range, and a wall-time range. On a TTY it asks. Off a
+TTY it needs --yes, --approve-cost, or --max-cost at or above the estimate
+(PFY_BUILD_YES=1 is the same approval). A lower cap exits 2 and does not
+exec grok. Dry-run prints the choice and does not ask. The grok_p receipt
+row stores choice, estimate, and actual.
 
 Receipt: <cwd>/pipelines/dogfood/build/<timestamp>/receipt.jsonl
 """
@@ -78,6 +85,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+
+from pfylib.review_chunks import (  # noqa: E402
+    build_route_quotes,
+    cost_block_reason,
+    estimate_receipt,
+    format_route_banner,
+    load_price_table,
+)
 
 EXIT_OK = 0
 EXIT_FAIL = 1
@@ -735,6 +750,31 @@ def run_grok_p(
     }
 
 
+def _p_cost_args(yes: bool, approve_cost: bool, max_cost: float | None):
+    return argparse.Namespace(yes=bool(yes), approve_cost=bool(approve_cost), max_cost=max_cost)
+
+
+def _p_quotes():
+    why = (
+        "pfy build -p runs one grok -p turn on Grok Build; "
+        "pfy build --local uses Ollama qwen3.6:35b at $0"
+    )
+    return build_route_quotes("cloud", "grok-4.7", why, 1, 0, load_price_table())
+
+
+def _p_actual(usage: dict, *, ran: bool) -> dict:
+    if not ran:
+        return {"usd": 0.0, "source": "not-run"}
+    session = usage.get("session") if isinstance(usage, dict) else None
+    ticks = session.get("costUsdTicks") if isinstance(session, dict) else None
+    if ticks is None:
+        return {"usd": 0.0, "source": "not-recorded"}
+    try:
+        return {"usd": float(ticks) / 1e10, "source": "usage.json"}
+    except (TypeError, ValueError):
+        return {"usd": 0.0, "source": "not-recorded"}
+
+
 def build_p(
     prompt: str,
     *,
@@ -744,6 +784,9 @@ def build_p(
     path_env: str | None = None,
     grok_home: Path | None = None,
     abort_on_escalate: bool | None = None,
+    yes: bool = False,
+    approve_cost: bool = False,
+    max_cost: float | None = None,
 ) -> int:
     repo = Path(repo or ROOT).resolve()
     cwd = Path(cwd or repo).resolve()
@@ -918,6 +961,28 @@ def build_p(
         _append_receipt(receipt, {"event": "fail", "reason": "abort_on_escalate"})
         return EXIT_FAIL
 
+    choice, estimate, alternative = _p_quotes()
+    print(format_route_banner(choice, estimate, alternative, 1), file=sys.stderr, flush=True)
+    cost_fields = {
+        "choice": choice,
+        "estimate": estimate_receipt(estimate, alternative),
+    }
+    if not dry_run:
+        blocked = cost_block_reason(_p_cost_args(yes, approve_cost, max_cost), estimate)
+        if blocked:
+            print(blocked, file=sys.stderr)
+            _append_receipt(
+                receipt,
+                {
+                    "event": "fail",
+                    "reason": "estimate-declined",
+                    "copy": blocked,
+                    "actual": {"usd": 0.0, "source": "not-run"},
+                    **cost_fields,
+                },
+            )
+            return EXIT_USAGE
+
     print("pfy build -p · grok -p --output-format plain --always-approve")
     grok_rec = run_grok_p(prompt=composed, cwd=cwd, grok=grok, dry_run=dry_run, env=child_env)
     # Persist grok streams for operators
@@ -946,6 +1011,8 @@ def build_p(
         "skills_bundle_tokens_est": bundle_tokens,
         "skills_bundle_method": TOKEN_METHOD,
         "skills_bundle_mode": bundle_mode,
+        **cost_fields,
+        "actual": _p_actual(usage, ran=not dry_run),
     }
     _append_receipt(receipt, summary)
 
@@ -982,6 +1049,9 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--prompt-file", help="read prompt from file")
     p.add_argument("--cwd", help="worktree / working directory for grok and receipt")
     p.add_argument("--dry-run", action="store_true", help="plan + shadow only; do not write toolset or exec grok")
+    p.add_argument("--yes", action="store_true", help="accept the printed estimate off a TTY")
+    p.add_argument("--approve-cost", action="store_true", help="same as --yes")
+    p.add_argument("--max-cost", type=float, default=None, help="USD cap; at or above the estimate is approval")
     p.add_argument("--path-env", default=None, help=argparse.SUPPRESS)  # tests: override PATH for which()
     args = p.parse_args(argv)
 
@@ -998,6 +1068,9 @@ def main(argv: list[str] | None = None) -> int:
         cwd=Path(args.cwd).resolve() if args.cwd else None,
         dry_run=bool(args.dry_run),
         path_env=args.path_env,
+        yes=bool(args.yes),
+        approve_cost=bool(args.approve_cost),
+        max_cost=args.max_cost,
     )
 
 

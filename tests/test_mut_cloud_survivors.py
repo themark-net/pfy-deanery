@@ -24,6 +24,7 @@ def _run(argv: list[str], cwd: Path, timeout: float = 60) -> subprocess.Complete
     env = os.environ.copy()
     env["TMPDIR"] = str(SCRATCH)
     env["PYTHONDONTWRITEBYTECODE"] = "1"
+    env["PFY_BUILD_YES"] = "1"
     return subprocess.run(
         argv,
         cwd=cwd,

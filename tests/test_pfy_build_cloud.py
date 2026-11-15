@@ -26,6 +26,8 @@ def _run(argv: list[str], cwd: Path, env: dict | None = None, timeout: float = 6
     merged["PYTHONDONTWRITEBYTECODE"] = "1"
     if env:
         merged.update(env)
+    if env is None or "PFY_BUILD_YES" not in env:
+        merged["PFY_BUILD_YES"] = "1"
     return subprocess.run(
         argv,
         cwd=cwd,
@@ -1222,6 +1224,7 @@ class CloudBuildNoChangeTests(unittest.TestCase):
         env = os.environ.copy()
         env["TMPDIR"] = str(SCRATCH)
         env["PYTHONDONTWRITEBYTECODE"] = "1"
+        env["PFY_BUILD_YES"] = "1"
         env["PATH"] = str(self.side) + os.pathsep + env.get("PATH", "")
         env["REAL_GIT"] = real_git
         proc = subprocess.run(
@@ -1873,7 +1876,7 @@ class CloudBuildFailureTests(unittest.TestCase):
                 str(grok),
             ],
             cwd=self.repo,
-            env={**os.environ, "TMPDIR": str(SCRATCH), "PYTHONDONTWRITEBYTECODE": "1", "PFY_CLOUD_PIDFILE": str(pidfile)},
+            env={**os.environ, "TMPDIR": str(SCRATCH), "PYTHONDONTWRITEBYTECODE": "1", "PFY_BUILD_YES": "1", "PFY_CLOUD_PIDFILE": str(pidfile)},
             text=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -1928,7 +1931,7 @@ class CloudBuildFailureTests(unittest.TestCase):
                 str(grok),
             ],
             cwd=self.repo,
-            env={**os.environ, "TMPDIR": str(SCRATCH), "PYTHONDONTWRITEBYTECODE": "1", "PFY_CLOUD_PIDFILE": str(pidfile)},
+            env={**os.environ, "TMPDIR": str(SCRATCH), "PYTHONDONTWRITEBYTECODE": "1", "PFY_BUILD_YES": "1", "PFY_CLOUD_PIDFILE": str(pidfile)},
             text=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -2078,6 +2081,7 @@ class CloudBuildFailureTests(unittest.TestCase):
                 **os.environ,
                 "TMPDIR": str(SCRATCH),
                 "PYTHONDONTWRITEBYTECODE": "1",
+                "PFY_BUILD_YES": "1",
                 "PFY_GATE_PIDFILE": str(gate_pidfile),
                 "PFY_CLOUD_PIDFILE": str(grok_pidfile),
             },
@@ -3312,6 +3316,7 @@ class CloudBuildGateReasonTests(unittest.TestCase):
         env = os.environ.copy()
         env["TMPDIR"] = str(SCRATCH)
         env["PYTHONDONTWRITEBYTECODE"] = "1"
+        env["PFY_BUILD_YES"] = "1"
         env["PATH"] = str(self.side) + os.pathsep + env.get("PATH", "")
         env["REAL_GIT"] = real_git
         env["PFY_CALL_COUNT"] = str(calls)

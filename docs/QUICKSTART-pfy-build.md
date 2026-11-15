@@ -75,7 +75,9 @@ exit 0
 | `--test-cmd CMD` | Gate. Default `python3 -m unittest discover -s tests -t .`. |
 | `--writable-test PATH` | Protected gate or eval path the task may edit. Repeat the flag for each path. Ordinary files under `tests/` may change without it. Deleting a base test is still `tests-tampered`. |
 | `--receipt-dir DIR` | Directory for `receipt.json`. Default `<repo>/pipelines/dogfood/build-cloud/<stamp>/`. |
-| `--dry-run` | Write a receipt, start no grok, create no branch. Exit 0. |
+| `--dry-run` | Write a receipt, start no grok, create no branch. Exit 0. Prints the model choice and both cost ranges, and does not ask. |
+| `--yes` / `--approve-cost` | Accept the printed cloud estimate. Required off a TTY unless `--max-cost` covers the estimate. |
+| `--max-cost USD` | Refuse when the estimate is above this cap. A covering cap is approval. |
 
 Also on the help line: `--retries` (default 2 extra, 3 total), `--no-review`, `--reap`, `--keep-worktree`, `--timeout`.
 

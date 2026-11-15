@@ -62,12 +62,16 @@ from pfylib.review_chunks import (  # noqa: E402
     ReviewBudgetExceeded,
     acquire_repo_lock,
     assert_review_budget,
+    build_route_quotes,
     change_impact_map,
     diff_sha,
-    excluded_generated_receipt,
     discard_whole_task_reject,
+    estimate_receipt,
+    excluded_generated_receipt,
     file_part_label,
+    format_route_banner,
     gate_edit_allowed,
+    load_price_table,
     pack_review_prompts,
     partition_untracked_generated,
     review_preamble,
@@ -3615,6 +3619,25 @@ def build_local(argv: list[str] | None = None) -> int:
     state.min_avail = mem_available_gib(mem_start)
     stop_watch = threading.Event()
     watcher = None
+    if args.model and str(args.model).strip():
+        local_why = "flag --model %s" % args.model_name
+    elif os.environ.get("PFY_LOCAL_BUILD_MODEL", "").strip():
+        local_why = "PFY_LOCAL_BUILD_MODEL=%s" % args.model_name
+    else:
+        local_why = "flag --local; build-lane default is %s" % args.model_name
+    cost_choice, cost_estimate, cost_alternative = build_route_quotes(
+        "local",
+        args.model_name,
+        local_why,
+        1,
+        0,
+        load_price_table(),
+    )
+    print(
+        format_route_banner(cost_choice, cost_estimate, cost_alternative, 1),
+        file=sys.stderr,
+        flush=True,
+    )
 
     def finish() -> int:
         nonlocal unloaded, git_saved, prepared, status, reason, exit_code, recovery, worktree
@@ -3694,6 +3717,9 @@ def build_local(argv: list[str] | None = None) -> int:
                 "gate_unsandboxed": gate_unsandboxed,
                 "started_at": started_at,
                 "finished_at": finished_at,
+                "choice": cost_choice,
+                "estimate": estimate_receipt(cost_estimate, cost_alternative),
+                "actual": {"usd": 0.0, "source": "local"},
             }
             if recovery:
                 payload["recovery"] = recovery

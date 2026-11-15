@@ -243,7 +243,8 @@ pfy — simple setup & launch for the pfy-deanery stack
   pfy models show|set     per-task local/cloud model (same as pfy model-choice)
   pfy model-choice show|set <task> <backend:model>
   pfy compare <task> --against <model> [--last|--run PATH] [--yes --max-usd N]
-                          print the cost, then run only after y or --yes --max-usd
+                          print local $0 vs cloud, then run only after y or --yes --max-usd
+                          (--approve-cost is --yes; --max-cost is --max-usd; never auto-runs)
   pfy models pull <name>  live engine (FreeToken records name; Ollama pulls; llama skip)
   pfy models recommend    ranked host-fit models not yet pulled (VRAM/RAM/runtime)
   pfy models try [name]   pull top (or named) recommendation — operate-or-FAIL
@@ -263,9 +264,11 @@ pfy — simple setup & launch for the pfy-deanery stack
                           commit on cloud/<slug>-<stamp> (no push, no PR);
                           receipt under pipelines/dogfood/build-cloud/;
                           pass --base when HEAD is not origin/main
-  pfy build -p "<prompt>" [--cwd DIR] [--dry-run]
+  pfy build -p "<prompt>" [--cwd DIR] [--dry-run] [--yes|--approve-cost] [--max-cost USD]
                           jev dogfood wrap: local jev toolset + decision shadow
-                          + grok -p (plain); receipt under pipelines/dogfood/build/
+                          + grok -p (plain); prints cloud vs local $0 before spend;
+                          off a TTY pass --yes, --approve-cost, or --max-cost;
+                          receipt under pipelines/dogfood/build/
   pfy build --local "<task>" [--repo DIR] [--base REF] [--model TAG] [--dry-run]
                           [--reap] [--unsafe-no-sandbox]
                           opt-in fallback: headless local-model build in a tmp worktree

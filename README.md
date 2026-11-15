@@ -57,6 +57,8 @@ Headless cloud build. Review stays on. Nothing is pushed.
 - `grok` must already be on `PATH` and logged in (`grok login`). This command does not read `auth.json` and does not load `.env`. It does not start a local model. `--local` is opt-in. `-p` is the jev dogfood wrap, not the daily command.
 - A PASS leaves branch `cloud/<slug>-<stamp>` and `pipelines/dogfood/build-cloud/<stamp>/receipt.json` in the target repo. The caller branch stays as it was. Nothing is pushed.
 
+Before any model call, the run prints the choice (cloud `grok-4.7`, or local `qwen3.6:35b` at $0 when you pass `--local`), a low-high dollar range for that route and the other one, and an expected wall time. Recorded build receipts supply the range when they exist. With no history the token price table is used. If that quote is $0, one small implement is $0.20-$0.36 and a product round is $1.50-$6. On a TTY it asks `Proceed? [y/N]`. Off a TTY it needs `--yes`, `--approve-cost`, or `--max-cost` at or above the estimate, and otherwise exits 2 without calling the model. A cap under the estimate refuses even with `--yes`. Local does not ask. The receipt stores `choice`, `estimate`, and `actual`. A dry-run prints the same lines and does not ask. `./pfy build -p` uses the same gate before `grok -p`. `./pfy compare` never auto-runs.
+
 Operator card: [docs/ops/pfy-build-daily.md](docs/ops/pfy-build-daily.md). Module map: [docs/modules/pfy-build.md](docs/modules/pfy-build.md). Where those two disagree with `./pfy build --help` on the default repo, trust the help text.
 
 ## What it is

@@ -52,13 +52,14 @@ from pfylib.review_chunks import (  # noqa: E402
     acquire_repo_lock,
     assert_review_budget,
     change_impact_map,
+    build_route_quotes,
     collect_call_usage,
+    cost_block_reason,
     diff_sha,
-    estimate_for_run,
-    estimate_is_confirmed,
+    estimate_receipt,
     excluded_generated_receipt,
     file_part_label,
-    format_estimate_line,
+    format_route_banner,
     format_spend_line,
     gate_edit_allowed,
     link_legacy_cloud_lock,
@@ -130,6 +131,10 @@ Daily cloud build.
 
 -p is the jev dogfood wrap (./pfy build -p "<prompt>").
 --local is the opt-in fallback (./pfy build --local "<task>").
+
+Before Grok starts, the runner prints the cloud vs local choice, a low-high
+dollar range, and a wall-time range. Off a TTY, pass --yes, --approve-cost,
+or --max-cost. A cap under the estimate does not start Grok.
 """
 
 _PEM = re.compile(
@@ -626,6 +631,17 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         help="remove the worktree on a non-PASS that left edits",
     )
     parser.add_argument("--yes", action="store_true", help="proceed without the cost prompt")
+    parser.add_argument(
+        "--approve-cost",
+        action="store_true",
+        help="same as --yes: accept the printed estimate off a TTY",
+    )
+    parser.add_argument(
+        "--max-cost",
+        type=float,
+        default=None,
+        help="spend ceiling in USD; below the estimate refuses before Grok starts",
+    )
     parser.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT, help="seconds for one grok call")
     parser.add_argument(
         "--review-workers",
@@ -1452,6 +1468,8 @@ class CloudBuild:
         self.usage_sessions: list = []
         self._usage_lock = threading.Lock()
         self.estimate: dict | None = None
+        self.choice: dict | None = None
+        self.alternative: dict | None = None
         self.excluded_paths: list = []
         self._prices = load_price_table()
         self._suppress_gate = False
@@ -2071,12 +2089,13 @@ class CloudBuild:
         payload["excluded_generated"] = excluded_generated_receipt(self.excluded_paths)
         payload["usage"] = usage_receipt(self.usage_sessions)
         if self.estimate:
-            payload["estimate"] = {
-                "usd": self.estimate.get("usd"),
-                "low": self.estimate.get("low"),
-                "high": self.estimate.get("high"),
-                "basis": self.estimate.get("basis"),
-            }
+            payload["choice"] = self.choice
+            payload["estimate"] = estimate_receipt(self.estimate, self.alternative or {})
+        spent = bool(self.usage_sessions)
+        payload["actual"] = {
+            "usd": payload["usage"]["usd"] if spent else 0.0,
+            "source": "usage.json" if spent else "not-run",
+        }
         if self.usage_sessions:
             print(format_spend_line(self.usage_sessions))
         try:
@@ -2147,12 +2166,24 @@ class CloudBuild:
         except OSError:
             pass
 
-    def _publish_estimate(self) -> bool:
-        """Print the cost estimate. True when an interactive caller declines."""
+    def _publish_estimate(self) -> str | None:
+        """Print the choice and both ranges. A string means do not call Grok."""
         attempts = max(1, self.max_attempts)
-        self.estimate = estimate_for_run(self._prices, "grok-4.7", attempts, attempts)
-        print(format_estimate_line(self.estimate, attempts), file=sys.stderr, flush=True)
-        return not estimate_is_confirmed(self.args)
+        reviews = 0 if self.args.no_review else attempts
+        why = "pfy build defaults to cloud Grok; pass --local for Ollama qwen3.6:35b at $0"
+        self.choice, self.estimate, self.alternative = build_route_quotes(
+            "cloud",
+            "grok-4.7",
+            why,
+            attempts,
+            reviews,
+            self._prices,
+        )
+        print(format_route_banner(self.choice, self.estimate, self.alternative, attempts), file=sys.stderr, flush=True)
+        reason = cost_block_reason(self.args, self.estimate)
+        if reason:
+            print(reason, file=sys.stderr, flush=True)
+        return reason
 
     def _gate_timeout_fail(self, number: int, output: str) -> int:
         self.recovery_detail = "gate"
@@ -2312,13 +2343,14 @@ class CloudBuild:
         if missing_grok:
             self.record(0, "FAIL", "unauthenticated", "")
             return self.fail("FAIL", "unauthenticated", EXIT_FAIL, auth_recovery(self.args.task_text))
-        if self._publish_estimate():
+        blocked = self._publish_estimate()
+        if blocked:
             self.record(0, "FAIL", "estimate-declined", "")
             return self.fail(
                 "FAIL",
                 "estimate-declined",
                 EXIT_USAGE,
-                failure_recovery("estimate-declined", self.args.task_text),
+                blocked,
             )
         problem = self.prepare_worktree()
         if problem:
@@ -2918,47 +2950,21 @@ def missing_base(args, repo: Path, ref: str) -> int:
 def _dry_run(args, repo: Path, base: str, receipt: Path) -> int:
     attempts = 1 if getattr(args, "no_review", False) else int(getattr(args, "retries", 0) or 0) + 1
     attempts = max(1, attempts)
-    estimate = estimate_for_run(load_price_table(), "grok-4.7", attempts, attempts)
-    print(format_estimate_line(estimate, attempts), file=sys.stderr, flush=True)
-    if not estimate_is_confirmed(args):
-        payload = {
-            "schema": SCHEMA,
-            "status": "FAIL",
-            "reason": "estimate-declined",
-            "exit_code": EXIT_USAGE,
-            "branch": None,
-            "commit": None,
-            "base": base,
-            "review": {"verdict": None, "reasons": []},
-            "attempts": [],
-            "gate": {"cmd": args.test_cmd, "before": None, "after": None},
-            "recovery": failure_recovery("estimate-declined", args.task_text),
-            "pushed": False,
-            "worktree_removed": False,
-            "task": args.task_text,
-            "estimate": {
-                "usd": estimate.get("usd"),
-                "low": estimate.get("low"),
-                "high": estimate.get("high"),
-                "basis": estimate.get("basis"),
-            },
-            "finished_at": _now(),
-        }
-        write_receipt(receipt, payload)
-        print("FAIL: estimate-declined", file=sys.stderr)
-        print(payload["recovery"], file=sys.stderr)
-        return EXIT_USAGE
+    reviews = 0 if getattr(args, "no_review", False) else attempts
+    why = "pfy build defaults to cloud Grok; pass --local for Ollama qwen3.6:35b at $0"
+    choice, estimate, alternative = build_route_quotes(
+        "cloud", "grok-4.7", why, attempts, reviews, load_price_table()
+    )
+    print(format_route_banner(choice, estimate, alternative, attempts), file=sys.stderr, flush=True)
+    # Dry-run does not call Grok, so it does not ask. The receipt still records the quote.
     payload = {
         "schema": SCHEMA,
         "status": "DRY-RUN",
         "reason": "dry-run",
         "exit_code": EXIT_OK,
-        "estimate": {
-            "usd": estimate.get("usd"),
-            "low": estimate.get("low"),
-            "high": estimate.get("high"),
-            "basis": estimate.get("basis"),
-        },
+        "choice": choice,
+        "estimate": estimate_receipt(estimate, alternative),
+        "actual": {"usd": 0.0, "source": "not-run"},
         "branch": None,
         "commit": None,
         "base": base,

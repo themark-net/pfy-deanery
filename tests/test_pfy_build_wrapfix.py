@@ -297,7 +297,7 @@ class CloudWrapfixTests(unittest.TestCase):
             "PFY_TSA_BIN": MISSING_TOOL,
             "PFY_PROMPT_LOG": str(self.log),
             "CI": "",
-            "PFY_BUILD_YES": "",
+            "PFY_BUILD_YES": "1",
         }
         if extra:
             env.update(extra)
@@ -678,10 +678,12 @@ class CloudWrapfixTests(unittest.TestCase):
         self.assertIn("estimate", dry_payload)
 
         master, slave = pty.openpty()
+        decline_env = dict(env)
+        decline_env["PFY_BUILD_YES"] = ""
         declined = subprocess.Popen(
             argv,
             cwd=self.repo,
-            env=env,
+            env=decline_env,
             stdin=slave,
             stdout=slave,
             stderr=slave,

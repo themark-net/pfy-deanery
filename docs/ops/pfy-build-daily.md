@@ -42,8 +42,13 @@ The runner does not read `auth.json`. Grok uses the operator login that already 
 | `--review-file-cap N` | Max characters of one file's diff in a review prompt. Default 12000. `PFY_REVIEW_FILE_CAP` is the same knob. When both are set, the flag wins. A file over the cap is split and every part is reviewed. |
 | `--review-workers N` | Parallel review workers. Default 4, or `PFY_REVIEW_WORKERS`, clamped to 1..8. The flag wins. |
 | `--review-timeout SEC` | Seconds for one review call. Default 600, or `PFY_REVIEW_TIMEOUT`. The flag wins. |
+| `--yes` | Accept the printed cloud estimate. Off a TTY this is required unless `--approve-cost` or a covering `--max-cost` is set. `PFY_BUILD_YES=1` is the same approval. |
+| `--approve-cost` | Same as `--yes`. |
+| `--max-cost USD` | Refuse when the estimate is above this cap. A cap at or above the estimate is itself approval. |
 
 A safe `.gitignore` line for generated output, and a `pyproject.toml` edit that does not change a test table, are allowed without a flag. Gate-weakening edits still need `--writable-test`. A `tests-tampered` failure names that flag and the path. Protected paths are the pregate gate-hash basenames (`conftest.py`, `pytest.ini`, `tox.ini`, `setup.cfg`, `pyproject.toml`, `sitecustomize.py`, `usercustomize.py`, `.gitignore`, `.gitattributes`, anywhere in the tree), plus `examples/eval-harness/`, `.github/workflows/`, `scripts/pregate.sh`, `scripts/pfy`, and `scripts/pfy_build_cloud.py`.
+
+Before Grok starts, the run prints cloud `grok-4.7` against local `qwen3.6:35b` at $0, a low-high dollar range, and a wall-time range. History in build receipts is used when it exists. With no history the token price table is used. If that quote is $0, one small implement is $0.20-$0.36 and a product round is $1.50-$6. On a TTY it asks `Proceed? [y/N]`. Off a TTY pass `--yes`, `--approve-cost`, or a `--max-cost` that covers the estimate. A lower cap does not start Grok. `--local` prints $0 and does not ask. `--dry-run` prints the choice and does not ask. The receipt stores `choice`, `estimate`, and `actual`. `./pfy compare` never auto-runs.
 
 ## Exit codes
 
@@ -115,6 +120,7 @@ The runner does not read `auth.json`. A rate limit does not auto-start `--local`
 | `no-change` | 1 FAIL when retries are spent. The attempt counts while retries remain. | Attempt `reason` `no-change`. No branch. | The gate still runs. Feedback includes the gate tail, not only the word `no-change`. A green gate with an empty diff is still `no-change`. There is no empty PASS. |
 | `scope-commit-mismatch` | 1 FAIL | `reason` `scope-commit-mismatch`. Index reset. No branch. | The commit set is the reviewed path list. `git add -A -f` is not the cloud commit. A staged name outside that list aborts the commit. |
 | dirty caller | 0 when the new worktree base is clean. 1 when the base ref cannot be checked out (`reason` `worktree-failed`). | A PASS receipt names the new branch only. Dirty caller files are not in the new commit. | The runner never stashes or resets the caller. Dirty caller files stay dirty. |
+| `estimate-declined` | 2 usage | `status` `FAIL`, `reason` `estimate-declined`, no branch. Grok was not started. | Rerun with `--yes`, `--approve-cost`, or a higher `--max-cost`. |
 | `interrupted` | 1 FAIL | `status` `FAIL`, `reason` `interrupted`. No branch. SIGINT or SIGTERM. | The grok process group is signaled. Rerun the same command when the task should run again. |
 | `ABORTED` | `--reap` exits 0. The killed run wrote nothing. | `status` `ABORTED`, `reason` `no-receipt`, for a cloud pid-file entry whose receipt is missing. | After SIGKILL, run `./pfy build --reap`. Reap signals only pgids in `tmp/cloud-build.pids.json`. It does not signal pgids listed only in `tmp/local-build.pids.json`. |
 

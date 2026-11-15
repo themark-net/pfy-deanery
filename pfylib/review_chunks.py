@@ -25,6 +25,17 @@ ASSUME_IMPLEMENT_IN = 100000
 ASSUME_IMPLEMENT_OUT = 8000
 ASSUME_REVIEW_IN = 12000
 ASSUME_REVIEW_OUT = 500
+# Documented floors when the price table is missing or a cloud quote is $0.
+# One small implement is $0.20-$0.36. A product round (more than one call) is $1.50-$6.
+STATIC_SMALL_LOW = 0.20
+STATIC_SMALL_HIGH = 0.36
+STATIC_ROUND_LOW = 1.50
+STATIC_ROUND_HIGH = 6.0
+# No receipt history: one cloud call is 10-20 min. Local MVP loop is about 20-65 min.
+STATIC_CLOUD_WALL_LOW = 600
+STATIC_CLOUD_WALL_HIGH = 1200
+STATIC_LOCAL_WALL_LOW = 1200
+STATIC_LOCAL_WALL_HIGH = 3900
 _DEF_LINE = re.compile(r"^(?:async\s+def|def|class)\s+([A-Za-z_][A-Za-z0-9_]*)\b")
 _TABLE_RE = re.compile(r"^\s*\[([^\[\]]+)\]\s*$")
 _GENERATED_DIRS = {
@@ -315,7 +326,8 @@ def estimate_without_history(prices, model="grok-4.7", attempts=1, review_prompt
 
 def load_price_table(path=None):
     if path is None:
-        path = Path(__file__).resolve().parents[1] / "data" / "model-prices.json"
+        override = os.environ.get("PFY_MODEL_PRICES", "").strip()
+        path = Path(override) if override else Path(__file__).resolve().parents[1] / "data" / "model-prices.json"
     try:
         data = json.loads(Path(path).read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError):
@@ -422,32 +434,209 @@ def _history_costs():
     return {"implement": implement, "review": review, "all": pooled}
 
 
+def _static_cloud_floor(attempts, review_prompts):
+    """Dollar floor when history and the price table both yield $0."""
+    calls = max(1, int(attempts)) + max(0, int(review_prompts))
+    if calls <= 1:
+        low, high = STATIC_SMALL_LOW, STATIC_SMALL_HIGH
+        basis = "static floor one small implement $0.20-$0.36"
+    else:
+        low, high = STATIC_ROUND_LOW, STATIC_ROUND_HIGH
+        basis = "static floor product round $1.50-$6"
+    return {"usd": (low + high) / 2.0, "low": low, "high": high, "basis": basis}
+
+
+def _history_wall_seconds(route):
+    """wall_seconds from recent receipts. PFY_COST_HISTORY_ROOT, else the cwd."""
+    raw = os.environ.get("PFY_COST_HISTORY_ROOT", "").strip()
+    root = Path(raw) if raw else Path.cwd()
+    folder = "build-local" if route == "local" else "build-cloud"
+    base = root / "pipelines" / "dogfood" / folder
+    if not base.is_dir():
+        return []
+    files = []
+    try:
+        children = list(base.iterdir())
+    except OSError:
+        return []
+    for child in children:
+        receipt = child / "receipt.json"
+        if not receipt.is_file():
+            continue
+        try:
+            files.append((receipt.stat().st_mtime, receipt))
+        except OSError:
+            continue
+    files.sort(reverse=True)
+    values = []
+    for _mtime, receipt in files[:40]:
+        try:
+            data = json.loads(receipt.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError):
+            continue
+        try:
+            wall = float(data.get("wall_seconds"))
+        except (TypeError, ValueError):
+            continue
+        if wall > 0:
+            values.append(wall)
+    return values
+
+
+def _minutes(seconds):
+    minutes = int(round(float(seconds) / 60.0))
+    if minutes < 1:
+        minutes = 1
+    return "%d min" % minutes
+
+
+def _attach_wall(est, route, attempts):
+    walls = _history_wall_seconds(route)
+    if walls:
+        est["wall_low_s"] = _median(walls)
+        est["wall_high_s"] = max(_p90(walls), _median(walls))
+        est["wall_basis"] = "history wall sessions %d" % len(walls)
+        return est
+    calls = max(1, int(attempts))
+    if route == "local":
+        est["wall_low_s"] = STATIC_LOCAL_WALL_LOW
+        est["wall_high_s"] = STATIC_LOCAL_WALL_HIGH
+        est["wall_basis"] = "static floor local 20-65 min"
+    else:
+        est["wall_low_s"] = STATIC_CLOUD_WALL_LOW * calls
+        est["wall_high_s"] = STATIC_CLOUD_WALL_HIGH * calls
+        est["wall_basis"] = "static floor cloud %d call(s) at 10-20 min" % calls
+    return est
+
+
 def estimate_for_run(prices, model="grok-4.7", attempts=1, review_prompts=1):
-    """Historical medians when they exist, otherwise the no-history formula."""
+    """Historical medians when they exist, otherwise the no-history formula.
+
+    A $0 cloud quote (empty price table, or a history of zeros) uses the
+    documented static floor so a paid route is never shown as free.
+    """
     hist = _history_costs()
     pooled = hist["all"]
     if not pooled:
-        return estimate_without_history(
+        est = estimate_without_history(
             prices, model=model, attempts=attempts, review_prompts=review_prompts
         )
-    implement = hist["implement"] or pooled
-    review = hist["review"] or pooled
-    med_i = _median(implement)
-    med_r = _median(review)
-    usd = med_i * int(attempts) + med_r * int(review_prompts)
-    high = _p90(implement) * int(attempts) + _p90(review) * int(review_prompts)
-    basis = "history median implement %.6f review %.6f sessions %d" % (
-        med_i,
-        med_r,
-        len(pooled),
+    else:
+        implement = hist["implement"] or pooled
+        review = hist["review"] or pooled
+        med_i = _median(implement)
+        med_r = _median(review)
+        usd = med_i * int(attempts) + med_r * int(review_prompts)
+        high = _p90(implement) * int(attempts) + _p90(review) * int(review_prompts)
+        basis = "history median implement %.6f review %.6f sessions %d" % (
+            med_i,
+            med_r,
+            len(pooled),
+        )
+        est = {"usd": usd, "low": usd / 2.0, "high": high, "basis": basis}
+    if float(est.get("usd") or 0) <= 0:
+        est = _static_cloud_floor(attempts, review_prompts)
+    est["route"] = "cloud"
+    est["model"] = model
+    est["review_prompts"] = int(review_prompts)
+    return _attach_wall(est, "cloud", attempts)
+
+
+def local_zero_estimate(model):
+    """Ollama is $0. Wall time still comes from local receipts or the static floor."""
+    est = {
+        "usd": 0.0,
+        "low": 0.0,
+        "high": 0.0,
+        "basis": "local $0 (%s via Ollama)" % model,
+        "route": "local",
+        "model": model,
+    }
+    return _attach_wall(est, "local", 1)
+
+
+def _route_money_line(label, est):
+    return "%s: $%s (range $%s-$%s), about %s-%s; basis: %s" % (
+        label,
+        _money(est.get("usd") or 0),
+        _money(est.get("low") or 0),
+        _money(est.get("high") or 0),
+        _minutes(est.get("wall_low_s") or 0),
+        _minutes(est.get("wall_high_s") or 0),
+        est.get("basis") or "",
     )
-    return {"usd": usd, "low": usd / 2.0, "high": high, "basis": basis}
+
+
+def format_route_banner(choice, chosen, other, attempts):
+    """Choice, why, the chosen range, and the other route. Cloud keeps the old estimate line."""
+    lines = [
+        "model choice: %s %s" % (choice.get("route"), choice.get("model")),
+        "why: %s" % (choice.get("why") or ""),
+    ]
+    if choice.get("route") == "cloud":
+        lines.append(format_estimate_line(chosen, attempts))
+        lines.append(
+            "cloud wall: %s-%s (%s)"
+            % (
+                _minutes(chosen.get("wall_low_s") or 0),
+                _minutes(chosen.get("wall_high_s") or 0),
+                chosen.get("wall_basis") or "",
+            )
+        )
+    else:
+        lines.append(_route_money_line("local", chosen))
+    other_label = "alternative %s %s" % (other.get("route") or "", other.get("model") or "")
+    lines.append(_route_money_line(other_label.strip(), other))
+    return "\n".join(lines)
+
+
+def estimate_receipt(chosen, other):
+    def _side(est):
+        return {
+            "route": est.get("route"),
+            "model": est.get("model"),
+            "usd": est.get("usd"),
+            "low": est.get("low"),
+            "high": est.get("high"),
+            "basis": est.get("basis"),
+            "wall_low_s": est.get("wall_low_s"),
+            "wall_high_s": est.get("wall_high_s"),
+        }
+
+    body = _side(chosen)
+    body["alternative"] = _side(other)
+    return body
+
+
+def build_route_quotes(route, model, why, attempts, review_prompts, prices, local_model="qwen3.6:35b"):
+    """Cloud quote from history or the static floor, and the local $0 alternative."""
+    cloud = estimate_for_run(prices, "grok-4.7", attempts, review_prompts)
+    shown_local = model if route == "local" else (local_model or "qwen3.6:35b")
+    local = local_zero_estimate(shown_local)
+    if route == "local":
+        chosen, other = local, cloud
+    else:
+        chosen, other = cloud, local
+    choice = {"route": route, "model": chosen.get("model"), "why": why}
+    return choice, chosen, other
 
 
 def format_estimate_line(est, attempts):
+    reviews = est.get("review_prompts")
+    if reviews is None or int(reviews) > 0:
+        review_note = "+ per-file review"
+    else:
+        review_note = "no review call"
     return (
-        "cost estimate: ~$%s (range $%s-$%s) for %d attempt(s) + per-file review; basis: %s"
-        % (_money(est["usd"]), _money(est["low"]), _money(est["high"]), int(attempts), est["basis"])
+        "cost estimate: ~$%s (range $%s-$%s) for %d attempt(s) %s; basis: %s"
+        % (
+            _money(est["usd"]),
+            _money(est["low"]),
+            _money(est["high"]),
+            int(attempts),
+            review_note,
+            est["basis"],
+        )
     )
 
 
@@ -456,30 +645,68 @@ def _money(value):
     return text or "0"
 
 
-def estimate_is_confirmed(args=None):
-    """False only for an interactive decline. Pipes proceed without a prompt."""
-    if args is not None and getattr(args, "yes", False):
-        return True
-    yes = os.environ.get("PFY_BUILD_YES", "").strip().lower()
-    if yes in {"1", "true", "yes"}:
-        return True
-    ci = os.environ.get("CI", "").strip().lower()
-    if ci in {"1", "true", "yes"}:
-        return True
+def cost_block_reason(args=None, estimate=None):
+    """None when the spend may start. Otherwise a sentence and no model call.
+
+    A local $0 route does not ask. A paid route on a TTY asks. Off a TTY it
+    needs --yes, --approve-cost, PFY_BUILD_YES, or a --max-cost at or above
+    the estimate. CI is not approval. A cap under the estimate always refuses.
+    """
+    est = estimate or {}
+    try:
+        usd = float(est.get("usd") or 0)
+    except (TypeError, ValueError):
+        usd = 0.0
+    route = est.get("route") or "cloud"
+    cap = getattr(args, "max_cost", None) if args is not None else None
+    if cap is not None:
+        try:
+            cap_f = float(cap)
+        except (TypeError, ValueError):
+            return "bad --max-cost. No model was called."
+        if cap_f != cap_f or cap_f == float("inf") or cap_f == float("-inf"):
+            return "bad --max-cost. No model was called."
+        if cap_f < usd:
+            return "estimate $%s exceeds --max-cost %s. No model was called." % (
+                _money(usd),
+                _money(cap_f),
+            )
+    if route == "local":
+        return None
+    approved = False
+    if args is not None and (getattr(args, "yes", False) or getattr(args, "approve_cost", False)):
+        approved = True
+    if cap is not None:
+        approved = True
+    raw_yes = os.environ.get("PFY_BUILD_YES", "").strip().lower()
+    if raw_yes in {"1", "true", "yes"}:
+        approved = True
+    if approved:
+        return None
     try:
         interactive = sys_isatty()
     except Exception:
         interactive = False
     if not interactive:
-        return True
+        return (
+            "refusing: no TTY and no --yes, --approve-cost, or --max-cost. "
+            "No model was called."
+        )
     import sys
 
     print("Proceed? [y/N]", file=sys.stderr, flush=True)
     try:
         answer = sys.stdin.readline()
     except Exception:
-        return False
-    return answer.strip().lower() in {"y", "yes"}
+        return "declined. No model was called."
+    if answer.strip().lower() in {"y", "yes"}:
+        return None
+    return "declined. No model was called."
+
+
+def estimate_is_confirmed(args=None, estimate=None):
+    """True when cost_block_reason allows the spend."""
+    return cost_block_reason(args, estimate) is None
 
 
 def sys_isatty():

@@ -237,8 +237,8 @@ def _compare_verb(args) -> int:
             against=args.against,
             run=args.run or None,
             last=bool(args.last) or not args.run,
-            yes=bool(args.yes),
-            max_usd=args.max_usd,
+            yes=bool(args.yes or args.approve_cost),
+            max_usd=args.max_usd if args.max_usd is not None else args.max_cost,
             accept_stale=bool(args.accept_stale_price),
             out=args.out or None,
             root=args.root,
@@ -355,7 +355,9 @@ def build_parser() -> argparse.ArgumentParser:
     cp.add_argument("--run", default="")
     cp.add_argument("--last", action="store_true")
     cp.add_argument("--yes", action="store_true")
+    cp.add_argument("--approve-cost", action="store_true", help="same as --yes; still needs a cap")
     cp.add_argument("--max-usd", type=float, default=None)
+    cp.add_argument("--max-cost", type=float, default=None, help="USD cap; alias of --max-usd")
     cp.add_argument("--accept-stale-price", action="store_true")
     cp.add_argument("--out", default="")
     cp.set_defaults(fn=_compare_verb)
