@@ -11,7 +11,9 @@ Exit codes:
      or PASS-REJECTED (the gate was green and the review rejected the patch),
      or reviewer-unavailable (reviewer HTTP error or review-call timeout:
      not a reject, not retried, nothing committed),
-     or crash (the agent exited nonzero and wrote no diff: not a no-change, not retried).
+     or crash (the agent exited nonzero and wrote no diff: not a no-change, not retried),
+     or FLAKY (the in-wrap gate passed and a clean-clone re-run failed:
+     nothing committed, not retried).
      A leftover tmp/local-build-* directory that cannot be removed is FAIL with
      reason stale-worktree. It is not reused. A dry-run does not delete leftovers.
   2  usage, or opencode is missing
@@ -57,6 +59,20 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from pfylib.bot_interface import _scrub, _which_opencode, opencode_config  # noqa: E402
+from pfylib.build_flake import (  # noqa: E402
+    flake_verdict,
+    port_warning_lines,
+    resolve_flake_runs,
+    run_clean_clones,
+    scan_fixed_ports,
+)
+from pfylib.build_size import (  # noqa: E402
+    SMALL_MAX_FILES as DEFAULT_MAX_FILES,
+    SMALL_MAX_LINES as DEFAULT_MAX_LINES,
+    file_cap_reason,
+    line_cap_message,
+    resolve_caps,
+)
 from pfylib.review_chunks import (  # noqa: E402
     BuildAlreadyRunning,
     ReviewBudgetExceeded,
@@ -101,6 +117,7 @@ LABELS = (
     "TIMEOUT",
     "BLOCKED",
     "ABORTED",
+    "FLAKY",
 )
 
 
@@ -122,8 +139,6 @@ DEFAULT_TEST_TIMEOUT = 600
 DEFAULT_OVERALL_TIMEOUT = 7200.0
 DEFAULT_MIN_FREE_GB = 32.0
 DEFAULT_RETRIES = 2
-DEFAULT_MAX_FILES = 40
-DEFAULT_MAX_LINES = 4000
 REVIEW_MARKER = "pfy-review-v1"
 SCOPE_SKIPPED_NOTE = "scope check skipped: no allow list"
 DIFF_PROMPT_CAP = 8000
@@ -149,13 +164,18 @@ _STALE_RECOVERY = (
     "It was not reused. Nothing was committed. "
     "Recovery: delete that directory and run again."
 )
+_FLAKY_RECOVERY = (
+    "The in-wrap gate passed and a clean-clone re-run failed. "
+    "Status FLAKY. Nothing was committed. "
+    "Recovery: make the test pass from a clean tree with a fresh HOME, "
+    "or pass --flake-runs 0 to skip the re-runs."
+)
 _RETRYABLE = {
     "no-change",
     "protected-path-changed",
     "tests-failed",
     "tests-regressed",
     "tests-tampered",
-    "tests-flaky",
 }
 _FILES_LINE = re.compile(r"(?m)^files:\s*(.*)$")
 _REQUIRE_LINE = re.compile(r"(?m)^require:\s*(\S+)\s+in\s+(.+)$")
@@ -403,10 +423,23 @@ def _apply_review_flags(args: argparse.Namespace) -> None:
         args.retries_n = DEFAULT_RETRIES
     else:
         args.retries_n = int(args.retries)
-    args.max_files_n = DEFAULT_MAX_FILES if args.max_files is None else int(args.max_files)
-    args.max_lines_n = DEFAULT_MAX_LINES if args.max_lines is None else int(args.max_lines)
+    caps = resolve_caps(
+        size_flag=getattr(args, "size", None),
+        max_files_flag=args.max_files,
+        max_lines_flag=args.max_lines,
+        task=getattr(args, "task_text", "") or "",
+    )
+    args.size_name = caps["size"]
+    args.max_files_n = caps["max_files"]
+    args.max_lines_n = caps["max_lines"]
+    args.size_files_explicit = caps["files_explicit"]
+    args.size_lines_explicit = caps["lines_explicit"]
     if args.retries_n < 0 or args.max_files_n < 0 or args.max_lines_n < 0:
         raise UsageError("retries, max-files, and max-lines must be zero or greater")
+    try:
+        args.flake_runs_n = resolve_flake_runs(getattr(args, "flake_runs", None))
+    except ValueError as exc:
+        raise UsageError(str(exc)) from exc
     if not args.review:
         args.retries_n = 0
     for item in list(args.require_wiring or []):
@@ -419,7 +452,9 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
         description=(
             "Headless local-model build. One task, one tested branch, no push. "
             "Review is on by default (--no-review turns it off). "
-            "A green patch is rejected above 40 changed files or 4000 added plus removed lines."
+            "A green patch is rejected above 40 changed files or 4000 added plus removed lines. "
+            "Pass --size product for a larger cap. "
+            "After the in-wrap gate passes, clean-clone re-runs must also pass or the status is FLAKY."
         ),
     )
     parser.add_argument("task", nargs="?", help="task text")
@@ -505,6 +540,23 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
         type=int,
         default=None,
         help="added plus removed lines allowed (default 4000)",
+    )
+    parser.add_argument(
+        "--size",
+        choices=("small", "product"),
+        default=None,
+        help=(
+            "cap preset. small is 40 files and 4000 lines. "
+            "product is 120 files and 12000 lines. "
+            "A task line 'size: small' or 'size: product' applies when this flag is omitted. "
+            "--max-files and --max-lines win"
+        ),
+    )
+    parser.add_argument(
+        "--flake-runs",
+        type=int,
+        default=None,
+        help="clean-clone re-runs after a green in-wrap gate (default 2, env PFY_BUILD_FLAKE_RUNS, 0 skips)",
     )
     parser.add_argument("--allow-path", action="append", default=[], help="glob the patch may change (repeatable)")
     parser.add_argument(
@@ -2862,10 +2914,20 @@ def _reject_reasons(scope: dict, size: dict, wiring: dict) -> list[str]:
     for path in scope.get("outside") or []:
         reasons.append("path outside allowed set: %s" % path)
     if not size.get("ok"):
-        reasons.append(
-            "changed files %d (max %d), changed lines %d (max %d)"
-            % (size.get("files"), size.get("max_files"), size.get("lines"), size.get("max_lines"))
-        )
+        file_reason = file_cap_reason(size)
+        over_lines = int(size.get("lines") or 0) > int(size.get("max_lines") or 0)
+        if file_reason:
+            reasons.append(file_reason)
+        if over_lines:
+            reasons.append(
+                "changed lines %d (max %d, pass --max-lines)"
+                % (size.get("lines"), size.get("max_lines"))
+            )
+        if not file_reason and not over_lines:
+            reasons.append(
+                "changed files %d (max %d), changed lines %d (max %d)"
+                % (size.get("files"), size.get("max_files"), size.get("lines"), size.get("max_lines"))
+            )
     reasons.extend(wiring.get("missing") or [])
     return reasons
 
@@ -3615,6 +3677,8 @@ def build_local(argv: list[str] | None = None) -> int:
     git_saved: bytes | None = None
     prepared: PreparedSandbox | None = None
     test_snapshot: dict[str, str] = {}
+    flake_report = None
+    fixed_ports: list[dict] = []
     mem_start = read_meminfo()
     state.min_avail = mem_available_gib(mem_start)
     stop_watch = threading.Event()
@@ -3645,7 +3709,8 @@ def build_local(argv: list[str] | None = None) -> int:
             salvage_mode
             and status != "PASS"
             and status != "BLOCKED"
-            and reason not in ("interrupted", "mem-edge", "dry-run")
+            and status != "FLAKY"
+            and reason not in ("interrupted", "mem-edge", "dry-run", "flaky")
         ):
             status, reason, exit_code = "TIMEOUT", "timeout", EXIT_TIMEOUT
         if status != "PASS" and worktree is not None and repo is not None and changed:
@@ -3692,6 +3757,7 @@ def build_local(argv: list[str] | None = None) -> int:
                     "retries": int(args.retries_n),
                     "max_files": int(args.max_files_n),
                     "max_lines": int(args.max_lines_n),
+                    "size": getattr(args, "size_name", "small"),
                     "allow_path": list(args.allow_path or []),
                     "require_wiring": list(args.require_wiring or []),
                     "files": list(last_review_files),
@@ -3720,7 +3786,10 @@ def build_local(argv: list[str] | None = None) -> int:
                 "choice": cost_choice,
                 "estimate": estimate_receipt(cost_estimate, cost_alternative),
                 "actual": {"usd": 0.0, "source": "local"},
+                "fixed_ports": list(fixed_ports),
             }
+            if flake_report is not None:
+                payload["flake"] = flake_report
             if recovery:
                 payload["recovery"] = recovery
             _write_receipt(receipt_path, payload)
@@ -3969,6 +4038,79 @@ def build_local(argv: list[str] | None = None) -> int:
                 salvage_mode = False
                 return True
             return False
+
+        def _run_flake_clones():
+            """Re-run a green gate from exports of the result tree. None means continue."""
+            nonlocal flake_report, fixed_ports, status, reason, exit_code, recovery
+            # A state file written by the in-wrap gate is part of the result.
+            # The same tree would see it on a second run. Export a copy instead.
+            fixed_ports = scan_fixed_ports(worktree)
+            for line in port_warning_lines(fixed_ports):
+                if line not in warnings:
+                    warnings.append(line)
+                    print(line, file=sys.stderr)
+            count = int(getattr(args, "flake_runs_n", 0) or 0)
+            if count <= 0:
+                flake_report = {"runs": 0, "skipped": True, "results": []}
+                return None
+
+            def run_one(index, dest, env):
+                remain = loop_deadline - time.monotonic()
+                if remain <= 0:
+                    return {"run": index, "exit": None, "ok": False, "tail": "", "stop": "timeout"}
+                limit = float(args.test_timeout_s)
+                cut = remain < limit
+                rec = _watch_gate(run_tests(
+                    args.test_cmd_s,
+                    dest,
+                    env,
+                    remain if cut else limit,
+                    state,
+                    repo=repo,
+                    unsafe=bool(args.unsafe_no_sandbox),
+                ))
+                if cut and rec.get("exit") == 124:
+                    rec["aborted"] = "overall-timeout"
+                aborted = rec.get("aborted") or ""
+                stop = ""
+                if aborted == "overall-timeout":
+                    stop = "timeout"
+                elif aborted in ("interrupted", "mem-edge"):
+                    stop = aborted
+                elif state.interrupted:
+                    stop = "interrupted"
+                elif state.mem_edge:
+                    stop = "mem-edge"
+                why = None if stop else judge_tests(tests_before, rec)
+                ok = (not stop) and bool(rec.get("started")) and rec.get("exit") == 0 and not why
+                return {
+                    "run": index,
+                    "exit": rec.get("exit"),
+                    "ok": bool(ok),
+                    "tail": rec.get("tail") or "",
+                    "stop": stop,
+                }
+
+            rows = run_clean_clones(worktree, count, repo / "tmp", stamp, run_one)
+            flake_report = {"runs": len(rows), "skipped": False, "results": rows}
+            verdict = flake_verdict(rows)
+            if verdict == "ok":
+                return None
+            if verdict == "timeout":
+                return _finish_overall()
+            if verdict in ("interrupted", "mem-edge"):
+                status, reason, exit_code = "FAIL", verdict, EXIT_FAIL
+                _record_attempt(
+                    attempts_used, attempt_t0, mem_snap, "FAIL", verdict, None, None, diff_stats, diff_text
+                )
+                return finish()
+            recovery = _FLAKY_RECOVERY
+            print("FLAKY: clean-clone gate failed", file=sys.stderr)
+            status, reason, exit_code = "FLAKY", "flaky", EXIT_FAIL
+            _record_attempt(
+                attempts_used, attempt_t0, mem_snap, "FLAKY", "flaky", None, None, diff_stats, diff_text
+            )
+            return finish()
 
         while attempts_used < max_attempts:
             if time.monotonic() >= loop_deadline:
@@ -4276,30 +4418,9 @@ def build_local(argv: list[str] | None = None) -> int:
                     attempts_used, attempt_t0, mem_snap, "FAIL", "tests-tampered", None, None, diff_stats, diff_text
                 )
                 return finish()
-            again = _gate_run()
-            stopped = _overall_stop(again)
+            stopped = _run_flake_clones()
             if stopped is not None:
                 return stopped
-            if again.get("aborted") == "interrupted" or state.interrupted:
-                status, reason, exit_code = "FAIL", "interrupted", EXIT_FAIL
-                _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "interrupted", None, None, diff_stats, diff_text)
-                return finish()
-            if again.get("aborted") == "mem-edge" or state.mem_edge:
-                status, reason, exit_code = "FAIL", "mem-edge", EXIT_FAIL
-                _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "mem-edge", None, None, diff_stats, diff_text)
-                return finish()
-            flaky = judge_tests(tests_before, again)
-            if flaky:
-                feedback = _gate_feedback("tests-flaky", again)
-                if _can_retry(args.review, attempts_used, max_attempts, "tests-flaky"):
-                    _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "tests-flaky", None, None, diff_stats, diff_text)
-                    if _note_salvage_retry():
-                        continue
-                    previous_diff = diff_text
-                    continue
-                status, reason, exit_code = "FAIL", "tests-flaky", EXIT_FAIL
-                _record_attempt(attempts_used, attempt_t0, mem_snap, "FAIL", "tests-flaky", None, None, diff_stats, diff_text)
-                return finish()
             if _gate_rewrote(worktree, reviewed_digests):
                 # The test command rewrote a file the diff already captured.
                 # Do not review or commit that unseen text, and do not retry:
@@ -4365,6 +4486,9 @@ def build_local(argv: list[str] | None = None) -> int:
                 scope_warning = SCOPE_SKIPPED_NOTE
                 print(SCOPE_SKIPPED_NOTE, file=sys.stderr)
             size = _check_size(changed, diff_stats, args.test_cmd_s, args.max_files_n, args.max_lines_n)
+            size["files_explicit"] = bool(args.size_files_explicit)
+            size["lines_explicit"] = bool(args.size_lines_explicit)
+            size["size"] = args.size_name
             wire = _check_wiring(diff_text, wiring_rules)
             checks = {"scope": scope, "size": size, "wiring": wire}
             if not size.get("ok") and int(size.get("lines") or 0) > int(size.get("max_lines") or 0):
@@ -4372,12 +4496,7 @@ def build_local(argv: list[str] | None = None) -> int:
                 # a review reject. Refuse once with the numbers; a retry would
                 # resend the same feedback. Gated on size["ok"] so mutants
                 # R8 and R9 (which edit "ok") still change the outcome.
-                print(
-                    "pfy build --local: diff has %d changed lines, over the %d-line cap; "
-                    "not reviewed, not committed, not retried. Split the task or pass --max-lines."
-                    % (size.get("lines"), size.get("max_lines")),
-                    file=sys.stderr,
-                )
+                print(line_cap_message(size), file=sys.stderr)
                 status, reason, exit_code = "FAIL", "review-diff-over-line-cap", EXIT_FAIL
                 _record_attempt(
                     attempts_used,
