@@ -312,15 +312,17 @@ class RunnerChoiceTests(unittest.TestCase):
         no pull). The qwen2.5:14b literal is only the empty-output fallback.
         """
         makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+        harness = (ROOT / "harness/agent-cage/Makefile").read_text(encoding="utf-8")
         cage = (ROOT / "examples/eval-harness/run-in-cage.sh").read_text(encoding="utf-8")
-        self.assertIn(
-            "resolve eval-suite --field model --transport ollama --probe-tags",
-            makefile,
-        )
-        self.assertIn(
-            "resolve matrix --field model --transport ollama --probe-tags",
-            makefile,
-        )
+        for text in (makefile, harness):
+            self.assertIn(
+                "resolve eval-suite --field model --transport ollama --probe-tags",
+                text,
+            )
+            self.assertIn(
+                "resolve matrix --field model --transport ollama --probe-tags",
+                text,
+            )
         self.assertIn("--probe-tags", cage)
 
 

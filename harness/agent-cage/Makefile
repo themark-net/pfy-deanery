@@ -839,9 +839,11 @@ write-guard-overlay-install: ensure-project
 EVAL_EXAMPLE := $(CATALOG_ROOT)/examples/eval-harness
 EVAL_TASK ?= 001-is-palindrome
 # Defaults overridden by eval-select-models / eval-auto when fit selection runs.
-# Repo-root `make eval-suite` and `make eval-matrix` pass the resolved tag
-# (qwen3.6:35b, or qwen2.5:14b when that tag is not listed). This default is
-# the committed model when those targets did not run.
+# Repo-root `make eval-suite` and `make eval-matrix` pass the resolved tag.
+# When this file's own default is what filled EVAL_MODEL (make eval-v02, or
+# a direct harness run), the suite and matrix recipes resolve again with
+# --probe-tags. qwen3.6:35b stays if that tag is listed or the tag list is
+# empty. qwen2.5:14b is used when only that fallback is listed.
 EVAL_MODEL ?= qwen3.6:35b
 EVAL_MODELS ?= qwen2.5:14b,codestral:22b,deepseek-coder:6.7b-instruct
 EVAL_GATE_MODEL ?= $(EVAL_MODEL)
@@ -900,7 +902,19 @@ eval-tier1-body: ensure-project
 eval-suite: ensure-project
 	@$(MODEL_LOCK) $(MAKE) eval-suite-body
 
+# origin "file" means EVAL_MODEL came from this makefile, not the operator
+# and not the repo-root recipe. Resolve then, so eval-v02 uses the fallback.
 eval-suite-body: ensure-project
+	@model='$(EVAL_MODEL)'; \
+	origin='$(origin EVAL_MODEL)'; \
+	if [ "$$origin" = file ] || [ -z "$$model" ]; then \
+	  model="$$(cd $(CATALOG_ROOT) && python3 -m pfylib.model_choice resolve eval-suite --field model --transport ollama --probe-tags || true)"; \
+	fi; \
+	if [ -z "$$model" ]; then model=qwen2.5:14b; fi; \
+	$(MAKE) eval-suite-exec EVAL_MODEL="$$model"
+
+.PHONY: eval-suite-exec eval-matrix-exec
+eval-suite-exec: ensure-project
 	$(call eval-in-cage,suite)
 	@echo "eval-suite: PASS"
 	@printf '| %s | suite | PASS | all tasks | gate=%s |\n' \
@@ -915,6 +929,15 @@ eval-matrix: ensure-project
 	@$(MODEL_LOCK) $(MAKE) eval-matrix-body
 
 eval-matrix-body: ensure-project
+	@model='$(EVAL_MODEL)'; \
+	origin='$(origin EVAL_MODEL)'; \
+	if [ "$$origin" = file ] || [ -z "$$model" ]; then \
+	  model="$$(cd $(CATALOG_ROOT) && python3 -m pfylib.model_choice resolve matrix --field model --transport ollama --probe-tags || true)"; \
+	fi; \
+	if [ -z "$$model" ]; then model=qwen2.5:14b; fi; \
+	$(MAKE) eval-matrix-exec EVAL_MODEL="$$model"
+
+eval-matrix-exec: ensure-project
 	$(call eval-in-cage,matrix)
 	@echo "eval-matrix: PASS (gate $(EVAL_GATE_MODEL))"
 	@printf '| %s | matrix | PASS | tasks×models | gate=%s models=%s |\n' \

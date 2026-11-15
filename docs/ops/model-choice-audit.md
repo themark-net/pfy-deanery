@@ -59,7 +59,7 @@ Status words: MET (closed, including this pass), ALREADY-FIXED (true on main bef
 - `typesafe_evaluate` cloud URL: local CUA-S1-FORMS at $0, then no POST unless the price row provider is TypeSafe and the yes rules pass. The repo price table was not given a TypeSafe row.
 - `examples/eval-harness/run_scored_task.py`: a public `OPENAI_BASE_URL` prints the estimate and does not send until `y` on a TTY, or the yes rules off a TTY. Local hosts do not ask.
 - `scripts/egm_review.py --local`: Ollama at $0, no grok process. A non-local `PFY_EGM_LOCAL_URL` does not connect.
-- eval-suite and matrix use the same fallback key as the other local tasks. The default is `qwen3.6:35b`. `make eval-suite`, `make eval-matrix`, and `examples/eval-harness/run-in-cage.sh` resolve with `--probe-tags`. A fake tag list selects `qwen2.5:14b`. `EVAL_MODEL`, `PFY_MODEL_EVAL_SUITE`, and `PFY_MODEL_MATRIX` do not switch. The choice prompt shows the fallback row. `EVAL_MODELS` stays the column list. No model pull.
+- eval-suite and matrix use the same fallback key as the other local tasks. The default is `qwen3.6:35b`. `make eval-suite`, `make eval-matrix`, the harness copies of those targets (so `make eval-v02` is included), and `examples/eval-harness/run-in-cage.sh` resolve with `--probe-tags`. A fake tag list selects `qwen2.5:14b`. `EVAL_MODEL`, `PFY_MODEL_EVAL_SUITE`, and `PFY_MODEL_MATRIX` do not switch. The choice prompt shows the fallback row. `EVAL_MODELS` stays the column list. No model pull.
 
 ## Left open
 
