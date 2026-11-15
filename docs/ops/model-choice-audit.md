@@ -34,11 +34,11 @@ Status words: MET (closed, including this pass), ALREADY-FIXED (true on main bef
 | `./pfy build --local` | A cloud choice is refused. The committed local tag is kept | Local `$0`, no ask | `qwen3.6:35b`. If that default is missing from tags and `qwen2.5:14b` is listed, the run switches. `--model` and `PFY_LOCAL_BUILD_MODEL` do not switch. A down Ollama stays no-model | No paid call | User file, then the flag and env above it | MET |
 | `catalog_fit_triage.py` triage, pending, replay | `resolve`, plus a `cloud:` model | Use `./pfy compare` for a past run | `qwen3.6:35b`, then `qwen2.5:14b` on a missing tag or a load error. An explicit model does not retry | Cloud prints the estimate and does not call until the yes rules above | User file. `PFY_MODEL_CATALOG_FIT` wins | MET |
 | Catalog loop `pending` tick | Default stays local | Reminder only, at the end of the script | Same triage fallback | A saved cloud choice is not given `--yes`. Pending logs FitBroken for that slug and continues. Nothing is spent | User file still applies | PARKED |
-| `make eval-suite` and `examples/eval-harness/run_scored_task.py` | Cloud choice refused. Stays Ollama | No labeled replay, so no compare | Pinned `qwen2.5:14b`. No fallback key | Local host by default. A paid `OPENAI_BASE_URL` would spend. Not retargeted | User file applies, then the refusal | GAP |
-| Matrix gate (`EVAL_MODE=matrix`) | Cloud choice refused | No compare. `EVAL_MODELS` stays the column list | Pinned `qwen2.5:14b`. No fallback | Same host risk as eval-suite | User file applies, then the refusal | GAP |
+| `make eval-suite` and `examples/eval-harness/run_scored_task.py` | Cloud choice refused. Stays Ollama. A public base names the local default at $0 | No labeled replay, so no compare | Pinned `qwen2.5:14b`. No fallback key | Local host (loopback, private, `host.docker.internal`, the default) sends with no ask. A public `OPENAI_BASE_URL` prints the estimate and does not send until the yes rules. A local-priced tag on that host is refused. The default host was not retargeted | User file applies, then the refusal | GAP |
+| Matrix gate (`EVAL_MODE=matrix`) | Cloud choice refused | No compare. `EVAL_MODELS` stays the column list | Pinned `qwen2.5:14b`. No fallback | Same host gate as eval-suite | User file applies, then the refusal | GAP |
 | `laya_shadow_model()` in `scripts/pfy_jev_230.py` | Cloud choice refused. Posts to local laya-serve | `./pfy compare decision-route` covers the trial file, not this process | Config says `qwen3.6:35b` with fallback `qwen2.5:14b`. This runner does not call `call_model` and does not retry a load error | No paid call on this path | User file, then `PFY_JEV_MODEL` | GAP |
-| `typesafe_evaluate()` | Operator picks TypeSafe on the decision screen | No USD line | Not the qwen default. `typesafe_model()` is not model-choice | POST `https://api.typesafe.ai` when a key exists. No estimate | Not the model-choice file | PARKED |
-| `scripts/egm_review.py` | Grok only. No local alternative on this command | Not a past-result compare | Not a qwen task | Ceiling is the elephant prompt times one draft plus each persona, plus 512 completion tokens each, priced as `grok-4.7`. Exit 2 and no grok process until the yes rules | Not a model-choice row | MET |
+| `typesafe_evaluate()` | Stderr names cloud TypeSafe and local CUA-S1-FORMS at $0 | No past-result compare. The cloud POST prints a TypeSafe price, then the yes rules | Not the qwen default. `typesafe_model()` is not model-choice | No POST to the cloud URL until a price row with provider TypeSafe exists and the yes rules pass. A local URL still posts. No price was invented. `PFY_MODEL_NO_PAID=1` blocks the socket | Not the model-choice file | MET |
+| `scripts/egm_review.py` | `--local` is Ollama `qwen3.6:35b` at $0 and does not start grok. Omit `--local` for grok-4.7 | Not a past-result compare | `PFY_EGM_LOCAL_MODEL`, default `qwen3.6:35b`. Not a model-choice row | Grok ceiling unchanged. `--local` refuses a non-local `PFY_EGM_LOCAL_URL` and does not connect | Not a model-choice row | MET |
 | `scripts/eval_lane.sh` | Grok via `model_lock.sh --always-approve`. No local choice | No | No model flag | No estimate | No | PARKED |
 | `scripts/integrate_lane.sh` | Same grok launch | No | No model flag | No estimate | No | PARKED |
 | `scripts/supersede_recheck_lane.sh` | Same grok launch | No | No model flag | No estimate | No | PARKED |
@@ -54,13 +54,18 @@ Status words: MET (closed, including this pass), ALREADY-FIXED (true on main bef
 - `build-lane` and `decision-route` fallback keys in `config/model-choice.json`. `pfy build --local` applies the fallback only for the default tag, against a fake tag list. `call_model` retries once when the committed default tag is missing. An explicit other tag does not switch. eval-suite and matrix stay on `qwen2.5:14b` with no fallback key.
 - Off-TTY `./pfy setup` prints the set command. That hint is not covered by a test, because `cmd_setup` runs `make env-init`.
 
+## Closed after the gap table
+
+- `typesafe_evaluate` cloud URL: local CUA-S1-FORMS at $0, then no POST unless the price row provider is TypeSafe and the yes rules pass. The repo price table was not given a TypeSafe row.
+- `examples/eval-harness/run_scored_task.py`: a public `OPENAI_BASE_URL` prints the estimate and does not send until `y` on a TTY, or the yes rules off a TTY. Local hosts do not ask.
+- `scripts/egm_review.py --local`: Ollama at $0, no grok process. A non-local `PFY_EGM_LOCAL_URL` does not connect.
+
 ## Left open
 
 - The operator screen compare button is catalog-fit against `grok-4.7` only. The CLI already accepts `gpt-6.1-sol` and `decision-route`. The screen was not changed: this pass had no browser check.
 - eval-suite and matrix stay on `qwen2.5:14b`. The Makefile and `tests/test_model_choice_runners.py` pin that tag. Moving them to `qwen3.6:35b` is a separate change.
-- The scored-task harness can spend if `OPENAI_BASE_URL` is a paid host. Default in the harness is a local host. It was not retargeted.
 - `laya_shadow_model()` does not load through `call_model`, so the new fallback key does not rescue a missing laya tag.
-- TypeSafe has no row in `data/model-prices.json`. No price was invented.
+- `run_suite.py` does not grow yes flags. A public base fails that cell closed. The failure text is the refusal, and the suite does not send. The single-task CLI is what accepts the estimate.
 
 ## Parked on purpose
 

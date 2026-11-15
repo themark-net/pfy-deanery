@@ -16,6 +16,10 @@ the report.
 Usage:
   python3 scripts/egm_review.py --ticket FILE --cited FILE --out FILE
       [--scratch DIR] [--max-turns N] [--personas readiness,critic,codebase]
+      [--local] [--yes] [--max-usd N]
+
+--local talks to Ollama at $0 and does not start grok. Omit it for the
+grok-4.7 estimate, which still waits for yes.
 """
 from __future__ import annotations
 
@@ -365,7 +369,8 @@ def _paid_block(ticket: str, cited: str, personas: list[str], *, yes: bool, max_
         file=sys.stderr,
     )
     print(
-        "why: advisory Elephant-Goldfish review; local alternative is not this command",
+        "why: advisory Elephant-Goldfish review. Local alternative: --local "
+        "(Ollama qwen3.6:35b, $0, no grok process).",
         file=sys.stderr,
     )
     print(
@@ -404,6 +409,105 @@ def _paid_block(ticket: str, cited: str, personas: list[str], *, yes: bool, max_
     return "%s. No model was called." % block
 
 
+def local_model() -> str:
+    raw = (os.environ.get("PFY_EGM_LOCAL_MODEL") or "qwen3.6:35b").strip()
+    return raw or "qwen3.6:35b"
+
+
+def local_url() -> str:
+    raw = (os.environ.get("PFY_EGM_LOCAL_URL") or "http://127.0.0.1:11434/api/generate").strip()
+    return raw or "http://127.0.0.1:11434/api/generate"
+
+
+def _local_preface() -> str | None:
+    """None when a local generate may start. Does not open a socket."""
+    from pfylib.model_choice import host_is_local
+
+    url = local_url()
+    model = local_model()
+    print("model choice: local %s" % model, file=sys.stderr)
+    print(
+        "why: Ollama generate at %s. Cost $0. No grok process. "
+        "Cloud alternative is grok-4.7: omit --local, then accept the printed estimate."
+        % url,
+        file=sys.stderr,
+    )
+    print("cost estimate: $0. No paid call.", file=sys.stderr)
+    if not host_is_local(url):
+        return "PFY_EGM_LOCAL_URL is not a local host. No model was called."
+    return None
+
+
+def call_local(prompt: str, cwd: Path) -> dict:
+    """One Ollama /api/generate. Failure names that grok was not started."""
+    import urllib.error
+    import urllib.request
+
+    url = local_url()
+    model = local_model()
+    cwd.mkdir(parents=True, exist_ok=True)
+    (cwd / "prompt.txt").write_text(prompt, encoding="utf-8")
+    body = json.dumps(
+        {
+            "model": model,
+            "prompt": prompt,
+            "stream": False,
+            "format": "json",
+            "options": {"temperature": 0},
+        }
+    ).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=body,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    started = time.monotonic()
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:  # noqa: S310
+            raw = resp.read().decode("utf-8")
+        data = json.loads(raw)
+    except (OSError, TimeoutError, urllib.error.URLError, ValueError, json.JSONDecodeError) as exc:
+        raise RuntimeError(
+            "local endpoint failed: %s. grok was not started." % scrub(str(exc))
+        ) from exc
+    text = data.get("response") if isinstance(data, dict) else None
+    if isinstance(text, dict):
+        payload = text
+    elif isinstance(text, str) and text.strip():
+        payload = json.loads(text)
+    else:
+        raise RuntimeError("local endpoint failed: empty response. grok was not started.")
+    if not isinstance(payload, dict):
+        raise RuntimeError("local endpoint failed: response was not an object. grok was not started.")
+    return {
+        "data": payload,
+        "turns": 1,
+        "model": model,
+        "wall_s": round(time.monotonic() - started, 3),
+        "attempts": 1,
+        "ok": True,
+        "error": "",
+    }
+
+
+def _complete(local: bool, binary: str, max_turns: int, prompt: str, schema: dict, cwd: Path) -> dict:
+    if not local:
+        return call_with_retry(binary, max_turns, prompt, schema, cwd)
+    try:
+        return call_local(prompt, cwd)
+    except (OSError, TimeoutError, RuntimeError, ValueError, json.JSONDecodeError) as exc:
+        return {
+            "ok": False,
+            "error": scrub(str(exc)),
+            "data": {},
+            "turns": 0,
+            "model": local_model(),
+            "wall_s": 0,
+            "attempts": 1,
+        }
+
+
 def review(
     ticket_path: Path,
     cited_path: Path,
@@ -414,6 +518,7 @@ def review(
     *,
     yes: bool = False,
     max_usd: float | None = None,
+    local: bool = False,
 ) -> int:
     binary = grok_bin()
     report: dict = {
@@ -423,6 +528,7 @@ def review(
         "grok_bin": binary,
         "max_turns": max_turns,
         "personas": personas,
+        "route": "local" if local else "grok",
         "elephant": {},
         "goldfish": [],
         "wall_s": 0,
@@ -431,7 +537,7 @@ def review(
     started = time.monotonic()
     code = 1
     try:
-        if not Path(binary).is_file():
+        if not local and not Path(binary).is_file():
             report["error"] = "grok binary is missing: %s" % binary
             code = 2
             return code
@@ -441,7 +547,11 @@ def review(
             return code
         ticket = ticket_path.read_text(encoding="utf-8")
         cited = cited_path.read_text(encoding="utf-8")
-        block = _paid_block(ticket, cited, personas, yes=yes, max_usd=max_usd)
+        block = (
+            _local_preface()
+            if local
+            else _paid_block(ticket, cited, personas, yes=yes, max_usd=max_usd)
+        )
         if block:
             report["error"] = block
             code = 2
@@ -450,7 +560,8 @@ def review(
         elephant_dir.mkdir(parents=True, exist_ok=True)
         (elephant_dir / "ticket.md").write_text(ticket, encoding="utf-8")
         (elephant_dir / "cited.md").write_text(cited, encoding="utf-8")
-        elephant = call_with_retry(
+        elephant = _complete(
+            local,
             binary,
             max_turns,
             elephant_prompt(ticket, cited),
@@ -479,8 +590,13 @@ def review(
             "unstated": unstated,
         }
         if not elephant.get("ok"):
-            report["error"] = "elephant failed: %s" % (elephant.get("error") or "empty spec")
-            code = 1
+            elephant_error = elephant.get("error") or "empty spec"
+            if local and "grok was not started" in elephant_error:
+                report["error"] = elephant_error
+                code = 2
+            else:
+                report["error"] = "elephant failed: %s" % elephant_error
+                code = 1
             return code
         rows = []
 
@@ -489,7 +605,8 @@ def review(
             role_dir.mkdir(parents=True, exist_ok=True)
             (role_dir / "spec.md").write_text(spec, encoding="utf-8")
             (role_dir / "cited.md").write_text(cited, encoding="utf-8")
-            got = call_with_retry(
+            got = _complete(
+                local,
                 binary,
                 max_turns,
                 goldfish_prompt(name, PERSONAS[name], spec, cited),
@@ -556,6 +673,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--out", required=True, type=Path)
     parser.add_argument("--scratch", type=Path)
     parser.add_argument("--max-turns", type=int, default=2)
+    parser.add_argument(
+        "--local",
+        action="store_true",
+        help="Ollama qwen3.6:35b at $0. Does not start grok.",
+    )
     parser.add_argument("--yes", action="store_true", help="accept the printed estimate")
     parser.add_argument("--approve-cost", action="store_true", help="same as --yes; still needs a cap")
     parser.add_argument("--max-usd", type=float, default=None, help="USD cap; at or above the estimate is approval")
@@ -591,6 +713,7 @@ def main(argv: list[str] | None = None) -> int:
         personas,
         yes=bool(args.yes or args.approve_cost),
         max_usd=cap,
+        local=bool(args.local),
     )
 
 
