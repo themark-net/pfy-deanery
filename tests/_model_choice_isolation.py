@@ -40,8 +40,21 @@ ISOLATED_KEYS = (
 )
 
 
+def _mkdtemp_outside_repo(prefix: str) -> Path:
+    """User model-choice config must not land inside the repo.
+
+    tests/test_mvp_1031_receipt.py sets tempfile.tempdir to <repo>/tmp at
+    import. A plain mkdtemp would then fail the outside-the-repo checks.
+    """
+    repo = Path(__file__).resolve().parents[1].resolve()
+    candidate = Path(tempfile.gettempdir()).resolve()
+    if candidate == repo or repo in candidate.parents:
+        return Path(tempfile.mkdtemp(prefix=prefix, dir="/tmp"))
+    return Path(tempfile.mkdtemp(prefix=prefix))
+
+
 def begin(prefix: str = "pfy-mc-iso-") -> tuple[Path, dict]:
-    tmp = Path(tempfile.mkdtemp(prefix=prefix))
+    tmp = _mkdtemp_outside_repo(prefix)
     saved = {key: os.environ.get(key) for key in ISOLATED_KEYS}
     for key in ISOLATED_KEYS:
         os.environ.pop(key, None)
