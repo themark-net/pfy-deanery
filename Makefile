@@ -407,8 +407,15 @@ monitor-brief:
 eval-tier0:
 	@$(MODEL_LOCK) $(MAKE) -C $(HARNESS) eval-tier0
 
+# Same resolve as eval-suite: EVAL_MODEL on the command line or in the
+# environment wins. Otherwise --probe-tags (GET /api/tags, no pull).
 eval-tier1:
-	@$(MODEL_LOCK) $(MAKE) -C $(HARNESS) eval-tier1
+	@model='$(EVAL_MODEL)'; \
+	if [ -z "$$model" ]; then \
+	  model="$$(python3 -m pfylib.model_choice resolve eval-suite --field model --transport ollama --probe-tags || true)"; \
+	fi; \
+	if [ -z "$$model" ]; then model=qwen2.5:14b; fi; \
+	$(MODEL_LOCK) $(MAKE) -C $(HARNESS) eval-tier1 EVAL_MODEL="$$model"
 
 eval-mvp:
 	@$(MODEL_LOCK) $(MAKE) -C $(HARNESS) eval-mvp

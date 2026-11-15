@@ -30,6 +30,24 @@ def _load(name: str, rel: str):
     return mod
 
 
+def _make_recipe(text: str, name: str) -> str:
+    """Body of a Make target, from `name:` to the next unindented rule."""
+    lines = text.splitlines()
+    chunks: list[str] = []
+    grabbing = False
+    header = name + ":"
+    for line in lines:
+        if line.startswith(header) and (len(line) == len(header) or line[len(header)] in " :"):
+            grabbing = True
+            chunks.append(line)
+            continue
+        if grabbing:
+            if line and not line[0].isspace() and not line.startswith("#"):
+                break
+            chunks.append(line)
+    return "\n".join(chunks)
+
+
 class RunnerChoiceTests(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp, self.saved = begin(prefix="pfy-runner-")
@@ -310,6 +328,7 @@ class RunnerChoiceTests(unittest.TestCase):
         """Fail: make and the cage script pin qwen2.5:14b and do not ask which
         tag is listed. Recover: both call resolve --probe-tags (GET /api/tags,
         no pull). The qwen2.5:14b literal is only the empty-output fallback.
+        eval-tier1 uses the same eval-suite resolve (single task).
         """
         makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
         harness = (ROOT / "harness/agent-cage/Makefile").read_text(encoding="utf-8")
@@ -324,6 +343,16 @@ class RunnerChoiceTests(unittest.TestCase):
                 text,
             )
         self.assertIn("--probe-tags", cage)
+        # eval-tier1 is MODE=single. It must resolve eval-suite, not skip
+        # the probe the way a bare EVAL_MODEL ?= default does.
+        self.assertIn(
+            "resolve eval-suite --field model --transport ollama --probe-tags",
+            _make_recipe(makefile, "eval-tier1"),
+        )
+        self.assertIn(
+            "resolve eval-suite --field model --transport ollama --probe-tags",
+            _make_recipe(harness, "eval-tier1-body"),
+        )
 
 
 if __name__ == "__main__":

@@ -49,7 +49,7 @@ make eval-golden                 # validate + pipelines/eval/golden.latest.md
 | Knob | Default | Role |
 |------|---------|------|
 | `LITELLM_SMOKE_MODEL` | `deepseek-coder:latest` | Tier-0 connectivity only (tiny OK) |
-| `EVAL_MODEL` / `EVAL_GATE_MODEL` | from **fit selection**, or model-choice (`qwen3.6:35b`, else `qwen2.5:14b` when that tag is not listed) | Must pass for suite/matrix exit 0 |
+| `EVAL_MODEL` / `EVAL_GATE_MODEL` | from **fit selection**, or model-choice (`qwen3.6:35b`, else `qwen2.5:14b` when that tag is not listed) | Must pass for tier1/suite/matrix exit 0. `make eval-tier1` resolves with `--probe-tags` the same way suite does |
 | `EVAL_MODELS` | fit selection or pins.env list | Matrix columns; missing → **SKIP** cell |
 | `MODEL_POOL_MAX_GB` (policy) | 250 | See local-model-storage-and-eval.md |
 

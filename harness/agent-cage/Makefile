@@ -840,10 +840,11 @@ EVAL_EXAMPLE := $(CATALOG_ROOT)/examples/eval-harness
 EVAL_TASK ?= 001-is-palindrome
 # Defaults overridden by eval-select-models / eval-auto when fit selection runs.
 # Repo-root `make eval-suite` and `make eval-matrix` pass the resolved tag.
-# When this file's own default is what filled EVAL_MODEL (make eval-v02, or
-# a direct harness run), the suite and matrix recipes resolve again with
-# --probe-tags. qwen3.6:35b stays if that tag is listed or the tag list is
-# empty. qwen2.5:14b is used when only that fallback is listed.
+# When this file's own default is what filled EVAL_MODEL (make eval-v02,
+# make eval-mvp / eval-tier1, or a direct harness run), the suite, matrix,
+# and tier1 recipes resolve again with --probe-tags. qwen3.6:35b stays if
+# that tag is listed or the tag list is empty. qwen2.5:14b is used when
+# only that fallback is listed.
 EVAL_MODEL ?= qwen3.6:35b
 EVAL_MODELS ?= qwen2.5:14b,codestral:22b,deepseek-coder:6.7b-instruct
 EVAL_GATE_MODEL ?= $(EVAL_MODEL)
@@ -891,7 +892,19 @@ eval-tier0: smoke-litellm-ollama
 eval-tier1: ensure-project
 	@$(MODEL_LOCK) $(MAKE) eval-tier1-body
 
+# origin "file" means EVAL_MODEL came from this makefile, not the operator
+# and not the repo-root recipe. Resolve then, so eval-mvp and a direct
+# harness run use the same fallback as eval-suite.
 eval-tier1-body: ensure-project
+	@model='$(EVAL_MODEL)'; \
+	origin='$(origin EVAL_MODEL)'; \
+	if [ "$$origin" = file ] || [ -z "$$model" ]; then \
+	  model="$$(cd $(CATALOG_ROOT) && python3 -m pfylib.model_choice resolve eval-suite --field model --transport ollama --probe-tags || true)"; \
+	fi; \
+	if [ -z "$$model" ]; then model=qwen2.5:14b; fi; \
+	$(MAKE) eval-tier1-exec EVAL_MODEL="$$model"
+
+eval-tier1-exec: ensure-project
 	$(call eval-in-cage,single)
 	@echo "eval-tier1: PASS"
 	@printf '| %s | 1 | PASS | %s | model=%s single task |\n' \
@@ -913,7 +926,7 @@ eval-suite-body: ensure-project
 	if [ -z "$$model" ]; then model=qwen2.5:14b; fi; \
 	$(MAKE) eval-suite-exec EVAL_MODEL="$$model"
 
-.PHONY: eval-suite-exec eval-matrix-exec
+.PHONY: eval-suite-exec eval-matrix-exec eval-tier1-exec
 eval-suite-exec: ensure-project
 	$(call eval-in-cage,suite)
 	@echo "eval-suite: PASS"
