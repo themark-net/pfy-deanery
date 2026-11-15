@@ -218,6 +218,8 @@ class FlakeAndSizeTests(unittest.TestCase):
         self.assertIsNone(data["commit"])
         self.assertIn("--max-lines", text)
         self.assertIn("--size", text)
+        self.assertIn("The flag that raises the line cap is --max-lines", text)
+        self.assertIn("Rerun with --max-lines", text)
         size = json.loads((receipt / "attempt-1" / "receipt.json").read_text(encoding="utf-8"))
         self.assertEqual(size["checks"]["size"]["files"], 20)
         self.assertGreater(size["checks"]["size"]["lines"], size["checks"]["size"]["max_lines"])

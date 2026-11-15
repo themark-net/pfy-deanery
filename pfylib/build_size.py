@@ -62,7 +62,12 @@ def file_cap_reason(size: dict) -> str | None:
     extra = ""
     if not size.get("files_explicit") and files <= PRODUCT_MAX_FILES:
         extra = " or --size product"
-    return "changed files %d (max %d, pass --max-files%s)" % (files, max_files, extra)
+    return (
+        "changed files %d (max %d). "
+        "The flag that raises the file cap is --max-files. "
+        "Rerun with --max-files%s."
+        % (files, max_files, extra)
+    )
 
 
 def line_cap_message(size: dict) -> str:
@@ -70,15 +75,16 @@ def line_cap_message(size: dict) -> str:
     lines = int(size.get("lines") or 0)
     max_lines = int(size.get("max_lines") or 0)
     files = int(size.get("files") or 0)
-    hint = "Pass --max-lines."
+    hint = "Rerun with --max-lines."
     if (
         not size.get("lines_explicit")
         and lines <= PRODUCT_MAX_LINES
         and files <= PRODUCT_MAX_FILES
     ):
-        hint = "Pass --max-lines or --size product."
+        hint = "Rerun with --max-lines or --size product."
     return (
-        "pfy build --local: diff has %d changed lines, over the %d-line cap (--max-lines). "
+        "pfy build --local: diff has %d changed lines, over the %d-line cap. "
+        "The flag that raises the line cap is --max-lines. "
         "Not reviewed, not committed, not retried. %s"
         % (lines, max_lines, hint)
     )
