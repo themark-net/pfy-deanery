@@ -13,6 +13,7 @@ import re
 import shutil
 import signal
 import subprocess
+import threading
 import time
 import urllib.parse
 from pathlib import Path
@@ -601,7 +602,186 @@ def review_preamble(label, other_paths, manifest):
         "Other files in this round: %s\n"
         "Judge only this file's change: it must be correct, safe, consistent with the task, and not widen it.\n"
         "Do not reject because this file alone does not implement the whole task.\n"
+        "A reject must cite a concrete defect in this file.\n"
         "Round manifest:\n%s\n" % (label, others, manifest or "(empty)")
+    )
+
+
+_DEFECT_MARKS = (
+    "assert",
+    "secret",
+    "password",
+    "token",
+    "delet",
+    "remov",
+    "hash",
+    "tamper",
+    "wrong",
+    "bug",
+    "leak",
+    "binary",
+    "syntax",
+    "traceback",
+    "rm -",
+    "security",
+)
+_WHOLE_TASK_PHRASES = (
+    "whole task",
+    "whole round",
+    "entire task",
+    "entire round",
+    "not the whole",
+    "does not implement",
+    "doesn't implement",
+    "does not cover the",
+    "doesn't cover the",
+    "file alone",
+    "only this file",
+    "incomplete coverage",
+)
+
+
+def _reason_text(reason) -> str:
+    return str(reason or "").strip().lower()
+
+
+def cites_defect(reason) -> bool:
+    text = _reason_text(reason)
+    return any(mark in text for mark in _DEFECT_MARKS)
+
+
+def whole_task_complaint(reason) -> bool:
+    text = _reason_text(reason)
+    return any(phrase in text for phrase in _WHOLE_TASK_PHRASES)
+
+
+def discard_whole_task_reject(reasons) -> bool:
+    """True only when every reason is a whole-task complaint and none cites a defect.
+
+    An empty reason list stays a reject. One concrete defect keeps the reject.
+    """
+    items = [str(item).strip() for item in (reasons or []) if str(item).strip()]
+    if not items:
+        return False
+    if any(cites_defect(item) for item in items):
+        return False
+    return all(whole_task_complaint(item) for item in items)
+
+
+def review_worker_count(explicit=None) -> int:
+    """Bounded review workers. Flag wins, then PFY_REVIEW_WORKERS, else 4. Clamped 1..8."""
+    raw = explicit
+    if raw is None or raw == "":
+        raw = os.environ.get("PFY_REVIEW_WORKERS", "")
+    if raw is None or str(raw).strip() == "":
+        count = 4
+    else:
+        try:
+            count = int(raw)
+        except (TypeError, ValueError):
+            count = 4
+    if count < 1:
+        count = 1
+    if count > 8:
+        count = 8
+    return count
+
+
+# Leasegrid reviews took about 2 to 4 minutes per file. 600s still ends a hung
+# review well before the implement timeout (often 3600s).
+DEFAULT_REVIEW_TIMEOUT_S = 600.0
+
+
+def review_timeout_s(explicit=None) -> float:
+    """Per-review seconds. Flag wins, then PFY_REVIEW_TIMEOUT, else 600. Non-positive falls back."""
+    raw = explicit
+    if raw is None or raw == "":
+        raw = os.environ.get("PFY_REVIEW_TIMEOUT", "")
+    if raw is None or str(raw).strip() == "":
+        return DEFAULT_REVIEW_TIMEOUT_S
+    try:
+        value = float(raw)
+    except (TypeError, ValueError):
+        return DEFAULT_REVIEW_TIMEOUT_S
+    if value <= 0:
+        return DEFAULT_REVIEW_TIMEOUT_S
+    return value
+
+
+def run_review_pool(jobs, workers, call, stop_when=None):
+    """Run jobs on a bounded pool. Indexes are taken in order.
+
+    stop_when(result) stops new jobs. Jobs already running finish.
+    The returned list is the filled prefix. A missing tail was not started
+    and is not a result. An exception from call is re-raised after the join.
+    """
+    pending = list(jobs or [])
+    if not pending:
+        return []
+    count = review_worker_count(workers)
+    if count > len(pending):
+        count = len(pending)
+    results = [None] * len(pending)
+    lock = threading.Lock()
+    cursor = {"n": 0}
+    stop = {"on": False}
+
+    def worker():
+        while True:
+            with lock:
+                if stop["on"] or cursor["n"] >= len(pending):
+                    return
+                index = cursor["n"]
+                cursor["n"] = index + 1
+            try:
+                result = call(index, pending[index])
+            except BaseException as exc:
+                result = exc
+            with lock:
+                results[index] = result
+                failed = isinstance(result, BaseException)
+                if failed:
+                    stop["on"] = True
+                    continue
+                if stop_when is None:
+                    continue
+                try:
+                    if stop_when(result):
+                        stop["on"] = True
+                except Exception:
+                    stop["on"] = True
+
+    threads = [threading.Thread(target=worker) for _ in range(count)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    filled = []
+    for item in results:
+        if item is None:
+            break
+        if isinstance(item, BaseException):
+            raise item
+        filled.append(item)
+    return filled
+
+
+def tamper_recovery(paths) -> str:
+    """Name the flag that allows each protected path. Tests stay protected by default."""
+    names = []
+    for path in paths or []:
+        text = str(path).strip()
+        if text and text not in names:
+            names.append(text)
+    if not names:
+        names = ["that path"]
+    flags = ", ".join("--writable-test %s" % path for path in names)
+    return (
+        "A protected gate or eval file changed, or a base test was deleted. "
+        "The flag that allows that path is --writable-test. "
+        "Rerun with %s. "
+        "Deleting a base test stays tests-tampered unless --writable-test names that test."
+        % flags
     )
 
 

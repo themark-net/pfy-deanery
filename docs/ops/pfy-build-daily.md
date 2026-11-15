@@ -39,9 +39,11 @@ The runner does not read `auth.json`. Grok uses the operator login that already 
 | `--reap` | Clean a cloud run that died before it could write a receipt. Exit 0. |
 | `--keep-worktree` | Leave the short worktree in place (mode 0700). Default removes it when the run finishes. |
 | `--timeout SEC` | Bound the run. Exit 3 when it fires. |
-| `--review-file-cap N` | Max characters of one file's diff in a review prompt. Default 12000. `PFY_REVIEW_FILE_CAP` is the same knob. When both are set, the flag wins. A file over the cap is `review-file-too-large` before the post-change gate. |
+| `--review-file-cap N` | Max characters of one file's diff in a review prompt. Default 12000. `PFY_REVIEW_FILE_CAP` is the same knob. When both are set, the flag wins. A file over the cap is split and every part is reviewed. |
+| `--review-workers N` | Parallel review workers. Default 4, or `PFY_REVIEW_WORKERS`, clamped to 1..8. The flag wins. |
+| `--review-timeout SEC` | Seconds for one review call. Default 600, or `PFY_REVIEW_TIMEOUT`. The flag wins. |
 
-Protected paths, which still need `--writable-test`, are the pregate gate-hash basenames (`conftest.py`, `pytest.ini`, `tox.ini`, `setup.cfg`, `pyproject.toml`, `sitecustomize.py`, `usercustomize.py`, `.gitignore`, `.gitattributes`, anywhere in the tree), plus `examples/eval-harness/`, `.github/workflows/`, `scripts/pregate.sh`, `scripts/pfy`, and `scripts/pfy_build_cloud.py`.
+A safe `.gitignore` line for generated output, and a `pyproject.toml` edit that does not change a test table, are allowed without a flag. Gate-weakening edits still need `--writable-test`. A `tests-tampered` failure names that flag and the path. Protected paths are the pregate gate-hash basenames (`conftest.py`, `pytest.ini`, `tox.ini`, `setup.cfg`, `pyproject.toml`, `sitecustomize.py`, `usercustomize.py`, `.gitignore`, `.gitattributes`, anywhere in the tree), plus `examples/eval-harness/`, `.github/workflows/`, `scripts/pregate.sh`, `scripts/pfy`, and `scripts/pfy_build_cloud.py`.
 
 ## Exit codes
 

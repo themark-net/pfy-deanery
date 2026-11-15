@@ -12,6 +12,7 @@ import select
 import shutil
 import subprocess
 import sys
+import threading
 import time
 import unittest
 from pathlib import Path
@@ -74,18 +75,21 @@ class LocalWrapfixTests(unittest.TestCase):
         self.inner.commit_base("add green gate")
         return "python3 tools/green_gate.py"
 
-    def _run_plan(self, task, steps, extra):
+    def _run_plan(self, task, steps, extra, timeout=120, env_extra=None):
         self.plan.write_text(json.dumps(steps), encoding="utf-8")
+        env = {
+            "PFY_STUB_PLAN": str(self.plan),
+            "PFY_STUB_COUNT": str(self.count),
+            "PFY_STUB_PROMPTS": str(self.prompts),
+            "PFY_LOCAL_BUILD_TEST_SEAM": "1",
+        }
+        if env_extra:
+            env.update(env_extra)
         return self.inner.run_build(
             "plan",
             extra=extra,
-            env_extra={
-                "PFY_STUB_PLAN": str(self.plan),
-                "PFY_STUB_COUNT": str(self.count),
-                "PFY_STUB_PROMPTS": str(self.prompts),
-                "PFY_LOCAL_BUILD_TEST_SEAM": "1",
-            },
-            timeout=120,
+            env_extra=env,
+            timeout=timeout,
             task=task,
         )
 
@@ -206,7 +210,64 @@ class LocalWrapfixTests(unittest.TestCase):
         data = self.inner.receipt(proc, receipt)
         self.assertEqual(data["reason"], "tests-tampered", text)
         self.assertIsNone(data["commit"])
+        recovery = data.get("recovery") or ""
+        self.assertIn("--writable-test .gitignore", recovery)
+        self.assertIn("--writable-test pyproject.toml", recovery)
+        self.assertIn("--writable-test .gitignore", text)
         self.inner.assert_clean_origin()
+
+    def test_local_review_chunks_overlap(self):
+        """Four chunks that do not fit in one prompt run together.
+
+        Fail: the four review calls start at least a half second apart.
+        Recover: the start times land within 0.4s.
+        """
+        cmd = self._green_cmd()
+        body = "Y" * 5000
+        files = {}
+        for name in ("a", "b", "c", "d"):
+            files["src/%s.py" % name] = "TOKEN_%s\n%s\n" % (name.upper(), body)
+        self.inner.httpd.review_starts = []
+        self.inner.httpd.review_delay = 0.5
+        try:
+            proc, _receipt = self._run_plan(
+                "add four source files\nfiles: src/a.py, src/b.py, src/c.py, src/d.py\n",
+                [{"mode": "noop", "write": files}],
+                ["--retries", "0", "--test-cmd", cmd],
+            )
+        finally:
+            self.inner.httpd.review_delay = 0
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        stamps = list(self.inner.httpd.review_starts)
+        self.assertGreaterEqual(len(stamps), 4, stamps)
+        self.assertLess(max(stamps) - min(stamps), 0.4, stamps)
+
+    def test_local_hung_review_honors_a_short_budget(self):
+        """A blocked review is cut by PFY_REVIEW_TIMEOUT, not the agent timeout.
+
+        Fail: the review waits out --timeout 8.
+        Recover: the receipt is reviewer-unavailable in under 3 seconds.
+        """
+        cmd = self._green_cmd()
+        self.inner.httpd.review_block = threading.Event()
+        begun = time.monotonic()
+        try:
+            proc, receipt = self._run_plan(
+                "add a note\nfiles: src/note.py\n",
+                [{"mode": "noop", "write": {"src/note.py": "noted\n"}}],
+                ["--retries", "0", "--timeout", "8", "--test-cmd", cmd],
+                timeout=20,
+                env_extra={"PFY_REVIEW_TIMEOUT": "0.7"},
+            )
+        finally:
+            self.inner.httpd.review_block.set()
+        elapsed = time.monotonic() - begun
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertLess(elapsed, 3.0, text)
+        data = self.inner.receipt(proc, receipt)
+        self.assertEqual(data["reason"], "reviewer-unavailable", text)
+        self.assertIsNone(data["commit"])
 
 
 class CloudWrapfixTests(unittest.TestCase):
@@ -427,7 +488,10 @@ class CloudWrapfixTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, text)
         payload = self._receipt()
         self.assertEqual(payload["status"], "PASS", text)
-        self.assertEqual(len(self._reviews()), 2, self._reviews())
+        # One packed review, then one review per file after the reject.
+        # The retry restores the test, so that file leaves the diff and is
+        # not reviewed again. The accepted helper is reused.
+        self.assertEqual(len(self._reviews()), 3, self._reviews())
         implements = self._implements()
         self.assertGreaterEqual(len(implements), 2, implements)
         reasons = implements[1].split("Reasons:\n", 1)[1].split("\n\nPrevious diff:\n", 1)[0]
@@ -708,8 +772,228 @@ class CloudWrapfixTests(unittest.TestCase):
         payload = json.loads((self.side / "bad-receipt" / "receipt.json").read_text(encoding="utf-8"))
         self.assertEqual(payload["reason"], "tests-tampered", text)
         self.assertIsNone(payload["commit"])
+        recovery = payload.get("recovery") or ""
+        self.assertIn("--writable-test .gitignore", recovery)
+        self.assertIn("--writable-test pyproject.toml", recovery)
+        self.assertIn(recovery, text)
         branches = _git(self.repo, "branch", "--list").stdout
         self.assertNotIn("weaken", branches)
+
+    def test_conftest_tamper_names_the_writable_test_flag(self):
+        """A protected conftest edit fails closed and names the flag that allows it.
+
+        Fail: tests-tampered with no `--writable-test conftest.py`, or the
+        flag is ignored and the protected file still cannot land.
+        Recover: the message names that flag. Passing it commits the file.
+        A base test delete is not unlocked by this path.
+        """
+        writer = (
+            "from pathlib import Path\n"
+            "Path('conftest.py').write_text('import os\\n', encoding='utf-8')\n"
+        )
+        grok = _write_exe(self.side / "grok.py", _accept_grok(writer))
+        blocked = self.side / "tamper-receipt"
+        proc = self._run(
+            grok,
+            "add a conftest hook",
+            extra=["--retries", "0", "--receipt-dir", str(blocked)],
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertNotEqual(proc.returncode, 0, text)
+        payload = json.loads((blocked / "receipt.json").read_text(encoding="utf-8"))
+        self.assertEqual(payload["reason"], "tests-tampered", text)
+        self.assertIsNone(payload["commit"])
+        self.assertIn("--writable-test conftest.py", payload.get("recovery") or "")
+        self.assertIn("--writable-test conftest.py", text)
+
+        allowed = self.side / "tamper-allowed"
+        proc = self._run(
+            grok,
+            "add a conftest hook",
+            extra=[
+                "--retries",
+                "0",
+                "--writable-test",
+                "conftest.py",
+                "--receipt-dir",
+                str(allowed),
+            ],
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        payload = json.loads((allowed / "receipt.json").read_text(encoding="utf-8"))
+        self.assertEqual(payload["status"], "PASS", text)
+        shown = _git(self.repo, "show", "%s:conftest.py" % payload["commit"]).stdout
+        self.assertIn("import os", shown)
+
+    def test_whole_task_reject_is_not_a_defect_but_a_cited_defect_is(self):
+        """A reject that only says the file is not the whole task does not fail the build.
+
+        Fail: that reason is review-rejected and the tree is discarded.
+        Recover: the build passes. A reject that cites a deleted assertion
+        still fails and names the file.
+        """
+        writer = (
+            "from pathlib import Path\n"
+            "Path('src').mkdir(exist_ok=True)\n"
+            "Path('tests').mkdir(exist_ok=True)\n"
+            "Path('src/feature.py').write_text('def feature():\\n    return 1\\n', encoding='utf-8')\n"
+            "Path('tests/test_only.py').write_text(\n"
+            "    'import unittest\\n\\nclass OnlyTests(unittest.TestCase):\\n"
+            "    def test_one(self):\\n        self.assertEqual(1, 1)\\n',\n"
+            "    encoding='utf-8',\n"
+            ")\n"
+        )
+        grok = _write_exe(
+            self.side / "grok.py",
+            _logged_grok(
+                "if 'PFY-CLOUD-REVIEW' in blob:\n"
+                "    print('verdict: reject')\n"
+                "    print('reasons: file does not implement the whole task')\n"
+                "    raise SystemExit(0)\n"
+                "%s\n"
+                "raise SystemExit(0)\n" % writer
+            ),
+        )
+        proc = self._run(grok, "add a feature and its test", extra=["--retries", "0"])
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        payload = self._receipt()
+        self.assertEqual(payload["status"], "PASS", text)
+        self.assertEqual(payload["review"]["verdict"], "accept")
+        names = _git(self.repo, "ls-tree", "-r", "--name-only", payload["branch"]).stdout
+        self.assertIn("src/feature.py", names)
+        self.assertIn("tests/test_only.py", names)
+
+        self.log.write_text("", encoding="utf-8")
+        defect = _write_exe(
+            self.side / "grok-defect.py",
+            _logged_grok(
+                "if 'PFY-CLOUD-REVIEW' in blob:\n"
+                "    if 'tests/test_only.py' in blob and 'def test_one' in blob:\n"
+                "        print('verdict: reject')\n"
+                "        print('reasons: deleted the assertion self.assertEqual')\n"
+                "    else:\n"
+                "        print('verdict: accept')\n"
+                "        print('reasons: ok')\n"
+                "    raise SystemExit(0)\n"
+                "%s\n"
+                "raise SystemExit(0)\n" % writer
+            ),
+        )
+        denied = self.side / "defect-receipt"
+        proc = self._run(
+            defect,
+            "add a feature and its test",
+            extra=["--retries", "0", "--receipt-dir", str(denied)],
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 1, text)
+        payload = json.loads((denied / "receipt.json").read_text(encoding="utf-8"))
+        self.assertEqual(payload["reason"], "review-rejected", text)
+        self.assertIsNone(payload["commit"])
+        self.assertIn("deleted the assertion", payload.get("recovery") or text)
+
+    def test_small_files_share_a_review(self):
+        """Small files share one review prompt.
+
+        Fail: one grok call per file, so four tiny files make four reviews.
+        Recover: one prompt carries every tiny file and the round manifest.
+        """
+        tiny = (
+            "from pathlib import Path\n"
+            "Path('a.py').write_text('TOKEN_A\\n', encoding='utf-8')\n"
+            "Path('b.py').write_text('TOKEN_B\\n', encoding='utf-8')\n"
+            "Path('c.py').write_text('TOKEN_C\\n', encoding='utf-8')\n"
+            "Path('d.py').write_text('TOKEN_D\\n', encoding='utf-8')\n"
+        )
+        grok = _write_exe(self.side / "grok.py", _accept_grok(tiny))
+        proc = self._run(grok, "add four tiny files", extra=["--retries", "0"])
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        reviews = self._reviews()
+        self.assertEqual(len(reviews), 1, [len(item) for item in reviews])
+        joined = "\n".join(reviews)
+        for token in ("TOKEN_A", "TOKEN_B", "TOKEN_C", "TOKEN_D"):
+            self.assertIn(token, joined)
+        self.assertIn("Round manifest:", joined)
+
+    def test_capped_chunks_overlap(self):
+        """Chunks that do not fit in one prompt run together.
+
+        Fail: four capped reviews start one after another.
+        Recover: their start times land within 0.4s. The default worker
+        count is what overlaps them. No extra flag is required.
+        """
+        starts = self.side / "review-starts.txt"
+        body = "X" * 1500
+        wide = (
+            "from pathlib import Path\n"
+            "for name in ('p.py', 'q.py', 'r.py', 's.py'):\n"
+            "    Path(name).write_text(%r + name + '\\n', encoding='utf-8')\n" % body
+        )
+        sleeper = _write_exe(
+            self.side / "grok-sleep.py",
+            _logged_grok(
+                "import time\n"
+                "if 'PFY-CLOUD-REVIEW' in blob:\n"
+                "    Path(%s).open('a', encoding='utf-8').write(str(time.monotonic()) + '\\n')\n"
+                "    time.sleep(0.6)\n"
+                "    print('verdict: accept')\n"
+                "    print('reasons: ok')\n"
+                "    raise SystemExit(0)\n"
+                "%s\n"
+                "raise SystemExit(0)\n" % (repr(str(starts)), wide)
+            ),
+        )
+        proc = self._run(
+            sleeper,
+            "add four capped files",
+            extra=["--retries", "0", "--review-file-cap", "2000"],
+            timeout=40,
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertEqual(proc.returncode, 0, text)
+        stamps = [float(line) for line in starts.read_text(encoding="utf-8").split() if line.strip()]
+        self.assertGreaterEqual(len(stamps), 4, stamps)
+        self.assertLess(max(stamps) - min(stamps), 0.4, stamps)
+
+    def test_review_timeout_cuts_a_slow_review(self):
+        """PFY_REVIEW_TIMEOUT cuts a review before the implement timeout.
+
+        Fail: the review sleeps 3 seconds and the build still passes.
+        Recover: reason timeout, no commit, wall under 2.5 seconds.
+        """
+        slow = _write_exe(
+            self.side / "grok-slow.py",
+            _logged_grok(
+                "import time\n"
+                "if 'PFY-CLOUD-REVIEW' in blob:\n"
+                "    time.sleep(3)\n"
+                "    print('verdict: accept')\n"
+                "    print('reasons: ok')\n"
+                "    raise SystemExit(0)\n"
+                "from pathlib import Path\n"
+                "Path('note.py').write_text('noted\\n', encoding='utf-8')\n"
+                "raise SystemExit(0)\n"
+            ),
+        )
+        begun = time.monotonic()
+        cut = self.side / "cut-receipt"
+        proc = self._run(
+            slow,
+            "add a note",
+            extra=["--retries", "0", "--timeout", "30", "--receipt-dir", str(cut)],
+            env={"PFY_REVIEW_TIMEOUT": "0.6"},
+            timeout=20,
+        )
+        elapsed = time.monotonic() - begun
+        text = (proc.stdout or "") + (proc.stderr or "")
+        self.assertNotEqual(proc.returncode, 0, text)
+        self.assertLess(elapsed, 2.5, text)
+        payload = json.loads((cut / "receipt.json").read_text(encoding="utf-8"))
+        self.assertEqual(payload["reason"], "timeout", text)
+        self.assertIsNone(payload["commit"])
 
 
 def _drain(fd, buf):
@@ -726,10 +1010,14 @@ def _drain(fd, buf):
 def _logged_grok(body):
     return (
         "#!/usr/bin/env python3\n"
-        "import os, sys\n"
+        "import fcntl, os, sys\n"
         "from pathlib import Path\n"
         "blob = '\\n'.join(sys.argv)\n"
-        "Path(os.environ['PFY_PROMPT_LOG']).open('a', encoding='utf-8').write(blob + '\\n---PROMPT---\\n')\n"
+        "log = Path(os.environ['PFY_PROMPT_LOG'])\n"
+        "with log.open('a', encoding='utf-8') as fh:\n"
+        "    fcntl.flock(fh.fileno(), fcntl.LOCK_EX)\n"
+        "    fh.write(blob + '\\n---PROMPT---\\n')\n"
+        "    fh.flush()\n"
         "%s\n" % body
     )
 

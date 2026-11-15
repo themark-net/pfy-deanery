@@ -407,6 +407,12 @@ class Handler(BaseHTTPRequestHandler):
             blob = json.dumps(payload)
             content = "ok"
             if "pfy-review-v1" in blob:
+                starts = getattr(self.server, "review_starts", None)
+                if starts is not None:
+                    starts.append(time.monotonic())
+                delay = getattr(self.server, "review_delay", 0) or 0
+                if delay:
+                    time.sleep(float(delay))
                 started = getattr(self.server, "review_started", None)
                 if started is not None:
                     started.set()
