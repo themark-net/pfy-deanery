@@ -65,15 +65,20 @@ from pfylib.review_chunks import (  # noqa: E402
     change_impact_map,
     diff_sha,
     excluded_generated_receipt,
+    discard_whole_task_reject,
     file_part_label,
     gate_edit_allowed,
     pack_review_prompts,
     partition_untracked_generated,
     review_preamble,
     review_reuse_allowed,
+    review_timeout_s,
+    review_worker_count,
     round_manifest,
+    run_review_pool,
     split_diff_by_file,
     stop_group_for_timeout,
+    tamper_recovery,
 )
 
 EXIT_OK = 0
@@ -181,9 +186,34 @@ class State:
         self.mem_edge = False
         self.proc: subprocess.Popen | None = None
         self.pgid: int | None = None
+        self.child_pgids: set[int] = set()
+        self.children_lock = threading.Lock()
         self.pid_path: Path | None = None
         self.min_avail: float | None = None
         self.lock_fd = None
+
+
+def _track_local_child(state: State, pgid: int, present: bool) -> None:
+    """Remember every live child so a signal during parallel reviews kills all of them."""
+    if not pgid or pgid <= 0:
+        return
+    with state.children_lock:
+        if present:
+            state.child_pgids.add(pgid)
+            state.pgid = pgid
+        else:
+            state.child_pgids.discard(pgid)
+            if state.pgid == pgid:
+                state.pgid = next(iter(state.child_pgids), None)
+
+
+def _live_pgids(state: State) -> list[int]:
+    with state.children_lock:
+        kids = list(state.child_pgids)
+        current = state.pgid
+    if current and current not in kids:
+        kids.append(current)
+    return kids
 
 
 def _now() -> str:
@@ -397,6 +427,18 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser.add_argument("--test-cmd", default=None, help="gate command (env PFY_LOCAL_BUILD_TEST_CMD)")
     parser.add_argument("--timeout", type=float, default=None, help="agent seconds (env PFY_LOCAL_BUILD_TIMEOUT)")
     parser.add_argument(
+        "--review-workers",
+        type=int,
+        default=None,
+        help="parallel review workers (default 4, or PFY_REVIEW_WORKERS, clamped 1..8)",
+    )
+    parser.add_argument(
+        "--review-timeout",
+        type=float,
+        default=None,
+        help="seconds for one review call (default 600, or PFY_REVIEW_TIMEOUT)",
+    )
+    parser.add_argument(
         "--overall-timeout",
         type=float,
         default=None,
@@ -506,6 +548,8 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
         raise UsageError("a numeric flag or env value is not a number") from exc
     if args.timeout_s <= 0 or args.test_timeout_s <= 0 or args.overall_timeout_s <= 0 or args.min_free < 0:
         raise UsageError("timeout, overall-timeout, and min-free-gb must be positive (min-free-gb may be 0)")
+    if args.review_timeout is not None and args.review_timeout <= 0:
+        raise UsageError("--review-timeout must be > 0")
     _apply_review_flags(args)
     return args
 
@@ -644,46 +688,49 @@ def run_bounded(cmd: list[str], env: dict, cwd: Path, timeout: float, state: Sta
     except (ProcessLookupError, PermissionError, OSError):
         pgid = proc.pid
     state.proc = proc
+    _track_local_child(state, pgid, True)
     _remember_pgid(state, pgid)
     box: dict = {}
     reader = threading.Thread(target=_drain, args=(proc, box), daemon=True)
     reader.start()
     deadline = time.monotonic() + timeout
     status = "done"
-    while True:
-        if state.interrupted:
-            status = "interrupted"
+    try:
+        while True:
+            if state.interrupted:
+                status = "interrupted"
+                _kill_pgid(pgid)
+                break
+            if state.mem_edge:
+                status = "mem-edge"
+                _kill_pgid(pgid)
+                break
+            if time.monotonic() >= deadline:
+                status = "timeout"
+                stop_group_for_timeout(pgid, kill_grace=KILL_GRACE_SECONDS)
+                break
+            # The leader can exit and leave children holding the pipes.
+            # Reap the group now so a background child cannot sit out the timeout.
+            if proc.poll() is not None:
+                _kill_pgid(pgid)
+                status = "done"
+                break
+            if not reader.is_alive():
+                status = "done"
+                break
+            time.sleep(0.05)
+        if reader.is_alive():
+            reader.join(timeout=2)
+        if reader.is_alive():
             _kill_pgid(pgid)
-            break
-        if state.mem_edge:
-            status = "mem-edge"
-            _kill_pgid(pgid)
-            break
-        if time.monotonic() >= deadline:
-            status = "timeout"
-            stop_group_for_timeout(pgid, kill_grace=KILL_GRACE_SECONDS)
-            break
-        # The leader can exit and leave children holding the pipes.
-        # Reap the group now so a background child cannot sit out the timeout.
-        if proc.poll() is not None:
-            _kill_pgid(pgid)
-            status = "done"
-            break
-        if not reader.is_alive():
-            status = "done"
-            break
-        time.sleep(0.05)
-    if reader.is_alive():
-        reader.join(timeout=2)
-    if reader.is_alive():
-        _kill_pgid(pgid)
-        try:
-            proc.kill()
-        except OSError:
-            pass
-        reader.join(timeout=2)
-    state.proc = None
-    state.pgid = None
+            try:
+                proc.kill()
+            except OSError:
+                pass
+            reader.join(timeout=2)
+    finally:
+        state.proc = None
+        _track_local_child(state, pgid, False)
     return status, box.get("code"), box.get("out") or "", box.get("err") or ""
 
 
@@ -1282,8 +1329,8 @@ def _summary(status: str, reason: str, branch: str | None, receipt: Path) -> str
 def _install_signals(state: State) -> None:
     def _handle(signum, _frame):
         state.interrupted = True
-        if state.pgid:
-            _signal_pgid(state.pgid, signal.SIGTERM)
+        for pg in _live_pgids(state):
+            _signal_pgid(pg, signal.SIGTERM)
 
     signal.signal(signal.SIGTERM, _handle)
     signal.signal(signal.SIGINT, _handle)
@@ -1298,8 +1345,8 @@ def _watchdog(stop: threading.Event, state: State) -> None:
             state.min_avail = min(state.min_avail, avail)
         if avail < MEM_EDGE_GIB:
             state.mem_edge = True
-            if state.pgid:
-                _signal_pgid(state.pgid, signal.SIGTERM)
+            for pg in _live_pgids(state):
+                _signal_pgid(pg, signal.SIGTERM)
             return
 
 
@@ -1667,7 +1714,7 @@ def _refuse_explicit_runtime_dir() -> None:
     _runtime_dir()
 
 
-def _socket_link(worktree: Path) -> tuple[Path | None, Path]:
+def _socket_link(worktree: Path, sock_name: str = "ollama.sock") -> tuple[Path | None, Path]:
     """Symlink a short runtime name at the worktree and return (link, socket).
 
     The socket inode stays in the worktree tmp. The name used for bind() is
@@ -1676,7 +1723,7 @@ def _socket_link(worktree: Path) -> tuple[Path | None, Path]:
     bind the socket in the worktree tmp. An explicit XDG_RUNTIME_DIR does not
     fall back.
     """
-    direct = worktree / "tmp" / "ollama.sock"
+    direct = worktree / "tmp" / sock_name
     try:
         runtime = _runtime_dir()
     except SandboxUnavailable as exc:
@@ -1690,11 +1737,13 @@ def _socket_link(worktree: Path) -> tuple[Path | None, Path]:
                 old.unlink()
             except OSError:
                 pass
-    link = runtime / ("pfy-lb-%s-%s" % (os.getpid(), _stamp()[-6:]))
+    # A parallel review uses its own socket name, so the link must not collide either.
+    extra = "" if sock_name == "ollama.sock" else "-%s" % threading.get_ident()
+    link = runtime / ("pfy-lb-%s-%s%s" % (os.getpid(), _stamp()[-6:], extra))
     if link.is_symlink() or link.exists():
         link.unlink()
     link.symlink_to(worktree.resolve())
-    sock = link / "tmp" / "ollama.sock"
+    sock = link / "tmp" / sock_name
     if len(str(sock)) >= 108:
         link.unlink()
         raise SandboxUnavailable("ollama socket path is too long", reason="socket-path")
@@ -1865,6 +1914,7 @@ def prepare_sandbox(
     endpoint: str | None,
     extra_rw: list[Path] | None = None,
     unsafe: bool = False,
+    sock_name: str = "ollama.sock",
 ) -> PreparedSandbox:
     """Build the agent argv. Loopback Ollama is proxied over a unix socket.
 
@@ -1894,7 +1944,7 @@ def prepare_sandbox(
     link = None
     run_cmd = list(cmd)
     if port is not None and not share_net:
-        link, sock = _socket_link(worktree)
+        link, sock = _socket_link(worktree, sock_name)
         bridge = _Bridge()
         try:
             bridge.start(sock, port)
@@ -3241,21 +3291,28 @@ def _run_model_review(
         impact_text, _impact_source = change_impact_map(worktree, redacted_diff, all_paths)
     except Exception:
         impact_text = "no changed symbols"
-    prompts = []
-    prompt_paths = []
-    for pack in packs:
+    def one_prompt(items) -> str:
         sections = ["Change-impact map:\n%s" % (impact_text or "no changed symbols")]
-        paths = []
-        for item in pack:
+        for item in items:
             others = [path for path in all_paths if path != item["path"]]
             sections.append(review_preamble(file_part_label(item), others, manifest))
             sections.append("Diff:\n%s" % item["text"])
-            paths.append(item["path"])
-        prompts.append(_review_prompt(task, "\n\n".join(sections), redact(gate_tail or "")))
-        prompt_paths.append(paths)
+        return _review_prompt(task, "\n\n".join(sections), redact(gate_tail or ""))
+
+    prompts = []
+    prompt_items = []
+    for pack in packs:
+        prompts.append(one_prompt(pack))
+        prompt_items.append(list(pack))
     if not prompts and not reused_rows:
+        lone = {
+            "path": shown[0][0] if shown else "(diff)",
+            "text": redacted_diff,
+            "part": 1,
+            "parts": 1,
+        }
         prompts = [_review_prompt(task, redacted_diff, redact(gate_tail or ""))]
-        prompt_paths = [[shown[0][0] if shown else "(diff)"]]
+        prompt_items = [[lone]]
     if not prompts:
         return "reject", {
             "verdict": "reject",
@@ -3263,28 +3320,37 @@ def _run_model_review(
             "raw_tail": "",
             "files": [],
         }
+    parts_of = {}
+    for group in prompt_items:
+        for item in group:
+            parts_of[item["path"]] = int(item.get("parts") or 1)
     tmp = worktree / "tmp"
     tmp.mkdir(parents=True, exist_ok=True)
     (tmp / "review-home").mkdir(parents=True, exist_ok=True)
-    body_path = tmp / "pfy-review-body.json"
-    out_path = tmp / "pfy-review-out.json"
     script_path = tmp / "pfy-review-post.py"
     script_path.write_text(_REVIEW_POSTER, encoding="utf-8")
-    part_verdicts: dict[str, list[str]] = {}
-    reasons_all: list[str] = []
-    raw_tail = ""
-    files_out = list(reused_rows)
-    sent = 0
-    for prompt, paths in zip(prompts, prompt_paths):
-        sent += 1
+    limit = float(args.timeout_s)
+    cut_by_overall = False
+    budget = review_timeout_s(getattr(args, "review_timeout", None))
+    if budget < limit:
+        limit = budget
+    if call_limit is not None and call_limit < limit:
+        limit = call_limit
+        cut_by_overall = True
+    if limit <= 0:
+        return "overall-timeout", None
+    workers = review_worker_count(getattr(args, "review_workers", None))
+
+    def post(index, job):
+        prompt, items = job
+        body_path = tmp / ("pfy-review-body-%d.json" % index)
+        out_path = tmp / ("pfy-review-out-%d.json" % index)
         body = {
             "model": args.model_name,
             "messages": [{"role": "user", "content": prompt}],
             "temperature": 0,
             "stream": False,
         }
-        if out_path.exists():
-            out_path.unlink()
         body_path.write_text(json.dumps(body), encoding="utf-8")
         child = _child_env(
             {
@@ -3294,30 +3360,20 @@ def _run_model_review(
                 "OPENAI_BASE_URL": openai_base,
                 "PFY_REVIEW_BODY": str(body_path),
                 "PFY_REVIEW_OUT": str(out_path),
-                "PFY_REVIEW_HTTP_TIMEOUT": str(float(args.timeout_s) + 30.0),
+                "PFY_REVIEW_HTTP_TIMEOUT": str(float(limit) + 5.0),
             }
         )
-        try:
-            prepared = prepare_sandbox(
-                _review_poster_argv(script_path),
-                worktree,
-                hide=hide_paths(repo, worktree),
-                endpoint=openai_base,
-                unsafe=bool(args.unsafe_no_sandbox),
-            )
-        except SandboxUnavailable as exc:
-            return "sandbox", {"verdict": "reject", "reasons": [exc.reason], "raw_tail": str(exc)}
+        prepared = prepare_sandbox(
+            _review_poster_argv(script_path),
+            worktree,
+            hide=hide_paths(repo, worktree),
+            endpoint=openai_base,
+            unsafe=bool(args.unsafe_no_sandbox),
+            sock_name="r%d.sock" % index,
+        )
         if prepared.mode == "bwrap-unshare-net":
             child["OPENAI_BASE_URL"] = "http://127.0.0.1:%d/v1" % port
         child.update(lockdown_env(worktree))
-        limit = float(args.timeout_s)
-        cut_by_overall = False
-        if call_limit is not None and call_limit < limit:
-            limit = call_limit
-            cut_by_overall = True
-        if limit <= 0:
-            prepared.close()
-            return "overall-timeout", None
         try:
             with _otel_llm(args.model_name, openai_base, "local.review", child):
                 run_status, _code, out, err = run_bounded(
@@ -3325,44 +3381,140 @@ def _run_model_review(
                 )
         finally:
             prepared.close()
-        if run_status == "interrupted":
-            return "interrupted", None
-        if run_status == "mem-edge":
-            return "mem-edge", None
-        if run_status == "timeout" and cut_by_overall:
-            return "overall-timeout", None
-        if run_status == "timeout":
-            return "unavailable", {
-                "verdict": "reviewer-unavailable",
-                "reasons": ["reviewer-unavailable"],
-                "raw_tail": "review call timed out",
+        if run_status != "done":
+            return {
+                "run_status": run_status,
+                "items": items,
+                "raw_tail": redact(((out or "") + "\n" + (err or "")).strip())[:500],
             }
         try:
             raw = out_path.read_text(encoding="utf-8")
         except OSError:
-            tail = redact(((out or "") + "\n" + (err or "")).strip())[:500]
-            return "crashed", {
-                "verdict": "reject",
-                "reasons": ["review-crashed"],
-                "raw_tail": tail,
+            return {
+                "run_status": "crashed",
+                "items": items,
+                "raw_tail": redact(((out or "") + "\n" + (err or "")).strip())[:500],
             }
         if _review_transport_error(raw) or _review_outage_kind(raw):
-            return "unavailable", {
-                "verdict": "reviewer-unavailable",
-                "reasons": ["reviewer-unavailable"],
+            return {
+                "run_status": "unavailable",
+                "items": items,
                 "raw_tail": redact(raw[:500])[:500],
             }
         content = _content_from_model_body(raw)
         verdict, reasons, one_tail = _parse_verdict(content)
-        raw_tail = redact(one_tail)[:500]
-        for path in paths:
-            part_verdicts.setdefault(path, []).append(verdict)
-        if verdict != "accept":
-            reasons_all.extend(reasons or ["review-rejected"])
-            break
+        return {
+            "run_status": "done",
+            "items": items,
+            "verdict": verdict,
+            "reasons": list(reasons or []),
+            "raw_tail": redact(one_tail)[:500],
+        }
+
+    def terminal(result):
+        status = result.get("run_status")
+        if status == "interrupted":
+            return "interrupted", None
+        if status == "mem-edge":
+            return "mem-edge", None
+        if status == "timeout" and cut_by_overall:
+            return "overall-timeout", None
+        if status == "timeout" or status == "unavailable":
+            return "unavailable", {
+                "verdict": "reviewer-unavailable",
+                "reasons": ["reviewer-unavailable"],
+                "raw_tail": result.get("raw_tail") or "review call timed out",
+            }
+        if status == "crashed":
+            return "crashed", {
+                "verdict": "reject",
+                "reasons": ["review-crashed"],
+                "raw_tail": result.get("raw_tail") or "",
+            }
+        if status != "done":
+            return "crashed", {
+                "verdict": "reject",
+                "reasons": ["review-crashed"],
+                "raw_tail": result.get("raw_tail") or "",
+            }
+        return None
+
+    jobs = list(zip(prompts, prompt_items))
+    try:
+        posted = run_review_pool(
+            jobs,
+            workers,
+            post,
+            stop_when=lambda row: row.get("run_status") != "done",
+        )
+    except SandboxUnavailable as exc:
+        return "sandbox", {"verdict": "reject", "reasons": [exc.reason], "raw_tail": str(exc)}
+    part_verdicts: dict[str, list[str]] = {}
+    reasons_by_path: dict[str, list[str]] = {}
+    reasons_all: list[str] = []
+    raw_tail = ""
+    short = len(posted) < len(jobs)
+
+    def take(result) -> tuple | None:
+        nonlocal raw_tail, short
+        stopped = terminal(result)
+        if stopped is not None:
+            return stopped
+        verdict = result.get("verdict") or "reject"
+        reasons = list(result.get("reasons") or [])
+        raw_tail = result.get("raw_tail") or raw_tail
+        if verdict != "accept" and discard_whole_task_reject(reasons):
+            verdict = "accept"
+            reasons = []
+        items = list(result.get("items") or [])
+        if verdict != "accept" and len(items) > 1:
+            split_jobs = [(one_prompt([item]), [item]) for item in items]
+            try:
+                split_posted = run_review_pool(
+                    split_jobs,
+                    workers,
+                    post,
+                    stop_when=lambda row: row.get("run_status") != "done",
+                )
+            except SandboxUnavailable as exc:
+                return (
+                    "sandbox",
+                    {"verdict": "reject", "reasons": [exc.reason], "raw_tail": str(exc)},
+                )
+            if len(split_posted) < len(split_jobs):
+                short = True
+            for split_result in split_posted:
+                nested = terminal(split_result)
+                if nested is not None:
+                    return nested
+                one = split_result.get("verdict") or "reject"
+                why = list(split_result.get("reasons") or [])
+                raw_tail = split_result.get("raw_tail") or raw_tail
+                if one != "accept" and discard_whole_task_reject(why):
+                    one = "accept"
+                    why = []
+                for item in split_result.get("items") or []:
+                    part_verdicts.setdefault(item["path"], []).append(one)
+                    if one != "accept":
+                        got = why or ["review-rejected"]
+                        reasons_by_path.setdefault(item["path"], []).extend(got)
+                        reasons_all.extend(got)
+            return None
+        why = reasons or ["review-rejected"]
+        for item in items:
+            part_verdicts.setdefault(item["path"], []).append(verdict)
+            if verdict != "accept":
+                reasons_by_path.setdefault(item["path"], []).extend(why)
+                reasons_all.extend(why)
+        return None
+
+    for result in posted:
+        stopped = take(result)
+        if stopped is not None:
+            return stopped
     if memory is not None:
         for path, verdicts in part_verdicts.items():
-            expected = sum(1 for group in prompt_paths if path in group)
+            expected = parts_of.get(path, 1)
             if (
                 path in sha_of
                 and verdicts
@@ -3370,17 +3522,23 @@ def _run_model_review(
                 and all(item == "accept" for item in verdicts)
             ):
                 memory[(path, sha_of[path])] = "accept"
-    rejected = any(
+    missing = [path for path in parts_of if path not in part_verdicts]
+    rejected = short or bool(missing) or any(
         any(item != "accept" for item in verdicts) for verdicts in part_verdicts.values()
-    ) or sent < len(prompts)
+    )
+    files_out = list(reused_rows)
     for path, verdicts in part_verdicts.items():
-        ok = bool(verdicts) and all(item == "accept" for item in verdicts)
+        ok = (
+            bool(verdicts)
+            and len(verdicts) >= parts_of.get(path, 1)
+            and all(item == "accept" for item in verdicts)
+        )
         files_out.append(
             {
                 "path": path,
                 "reused": False,
                 "verdict": "accept" if ok else "reject",
-                "reasons": [] if ok else list(reasons_all),
+                "reasons": [] if ok else list(reasons_by_path.get(path) or ["review-rejected"]),
             }
         )
     if rejected:
@@ -3541,6 +3699,8 @@ def build_local(argv: list[str] | None = None) -> int:
                 payload["recovery"] = recovery
             _write_receipt(receipt_path, payload)
             print(_summary(label, reason, branch, receipt_path))
+            if exit_code != EXIT_OK and reason == "tests-tampered" and recovery:
+                print(recovery, file=sys.stderr)
         stop_watch.set()
         if watcher is not None:
             watcher.join(timeout=1)
@@ -4085,6 +4245,7 @@ def build_local(argv: list[str] | None = None) -> int:
                     previous_diff = diff_text
                     continue
                 status, reason, exit_code = "FAIL", "tests-tampered", EXIT_FAIL
+                recovery = tamper_recovery(tampered)
                 _record_attempt(
                     attempts_used, attempt_t0, mem_snap, "FAIL", "tests-tampered", None, None, diff_stats, diff_text
                 )

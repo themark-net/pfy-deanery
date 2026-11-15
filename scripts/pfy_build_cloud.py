@@ -63,12 +63,17 @@ from pfylib.review_chunks import (  # noqa: E402
     gate_edit_allowed,
     link_legacy_cloud_lock,
     load_price_table,
+    discard_whole_task_reject,
     pack_review_prompts,
     partition_untracked_generated,
     review_preamble,
     review_reuse_allowed,
+    review_timeout_s,
+    review_worker_count,
     round_manifest,
+    run_review_pool,
     stop_group_for_timeout,
+    tamper_recovery,
     usage_receipt,
 )
 
@@ -623,6 +628,18 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--yes", action="store_true", help="proceed without the cost prompt")
     parser.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT, help="seconds for one grok call")
     parser.add_argument(
+        "--review-workers",
+        type=int,
+        default=None,
+        help="parallel review workers (default 4, or PFY_REVIEW_WORKERS, clamped 1..8)",
+    )
+    parser.add_argument(
+        "--review-timeout",
+        type=float,
+        default=None,
+        help="seconds for one review call (default 600, or PFY_REVIEW_TIMEOUT)",
+    )
+    parser.add_argument(
         "--review-file-cap",
         type=int,
         default=None,
@@ -638,6 +655,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         raise UsageError("--retries must be >= 0")
     if args.timeout <= 0:
         raise UsageError("--timeout must be > 0")
+    if args.review_timeout is not None and args.review_timeout <= 0:
+        raise UsageError("--review-timeout must be > 0")
     if args.review_file_cap is not None and args.review_file_cap <= 0:
         raise UsageError("--review-file-cap must be > 0")
     if len(args.task) > 1:
@@ -781,6 +800,9 @@ def failure_recovery(reason: str, task: str, detail: str = "") -> str:
             "Run ./pfy build --reap, then rerun the same ./pfy build task."
         )
     quoted = _quoted_task(task)
+    if reason == "tests-tampered":
+        paths = [part.strip() for part in (detail or "").split(",") if part.strip()]
+        return tamper_recovery(paths) + " Then rerun ./pfy build %s." % quoted
     if reason == "review-diff-too-large":
         return (
             "The diff is too large for the review prompt (%d characters), so it was "
@@ -821,11 +843,6 @@ def failure_recovery(reason: str, task: str, detail: str = "") -> str:
             "Wait for it to finish, then rerun ./pfy build %s."
         ),
         "interrupted": "The build was interrupted. Rerun ./pfy build %s.",
-        "tests-tampered": (
-            "A protected gate or eval file changed, or a base test was deleted, "
-            "and that path was not named by --writable-test. "
-            "Restore it or pass --writable-test for that file, then rerun ./pfy build %s."
-        ),
         "no-change": (
             "Grok made no committable change. "
             "Restate the task so it edits a file, then rerun ./pfy build %s."
@@ -1433,6 +1450,7 @@ class CloudBuild:
         self._pending_feedback = ""
         self._seen_usage: set = set()
         self.usage_sessions: list = []
+        self._usage_lock = threading.Lock()
         self.estimate: dict | None = None
         self.excluded_paths: list = []
         self._prices = load_price_table()
@@ -1636,8 +1654,9 @@ class CloudBuild:
             shutil.rmtree(dest, ignore_errors=True)
             shutil.rmtree(dest.parent / ("recheck-hooks-" + sha[:12]), ignore_errors=True)
 
-    def grok_call(self, prompt: str) -> tuple[str, int, str, str]:
+    def grok_call(self, prompt: str, timeout: float | None = None) -> tuple[str, int, str, str]:
         started = time.time()
+        limit = float(self.args.timeout if timeout is None else timeout)
         if not self.grok:
             return "missing", 127, "", "grok missing"
         argv = [
@@ -1672,7 +1691,7 @@ class CloudBuild:
             status, code, out, err = run_command(
                 argv,
                 self.worktree or self.repo,
-                self.args.timeout,
+                limit,
                 self.state,
                 self.child_env(),
                 on_start=self.save_pid,
@@ -1682,7 +1701,7 @@ class CloudBuild:
                 status, code, out, err = run_command(
                     argv,
                     self.worktree or self.repo,
-                    self.args.timeout,
+                    limit,
                     self.state,
                     self.child_env(),
                     on_start=self.save_pid,
@@ -1691,16 +1710,17 @@ class CloudBuild:
         phase = "review" if REVIEW_MARKER in (prompt or "") else "implement"
         if self.worktree is not None:
             try:
-                rows = collect_call_usage(
-                    self.worktree,
-                    started,
-                    phase,
-                    self._prices,
-                    self._seen_usage,
-                )
+                with self._usage_lock:
+                    rows = collect_call_usage(
+                        self.worktree,
+                        started,
+                        phase,
+                        self._prices,
+                        self._seen_usage,
+                    )
+                    self.usage_sessions.extend(rows)
             except Exception:
-                rows = []
-            self.usage_sessions.extend(rows)
+                pass
         return status, code, out, err
 
     def record(self, number: int, status: str, reason: str, output: str = "") -> None:
@@ -1814,28 +1834,91 @@ class CloudBuild:
         self.commit = sha
         return None
 
-    def _overlap_review_recheck(self, sha: str, prompts: list[str]):
-        """Run each per-file review and the clean-extract gate together.
+    def _review_limit(self, remaining: float) -> float:
+        budget = review_timeout_s(getattr(self.args, "review_timeout", None))
+        return min(float(self.args.timeout), budget, float(remaining))
 
-        Returns (list of grok_call results, recheck_sha result). The phase
-        wrapper is suppressed for both. The caller adds each duration
-        afterwards so the receipt still shows review and gate. A transport
-        failure stops the remaining file reviews.
+    def _prompt_for_pack(self, pack, all_paths, manifest, gate_tail, impact_text) -> str:
+        """One review prompt. A single file keeps the official Diff shape.
+
+        Several small files share that one Diff, each with its own preamble,
+        so the reviewer still sees the round manifest and the other paths.
+        """
+        preambles = []
+        bodies = []
+        for item in pack:
+            others = [path for path in all_paths if path != item["path"]]
+            preambles.append(review_preamble(file_part_label(item), others, manifest))
+            bodies.append(item["text"])
+        shown = bodies[0] if len(bodies) == 1 else "\n\n".join(bodies)
+        return review_prompt(
+            self.args.task_text,
+            shown,
+            gate_tail,
+            impact_text,
+            preamble="\n\n".join(preambles),
+        )
+
+    def _overlap_review_recheck(self, sha: str, prompts: list[str], meta: list, review_limit: float, split_for):
+        """Run review prompts and the clean-extract gate together.
+
+        Returns (rows, flat meta, recheck, complete). The phase wrapper is
+        suppressed. The caller adds one wall span afterwards. A transport
+        failure stops new reviews. A multi-file reject is reviewed again
+        per file so a defect stays on the file that has it. complete is
+        false when a prompt was never started.
         """
         box: dict = {}
         errors: list[BaseException] = []
 
+        def transport_stop(row) -> bool:
+            status, code = row[0], row[1]
+            return status != "done" or code not in (0, None)
+
         def run_review() -> None:
             try:
                 started = time.monotonic()
-                rows = []
-                for prompt in prompts:
-                    row = self.grok_call(prompt)
-                    rows.append(row)
-                    status, code = row[0], row[1]
-                    if status != "done" or code != 0:
-                        break
-                box["review_rows"] = rows
+                workers = review_worker_count(getattr(self.args, "review_workers", None))
+
+                def call(_index, prompt):
+                    return self.grok_call(prompt, timeout=review_limit)
+
+                rows = run_review_pool(prompts, workers, call, stop_when=transport_stop)
+                flat_rows = []
+                flat_meta = []
+                complete = len(rows) >= len(prompts)
+                for row, items in zip(rows, meta):
+                    status, code, out, err = row
+                    output = (out or "") + ("\n" + err if err else "")
+                    verdict, reasons = ("reject", ["review-rejected"])
+                    if status == "done" and code in (0, None):
+                        verdict, reasons = parse_verdict(output)
+                        if verdict != "accept" and discard_whole_task_reject(reasons):
+                            verdict = "accept"
+                            reasons = []
+                            row = (status, code, "verdict: accept\nreasons: ok\n", "")
+                    if (
+                        verdict != "accept"
+                        and len(items) > 1
+                        and status == "done"
+                        and code in (0, None)
+                    ):
+                        split_prompts = [split_for(item) for item in items]
+                        split_rows = run_review_pool(
+                            split_prompts, workers, call, stop_when=transport_stop
+                        )
+                        if len(split_rows) < len(items):
+                            complete = False
+                        for split_row, item in zip(split_rows, items):
+                            flat_rows.append(split_row)
+                            flat_meta.append(item)
+                        continue
+                    for item in items:
+                        flat_rows.append(row)
+                        flat_meta.append(item)
+                box["review_rows"] = flat_rows
+                box["meta"] = flat_meta
+                box["complete"] = complete
                 box["review_s"] = time.monotonic() - started
             except BaseException as exc:
                 errors.append(exc)
@@ -1864,7 +1947,12 @@ class CloudBuild:
             raise errors[0]
         self.phase_clock.add("review", float(box.get("review_s") or 0.0))
         self.phase_clock.add("gate", float(box.get("recheck_s") or 0.0))
-        return box.get("review_rows") or [], box["recheck"]
+        return (
+            box.get("review_rows") or [],
+            box.get("meta") or [],
+            box["recheck"],
+            bool(box.get("complete")),
+        )
 
     def commit_paths(self, paths: list[str]) -> str | None:
         sha, err = self._commit_index(paths)
@@ -2397,6 +2485,7 @@ class CloudBuild:
                 self.record(number, "FAIL", "tests-tampered", output)
                 if action == "continue":
                     continue
+                self.recovery_detail = ", ".join(bad_tests)
                 return self.fail("FAIL", "tests-tampered", EXIT_FAIL, "")
             # Text over the per-file cap is split into review parts. Binary
             # diffs are still refused later. The post-change gate runs either way.
@@ -2539,37 +2628,30 @@ class CloudBuild:
                         continue
                     fresh.append({"path": path, "text": text})
                 packs = pack_review_prompts(
-                    fresh, review_file_cap(self.args), pack_multiple=False
+                    fresh, review_file_cap(self.args), pack_multiple=True
                 )
                 manifest = round_manifest(shown_files)
                 all_paths = [path for path, _text in shown_files]
                 prompts = []
                 meta = []
                 for pack in packs:
-                    item = pack[0]
-                    others = [path for path in all_paths if path != item["path"]]
-                    preamble = review_preamble(file_part_label(item), others, manifest)
                     prompts.append(
-                        review_prompt(
-                            self.args.task_text,
-                            item["text"],
-                            gate_tail,
-                            impact_text,
-                            preamble=preamble,
-                        )
+                        self._prompt_for_pack(pack, all_paths, manifest, gate_tail, impact_text)
                     )
-                    meta.append(item)
+                    meta.append(list(pack))
                 if not prompts and not reused_rows:
                     prompts = [
                         review_prompt(self.args.task_text, diff_text, gate_tail, impact_text)
                     ]
                     meta = [
-                        {
-                            "path": shown_files[0][0] if shown_files else "(diff)",
-                            "part": 1,
-                            "parts": 1,
-                            "text": diff_text,
-                        }
+                        [
+                            {
+                                "path": shown_files[0][0] if shown_files else "(diff)",
+                                "part": 1,
+                                "parts": 1,
+                                "text": diff_text,
+                            }
+                        ]
                     ]
                 try:
                     assert_review_budget(
@@ -2581,7 +2663,16 @@ class CloudBuild:
                         number, "FAIL", "review-budget-exceeded", output + "\n" + str(exc)
                     )
                     return self.fail("FAIL", "review-budget-exceeded", EXIT_FAIL, "")
-                review_rows, recheck_row = self._overlap_review_recheck(sha, prompts)
+                review_limit = self._review_limit(time_left())
+
+                def split_for(item):
+                    return self._prompt_for_pack(
+                        [item], all_paths, manifest, gate_tail, impact_text
+                    )
+
+                review_rows, meta, recheck_row, review_complete = self._overlap_review_recheck(
+                    sha, prompts, meta, review_limit, split_for
+                )
                 recheck_reason, recheck_tail = recheck_row
                 self.recheck_tail = recheck_tail
                 verdicts: list[str] = []
@@ -2624,7 +2715,16 @@ class CloudBuild:
                         return self.fail(
                             "FAIL", "unauthenticated", EXIT_FAIL, auth_recovery(self.args.task_text)
                         )
+                    # A non-zero exit can still print `verdict: accept`. That is
+                    # not an accept. A whole-task complaint with no defect is.
+                    if review_status != "done" or review_code not in (0, None):
+                        verdicts.append("reject")
+                        prompt_reasons.append(["review-rejected"])
+                        continue
                     one_verdict, one_reasons = parse_verdict(review_output)
+                    if one_verdict != "accept" and discard_whole_task_reject(one_reasons):
+                        one_verdict = "accept"
+                        one_reasons = []
                     verdicts.append(one_verdict)
                     prompt_reasons.append(list(one_reasons or []))
                 if review_cut == "salvage":
@@ -2641,8 +2741,8 @@ class CloudBuild:
                     slot["reasons"].extend(one_reasons)
                 files_out = list(reused_rows)
                 rejected_rows = []
-                fresh_ok = len(review_rows) >= len(prompts) and (
-                    not prompts or len(verdicts) >= len(prompts)
+                fresh_ok = review_complete and len(review_rows) >= len(meta) and (
+                    not meta or len(verdicts) >= len(meta)
                 )
                 if prompts and not verdicts:
                     fresh_ok = False

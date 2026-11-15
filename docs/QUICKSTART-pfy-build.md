@@ -79,7 +79,7 @@ exit 0
 
 Also on the help line: `--retries` (default 2 extra, 3 total), `--no-review`, `--reap`, `--keep-worktree`, `--timeout`.
 
-Protected paths, which still need `--writable-test`, are the pregate gate-hash basenames (`conftest.py`, `pytest.ini`, `tox.ini`, `setup.cfg`, `pyproject.toml`, `sitecustomize.py`, `usercustomize.py`, `.gitignore`, `.gitattributes`, anywhere in the tree), plus `examples/eval-harness/`, `.github/workflows/`, `scripts/pregate.sh`, `scripts/pfy`, and `scripts/pfy_build_cloud.py`.
+A safe `.gitignore` line for generated output, and a `pyproject.toml` edit that does not change a test table, are allowed without a flag. Gate-weakening edits still need `--writable-test`. A `tests-tampered` failure names that flag and the path. Protected paths are the pregate gate-hash basenames (`conftest.py`, `pytest.ini`, `tox.ini`, `setup.cfg`, `pyproject.toml`, `sitecustomize.py`, `usercustomize.py`, `.gitignore`, `.gitattributes`, anywhere in the tree), plus `examples/eval-harness/`, `.github/workflows/`, `scripts/pregate.sh`, `scripts/pfy`, and `scripts/pfy_build_cloud.py`.
 
 ## Dry-run
 

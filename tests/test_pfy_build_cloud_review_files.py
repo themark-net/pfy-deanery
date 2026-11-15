@@ -1,7 +1,8 @@
 """Per-file cloud review: a large multi-file diff can still be accepted.
 
 The 12k whole-diff cap refused a 24 KB change before any reviewer saw it.
-Review is now one file at a time, with a per-file cap and a change-impact map.
+Small files share a review. A file over the cap is split. Each chunk carries
+the round manifest, and the reviews of chunks that do not fit run together.
 """
 
 from __future__ import annotations
@@ -21,10 +22,14 @@ MISSING_TOOL = "/no/such/pfy-impact-tool"
 def _accept_grok(log: Path, writer: str) -> str:
     return (
         "#!/usr/bin/env python3\n"
-        "import os, sys\n"
+        "import fcntl, os, sys\n"
         "from pathlib import Path\n"
         "blob = '\\n'.join(sys.argv)\n"
-        "Path(os.environ['PFY_PROMPT_LOG']).open('a', encoding='utf-8').write(blob + '\\n---PROMPT---\\n')\n"
+        "log = Path(os.environ['PFY_PROMPT_LOG'])\n"
+        "with log.open('a', encoding='utf-8') as fh:\n"
+        "    fcntl.flock(fh.fileno(), fcntl.LOCK_EX)\n"
+        "    fh.write(blob + '\\n---PROMPT---\\n')\n"
+        "    fh.flush()\n"
         "if 'PFY-CLOUD-REVIEW' in blob:\n"
         "    print('verdict: accept')\n"
         "    raise SystemExit(0)\n"
@@ -154,7 +159,10 @@ class PerFileReviewTests(unittest.TestCase):
         self.assertEqual(len(reviews), 4, [len(item) for item in reviews])
         total = 0
         tokens = ("TOKEN_A", "TOKEN_B", "TOKEN_C", "TOKEN_D")
-        for prompt, token in zip(reviews, tokens):
+        for token in tokens:
+            matched = [item for item in reviews if token in _diff_sections(item)]
+            self.assertEqual(len(matched), 1, token)
+            prompt = matched[0]
             diff = _diff_sections(prompt)
             total += len(diff)
             self.assertIn(token, diff, token)
@@ -412,12 +420,12 @@ class PerFileReviewTests(unittest.TestCase):
         self.assertNotIn("\ncloud/", "\n" + _git(self.repo, "branch", "--list").stdout)
 
     def test_stopped_review_does_not_publish_unread_files(self) -> None:
-        """A review that dies before the last file does not publish the rest.
+        """A review that exits non-zero after printing accept does not publish.
 
-        Fail: the middle grok exits non-zero after `verdict: accept`, the
-        loop stops, and the runner still treats the unread file as accepted.
-        Recover: review-rejected, no branch, and the unread hunk is not in
-        a review that was allowed to accept the build.
+        Fail: the grok prints `verdict: accept` and then exits 1, and the
+        runner still publishes the files.
+        Recover: review-rejected and no branch. Later files may share the
+        prompt. They are still not committed.
         """
         writer = (
             "Path('a_ok.py').write_text('def kept_ok():\\n    return \"OK_TOKEN\"\\n', encoding='utf-8')\n"
@@ -450,7 +458,6 @@ class PerFileReviewTests(unittest.TestCase):
         self.assertIsNone(payload["branch"])
         diffs = [_diff_sections(item) for item in self._reviews()]
         self.assertTrue(any("STOP_TOKEN" in item for item in diffs), diffs)
-        self.assertFalse(any("LATER_TOKEN" in item for item in diffs), diffs)
         self.assertEqual(_git(self.repo, "rev-parse", "HEAD").stdout.strip(), head)
 
 
