@@ -4,7 +4,7 @@
 **Code:** `pfylib/build_flake.py`, `pfylib/build_size.py`, hook in `scripts/pfy_build_local.py`, opt-in hook in `scripts/pfy_build_cloud.py`
 **Related ADR / Decisions:** Decision recorded in this file. No new ADR number.
 
-Cloud `./pfy build` is a different runner. See [pfy-build.md](pfy-build.md). Cost confirmation, packed review quotes, and `--yes` / `--max-cost` live in that cloud module doc, not here. This page is the local flake gate, the cloud opt-in that reuses the same helper, and the size presets. The local receipt still records `estimate.flake_runs` and `estimate.review_prompts` so the $0 banner names those extras. The cloud dollar quote does not add clean-clone runs.
+Cloud `./pfy build` is a different runner. See [pfy-build.md](pfy-build.md). Cost confirmation, packed review quotes, and `--yes` / `--max-cost` live in that cloud module doc, not here. This page is the local flake gate, the cloud opt-in that reuses the same helper, and the size presets. The local receipt still records `estimate.flake_runs` and `estimate.review_prompts` so the $0 banner names those extras. On cloud, `estimate.flake_runs` stays 0 unless `--flake-runs N` is passed. A positive N adds those re-runs to the wall quote and records the count. The dollars stay the model quote, because the re-runs are tests.
 
 ## Operator
 
@@ -39,7 +39,7 @@ files: src/part_*.py
 | Status `FLAKY`, reason `flaky`, exit 1, no branch | The in-wrap gate passed and a clean-clone run failed | Make the test pass from a clean tree with a fresh `HOME`. The receipt field `flake.results` has each run's exit and tail. `--flake-runs 0` skips the re-runs. |
 | Stderr names `--max-lines`, reason `review-diff-over-line-cap` | The diff is over the line cap. Nothing is reviewed or committed. | Pass `--max-lines`, or `--size product` when the message offers it and the diff fits that preset. |
 | Status `PASS-REJECTED`, reason text names `--max-files` | The file count is over the file cap. The gate was green. | Pass `--max-files`, or `--size product` when the reason offers it. This stays a review rejection, not `FLAKY`. |
-| Receipt `fixed_ports` lists a port | A test binds or listens on a literal port | Bind port 0, or read the port from the environment. The build can still `PASS`. |
+| Receipt `fixed_ports` lists a port | A test binds or listens on a literal port. Local and cloud both warn. | Bind port 0, or read the port from the environment. The build can still `PASS`. |
 
 ### Cloud opt-in
 
@@ -54,7 +54,9 @@ files: src/part_*.py
 
 `--flake-runs 0` skips the clean clones and the same-tree second gate. The receipt is `flake.skipped` true and `results` empty. A gate that passes once and would fail on the next read of its own state file can still `PASS`. The commit recheck still runs. It extracts the commit, so it does not see a state file that was never committed.
 
-The dollar quote stays the same. These re-runs are tests, not extra model calls. The wall line is not increased either. `flake` on the receipt is the record. Cloud does not scan `fixed_ports`. That warning stays on `--local`.
+The dollar quote stays the model quote. These re-runs are tests, not extra model calls, and the cost line says so (`tests, $0`). When N is greater than 0, the wall line adds 30-180 seconds per re-run on top of the normal cloud wall, including when a past receipt supplies that wall. The receipt field `estimate.flake_runs` stores N, and `estimate.wall_low_s` / `wall_high_s` include the extra. `--flake-runs 0` and an omitted flag add no wall. `PFY_BUILD_FLAKE_RUNS` still does not change this quote. `flake` on the receipt is the per-run record.
+
+After the post-change gate passes, the cloud runner scans the worktree the same way `--local` does. Hits are `fixed_ports` on the receipt and a `fixed listen port` line on stderr. They do not fail the build. Port 0 is not listed. The key is present even when nothing matched.
 
 | Symptom | Likely cause | Recovery |
 |---------|--------------|----------|
@@ -73,7 +75,7 @@ The dollar quote stays the same. These re-runs are tests, not extra model calls.
 | small caps | `pfylib/build_size.py` `SMALL_MAX_FILES` 40, `SMALL_MAX_LINES` 4000 | Default. Same numbers the help text names. |
 | product caps | `PRODUCT_MAX_FILES` 120, `PRODUCT_MAX_LINES` 12000 | Opt-in. |
 | `flake` | receipt `pfy-local-build/1`, and `pfy-cloud-build/1` when `--flake-runs` is passed | `{runs, skipped, results: [{run, exit, ok, tail, stop}]}`. Omitted when the run stopped before the flake step. Omitted on cloud when the flag is omitted. |
-| `fixed_ports` | receipt | `[{path, line, port, call}]`. Empty when nothing matched. |
+| `fixed_ports` | receipt, local and cloud | `[{path, line, port, call}]`. Empty when nothing matched. Cloud writes the key on every finish. Dry-run does not scan. |
 | `review.size` | receipt | `small` or `product`. |
 | `warnings` | receipt | Includes `fixed listen port <port> in <path>:<line> (<call>)` for each hit. |
 
@@ -96,15 +98,17 @@ The clean-clone environment keeps `PATH`, sets `HOME` and `TMPDIR` under the clo
 ### Callers / callees
 
 - Caller: `scripts/pfy_build_local.py`. `scripts/pfy` execs that file when argv contains `--local`.
-- Caller: `scripts/pfy_build_cloud.py` `_run_clean_flake`, only when `--flake-runs` is passed. It calls `run_clean_clones` and `flake_verdict`. The cloud gate runs in the export with that fresh env. A nested git dir keeps `git` from walking up to the caller.
+- Caller: `scripts/pfy_build_cloud.py` `_run_clean_flake`, only when `--flake-runs` is passed. It calls `run_clean_clones` and `flake_verdict`. The cloud gate runs in the export with that fresh env. A nested git dir keeps `git` from walking up to the caller. `_note_fixed_ports` calls `scan_fixed_ports` after a green post-change gate, whether or not the flag is set. `_publish_estimate` and `_dry_run` pass `quoted_flake_runs` into the quote.
 - Callees: `run_tests` on the local side (same bwrap profile as the in-wrap gate) and `judge_tests` against `tests_before`. Cloud calls its own `gate` method.
-- Not a caller unless the flag is set: the daily cloud path. Omitted, it still re-runs in the same tree and records reason `tests-flaky`. Its phase clock still expects four gate runs.
+- Not a caller of the clean-clone gate unless the flag is set: the daily cloud path. Omitted, it still re-runs in the same tree and records reason `tests-flaky`. Its phase clock still expects four gate runs. The fixed-port scan still runs after a green post-change gate.
 
 ### Invariants
 
 - `FLAKY` is exit 1, no commit, no branch, no agent retry. Salvage mode does not rewrite it to `TIMEOUT`. The cloud route uses the same rule: status `FLAKY`, reason `flaky`, no retry.
 - `--flake-runs 0` does not run the old same-tree second gate, on local and on cloud. A gate that passes once and would fail on the next read of its own state file can still `PASS`.
-- Cloud with the flag omitted does not write `flake` and does not change the four-gate clock.
+- Cloud with the flag omitted does not write `flake` and does not change the four-gate clock. It also does not add flake time to the wall quote. `PFY_BUILD_FLAKE_RUNS` does not change that quote.
+- A positive cloud `--flake-runs` adds 30-180 seconds of wall per re-run and records `estimate.flake_runs`. The dollar quote stays the model quote.
+- Cloud finish receipts include `fixed_ports`. A hit is a warning. It does not change status.
 - Each extra run is a new export of the original result tree, not a copy of the previous export.
 - The export skips `.git`, `tmp`, caches, and `*.pyc`, so the clone does not share the live git dir.
 - The state file the gate writes stays out of the commit when it was created after the diff snapshot. The commit recheck extracts the commit, so it does not see that file.
@@ -136,7 +140,11 @@ Rejected: changing the small default. The help text locks "40 changed files" and
 
 Rejected for the local lane: making cloud `FLAKY` the default in the same change. Cloud kept a same-tree second gate, reason `tests-flaky`, and a four-run phase clock while other lanes were editing that file.
 
-Later decision, cloud opt-in: the clean-clone gate is available on `./pfy build` only when `--flake-runs` is passed. Default off, not default 2. A default of 2 would add gate runs, replace `tests-flaky` retries with a terminal `FLAKY`, and surprise receipts that the phase clock and `tests.test_pfy_build_cloud` already lock. The shared env var stays local-only for the same reason. `--flake-runs 0` is an explicit skip, distinct from omitting the flag. Cloud still does not warn on `fixed_ports`, and the dollar and wall quotes do not grow when the flag is set. Those two are left off on purpose. The receipt field `flake` is the record of the re-runs.
+Later decision, cloud opt-in: the clean-clone gate is available on `./pfy build` only when `--flake-runs` is passed. Default off, not default 2. A default of 2 would add gate runs, replace `tests-flaky` retries with a terminal `FLAKY`, and surprise receipts that the phase clock and `tests.test_pfy_build_cloud` already lock. The shared env var stays local-only for the same reason. `--flake-runs 0` is an explicit skip, distinct from omitting the flag.
+
+Quote decision, after that park: when N is greater than 0 the pre-spend wall includes the re-runs, and `estimate.flake_runs` records N. Dollars do not grow, because the re-runs are tests. Omitting the flag or passing 0 leaves the daily wall. Cloud history does not already contain these runs, so the extra seconds are added on top of a past wall. Local history already contains the default re-runs, so that route still only names them.
+
+Port decision, same pass: cloud finish receipts carry `fixed_ports` the way local receipts do. The warning does not fail the build. Port 0 stays omitted.
 
 ## Architecture link
 
