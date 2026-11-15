@@ -1,4 +1,4 @@
-"""``./pfy toolset`` and ``./pfy hedge`` front end (ADR-0017).
+"""``./pfy toolset``, ``./pfy hedge``, and ``./pfy lanes`` front end (ADR-0017).
 
 Invoked by the thin bash dispatcher as ``python3 "$ROOT/pfylib/cli.py" <verb> ...``
 or as ``python3 -m pfylib <verb> ...``. Stdlib only.
@@ -17,7 +17,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     __package__ = "pfylib"  # noqa: A001 -- PEP 366 so relative imports work when run by path
 
-from . import hedge, model_choice, registry, setup, toolsets  # noqa: E402
+from . import hedge, lane_spend, model_choice, registry, setup, toolsets  # noqa: E402
 
 EXIT_READY, EXIT_FAIL, EXIT_USAGE, EXIT_STUB = 0, 1, 2, 3
 
@@ -373,6 +373,8 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--json", action="store_true")
     sp.add_argument("--dry-run", action="store_true")
     sp.set_defaults(fn=_uninstall_verb)
+
+    lane_spend.register(verbs)
     return ap
 
 

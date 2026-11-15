@@ -283,6 +283,12 @@ pfy — simple setup & launch for the pfy-deanery stack
   pfy toolset apply <toolset> --harness <h> [--yes]   dry-run unless --yes; writes only $PFY_STATE_DIR / harness home
   pfy hedge decide --task bulk|hard|interactive [--json]  local first; cloud only within PFY_CLOUD_BUDGET (credits)
   pfy hedge ledger [--reset] | hedge record <n>            $PFY_STATE_DIR/hedge-ledger.json
+  pfy lanes spend [--sessions DIR] [--glob PAT] [--since ISO] [--json]
+                          [--usd-per-point N] [--baseline-percent N --baseline-time ISO]
+                          [--threshold N]
+                          read-only Grok session spend (usage.json and updates.jsonl).
+                          One weekly-cap point defaults to 4.40 USD. Exit 1 at or above
+                          the threshold (default 75) when a baseline reading is supplied.
   pfy board [--open]      alias of the native operator window
                           --open is an optional hatch (not the main path)
   pfy help
@@ -2370,6 +2376,10 @@ main() {
     decision|jev) cmd_decision "$@" ;;
     toolset|toolsets) exec python3 "$ROOT/pfylib/cli.py" toolset "$@" ;;
     hedge) exec python3 "$ROOT/pfylib/cli.py" hedge "$@" ;;
+    lanes)
+      export PFY_ROOT="$ROOT"
+      exec python3 "$ROOT/pfylib/cli.py" lanes "$@"
+      ;;
     *) usage; die "unknown command: $cmd" ;;
   esac
 }

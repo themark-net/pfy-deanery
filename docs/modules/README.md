@@ -6,6 +6,7 @@ Short structural maps for first-party packages in this repo. Deep design stays i
 |--------|------|-----|
 | Consultant eval pack | `docs/ops/consultant-eval.md` | [consultant-eval.md](../ops/consultant-eval.md) |
 | `./pfy` simple surface | `scripts/pfy` | [pfy.md](pfy.md) |
+| Lane spend | `pfylib/lane_spend.py` | [lane-spend.md](lane-spend.md) |
 | `./pfy build` daily cloud | `scripts/pfy_build_cloud.py` | [pfy-build.md](pfy-build.md) |
 | `./pfy build` flake gate (local default, cloud opt-in) and size caps | `pfylib/build_flake.py`, `pfylib/build_size.py` | [pfy-build-flake-size.md](pfy-build-flake-size.md) |
 | Toolset × harness handoff + hedge | `pfylib/` + `data/toolsets.json` | [pfylib.md](pfylib.md). ADR-0017 is cited and the file is not in `docs/adr/` yet ([pfy-launcher.md](../design/pfy-launcher.md)) |
