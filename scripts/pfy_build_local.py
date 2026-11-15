@@ -490,7 +490,10 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
         "--writable-test",
         action="append",
         default=[],
-        help="test path the task may change (repeatable). Other test files stay hashed",
+        help=(
+            "protected gate or eval path the task may edit (repeatable). "
+            "Ordinary files under tests/ are already allowed"
+        ),
     )
     parser.add_argument("--prompt-file", default=None, help="read the task from this file")
     parser.add_argument("--receipt-dir", default=None, help="directory for receipt.json")
@@ -2920,7 +2923,9 @@ def _reject_reasons(scope: dict, size: dict, wiring: dict) -> list[str]:
             reasons.append(file_reason)
         if over_lines:
             reasons.append(
-                "changed lines %d (max %d, pass --max-lines)"
+                "changed lines %d (max %d). "
+                "The flag that raises the line cap is --max-lines. "
+                "Rerun with --max-lines."
                 % (size.get("lines"), size.get("max_lines"))
             )
         if not file_reason and not over_lines:
@@ -3689,16 +3694,20 @@ def build_local(argv: list[str] | None = None) -> int:
         local_why = "PFY_LOCAL_BUILD_MODEL=%s" % args.model_name
     else:
         local_why = "flag --local; build-lane default is %s" % args.model_name
+    attempts_n = 1 if not args.review else 1 + int(args.retries_n)
+    reviews_n = 0 if not args.review else attempts_n
+    flake_n = int(getattr(args, "flake_runs_n", 0) or 0)
     cost_choice, cost_estimate, cost_alternative = build_route_quotes(
         "local",
         args.model_name,
         local_why,
-        1,
-        0,
+        attempts_n,
+        reviews_n,
         load_price_table(),
+        flake_runs=flake_n,
     )
     print(
-        format_route_banner(cost_choice, cost_estimate, cost_alternative, 1),
+        format_route_banner(cost_choice, cost_estimate, cost_alternative, attempts_n),
         file=sys.stderr,
         flush=True,
     )

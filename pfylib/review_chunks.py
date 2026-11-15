@@ -32,10 +32,13 @@ STATIC_SMALL_HIGH = 0.36
 STATIC_ROUND_LOW = 1.50
 STATIC_ROUND_HIGH = 6.0
 # No receipt history: one cloud call is 10-20 min. Local MVP loop is about 20-65 min.
+# Clean-clone flake re-runs are tests, not model calls. Quoted on the local side only.
 STATIC_CLOUD_WALL_LOW = 600
 STATIC_CLOUD_WALL_HIGH = 1200
 STATIC_LOCAL_WALL_LOW = 1200
 STATIC_LOCAL_WALL_HIGH = 3900
+STATIC_FLAKE_WALL_LOW = 30
+STATIC_FLAKE_WALL_HIGH = 180
 _DEF_LINE = re.compile(r"^(?:async\s+def|def|class)\s+([A-Za-z_][A-Za-z0-9_]*)\b")
 _TABLE_RE = re.compile(r"^\s*\[([^\[\]]+)\]\s*$")
 _GENERATED_DIRS = {
@@ -490,18 +493,29 @@ def _minutes(seconds):
     return "%d min" % minutes
 
 
-def _attach_wall(est, route, attempts):
+def _attach_wall(est, route, attempts, flake_runs=0):
+    flake_n = max(0, int(flake_runs or 0))
+    est["flake_runs"] = flake_n
     walls = _history_wall_seconds(route)
     if walls:
         est["wall_low_s"] = _median(walls)
         est["wall_high_s"] = max(_p90(walls), _median(walls))
         est["wall_basis"] = "history wall sessions %d" % len(walls)
+        if flake_n and route == "local":
+            est["wall_basis"] += "; %d flake-gate re-run(s) in the quote" % flake_n
         return est
     calls = max(1, int(attempts))
     if route == "local":
-        est["wall_low_s"] = STATIC_LOCAL_WALL_LOW
-        est["wall_high_s"] = STATIC_LOCAL_WALL_HIGH
-        est["wall_basis"] = "static floor local 20-65 min"
+        extra_low = flake_n * STATIC_FLAKE_WALL_LOW
+        extra_high = flake_n * STATIC_FLAKE_WALL_HIGH
+        est["wall_low_s"] = STATIC_LOCAL_WALL_LOW + extra_low
+        est["wall_high_s"] = STATIC_LOCAL_WALL_HIGH + extra_high
+        if flake_n:
+            est["wall_basis"] = (
+                "static floor local 20-65 min + %d flake-gate re-run(s)" % flake_n
+            )
+        else:
+            est["wall_basis"] = "static floor local 20-65 min"
     else:
         est["wall_low_s"] = STATIC_CLOUD_WALL_LOW * calls
         est["wall_high_s"] = STATIC_CLOUD_WALL_HIGH * calls
@@ -514,6 +528,7 @@ def estimate_for_run(prices, model="grok-4.7", attempts=1, review_prompts=1):
 
     A $0 cloud quote (empty price table, or a history of zeros) uses the
     documented static floor so a paid route is never shown as free.
+    review_prompts is packed review calls, not one call per file.
     """
     hist = _history_costs()
     pooled = hist["all"]
@@ -539,10 +554,10 @@ def estimate_for_run(prices, model="grok-4.7", attempts=1, review_prompts=1):
     est["route"] = "cloud"
     est["model"] = model
     est["review_prompts"] = int(review_prompts)
-    return _attach_wall(est, "cloud", attempts)
+    return _attach_wall(est, "cloud", attempts, flake_runs=0)
 
 
-def local_zero_estimate(model):
+def local_zero_estimate(model, review_prompts=0, flake_runs=0):
     """Ollama is $0. Wall time still comes from local receipts or the static floor."""
     est = {
         "usd": 0.0,
@@ -551,8 +566,9 @@ def local_zero_estimate(model):
         "basis": "local $0 (%s via Ollama)" % model,
         "route": "local",
         "model": model,
+        "review_prompts": int(review_prompts),
     }
-    return _attach_wall(est, "local", 1)
+    return _attach_wall(est, "local", 1, flake_runs=flake_runs)
 
 
 def _route_money_line(label, est):
@@ -585,6 +601,12 @@ def format_route_banner(choice, chosen, other, attempts):
         )
     else:
         lines.append(_route_money_line("local", chosen))
+        flake = int(chosen.get("flake_runs") or 0)
+        if flake:
+            lines.append("flake-gate re-runs: %d (tests, $0)" % flake)
+        reviews = int(chosen.get("review_prompts") or 0)
+        if reviews:
+            lines.append("packed review prompts: %d ($0 on local)" % reviews)
     other_label = "alternative %s %s" % (other.get("route") or "", other.get("model") or "")
     lines.append(_route_money_line(other_label.strip(), other))
     return "\n".join(lines)
@@ -601,6 +623,8 @@ def estimate_receipt(chosen, other):
             "basis": est.get("basis"),
             "wall_low_s": est.get("wall_low_s"),
             "wall_high_s": est.get("wall_high_s"),
+            "review_prompts": int(est.get("review_prompts") or 0),
+            "flake_runs": int(est.get("flake_runs") or 0),
         }
 
     body = _side(chosen)
@@ -608,11 +632,26 @@ def estimate_receipt(chosen, other):
     return body
 
 
-def build_route_quotes(route, model, why, attempts, review_prompts, prices, local_model="qwen3.6:35b"):
-    """Cloud quote from history or the static floor, and the local $0 alternative."""
+def build_route_quotes(
+    route,
+    model,
+    why,
+    attempts,
+    review_prompts,
+    prices,
+    local_model="qwen3.6:35b",
+    flake_runs=0,
+):
+    """Cloud quote from history or the static floor, and the local $0 alternative.
+
+    review_prompts is packed review calls (small files share one prompt).
+    flake_runs is quoted on the local side only (clean-clone tests, $0).
+    """
     cloud = estimate_for_run(prices, "grok-4.7", attempts, review_prompts)
     shown_local = model if route == "local" else (local_model or "qwen3.6:35b")
-    local = local_zero_estimate(shown_local)
+    local = local_zero_estimate(
+        shown_local, review_prompts=review_prompts, flake_runs=flake_runs
+    )
     if route == "local":
         chosen, other = local, cloud
     else:
@@ -624,17 +663,23 @@ def build_route_quotes(route, model, why, attempts, review_prompts, prices, loca
 def format_estimate_line(est, attempts):
     reviews = est.get("review_prompts")
     if reviews is None or int(reviews) > 0:
-        review_note = "+ per-file review"
+        n = 1 if reviews is None else int(reviews)
+        review_note = "+ %d packed review prompt(s)" % n
     else:
         review_note = "no review call"
+    flake = int(est.get("flake_runs") or 0)
+    flake_note = ""
+    if flake:
+        flake_note = " + %d flake-gate re-run(s)" % flake
     return (
-        "cost estimate: ~$%s (range $%s-$%s) for %d attempt(s) %s; basis: %s"
+        "cost estimate: ~$%s (range $%s-$%s) for %d attempt(s) %s%s; basis: %s"
         % (
             _money(est["usd"]),
             _money(est["low"]),
             _money(est["high"]),
             int(attempts),
             review_note,
+            flake_note,
             est["basis"],
         )
     )

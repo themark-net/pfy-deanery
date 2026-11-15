@@ -215,6 +215,9 @@ class CostGateCloud(unittest.TestCase):
         self.assertIn("high", payload["estimate"])
         self.assertIn("wall_low_s", payload["estimate"])
         self.assertIn("wall_high_s", payload["estimate"])
+        self.assertIn("review_prompts", payload["estimate"])
+        self.assertEqual(payload["estimate"]["review_prompts"], 0)
+        self.assertIn("no review call", text)
         self.assertEqual(payload["estimate"]["alternative"]["route"], "local")
         self.assertEqual(payload["estimate"]["alternative"]["usd"], 0)
         self.assertEqual(payload["actual"]["usd"], 1.25)
@@ -352,6 +355,11 @@ class CostGateLocal(unittest.TestCase):
         self.assertEqual(payload["actual"]["usd"], 0)
         self.assertEqual(payload["actual"]["source"], "local")
         self.assertGreater(payload["estimate"]["alternative"]["usd"], 0)
+        self.assertIn("review_prompts", payload["estimate"])
+        self.assertIn("flake_runs", payload["estimate"])
+        self.assertGreaterEqual(payload["estimate"]["flake_runs"], 0)
+        self.assertIn("packed review", text)
+        self.assertIn("flake-gate re-run", text)
 
 
 class CostGateCompare(unittest.TestCase):
