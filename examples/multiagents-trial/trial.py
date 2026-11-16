@@ -7,7 +7,9 @@ Chat goes to a local Ollama /api/chat. That path is priced at $0, so
 --max-cost 0 is a normal local run. Paid providers and workers this trial
 cannot price are refused before any model call. A missing local tag exits 2
 and is not pulled. --repo is left untouched unless --apply is set and --repo
-is under this worktree's tmp/.
+is under this worktree's tmp/. A finished run writes the JSON record and a
+plain-text summary beside it (pass/fail per arm, tokens, cost_usd, seconds,
+refused).
 
 Usage (from the repo root):
   python3 examples/multiagents-trial/trial.py --max-cost 0
@@ -412,10 +414,63 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
+def summary_path(out: Path) -> Path:
+    if out.suffix.lower() == ".json":
+        sibling = out.with_suffix(".txt")
+    else:
+        sibling = out.with_name(out.name + ".txt")
+    if sibling == out:
+        sibling = out.with_name(out.name + ".summary.txt")
+    return sibling
+
+
+def _shown(value) -> str:
+    if value is None or isinstance(value, bool):
+        return ""
+    if isinstance(value, float):
+        return format(value, ".6f")
+    return str(value)
+
+
+def render_summary(rec: dict) -> str:
+    """Short plain text beside the JSON record. Blank fields stay blank."""
+    lines = []
+    arms = rec.get("arms") if isinstance(rec.get("arms"), dict) else {}
+    for name in ("solo", "review"):
+        arm = arms.get(name)
+        if not isinstance(arm, dict):
+            lines.append("%s: absent" % name)
+            continue
+        verdict = "pass" if arm.get("pass") else "fail"
+        lines.append(
+            "%s: %s tokens_in=%s tokens_cached=%s tokens_out=%s cost_usd=%s seconds=%s"
+            % (
+                name,
+                verdict,
+                _shown(arm.get("tokens_in")),
+                _shown(arm.get("tokens_cached")),
+                _shown(arm.get("tokens_out")),
+                _shown(arm.get("cost_usd")),
+                _shown(arm.get("seconds")),
+            )
+        )
+    lines.append("tokens_in=%s" % _shown(rec.get("tokens_in")))
+    lines.append("tokens_cached=%s" % _shown(rec.get("tokens_cached")))
+    lines.append("tokens_out=%s" % _shown(rec.get("tokens_out")))
+    lines.append("cost_usd=%s" % _shown(rec.get("cost_usd")))
+    lines.append("seconds=%s" % _shown(rec.get("seconds")))
+    lines.append("refused: %s" % (rec.get("refused") or ""))
+    return "\n".join(lines) + "\n"
+
+
 def emit(out: Path, rec: dict) -> None:
+    if not under_tmp(out):
+        return
     out.parent.mkdir(parents=True, exist_ok=True)
-    text = json.dumps(rec, indent=2) + "\n"
-    out.write_text(text, encoding="utf-8")
+    out.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+    summary = summary_path(out)
+    if under_tmp(summary) and summary.resolve() != out.resolve():
+        summary.write_text(render_summary(rec), encoding="utf-8")
 
 
 def execute(args: argparse.Namespace) -> tuple[int, dict, Path]:
