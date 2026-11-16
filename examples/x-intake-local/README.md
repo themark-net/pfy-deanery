@@ -331,3 +331,7 @@ Learn Harness Engineering. Each reads the pinned GitHub commit JSON through `$AR
 Entries 191-193 (`smoke_191.py`, `smoke_192.py`, `smoke_193.py`) are commit-metadata receipts for AI Session Search,
 book-to-skill and Evener. Each reads the pinned GitHub commit JSON through `$AISE_FETCH_BIN` / `$BOOKTOSKILL_FETCH_BIN` /
 `$EVENER_FETCH_BIN` or a stdlib fetch, checks the SHA, and exits 2 without installing anything. `PFY_XINTAKE_TIMEOUT` overrides the timeout.
+
+Entries 194-196 (`smoke_194.py`, `smoke_195.py`, `smoke_196.py`) are commit-metadata receipts for multi-agents,
+Mycelium and GOAT. Each reads the pinned GitHub commit JSON through `$MULTIAGENTS_FETCH_BIN` / `$MYCELIUM_FETCH_BIN` /
+`$GOAT_FETCH_BIN` or a stdlib fetch, checks the SHA, and exits 2 without installing anything. `PFY_XINTAKE_TIMEOUT` overrides the timeout.
