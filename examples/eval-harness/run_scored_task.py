@@ -2,6 +2,10 @@
 """Tier-1 scored coding task via LiteLLM → local OpenAI-compatible endpoint.
 
 Exit: 0 pass, 1 fail, 2 skip (missing model/prereq).
+
+On a local host, a not-found or HTTP 404 for the committed default retries
+the committed fallback once. An explicit other tag does not. A public host
+does not.
 """
 from __future__ import annotations
 
@@ -406,6 +410,28 @@ def _chat_completion(
             raise RuntimeError(f"chat failed openai={e!r} ollama={e2!r}") from e2
 
 
+def _missing_tag_error(exc: BaseException) -> bool:
+    text = str(exc).lower()
+    return "not found" in text or "404" in text
+
+
+def _committed_fallback(model_name: str) -> tuple[str, str] | None:
+    """(task label, fallback) when model_name is that task's committed default."""
+    label = "matrix" if (os.environ.get("EVAL_MODE") or "").strip() == "matrix" else "eval-suite"
+    try:
+        from pfylib.model_choice import committed_tasks
+    except ImportError:
+        return None
+    row = committed_tasks().get(label) or {}
+    if not isinstance(row, dict):
+        return None
+    preferred = str(row.get("model") or "").strip()
+    fallback = str(row.get("fallback") or "").strip()
+    if model_name == preferred and fallback and fallback != model_name:
+        return label, fallback
+    return None
+
+
 def score_task(
     task: str,
     tasks_root: Path,
@@ -462,23 +488,44 @@ def score_task(
             "error": "paid_host",
             "skip": False,
         }
-    try:
-        raw = _chat_completion(
-            model_name=model_name,
+
+    def _complete(name: str) -> str:
+        return _chat_completion(
+            model_name=name,
             base=base,
             api_key=api_key,
             prompt=prompt,
             max_tokens=max_tokens,
         )
+
+    try:
+        raw = _complete(model_name)
     except Exception as e:  # noqa: BLE001
-        return {
-            "task": task,
-            "model": litellm_model,
-            "pass": False,
-            "failures": [f"completion failed: {e}"],
-            "error": "completion",
-            "skip": False,
-        }
+        pair = _committed_fallback(model_name) if _host_is_local(base) and _missing_tag_error(e) else None
+        if not pair:
+            return {
+                "task": task,
+                "model": litellm_model,
+                "pass": False,
+                "failures": [f"completion failed: {e}"],
+                "error": "completion",
+                "skip": False,
+            }
+        label, fallback = pair
+        print("%s: fallback %s -> %s" % (label, model_name, fallback), file=sys.stderr)
+        model_name = fallback
+        litellm_model = "openai/%s" % model_name
+        try:
+            raw = _complete(model_name)
+        except Exception as e2:  # noqa: BLE001
+            return {
+                "task": task,
+                "model": litellm_model,
+                "pass": False,
+                "failures": [f"completion failed: {e2}"],
+                "error": "completion",
+                "skip": False,
+            }
     code = extract_python(raw)
     if not code:
         return {
