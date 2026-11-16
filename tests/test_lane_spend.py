@@ -94,9 +94,9 @@ class LaneSpendTests(unittest.TestCase):
 
     def test_done_spend_groups_worktrees(self):
         when = "2026-11-15T12:00:00Z"
-        self.write_usage("/home/mark/DEVELOP/alpha-lane", "s1", _ticks("1.25"), when)
-        self.write_usage("/home/mark/DEVELOP/alpha-lane", "s2", _ticks("2.00"), when)
-        self.write_usage("/home/mark/DEVELOP/beta-lane", "s3", _ticks("0.50"), when)
+        self.write_usage("/tmp/dev/alpha-lane", "s1", _ticks("1.25"), when)
+        self.write_usage("/tmp/dev/alpha-lane", "s2", _ticks("2.00"), when)
+        self.write_usage("/tmp/dev/beta-lane", "s3", _ticks("0.50"), when)
         self.write_usage("/tmp/other-lane", "s4", _ticks("0.25"), when)
         proc = self.spend("--sessions", str(self.sessions), "--json")
         self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
@@ -105,7 +105,7 @@ class LaneSpendTests(unittest.TestCase):
         self.assertAlmostEqual(by_lane["alpha-lane"]["done_usd"], 3.25, places=4)
         self.assertAlmostEqual(by_lane["beta-lane"]["done_usd"], 0.50, places=4)
         self.assertAlmostEqual(by_lane["other-lane"]["done_usd"], 0.25, places=4)
-        self.assertEqual(by_lane["alpha-lane"]["cwd"], "/home/mark/DEVELOP/alpha-lane")
+        self.assertEqual(by_lane["alpha-lane"]["cwd"], "/tmp/dev/alpha-lane")
         self.assertAlmostEqual(report["total_done_usd"], 4.0, places=4)
         self.assertAlmostEqual(report["total_live_usd"], 0.0, places=4)
         self.assertAlmostEqual(report["total_usd"], 4.0, places=4)
@@ -120,7 +120,7 @@ class LaneSpendTests(unittest.TestCase):
     def test_finished_session_is_not_added_twice(self):
         # Fail: usage.json and updates.jsonl for one session are summed together.
         # Recovery: a readable usage.json is the whole session.
-        cwd = "/home/mark/DEVELOP/lane-1115"
+        cwd = "/tmp/dev/lane-1115"
         self.write_usage(cwd, "both", _ticks("1.00"), "2026-11-15T12:00:00Z")
         self.write_updates(
             cwd,
@@ -140,7 +140,7 @@ class LaneSpendTests(unittest.TestCase):
         # updates line wins, or tokens are priced even when ticks are present.
         # Recovery: max ticks win; otherwise max totalTokens at $0.062 / 1M;
         # input+output is used only when totalTokens is absent.
-        cwd = "/home/mark/DEVELOP/gamma-lane"
+        cwd = "/tmp/dev/gamma-lane"
         stamp = 1_763_200_000
         self.write_usage(cwd, "done", _ticks("1.00"), "2026-11-15T12:00:00Z")
         self.write_updates(
@@ -189,7 +189,7 @@ class LaneSpendTests(unittest.TestCase):
         # Fail: one bad usage.json aborts the report or drops the sibling lane.
         # Recovery: keep the good session, use updates.jsonl when it has spend,
         # and record the session that has neither.
-        cwd = "/home/mark/DEVELOP/delta-lane"
+        cwd = "/tmp/dev/delta-lane"
         self.write_usage(cwd, "good", _ticks("2.00"), "2026-11-15T12:00:00Z")
         bad = self.session(cwd, "recovered")
         (bad / "usage.json").write_text("{not-json", encoding="utf-8")
@@ -221,26 +221,26 @@ class LaneSpendTests(unittest.TestCase):
 
     def test_filters_glob_and_since(self):
         self.write_usage(
-            "/home/mark/DEVELOP/lane-1115",
+            "/tmp/dev/lane-1115",
             "old",
             _ticks("5.00"),
             "2026-11-14T00:00:00Z",
         )
         self.write_usage(
-            "/home/mark/DEVELOP/lane-1115",
+            "/tmp/dev/lane-1115",
             "new",
             _ticks("1.00"),
             "2026-11-15T12:00:00.987654321Z",
         )
         self.write_usage(
-            "/home/mark/DEVELOP/lane-1114",
+            "/tmp/dev/lane-1114",
             "other",
             _ticks("9.00"),
             "2026-11-15T12:00:00Z",
         )
         old_ts = int(datetime(2026, 11, 10, tzinfo=timezone.utc).timestamp())
         self.write_updates(
-            "/home/mark/DEVELOP/lane-1115",
+            "/tmp/dev/lane-1115",
             "stale-live",
             [self.usage_line(old_ts, totalTokens=1_000_000)],
         )
@@ -264,7 +264,7 @@ class LaneSpendTests(unittest.TestCase):
         # Fail: spend before the baseline is added again, or 75% is treated as safe.
         # Recovery: only dollars at or after the baseline move the percent,
         # and the process exits 1 with a STOP line the scheduler can read.
-        cwd = "/home/mark/DEVELOP/lane-1115"
+        cwd = "/tmp/dev/lane-1115"
         self.write_usage(cwd, "before", _ticks("44.00"), "2026-11-14T23:59:59.123456789Z")
         self.write_usage(cwd, "after", _ticks("22.00"), "2026-11-15T12:00:00.987654321+00:00")
         touched = self.write_usage(cwd, "old-mtime", _ticks("4.40"))
@@ -313,7 +313,7 @@ class LaneSpendTests(unittest.TestCase):
         self.assertAlmostEqual(json.loads(already.stdout)["since_baseline_usd"], 0.0, places=4)
 
     def test_usd_per_point_is_configurable(self):
-        self.write_usage("/home/mark/DEVELOP/lane-1115", "s", _ticks("4.40"), "2026-11-15T12:00:00Z")
+        self.write_usage("/tmp/dev/lane-1115", "s", _ticks("4.40"), "2026-11-15T12:00:00Z")
         base = [
             "--sessions",
             str(self.sessions),
@@ -366,7 +366,7 @@ class LaneSpendTests(unittest.TestCase):
         target = home / "sessions"
         target.mkdir(parents=True)
         self.sessions = target
-        self.write_usage("/home/mark/DEVELOP/from-home", "s", _ticks("0.10"), "2026-11-15T12:00:00Z")
+        self.write_usage("/tmp/dev/from-home", "s", _ticks("0.10"), "2026-11-15T12:00:00Z")
         proc = self.spend("--json", extra_env={"GROK_HOME": str(home)})
         self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
         report = json.loads(proc.stdout)
@@ -396,7 +396,7 @@ class LaneSpendTests(unittest.TestCase):
         # Fail: the scan opens auth.json or follows a symlink out of the root
         # and adds that spend. Recovery: only usage.json and updates.jsonl that
         # resolve inside the sessions root are summed, and nothing is written.
-        cwd = "/home/mark/DEVELOP/lane-1115"
+        cwd = "/tmp/dev/lane-1115"
         folder = self.write_usage(cwd, "real", _ticks("1.00"), "2026-11-15T12:00:00Z")
         canaries = {
             folder / "auth.json": "SECRET-LANE-AUTH-9f3a\n",
@@ -412,7 +412,7 @@ class LaneSpendTests(unittest.TestCase):
             json.dumps({"session": {"costUsdTicks": _ticks("50.00"), "note": "SECRET-LANE-OUTSIDE-9f3a"}}),
             encoding="utf-8",
         )
-        link = self.sessions / _encode("/home/mark/DEVELOP/evil-lane")
+        link = self.sessions / _encode("/tmp/dev/evil-lane")
         link.symlink_to(self.tmp / "outside-spend")
         before = self._snapshot(self.sessions)
         proc = self.spend("--sessions", str(self.sessions), "--json")
