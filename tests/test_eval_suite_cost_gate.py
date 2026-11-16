@@ -28,8 +28,6 @@ LOCAL = "http://127.0.0.1:9/v1"
 
 
 def _load_suite():
-    if str(HARNESS) not in sys.path:
-        sys.path.insert(0, str(HARNESS))
     spec = importlib.util.spec_from_file_location(
         "eval_run_suite_cost_gate", HARNESS / "run_suite.py",
     )
@@ -58,6 +56,10 @@ class SuiteCostGateTests(unittest.TestCase):
                 "    return [] if ok else ['bad']\n",
                 encoding="utf-8",
             )
+        self._path_inserted = str(HARNESS) not in sys.path
+        self._had_scored = "run_scored_task" in sys.modules
+        if self._path_inserted:
+            sys.path.insert(0, str(HARNESS))
         self.mod = _load_suite()
         self.saved = {
             key: os.environ.get(key)
@@ -90,6 +92,11 @@ class SuiteCostGateTests(unittest.TestCase):
     def tearDown(self) -> None:
         self.chat_patch.stop()
         self.open_patch.stop()
+        if self._path_inserted and str(HARNESS) in sys.path:
+            sys.path.remove(str(HARNESS))
+        if not self._had_scored:
+            sys.modules.pop("run_scored_task", None)
+            sys.modules.pop("eval_run_suite_cost_gate", None)
         for key, value in self.saved.items():
             if value is None:
                 os.environ.pop(key, None)
