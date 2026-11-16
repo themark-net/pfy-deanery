@@ -202,6 +202,9 @@ pipelines/smoke/harnesseng/
 pipelines/smoke/aise/
 pipelines/smoke/booktoskill/
 pipelines/smoke/evener/
+pipelines/smoke/multiagents/
+pipelines/smoke/mycelium/
+pipelines/smoke/goat/
 
 # Private operator material lives in the pfy-mentat-ops checkout (PFY_OPS_ROOT).
 # These paths moved there on 2026-11-09. scripts/check_public_paths.py also
