@@ -13,14 +13,17 @@
 - **Extracted Repos / Tools**: https://github.com/BichengWang/multi-agents
 - **TOOLS.md Link**: None yet. I0 awareness. No TOOLS.md row, no `data/tools.json` row.
 - **Smoke**: `python3 examples/x-intake-local/smoke_194.py`. Commit-metadata only. Pins `$MULTIAGENTS_COMMIT`. Fetches via `$MULTIAGENTS_FETCH_BIN` or stdlib GitHub commits API. Does not install. Receipt: `pipelines/smoke/multiagents/latest.json`. Tests: `python3 -m unittest tests.test_x_intake_smoke_194` (7 stub tests).
-- **Non-goals**: no Modal backend, no paid API keys, no `--apply` on a real checkout, no Claude plugin install. Catalog HOLD 70-75 untouched. No Feature GO.
+- **Eval trial** (still I0, not a TOOLS.md row): `python3 examples/multiagents-trial/trial.py --max-cost 0`. Deanery check wrapper. It does not install upstream `multi-agents`. Default worker `sdk@litellm/ollama/qwen3.6:35b` against local Ollama, priced at $0. One past lane task (`examples/eval-harness/tasks/001-is-palindrome`) runs solo and as coder/reviewer. Record: `tmp/multiagents-trial/latest.json` with pass/fail, tokens, cost, and seconds. `--max-cost` refuses a paid provider and any worker it cannot price. A missing local tag exits 2 and does not pull. `--apply` writes `solution.py` only when `--repo` is under this worktree's `tmp/`. Tests: `python3 -m unittest tests.test_multiagents_trial`.
+- **Non-goals**: no Modal backend, no paid API keys, no `--apply` on a real checkout, no Claude plugin install. Catalog HOLD 70-75 untouched. No Feature GO. No `catalog_loop.sh` retarget.
 - **How this fails / how we recover**:
 
 | Risk | How it fails | Recovery |
 |------|----------------|----------|
 | Smoke treated as a pass | Commit match becomes exit 0 | Keep exit 2 while it is not installed |
 | Cloud spend | A worker defaults to a paid model | Local LiteLLM->Ollama only; set `--max-cost 0` for local runs |
-| Writes a real tree | `--apply` on the operator checkout | Scratch worktree under `~/DEVELOP/pfy-deanery/tmp` only |
+| Writes a real tree | `--apply` on the operator checkout | `--apply` is refused unless `--repo` is under this repo's `tmp/`. Without `--apply` the checkout is not modified. |
+| Missing local tag | A run pulls the model | Exit 2 after `/api/tags`. No pull. |
+| Unpriced worker | Spend that cannot be counted | `--max-cost` refuses before any model call |
 | Pin drift | `main` moves | Smoke checks this SHA |
 
-- **Status**: Cataloged I0. Next step, if any: eval-auto running one past Deanery lane task solo vs coder/reviewer on the local default, compared on pass/fail, tokens and wall time against the current hand-run eval scoring.
+- **Status**: Cataloged I0. The local trial command above is the eval path. No TOOLS.md row. Live pass/fail numbers are not in this entry.
