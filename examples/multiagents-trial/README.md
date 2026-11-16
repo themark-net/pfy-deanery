@@ -8,7 +8,7 @@ Default worker: `sdk@litellm/ollama/qwen3.6:35b`. Chat goes to local Ollama (`OL
 python3 examples/multiagents-trial/trial.py --max-cost 0
 ```
 
-The default task is `examples/eval-harness/tasks/001-is-palindrome`. The record is `tmp/multiagents-trial/latest.json` (pass/fail, tokens, cost, seconds). Scratch files stay under `tmp/multiagents-trial/`.
+The default task is `examples/eval-harness/tasks/001-is-palindrome`. The record is `tmp/multiagents-trial/latest.json` (pass/fail, tokens, cost, seconds). The same run writes `tmp/multiagents-trial/latest.txt` beside it: pass/fail per arm, tokens, cost_usd, seconds, and refused. Scratch files stay under `tmp/multiagents-trial/`.
 
 `--max-cost` refuses a paid provider and any worker this trial cannot price. A missing local tag exits 2 and does not pull. `--apply` writes `solution.py` only when `--repo` is under this worktree's `tmp/`. Without `--apply` the repo is not modified.
 

@@ -1,16 +1,19 @@
 """Entry 194 trial: solo vs coder/reviewer on local Ollama, priced at $0.
 
 Fail: a paid or unpriced worker still calls a model, a missing tag is pulled,
-a run record omits tokens or cost or seconds, or --apply writes a checkout
-that is not under this worktree's tmp/.
+a run record omits tokens or cost or seconds, --apply writes a checkout
+that is not under this worktree's tmp/, or a finished run leaves no plain
+summary beside the JSON.
 Recover: refuse before the call, leave the tree as it was, and write the
-reason. A graded local run records pass/fail, token counts, $0, and seconds.
+reason into the JSON and the summary. A graded local run records pass/fail,
+token counts, $0, and seconds in both files.
 """
 from __future__ import annotations
 
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -92,6 +95,7 @@ class TrialCase(unittest.TestCase):
         self.base.mkdir(parents=True)
         self.server = None
         self.outside = None
+        self.out = self.base / "out.json"
         self.task_hash = _hash_tree(TASK)
 
     def tearDown(self):
@@ -132,6 +136,10 @@ class TrialCase(unittest.TestCase):
         return repo
 
     def invoke(self, args=None, host="server", max_cost="0", timeout=20):
+        self.out = self.base / "out.json"
+        for index, item in enumerate(args or []):
+            if item == "--out" and index + 1 < len(args):
+                self.out = Path(args[index + 1])
         cmd = [
             sys.executable,
             str(SCRIPT),
@@ -164,9 +172,59 @@ class TrialCase(unittest.TestCase):
             text=True,
             timeout=timeout,
         )
-        out = self.base / "out.json"
-        rec = json.loads(out.read_text(encoding="utf-8")) if out.exists() else None
+        rec = json.loads(self.out.read_text(encoding="utf-8")) if self.out.exists() else None
         return proc, rec
+
+    def summary_path(self) -> Path:
+        if self.out.suffix.lower() == ".json":
+            return self.out.with_suffix(".txt")
+        return self.out.with_name(self.out.name + ".txt")
+
+    def assert_summary(self, rec: dict) -> str:
+        path = self.summary_path()
+        self.assertTrue(path.is_file(), "plain summary missing beside %s" % self.out.name)
+        self.assertTrue(str(path.resolve()).startswith(str((ROOT / "tmp").resolve())))
+        text = path.read_text(encoding="utf-8")
+        self.assertNotIn("\u2014", text)
+        self.assertNotIn("\u2013", text)
+        arms = rec.get("arms") if isinstance(rec.get("arms"), dict) else {}
+        for name in ("solo", "review"):
+            self._assert_arm_summary(text, name, arms.get(name))
+        cost_lines = [line for line in text.splitlines() if line.startswith("cost_usd=")]
+        second_lines = [line for line in text.splitlines() if line.startswith("seconds=")]
+        self.assertTrue(cost_lines, text)
+        self.assertTrue(second_lines, text)
+        if rec.get("priced"):
+            self.assertEqual(cost_lines[-1], "cost_usd=0")
+            self.assertIsNotNone(rec.get("seconds"))
+            got = float(second_lines[-1].split("=", 1)[1])
+            self.assertAlmostEqual(got, float(rec["seconds"]), places=5)
+        else:
+            self.assertEqual(cost_lines[-1], "cost_usd=")
+            self.assertNotRegex(text, r"cost_usd=0(?:\.0+)?(?:\s|$)")
+            self.assertEqual(second_lines[-1], "seconds=")
+        self.assertIn("refused: %s" % (rec.get("refused") or ""), text)
+        return text
+
+    def _assert_arm_summary(self, text: str, name: str, arm) -> None:
+        line = ""
+        for item in text.splitlines():
+            if item.startswith(name + ":"):
+                line = item
+                break
+        self.assertTrue(line, "missing %s line in summary" % name)
+        if not isinstance(arm, dict):
+            self.assertEqual(line, "%s: absent" % name)
+            return
+        verdict = "pass" if arm.get("pass") else "fail"
+        self.assertTrue(line.startswith("%s: %s " % (name, verdict)), line)
+        self.assertIn("tokens_in=%s" % arm["tokens_in"], line)
+        self.assertIn("tokens_cached=%s" % arm["tokens_cached"], line)
+        self.assertIn("tokens_out=%s" % arm["tokens_out"], line)
+        self.assertIn("cost_usd=%s" % arm["cost_usd"], line)
+        match = re.search(r"seconds=([0-9]+(?:\.[0-9]+)?)", line)
+        self.assertIsNotNone(match, line)
+        self.assertAlmostEqual(float(match.group(1)), float(arm["seconds"]), places=5)
 
     def assert_tree_kept(self, repo: Path):
         self.assertEqual((repo / "keep.txt").read_text(encoding="utf-8"), "keep\n")
@@ -350,6 +408,56 @@ class MultiagentsTrialTest(TrialCase):
         self.assertIn("max-cost", rec2["refused"])
         self.assertFalse(any(hit[1] == "/api/chat" for hit in self.server.hits))
         self.assert_tree_kept(repo)
+
+    def test_summary_beside_json_matches_arms_and_a_refusal(self):
+        self.start_server()
+        repo = self.make_repo(under_tmp=False)
+        custom = self.base / "nested" / "run.json"
+        proc, rec = self.invoke(["--repo", str(repo), "--out", str(custom)])
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(self.out, custom)
+        self.assertFalse(rec.get("refused"))
+        text = self.assert_summary(rec)
+        self.assertIn("solo: fail ", text)
+        self.assertIn("review: pass ", text)
+        self.assertIn("cost_usd=0", text)
+        self.assert_tree_kept(repo)
+
+        self.server.hits.clear()
+        refused, rec2 = self.invoke(["--repo", str(repo)], max_cost=None)
+        self.assertEqual(refused.returncode, 2, refused.stderr)
+        self.assertIn("max-cost", rec2["refused"])
+        self.assert_summary(rec2)
+        self.assertFalse(any(hit[1] == "/api/chat" for hit in self.server.hits))
+        self.assertFalse(any(hit[1] == "/api/pull" for hit in self.server.hits))
+        self.assert_tree_kept(repo)
+
+    def test_unpriced_summary_names_the_refusal_and_skips_review(self):
+        self.start_server(drop_tokens=True)
+        repo = self.make_repo(under_tmp=False)
+        proc, rec = self.invoke(["--repo", str(repo)])
+        self.assertEqual(proc.returncode, 2, proc.stderr)
+        self.assertIn("unpriced", rec["refused"].lower())
+        text = self.assert_summary(rec)
+        self.assertIn("solo: absent", text)
+        self.assertIn("review: absent", text)
+        self.assertNotIn("review: pass", text)
+        self.assertEqual(len([hit for hit in self.server.hits if hit[1] == "/api/chat"]), 1)
+        self.assert_tree_kept(repo)
+
+    def test_summary_is_not_written_outside_tmp(self):
+        self.start_server()
+        self.outside = Path(tempfile.mkdtemp(prefix="ma-out-"))
+        leaked = self.outside / "leak.json"
+        proc, rec = self.invoke(["--out", str(leaked)])
+        self.assertEqual(proc.returncode, 2, proc.stderr)
+        self.assertIn("tmp", proc.stderr)
+        self.assertIsNone(rec)
+        self.assertFalse(leaked.exists())
+        self.assertFalse(leaked.with_suffix(".txt").exists())
+        self.assertFalse((self.base / "out.json").exists())
+        self.assertFalse((self.base / "out.txt").exists())
+        self.assertFalse(any(hit[1] == "/api/chat" for hit in self.server.hits))
 
 
 if __name__ == "__main__":
