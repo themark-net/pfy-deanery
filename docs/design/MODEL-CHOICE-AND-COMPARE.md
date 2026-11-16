@@ -1,6 +1,6 @@
 # Model choice and cost-gated compare
 
-Per-task local or cloud model, plus an explicit paid check of a local catalog-fit run. Design for the Loop / Engine surface. Code: `pfylib/model_choice.py`. Operator: `./pfy setup`, `./pfy model-choice`, `./pfy compare`. Doorway status: [model-choice-audit.md](../ops/model-choice-audit.md).
+Per-task local or cloud model, plus an explicit paid check of a local catalog-fit run. Design for the Loop / Engine surface. Code: `pfylib/model_choice.py`. Operator: `./pfy setup`, `./pfy model-choice`, `./pfy compare`.
 
 UI: Design-in-loop. Pack in docs/design/ before product UI. Never ask what we know. Levers stay contextual to the current view.
 
