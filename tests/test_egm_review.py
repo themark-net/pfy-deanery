@@ -7,11 +7,14 @@ from __future__ import annotations
 
 import json
 import os
+import pty
+import select
 import stat
 import subprocess
 import sys
 import tempfile
 import textwrap
+import time
 import unittest
 from pathlib import Path
 
@@ -169,6 +172,98 @@ class EgmReviewTest(unittest.TestCase):
         self.assertTrue(self.calls())
         report = json.loads(self.out.read_text(encoding="utf-8"))
         self.assertTrue(report["ok"])
+
+    def _pty_review(self, typed: bytes) -> tuple[int, str]:
+        master, slave = pty.openpty()
+        argv = [
+            sys.executable,
+            str(SCRIPT),
+            "--ticket",
+            str(self.ticket),
+            "--cited",
+            str(self.cited),
+            "--out",
+            str(self.out),
+            "--scratch",
+            str(self.scratch),
+            "--max-turns",
+            "2",
+            "--personas",
+            "readiness,critic",
+        ]
+        proc = subprocess.Popen(
+            argv,
+            cwd=self.root,
+            env=self.env,
+            stdin=slave,
+            stdout=slave,
+            stderr=slave,
+            close_fds=True,
+        )
+        os.close(slave)
+        try:
+            os.write(master, typed)
+        except OSError:
+            pass
+        chunks: list[bytes] = []
+        deadline = time.time() + 20
+        while time.time() < deadline:
+            ready, _, _ = select.select([master], [], [], 0.2)
+            if ready:
+                try:
+                    data = os.read(master, 4096)
+                except OSError:
+                    break
+                if not data:
+                    break
+                chunks.append(data)
+            if proc.poll() is not None:
+                break
+        if proc.poll() is None:
+            proc.kill()
+        proc.wait(timeout=5)
+        while True:
+            ready, _, _ = select.select([master], [], [], 0.05)
+            if not ready:
+                break
+            try:
+                data = os.read(master, 4096)
+            except OSError:
+                break
+            if not data:
+                break
+            chunks.append(data)
+        os.close(master)
+        code = proc.returncode if proc.returncode is not None else 1
+        return code, b"".join(chunks).decode("utf-8", "replace")
+
+    def _reset_review_outputs(self) -> None:
+        if self.log.exists():
+            self.log.unlink()
+        if self.out.exists():
+            self.out.unlink()
+
+    def test_tty_y_starts_fake_grok_and_other_lines_do_not(self):
+        """Fail: a terminal that answers y still declines and never starts grok.
+        Recover: y starts the local fake. n, blank, and any other line decline
+        and leave no call log.
+        """
+        code, text = self._pty_review(b"y\n")
+        self.assertEqual(code, 0, text)
+        self.assertIn("cost estimate:", text)
+        self.assertNotIn("No model was called", text)
+        self.assertTrue(self.calls(), text)
+        report = json.loads(self.out.read_text(encoding="utf-8"))
+        self.assertTrue(report["ok"])
+        self.assertEqual(report["route"], "grok")
+
+        for typed in (b"n\n", b"\n", b"nope\n"):
+            self._reset_review_outputs()
+            code, text = self._pty_review(typed)
+            self.assertEqual(code, 2, text)
+            self.assertIn("declined", text)
+            self.assertIn("No model was called", text)
+            self.assertFalse(self.log.exists(), text)
 
     def test_stub_review_is_isolated_and_records_findings(self):
         proc = self.run_review(extra=["--yes", "--max-cost", "50"])

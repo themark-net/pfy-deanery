@@ -19,7 +19,9 @@ Usage:
       [--local] [--yes] [--max-usd N]
 
 --local talks to Ollama at $0 and does not start grok. Omit it for the
-grok-4.7 estimate, which still waits for yes.
+grok-4.7 estimate. On a TTY, one line (y or yes) starts that review when
+no cap is set. Off a TTY, --yes still needs a covering --max-usd. A cap
+at or above the estimate is approval by itself.
 """
 from __future__ import annotations
 
@@ -391,14 +393,23 @@ def _paid_block(ticket: str, cited: str, personas: list[str], *, yes: bool, max_
         ),
         file=sys.stderr,
     )
+    tty = sys_isatty()
+    answer = None
+    # A covering cap, or --yes plus that cap, is the off-TTY approval.
+    # On a TTY with neither, one line (y or yes) is the approval.
+    if tty and not yes and max_usd is None and not stale:
+        try:
+            answer = input("").strip()
+        except EOFError:
+            answer = ""
     try:
         block = _confirm(
             yes=bool(yes),
             max_usd=max_usd,
             cost=float(priced["cost_usd"]),
             cost_text=priced["cost_text"],
-            isatty=sys_isatty(),
-            answer=None,
+            isatty=tty,
+            answer=answer,
             stale=stale,
             accept_stale=False,
         )
