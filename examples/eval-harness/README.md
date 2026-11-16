@@ -33,7 +33,7 @@ Gates: [eval-gates-and-ux-uat.md](../../docs/ops/eval-gates-and-ux-uat.md) (HD #
 
 Hidden tests score **pass/fail**. Path: LiteLLM → host Ollama (same as litellm smoke).
 
-A public `OPENAI_BASE_URL` prints the estimate and does not send until it is accepted: `y` on a TTY, or `--yes` with a covering `--max-usd` off a TTY. A covering cap alone is also approval. The default `http://host.docker.internal:11435/v1` stays local and does not ask. A local-priced tag on a public host is refused. `run_suite.py` uses the same rules for the whole matrix: one suite estimate, no socket until that sum is accepted, and one local-priced tag refuses every cell. `--max-cost` is an alias of `--max-usd`.
+A public `OPENAI_BASE_URL` prints the estimate and does not send until it is accepted: `y` on a TTY, or `--yes` with a covering `--max-usd` off a TTY. A covering cap alone is also approval. The default `http://host.docker.internal:11435/v1` stays local and does not ask. A local-priced tag on a public host is refused. `run_suite.py` uses the same rules for the whole matrix: one suite estimate, no socket until that sum is accepted, and one local-priced tag refuses every cell. `--max-cost` is an alias of `--max-usd`. On a local host, a not-found or HTTP 404 for the committed default retries `qwen2.5:14b` once. An explicit other tag does not, and a public host does not.
 
 ## Golden tasks
 
