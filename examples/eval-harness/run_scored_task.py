@@ -125,6 +125,77 @@ def _host_is_local(url: str) -> bool:
     return host_is_local(url)
 
 
+def _local_alternative(base: str) -> str:
+    return (
+        "model choice: host %s is not local. "
+        "Local alternative is http://host.docker.internal:11435/v1 at $0 "
+        "(unset OPENAI_BASE_URL)."
+        % base
+    )
+
+
+def _public_quote(model_name: str, prompt: str, max_tokens: int) -> dict:
+    """Price one public cell. No socket, no prompt, no print.
+
+    block is a hard refusal (no dollar total): missing helper, unknown price,
+    or a local $0 row. A priced cell returns priced, token counts, and stale.
+    """
+    try:
+        from pfylib.model_choice import (
+            PriceCoverageError,
+            UnknownModelPrice,
+            count_tokens,
+            price_age_days,
+            quote,
+        )
+    except ImportError:
+        return {"block": "no price helper on this copy. No model was called."}
+    prompt_tokens, method = count_tokens(prompt)
+    completion = max_tokens if max_tokens and max_tokens > 0 else 512
+    try:
+        priced = quote(model_name, prompt_tokens, completion)
+    except (UnknownModelPrice, PriceCoverageError) as exc:
+        return {"block": "%s. No model was called." % exc}
+    provider = str(priced.get("provider") or "")
+    if provider.lower() == "local" or (
+        float(priced["price_in"]) <= 0 and float(priced["price_out"]) <= 0
+    ):
+        return {
+            "block": (
+                "no paid price for %r on a non-local host. No model was called."
+                % model_name
+            ),
+        }
+    stale_days = price_age_days(priced["fetched"])
+    return {
+        "priced": priced,
+        "prompt_tokens": prompt_tokens,
+        "completion": completion,
+        "method": method,
+        "stale": stale_days > int(priced["stale_after_days"]),
+    }
+
+
+def _cost_line(priced: dict, prompt_tokens: int, completion: int, method: str, model_name: str) -> str:
+    return (
+        "cost estimate: $%s for %s prompt tokens + %s completion-token allowance (%s) "
+        "on %s (%s $%.2f/$%.2f per 1M, %s, fetched %s). "
+        "No call is sent until you say yes."
+        % (
+            priced["cost_text"],
+            f"{prompt_tokens:,}",
+            f"{completion:,}",
+            method,
+            model_name,
+            priced.get("provider") or "",
+            priced["price_in"],
+            priced["price_out"],
+            priced["source_short"],
+            priced["fetched"],
+        )
+    )
+
+
 def _paid_host_block(
     base: str,
     model_name: str,
@@ -145,60 +216,15 @@ def _paid_host_block(
     """
     if _host_is_local(base):
         return None
-    local_alt = (
-        "model choice: host %s is not local. "
-        "Local alternative is http://host.docker.internal:11435/v1 at $0 "
-        "(unset OPENAI_BASE_URL)."
-        % base
-    )
+    local_alt = _local_alternative(base)
     print(local_alt, file=sys.stderr)
-    try:
-        from pfylib.model_choice import (
-            ModelCallError,
-            PriceCoverageError,
-            UnknownModelPrice,
-            _confirm,
-            _paid_blocked,
-            count_tokens,
-            price_age_days,
-            quote,
-        )
-    except ImportError:
-        return (
-            "no price helper on this copy. No model was called. %s" % local_alt
-        )
-    prompt_tokens, method = count_tokens(prompt)
-    completion = max_tokens if max_tokens and max_tokens > 0 else 512
-    try:
-        priced = quote(model_name, prompt_tokens, completion)
-    except (UnknownModelPrice, PriceCoverageError) as exc:
-        return "%s. No model was called. %s" % (exc, local_alt)
-    provider = str(priced.get("provider") or "")
-    if provider.lower() == "local" or (
-        float(priced["price_in"]) <= 0 and float(priced["price_out"]) <= 0
-    ):
-        return (
-            "no paid price for %r on a non-local host. No model was called. %s"
-            % (model_name, local_alt)
-        )
-    stale_days = price_age_days(priced["fetched"])
-    stale = stale_days > int(priced["stale_after_days"])
-    line = (
-        "cost estimate: $%s for %s prompt tokens + %s completion-token allowance (%s) "
-        "on %s (%s $%.2f/$%.2f per 1M, %s, fetched %s). "
-        "No call is sent until you say yes."
-        % (
-            priced["cost_text"],
-            f"{prompt_tokens:,}",
-            f"{completion:,}",
-            method,
-            model_name,
-            provider,
-            priced["price_in"],
-            priced["price_out"],
-            priced["source_short"],
-            priced["fetched"],
-        )
+    quoted = _public_quote(model_name, prompt, max_tokens)
+    if "block" in quoted:
+        return "%s %s" % (quoted["block"], local_alt)
+    priced = quoted["priced"]
+    stale = bool(quoted["stale"])
+    line = _cost_line(
+        priced, quoted["prompt_tokens"], quoted["completion"], quoted["method"], model_name,
     )
     print(line, file=sys.stderr)
     if stale:
@@ -218,6 +244,8 @@ def _paid_host_block(
             except EOFError:
                 answer = ""
         try:
+            from pfylib.model_choice import ModelCallError, _confirm
+
             block = _confirm(
                 yes=bool(yes),
                 max_usd=max_usd,
@@ -232,6 +260,8 @@ def _paid_host_block(
             return "%s. No model was called. %s" % (exc, local_alt)
         if block:
             return "%s. No model was called. %s %s" % (block, line, local_alt)
+    from pfylib.model_choice import _paid_blocked
+
     if _paid_blocked():
         return "paid cloud call blocked. No model was called. %s" % local_alt
     return None

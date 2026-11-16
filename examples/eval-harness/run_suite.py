@@ -3,6 +3,10 @@
 
 Exit: 0 if gate model passes all tasks; 1 if gate fails any; 2 skip (no models).
 Matrix extra models are observational (failures logged, do not fail exit unless gate).
+
+A public OPENAI_BASE_URL prints one suite estimate and does not open a socket
+until the same yes rules as run_scored_task.py accept it. A cap must cover
+the sum of the cells. One local-priced tag refuses the whole suite.
 """
 from __future__ import annotations
 
@@ -13,7 +17,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from run_scored_task import resolve_model, score_task
+from run_scored_task import _host_is_local, _local_alternative, _public_quote, resolve_model, score_task
 
 
 def list_tasks(tasks_root: Path) -> list[str]:
@@ -52,9 +56,30 @@ def ollama_names(base: str) -> set[str] | None:
     return {m.get("name") for m in (data.get("models") or []) if m.get("name")}
 
 
-def run_cell(task: str, model: str, tasks_root: Path, base: str) -> dict:
+def run_cell(
+    task: str,
+    model: str,
+    tasks_root: Path,
+    base: str,
+    *,
+    yes: bool = False,
+    max_usd: float | None = None,
+    paid_ok: bool = False,
+    isatty: bool = False,
+    answer: str | None = None,
+) -> dict:
     print(f"\n==> cell task={task} model={model}", flush=True)
-    r = score_task(task, tasks_root, model_name=model, base=base)
+    r = score_task(
+        task,
+        tasks_root,
+        model_name=model,
+        base=base,
+        yes=yes,
+        max_usd=max_usd,
+        paid_ok=paid_ok,
+        isatty=isatty,
+        answer=answer,
+    )
     status = "PASS" if r.get("pass") else "FAIL"
     print(f"    {status} failures={len(r.get('failures') or [])}", flush=True)
     if r.get("failures") and not r.get("pass"):
@@ -84,6 +109,115 @@ def markdown_matrix(tasks: list[str], models: list[str], cells: dict[tuple[str, 
         rate = f"{ok}/{len(tasks)}"
         rows.append(f"| `{model}` | " + " | ".join(marks) + f" | {rate} |")
     return "\n".join(rows) + "\n"
+
+
+def _suite_public_block(
+    base: str,
+    tasks: list[str],
+    models: list[str],
+    tasks_root: Path,
+    *,
+    yes: bool,
+    max_usd: float | None,
+    isatty: bool,
+    answer: str | None = None,
+    max_tokens: int = 512,
+) -> str | None:
+    """None when cells may run. Otherwise the refusal, already printed.
+
+    A local host is not asked. A public host sums one quote per cell and
+    does not open a socket here. One unpriced model refuses the whole suite.
+    A cap must cover the sum, not a single cell.
+    """
+    if _host_is_local(base):
+        return None
+    from decimal import Decimal, ROUND_HALF_UP
+
+    local_alt = _local_alternative(base)
+    total = Decimal("0")
+    cells = 0
+    stale = False
+    sample: dict | None = None
+    for model in models:
+        for task in tasks:
+            task_dir = tasks_root / task
+            prompt_path = task_dir / "prompt.txt"
+            tests_path = task_dir / "test_task.py"
+            if not prompt_path.is_file() or not tests_path.is_file():
+                text = "task incomplete: %s. No model was called. %s" % (task_dir, local_alt)
+                print(text, file=sys.stderr)
+                return text
+            quoted = _public_quote(
+                model, prompt_path.read_text(encoding="utf-8"), max_tokens,
+            )
+            if "block" in quoted:
+                text = "%s %s" % (quoted["block"], local_alt)
+                print(text, file=sys.stderr)
+                return text
+            total += Decimal(quoted["priced"]["cost_text"])
+            cells += 1
+            stale = stale or bool(quoted["stale"])
+            sample = quoted
+    if sample is None or cells == 0:
+        text = "error: no tasks found. No model was called. %s" % local_alt
+        print(text, file=sys.stderr)
+        return text
+    total_q = total.quantize(Decimal("0.0001"), rounding=ROUND_HALF_UP)
+    priced = sample["priced"]
+    shown = ", ".join(models)
+    line = (
+        "suite cost estimate: $%s for %s cells on %s (%s $%.2f/$%.2f per 1M, %s, fetched %s). "
+        "No call is sent until you say yes."
+        % (
+            f"{total_q:.4f}",
+            f"{cells:,}",
+            shown,
+            priced.get("provider") or "",
+            priced["price_in"],
+            priced["price_out"],
+            priced["source_short"],
+            priced["fetched"],
+        )
+    )
+    print(local_alt, file=sys.stderr)
+    print(line, file=sys.stderr)
+    if stale:
+        print(
+            "Price for %s was fetched %s (older than %s days)."
+            % (shown, priced["fetched"], priced["stale_after_days"]),
+            file=sys.stderr,
+        )
+    if bool(isatty) and not yes and answer is None and max_usd is None and not stale:
+        try:
+            answer = input("").strip()
+        except EOFError:
+            answer = ""
+    from pfylib.model_choice import ModelCallError, _confirm, _paid_blocked
+
+    try:
+        block = _confirm(
+            yes=bool(yes),
+            max_usd=max_usd,
+            cost=float(total_q),
+            cost_text=f"{total_q:.4f}",
+            isatty=bool(isatty),
+            answer=answer,
+            stale=stale,
+            accept_stale=False,
+        )
+    except ModelCallError as exc:
+        text = "%s. No model was called. %s" % (exc, local_alt)
+        print(text, file=sys.stderr)
+        return text
+    if block:
+        text = "%s. No model was called. %s %s" % (block, line, local_alt)
+        print(text, file=sys.stderr)
+        return text
+    if _paid_blocked():
+        text = "paid cloud call blocked. No model was called. %s %s" % (line, local_alt)
+        print(text, file=sys.stderr)
+        return text
+    return None
 
 
 def main() -> int:
@@ -116,6 +250,10 @@ def main() -> int:
         default=None,
         help="Write full JSON report",
     )
+    ap.add_argument("--yes", action="store_true", help="accept the printed suite estimate")
+    ap.add_argument("--approve-cost", action="store_true", help="same as --yes; still needs a cap")
+    ap.add_argument("--max-usd", type=float, default=None, help="USD cap; at or above the suite estimate is approval")
+    ap.add_argument("--max-cost", type=float, default=None, help="alias of --max-usd")
     args = ap.parse_args()
 
     tasks_root = args.tasks_root
@@ -135,6 +273,24 @@ def main() -> int:
 
     base = os.environ.get("OPENAI_BASE_URL", "http://host.docker.internal:11435/v1").rstrip("/")
     print(f"eval suite: tasks={tasks} models={models} gate={gate} base={base}", flush=True)
+    try:
+        tty = sys.stdin.isatty()
+    except Exception:
+        tty = False
+    cap = args.max_usd if args.max_usd is not None else args.max_cost
+    approved = bool(args.yes or args.approve_cost)
+    blocked = _suite_public_block(
+        base,
+        tasks,
+        models,
+        tasks_root,
+        yes=approved,
+        max_usd=cap,
+        isatty=tty,
+    )
+    if blocked:
+        print(f"GATE: FAIL ({gate}) spend blocked", flush=True)
+        return 1
 
     available = ollama_names(base)
     if available is not None:
@@ -158,7 +314,16 @@ def main() -> int:
                 report_rows.append(r)
             continue
         for t in tasks:
-            r = run_cell(t, model, tasks_root, base)
+            r = run_cell(
+                t,
+                model,
+                tasks_root,
+                base,
+                yes=approved,
+                max_usd=cap,
+                paid_ok=not _host_is_local(base),
+                isatty=tty,
+            )
             cells[(model, t)] = r
             report_rows.append(r)
 

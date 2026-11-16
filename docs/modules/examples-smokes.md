@@ -17,7 +17,7 @@ Cage agent must be running (`make cage-up-mcp` or `make local-ollama-up`).
 | `make smoke-opencode-ollama` | Host OpenCode + Ollama worker (T-0080) |
 | `make smoke-voice-stt` | Host STT edge → Grok/OpenCode handoff (T-0091 p1; no mic) |
 | `make eval-tier0` / `eval-tier1` / `eval-mvp` | OQ-0002 opt5: connectivity + scored coding task. tier1 resolves eval-suite with `--probe-tags` (no pull) |
-| `make eval-suite` / `eval-matrix` / `eval-v02` | T-0041: multi-task suite + multi-model matrix |
+| `make eval-suite` / `eval-matrix` / `eval-v02` | T-0041: multi-task suite + multi-model matrix. A public base quotes the sum and does not open a socket until the same yes rules pass |
 
 | Layout | Role |
 |--------|------|
