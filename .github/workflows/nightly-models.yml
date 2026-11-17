@@ -21,7 +21,9 @@ concurrency:
 jobs:
   matrix:
     # Live scheduled model matrix belongs on pfy-deanery (this repo).
-    if: github.repository == 'themark-net/pfy-deanery'
+    # Gate on PFY_DEANERY_NIMO_RUNNER so the job skips (does not queue)
+    # until a self-hosted runner is registered for pfy-deanery.
+    if: vars.PFY_DEANERY_NIMO_RUNNER == 'true' && github.repository == 'themark-net/pfy-deanery'
     runs-on: [self-hosted, Linux, X64, pfy-mentat]
     timeout-minutes: 120
     steps:
