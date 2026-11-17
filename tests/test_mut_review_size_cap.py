@@ -136,8 +136,8 @@ class SizeCapTests(unittest.TestCase):
         data = self.inner.receipt(over, over_receipt)
         size = self._size(over_receipt)
         self.assertEqual(over.returncode, 1, over.stdout + over.stderr + "\n" + json.dumps(size))
-        self.assertEqual(data["status"], "FAIL")
-        self.assertEqual(data["reason"], "review-diff-over-line-cap")
+        self.assertEqual(data["status"], "PASS-REJECTED")
+        self.assertEqual(data["reason"], "review-rejected")
         self.assertIsNone(data["commit"])
         self.assertEqual(harness._branches(self.inner.repo), [])
         size = self._size(over_receipt)
@@ -161,20 +161,21 @@ class SizeCapTests(unittest.TestCase):
         self.assertNotIn("+ 1", shown)
         self.inner.assert_clean_origin()
 
-    def test_over_the_line_cap_is_refused_once_without_retries(self):
-        # Over the line cap is refused once. The reviewer is not asked, so a
-        # retry would only send the model the same size feedback for nothing.
+    def test_over_the_line_cap_retries_then_hard_stops(self):
+        # Same budget as the 3-file cap: retries are used, then a hard stop.
+        # The reviewer is not asked. Dedicated prompt-shape checks live in
+        # tests/test_line_cap_retry.py.
         task = "fix add so one plus one is two\nfiles: src/calc.py\n"
         over, receipt = self._run(
             task, {"mode": "noop", "write": {"src/calc.py": _calc(260)}}, retries="2"
         )
         data = self.inner.receipt(over, receipt)
         self.assertEqual(over.returncode, 1, over.stdout + over.stderr)
-        self.assertEqual(data["status"], "FAIL")
-        self.assertEqual(data["reason"], "review-diff-over-line-cap")
-        self.assertEqual(data["attempts"], 1)
-        self.assertFalse((receipt / "attempt-2").exists())
-        self.assertEqual(self.count.read_text(encoding="utf-8").strip(), "1")
+        self.assertEqual(data["status"], "PASS-REJECTED")
+        self.assertEqual(data["reason"], "review-rejected")
+        self.assertEqual(data["attempts"], 3)
+        self.assertFalse((receipt / "attempt-4").exists())
+        self.assertEqual(self.count.read_text(encoding="utf-8").strip(), "3")
         self.assertIsNone(data["commit"])
         self.assertEqual(self._chat(), [])
         self.assertIn("250", (over.stdout or "") + (over.stderr or "") + json.dumps(data))

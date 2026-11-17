@@ -70,21 +70,27 @@ def file_cap_reason(size: dict) -> str | None:
     )
 
 
-def line_cap_message(size: dict) -> str:
-    """Stderr text for a line-cap refusal. Names --max-lines, and --size when it would fit."""
+def line_cap_reason(size: dict) -> str | None:
+    """None when the line count is inside the cap. Same shape as file_cap_reason."""
     lines = int(size.get("lines") or 0)
     max_lines = int(size.get("max_lines") or 0)
-    files = int(size.get("files") or 0)
-    hint = "Rerun with --max-lines."
+    if lines <= max_lines:
+        return None
+    extra = ""
     if (
         not size.get("lines_explicit")
         and lines <= PRODUCT_MAX_LINES
-        and files <= PRODUCT_MAX_FILES
+        and int(size.get("files") or 0) <= PRODUCT_MAX_FILES
     ):
-        hint = "Rerun with --max-lines or --size product."
+        extra = " or --size product"
     return (
-        "pfy build --local: diff has %d changed lines, over the %d-line cap. "
+        "changed lines %d (max %d). "
         "The flag that raises the line cap is --max-lines. "
-        "Not reviewed, not committed, not retried. %s"
-        % (lines, max_lines, hint)
+        "Rerun with --max-lines%s."
+        % (lines, max_lines, extra)
     )
+
+
+def line_cap_message(size: dict) -> str:
+    """Operator-facing line-cap text. Same wording as the retry feedback."""
+    return line_cap_reason(size) or ""

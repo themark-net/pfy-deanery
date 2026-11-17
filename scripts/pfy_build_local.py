@@ -70,7 +70,7 @@ from pfylib.build_size import (  # noqa: E402
     SMALL_MAX_FILES as DEFAULT_MAX_FILES,
     SMALL_MAX_LINES as DEFAULT_MAX_LINES,
     file_cap_reason,
-    line_cap_message,
+    line_cap_reason,
     resolve_caps,
 )
 from pfylib.review_chunks import (  # noqa: E402
@@ -2962,17 +2962,12 @@ def _reject_reasons(scope: dict, size: dict, wiring: dict) -> list[str]:
         reasons.append("path outside allowed set: %s" % path)
     if not size.get("ok"):
         file_reason = file_cap_reason(size)
-        over_lines = int(size.get("lines") or 0) > int(size.get("max_lines") or 0)
+        line_reason = line_cap_reason(size)
         if file_reason:
             reasons.append(file_reason)
-        if over_lines:
-            reasons.append(
-                "changed lines %d (max %d). "
-                "The flag that raises the line cap is --max-lines. "
-                "Rerun with --max-lines."
-                % (size.get("lines"), size.get("max_lines"))
-            )
-        if not file_reason and not over_lines:
+        if line_reason:
+            reasons.append(line_reason)
+        if not file_reason and not line_reason:
             reasons.append(
                 "changed files %d (max %d), changed lines %d (max %d)"
                 % (size.get("files"), size.get("max_files"), size.get("lines"), size.get("max_lines"))
@@ -4547,25 +4542,8 @@ def build_local(argv: list[str] | None = None) -> int:
             size["size"] = args.size_name
             wire = _check_wiring(diff_text, wiring_rules)
             checks = {"scope": scope, "size": size, "wiring": wire}
-            if not size.get("ok") and int(size.get("lines") or 0) > int(size.get("max_lines") or 0):
-                # Over the line cap: the reviewer is not asked, so this is not
-                # a review reject. Refuse once with the numbers; a retry would
-                # resend the same feedback. Gated on size["ok"] so mutants
-                # R8 and R9 (which edit "ok") still change the outcome.
-                print(line_cap_message(size), file=sys.stderr)
-                status, reason, exit_code = "FAIL", "review-diff-over-line-cap", EXIT_FAIL
-                _record_attempt(
-                    attempts_used,
-                    attempt_t0,
-                    mem_snap,
-                    "FAIL",
-                    "review-diff-over-line-cap",
-                    checks,
-                    None,
-                    diff_stats,
-                    diff_text,
-                )
-                return finish()
+            # Line overage uses the same review-rejected retry path as the
+            # file cap. The reviewer is still not asked: reasons fire first.
             reasons = _reject_reasons(scope, size, wire)
             if reasons:
                 feedback = "\n".join(reasons)

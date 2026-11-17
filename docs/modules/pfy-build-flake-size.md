@@ -37,7 +37,7 @@ files: src/part_*.py
 | Symptom | Likely cause | Recovery |
 |---------|--------------|----------|
 | Status `FLAKY`, reason `flaky`, exit 1, no branch | The in-wrap gate passed and a clean-clone run failed | Make the test pass from a clean tree with a fresh `HOME`. The receipt field `flake.results` has each run's exit and tail. `--flake-runs 0` skips the re-runs. |
-| Stderr names `--max-lines`, reason `review-diff-over-line-cap` | The diff is over the line cap. Nothing is reviewed or committed. | Pass `--max-lines`, or `--size product` when the message offers it and the diff fits that preset. |
+| Status `PASS-REJECTED`, reason `review-rejected`, feedback names `--max-lines` | The diff is over the line cap. The gate was green. The reviewer is not asked. Retries use the same budget as the file cap. | Pass `--max-lines`, or `--size product` when the reason offers it. After retries are spent, this is a hard stop. |
 | Status `PASS-REJECTED`, reason text names `--max-files` | The file count is over the file cap. The gate was green. | Pass `--max-files`, or `--size product` when the reason offers it. This stays a review rejection, not `FLAKY`. |
 | Receipt `fixed_ports` lists a port | A test binds or listens on a literal port. Local and cloud both warn. | Bind port 0, or read the port from the environment. The build can still `PASS`. |
 
@@ -86,7 +86,7 @@ The clean-clone environment keeps `PATH`, sets `HOME` and `TMPDIR` under the clo
 ### Entry points
 
 - `resolve_flake_runs`, `fresh_env`, `export_result_tree`, `run_clean_clones`, `flake_verdict`, `scan_fixed_ports`, `port_warning_lines` in `pfylib/build_flake.py`
-- `resolve_caps`, `task_size`, `file_cap_reason`, `line_cap_message` in `pfylib/build_size.py`
+- `resolve_caps`, `task_size`, `file_cap_reason`, `line_cap_reason`, `line_cap_message` in `pfylib/build_size.py`
 - `build_local` calls `_run_flake_clones` after the in-wrap gate and the tamper check, and before review. `_apply_review_flags` stores the preset and the flake count.
 
 ### Data shapes
@@ -112,7 +112,7 @@ The clean-clone environment keeps `PATH`, sets `HOME` and `TMPDIR` under the clo
 - Each extra run is a new export of the original result tree, not a copy of the previous export.
 - The export skips `.git`, `tmp`, caches, and `*.pyc`, so the clone does not share the live git dir.
 - The state file the gate writes stays out of the commit when it was created after the diff snapshot. The commit recheck extracts the commit, so it does not see that file.
-- File overage stays `PASS-REJECTED` / `review-rejected`. Line overage stays `FAIL` / `review-diff-over-line-cap` and is not retried.
+- File overage and line overage are both `PASS-REJECTED` / `review-rejected`. Both retry with feedback on the same budget, and hard-stop when retries are exhausted. The reviewer is not asked for an over-cap diff.
 - Size and tamper recovery both name the flag, then the rerun line: `--max-files` / `--max-lines` / `--size product` for caps, `--writable-test <path>` for a protected file.
 - The line-cap message names `--max-lines`. It also names `--size product` only when the line cap was not explicit and both dimensions fit the product preset.
 - The file-cap reason names `--max-files`. It also names `--size product` only when the file cap was not explicit and the file count fits the product preset.
