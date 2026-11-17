@@ -20,6 +20,8 @@ concurrency:
 
 jobs:
   matrix:
+    # Live scheduled model matrix belongs on pfy-deanery (this repo).
+    if: github.repository == 'themark-net/pfy-deanery'
     runs-on: [self-hosted, Linux, X64, pfy-mentat]
     timeout-minutes: 120
     steps:

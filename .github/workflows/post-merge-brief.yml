@@ -8,7 +8,15 @@ on:
 
 jobs:
   brief:
-    runs-on: [self-hosted, Linux, X64, pfy-mentat]
+    # Hosted so hourly catalog-loop pushes no longer queue on an unregistered
+    # nimo runner. worker_brief_refresh and catalog_dashboard only need the
+    # checkout (git log/status + in-tree receipts). model_pool_inventory
+    # probes nimo-local Ollama and model dirs; on hosted it writes an empty
+    # snapshot and is already soft (`|| true`). The live inventory stays
+    # with local-lab once the runner is registered.
+    # Pin ubuntu-24.04 (not ubuntu-latest): scripts/check_workflow_image_pin.py
+    # fails any other GitHub-hosted image.
+    runs-on: ubuntu-24.04
     continue-on-error: true
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0

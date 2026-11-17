@@ -11,6 +11,8 @@ on:
 jobs:
   full-suite:
     name: Full suite backstop
+    # Live scheduled backstop belongs on pfy-deanery (this repo).
+    if: github.repository == 'themark-net/pfy-deanery'
     runs-on: ubuntu-24.04
     # A hung apt mirror held shard 0 of run 42764532767 for 30+ minutes
     # under the 360-minute default. Fail the job instead.

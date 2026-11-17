@@ -220,7 +220,10 @@ jobs:
     name: G0 (self-hosted nimo)
     # Not a landing gate. Branch pull requests and workflow_dispatch stay on
     # the ubuntu job. A pregate cache hit is the nimo evidence for those.
-    if: github.event_name == 'schedule' || (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'))
+    # Gate on PFY_DEANERY_NIMO_RUNNER so this job skips (does not queue)
+    # until a self-hosted runner is registered for pfy-deanery. No job
+    # needs: this one, so a skip leaves hosted G0 shards 0-3 unaffected.
+    if: vars.PFY_DEANERY_NIMO_RUNNER == 'true' && (github.event_name == 'schedule' || (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')))
     runs-on: [self-hosted, Linux, X64, pfy-mentat]
     # Don't block main if the lab machine is offline
     continue-on-error: true

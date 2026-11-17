@@ -33,6 +33,9 @@ concurrency:
 jobs:
   lab:
     name: lab (${{ github.event.inputs.mode || 'auto' }})
+    # Live scheduled lab belongs on pfy-deanery (this repo). Same guard is
+    # on pfy-mentat so the frozen pointer is a no-op.
+    if: github.repository == 'themark-net/pfy-deanery'
     runs-on: [self-hosted, Linux, X64, pfy-mentat]
     timeout-minutes: 120
     steps:
