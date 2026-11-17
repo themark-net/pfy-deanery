@@ -139,7 +139,8 @@ def home_sig(home: Path) -> dict:
             sig[rel] = ("link", mode, os.readlink(p))
         elif stat.S_ISDIR(st.st_mode):
             try:
-                kids = walk_nofollow(p)
+                walk_errors: list[OSError] = []
+                kids = walk_nofollow(p, errors=walk_errors)
             except OSError:
                 sig[rel] = ("dir", mode, "unlistable")
                 continue
@@ -149,6 +150,8 @@ def home_sig(home: Path) -> dict:
                     rows.append(describe(q, p))
                 except OSError:
                     rows.append((str(q.relative_to(p)), "unreadable"))
+            for exc in walk_errors:
+                rows.append(("walk-error", str(exc.filename or ""), str(exc.strerror or exc)))
             sig[rel] = ("dir", mode, sorted(rows))
         elif stat.S_ISREG(st.st_mode):
             try:

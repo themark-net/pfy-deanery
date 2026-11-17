@@ -122,7 +122,7 @@ def sandbox_mount_args() -> tuple[list[str], str | None]:
 _HERE = str(Path(__file__).resolve().parent)
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
-from xintake_walk import walk_nofollow  # noqa: E402
+from xintake_walk import record_walk_errors, walk_nofollow  # noqa: E402
 
 
 def home_sig(home: Path) -> dict:
@@ -139,10 +139,13 @@ def home_sig(home: Path) -> dict:
             return hashlib.sha256(f"{p}:unreadable\n".encode()).hexdigest()
         if stat.S_ISDIR(root_st.st_mode):
             try:
-                nodes = [p, *sorted(walk_nofollow(p))]
+                walk_errors = []
+                nodes = [p, *sorted(walk_nofollow(p, errors=walk_errors))]
             except OSError:
+                walk_errors = []
                 nodes = [p]
         else:
+            walk_errors = []
             nodes = [p]
         h = hashlib.sha256()
         for f in nodes:
@@ -166,6 +169,7 @@ def home_sig(home: Path) -> dict:
                     h.update(f"{f}:{mode:o}:{kind}\n".encode())
             except OSError:
                 h.update(f"{f}:{mode:o}:unreadable\n".encode())
+        record_walk_errors(h, walk_errors)
         return h.hexdigest()
 
     sig = {}

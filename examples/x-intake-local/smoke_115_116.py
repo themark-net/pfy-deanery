@@ -48,7 +48,7 @@ import tempfile
 import time
 from pathlib import Path
 
-from smoke import TMP, run_isolated, timeout_reason, walk_nofollow, write
+from smoke import TMP, run_isolated, timeout_reason, record_walk_errors, walk_nofollow, write
 
 OPENQODEX_PIN = "0.12.0"
 ASSAY_PIN = "0.3.0"
@@ -125,7 +125,8 @@ def tree_sig(p: Path) -> str | None:
             h.update(f"{p}:{mode}:link:{os.readlink(p)}\n".encode())
         except OSError:
             h.update(f"{p}:unreadable\n".encode())
-    for f in sorted(walk_nofollow(p)):
+    walk_errors: list[OSError] = []
+    for f in sorted(walk_nofollow(p, errors=walk_errors)):
         try:
             st = f.lstat()
         except OSError:
@@ -146,6 +147,7 @@ def tree_sig(p: Path) -> str | None:
                 h.update(f"{f}:{mode:o}:{kind}\n".encode())
         except OSError:
             h.update(f"{f}:{mode:o}:unreadable\n".encode())
+    record_walk_errors(h, walk_errors)
     return h.hexdigest()
 
 

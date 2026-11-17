@@ -1270,11 +1270,26 @@ def gate_tree_manifest(root: Path) -> dict[str, str]:
     return found
 
 
+def _walk_onerror(unreadable: list[str], worktree: Path):
+    def report(err: OSError) -> None:
+        raw = err.filename or str(err)
+        try:
+            rel = _norm_rel(str(Path(raw).relative_to(worktree)))
+        except (ValueError, TypeError):
+            rel = str(raw)
+        if rel and rel not in unreadable:
+            unreadable.append(rel)
+            print("tree walk: cannot read %s: %s" % (rel, err.strerror or err), file=sys.stderr)
+
+    return report
+
+
 def snapshot_tests(worktree: Path) -> dict[str, str]:
     found: dict[str, str] = {}
     if not worktree.is_dir():
         return found
-    for dirpath, dirnames, filenames in os.walk(worktree):
+    unreadable: list[str] = []
+    for dirpath, dirnames, filenames in os.walk(worktree, onerror=_walk_onerror(unreadable, worktree)):
         dirnames[:] = [name for name in dirnames if name not in {".git", "tmp", "__pycache__"}]
         for name in filenames:
             if name.endswith(".pyc"):
@@ -1290,6 +1305,8 @@ def snapshot_tests(worktree: Path) -> dict[str, str]:
                 found[rel] = hashlib.sha256(full.read_bytes()).hexdigest()
             except OSError:
                 continue
+    for rel in unreadable:
+        found.setdefault("unreadable-dir:" + rel, "unreadable")
     return found
 
 
@@ -1310,7 +1327,8 @@ def _new_protected(worktree: Path, snap: dict[str, str]) -> list[str]:
     found: list[str] = []
     if not worktree.is_dir():
         return found
-    for dirpath, dirnames, filenames in os.walk(worktree):
+    unreadable: list[str] = []
+    for dirpath, dirnames, filenames in os.walk(worktree, onerror=_walk_onerror(unreadable, worktree)):
         dirnames[:] = [name for name in dirnames if name not in {".git", "tmp", "__pycache__"}]
         for name in filenames:
             if name.endswith(".pyc"):
@@ -1323,6 +1341,10 @@ def _new_protected(worktree: Path, snap: dict[str, str]) -> list[str]:
             if not rel or rel in snap or not _protected_gate_path(rel):
                 continue
             found.append(rel)
+    for rel in unreadable:
+        marker = "unreadable-dir:" + rel
+        if marker not in found:
+            found.append(marker)
     return found
 
 

@@ -86,7 +86,7 @@ def write(entry: str, receipt: dict, code: int) -> int:
 _HERE = str(Path(__file__).resolve().parent)
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
-from xintake_walk import walk_nofollow  # noqa: E402
+from xintake_walk import record_walk_errors, walk_nofollow  # noqa: E402
 
 
 def run(cmd: list[str], cwd: str | None = None, timeout: int = 120) -> subprocess.CompletedProcess:

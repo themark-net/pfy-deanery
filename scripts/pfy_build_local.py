@@ -1711,7 +1711,8 @@ def snapshot_tests(worktree: Path, test_cmd: str) -> dict[str, str]:
     found: dict[str, str] = {}
     if not worktree.is_dir():
         return found
-    for dirpath, dirnames, filenames in os.walk(worktree):
+    unreadable: list[str] = []
+    for dirpath, dirnames, filenames in os.walk(worktree, onerror=_walk_onerror(unreadable, worktree)):
         dirnames[:] = [
             name
             for name in dirnames
@@ -1733,6 +1734,8 @@ def snapshot_tests(worktree: Path, test_cmd: str) -> dict[str, str]:
                 found[rel] = _sha256_file(full)
             except OSError:
                 continue
+    for rel in unreadable:
+        found.setdefault("unreadable-dir:" + rel, "unreadable")
     return found
 
 
@@ -2347,14 +2350,35 @@ def _reap_only(args) -> int:
                 pass
 
 
+def _walk_onerror(unreadable: list[str], worktree: Path):
+    """Record dirs os.walk cannot list, relative to the worktree when possible."""
+
+    def report(err: OSError) -> None:
+        raw = err.filename or str(err)
+        try:
+            rel = _norm_rel(str(Path(raw).relative_to(worktree)))
+        except (ValueError, TypeError):
+            rel = str(raw)
+        if rel and rel not in unreadable:
+            unreadable.append(rel)
+            print("tree walk: cannot read %s: %s" % (rel, err.strerror or err), file=sys.stderr)
+
+    return report
+
+
 def tree_digest(worktree: Path) -> str:
-    """Hash the worktree the gate just accepted. tmp and bytecode are excluded."""
+    """Hash the worktree the gate just accepted. tmp and bytecode are excluded.
+
+    A directory os.walk cannot list is hashed as an unreadable-dir entry so
+    the digest does not silently match a tree that never had those files.
+    """
     digest = hashlib.sha256()
     files: list[tuple[str, Path]] = []
+    unreadable: list[str] = []
     skip_dirs = {".git", "tmp", "__pycache__", ".pytest_cache"}
     if not worktree.is_dir():
         return digest.hexdigest()
-    for dirpath, dirnames, filenames in os.walk(worktree):
+    for dirpath, dirnames, filenames in os.walk(worktree, onerror=_walk_onerror(unreadable, worktree)):
         dirnames[:] = [name for name in dirnames if name not in skip_dirs and not name.endswith(".home")]
         for name in filenames:
             if name.endswith(".pyc") or name.endswith(".pyo"):
@@ -2374,6 +2398,10 @@ def tree_digest(worktree: Path) -> str:
             digest.update(full.read_bytes())
         except OSError:
             digest.update(b"")
+        digest.update(b"\0")
+    for rel in sorted(unreadable):
+        digest.update(b"unreadable-dir:")
+        digest.update(rel.encode())
         digest.update(b"\0")
     return digest.hexdigest()
 

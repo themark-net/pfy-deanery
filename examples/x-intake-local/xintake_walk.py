@@ -29,3 +29,10 @@ def walk_nofollow(root: Path, errors: list[OSError] | None = None) -> list[Path]
         parent = Path(dirpath)
         found.extend(parent / name for name in (*dirnames, *filenames))
     return found
+
+
+def record_walk_errors(h, errors: list[OSError] | None) -> None:
+    """Fold unlistable directories into a tree signature hash."""
+    for exc in errors or []:
+        name = exc.filename or ""
+        h.update(("%s:walk-error:%s\n" % (name, exc.strerror or exc)).encode())
