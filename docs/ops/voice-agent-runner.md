@@ -93,6 +93,7 @@ make smoke-voice-agent
 | `VOICE_AGENT_ALWAYS_APPROVE` | unset / `0` | pass `--always-approve` only when set to `1`, `true`, `yes`, or `on`. Default **off**. |
 | `VOICE_AGENT_REPO` | repo root | `--cwd` for Grok |
 | `VOICE_TTS` | unset / `0` | speak a short “done” / “fail” only when set to `1`, `true`, `yes`, or `on`. Default **off**. See [examples/voice-tts-status/README.md](../../examples/voice-tts-status/README.md). |
+| `VOICE_TTS_MODE` | unset / `status` | `reply` or `full` speaks a clipped agent reply (400 characters, word boundary). A typo stays on status. No phone playback. |
 
 ## Artifacts (gitignored)
 
@@ -119,7 +120,7 @@ make smoke-voice-agent
 
 ## Not in 4b
 
-- TTS of the full reply to the phone (T-0094 first slice is a short local “done” / “fail” status only, opt-in via `VOICE_TTS=1`; see [examples/voice-tts-status/README.md](../../examples/voice-tts-status/README.md))
+- TTS of the reply to the phone (T-0094 now has opt-in local status and a clipped local reply via `VOICE_TTS_MODE=reply`; see [examples/voice-tts-status/README.md](../../examples/voice-tts-status/README.md))
 - Sticky multi-session resume (use `grok -c` later)  
 - Hermes primary runtime  
 

@@ -734,7 +734,6 @@ def maybe_speak_status(result: dict) -> dict:
     """Opt-in T-0094 status beep. Never changes the agent result. Fail-soft."""
     import importlib.util
 
-    phrase = "done" if result.get("ok") else "fail"
     speak = Path(__file__).resolve().parent.parent / "voice-tts-status" / "speak_status.py"
     try:
         spec = importlib.util.spec_from_file_location("voice_speak_status", speak)
@@ -743,6 +742,7 @@ def maybe_speak_status(result: dict) -> dict:
             return {"ok": False, "skipped": True, "reason": "speak_status.py missing"}
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
+        phrase = mod.phrase_for_result(result)
         return mod.speak_status(phrase)
     except Exception as exc:
         print(f"voice-tts: skip ({exc})", file=sys.stderr)

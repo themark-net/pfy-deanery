@@ -142,6 +142,7 @@ The voice agent runner does **not** pass `--always-approve` unless you set `VOIC
 | `VOICE_HANDOFF=1` | `make voice-listen` also exec handoff |
 | `VOICE_AGENT_ALWAYS_APPROVE=1` | Opt in: pass `--always-approve` to Grok. Default **off** — Grok will prompt for tool approval unless you set this to `1`, `true`, `yes`, or `on`. |
 | `VOICE_TTS=1` | Opt in: speak a short local “done” / “fail” after the agent run ([voice-tts-status](../voice-tts-status/README.md)). Default **off**. No model is downloaded. |
+| `VOICE_TTS_MODE=reply` | When `VOICE_TTS=1`, speak a clipped agent reply instead of a short “done” / “fail”. Default is `status`. See [voice-tts-status](../voice-tts-status/README.md). |
 
 ## Phase map
 

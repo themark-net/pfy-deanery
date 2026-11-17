@@ -32,8 +32,9 @@ def _load(path: Path, name: str):
 class SpeakStatusTests(unittest.TestCase):
     def setUp(self):
         self.mod = _load(SPEAK, "voice_speak_status")
-        self._saved = {k: os.environ.get(k) for k in ("VOICE_TTS", "VOICE_TTS_PIPER_MODEL", "PATH")}
+        self._saved = {k: os.environ.get(k) for k in ("VOICE_TTS", "VOICE_TTS_MODE", "VOICE_TTS_PIPER_MODEL", "PATH")}
         os.environ.pop("VOICE_TTS", None)
+        os.environ.pop("VOICE_TTS_MODE", None)
         os.environ.pop("VOICE_TTS_PIPER_MODEL", None)
 
     def tearDown(self):
@@ -101,11 +102,69 @@ class SpeakStatusTests(unittest.TestCase):
             self.assertFalse(log.exists())
 
 
+
+    def test_default_mode_speaks_status_not_the_reply(self):
+        """Fail: default opt-in would speak the full agent reply."""
+        with tempfile.TemporaryDirectory(prefix="voice-tts-") as raw:
+            td = Path(raw)
+            log = self._fake_bin(td, "espeak-ng")
+            os.environ["VOICE_TTS"] = "1"
+            os.environ.pop("VOICE_TTS_MODE", None)
+            phrase = self.mod.phrase_for_result(
+                {"ok": True, "reply": "The tests passed and the branch is green."}
+            )
+            self.assertEqual(phrase, "done")
+            result = self.mod.speak_status(phrase)
+            self.assertFalse(result.get("skipped"), result)
+            lines = log.read_text(encoding="utf-8").splitlines()
+            self.assertIn("done", lines)
+            self.assertNotIn("The tests passed and the branch is green.", lines)
+
+    def test_reply_mode_speaks_clipped_reply_and_drops_the_tail(self):
+        """Fail: reply mode speaks the unclipped tail, or status instead of the reply."""
+        with tempfile.TemporaryDirectory(prefix="voice-tts-") as raw:
+            td = Path(raw)
+            log = self._fake_bin(td, "espeak-ng")
+            os.environ["VOICE_TTS"] = "1"
+            os.environ["VOICE_TTS_MODE"] = "reply"
+            body = ("The agent finished the review. " * 40) + "UNIQUE_REPLY_TAIL"
+            self.assertGreater(len(body), self.mod.REPLY_MAX)
+            phrase = self.mod.phrase_for_result({"ok": True, "reply": body})
+            result = self.mod.speak_status(phrase)
+            self.assertFalse(result.get("skipped"), result)
+            spoken = result.get("text") or ""
+            self.assertLessEqual(len(spoken), self.mod.REPLY_MAX)
+            self.assertTrue(spoken.endswith("…"), spoken)
+            self.assertNotIn("UNIQUE_REPLY_TAIL", spoken)
+            self.assertIn("The agent finished the review", spoken)
+            lines = log.read_text(encoding="utf-8").splitlines()
+            self.assertTrue(any("The agent finished the review" in line for line in lines), lines)
+            self.assertFalse(any("UNIQUE_REPLY_TAIL" in line for line in lines), lines)
+
+    def test_unknown_mode_does_not_switch_to_full_reply(self):
+        os.environ["VOICE_TTS"] = "1"
+        os.environ["VOICE_TTS_MODE"] = "repy"
+        phrase = self.mod.phrase_for_result(
+            {"ok": True, "reply": "A long agent reply that must stay unspoken in status mode."}
+        )
+        self.assertEqual(phrase, "done")
+
+    def test_reply_mode_off_does_not_invoke_tts(self):
+        with tempfile.TemporaryDirectory(prefix="voice-tts-") as raw:
+            td = Path(raw)
+            log = self._fake_bin(td, "espeak-ng")
+            os.environ.pop("VOICE_TTS", None)
+            os.environ["VOICE_TTS_MODE"] = "reply"
+            result = self.mod.speak_status("A reply that must stay silent.")
+            self.assertTrue(result.get("skipped"), result)
+            self.assertFalse(log.exists())
+
 class AgentTtsHookTests(unittest.TestCase):
     def setUp(self):
         self.runner = _load(RUNNER, "voice_agent_runner_tts")
-        self._saved = {k: os.environ.get(k) for k in ("VOICE_TTS", "PATH")}
+        self._saved = {k: os.environ.get(k) for k in ("VOICE_TTS", "VOICE_TTS_MODE", "PATH")}
         os.environ.pop("VOICE_TTS", None)
+        os.environ.pop("VOICE_TTS_MODE", None)
 
     def tearDown(self):
         for k, v in self._saved.items():
@@ -136,3 +195,26 @@ class AgentTtsHookTests(unittest.TestCase):
             self.assertEqual(payload["status"], "ok")
             self.assertEqual(payload["reply"], "LOCAL_VOICE_AGENT_OK")
             self.assertTrue(out.get("skipped") or not out.get("ok"), out)
+    def test_reply_mode_error_does_not_change_agent_result(self):
+        with tempfile.TemporaryDirectory(prefix="voice-tts-hook-") as raw:
+            td = Path(raw)
+            bindir = td / "bin"
+            bindir.mkdir()
+            boom = bindir / "espeak-ng"
+            boom.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
+            boom.chmod(boom.stat().st_mode | stat.S_IEXEC)
+            os.environ["PATH"] = str(bindir)
+            os.environ["VOICE_TTS"] = "1"
+            os.environ["VOICE_TTS_MODE"] = "reply"
+            payload = {
+                "status": "ok",
+                "ok": True,
+                "run_id": "h2",
+                "mode": "mock",
+                "reply": "The long agent reply should not be lost if TTS fails.",
+            }
+            out = self.runner.maybe_speak_status(payload)
+            self.assertEqual(payload["ok"], True)
+            self.assertEqual(payload["reply"], "The long agent reply should not be lost if TTS fails.")
+            self.assertTrue(out.get("skipped") or not out.get("ok"), out)
+
