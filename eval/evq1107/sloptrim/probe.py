@@ -32,7 +32,6 @@ CORPUS = [
     "docs/ops/MVP-DOD-WALKTHROUGH.md",
     "docs/build-dropins/hermes-eval.md",
     "docs/ops/AUTONOMOUS-DECISIONS-2026-10-26.md",
-    "docs/ops/HANDOFF-mvp-land-1031.md",
     "docs/plans/MVP-PARALLEL-1031.md",
     "sources/entries/114-sloptrim.md",
     "sources/entries/146-skill-up.md",
