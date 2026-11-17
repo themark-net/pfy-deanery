@@ -605,71 +605,7 @@ check_orphans() {
 }
 
 check_gate_hash() {
-  python3 - <<'PY'
-"""Worktree vs HEAD for tests/ and gate files, plus committed gate-file changes vs base."""
-import os, subprocess, sys
-from pathlib import Path
-
-GATE = {"conftest.py", "pytest.ini", "tox.ini", "setup.cfg", "pyproject.toml",
-        "sitecustomize.py", "usercustomize.py", ".gitignore", ".gitattributes"}
-STRICT = GATE - {".gitignore", ".gitattributes"}
-
-def git(*a):
-    return subprocess.run(["git", *a], check=True, capture_output=True).stdout
-
-def names(raw):
-    return [r.decode("utf-8", "surrogateescape") for r in raw.split(b"\0") if r]
-
-def protected(rel):
-    return rel.startswith("tests/") or Path(rel).name in GATE
-
-fail, notes = [], []
-head = {}
-for line in git("ls-tree", "-r", "-z", "HEAD").split(b"\0"):
-    if not line:
-        continue
-    meta, path = line.split(b"\t", 1)
-    rel = path.decode("utf-8", "surrogateescape")
-    if protected(rel):
-        head[rel] = meta.split()[2].decode()
-for rel, blob in head.items():
-    p = Path(rel)
-    if not p.exists():
-        fail.append(f"deleted or renamed vs HEAD: {rel}")
-    elif p.is_file() and git("hash-object", "--", rel).decode().strip() != blob:
-        fail.append(f"modified vs HEAD: {rel}")
-current = set(names(git("ls-files", "-z", "--cached", "--others", "--exclude-standard")))
-for rel in sorted(current - set(head)):
-    if rel.startswith("tmp/") or not protected(rel):
-        continue
-    if Path(rel).name in GATE or rel.endswith(".py"):
-        fail.append(f"new vs HEAD (staged or untracked): {rel}")
-
-base = os.environ.get("BASE_SHA", "")
-if base:
-    mb = git("merge-base", base, "HEAD").decode().strip()
-    raw = names(git("diff", "--name-status", "-z", "--no-renames", mb, "HEAD"))
-    for status, rel in zip(raw[0::2], raw[1::2]):
-        name = Path(rel).name
-        if name in STRICT:
-            fail.append(f"committed {status} of gate file vs base {mb[:7]}: {rel} (needs explicit reviewer waiver)")
-        elif name in GATE:
-            notes.append(f"committed {status} vs base: {rel}")
-        elif rel.startswith("tests/") and status in ("M", "D"):
-            notes.append(f"REVIEW: existing test {'modified' if status == 'M' else 'deleted'} vs base: {rel}")
-else:
-    fail.append("base sha missing; committed gate-file diff cannot run")
-
-print(f"checked {len(head)} protected paths at HEAD")
-for n in notes:
-    print("NOTE", n)
-if fail:
-    print("FAIL gate-hash:")
-    for f in fail:
-        print(" ", f)
-    sys.exit(1)
-print("PASS gate-hash")
-PY
+  python3 "$SCRIPT_DIR/pregate_gate_hash.py"
 }
 
 # Selection is one diff. ubuntu-parity runs that list once (bwrap hidden).

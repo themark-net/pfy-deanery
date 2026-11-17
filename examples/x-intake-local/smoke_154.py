@@ -93,12 +93,16 @@ def node_ok(version: str) -> bool:
     return major >= 24 or (major == 22 and minor >= 19)
 
 
-def bwrap_ok() -> bool:
+def bwrap_ok(timeout: float = 2.0) -> bool:
     if not shutil.which("bwrap"):
         return False
     # Probe with the same mounts the run uses (/dev/shm tmpfs, /proc), so a host that can't make them falls back.
-    p = subprocess.run(["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--tmpfs", "/dev/shm", "--proc", "/proc",
-                        "--unshare-net", "true"], capture_output=True)
+    # A hung bwrap must not hang the smoke: the probe has a short timeout.
+    try:
+        p = subprocess.run(["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--tmpfs", "/dev/shm", "--proc", "/proc",
+                            "--unshare-net", "true"], capture_output=True, timeout=timeout)
+    except (OSError, subprocess.TimeoutExpired):
+        return False
     return p.returncode == 0
 
 

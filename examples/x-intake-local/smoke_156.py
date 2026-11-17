@@ -63,11 +63,14 @@ def find_bin() -> str | None:
     return shutil.which("kanzo")
 
 
-def bwrap_ok() -> bool:
+def bwrap_ok(timeout: float = 2.0) -> bool:
     if not shutil.which("bwrap"):
         return False
-    p = subprocess.run(["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--proc", "/proc", "--unshare-net", "true"],
-                       capture_output=True)
+    try:
+        p = subprocess.run(["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--proc", "/proc", "--unshare-net", "true"],
+                           capture_output=True, timeout=timeout)
+    except (OSError, subprocess.TimeoutExpired):
+        return False
     return p.returncode == 0
 
 

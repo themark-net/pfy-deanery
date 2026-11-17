@@ -161,7 +161,9 @@ class Smoke148(unittest.TestCase):
         self.assertEqual(self.run_smoke(dict(BASE), {"PFY_XINTAKE_TIMEOUT": "nope"})[0], 2)
 
     def test_version_pin_exit_2(self):
-        self.assertEqual(self.run_smoke(dict(BASE, version="9.9.9"))[0], 2)
+        code, rec = self.run_smoke(dict(BASE, version="9.9.9"))
+        self.assertEqual(code, 2, rec)
+        self.assertEqual(rec["reason"], "version pin 2.12.0 not in --version output")
 
     @needs_bwrap
     def test_blind_scanner_fails(self):

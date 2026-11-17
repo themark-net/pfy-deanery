@@ -77,12 +77,13 @@ def find_bin() -> str | None:
     return shutil.which("mempalace")
 
 
-def bwrap_ok() -> bool:
+def bwrap_ok(timeout: float = 2.0) -> bool:
     if not shutil.which("bwrap"):
         return False
     # Same flags as run(): bind a real temp dir and --die-with-parent, plus the
     # /proc and tmpfs /dev/shm mounts. A bwrap that rejects any of them is not usable.
     # Creating the temp dir can fail; that is also "not usable", not an unsandboxed run.
+    # A hung bwrap must not hang the smoke: the probe has a short timeout.
     probe_dir = None
     try:
         probe_dir = tempfile.mkdtemp(prefix="pfy-smoke-149-probe-")
@@ -90,9 +91,9 @@ def bwrap_ok() -> bool:
             ["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--tmpfs", SHM_PATH,
              "--proc", PROC_PATH, "--bind", probe_dir, probe_dir, "--unshare-net",
              "--die-with-parent", "true"],
-            capture_output=True)
+            capture_output=True, timeout=timeout)
         return p.returncode == 0
-    except OSError:
+    except (OSError, subprocess.TimeoutExpired):
         return False
     finally:
         if probe_dir is not None:
