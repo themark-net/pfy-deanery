@@ -117,8 +117,9 @@ DEFAULT_RETRIES = 2
 AUTHOR_NAME = "pfy-cloud-build"
 AUTHOR_EMAIL = "pfy-cloud-build@localhost"
 KILL_GRACE_SECONDS = 2.0
-# Default per-file review cap. A retry's previous-diff paste still stops here
-# and may end with "[diff truncated]". The review prompt itself is never cut.
+# Default per-file review cap. A retry's previous-diff paste uses the same
+# cap: a fit is pasted in full, an over-cap diff is omitted (never cut).
+# The review prompt itself is never cut.
 DIFF_CAP = 12000
 TAIL_CAP = 4000
 
@@ -1020,15 +1021,23 @@ def implement_prompt(
     if not feedback and not previous_diff:
         return base
     shown = redact(previous_diff or "")
+    # Never cut the previous diff. A prefix plus "[diff truncated]" would
+    # let the next attempt "fix" a change it has not fully seen.
     if len(shown) > DIFF_CAP:
-        shown = shown[:DIFF_CAP] + "\n...[diff truncated]\n"
+        previous = (
+            "Previous diff omitted: it was %d characters, over the %d character cap. "
+            "Do not assume its contents. The rejection reasons still apply.\n"
+            % (len(shown), DIFF_CAP)
+        )
+    else:
+        previous = "Previous diff:\n%s\n" % shown
     head = ""
     if targeted:
         head = "Fix only these files. Do not rewrite accepted files.\n\n"
     return (
         base
-        + "\n\n%sThe previous attempt was rejected.\nReasons:\n%s\n\nPrevious diff:\n%s\n"
-        % (head, redact(feedback or ""), shown)
+        + "\n\n%sThe previous attempt was rejected.\nReasons:\n%s\n\n%s"
+        % (head, redact(feedback or ""), previous)
     )
 
 
@@ -1355,11 +1364,13 @@ def tests_tampered(worktree: Path, snap: dict[str, str], writable: list[str] | N
 
 
 def _non_utf8_file(worktree: Path, rel: str) -> bool:
-    """True when a regular file is not strict UTF-8.
+    """True when a regular file is not strict UTF-8 text.
 
     Git prints bytes such as 0xff in a text diff. Decoding that diff as
-    UTF-8 crashes the runner. A NUL is already "Binary files differ".
-    The same line makes this attempt review-binary-change.
+    UTF-8 crashes the runner. A NUL can also appear in a valid UTF-8
+    decode; treat it as non-text, matching local _strict_text. Either
+    case becomes review-binary-change and the bytes stay out of the
+    prompt.
     """
     full = worktree / rel
     try:
@@ -1368,6 +1379,8 @@ def _non_utf8_file(worktree: Path, rel: str) -> bool:
         raw = full.read_bytes()
     except OSError:
         return False
+    if b"\x00" in raw:
+        return True
     try:
         raw.decode("utf-8")
     except UnicodeDecodeError:

@@ -28,6 +28,9 @@ class NonUtf8Changes(_Rewrite):
     def test_new_non_utf8_file(self) -> None:
         self.assert_binary(self.build("Path('data.txt').write_bytes(b'\\xff\\xfe not utf8 but no NUL\\n')\n", "print('ok')\n"))
 
+    def test_new_utf8_file_with_nul_is_binary(self) -> None:
+        self.assert_binary(self.build("Path('data.txt').write_bytes(b'hello\\x00world\\n')\n", "print('ok')\n"))
+
     def test_non_utf8_old_content_rewritten_as_text(self) -> None:
         self.seed_bytes("legacy.txt", b"caf\xe9 latin-1\n")
         self.assert_binary(self.build("Path('legacy.txt').write_text('cafe utf8\\n')\n", "print('ok')\n"))

@@ -85,7 +85,7 @@ Active work is also tracked as issues: https://github.com/themark-net/pfy-deaner
 | T-0092 | P1 | done | Voice auto-agent local opencode path | — | T-0091 4b | still: `VOICE_AUTO_AGENT=opencode` |
 | T-0093 | P1 | done | Tools-capable Ollama select + tool-split | — | T-0080 | `eval-select-tools-model` |
 | T-0096 | P1 | done | **Dual-tier orchestrator** high↔low (`VOICE_ROUTE=high-first` default) | — | T-0092, T-0093 | [voice-orchestrator.md](ops/voice-orchestrator.md); `smoke-voice-orchestrate` |
-| T-0094 | P3 | doing | Optional short **local TTS** status (not duplex) | — | T-0092 | [#9](https://github.com/themark-net/pfy-mentat/issues/9) · 2026-11-17: opt-in `VOICE_TTS=1` speaks a short local done/fail; `VOICE_TTS_MODE=reply` speaks a clipped agent reply (400 chars). Kokoro catalog-fit on qwen3.6:35b was confident `redundant` vs the piper/espeak path — not wired, no download ([kokoro-fit.md](../examples/voice-tts-status/kokoro-fit.md)). Remaining: phone playback, a manual piper voice-model install |
+| T-0094 | P3 | parked | Optional short **local TTS** status (not duplex) | — | T-0092 | [#9](https://github.com/themark-net/pfy-mentat/issues/9) · 2026-11-17: opt-in `VOICE_TTS=1` speaks a short local done/fail; `VOICE_TTS_MODE=reply` speaks a clipped agent reply (400 chars). Kokoro catalog-fit on qwen3.6:35b was confident `redundant` vs the piper/espeak path — not wired, no download ([kokoro-fit.md](../examples/voice-tts-status/kokoro-fit.md)). PM parked the rest: phone playback, a manual piper voice-model install |
 
 | T-0075 | P2 | done | More structural scorers: ADR shape, open-question row shape | — | T-0070 | [#5](https://github.com/themark-net/pfy-mentat/issues/5) **done** |
 | T-0076 | P2 | done | Wire mattpocock to-spec/tdd checklist into structural or skill cross-links | — | — | [#6](https://github.com/themark-net/pfy-mentat/issues/6) · paths pack already installed |
@@ -105,6 +105,7 @@ Active work is also tracked as issues: https://github.com/themark-net/pfy-deaner
 
 | ID | Priority | Status | Item | Open questions | Depends | Notes |
 |----|----------|--------|------|----------------|---------|-------|
+| — | P2 | doing | pfy-mentat [#309](https://github.com/themark-net/pfy-mentat/issues/309) MVP stack follow-ups (`./pfy build` quality) | — | — | 2026-11-17 first slice: retry implement prompt no longer silently cuts a previous diff over the cap (local + cloud); cloud `_non_utf8_file` treats a NUL as non-text, matching local `_strict_text`. Remaining: 3-file cap vs line cap (retry vs one-shot), walk `onerror`, docs in `HANDOFF-mvp-land-1031.md`, carried pregate/tmp leftovers |
 | T-0016 | P2 | todo | colibri/large model lab under 250GB pool | — | OQ-0008 | [#24](https://github.com/themark-net/pfy-mentat/issues/24) |
 | T-0005 | P2 | doing | Apply integration-stages broadly | — | OQ-0003 | [#21](https://github.com/themark-net/pfy-mentat/issues/21) · 50 handoff cards. Facts recomputed by `scripts/catalog_stage_eval.py`. Stage letter still does not auto-promote |
 | T-0127 | P2 | done | Live atg-compile once the host is quiet (one model: `qwen3.6:35b`, then opt-in coder-next) | — | T-0004 | 2026-10-06: `qwen3.6:35b` exit 0, 2/10 sink-correct, wall 478s. Stage I2. coder-next blocked: 48.19 GiB blob + 25 GiB > 65.3 GiB MemAvailable. Not a Feature GO. Catalog HOLD 70–75. Do not touch eval-harness. |

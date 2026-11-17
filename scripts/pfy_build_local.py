@@ -1356,15 +1356,23 @@ def _agent_prompt(
     if not feedback and not previous_diff:
         return base
     shown = redact(previous_diff or "")
+    # Never cut the previous diff. A prefix plus "[diff truncated]" would
+    # let the next attempt "fix" a change it has not fully seen.
     if len(shown) > DIFF_PROMPT_CAP:
-        shown = shown[:DIFF_PROMPT_CAP] + "\n...[diff truncated]\n"
+        previous = (
+            "Previous diff omitted: it was %d characters, over the %d character cap. "
+            "Do not assume its contents. The rejection reasons still apply.\n"
+            % (len(shown), DIFF_PROMPT_CAP)
+        )
+    else:
+        previous = "Previous diff:\n%s\n" % shown
     head = ""
     if targeted:
         head = "Fix only these files. Do not rewrite accepted files.\n\n"
     return (
         base
-        + "\n\n%sThe previous attempt was rejected.\nReasons:\n%s\n\nPrevious diff:\n%s\n"
-        % (head, redact(feedback or ""), shown)
+        + "\n\n%sThe previous attempt was rejected.\nReasons:\n%s\n\n%s"
+        % (head, redact(feedback or ""), previous)
     )
 
 
