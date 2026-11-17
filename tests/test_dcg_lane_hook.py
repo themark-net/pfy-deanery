@@ -131,6 +131,8 @@ class LaneHookTest(unittest.TestCase):
             env.pop("PFY_DCG_DISABLE", None)
             env["PFY_DCG_BIN"] = str(binary)
             env["PFY_MODEL_LOCK"] = str(td / "model.lock")
+            env["PFY_CLOUD_YES"] = "1"
+            env["PFY_CLOUD_MAX_USD"] = "99"
             env["PATH"] = str(bindir) + os.pathsep + env.get("PATH", "")
             result = subprocess.run(
                 ["bash", str(SCRIPT), "--root", str(clone), "--slug", "dcghook", "--date", "1108"],

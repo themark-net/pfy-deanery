@@ -91,6 +91,8 @@ class SandlockLaneHookTest(unittest.TestCase):
             env = {k: v for k, v in os.environ.items() if k != "PFY_OPS_ROOT"}  # never the real ops checkout
             env["PFY_DCG_DISABLE"] = "1"
             env["PFY_MODEL_LOCK"] = str(td / "model.lock")
+            env["PFY_CLOUD_YES"] = "1"
+            env["PFY_CLOUD_MAX_USD"] = "99"
             env["PATH"] = str(bindir) + os.pathsep + env.get("PATH", "")
             (clone / "tmp").mkdir(exist_ok=True)
             (clone / "tmp" / "TICKET-hookslug.md").write_text("hook ticket\n")
