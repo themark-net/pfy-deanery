@@ -315,6 +315,7 @@ class I2BeforeMarkerTest(unittest.TestCase):
             env = {k: v for k, v in os.environ.items() if k != "PFY_OPS_ROOT"}  # never the real ops checkout
             env["PATH"] = str(bindir) + os.pathsep + env.get("PATH", "")
             env["PFY_MODEL_LOCK"] = str(td / "model.lock")
+            env["GATE_CLOUD_ROOT"] = str(ROOT)
             env.pop("PFY_LOOP_STATE", None)
             env.pop("PFY_DCG_DISABLE", None)
             proc = subprocess.run(

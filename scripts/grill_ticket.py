@@ -18,6 +18,7 @@ another copy.
 Usage:
   python3 scripts/grill_ticket.py TICKET [--paths P ...] [--diff REF]
       [--answers FILE] [--max-turns N] [--repo DIR]
+      [--yes] [--max-usd N]
 """
 from __future__ import annotations
 
@@ -28,6 +29,13 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+
+_ROOT = Path(__file__).resolve().parents[1]
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
+from pfylib.cloud_cost_gate import SKIP_EXIT, gate_cloud_prompt
+
 
 MAX_CAP = 12
 CALL_TIMEOUT_S = 600
@@ -181,6 +189,15 @@ ANSWER_SCHEMA = {
 
 class GrillError(Exception):
     pass
+
+
+class GrillSkip(GrillError):
+    """Cost gate refused a paid grok call. Exit 4, $0 spend."""
+
+
+# Filled in run() from flags and PFY_CLOUD_* env.
+_GATE = {"yes": False, "max_usd": None, "isatty": None, "answer": None}
+
 
 
 def repo_root() -> Path:
@@ -354,9 +371,28 @@ def _scrub(text: str) -> str:
     return "\n".join(kept)[:800]
 
 
-def call_grok(max_turns: int, prompt: str, schema: dict) -> dict:
+def call_grok(
+    max_turns: int,
+    prompt: str,
+    schema: dict,
+    *,
+    yes: bool | None = None,
+    max_usd: float | None = None,
+    isatty: bool | None = None,
+    answer: str | None = None,
+) -> dict:
     # Always under /tmp. A TMPDIR inside a checkout would make grok load that
     # repo's AGENTS.md. HOME stays the caller's so login still works.
+    verdict = gate_cloud_prompt(
+        prompt,
+        yes=_GATE["yes"] if yes is None else yes,
+        max_usd=_GATE["max_usd"] if max_usd is None else max_usd,
+        isatty=_GATE["isatty"] if isatty is None else isatty,
+        answer=_GATE["answer"] if answer is None else answer,
+        root=repo_root(),
+    )
+    if not verdict["allowed"]:
+        raise GrillSkip(verdict["reason"])
     with tempfile.TemporaryDirectory(prefix="grill-", dir="/tmp") as tmp:
         prompt_path = Path(tmp) / "prompt.txt"
         prompt_path.write_text(prompt, encoding="utf-8")
@@ -767,6 +803,7 @@ def _one(text_or_ticket: object, kind: str, paths: list[str], makefile_diff: str
 
 
 def run(argv: list[str]) -> int:
+    _GATE.update({"yes": False, "max_usd": None, "isatty": None, "answer": None})
     if len(argv) < 2 or argv[1] in {"-h", "--help"}:
         print(__doc__)
         return 2 if len(argv) < 2 else 0
@@ -785,6 +822,19 @@ def run(argv: list[str]) -> int:
             while i < len(argv) and not argv[i].startswith("--"):
                 paths.append(argv[i])
                 i += 1
+            continue
+        if flag == "--yes":
+            _GATE["yes"] = True
+            i += 1
+            continue
+        if flag == "--max-usd":
+            if i + 1 >= len(argv):
+                raise GrillError("--max-usd needs a value")
+            try:
+                _GATE["max_usd"] = float(argv[i + 1])
+            except ValueError as exc:
+                raise GrillError("--max-usd needs a number") from exc
+            i += 2
             continue
         if flag in {"--diff", "--answers", "--repo", "--max-turns"}:
             if i + 1 >= len(argv):
@@ -867,6 +917,9 @@ def run(argv: list[str]) -> int:
 def main(argv: list[str] | None = None) -> int:
     try:
         return run(argv if argv is not None else sys.argv)
+    except GrillSkip as exc:
+        print(str(exc), file=sys.stderr)
+        return SKIP_EXIT
     except GrillError as exc:
         print(f"grill failed: {exc}", file=sys.stderr)
         return 1

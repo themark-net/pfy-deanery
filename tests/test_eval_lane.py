@@ -95,7 +95,7 @@ def write_grok(path: Path, body: str) -> None:
     path.chmod(path.stat().st_mode | stat.S_IEXEC)
 
 
-def lane_env(td: Path, grok: Path) -> dict:
+def lane_env(td: Path, grok: Path, *, approve: bool = False) -> dict:
     env = {k: v for k, v in os.environ.items() if k != "PFY_OPS_ROOT"}  # never the real ops checkout
     env.update({
         "PFY_GROK_BIN": str(grok),
@@ -105,6 +105,9 @@ def lane_env(td: Path, grok: Path) -> dict:
         "PYTHONDONTWRITEBYTECODE": "1",
         "GIT_TERMINAL_PROMPT": "0",
     })
+    if approve:
+        env["PFY_CLOUD_YES"] = "1"
+        env["PFY_CLOUD_MAX_USD"] = "99"
     return env
 
 
@@ -208,6 +211,7 @@ class EvalLaneTest(unittest.TestCase):
             env["PATH"] = str(bindir) + os.pathsep + env.get("PATH", "")
             env["PFY_MODEL_LOCK"] = str(td / "model.lock")
             env["PFY_GROK_BIN"] = str(td / "missing-grok")
+            env["GATE_CLOUD_ROOT"] = str(ROOT)
             env.pop("PFY_DCG_DISABLE", None)
             env.pop("PFY_LOOP_STATE", None)
             proc = subprocess.run(
@@ -277,7 +281,7 @@ class EvalLaneTest(unittest.TestCase):
             proc = subprocess.run(
                 ["bash", str(SCRIPT), "--root", str(clone), "--state", str(state), "--slug", "widget", "--date", "1108"],
                 cwd=clone,
-                env=lane_env(td, grok),
+                env=lane_env(td, grok, approve=True),
                 capture_output=True,
                 text=True,
                 timeout=60,
@@ -358,7 +362,7 @@ class EvalLaneTest(unittest.TestCase):
             proc = subprocess.run(
                 ["bash", str(SCRIPT), "--root", str(clone), "--state", str(state), "--slug", "widget", "--date", "1108"],
                 cwd=clone,
-                env=lane_env(td, grok),
+                env=lane_env(td, grok, approve=True),
                 capture_output=True,
                 text=True,
                 timeout=60,

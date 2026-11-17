@@ -23,6 +23,16 @@ set -euo pipefail
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 DEFAULT_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
+GATE_CLOUD_ROOT="${GATE_CLOUD_ROOT:-$DEFAULT_ROOT}"
+# shellcheck source=gate_cloud_call.sh
+if [ -f "$SCRIPT_DIR/gate_cloud_call.sh" ]; then
+  . "$SCRIPT_DIR/gate_cloud_call.sh"
+elif [ -f "$GATE_CLOUD_ROOT/scripts/gate_cloud_call.sh" ]; then
+  . "$GATE_CLOUD_ROOT/scripts/gate_cloud_call.sh"
+else
+  printf '%s\n' "gate_cloud_call.sh missing" >&2
+  exit 1
+fi
 
 # dcg classifies argv and does not run it. Exit 126 denies.
 # sandlock and llama-cpp-ngram-mod add their own checks beside this one.
@@ -70,6 +80,14 @@ while [ $# -gt 0 ]; do
     --dry-run)
       DRY=1
       shift
+      ;;
+    --yes)
+      export PFY_CLOUD_YES=1
+      shift
+      ;;
+    --max-usd)
+      export PFY_CLOUD_MAX_USD=${2:-}
+      shift 2
       ;;
     *)
       printf '%s\n' "unknown arg: $1" >&2
@@ -261,6 +279,13 @@ run_grok() {
   local log="$MARK_DIR/${SLUG}-${label}.log"
   local try=1
   local rc=0
+  gate_cloud_call --prompt-file "$prompt" >"$log" 2>&1
+  rc=$?
+  cat "$log" >&2 || true
+  if [ "$rc" -ne 0 ]; then
+    progress "$SLUG grok $label skipped (\$0 spend)"
+    return "$rc"
+  fi
   while [ "$try" -le 3 ]; do
     if declare -F otel_span_begin >/dev/null 2>&1; then
       otel_span_begin "grok-${label}" kind=AGENT \
@@ -314,11 +339,17 @@ review="$MARK_DIR/${SLUG}-review.prompt"
   printf '%s\n' "Ticket path: $ticket"
 } > "$review"
 
-run_grok implement "$impl" || park_exit "grok implement failed"
+run_grok implement "$impl" || {
+  if [ "$?" -eq 4 ]; then park_exit "cloud cost gate skipped (\$0 spend)"; fi
+  park_exit "grok implement failed"
+}
 if [ -f "$ROOT/tmp/STOP" ] || [ -f "$WT/tmp/STOP" ]; then
   park_exit "STOP file" 0
 fi
-run_grok review "$review" || park_exit "grok self-review failed"
+run_grok review "$review" || {
+  if [ "$?" -eq 4 ]; then park_exit "cloud cost gate skipped (\$0 spend)"; fi
+  park_exit "grok self-review failed"
+}
 if [ -f "$ROOT/tmp/STOP" ] || [ -f "$WT/tmp/STOP" ]; then
   park_exit "STOP file" 0
 fi

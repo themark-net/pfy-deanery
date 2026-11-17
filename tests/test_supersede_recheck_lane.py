@@ -88,6 +88,7 @@ def make_repo(td: Path):
         "scripts/supersede_recheck_lane.sh",
         "scripts/supersede_check.py",
         "scripts/model_lock.sh",
+        "scripts/gate_cloud_call.sh",
     ):
         dest = seed / rel
         dest.parent.mkdir(parents=True, exist_ok=True)
@@ -119,6 +120,9 @@ def run_lane(td: Path, clone: Path, grok: Path):
         "PFY_LOOP_REPO": str(clone),
         "PFY_GROK_BIN": str(grok),
         "PFY_MODEL_LOCK": str(td / "model.lock"),
+        "GATE_CLOUD_ROOT": str(ROOT),
+        "PFY_CLOUD_YES": "1",
+        "PFY_CLOUD_MAX_USD": "99",
         "PFY_DCG_DISABLE": "1",
         "PYTHONDONTWRITEBYTECODE": "1",
         "GIT_TERMINAL_PROMPT": "0",

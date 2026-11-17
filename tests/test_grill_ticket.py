@@ -69,6 +69,8 @@ class GrillTicketTest(unittest.TestCase):
         self.env = os.environ.copy()
         self.env["PFY_GROK_BIN"] = str(self.fake)
         self.env["GRILL_FAKE_LOG"] = str(self.log)
+        self.env["PFY_CLOUD_YES"] = "1"
+        self.env["PFY_CLOUD_MAX_USD"] = "99"
         self.env.pop("GRILL_FAKE_MODE", None)
 
     def tearDown(self):

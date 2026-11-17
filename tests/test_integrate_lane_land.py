@@ -131,6 +131,8 @@ class LaneLandTest(unittest.TestCase):
             env = {k: v for k, v in os.environ.items() if k != "PFY_OPS_ROOT"}  # never the real ops checkout
             env["PATH"] = str(bindir) + os.pathsep + env.get("PATH", "")
             env["PFY_MODEL_LOCK"] = str(td / "model.lock")
+            env["PFY_CLOUD_YES"] = "1"
+            env["PFY_CLOUD_MAX_USD"] = "99"
             before = subprocess.check_output(
                 ["git", "--git-dir", str(bare), "rev-parse", "main"], text=True
             ).strip()
@@ -268,6 +270,8 @@ class LaneLandTest(unittest.TestCase):
             env = {k: v for k, v in os.environ.items() if k != "PFY_OPS_ROOT"}  # never the real ops checkout
             env["PATH"] = str(bindir) + os.pathsep + env.get("PATH", "")
             env["PFY_MODEL_LOCK"] = str(td / "model.lock")
+            env["PFY_CLOUD_YES"] = "1"
+            env["PFY_CLOUD_MAX_USD"] = "99"
             before = subprocess.check_output(
                 ["git", "--git-dir", str(bare), "rev-parse", "main"], text=True
             ).strip()

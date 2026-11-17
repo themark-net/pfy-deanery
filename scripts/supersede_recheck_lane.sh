@@ -11,6 +11,9 @@ export GIT_TERMINAL_PROMPT=0
 export PYTHONDONTWRITEBYTECODE=1
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+GATE_CLOUD_ROOT="${GATE_CLOUD_ROOT:-$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)}"
+# shellcheck source=gate_cloud_call.sh
+. "$SCRIPT_DIR/gate_cloud_call.sh"
 STATE="${PFY_LOOP_STATE:-$HOME/DEVELOP/pfy-mentat/tmp/loop}"
 REPO="${PFY_LOOP_REPO:-$HOME/DEVELOP/pfy-mentat}"
 MARK_DIR="$STATE/supersede"
@@ -99,6 +102,16 @@ prompt="$MARK_DIR/recheck.prompt"
   printf '%s\n' "Public web, GitHub, and X reads only. No installs. No GPU. No pulls. No stage card edits."
   printf '%s\n' "Update coverage and last_checked only. Leave every other file untouched."
 } > "$prompt"
+
+gate_cloud_call --prompt-file "$prompt" >"$MARK_DIR/recheck-gate.log" 2>&1
+rc=$?
+cat "$MARK_DIR/recheck-gate.log" >&2 || true
+if [ "$rc" -ne 0 ]; then
+  if [ "$rc" -eq 4 ]; then
+    park_exit "cloud cost gate skipped (\$0 spend)"
+  fi
+  park_exit "cloud cost gate failed"
+fi
 
 if ! (
   cd "$WT"
