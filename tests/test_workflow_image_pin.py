@@ -4,9 +4,13 @@
 Fixture files live in tests/fixtures/workflow_image_pin/. Parse cases skip
 when this interpreter cannot import yaml, because the helper itself exits 1
 in that case and G0's setup-python does not ship PyYAML. The missing-import
-case always runs. The pregate lint test does not execute scripts/pregate.sh,
-so it does not write tmp/pregate-runs. It reads check_lint's live shell and
-runs the helper with PATH python3.
+case always runs.
+
+test_pregate_lint_calls_helper reads check_lint's live shell and runs the
+helper with PATH python3. It does not start scripts/pregate.sh, so it does
+not write tmp/pregate-runs. scripts/pregate.sh --only lint is executed by
+test_failing_image_pin_lint_fails_pregate and
+test_root_path_at_the_limit_passes_the_guard, which read lint.log.
 """
 from __future__ import annotations
 

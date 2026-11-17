@@ -2,13 +2,15 @@
 
 unittest discover does not collect this file (the name does not match test*.py).
 `private` leaves a directory in TMPDIR. `host` creates /tmp/$PFY_TMPCLEAN_MARKER
-and ignores TMPDIR. `hold` creates /tmp/$PFY_TMPCLEAN_HOLD from this process
+and ignores TMPDIR. `host-shell` does the same with /bin/mkdir so the Python
+mkdir hook cannot see it. `hold` creates /tmp/$PFY_TMPCLEAN_HOLD from this process
 during the parent run, writes a ready file, and exits when the stop file appears
 or the parent pid changes.
 """
 from __future__ import annotations
 
 import os
+import subprocess
 import sys
 import tempfile
 import time
@@ -21,6 +23,12 @@ def leak_private() -> None:
 def leak_host() -> None:
     marker = os.environ["PFY_TMPCLEAN_MARKER"]
     os.mkdir("/tmp/" + marker)
+
+
+def leak_host_shell() -> None:
+    """Create /tmp/$PFY_TMPCLEAN_MARKER with /bin/mkdir, not os.mkdir."""
+    marker = os.environ["PFY_TMPCLEAN_MARKER"]
+    subprocess.run(["/bin/mkdir", "/tmp/" + marker], check=True)
 
 
 def hold_host() -> int:
@@ -48,9 +56,12 @@ def main(argv: list[str]) -> int:
     if kind == "host":
         leak_host()
         return 0
+    if kind == "host-shell":
+        leak_host_shell()
+        return 0
     if kind == "hold":
         return hold_host()
-    print("usage: support_tmpclean_leaker.py private|host|hold", file=sys.stderr)
+    print("usage: support_tmpclean_leaker.py private|host|host-shell|hold", file=sys.stderr)
     return 2
 
 

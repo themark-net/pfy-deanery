@@ -172,6 +172,10 @@ def _assert_child_clean(
             for line in log_path.read_text(encoding="utf-8").splitlines():
                 if line and Path(line).exists():
                     still.append(line)
+        # Non-Python mkdir (for example /bin/mkdir) never hits the hook.
+        # A leftover marker dir is still a leak.
+        if marker_path.exists() and os.path.realpath(marker_path) not in still:
+            still.append(os.path.realpath(marker_path))
         problems: list[str] = []
         if names:
             problems.append("private TMPDIR not empty: " + ", ".join(names))
@@ -237,6 +241,17 @@ class PfylibTmpCleanupTests(unittest.TestCase):
         marker = "pfy-tmpclean-" + uuid.uuid4().hex
         with self.assertRaisesRegex(AssertionError, "leaked"):
             _assert_child_clean([sys.executable, str(LEAKER), "host"], marker=marker)
+        self.assertFalse((Path("/tmp") / marker).exists())
+
+    def test_non_python_host_tmp_leak_fails_the_checker_and_is_removed(self):
+        # Fail: /bin/mkdir is invisible to the os.mkdir hook, so the checker
+        # would pass and leave /tmp/$marker behind.
+        # Recover: a leftover marker dir is a leak even when the hook is silent.
+        marker = "pfy-tmpclean-" + uuid.uuid4().hex
+        with self.assertRaisesRegex(AssertionError, "leaked"):
+            _assert_child_clean(
+                [sys.executable, str(LEAKER), "host-shell"], marker=marker
+            )
         self.assertFalse((Path("/tmp") / marker).exists())
 
 

@@ -207,7 +207,7 @@ def smoke_overtime(r: dict) -> int:
                 try:
                     p = sh(ot + ["new", "smoke-agent"], home=home_s, path=path)
                 except subprocess.TimeoutExpired:
-                    timeout_step = "new"
+                    timeout_step = "overtime new"
                     raise
                 steps.append({"new": p.returncode})
                 a = home / "overtime/agents/smoke-agent"
@@ -312,7 +312,7 @@ def smoke_festival(r: dict) -> int:
         try:
             p = W([fest, "--version"])
         except subprocess.TimeoutExpired as e:
-            r["reason"] = timeout_reason("version", float(e.timeout))
+            r["reason"] = timeout_reason("festival --version", float(e.timeout))
             return 1
         r["version"] = p.stdout.strip()
         p = W([camp, "create", "smokecamp", "-d", "smoke", "-m", "smoke mission"])

@@ -467,12 +467,9 @@ class DryRunTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(dir=_scratch()) as tmp:
             work = Path(tmp)
             env = StageScriptTests._stub_env(None, work)
-            leak = work / "leak.sh"
-            leak.write_text("echo huggingface\n", encoding="utf-8")
-            # A parent BASH_ENV would print before the steps. Drop it.
-            env["BASH_ENV"] = str(leak)
-            env["ENV"] = str(leak)
-            env["CDPATH"] = str(work)
+            # A parent BASH_ENV, ENV, or CDPATH would print or alter the
+            # steps. Drop inherited values. Do not plant and set them here;
+            # that would be undone by the pop and would not test anything.
             for key in ("BASH_ENV", "ENV", "CDPATH"):
                 env.pop(key, None)
             home = Path(env["HOME"])

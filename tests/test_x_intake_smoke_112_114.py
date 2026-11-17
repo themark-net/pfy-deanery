@@ -333,8 +333,8 @@ class XIntakeSmoke112114Tests(unittest.TestCase):
             self.assertFalse(alive, "a node --version grandchild outlived node_ok")
 
     def test_overtime_timeout_reason_is_shared_text(self) -> None:
-        # Fail: a timed-out `new` records "overtime timeout after 0.4s" or "timeout after <s>s: <cmd>".
-        # Recover: exit 1 and the receipt reason is "new timeout after 0.4s".
+        # Fail: a timed-out `new` records "new timeout after 0.4s" and drops the entry name.
+        # Recover: exit 1 and the receipt reason is "overtime new timeout after 0.4s".
         with tempfile.TemporaryDirectory(prefix="pfy-xintake-112-to-") as td:
             root = Path(td)
             home = root / "home"
@@ -351,12 +351,11 @@ class XIntakeSmoke112114Tests(unittest.TestCase):
             self.assertNotIn("Traceback", proc.stderr, blob)
             self.assertEqual(proc.returncode, 1, blob)
             self.assertFalse((home / "overtime").exists(), blob)
-            self.assertEqual(_receipt("overtime").get("reason"), "new timeout after 0.4s", blob)
+            self.assertEqual(_receipt("overtime").get("reason"), "overtime new timeout after 0.4s", blob)
 
     def test_festival_timeout_reason_is_shared_text(self) -> None:
-        # Fail: a timed-out fest --version falls through to main() as "festival timeout after 0.4s",
-        # or records the old "timeout after <s>s: <cmd>" sentence.
-        # Recover: smoke_festival returns 1 and the reason is "version timeout after 0.4s".
+        # Fail: a timed-out fest --version records "version timeout after 0.4s" and drops the entry name.
+        # Recover: smoke_festival returns 1 and the reason is "festival --version timeout after 0.4s".
         with tempfile.TemporaryDirectory(prefix="pfy-xintake-112-fest-") as td:
             root = Path(td)
             home = root / "home"
@@ -378,7 +377,7 @@ class XIntakeSmoke112114Tests(unittest.TestCase):
             blob = proc.stdout + proc.stderr
             self.assertNotIn("Traceback", proc.stderr, blob)
             self.assertEqual(proc.returncode, 1, blob)
-            self.assertEqual(_receipt("festival").get("reason"), "version timeout after 0.4s", blob)
+            self.assertEqual(_receipt("festival").get("reason"), "festival --version timeout after 0.4s", blob)
 
     def test_overtime_daemon_stop_timeout_uses_shared_text(self) -> None:
         # Fail: a daemon-stop timeout is recorded as the bare word "timeout".
