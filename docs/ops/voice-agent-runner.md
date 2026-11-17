@@ -12,7 +12,8 @@ transcript / agent-prompt.md
   agent_runner.py
         │  VOICE_AUTO_AGENT=1|mock|grok|opencode
         ▼
-  grok --cwd REPO --max-turns N --always-approve \\
+  grok --cwd REPO --max-turns N \\
+       [--always-approve]  # only if VOICE_AGENT_ALWAYS_APPROVE=1
        --output-format plain --prompt-file …
         │
         ▼
@@ -89,8 +90,9 @@ make smoke-voice-agent
 |-----|---------|---------|
 | `VOICE_AGENT_MAX_TURNS` | `8` | Grok `--max-turns` |
 | `VOICE_AGENT_TIMEOUT` | `600` | subprocess timeout (s) |
-| `VOICE_AGENT_ALWAYS_APPROVE` | `1` | pass `--always-approve` |
+| `VOICE_AGENT_ALWAYS_APPROVE` | unset / `0` | pass `--always-approve` only when set to `1`, `true`, `yes`, or `on`. Default **off**. |
 | `VOICE_AGENT_REPO` | repo root | `--cwd` for Grok |
+| `VOICE_TTS` | unset / `0` | speak a short “done” / “fail” only when set to `1`, `true`, `yes`, or `on`. Default **off**. See [examples/voice-tts-status/README.md](../../examples/voice-tts-status/README.md). |
 
 ## Artifacts (gitignored)
 
@@ -112,12 +114,12 @@ make smoke-voice-agent
 
 - Default **off**
 - Still require Tailscale + token for remote
-- `--always-approve` is powerful — only on trusted host
+- `--always-approve` is off by default and is powerful — only set `VOICE_AGENT_ALWAYS_APPROVE=1` on a trusted host
 - Do not expose runner to the public internet
 
 ## Not in 4b
 
-- TTS of reply to phone  
+- TTS of the full reply to the phone (T-0094 first slice is a short local “done” / “fail” status only, opt-in via `VOICE_TTS=1`; see [examples/voice-tts-status/README.md](../../examples/voice-tts-status/README.md))
 - Sticky multi-session resume (use `grok -c` later)  
 - Hermes primary runtime  
 

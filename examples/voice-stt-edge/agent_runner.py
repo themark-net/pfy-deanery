@@ -512,10 +512,13 @@ def run_grok(
     prompt_file.write_text(prompt, encoding="utf-8")
     log_path = out / "last-run.log"
 
-    always = os.environ.get("VOICE_AGENT_ALWAYS_APPROVE", "1").strip() not in (
-        "0",
-        "false",
-        "no",
+    # Opt-in only. Unset / empty / 0 / false / no / off do not pass
+    # --always-approve. A typo is treated as off (fail closed).
+    always = os.environ.get("VOICE_AGENT_ALWAYS_APPROVE", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
     )
     cmd = [
         grok,
@@ -663,6 +666,7 @@ def run_once(
             )
             result["target"] = target
             write_run(out, result)
+            maybe_speak_status(result)
             return result
 
         # target=worker forces opencode path even if mode=grok was a mistake
@@ -711,6 +715,7 @@ def run_once(
         result["target"] = target
         result["finished"] = utc_now()
         write_run(out, result)
+        maybe_speak_status(result)
         preview = (result.get("reply_preview") or result.get("reply") or "")[:200]
         print(
             f"==> agent_runner {result.get('status')} mode={result.get('mode')} "
@@ -722,6 +727,26 @@ def run_once(
         return result
     finally:
         release_lock(out)
+
+
+
+def maybe_speak_status(result: dict) -> dict:
+    """Opt-in T-0094 status beep. Never changes the agent result. Fail-soft."""
+    import importlib.util
+
+    phrase = "done" if result.get("ok") else "fail"
+    speak = Path(__file__).resolve().parent.parent / "voice-tts-status" / "speak_status.py"
+    try:
+        spec = importlib.util.spec_from_file_location("voice_speak_status", speak)
+        if spec is None or spec.loader is None:
+            print("voice-tts: skip (speak_status.py missing)", file=sys.stderr)
+            return {"ok": False, "skipped": True, "reason": "speak_status.py missing"}
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod.speak_status(phrase)
+    except Exception as exc:
+        print(f"voice-tts: skip ({exc})", file=sys.stderr)
+        return {"ok": False, "skipped": True, "reason": str(exc)}
 
 
 def spawn_background(**kwargs) -> str:

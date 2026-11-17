@@ -124,6 +124,10 @@ Under `examples/voice-stt-edge/.generated/`:
 | `STT-NEEDED.txt` | Written when capture ok but STT missing |
 | `last-meta.json` | Backend/target metadata (`ok: true/false`) |
 
+## Grok `--always-approve` (opt-in)
+
+The voice agent runner does **not** pass `--always-approve` unless you set `VOICE_AGENT_ALWAYS_APPROVE=1` (also `true` / `yes` / `on`). Leave it unset for an attended run that can confirm each tool call. Only enable this on a trusted host; it is powerful. See [docs/ops/voice-agent-runner.md](../../docs/ops/voice-agent-runner.md).
+
 ## Env vars
 
 | Variable | Purpose |
@@ -136,6 +140,8 @@ Under `examples/voice-stt-edge/.generated/`:
 | `VOICE_LISTEN_SECONDS` | `make voice-listen` duration (default 5) |
 | `VOICE_TARGET` | `monitor` \| `worker` \| `raw` |
 | `VOICE_HANDOFF=1` | `make voice-listen` also exec handoff |
+| `VOICE_AGENT_ALWAYS_APPROVE=1` | Opt in: pass `--always-approve` to Grok. Default **off** — Grok will prompt for tool approval unless you set this to `1`, `true`, `yes`, or `on`. |
+| `VOICE_TTS=1` | Opt in: speak a short local “done” / “fail” after the agent run ([voice-tts-status](../voice-tts-status/README.md)). Default **off**. No model is downloaded. |
 
 ## Phase map
 
