@@ -24,19 +24,13 @@ FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures"
 # Absolute path on purpose. A redirected HOME must not hide the pin.
 DEFAULT_SRC = (Path.home() / ".cache/pfy/tools/sloptrim/src")
 
-# Fixed list so a second run scores the same files. Ten have no em dash in
-# a pre-pass count. Ten are long docs that already use them.
+# Fixed list so a second run scores the same files. Only public-repo
+# paths. Ops handoffs and planning notes live in pfy-mentat-ops.
 CORPUS = [
     "docs/ops/MODULAR-CI.md",
-    "docs/build-dropins/skill-discovery.md",
-    "docs/ops/MVP-DOD-WALKTHROUGH.md",
-    "docs/build-dropins/hermes-eval.md",
-    "docs/ops/AUTONOMOUS-DECISIONS-2026-10-26.md",
-    "docs/plans/MVP-PARALLEL-1031.md",
     "sources/entries/114-sloptrim.md",
     "sources/entries/146-skill-up.md",
     "docs/eval/TOOLSET-RANKING.md",
-    "docs/PENDING-HANDOFF.md",
     "docs/TODO.md",
     "docs/DESIGN.md",
     "docs/ops/integration-stages.md",
@@ -48,8 +42,8 @@ CORPUS = [
     "docs/ops/skill-verification.md",
 ]
 
-# Resample these. Short text has no interval. The two docs are one plain
-# ops file and one handoff that already uses em dashes.
+# Resample these. Short text has no interval. MODULAR-CI.md is the
+# remaining public ops file that already has a CI sample.
 CI_NAMES = {
     "plain.md",
     "slop.md",
@@ -58,7 +52,6 @@ CI_NAMES = {
     "notjust.md",
     "zw.md",
     "MODULAR-CI.md",
-    "PENDING-HANDOFF.md",
 }
 
 PIN_COMMIT = "38dbb7cb4e97de0b9bf157903c95bdcab016dda2"

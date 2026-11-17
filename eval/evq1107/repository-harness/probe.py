@@ -25,7 +25,6 @@ AUTHORITY = (
     "docs/TODO.md",
     "docs/OPEN_QUESTIONS.md",
     "docs/QUICKSTART-pfy-build.md",
-    "docs/PENDING-HANDOFF.md",
 )
 SEED_FILES = AUTHORITY + ("AGENTS.md",)
 MAP_FILES = ("docs/README.md", "docs/WORKFLOW.md")

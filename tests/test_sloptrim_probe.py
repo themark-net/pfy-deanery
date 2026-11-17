@@ -122,5 +122,22 @@ class SloptrimProbeTest(unittest.TestCase):
             self.assertNotIn("summary", payload)
 
 
+class SloptrimCorpusExistsTest(unittest.TestCase):
+    def test_corpus_paths_exist_in_the_repo(self) -> None:
+        # Fail: CORPUS still names ops docs that moved to pfy-mentat-ops,
+        # so a full probe run exits 1 with "corpus file missing".
+        # Recover: every CORPUS entry is a file in this repo. The test
+        # reads the live list, so a later moved-ops path is a failure.
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location("sloptrim_probe", PROBE)
+        if spec is None or spec.loader is None:
+            raise RuntimeError("probe import failed")
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        missing = [rel for rel in mod.CORPUS if not (ROOT / rel).is_file()]
+        self.assertEqual(missing, [], "CORPUS names files that are not in the public repo: " + ", ".join(missing))
+
+
 if __name__ == "__main__":
     unittest.main()
