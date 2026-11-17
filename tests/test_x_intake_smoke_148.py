@@ -160,10 +160,52 @@ class Smoke148(unittest.TestCase):
     def test_bad_timeout_exit_2(self):
         self.assertEqual(self.run_smoke(dict(BASE), {"PFY_XINTAKE_TIMEOUT": "nope"})[0], 2)
 
+    @needs_bwrap
     def test_version_pin_exit_2(self):
+        # The probe runs inside bwrap, so a host with no bwrap exits 2 for the bwrap reason first.
         code, rec = self.run_smoke(dict(BASE, version="9.9.9"))
         self.assertEqual(code, 2, rec)
         self.assertEqual(rec["reason"], "version pin 2.12.0 not in --version output")
+
+    def test_version_pin_exit_2_without_bwrap(self):
+        # The bwrap-gated case never reaches this reason on ubuntu CI. Stub the
+        # probe and run() so a wrong pin still exits 2 before any scan.
+        keys = ("HOME", "PATH", "SKILLSPECTOR_BIN", "PFY_SMOKE_RECEIPT_DIR",
+                "PFY_SMOKE_REAL_HOME_BIND", "PFY_XINTAKE_TIMEOUT")
+        old = {k: os.environ.get(k) for k in keys}
+        with tempfile.TemporaryDirectory() as td:
+            td = Path(td)
+            real = td / "realhome"
+            real.mkdir()
+            stub = td / "skillspector"
+            stub.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+            stub.chmod(0o755)
+            mod = self._load()
+            calls: list[list[str]] = []
+
+            def fake_run(binary, args, tmp, timeout, extra_binds=None):
+                calls.append(list(args))
+                return subprocess.CompletedProcess(list(args), 0, stdout="SkillSpector v9.9.9\n", stderr="")
+
+            mod.bwrap_ok = lambda: True
+            mod.run = fake_run
+            try:
+                os.environ["HOME"] = str(real)
+                os.environ["PATH"] = os.environ.get("PATH", "")
+                os.environ["SKILLSPECTOR_BIN"] = str(stub)
+                os.environ["PFY_SMOKE_RECEIPT_DIR"] = str(td / "r")
+                with contextlib.redirect_stdout(io.StringIO()):
+                    code = mod.main()
+            finally:
+                for k, v in old.items():
+                    if v is None:
+                        os.environ.pop(k, None)
+                    else:
+                        os.environ[k] = v
+            rec = json.loads((td / "r" / "latest.json").read_text())
+            self.assertEqual(code, 2, rec)
+            self.assertEqual(rec["reason"], "version pin 2.12.0 not in --version output")
+            self.assertEqual(calls, [["--version"]])
 
     @needs_bwrap
     def test_blind_scanner_fails(self):
