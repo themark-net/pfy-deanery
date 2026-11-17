@@ -1430,6 +1430,11 @@ class ReviewLoopTests(unittest.TestCase):
             extra=["--retries", "2"],
         )
         data = self._assert_refused_before_review(proc, receipt, "review-binary-change")
+        rec = data.get("recovery") or ""
+        self.assertIn("binary file the reviewer cannot read", rec)
+        self.assertIn("not reviewed or committed", rec)
+        self.assertIn("remove the binary change", rec)
+        self.assertIn("./pfy build --local", rec)
         self.assertIn("src/blob.bin", data["files_changed"])
         patch = (receipt / "attempt-1" / "patch.diff").read_text(encoding="utf-8")
         self.assertIn("Binary files ", patch)
@@ -1450,6 +1455,11 @@ class ReviewLoopTests(unittest.TestCase):
             extra=["--retries", "2"],
         )
         data = self._assert_refused_before_review(proc, receipt, "review-binary-change")
+        rec = data.get("recovery") or ""
+        self.assertIn("binary file the reviewer cannot read", rec)
+        self.assertIn("not reviewed or committed", rec)
+        self.assertIn("remove the binary change", rec)
+        self.assertIn("./pfy build --local", rec)
         self.assertIn(rel, data["files_changed"])
         patch = (receipt / "attempt-1" / "patch.diff").read_text(encoding="utf-8")
         self.assertIn("Binary files /dev/null and b/%s differ" % rel, patch)

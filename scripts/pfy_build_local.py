@@ -170,6 +170,11 @@ _FLAKY_RECOVERY = (
     "Recovery: make the test pass from a clean tree with a fresh HOME, "
     "or pass --flake-runs 0 to skip the re-runs."
 )
+_BINARY_RECOVERY = (
+    "The attempt added or changed a binary file the reviewer cannot read, so it "
+    "was not reviewed or committed. "
+    "Recovery: remove the binary change and rerun ./pfy build --local."
+)
 _RETRYABLE = {
     "no-change",
     "protected-path-changed",
@@ -4597,6 +4602,8 @@ def build_local(argv: list[str] | None = None) -> int:
             # Do not retry: the same diff would be sent again.
             refusal = _review_refusal(diff_text, diff_stats)
             if refusal:
+                if refusal == "review-binary-change":
+                    recovery = _BINARY_RECOVERY
                 status, reason, exit_code = "FAIL", refusal, EXIT_FAIL
                 _record_attempt(
                     attempts_used,
