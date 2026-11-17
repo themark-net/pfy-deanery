@@ -245,7 +245,7 @@ pfy — simple setup & launch for the pfy-deanery stack
   pfy compare <task> --against <model> [--last|--run PATH] [--yes --max-usd N]
                           print local $0 vs cloud, then run only after y or --yes --max-usd
                           (--approve-cost is --yes; --max-cost is --max-usd; never auto-runs)
-  pfy models pull <name>  live engine (FreeToken records name; Ollama pulls; llama skip)
+  pfy models pull <name> [--opt-in-huge]  live engine (FreeToken records name; Ollama pulls; llama skip)
   pfy models recommend    ranked host-fit models not yet pulled (VRAM/RAM/runtime)
   pfy models try [name]   pull top (or named) recommendation — operate-or-FAIL
   pfy models gab-sync     Gab open-weight → Ollama fit (#228; gab auto ≠ local ranking)
@@ -472,6 +472,29 @@ ollama_any_model() {
   ollama list 2>/dev/null | awk 'NR>1 && $1!="" { found=1 } END { exit !found }'
 }
 
+
+gate_ollama_pull() {
+  # 25 GB cap. pfylib.pull_gate is the source of truth. Does not start a pull.
+  local tag="$1" mode="$2"
+  shift 2 || true
+  local root="${ROOT:-}"
+  if [[ -z "$root" ]]; then
+    echo "FAIL: pull gate needs ROOT"
+    echo "No model was pulled"
+    return 1
+  fi
+  PYTHONPATH="$root${PYTHONPATH:+:$PYTHONPATH}" python3 -m pfylib.pull_gate check --tag "$tag" --mode "$mode" "$@"
+}
+
+gated_ollama_pull() {
+  local tag="$1" mode="$2"
+  shift 2 || true
+  if ! gate_ollama_pull "$tag" "$mode" "$@"; then
+    return 1
+  fi
+  ollama pull "$tag"
+}
+
 ensure_ollama_adapter() {
   # #191: return 0 only when health probe passes (and a model is available) — no stub-0 / partial-0.
   if ! have ollama; then
@@ -499,10 +522,10 @@ ensure_ollama_adapter() {
       return 0
     fi
     echo "pulling default model: $model"
-    if ollama pull "$model"; then
+    if gated_ollama_pull "$model" auto; then
       return 0
     fi
-    echo "note: ollama pull failed — honest skip"
+    echo "note: ollama pull failed or was refused — honest skip"
     return 1
   elif ollama_any_model; then
     echo "note: no PFY_OLLAMA_MODEL / LOCAL_CODER_MODEL — using already-installed tags"
@@ -1821,8 +1844,22 @@ cmd_eval() { (cd "$ROOT" && REASON="${REASON:-pfy eval}" make eval-integration-c
 cmd_ship() { (cd "$ROOT" && make product-ship); }
 cmd_models_pull() {
   # #173: FreeToken-first same spine as detect/Attach; no engine → FAIL+next (no false success)
-  local m="${1:-}" rt engine st base
-  [[ -n "$m" ]] || die "usage: pfy models pull <name>"
+  # 25 GB cap: a known over-size tag needs --opt-in-huge. Auto-pull never opts in.
+  local m="" opt_in=() rt engine st base
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --opt-in-huge) opt_in+=(--opt-in-huge); shift ;;
+      --*) die "usage: pfy models pull <name> [--opt-in-huge]" ;;
+      *)
+        if [[ -n "$m" ]]; then
+          die "usage: pfy models pull <name> [--opt-in-huge]"
+        fi
+        m="$1"
+        shift
+        ;;
+    esac
+  done
+  [[ -n "$m" ]] || die "usage: pfy models pull <name> [--opt-in-huge]"
   rt=$(local_runtime)
   engine=$(rt_get "$rt" engine)
   st=$(rt_get "$rt" status)
@@ -1862,7 +1899,7 @@ cmd_models_pull() {
         return 0
       fi
       if have ollama; then
-        ollama pull "$m"
+        gated_ollama_pull "$m" explicit "${opt_in[@]}"
       else
         echo "STUB: ollama not on PATH — honest skip"
         echo "  https://github.com/themark-net/pfy-deanery/issues/112"
@@ -1893,8 +1930,8 @@ cmd_models_pull() {
     return 0
   fi
   if have ollama; then
-    ollama pull "$m"
-    return 0
+    gated_ollama_pull "$m" explicit "${opt_in[@]}"
+    return $?
   fi
   echo "FAIL: no local engine to pull"
   echo "  next: Launch env or ./pfy up"

@@ -17,7 +17,7 @@
 | T-0107 | Exo optional lab path | **done** · [#60](https://github.com/themark-net/pfy-mentat/issues/60) |
 | T-0108 | Continue + Ollama recipe | **done** · [#61](https://github.com/themark-net/pfy-mentat/issues/61) |
 | T-0109 | Fold agent-cage into `pfy stage --lab` | **done** · [#62](https://github.com/themark-net/pfy-mentat/issues/62) |
-| T-0110 | Pluggable local runtime (llama-swap / Shimmy / Ollama) | **doing** (partial) · [#76](https://github.com/themark-net/pfy-mentat/issues/76) |
+| T-0110 | Pluggable local runtime (llama-swap / Shimmy / Ollama) | **done** · [#76](https://github.com/themark-net/pfy-mentat/issues/76) stays closed — do not reopen |
 
 Authority: ADR-0012 · ADR-0014 · issues labeled `harness-adapter`.
 
@@ -28,7 +28,7 @@ Active work is also tracked as issues: https://github.com/themark-net/pfy-deaner
 | TODO | Issue | Priority |
 |------|-------|----------|
 | T-0090 | [#1](https://github.com/themark-net/pfy-mentat/issues/1) | P0 |
-| T-0110 | [#76](https://github.com/themark-net/pfy-mentat/issues/76) | P1 doing/partial |
+| T-0110 | [#76](https://github.com/themark-net/pfy-mentat/issues/76) | P1 **done** (stays closed) |
 | T-0091 | [#2](https://github.com/themark-net/pfy-mentat/issues/2) | P1 doing |
 | T-0070 | [#3](https://github.com/themark-net/pfy-mentat/issues/3) | P1 **done** |
 | T-0074 | [#4](https://github.com/themark-net/pfy-mentat/issues/4) | P1 **done** |

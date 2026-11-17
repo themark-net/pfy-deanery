@@ -89,9 +89,13 @@ class OllamaAdapterTests(unittest.TestCase):
             os.chmod(bind / "ollama", 0o755)
             os.chmod(bind / "curl", 0o755)
             env = os.environ.copy()
-            env["PATH"] = f"{bind}:/bin"
+            env["PATH"] = f"{bind}:/usr/bin:/bin"
             env["OLLAMA_LOG"] = str(log)
+            env["ROOT"] = str(ROOT)
+            env["PYTHONPATH"] = str(ROOT) + (os.pathsep + env["PYTHONPATH"] if env.get("PYTHONPATH") else "")
             env["PFY_OLLAMA_MODEL"] = "tiny-test"
+            env["PFY_PULL_SIZE_BYTES"] = "1000000"
+            env["PFY_PULL_NO_REGISTRY"] = "1"
             env.pop("LOCAL_OPENAI_BASE_URL", None)
             env.pop("LOCAL_CODER_MODEL", None)
             proc = subprocess.run(
