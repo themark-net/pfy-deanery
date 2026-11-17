@@ -5,7 +5,9 @@ Stubs are tiny Python scripts (shebang = this interpreter) with knobs baked in; 
 Issue objects use `id`, the same key the real tool emits."""
 from __future__ import annotations
 
+import contextlib
 import importlib.util
+import io
 import json
 import os
 import socket
@@ -39,9 +41,12 @@ if a[:1] == ["--version"]:
     print("SkillSpector v" + K["version"]); sys.exit(0)
 src = pathlib.Path(a[1]); out = pathlib.Path(a[a.index("-o") + 1])
 if K.get("real_home"):
-    planted = pathlib.Path(K["real_home"], ".skillspector")
-    planted.mkdir(parents=True, exist_ok=True)
-    (planted / "planted").write_text("x")
+    try:
+        planted = pathlib.Path(K["real_home"], ".skillspector")
+        planted.mkdir(parents=True, exist_ok=True)
+        (planted / "planted").write_text("x")
+    except OSError:
+        pass
 if K.get("dial"):
     s = socket.socket()
     s.settimeout(2)
@@ -96,6 +101,53 @@ class Smoke148(unittest.TestCase):
             p = subprocess.run([sys.executable, str(SCRIPT)], env=env2, capture_output=True, text=True, timeout=120)
             rec = json.loads((td / "r" / "latest.json").read_text())
             return p.returncode, rec
+
+    def _load(self):
+        spec = importlib.util.spec_from_file_location("smoke_148_under_test", SCRIPT)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
+
+    def _run_inprocess(self, knobs, bind_real=False, env=None):
+        """Call main() in this process. bind_real passes extra_binds; main() never does."""
+        keys = ("HOME", "PATH", "SKILLSPECTOR_BIN", "PFY_SMOKE_RECEIPT_DIR",
+                "PFY_SMOKE_REAL_HOME_BIND", "PFY_XINTAKE_TIMEOUT")
+        old = {k: os.environ.get(k) for k in keys}
+        with tempfile.TemporaryDirectory() as td:
+            td = Path(td)
+            real = td / "realhome"
+            real.mkdir()
+            knobs = dict(knobs)
+            if knobs.pop("touch_real_home", False):
+                knobs["real_home"] = str(real)
+            stub = td / "skillspector"
+            stub.write_text(f"#!{sys.executable}\nK = {knobs!r}\n" + STUB, encoding="utf-8")
+            stub.chmod(0o755)
+            mod = self._load()
+            if bind_real:
+                orig = mod.run
+                home = str(real)
+                def wrapped(binary, args, tmp, timeout, extra_binds=None, _orig=orig, _home=home):
+                    return _orig(binary, args, tmp, timeout, extra_binds=["--bind", _home, _home])
+                mod.run = wrapped
+            try:
+                os.environ["HOME"] = str(real)
+                os.environ["PATH"] = os.environ.get("PATH", "")
+                os.environ["SKILLSPECTOR_BIN"] = str(stub)
+                os.environ["PFY_SMOKE_RECEIPT_DIR"] = str(td / "r")
+                for k, v in (env or {}).items():
+                    os.environ[k] = v
+                with contextlib.redirect_stdout(io.StringIO()):
+                    code = mod.main()
+            finally:
+                for k, v in old.items():
+                    if v is None:
+                        os.environ.pop(k, None)
+                    else:
+                        os.environ[k] = v
+            rec = json.loads((td / "r" / "latest.json").read_text())
+            wrote = (real / ".skillspector").is_dir()
+            return code, rec, wrote
 
     @needs_bwrap
     def test_pass(self):
@@ -175,10 +227,19 @@ class Smoke148(unittest.TestCase):
 
     @needs_bwrap
     def test_real_home_write_fails(self):
-        code, rec = self.run_smoke(dict(BASE, touch_real_home=True), {"PFY_SMOKE_REAL_HOME_BIND": "1"})
+        # The writable bind is passed only by this test. Production main() never passes extra_binds.
+        code, rec, wrote = self._run_inprocess(dict(BASE, touch_real_home=True), bind_real=True)
+        self.assertTrue(wrote, rec)
         self.assertEqual(code, 1, rec)
         self.assertIn("real_home_unchanged", rec["failed"], rec)
         self.assertEqual(rec["real_home_changed"], [".skillspector"])
+
+    @needs_bwrap
+    def test_real_home_env_hook_does_not_bind(self):
+        # A leftover PFY_SMOKE_REAL_HOME_BIND must not make the real HOME writable.
+        code, rec = self.run_smoke(dict(BASE, touch_real_home=True), {"PFY_SMOKE_REAL_HOME_BIND": "1"})
+        self.assertEqual(code, 0, rec)
+        self.assertEqual(rec["real_home_changed"], [])
 
 
 if __name__ == "__main__":

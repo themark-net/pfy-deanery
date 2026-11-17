@@ -164,17 +164,13 @@ def home_sig(home: Path) -> dict:
     return sig
 
 
-def run(binary: str, args: list[str], tmp: Path, timeout: float) -> subprocess.CompletedProcess:
+def run(binary: str, args: list[str], tmp: Path, timeout: float,
+        extra_binds: list[str] | None = None) -> subprocess.CompletedProcess:
+    # extra_binds is a test seam. main() never passes it. No env var opens a writable real HOME.
     env = {"PATH": SYS_PATH, "HOME": str(tmp / "home"), "TMPDIR": str(tmp / "t"), "LANG": "C.UTF-8",
            "NO_COLOR": "1", "TERM": "dumb"}
-    # Tests set this so a stub can write the process HOME and the real-home check has to notice.
-    # Leave it unset: --ro-bind keeps that tree read-only.
-    home_bind: list[str] = []
-    if os.environ.get("PFY_SMOKE_REAL_HOME_BIND") == "1":
-        home = str(Path.home())
-        home_bind = ["--bind", home, home]
     cmd = ["bwrap", "--ro-bind", "/", "/", "--dev", "/dev", "--bind", str(tmp), str(tmp),
-           *home_bind, "--unshare-net", "--die-with-parent", binary, *args]
+           *(extra_binds or []), "--unshare-net", "--die-with-parent", binary, *args]
     return subprocess.run(cmd, env=env, capture_output=True, text=True, timeout=timeout, start_new_session=True)
 
 
