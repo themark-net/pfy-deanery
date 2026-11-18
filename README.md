@@ -173,7 +173,7 @@ After `./bootstrap/grok-cli/install.sh`, these are available:
 Project skill source of truth: [`.grok/skills/`](.grok/skills/) (also vendored under `bootstrap/grok-cli/skills/` for reinstall).  
 One-shot design: [docs/ops/one-shot-workflow.md](docs/ops/one-shot-workflow.md) · ADR-0008.
 
-## Current status (v0.4 → G8 launch)
+## Current status (v0.5.0 → G8 launch)
 
 - **`./pfy`** simple surface (ADR-0012): bare `./pfy` / `up` / unnamed `start` / `board` open the window and do not start an engine unless opted in (`PFY_START_ENGINE=1`, `--start-engine`, or a terminal yes); named `start <harness>` and `./pfy env` still start inference; `models` is inspect-only
 - Product structural gate stays `./pfy eval` (`make eval-integration-change`, writes `pipelines/eval`). Catalog verdicts are `scripts/eval_lane.sh`, not that command.
@@ -204,7 +204,16 @@ Full new-machine path: **[docs/ops/DEPLOY.md](docs/ops/DEPLOY.md)**.
 
 ### Simple path (recommended — G8)
 
-One launcher. Inference first, then product stage, then the native operator window:
+One launcher. Inference first, then product stage, then the native operator window.
+
+The curl installer tracks `main` by default. Once the `v0.5.0` tag exists, pin that release with `PFY_REF=v0.5.0` (a branch or SHA also works). A missing ref fails clearly and writes nothing:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/themark-net/pfy-deanery/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/themark-net/pfy-deanery/main/install.sh | PFY_REF=v0.5.0 sh
+```
+
+From a clone:
 
 ```bash
 git clone https://github.com/themark-net/pfy-deanery.git
@@ -378,4 +387,4 @@ MIT for the catalog and documentation in this repository. Individual tools carry
 
 ---
 
-*v0.4 — Phase 0 catalog sync, agent-cage harness, `/catalog-docs` skill, deploy runbook. Process backbone from v0.3 (DESIGN/ADR/TODO/OQ). Vision: receipts over vibes; beyond “it builds.”*
+*v0.5.0 — see [docs/release-notes/v0.5.0.md](docs/release-notes/v0.5.0.md). Process backbone from earlier phases (DESIGN/ADR/TODO/OQ). Vision: receipts over vibes; beyond “it builds.”*

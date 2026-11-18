@@ -4,8 +4,9 @@
 # One-liner:
 #   curl -fsSL https://raw.githubusercontent.com/themark-net/pfy-deanery/main/install.sh | sh
 # A missing closing brace makes a truncated pipe a syntax error, so nothing runs.
-# Optional PFY_REF pins a branch, tag, or SHA. Tags and releases stay gated;
-# the default is the main branch until a first real release.
+# Optional PFY_REF pins a branch, tag, or SHA. The default remains the main
+# branch. Once a release tag exists, pin it (for example PFY_REF=v0.5.0):
+#   curl -fsSL https://raw.githubusercontent.com/themark-net/pfy-deanery/main/install.sh | PFY_REF=v0.5.0 sh
 
 set -eu
 
