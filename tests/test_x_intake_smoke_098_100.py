@@ -388,5 +388,98 @@ print('PFY_JSON {"version":"stub","allowed":{"ls -la":true,"rm -rf ~/":false,"cu
             self.assertNotIn("Traceback", proc.stderr)
 
 
+    def _net_traps(self, root: Path) -> tuple[str, Path]:
+        bindir = root / "traps"
+        bindir.mkdir()
+        log = root / "net-log"
+        body = (
+            "#!/bin/sh\n"
+            f"printf '%s\\n' \"$0 $*\" >> '{log}'\n"
+            "exit 0\n"
+        )
+        for name in ("curl", "wget", "aria2c"):
+            _write_exe(bindir / name, body)
+        path = str(bindir) + os.pathsep + os.environ.get("PATH", "")
+        return path, log
+
+    def test_g_repoharness_staged_install_is_offline(self) -> None:
+        """Fail: a staged install shells out to curl/wget, or writes into the parent HOME.
+        Recover: the sha-matching stub installs (exit 0) without invoking those
+        tools, and the parent HOME stays empty.
+        """
+        harness_stub = (
+            "#!/bin/sh\n"
+            'case "$1" in\n'
+            "  install)\n"
+            "    mkdir -p docs\n"
+            "    printf 'payload\\n' > docs/README.md\n"
+            "    printf '%s\\n' '{\"applied\":true,\"version\":\"stub\",\"changes\":[]}'\n"
+            "    ;;\n"
+            "  doctor)\n"
+            "    printf '%s\\n' '{\"healthy\":true}'\n"
+            "    ;;\n"
+            "  status)\n"
+            "    printf '%s\\n' '{\"files\":[{\"path\":\"docs/README.md\",\"modified\":true}]}'\n"
+            "    ;;\n"
+            "esac\n"
+            "exit 0\n"
+        )
+        with tempfile.TemporaryDirectory(prefix="pfy-xintake-offline-") as td:
+            root = Path(td)
+            home = root / "home"
+            home.mkdir()
+            pfy_tmp = root / "pfy-tmp"
+            pfy_tmp.mkdir()
+            receipts = root / "receipts"
+            stub = root / "harness"
+            _write_exe(stub, harness_stub)
+            path, log = self._net_traps(root)
+            env = self._base_env(home)
+            env["PATH"] = path
+            env["PFY_TMP"] = str(pfy_tmp)
+            env["PFY_SMOKE_RECEIPT_DIR"] = str(receipts)
+            env["HARNESS_BIN"] = str(stub)
+            env["HARNESS_SHA256"] = _sha256(stub)
+            before = {p.relative_to(home) for p in home.rglob("*")}
+            proc = self._run("repoharness", env)
+            blob = proc.stdout + proc.stderr
+            self.assertEqual(proc.returncode, 0, blob)
+            self.assertFalse(log.is_file(), "install invoked a download tool:\n" + (log.read_text() if log.is_file() else "") + blob)
+            after = {p.relative_to(home) for p in home.rglob("*")}
+            self.assertEqual(after, before, "parent HOME gained files: %s" % (after - before))
+            receipt = json.loads((receipts / "repoharness" / "latest.json").read_text(encoding="utf-8"))
+            self.assertEqual(receipt.get("installed_version"), "stub")
+            self.assertNotIn("Traceback", proc.stderr)
+
+    def test_g_repoharness_missing_binary_does_not_download(self) -> None:
+        """Fail: a missing harness binary is fetched (curl/wget) instead of exiting 2.
+        Recover: exit 2, the reason names the missing binary, and the download
+        tools are never invoked.
+        """
+        with tempfile.TemporaryDirectory(prefix="pfy-xintake-offline-miss-") as td:
+            root = Path(td)
+            home = root / "home"
+            home.mkdir()
+            pfy_tmp = root / "pfy-tmp"
+            pfy_tmp.mkdir()
+            receipts = root / "receipts"
+            path, log = self._net_traps(root)
+            env = self._base_env(home)
+            env["PATH"] = path
+            env["PFY_TMP"] = str(pfy_tmp)
+            env["PFY_SMOKE_RECEIPT_DIR"] = str(receipts)
+            proc = self._run("repoharness", env)
+            blob = proc.stdout + proc.stderr
+            self.assertEqual(proc.returncode, 2, blob)
+            receipt = json.loads((receipts / "repoharness" / "latest.json").read_text(encoding="utf-8"))
+            reason = str(receipt.get("reason") or "")
+            self.assertIn("no harness binary", reason)
+            self.assertIn("Not the curl|bash installer", reason)
+            self.assertFalse(log.is_file(), "missing binary invoked a download tool:\n" + (log.read_text() if log.is_file() else "") + blob)
+            self.assertNotIn("Traceback", proc.stderr)
+
+
+
+
 if __name__ == "__main__":
     unittest.main()
