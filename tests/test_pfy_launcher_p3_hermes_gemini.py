@@ -373,10 +373,12 @@ class LaunchHermesGemini(_P3Home):
         self.assertEqual(_sha(path), before)
         self.assertEqual(path.read_text(), GEMINI_JSON)
 
-    def test_gemini_delegates_to_ollama_launch_when_available(self) -> None:
+    def test_gemini_does_not_delegate_to_ollama_launch_when_available(self) -> None:
+        # Gemini is not an official `ollama launch` integration (ollama 0.30.8).
         self.install_ollama(has_launch=True)
         self.install_fake("gemini")
         host = self.start_http()
+        lite = self.start_http()
         proc = self.run_pfy(
             "launch",
             "gemini",
@@ -386,11 +388,12 @@ class LaunchHermesGemini(_P3Home):
             "--dry-run",
             "--json",
             OLLAMA_HOST=host,
+            LITELLM_BASE_URL="http://%s/v1" % lite,
         )
         self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
         rec = json.loads(proc.stdout)
-        self.assertEqual(rec["delegate"], "ollama launch")
-        self.assertEqual(rec["argv"], ["ollama", "launch", "gemini", "--model", "qwen3.6:35b"])
+        self.assertEqual(rec["delegate"], "litellm")
+        self.assertEqual(rec["argv"][:3], ["gemini", "--model", "qwen3.6:35b"])
 
     def test_gemini_litellm_down_names_local_yaml(self) -> None:
         self.install_ollama(has_launch=False)

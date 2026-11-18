@@ -216,7 +216,7 @@ class LaunchP2(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
         rec = json.loads(proc.stdout)
         self.assertEqual(rec["delegate"], "ollama launch")
-        self.assertEqual(rec["argv"], ["ollama", "launch", "claude-code", "--model", "qwen3.6:35b"])
+        self.assertEqual(rec["argv"], ["ollama", "launch", "claude", "--model", "qwen3.6:35b"])
 
     def test_paid_source_for_claude_is_refused(self) -> None:
         self.install_ollama(has_launch=False)

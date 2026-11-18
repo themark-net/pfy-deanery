@@ -153,6 +153,25 @@ def ollama_launch_available() -> bool:
     return proc.returncode == 0
 
 
+# Official `ollama launch` integration names (ollama 0.30.8: `ollama launch --help`).
+# Gemini, grok, and cursor are not in that list, so they never take this path.
+# Extra args must follow `--`, or ollama parses them as its own flags
+# (the #53 live-smoke failure: `-p` was treated as an unknown shorthand flag).
+OLLAMA_LAUNCH_INTEGRATION = {
+    "claude-code": "claude",
+    "hermes": "hermes",
+}
+
+
+def ollama_launch_argv(harness: str, tag: str, extra: list[str] | None = None) -> list[str]:
+    name = OLLAMA_LAUNCH_INTEGRATION[harness]
+    argv = ["ollama", "launch", name, "--model", tag]
+    if extra:
+        argv.append("--")
+        argv.extend(extra)
+    return argv
+
+
 def litellm_host() -> str:
     for key in ("LITELLM_BASE_URL", "LITELLM_PROXY_API_BASE"):
         raw = (os.environ.get(key) or "").strip()
@@ -342,11 +361,11 @@ def plan_launch(harness: str, model: str, *, dry_run: bool, passthrough: list[st
                     "Ollama is down; pfy launch needs a running local daemon",
                     next_step="ollama serve",
                 )
-            if ollama_launch_available():
+            if ollama_launch_available() and hid in OLLAMA_LAUNCH_INTEGRATION:
                 return LaunchPlan(
                     harness=hid,
                     model=model,
-                    argv=["ollama", "launch", "hermes", "--model", tag, *extra],
+                    argv=ollama_launch_argv(hid, tag, extra),
                     env={},
                     dry_run=dry_run,
                     delegate="ollama launch",
@@ -381,15 +400,8 @@ def plan_launch(harness: str, model: str, *, dry_run: bool, passthrough: list[st
                     "Ollama is down; pfy launch needs a running local daemon",
                     next_step="ollama serve",
                 )
-            if ollama_launch_available():
-                return LaunchPlan(
-                    harness=hid,
-                    model=model,
-                    argv=["ollama", "launch", "gemini", "--model", tag, *extra],
-                    env={},
-                    dry_run=dry_run,
-                    delegate="ollama launch",
-                )
+            # Gemini is not an official `ollama launch` integration, so
+            # always go through the local LiteLLM gateway below.
         else:
             spine = llamacpp_spine()
             if spine.get("status") != "ready":
@@ -425,11 +437,11 @@ def plan_launch(harness: str, model: str, *, dry_run: bool, passthrough: list[st
                 "Ollama is down; pfy launch needs a running local daemon",
                 next_step="ollama serve",
             )
-        if ollama_launch_available():
+        if ollama_launch_available() and hid in OLLAMA_LAUNCH_INTEGRATION:
             return LaunchPlan(
                 harness=hid,
                 model=model,
-                argv=["ollama", "launch", "claude-code", "--model", tag, *extra],
+                argv=ollama_launch_argv(hid, tag, extra),
                 env={},
                 dry_run=dry_run,
                 delegate="ollama launch",
