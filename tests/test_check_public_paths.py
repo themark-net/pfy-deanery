@@ -162,5 +162,51 @@ class PublicPathsGuardTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, proc.stdout[-3000:])
 
 
+# Reviewer F5: older planning and operator notes leave only a pointer in the
+# public tree. Product reference docs, and files that tests or evals read as
+# fixtures, stay in full. The bodies live in pfy-mentat-ops at the same path.
+F5_POINTER_DOCS = (
+    "docs/ops/CBM-SHADOW-1107.md",
+    "docs/ops/adr-tools-companion.md",
+    "docs/ops/agenc-reeval-stance.md",
+    "docs/ops/antigravity-catalog-posture.md",
+    "docs/ops/atg-coupling.md",
+    "docs/ops/auto-company-patterns.md",
+    "docs/ops/bumblebee-mcp-scan.md",
+    "docs/ops/cage-session-resumption-design.md",
+    "docs/ops/claude-codex-quality-hooks.md",
+    "docs/ops/exo-self-mod-patterns.md",
+    "docs/ops/gstack-role-recipes.md",
+    "docs/ops/gstack-skill-port-comparison.md",
+    "docs/ops/human-decision-inventory.md",
+    "docs/ops/i2-trial-localharness-cartographer-1108.md",
+    "docs/ops/mattpocock-checklist-wiring.md",
+    "docs/ops/mue-x-patterns.md",
+    "docs/ops/one-shot-example-dods.md",
+    "docs/ops/skill-up-eval.md",
+    "docs/ops/smythos-studio-entry-081.md",
+    "docs/ops/unified-agents-recipes.md",
+    "docs/ops/voice-stack-stage0-ref.md",
+)
+
+
+class PublicOpsPointerTests(unittest.TestCase):
+    def test_older_planning_notes_are_pointers_to_private_ops(self) -> None:
+        """Fail: an older planning note still has its full public body.
+        Recover: the public file is a short pointer to PFY_OPS_ROOT.
+        """
+        for rel in F5_POINTER_DOCS:
+            path = ROOT / rel
+            self.assertTrue(path.is_file(), rel)
+            text = path.read_text(encoding="utf-8")
+            lines = text.splitlines()
+            self.assertLessEqual(len(lines), 20, rel)
+            blob = text.lower()
+            self.assertIn("pfy_ops_root", blob, rel)
+            self.assertIn("pfy-mentat-ops", blob, rel)
+            self.assertNotIn("\u2014", text, rel)
+            self.assertNotIn("\u2013", text, rel)
+
+
 if __name__ == "__main__":
     unittest.main()
