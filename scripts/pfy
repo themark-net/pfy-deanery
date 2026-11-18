@@ -204,6 +204,8 @@ usage() {
   cat <<'U'
 pfy — simple setup & launch for the pfy-deanery stack
 
+  pfy --version           print the product version (from pyproject.toml)
+  pfy update --check      read-only compare with the latest GitHub tag or release (never applies)
   pfy                     env-stage → native window (no harness exec; no engine daemon unless opted in)
   pfy --start-engine      same as pfy, but may start the down engine (also PFY_START_ENGINE=1)
   pfy env                 inference + env-stage (no window, no harness exec)
@@ -2310,11 +2312,19 @@ main() {
   else
     set --
   fi
-  if [[ "$cmd" != "help" && "$cmd" != "-h" && "$cmd" != "--help" ]]; then
+  if [[ "$cmd" != "help" && "$cmd" != "-h" && "$cmd" != "--help" && "$cmd" != "--version" && "$cmd" != "-V" && "$cmd" != "update" ]]; then
     record_verb "$cmd" "$@"
   fi
   case "$cmd" in
     help|-h|--help) usage ;;
+    --version|-V)
+      export PFY_ROOT="$ROOT"
+      exec python3 "$ROOT/pfylib/cli.py" --version
+      ;;
+    update)
+      export PFY_ROOT="$ROOT"
+      exec python3 "$ROOT/pfylib/cli.py" update "$@"
+      ;;
     gui|"") cmd_gui ;;
     setup)
       local _pfy_route=0 _a

@@ -1,0 +1,6 @@
+[project]
+name = "pfy-deanery"
+version = "0.1.0"
+description = "pfy operator surface for the pfy-deanery stack"
+requires-python = ">=3.12"
+readme = "README.md"

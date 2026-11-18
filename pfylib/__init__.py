@@ -26,4 +26,7 @@ Stdlib only. Python >= 3.12.
 from __future__ import annotations
 
 __all__ = ["registry", "toolsets", "hedge", "attach", "loop_paint", "cli", "setup", "adapters"]
-__version__ = "0.1.0"
+
+from .version import product_version
+
+__version__ = product_version()

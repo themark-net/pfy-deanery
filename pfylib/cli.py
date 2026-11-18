@@ -17,7 +17,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     __package__ = "pfylib"  # noqa: A001 -- PEP 366 so relative imports work when run by path
 
-from . import hedge, lane_spend, launch, model_choice, registry, setup, toolsets  # noqa: E402
+from . import hedge, lane_spend, launch, model_choice, registry, setup, toolsets, update_check, version as version_mod  # noqa: E402
 
 EXIT_READY, EXIT_FAIL, EXIT_USAGE, EXIT_STUB = 0, 1, 2, 3
 
@@ -273,10 +273,40 @@ def _hedge_record(args) -> int:
 # ---------------------------------------------------------------- parser ---
 
 
+def _update_verb(args) -> int:
+    if not getattr(args, "check", False):
+        print("use: pfy update --check", file=sys.stderr)
+        print("next: apply is not in this slice", file=sys.stderr)
+        return EXIT_USAGE
+    try:
+        rec = update_check.check_update(root=args.root)
+    except update_check.UpdateError as exc:
+        payload = {"ok": False, "reason": exc.reason, "next_step": exc.next_step, "wrote": False, "auto_update": False}
+        if getattr(args, "json", False):
+            print(json.dumps(payload, indent=2, sort_keys=True))
+        else:
+            print("FAIL %s" % exc.reason, file=sys.stderr)
+            if exc.next_step:
+                print("next: %s" % exc.next_step, file=sys.stderr)
+        return EXIT_FAIL
+    if getattr(args, "json", False):
+        print(json.dumps(rec, indent=2, sort_keys=True))
+    else:
+        if rec.get("remote") is None:
+            print("pfy %s (no tagged release found)" % rec["local"])
+        elif rec.get("newer"):
+            print("pfy %s; latest %s (%s)" % (rec["local"], rec["remote"], rec.get("remote_kind") or "tag"))
+        else:
+            print("pfy %s (current)" % rec["local"])
+        print("next: %s" % rec["next_step"])
+    return EXIT_READY
+
+
 def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(prog="pfy", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--root", type=Path, default=None, help="repo root (default: PFY_ROOT or auto)")
     ap.add_argument("--state", type=Path, default=None, help="state dir (default: PFY_STATE_DIR or ~/.pfy-mentat)")
+    ap.add_argument("--version", action="version", version="pfy %s" % version_mod.product_version())
     verbs = ap.add_subparsers(dest="verb", required=True)
 
     ts = verbs.add_parser("toolset", help="toolset × harness matrix, plan, apply")
@@ -388,6 +418,11 @@ def build_parser() -> argparse.ArgumentParser:
     lp.add_argument("--json", action="store_true")
     lp.add_argument("passthrough", nargs="*", help="args after -- are passed through")
     lp.set_defaults(fn=_launch_verb)
+
+    up = verbs.add_parser("update", help="read-only update check (does not apply or write)")
+    up.add_argument("--check", action="store_true", help="compare the local version with the latest tag or release")
+    up.add_argument("--json", action="store_true")
+    up.set_defaults(fn=_update_verb)
 
     lane_spend.register(verbs)
     return ap
