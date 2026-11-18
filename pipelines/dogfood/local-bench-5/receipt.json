@@ -66,7 +66,7 @@
     {
       "backend": "vLLM",
       "verdict": "BLOCKED",
-      "reason": "~/DEVELOP/.venv is nightly vllm 0.30.1rc1 rocm723 + torch git; Ubuntu ROCm now ~7.1.x; import fails on librocprofiler-sdk.so.1 (also missing hipsparselt). mpi-shim present. Nightly can be removed; need matching 7.1 wheel or full 7.2 userspace."
+      "reason": "$PFY_ROOT/.venv is nightly vllm 0.30.1rc1 rocm723 + torch git; Ubuntu ROCm now ~7.1.x; import fails on librocprofiler-sdk.so.1 (also missing hipsparselt). mpi-shim present. Nightly can be removed; need matching 7.1 wheel or full 7.2 userspace."
     }
   ],
   "parallel_note": "llama-server -np>1 and vLLM continuous batching not measured this slice (vLLM blocked). For atg ready-queue: prefer Ollama or llama-server ROCm with -np matching concurrency once validated; single-slot (-np 1) used for fair Choice latency.",

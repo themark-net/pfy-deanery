@@ -7,11 +7,11 @@ Exit 0 = PASS, 1 = the tool ran but a check failed, 2 = can't run here (prereq m
 Receipt: $PFY_SMOKE_RECEIPT_DIR/latest.json, else pipelines/smoke/mempalace/latest.json. Never installs anything,
 never downloads a model, never calls an LLM.
 
-Binary: $MEMPALACE_BIN, else ~/DEVELOP/pfy-mentat/tmp/mempalace/.venv/bin/mempalace, else `mempalace` on PATH.
+Binary: $MEMPALACE_BIN, else $PFY_TMP/mempalace/.venv/bin/mempalace, else `mempalace` on PATH.
 `--version` must report exactly MEMPALACE_VERSION (default 3.12.0) or the smoke exits 2.
 Model cache: the default embedder (ChromaDB's all-MiniLM-L6-v2 ONNX) must already sit in
 $MEMPALACE_HOME/.cache/chroma/onnx_models/all-MiniLM-L6-v2 (MEMPALACE_HOME default
-~/DEVELOP/pfy-mentat/tmp/mempalace/home); without it the smoke exits 2 rather than fetch ~80 MB.
+$PFY_TMP/mempalace/home); without it the smoke exits 2 rather than fetch ~80 MB.
 The smoke copies that HOME into a temp dir, writes a two-note fixture project, then runs `init --yes`, `mine` and two
 `search` queries against a temp palace with a clean env and a timeout ($PFY_XINTAKE_TIMEOUT, default 180 s). Every
 step runs under bwrap with no network and a read-only root. If bwrap is missing or unusable (it cannot bind the
@@ -71,7 +71,7 @@ def find_bin() -> str | None:
     env = os.environ.get("MEMPALACE_BIN")
     if env:
         return env if os.access(env, os.X_OK) else None
-    local = Path.home() / "DEVELOP/pfy-mentat/tmp/mempalace/.venv/bin/mempalace"
+    local = Path(os.environ.get("PFY_TMP", "/tmp/pfy")) / "mempalace/.venv/bin/mempalace"
     if os.access(local, os.X_OK):
         return str(local)
     return shutil.which("mempalace")
@@ -222,10 +222,10 @@ def main() -> int:
         return finish(2, rec)
     binary = find_bin()
     if not binary:
-        rec["reason"] = "mempalace not staged (set MEMPALACE_BIN or stage ~/DEVELOP/pfy-mentat/tmp/mempalace/.venv)"
+        rec["reason"] = "mempalace not staged (set MEMPALACE_BIN or stage $PFY_TMP/mempalace/.venv)"
         return finish(2, rec)
     rec["binary"] = binary
-    src_home = Path(os.environ.get("MEMPALACE_HOME") or Path.home() / "DEVELOP/pfy-mentat/tmp/mempalace/home")
+    src_home = Path(os.environ.get("MEMPALACE_HOME") or Path(os.environ.get("PFY_TMP", "/tmp/pfy")) / "mempalace/home")
     if not (src_home / MODEL_REL).is_dir():
         rec["reason"] = f"embedding model not cached at {src_home / MODEL_REL} (warm it once inside DEVELOP)"
         return finish(2, rec)

@@ -14,14 +14,14 @@
   - LongMemEval number and star count not reproduced here.
 - **Extracted Repos / Tools**: https://github.com/MemPalace/mempalace · `website/guide/mcp-integration.md` (MCP tool list and the "search before answering" memory protocol) · `benchmarks/` upstream
 - **TOOLS.md Link**: None yet. I0 awareness. No TOOLS.md row, no `data/tools.json` row.
-- **Smoke**: `python3 examples/x-intake-local/smoke_149.py`. Reads `$MEMPALACE_BIN`, else `~/DEVELOP/pfy-mentat/tmp/mempalace/.venv/bin/mempalace`, else PATH; version pinned to an exact match (`$MEMPALACE_VERSION`, default 3.12.0); needs the embedder cached under `$MEMPALACE_HOME` (default `~/DEVELOP/pfy-mentat/tmp/mempalace/home`), else exit 2; needs a working bwrap (no network, read-only root), else exit 2, never an unsandboxed run (same rule as Entry 148); never downloads. Receipt: `pipelines/smoke/mempalace/latest.json`. Tests: `python3 -m unittest tests.test_x_intake_smoke_149` (36 stub tests; the ones that need a real sandbox skip when bwrap is not usable).
+- **Smoke**: `python3 examples/x-intake-local/smoke_149.py`. Reads `$MEMPALACE_BIN`, else `$PFY_TMP/mempalace/.venv/bin/mempalace`, else PATH; version pinned to an exact match (`$MEMPALACE_VERSION`, default 3.12.0); needs the embedder cached under `$MEMPALACE_HOME` (default `$PFY_TMP/mempalace/home`), else exit 2; needs a working bwrap (no network, read-only root), else exit 2, never an unsandboxed run (same rule as Entry 148); never downloads. Receipt: `pipelines/smoke/mempalace/latest.json`. Tests: `python3 -m unittest tests.test_x_intake_smoke_149` (36 stub tests; the ones that need a real sandbox skip when bwrap is not usable).
 - **Non-goals**: No MCP registration, no hooks into Grok Build or Hermes, no mining of real repos or transcripts, no LLM mode, no `serve`, no daemon.
 - **How this fails / how we recover**:
 
 | Risk | How it fails | Recovery |
 |------|----------------|----------|
 | Wrong recall | Search ranks the wrong drawer and the agent acts on stale context | Smoke checks ranking on fixtures; an eval-auto trial measures recall on our own handoff docs before any wiring |
-| Writes outside scratch | `init` drops `mempalace.yaml` into the scanned dir; first run fills `~/.cache/chroma` | Scan only copies; give it a HOME under `~/DEVELOP/pfy-mentat/tmp/mempalace/home` |
+| Writes outside scratch | `init` drops `mempalace.yaml` into the scanned dir; first run fills `~/.cache/chroma` | Scan only copies; give it a HOME under `$PFY_TMP/mempalace/home` |
 | Palace corruption | ChromaDB version bump or sandbox I/O error breaks the index | Palace is rebuildable from source files (`mempalace repair`); pin the version |
 | Network | First-run model download, opt-in remote serve | Warm the cache once, then run offline under bwrap |
 

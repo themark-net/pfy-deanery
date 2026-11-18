@@ -15,7 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = "examples/x-intake-local/smoke_106_108.py"
 RULORA_MISS = (
-    "no @rulora/core. Operator: npm install --prefix ~/DEVELOP/pfy-mentat/tmp/rulora --ignore-scripts "
+    "no @rulora/core. Operator: npm install --prefix $PFY_TMP/rulora --ignore-scripts "
     "@rulora/core@0.1.0-alpha.4 (Apache-2.0, Node 20+, no runtime deps). Not in a product checkout"
 )
 

@@ -7,7 +7,7 @@ Exit 0 = PASS, 1 = the tool ran but a check failed, 2 = can't run here (prereq m
 Receipt: $PFY_SMOKE_RECEIPT_DIR/latest.json, else pipelines/smoke/kanzo/latest.json. Never installs or downloads
 anything, never starts the web board, never runs `sync`, `update` or `service`.
 
-Binary: $KANZO_BIN, else ~/DEVELOP/pfy-mentat/tmp/kanzo/bin/kanzo, else `kanzo` on PATH. `--version` must print
+Binary: $KANZO_BIN, else $PFY_TMP/kanzo/bin/kanzo, else `kanzo` on PATH. `--version` must print
 `kanzo $KANZO_VERSION` (default 0.2.1) or the smoke exits 2.
 Flow (temp data folder via --home, temp HOME, clean env without KANZO_HOME, timeout $PFY_XINTAKE_TIMEOUT default
 60 s, bwrap --unshare-net when it works): `init --home`, then `mcp --home` over stdio driven one request at a time
@@ -57,7 +57,7 @@ def find_bin() -> str | None:
     env = os.environ.get("KANZO_BIN")
     if env:
         return env if os.access(env, os.X_OK) else None
-    local = Path.home() / "DEVELOP/pfy-mentat/tmp/kanzo/bin/kanzo"
+    local = Path(os.environ.get("PFY_TMP", "/tmp/pfy")) / "kanzo/bin/kanzo"
     if os.access(local, os.X_OK):
         return str(local)
     return shutil.which("kanzo")

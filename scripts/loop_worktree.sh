@@ -1,16 +1,20 @@
 #!/bin/bash
 # Run a command in a detached worktree at origin/main.
 # Usage: scripts/loop_worktree.sh [--wt DIR] -- <command...>
-# DIR defaults to ${PFY_LOOP_WT:-$HOME/DEVELOP/pfy-mentat/tmp/loop/wt}.
-# The repo defaults to ${PFY_LOOP_REPO:-$HOME/DEVELOP/pfy-mentat}.
+# DIR defaults to ${PFY_LOOP_WT:-$PFY_TMP/loop/wt}.
+# The repo defaults to ${PFY_LOOP_REPO:-$PFY_ROOT}.
 # Only fetch and worktree add touch that repo. Its working tree is left alone.
 # A busy lock on DIR/../loop-worktree.lock exits 75 and does not run the command.
 set -euo pipefail
 
+# Generic path defaults (no private checkout layout).
+: "${PFY_ROOT:=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)}"
+: "${PFY_TMP:=${TMPDIR:-/tmp}/pfy}"
+
 export GIT_TERMINAL_PROMPT=0
 
-WT="${PFY_LOOP_WT:-$HOME/DEVELOP/pfy-mentat/tmp/loop/wt}"
-REPO="${PFY_LOOP_REPO:-$HOME/DEVELOP/pfy-mentat}"
+WT="${PFY_LOOP_WT:-$PFY_TMP/loop/wt}"
+REPO="${PFY_LOOP_REPO:-$PFY_ROOT}"
 
 usage() {
   echo "usage: scripts/loop_worktree.sh [--wt DIR] -- <command...>" >&2

@@ -15,8 +15,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = "examples/x-intake-local/smoke_098_100.py"
 SPONSIO_MISS = (
-    "no Python with sponsio. Operator: python3 -m venv ~/DEVELOP/pfy-mentat/tmp/sponsio/.venv && "
-    "~/DEVELOP/pfy-mentat/tmp/sponsio/.venv/bin/pip install --pre sponsio (Apache-2.0, alpha). "
+    "no Python with sponsio. Operator: python3 -m venv $PFY_TMP/sponsio/.venv && "
+    "$PFY_TMP/sponsio/.venv/bin/pip install --pre sponsio (Apache-2.0, alpha). "
     "No `sponsio init` in a real repo, no `sponsio push` (hosted console)"
 )
 

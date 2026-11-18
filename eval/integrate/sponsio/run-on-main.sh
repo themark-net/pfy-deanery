@@ -7,19 +7,21 @@
 # Skill writes stay as they are when this script is not called.
 #
 # A second start that finds
-# $HOME/DEVELOP/pfy-mentat/tmp/integrate2/sponsio.dispatched
+# $PFY_TMP/integrate2/sponsio.dispatched
 # exits 2 and writes no receipt, unless that marker's pid is an ancestor of
 # this process. The driver writes "pid <lane-pid>" and still holds the marker
 # when it runs this script, so that admitted lane continues.
 # This script does not create the marker and does not push.
 #
-# extra lock: flock $HOME/DEVELOP/pfy-mentat/tmp/integrate2/push.lock
+# extra lock: flock $PFY_TMP/integrate2/push.lock
 # The main fast-forward uses that flock. This script does not take it.
 # The temp env is the only lock this script uses.
 #
 # Usage: eval/integrate/sponsio/run-on-main.sh RECEIPT.json
 
 set -euo pipefail
+
+: "${PFY_TMP:=${TMPDIR:-/tmp}/pfy}"
 
 work=
 receipt_tmp=
@@ -70,7 +72,7 @@ if [ "${receipt#/}" = "$receipt" ]; then
   receipt="$PWD/$receipt"
 fi
 
-marker=${SPONSIO_LANE_MARKER:-$HOME/DEVELOP/pfy-mentat/tmp/integrate2/sponsio.dispatched}
+marker=${SPONSIO_LANE_MARKER:-$PFY_TMP/integrate2/sponsio.dispatched}
 if [ -e "$marker" ]; then
   if ! marker_pid_is_ancestor "$marker"; then
     printf '%s\n' "already dispatched: $marker" >&2

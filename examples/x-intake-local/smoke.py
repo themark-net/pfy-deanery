@@ -11,10 +11,10 @@ New x-intake smokes must start every subprocess with run_isolated below, not wit
   qwen38flash  $QWEN38_URL = an OpenAI-compatible base URL (e.g. http://127.0.0.1:8080/v1 from llama-server)
                already serving a Qwen3.8-Flash-Next GGUF. Asks for an exact token and checks it comes back.
                Never starts a server or loads a model itself (nimo memory edge: see Entries 089-094).
-  sandlock     $SANDLOCK_BIN or ~/DEVELOP/pfy-mentat/tmp/sandlock/sandlock or `sandlock` on PATH; Linux 6.12+.
+  sandlock     $SANDLOCK_BIN or $PFY_TMP/sandlock/sandlock or `sandlock` on PATH; Linux 6.12+.
                Runs /bin/sh confined to one writable dir and expects the allowed write to land and a write to a
                sibling dir to be refused.
-  foremerge    $FOREMERGE_BIN or ~/DEVELOP/pfy-mentat/tmp/foremerge/foremerge or `foremerge` on PATH.
+  foremerge    $FOREMERGE_BIN or $PFY_TMP/foremerge/foremerge or `foremerge` on PATH.
                In a throwaway git repo: publish "replace symbol:PaymentService", then preflight
                "extend symbol:PaymentService" and expect a HIGH conflict; an unrelated scope must not conflict.
 """
@@ -36,7 +36,7 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-TMP = Path.home() / "DEVELOP/pfy-mentat/tmp"
+TMP = Path(os.environ.get("PFY_TMP", "/tmp/pfy"))
 # Env vars stripped from every x-intake tool subprocess (smoke_103_105/106_108/109_111 import this): paid model
 # keys and endpoints, cloud and forge tokens, so a third-party binary never sees them.
 PAID_KEYS = ("OPENROUTER_API_KEY", "AI_GATEWAY_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GOOGLE_APIKEY",
@@ -254,7 +254,7 @@ def smoke_qwen38flash(r: dict) -> int:
     if not base:
         r["reason"] = ("set QWEN38_URL to an OpenAI-compatible base already serving a Qwen3.8-Flash-Next GGUF "
                        "(smallest upstream quants are ~66-68 GB: ISTA-DASLab GSQ-RCO Q2_0 / IQ2_XS). The smoke never "
-                       "loads a model itself; start llama-server under ~/DEVELOP/pfy-mentat/tmp and respect the "
+                       "loads a model itself; start llama-server under $PFY_TMP and respect the "
                        "nimo memory edge (Entries 089-094)")
         return 2
     body = json.dumps({"model": os.environ.get("QWEN38_MODEL", "qwen3.8-flash"), "temperature": 0, "max_tokens": 64,
@@ -290,7 +290,7 @@ def smoke_sandlock(r: dict) -> int:
         return 2
     if not b:
         r["reason"] = ("no sandlock binary. Operator: unpack the upstream release tarball "
-                       "(sandlock-x86_64-unknown-linux-gnu.tar.gz, check its sha256) into ~/DEVELOP/pfy-mentat/tmp/sandlock/ "
+                       "(sandlock-x86_64-unknown-linux-gnu.tar.gz, check its sha256) into $PFY_TMP/sandlock/ "
                        "-- no root, no cargo install to ~/.cargo")
         return 2
     with tempfile.TemporaryDirectory(prefix="pfy-sandlock-") as d:
@@ -323,7 +323,7 @@ def smoke_foremerge(r: dict) -> int:
     if not b:
         r["reason"] = ("no foremerge binary. Operator: unpack the upstream release tarball "
                        "(foremerge-v0.5.1-x86_64-unknown-linux-gnu.tar.gz, check its sha256) into "
-                       "~/DEVELOP/pfy-mentat/tmp/foremerge/ -- not install.sh (writes ~/.local/bin), no `setup`")
+                       "$PFY_TMP/foremerge/ -- not install.sh (writes ~/.local/bin), no `setup`")
         return 2
     if not shutil.which("git"):
         r["reason"] = "git not on PATH"

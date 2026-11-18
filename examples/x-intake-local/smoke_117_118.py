@@ -10,7 +10,7 @@ env limited to PATH/HOME/TERM/LANG/NO_COLOR plus the variables named below; noth
 timeout SIGKILLs the process group). No provider keys. No smoke calls a model or starts an agent.
 PFY_XINTAKE_TIMEOUT (float seconds, > 0) overrides the 600s per-command timeout.
 
-  kander  $KANDER_BIN, then ~/DEVELOP/pfy-mentat/tmp/kander/kander (the release tarball kander-linux-amd64.tar.gz
+  kander  $KANDER_BIN, then $PFY_TMP/kander/kander (the release tarball kander-linux-amd64.tar.gz
           unpacked there), then PATH. `kander version` pinned to 0.9.5 ($KANDER_VERSION overrides) and the binary's
           sha256 pinned to the v0.9.5 linux-amd64 build ($KANDER_SHA256 overrides; set it to "skip" to only check
           the version). Runs with a fresh temp HOME and GH_CONFIG_DIR (so no gh login is seen), PATH=/usr/bin:/bin and the
@@ -21,9 +21,9 @@ PFY_XINTAKE_TIMEOUT (float seconds, > 0) overrides the 600s per-command timeout.
           print "ok: 1 tasks"; `show` of an unknown id must exit nonzero. No `start`, `pick`, `orchestrate` or
           `review` (those launch agents). The real HOME's ~/.agents/kander and ~/.config/kander must not change.
           Records which agents doctor detected (`agents_detected`) without failing.
-  moira   $MOIRA_DIR, then ~/DEVELOP/pfy-mentat/tmp/moira, holding upstream's docker-compose.yml,
+  moira   $MOIRA_DIR, then $PFY_TMP/moira, holding upstream's docker-compose.yml,
           config/traefik-self-host.yml and an operator-made .env (never committed; the smoke never reads or prints
-          its secrets). Needs docker ($DOCKER_BIN, ~/DEVELOP/pfy-mentat/tmp/docker/docker, or
+          its secrets). Needs docker ($DOCKER_BIN, $PFY_TMP/docker/docker, or
           PATH) with the compose plugin; exit 2 without them. The image must be pinned by digest:
           $MOIRA_IMAGE, or MOIRA_IMAGE in the .env, must contain "@sha256:" (upstream defaults to :latest), else exit 2.
           The traefik image line in the staged docker-compose.yml must also be digest-pinned (upstream ships a
@@ -113,7 +113,7 @@ def smoke_kander(r: dict) -> int:
     b = find_bin("KANDER_BIN", "kander/kander", "kander")
     if not b:
         r["reason"] = ("kander not found: set $KANDER_BIN or unpack kander-linux-amd64.tar.gz (v0.9.5) into "
-                       "~/DEVELOP/pfy-mentat/tmp/kander/")
+                       "$PFY_TMP/kander/")
         return 2
     r["binary"] = b
     want_sha = pinned(r, "KANDER_SHA256", KANDER_SHA, lower=True)

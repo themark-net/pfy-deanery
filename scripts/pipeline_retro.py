@@ -823,7 +823,9 @@ def load_pregates(roots: list[Path]) -> list[dict]:
 
 
 def load_progress(home: Path) -> list[dict]:
-    folder = home / "DEVELOP"
+    import os
+    raw = (os.environ.get("PFY_PROGRESS_DIR") or "").strip()
+    folder = Path(raw) if raw else home / "tmp" / "pfy-progress"
     if not folder.is_dir():
         return []
     seen = set()

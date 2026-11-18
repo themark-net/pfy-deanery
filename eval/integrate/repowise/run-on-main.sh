@@ -6,14 +6,14 @@
 #   bash eval/integrate/repowise/run-on-main.sh eval/integrate/repowise/receipt.json
 #
 # A second start that finds
-# $HOME/DEVELOP/pfy-mentat/tmp/integrate2/repowise.dispatched
+# $PFY_TMP/integrate2/repowise.dispatched
 # exits 2 and writes no receipt, unless that marker's pid is an ancestor of
 # this process. The driver writes "pid <lane-pid>" and still holds the marker
 # when it runs this one-argument receipt call, so that admitted lane continues.
 # This script does not create or remove the marker.
 #
 # The main push is a fast-forward under one flock. The extra lock is
-# $HOME/DEVELOP/pfy-mentat/tmp/integrate2/push.lock
+# $PFY_TMP/integrate2/push.lock
 # This script does not take that flock and does not add a lock.
 # The smoke temp dir is the only in-script lock.
 #
@@ -24,7 +24,9 @@
 
 set -euo pipefail
 
-MARKER=${PFY_REPOWISE_LANE_MARKER:-$HOME/DEVELOP/pfy-mentat/tmp/integrate2/repowise.dispatched}
+: "${PFY_TMP:=${TMPDIR:-/tmp}/pfy}"
+
+MARKER=${PFY_REPOWISE_LANE_MARKER:-$PFY_TMP/integrate2/repowise.dispatched}
 
 if [ "$#" -ne 1 ] || [ -z "${1:-}" ]; then
   printf '%s\n' "usage: eval/integrate/repowise/run-on-main.sh eval/integrate/repowise/receipt.json" >&2

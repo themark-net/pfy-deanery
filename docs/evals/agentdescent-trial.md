@@ -1,7 +1,7 @@
 # Handoff: AgentDescent eval-auto trial (Entry 119), 2026-10-15
 
 Approved by the operator as an eval-auto trial on nimo. Branch `eval/agentdescent-trial` off origin/main `7b5107d`,
-worktree `~/DEVELOP/pfy-mentat/tmp/agentdescent-trial`. Results: [REPORT.md](../../examples/agentdescent-trial/REPORT.md),
+worktree `$PFY_TMP/agentdescent-trial`. Results: [REPORT.md](../../examples/agentdescent-trial/REPORT.md),
 [results.json](../../examples/agentdescent-trial/results/results.json).
 
 ## Result
@@ -33,7 +33,7 @@ with the verdict removed. Stratified 2/3 split, seed 230 -> `train.jsonl` (41), 
 ## How to rerun
 
 ```
-cd ~/DEVELOP/pfy-mentat/tmp/agentdescent-trial
+cd $PFY_TMP/agentdescent-trial
 uv venv tmp/.venv --python 3.12 && VIRTUAL_ENV=tmp/.venv uv pip install agentdescent==0.5.1 dspy optuna
 python3 examples/agentdescent-trial/build_cases.py
 python3 examples/agentdescent-trial/harness.py --stage all   # or baseline | evolve | dspy; writes tmp/agentdescent-trial-run/

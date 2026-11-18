@@ -19,17 +19,17 @@ permission bits, mtime, size, content or symlink target, sets checks.real_home_u
 real_home_changed and FAILs (exit 1), even when bwrap is unavailable. Only those dirs are watched: a write elsewhere in
 HOME (e.g. ~/.newdot) is not seen. checks.body_completed is false and `exception` names it when the run raised.
 
-  harnessscore  Node >= 18 ($NODE_BIN, ~/DEVELOP/pfy-mentat/tmp/node/bin/node, or PATH) and the unpacked npm tarball
-                harness-score-1.8.2.tgz: $HARNESS_SCORE_DIR, else ~/DEVELOP/pfy-mentat/tmp/harness-score/package
+  harnessscore  Node >= 18 ($NODE_BIN, $PFY_TMP/node/bin/node, or PATH) and the unpacked npm tarball
+                harness-score-1.8.2.tgz: $HARNESS_SCORE_DIR, else $PFY_TMP/harness-score/package
                 (holding dist/cli.js; package.json version pinned to 1.8.2, $HARNESS_SCORE_VERSION overrides). Builds
                 two fixture repos in the temp dir: "clean" (substantive AGENTS.md, .gitignore covering .env) and
                 "leaky" (same AGENTS.md, a .gitignore without .env, and a placeholder .env file). `--json clean` must
                 report tool.version = the pin, CTX-01 and HYG-03 passed, and be byte-identical on a second run
                 (determinism); `--json leaky` must fail HYG-02 and HYG-03; `--min-level 4 clean` must exit 1 (the CI
                 gate); fixtures unchanged, temp HOME empty.
-  openlore      Node >= 22.19 ($NODE_BIN, ~/DEVELOP/pfy-mentat/tmp/node/bin/node, or PATH; ~/DEVELOP/pfy-mentat/tmp/node
+  openlore      Node >= 22.19 ($NODE_BIN, $PFY_TMP/node/bin/node, or PATH; $PFY_TMP/node
                 is where a Node 22 tarball would be unpacked) and an npm prefix holding node_modules/openlore:
-                $OPENLORE_DIR, else ~/DEVELOP/pfy-mentat/tmp/openlore (`npm install --prefix <it> --ignore-scripts
+                $OPENLORE_DIR, else $PFY_TMP/openlore (`npm install --prefix <it> --ignore-scripts
                 openlore@3.3.1`; package.json version pinned to 3.3.1, $OPENLORE_VERSION overrides). Needs git. In a
                 temp git repo with src/pricing.ts (exported applyDiscount) and src/checkout.ts (calls it), with
                 TMPDIR inside the temp dir (its index panics on a read-only /tmp) and OPENLORE_NO_UPDATE_NOTIFIER=1

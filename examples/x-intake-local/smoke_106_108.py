@@ -10,16 +10,16 @@ Tool subprocesses get a fresh temp HOME and an env with paid provider keys strip
 PFY_XINTAKE_TIMEOUT (float seconds, > 0) overrides the per-command tool timeouts (default 120s); Empty keeps the
 default. Any other set value (abc, 0, -1, nan, inf) exits 2 before the entry runs.
 
-  rulora      $RULORA_DIR (a dir holding node_modules/@rulora/core), then ~/DEVELOP/pfy-mentat/tmp/rulora
+  rulora      $RULORA_DIR (a dir holding node_modules/@rulora/core), then $PFY_TMP/rulora
               (npm --prefix install of @rulora/core@0.1.0-alpha.4); plus Node 20+ from $RULORA_NODE,
-              ~/DEVELOP/pfy-mentat/tmp/rulora/node/bin/node, or PATH. Runs the three Core controls with no model:
+              $PFY_TMP/rulora/node/bin/node, or PATH. Runs the three Core controls with no model:
               OutputBoundary accepts a valid output and rejects a bad one at stage `core` and an unknown evidence
               id at stage `audit`; LoopControl (maxNoProgress 2) stays active while progress is made, goes to
               `human_handoff` after two no-progress attempts and then refuses more records (LOOP_CLOSED);
               CollectiveControl freezes candidates (later mutation does not leak in), refuses an invented id
               (UNKNOWN_CANDIDATE) and returns a frozen selection.
-  har         $HAR_BIN, then ~/DEVELOP/pfy-mentat/tmp/har/node_modules/.bin/har (npm --prefix install of
-              @osfactory/har@1.16.0), then PATH; plus Node 20+ from $HAR_NODE, ~/DEVELOP/pfy-mentat/tmp/har/node/
+  har         $HAR_BIN, then $PFY_TMP/har/node_modules/.bin/har (npm --prefix install of
+              @osfactory/har@1.16.0), then PATH; plus Node 20+ from $HAR_NODE, $PFY_TMP/har/node/
               bin/node, or PATH; and git. In a temp HOME: `har telemetry off` first, then on a throwaway git repo
               `har env init --profile cli` (no agents, no cursor rule, no commit gate), `env launch 1`,
               `env verify 1 --full --json` must pass with every stage passing, a broken `test` script in the
@@ -27,7 +27,7 @@ default. Any other set value (abc, 0, -1, nan, inf) exits 2 before the entry run
               `env teardown 1` must remove the worktree. FAILs if the launch work dir is not under the temp
               HOME, or if any agent hook file (~/.cursor/hooks.json, ~/.claude/settings.json,
               ~/.codex/hooks.json, ~/.har/otel-hooks) appears in the temp HOME with telemetry off.
-  cassmemory  $CM_BIN, then ~/DEVELOP/pfy-mentat/tmp/cass-memory/cm, then PATH (`cm`). The v0.5.0
+  cassmemory  $CM_BIN, then $PFY_TMP/cass-memory/cm, then PATH (`cm`). The v0.5.0
               cass-memory-linux-x64 release binary is pinned by sha256; $CM_SHA256 overrides the pin, and a
               mismatch exits 2 without exec. In a temp HOME with every LLM provider key and OLLAMA_BASE_URL
               stripped: `cm init`, add two rules, `cm context` must return the matching rule, three `--harmful`
@@ -177,13 +177,13 @@ def smoke_rulora(r: dict) -> int:
             break
     r["package"] = pkg
     if not pkg:
-        r["reason"] = ("no @rulora/core. Operator: npm install --prefix ~/DEVELOP/pfy-mentat/tmp/rulora --ignore-scripts "
+        r["reason"] = ("no @rulora/core. Operator: npm install --prefix $PFY_TMP/rulora --ignore-scripts "
                        "@rulora/core@0.1.0-alpha.4 (Apache-2.0, Node 20+, no runtime deps). Not in a product checkout")
         return 2
     node = find_node("RULORA_NODE", "rulora/node/bin/node", 20)
     r["node"] = node
     if not node:
-        r["reason"] = "no Node 20+ (set $RULORA_NODE or unpack node-v22 to ~/DEVELOP/pfy-mentat/tmp/rulora/node)"
+        r["reason"] = "no Node 20+ (set $RULORA_NODE or unpack node-v22 to $PFY_TMP/rulora/node)"
         return 2
     with tempfile.TemporaryDirectory(prefix="pfy-rulora-") as d, \
             tempfile.TemporaryDirectory(prefix="pfy-rulora-home-") as home:
@@ -228,14 +228,14 @@ def smoke_har(r: dict) -> int:
     b = find_bin("HAR_BIN", "har/node_modules/.bin/har", "har")
     r["bin"] = b
     if not b:
-        r["reason"] = ("no har. Operator: npm install --prefix ~/DEVELOP/pfy-mentat/tmp/har --ignore-scripts "
+        r["reason"] = ("no har. Operator: npm install --prefix $PFY_TMP/har --ignore-scripts "
                        "@osfactory/har@1.16.0 (Apache-2.0, Node 20+). Not `npm install -g`, not `har onboard` in a "
                        "product checkout, no `har hq`, no `har telemetry on`")
         return 2
     node = find_node("HAR_NODE", "har/node/bin/node", 20)
     r["node"] = node
     if not node:
-        r["reason"] = "no Node 20+ (set $HAR_NODE or unpack node-v22 to ~/DEVELOP/pfy-mentat/tmp/har/node)"
+        r["reason"] = "no Node 20+ (set $HAR_NODE or unpack node-v22 to $PFY_TMP/har/node)"
         return 2
     if not shutil.which("git"):
         r["reason"] = "git not on PATH"
@@ -344,7 +344,7 @@ def smoke_cassmemory(r: dict) -> int:
     if not b:
         r["reason"] = ("no cm binary. Operator: download cass-memory-linux-x64 and cass-memory-linux-x64.sha256 from "
                        "https://github.com/Dicklesworthstone/cass_memory_system/releases/tag/v0.5.0, verify, and save "
-                       f"it as ~/DEVELOP/pfy-mentat/tmp/cass-memory/cm (sha256 {CM_V050_SHA256}). Not the "
+                       f"it as $PFY_TMP/cass-memory/cm (sha256 {CM_V050_SHA256}). Not the "
                        "curl | bash installer, not brew, no `cm hook`; MIT with an OpenAI/Anthropic rider")
         return 2
     expect = pinned(r, "CM_SHA256", CM_V050_SHA256, lower=True)

@@ -20,20 +20,20 @@ starts a detached background daemon, so it passes no bwrap prefix. `overtime dae
 smoke checks that the real HOME's ~/overtime was not created or changed even when a command times out, and that
 `daemon stop` leaves no daemon behind. The receipt records the mode (`containment`).
 
-  overtime  $OVERTIME_DIR, then ~/DEVELOP/pfy-mentat/tmp/overtime (an `npm install --prefix <dir> --ignore-scripts
+  overtime  $OVERTIME_DIR, then $PFY_TMP/overtime (an `npm install --prefix <dir> --ignore-scripts
             @ukanwat/overtime@0.5.3`), package version pinned ($OVERTIME_VERSION overrides). Node >= 22.19 from
-            $OVERTIME_NODE, ~/DEVELOP/pfy-mentat/tmp/overtime/node/bin/node, or PATH; older Node exits 2. In a temp
+            $OVERTIME_NODE, $PFY_TMP/overtime/node/bin/node, or PATH; older Node exits 2. In a temp
             HOME: `new` creates the agent folder (AGENT.md + .overtime/settings.json + state.json), `ls` lists it,
             `set budget=1 protect=<dir>` lands in .overtime/settings.json and `settings` shows it, the agent has
             never run a session (no model call), and `daemon stop` leaves no daemon. Records, without failing,
             whether a hand edit to AGENT.md's settings block is adopted (`agent_md_edit_adopted`).
-  festival  $FEST_BIN (with `camp` beside it), then ~/DEVELOP/pfy-mentat/tmp/festival/fest (unpacked from the v0.3.20
+  festival  $FEST_BIN (with `camp` beside it), then $PFY_TMP/festival/fest (unpacked from the v0.3.20
             festival-0.3.20-linux-x86_64.tar.gz release), then PATH. fest and camp pinned by sha256 ($FEST_SHA256 /
             $CAMP_SHA256 override); a mismatch exits 2 without exec. In a temp HOME: `camp create` makes a git-backed
             camp with AGENTS.md; strict `fest create festival --agent` with unfilled template markers must roll back
             (ok false, no directory left); a non-strict create must scaffold fest.yaml plus the TESTING and REVIEW
             quality gates; `fest next` in that unfilled festival must refuse (nonzero, "VALIDATION FAILED").
-  sloptrim  $SLOPTRIM_DIR, then ~/DEVELOP/pfy-mentat/tmp/sloptrim (a clone at tag v0.9.4), HEAD pinned
+  sloptrim  $SLOPTRIM_DIR, then $PFY_TMP/sloptrim (a clone at tag v0.9.4), HEAD pinned
             ($SLOPTRIM_COMMIT overrides; a mismatch exits 2). `scripts/detect.py` must score a deliberately
             sloppy sample at least 30 points above a plain one and band it as tells, keep the plain one under 40,
             report a planted zero-width character, and `--clean` must remove it.
@@ -167,7 +167,7 @@ def smoke_overtime(r: dict) -> int:
             d = Path(c)
             break
     if not d:
-        r["reason"] = ("overtime not staged: npm install --prefix ~/DEVELOP/pfy-mentat/tmp/overtime --ignore-scripts "
+        r["reason"] = ("overtime not staged: npm install --prefix $PFY_TMP/overtime --ignore-scripts "
                        f"@ukanwat/overtime@{OVERTIME_PIN} (or set $OVERTIME_DIR)")
         return 2
     pkg = d / "node_modules/@ukanwat/overtime"
@@ -180,7 +180,7 @@ def smoke_overtime(r: dict) -> int:
     node = next((c for c in (os.environ.get("OVERTIME_NODE"), str(TMP / "overtime/node/bin/node"), shutil.which("node"))
                  if c and os.access(c, os.X_OK)), None)
     if not node:
-        r["reason"] = "no node: stage Node >= 22.19 at ~/DEVELOP/pfy-mentat/tmp/overtime/node or set $OVERTIME_NODE"
+        r["reason"] = "no node: stage Node >= 22.19 at $PFY_TMP/overtime/node or set $OVERTIME_NODE"
         return 2
     ok, nv = node_ok(node)
     r["node"] = nv
@@ -283,7 +283,7 @@ def smoke_festival(r: dict) -> int:
     fest = next((c for c in (os.environ.get("FEST_BIN"), str(TMP / "festival/fest"), shutil.which("fest"))
                  if c and os.path.isfile(c) and os.access(c, os.X_OK)), None)
     if not fest:
-        r["reason"] = "festival not staged: unpack festival-0.3.20-linux-x86_64.tar.gz into ~/DEVELOP/pfy-mentat/tmp/festival"
+        r["reason"] = "festival not staged: unpack festival-0.3.20-linux-x86_64.tar.gz into $PFY_TMP/festival"
         return 2
     camp = str(Path(fest).parent / "camp")
     if not os.access(camp, os.X_OK):
@@ -365,7 +365,7 @@ def smoke_sloptrim(r: dict) -> int:
               if c and (Path(c) / "scripts/detect.py").is_file()), None)
     if not d:
         r["reason"] = ("sloptrim not staged: git clone --depth 1 --branch v0.9.4 https://github.com/seyedehsanhadi/sloptrim.git "
-                       "~/DEVELOP/pfy-mentat/tmp/sloptrim (or set $SLOPTRIM_DIR)")
+                       "$PFY_TMP/sloptrim (or set $SLOPTRIM_DIR)")
         return 2
     want = (os.environ.get("SLOPTRIM_COMMIT") or SLOPTRIM_V094_COMMIT).lower()
     git = shutil.which("git")

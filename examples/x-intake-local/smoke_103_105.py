@@ -9,19 +9,19 @@ Never installs or downloads anything; every scratch file goes to a fresh tempfil
 Tool subprocesses get a fresh temp HOME. PFY_XINTAKE_TIMEOUT (float seconds, > 0) overrides the tool timeouts
 (defaults: 120s bugpatrol explore, 60s graphjin startup); Empty keeps the defaults. Any other set value (abc, 0, -1, nan, inf) exits 2 before the entry runs.
 
-  bugpatrol  $BUGPATROL_BIN or ~/DEVELOP/pfy-mentat/tmp/bugpatrol/node_modules/.bin/bugpatrol (npm --prefix install),
-             plus Node 22+ from $BUGPATROL_NODE, ~/DEVELOP/pfy-mentat/tmp/bugpatrol/node/bin/node, or PATH; and git.
+  bugpatrol  $BUGPATROL_BIN or $PFY_TMP/bugpatrol/node_modules/.bin/bugpatrol (npm --prefix install),
+             plus Node 22+ from $BUGPATROL_NODE, $PFY_TMP/bugpatrol/node/bin/node, or PATH; and git.
              Starts an in-process stdlib fake OpenAI-compatible server on 127.0.0.1 and runs `bugpatrol explore`
              on a throwaway CLI-platform repo whose explorer uses `via: custom` pointed at it. Every model call must
              land on that local endpoint (never a paid provider; provider keys are stripped from the env), a model
              that never calls a tool must raise 0 candidates, and the same config with no endpoint must be refused.
-  graphjin   $GRAPHJIN_BIN or ~/DEVELOP/pfy-mentat/tmp/graphjin/graphjin, then PATH. The v3.21.6 linux_amd64 binary
+  graphjin   $GRAPHJIN_BIN or $PFY_TMP/graphjin/graphjin, then PATH. The v3.21.6 linux_amd64 binary
              is pinned by sha256; $GRAPHJIN_SHA256 overrides the pin, and a mismatch exits 2 without exec. On a
              throwaway SQLite db: with the source `read_only: true`, a read returns the seeded rows while insert,
              update, and delete are refused and the file is unchanged; a control run with `read_only: false` must
              let the insert through (so the refusal is really read_only); and with `production: true` a saved
              query runs while an ad-hoc query is refused (allow-list).
-  antislop   $ANTISLOP_DIR or ~/DEVELOP/pfy-mentat/tmp/anti-slop (a clone). Every skills/*/SKILL.md must open with
+  antislop   $ANTISLOP_DIR or $PFY_TMP/anti-slop (a clone). Every skills/*/SKILL.md must open with
              YAML frontmatter whose `name` is lowercase-hyphen, at most 64 chars, and equal to its folder, with a
              non-empty `description` of at most 1024 chars; the core `antislop` skill must be present. The
              validator is first run on two synthetic bad skills and must reject both. Read-only: nothing is
@@ -146,9 +146,9 @@ def smoke_bugpatrol(r: dict) -> int:
     b = find_bin("BUGPATROL_BIN", "bugpatrol/node_modules/.bin/bugpatrol", "bugpatrol")
     r["bin"] = b
     if not b:
-        r["reason"] = ("no bugpatrol. Operator: npm install --prefix ~/DEVELOP/pfy-mentat/tmp/bugpatrol bugpatrol@0.3.0 "
+        r["reason"] = ("no bugpatrol. Operator: npm install --prefix $PFY_TMP/bugpatrol bugpatrol@0.3.0 "
                        "(Apache-2.0; needs Node 22+, e.g. the official node-v22 linux-x64 tarball unpacked to "
-                       "~/DEVELOP/pfy-mentat/tmp/bugpatrol/node). Not `npx bugpatrol` in a product checkout, no "
+                       "$PFY_TMP/bugpatrol/node). Not `npx bugpatrol` in a product checkout, no "
                        "`skills add`, no GitHub, no fixer, no paid provider key")
         return 2
     node = None
@@ -158,7 +158,7 @@ def smoke_bugpatrol(r: dict) -> int:
             break
     r["node"] = node
     if not node:
-        r["reason"] = "no Node 22+ (set $BUGPATROL_NODE or unpack node-v22 to ~/DEVELOP/pfy-mentat/tmp/bugpatrol/node)"
+        r["reason"] = "no Node 22+ (set $BUGPATROL_NODE or unpack node-v22 to $PFY_TMP/bugpatrol/node)"
         return 2
     if not shutil.which("git"):
         r["reason"] = "git not on PATH"
@@ -330,7 +330,7 @@ def smoke_graphjin(r: dict) -> int:
     if not b:
         r["reason"] = ("no graphjin binary. Operator: download graphjin_3.21.6_linux_amd64.tar.gz and checksums.txt "
                        "from https://github.com/dosco/graphjin/releases/tag/v3.21.6, verify, and extract `graphjin` "
-                       f"to ~/DEVELOP/pfy-mentat/tmp/graphjin/graphjin (binary sha256 {GRAPHJIN_V3216_SHA256}). "
+                       f"to $PFY_TMP/graphjin/graphjin (binary sha256 {GRAPHJIN_V3216_SHA256}). "
                        "Not the .deb, not `npm install -g`, never pointed at a real product database")
         return 2
     expect = pinned(r, "GRAPHJIN_SHA256", GRAPHJIN_V3216_SHA256, lower=True)
@@ -433,7 +433,7 @@ def smoke_antislop(r: dict) -> int:
     r["dir"] = d
     if not d:
         r["reason"] = ("no anti-slop clone. Operator: git clone https://github.com/miqdadbadjuber/anti-slop "
-                       "~/DEVELOP/pfy-mentat/tmp/anti-slop (MIT). Do not run `npx antislop-ai` or copy skills into "
+                       "$PFY_TMP/anti-slop (MIT). Do not run `npx antislop-ai` or copy skills into "
                        "any harness skill folder for this smoke")
         return 2
     selftest = {"Bad_Name": "---\nname: Bad_Name\ndescription: x\n---\n", "no-desc": "---\nname: no-desc\n---\n"}

@@ -61,5 +61,5 @@ No secrets in the report. No em dashes.
 ## Do not
 
 - Add a CI or pregate step that re-runs a discover another step already ran.
-- Edit `~/.grok/config.toml`, `install.sh`, or the operator's checkout at `~/DEVELOP/pfy-mentat`.
+- Edit `~/.grok/config.toml`, `install.sh`, or the operator's checkout at `$PFY_ROOT`.
 - Paste upstream skill text into this file. The vendored files stay verbatim.

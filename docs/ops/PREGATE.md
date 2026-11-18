@@ -5,7 +5,7 @@ Run this before any Tester or Reviewer gate request and attach its summary. It c
 ## Rule
 
 1. Run pregate on the exact SHA you will gate (full run, no `--only`).
-2. Attach the summary the run prints (`Summary:`). The default folder is `~/DEVELOP/pfy-mentat/tmp/pregate-runs/<run-id>/pregate-summary.md`. `PREGATE_STATE_ROOT` moves that folder.
+2. Attach the summary the run prints (`Summary:`). The default folder is `$PFY_TMP/pregate-runs/<run-id>/pregate-summary.md`. `PREGATE_STATE_ROOT` moves that folder.
 3. Do not spend Tester/Reviewer turns until overall is PASS, unless you have an explicit waiver for a documented known gap.
 
 ## How to run (nimo)

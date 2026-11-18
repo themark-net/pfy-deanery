@@ -125,9 +125,23 @@ class PublicPathsGuardTests(unittest.TestCase):
         self.assertIn("tests/test_x.py:1: absolute /home/<user> path", proc.stdout)
 
     def test_home_placeholders_and_cage_user_pass(self) -> None:
-        self._write("docs/z.md", "Use $HOME/.cache/pfy, ~/DEVELOP, /home/agent in the cage, "
+        self._write("docs/z.md", "Use $HOME/.cache/pfy, $PFY_ROOT, /home/agent in the cage, "
                     "and ${HOME}/.cache/pfy/tools/x/home/.local/bin.\n")
         self.assertEqual(_run(self.repo).returncode, 0, _run(self.repo).stdout)
+
+    def test_develop_checkout_path_fails(self) -> None:
+        # Split so this test file itself does not contain the forbidden strings.
+        devel = "DEVELOP/pfy-mentat"
+        self._write("docs/a.md", "clone at ~/%s\n" % devel)
+        self._write("scripts/b.sh", 'REPO="${PFY_LOOP_REPO:-$HOME/%s}"\n' % devel)
+        self._write("tests/c.py", 'p = Path.home() / "%s/tmp/lock"\n' % devel)
+        self._write("ops/systemd/x.service", "GIT_DIR=%%h/%s/.git\n" % devel)
+        proc = _run(self.repo)
+        self.assertEqual(proc.returncode, 1, proc.stdout)
+        self.assertIn("docs/a.md:1: private DEVELOP checkout path", proc.stdout)
+        self.assertIn("scripts/b.sh:1: private DEVELOP checkout path", proc.stdout)
+        self.assertIn("tests/c.py:1: private DEVELOP checkout path", proc.stdout)
+        self.assertIn("ops/systemd/x.service:1: private DEVELOP checkout path", proc.stdout)
 
     def test_owner_name_fails_in_text(self) -> None:
         self._write("sources/entries/1-x.md", "Needs %s's GO.\n" % OWNER)

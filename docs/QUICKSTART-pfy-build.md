@@ -92,7 +92,7 @@ A safe `.gitignore` line for generated output, and a `pyproject.toml` edit that 
 On a branch whose HEAD is not `origin/main`, a dry-run without `--base` exits 2 and names `--base origin/main` or `--base HEAD`. The fence passes `--base HEAD`.
 
 ```text
-DRY-RUN dry-run branch=none receipt=$HOME/DEVELOP/pfy-mentat/tmp/mvp-docs-final-1031/tmp/quickstart-dry-run/receipt.json
+DRY-RUN dry-run branch=none receipt=$PFY_TMP/mvp-docs-final-1031/tmp/quickstart-dry-run/receipt.json
 exit 0
 ```
 
@@ -149,7 +149,7 @@ exit 0
 $ git -C tmp/qs-land-repo status --porcelain
 exit 0
 $ git -C tmp/qs-land-repo push origin cloud/qs-land
-To $HOME/DEVELOP/pfy-mentat/tmp/mvp-docs-1031/tmp/qs-land-bare
+To $PFY_TMP/mvp-docs-1031/tmp/qs-land-bare
  * [new branch]      cloud/qs-land -> cloud/qs-land
 exit 0
 $ git --git-dir=tmp/qs-land-bare rev-parse cloud/qs-land
@@ -163,7 +163,7 @@ On a task repo, `rev-parse` the branch named in the receipt, then `git push orig
 
 | Case | Exit | Receipt | Recovery |
 |------|------|---------|----------|
-| Cloud rate limit | 4 | `BLOCKED`, `reason` `rate-limit`, no branch | `recovery` is `./pfy build --local "<task>"`. This run does not start it. Run that later, under `flock ~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock`, only when you choose the fallback. |
+| Cloud rate limit | 4 | `BLOCKED`, `reason` `rate-limit`, no branch | `recovery` is `./pfy build --local "<task>"`. This run does not start it. Run that later, under `flock $PFY_TMP/heavy-1030.lock`, only when you choose the fallback. |
 | Auth failure or grok missing | 1 | `FAIL`, `reason` `unauthenticated`, no branch | Run grok once to log in, then rerun the same `./pfy build`. Recovery does not use `--local`. |
 | Gate red, retries left | stays open | Attempt `FAIL`, `reason` `tests`, `tests-flaky`, or `tests-tampered` | The next grok call gets the gate tail. A later attempt may PASS. |
 | Gate red, retries spent | 1 | `FAIL`, that gate reason, `attempts` length 3 by default, no branch | Fix the task or the test command and rerun. The failed tree is not committed. |
@@ -191,7 +191,7 @@ Receipt text is redacted (token, bearer, AKIA, private-key blocks). A receipt th
 
 ## When to use --local, and what -p is
 
-Use `--local` only when a cloud receipt says `rate-limit`, and only under `flock ~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock`. Auth failure stays on the cloud command after you log in.
+Use `--local` only when a cloud receipt says `rate-limit`, and only under `flock $PFY_TMP/heavy-1030.lock`. Auth failure stays on the cloud command after you log in.
 
 `-p` is the jev dogfood wrap (`scripts/pfy_build_p.py`). It is a different command from the daily build.
 

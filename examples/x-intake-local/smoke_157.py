@@ -156,7 +156,7 @@ def body(rec: dict, scratch: Path | None) -> tuple[int, Path | None]:
             return 2, scratch
         scratch = Path(tempfile.mkdtemp(prefix="sysknife-", dir=_scratch_root()))
         repo = Path(os.environ["SYSKNIFE_DIR"]) if os.environ.get("SYSKNIFE_DIR") else (
-            Path.home() / "DEVELOP/pfy-mentat/tmp/sysknife"
+            Path(os.environ.get("PFY_TMP", "/tmp/pfy")) / "sysknife"
         )
         built = _build(cargo, repo, commit, scratch, timeout, rec)
         if isinstance(built, int):

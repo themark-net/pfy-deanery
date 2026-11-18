@@ -213,7 +213,7 @@ class HirouteOfflineFailClosedTest(unittest.TestCase):
 
     def _run(self, env, dest):
         marker = pathlib.Path(
-            "$HOME/DEVELOP/pfy-mentat/tmp/integrate2/hiroute.dispatched"
+            "$PFY_TMP/integrate2/hiroute.dispatched"
         )
         cmd = ["/bin/bash", str(SCRIPT), str(dest)]
         if not marker.exists():

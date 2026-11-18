@@ -14,13 +14,15 @@
 
 set -euo pipefail
 
+: "${PFY_TMP:=${TMPDIR:-/tmp}/pfy}"
+
 if [ "$#" -ne 1 ] || [ -z "${1:-}" ]; then
   printf '%s\n' "usage: eval/integrate/hiroute/run-on-main.sh RECEIPT.json" >&2
   exit 2
 fi
 
 dest=$1
-marker=${PFY_HIROUTE_LANE_MARKER:-$HOME/DEVELOP/pfy-mentat/tmp/integrate2/hiroute.dispatched}
+marker=${PFY_HIROUTE_LANE_MARKER:-$PFY_TMP/integrate2/hiroute.dispatched}
 
 marker_pid_is_ancestor() {
   local file=$1

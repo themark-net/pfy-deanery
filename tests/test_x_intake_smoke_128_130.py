@@ -137,7 +137,7 @@ class Base(unittest.TestCase):
         for key in list(env):
             if key.startswith(("HARNESS_SCORE_", "OPENLORE_", "NODE_BIN")) or key == "PFY_XINTAKE_TIMEOUT":
                 env.pop(key, None)
-        env["HOME"] = str(self.home)  # so ~/DEVELOP/pfy-mentat/tmp lookups find nothing
+        env["HOME"] = str(self.home)  # so $PFY_TMP lookups find nothing
         env["PFY_SMOKE_RECEIPT_DIR"] = str(RECEIPT_DIR)
         if no_bwrap:
             env["PATH"] = str(self.nobwrap)

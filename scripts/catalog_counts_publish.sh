@@ -8,6 +8,10 @@
 #   pipelines/catalog/counts.latest.json
 set -euo pipefail
 
+# Generic path defaults (no private checkout layout).
+: "${PFY_ROOT:=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)}"
+: "${PFY_TMP:=${TMPDIR:-/tmp}/pfy}"
+
 export GIT_TERMINAL_PROMPT=0
 export GIT_AUTHOR_NAME=catalog-loop
 export GIT_AUTHOR_EMAIL=catalog-loop@localhost
@@ -16,7 +20,7 @@ export GIT_COMMITTER_EMAIL=catalog-loop@localhost
 
 cd "$(dirname "$0")/.."
 
-repo="${PFY_LOOP_REPO:-$HOME/DEVELOP/pfy-mentat}"
+repo="${PFY_LOOP_REPO:-$PFY_ROOT}"
 if [[ -d "$repo" ]]; then
   top=$(git rev-parse --show-toplevel 2>/dev/null || true)
   if [[ -n "$top" && "$(realpath -m "$top")" == "$(realpath -m "$repo")" ]]; then

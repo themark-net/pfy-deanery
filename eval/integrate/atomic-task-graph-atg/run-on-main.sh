@@ -3,7 +3,7 @@
 #
 # Usage: eval/integrate/atomic-task-graph-atg/run-on-main.sh RECEIPT.json
 #
-# Lane marker: $HOME/DEVELOP/pfy-mentat/tmp/integrate2/atomic-task-graph-atg.dispatched
+# Lane marker: $PFY_TMP/integrate2/atomic-task-graph-atg.dispatched
 # A second start exits 2 when ATG_LANE_MARKER names that file and it exists.
 # This script does not create or write the owner-checkout marker.
 # The main fast-forward lands under one flock in the driver.
@@ -19,6 +19,8 @@
 # write no receipt.
 
 set -euo pipefail
+
+: "${PFY_TMP:=${TMPDIR:-/tmp}/pfy}"
 
 if [ "$#" -ne 1 ] || [ -z "${1:-}" ]; then
   printf '%s\n' "usage: eval/integrate/atomic-task-graph-atg/run-on-main.sh RECEIPT.json" >&2

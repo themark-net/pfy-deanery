@@ -6,7 +6,7 @@ import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "eval" / "integrate" / "strata" / "run-on-main.sh"
-MARKER = "$HOME/DEVELOP/pfy-mentat/tmp/integrate2/strata.dispatched"
+MARKER = "$PFY_TMP/integrate2/strata.dispatched"
 
 
 def _run(marker_text, receipt):

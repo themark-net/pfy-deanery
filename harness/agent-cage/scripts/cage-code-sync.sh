@@ -5,7 +5,7 @@
 # *automated bridge* so agent commits and host edits do not permanently diverge.
 #
 # Default locations (override with env):
-#   CATALOG_ROOT   host git clone (DEVELOP/pfy-mentat or local-llm-dev-tools)
+#   CATALOG_ROOT   host git clone (PFY_ROOT or local-llm-dev-tools)
 #   AGENTCAGE_DIR  ~/.agentcage
 #   CAGE_WS        $AGENTCAGE_DIR/workspace/pfy-mentat
 #

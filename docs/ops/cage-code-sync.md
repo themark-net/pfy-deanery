@@ -8,7 +8,7 @@
 
 | Tree | Role |
 |------|------|
-| `~/DEVELOP/…/pfy-mentat` (or `local-llm-dev-tools`) | Host catalog git — push to GitHub |
+| `$PFY_ROOT/…/pfy-mentat` (or `local-llm-dev-tools`) | Host catalog git — push to GitHub |
 | `~/.agentcage/workspace/pfy-mentat` | Isolated cage workspace (bind-mounted as `/workspace/pfy-mentat`) |
 
 Agents commit **in the cage**. Host `workspace-sync` only rsyncs **host → cage** and used to leave cage-only commits stranded (or risk overwriting them). This tool automates a safe bridge while keeping isolation.
@@ -16,7 +16,7 @@ Agents commit **in the cage**. Host `workspace-sync` only rsyncs **host → cage
 ## Commands
 
 ```bash
-cd ~/DEVELOP/local-llm-dev-tools   # host catalog root
+cd $PFY_ROOT/local-llm-dev-tools   # host catalog root
 
 make cage-code-status              # HEADs + divergence
 make cage-code-from-cage           # import agent commits → host

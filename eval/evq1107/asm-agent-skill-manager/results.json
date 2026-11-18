@@ -11,7 +11,7 @@
     "exit": 1,
     "wall_s": 0.0356,
     "scanned": false,
-    "stderr_tail": "Error: Skill \"$HOME/DEVELOP/pfy-mentat/tmp/evq/wt/asm-agent-skill-manager/eval/evq1107/asm-agent-skill-manager/fixtures/planted\" not found. Use \"asm list\" to see installed skills.",
+    "stderr_tail": "Error: Skill \"$PFY_TMP/evq/wt/asm-agent-skill-manager/eval/evq1107/asm-agent-skill-manager/fixtures/planted\" not found. Use \"asm list\" to see installed skills.",
     "stdout_tail": ""
   },
   "planted_install": {

@@ -18,6 +18,7 @@ class UnitBootstrapTest(unittest.TestCase):
         self.assertIn("%t/pfy-loop-worktree.sh", line)
         self.assertIn("catalog_counts_publish.sh", line)
         self.assertNotIn("tmp/loop/wt/scripts/loop_worktree.sh", line)
-        self.assertNotIn("DEVELOP/pfy-mentat/scripts/catalog_counts.py", line)
+        self.assertIn("PFY_LOOP_REPO", line)
+        self.assertNotIn("DEVELOP" + "/pfy-mentat/scripts/catalog_counts.py", line)
         wd = [ln.strip() for ln in text.splitlines() if ln.startswith("WorkingDirectory=")]
         self.assertEqual(wd, ["WorkingDirectory=%h"])

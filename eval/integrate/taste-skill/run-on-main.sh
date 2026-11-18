@@ -21,6 +21,8 @@
 
 set -euo pipefail
 
+: "${PFY_TMP:=${TMPDIR:-/tmp}/pfy}"
+
 if [ "$#" -ne 1 ] || [ -z "${1:-}" ]; then
   printf '%s\n' "usage: eval/integrate/taste-skill/run-on-main.sh RECEIPT.json" >&2
   exit 2

@@ -42,8 +42,12 @@
 # exits 2 while driver.pid names a live process.
 set -u
 
+# Generic path defaults (no private checkout layout).
+: "${PFY_ROOT:=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)}"
+: "${PFY_TMP:=${TMPDIR:-/tmp}/pfy}"
+
 ROOT=""
-STATE="${PFY_LOOP_STATE:-$HOME/DEVELOP/pfy-mentat/tmp/loop}/eval"
+STATE="${PFY_LOOP_STATE:-$PFY_TMP/loop}/eval"
 SLUGS=""
 ONCE=0
 CHECK_LOCK=0

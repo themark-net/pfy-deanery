@@ -21,6 +21,10 @@
 # PFY_LOOP_STATE or --state.
 
 set -euo pipefail
+
+# Generic path defaults (no private checkout layout).
+: "${PFY_ROOT:=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)}"
+: "${PFY_TMP:=${TMPDIR:-/tmp}/pfy}"
 export PYTHONDONTWRITEBYTECODE=1
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
@@ -131,7 +135,7 @@ if [ "$DRY" = "1" ]; then
   exit 0
 fi
 if [ -z "$STATE_DIR" ]; then
-  LOOP_STATE="${PFY_LOOP_STATE:-$HOME/DEVELOP/pfy-mentat/tmp/loop}"
+  LOOP_STATE="${PFY_LOOP_STATE:-$PFY_TMP/loop}"
   STATE_DIR="$LOOP_STATE/eval"
 fi
 

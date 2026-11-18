@@ -9,7 +9,7 @@ Receipt: $PFY_SMOKE_RECEIPT_DIR/latest.json, else pipelines/smoke/robrain/latest
 anything, never starts Docker/Postgres/Perception, never calls an LLM (no --live, no keys in the child env).
 
 Runs VetoBench's offline retrieval layer (packages/vetobench, deterministic hash embedder, no API key) from a
-pre-built clone: $ROBRAIN_DIR, else ~/DEVELOP/pfy-mentat/tmp/robrain, checked out at ROBRAIN_COMMIT (default the
+pre-built clone: $ROBRAIN_DIR, else $PFY_TMP/robrain, checked out at ROBRAIN_COMMIT (default the
 pinned commit below) with `pnpm install --filter "@robrain/vetobench..."` and the shared + vetobench builds done
 (packages/vetobench/dist/run.js and packages/shared/dist present); otherwise exit 2.
 Node: $NODE_BIN, else `node` on PATH, major >= 20, else exit 2.
@@ -211,7 +211,7 @@ def main() -> int:
     except ValueError:
         rec["reason"] = "bad PFY_XINTAKE_TIMEOUT"
         return finish(2, rec)
-    repo = Path(os.environ.get("ROBRAIN_DIR") or Path.home() / "DEVELOP/pfy-mentat/tmp/robrain")
+    repo = Path(os.environ.get("ROBRAIN_DIR") or Path(os.environ.get("PFY_TMP", "/tmp/pfy")) / "robrain")
     rec["clone"] = str(repo)
     if not (repo / "packages/vetobench/package.json").is_file():
         rec["reason"] = f"robrain clone not staged at {repo}"

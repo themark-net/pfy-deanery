@@ -7,7 +7,7 @@ Exit 0 = PASS, 1 = the tool ran but a check failed, 2 = can't run here (prereq m
 Receipt: $PFY_SMOKE_RECEIPT_DIR/latest.json, else pipelines/smoke/skillspector/latest.json. Never downloads,
 installs or calls a model.
 
-Binary: $SKILLSPECTOR_BIN, else ~/DEVELOP/pfy-mentat/tmp/skillspector/.venv/bin/skillspector, else `skillspector`
+Binary: $SKILLSPECTOR_BIN, else $PFY_TMP/skillspector/.venv/bin/skillspector, else `skillspector`
 on PATH. `--version` must report SKILLSPECTOR_VERSION (default 2.12.0) or the smoke exits 2.
 The smoke writes two fixture skills in a temp dir (a benign one and one with a prompt injection, curl|bash, and
 credential exfiltration) and runs `scan <dir> --no-llm --format json -o <file>` for each with a clean env, a temp
@@ -68,7 +68,7 @@ def find_bin() -> str | None:
     env = os.environ.get("SKILLSPECTOR_BIN")
     if env:
         return env if os.access(env, os.X_OK) else None
-    local = Path.home() / "DEVELOP/pfy-mentat/tmp/skillspector/.venv/bin/skillspector"
+    local = Path(os.environ.get("PFY_TMP", "/tmp/pfy")) / "skillspector/.venv/bin/skillspector"
     if os.access(local, os.X_OK):
         return str(local)
     return shutil.which("skillspector")

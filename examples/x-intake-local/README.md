@@ -24,20 +24,20 @@ python3 examples/x-intake-local/smoke_109_111.py --entry runx         # runx 0.9
 ```
 
 Prereqs are looked up via `$SANDLOCK_BIN` / `$FOREMERGE_BIN` / `$SPONSIO_PY` / `$OPEN_STEPS_DIR` / `$HARNESS_BIN`,
-then `~/DEVELOP/pfy-mentat/tmp/{sandlock,foremerge,sponsio/.venv,open-steps,repository-harness}/`, then PATH where
+then `$PFY_TMP/{sandlock,foremerge,sponsio/.venv,open-steps,repository-harness}/`, then PATH where
 it applies. Sponsio, opensteps, and repoharness tool subprocesses point HOME at a fresh temp dir (git keeps the
 parent env) so they never touch real harness state. `PFY_XINTAKE_TIMEOUT` (float seconds, > 0) overrides those
 timeouts; empty or invalid keeps 60s for opensteps hooks and 120s for sponsio and repoharness.
 
 Entries 103-105 (`smoke_103_105.py`) look up `$BUGPATROL_BIN` + `$BUGPATROL_NODE` / `$GRAPHJIN_BIN` (pin override
-`$GRAPHJIN_SHA256`) / `$ANTISLOP_DIR`, then `~/DEVELOP/pfy-mentat/tmp/{bugpatrol/node_modules/.bin/bugpatrol,
+`$GRAPHJIN_SHA256`) / `$ANTISLOP_DIR`, then `$PFY_TMP/{bugpatrol/node_modules/.bin/bugpatrol,
 bugpatrol/node/bin/node,graphjin/graphjin,anti-slop}`, then PATH where it applies. Tool subprocesses get a fresh temp
 HOME. The bugpatrol smoke strips paid provider keys from the env and serves its own stdlib fake model on 127.0.0.1,
 so it never calls a real model; the graphjin smoke only binds 127.0.0.1 on a free port. `PFY_XINTAKE_TIMEOUT`
 overrides 120s for bugpatrol explore and 60s for graphjin startup.
 
 Entries 106-108 (`smoke_106_108.py`) look up `$RULORA_DIR` + `$RULORA_NODE` / `$HAR_BIN` + `$HAR_NODE` / `$CM_BIN`
-(pin override `$CM_SHA256`), then `~/DEVELOP/pfy-mentat/tmp/{rulora,rulora/node/bin/node,har/node_modules/.bin/har,
+(pin override `$CM_SHA256`), then `$PFY_TMP/{rulora,rulora/node/bin/node,har/node_modules/.bin/har,
 har/node/bin/node,cass-memory/cm}`, then PATH where it applies. Tool subprocesses get a fresh temp HOME and an env
 with paid provider keys (plus AWS credentials, `OLLAMA_BASE_URL`, `HAR_PORTAL_TOKEN`, `CASS_PATH`) stripped; none of
 the three calls a model. The har smoke runs `har telemetry off` before anything else and FAILs if agent hook files
@@ -46,7 +46,7 @@ worktree lives under that temp HOME too. `PFY_XINTAKE_TIMEOUT` overrides the 120
 
 Entries 109-111 (`smoke_109_111.py`) look up `$SMOLVM_BIN` (pin override `$SMOLVM_SHA256`) / `$BRIGADE_BIN`
 (version override `$BRIGADE_VERSION`) / `$RUNX_BIN` (pin override `$RUNX_SHA256`) + `$RUNX_SRC` + `$RUNX_NODE`, then
-`~/DEVELOP/pfy-mentat/tmp/{smolvm/smolvm,brigade/.venv/bin/brigade,runx/runx,runx/src,runx/node/bin/node}`, then PATH
+`$PFY_TMP/{smolvm/smolvm,brigade/.venv/bin/brigade,runx/runx,runx/src,runx/node/bin/node}`, then PATH
 where it applies. Tool subprocesses get a fresh temp HOME and an env with paid provider keys, `XDG_*` and inherited
 `SMOLVM_*`/`BRIGADE_*`/`RUNX_*` stripped; none of the three calls a model. When `bwrap` works, the brigade and runx
 commands run with a read-only root, only the temp HOME and scratch dir writable, and no network; otherwise the smoke
@@ -57,7 +57,7 @@ for smolvm machine commands).
 
 Entries 112-114 (`smoke_112_114.py`) look up `$OVERTIME_DIR` + `$OVERTIME_NODE` (version override `$OVERTIME_VERSION`) /
 `$FEST_BIN` with `camp` beside it (pin overrides `$FEST_SHA256`, `$CAMP_SHA256`) / `$SLOPTRIM_DIR` (commit override
-`$SLOPTRIM_COMMIT`), then `~/DEVELOP/pfy-mentat/tmp/{overtime,overtime/node/bin/node,festival/fest,sloptrim}`, then PATH
+`$SLOPTRIM_COMMIT`), then `$PFY_TMP/{overtime,overtime/node/bin/node,festival/fest,sloptrim}`, then PATH
 where it applies. Every child, including the bwrap probe, `node --version`, sloptrim's `git rev-parse`, tool commands,
 and overtime `daemon stop`, goes through `run_isolated` in `smoke.py`. That helper gives a fresh temp HOME and an env
 limited to `PATH`, `HOME`, `TERM`, `LANG`, and `NO_COLOR`, plus the git identity variables Festival sets
@@ -88,8 +88,8 @@ python3 examples/x-intake-local/smoke_115_116.py --entry openqodex   # Node >= 2
 python3 examples/x-intake-local/smoke_115_116.py --entry assay       # assay-ui pinned 0.3.0, local Chromium
 ```
 
-OpenQodex looks up `$OPENQODEX_DIR` and `$OPENQODEX_NODE`, then `~/DEVELOP/pfy-mentat/tmp/openqodex`. Its HOME is
-`$OPENQODEX_HOME` or `tmp/openqodex/home`, and that path must resolve under `~/DEVELOP/pfy-mentat/tmp` or the
+OpenQodex looks up `$OPENQODEX_DIR` and `$OPENQODEX_NODE`, then `$PFY_TMP/openqodex`. Its HOME is
+`$OPENQODEX_HOME` or `tmp/openqodex/home`, and that path must resolve under `$PFY_TMP` or the
 system temp directory. Assay looks up `$ASSAY_BIN`, then `tmp/assay/venv/bin/assay`, and Chromium from
 `$PLAYWRIGHT_BROWSERS_PATH` or `tmp/assay/ms-playwright`. Version probes use the same helper as the tool commands.
 `PFY_XINTAKE_TIMEOUT` overrides the 600s per-command timeout.
@@ -101,7 +101,7 @@ python3 examples/x-intake-local/smoke_117_118.py --entry kander   # binary pinne
 python3 examples/x-intake-local/smoke_117_118.py --entry moira    # needs docker compose and a digest-pinned image
 ```
 
-Kander looks up `$KANDER_BIN`, then `~/DEVELOP/pfy-mentat/tmp/kander/kander`, then PATH (overrides `$KANDER_VERSION`,
+Kander looks up `$KANDER_BIN`, then `$PFY_TMP/kander/kander`, then PATH (overrides `$KANDER_VERSION`,
 `$KANDER_SHA256`). Moira looks up `$MOIRA_DIR` or `tmp/moira` (upstream compose file, Traefik config and an
 operator-made `.env`) and `$DOCKER_BIN`, `tmp/docker/docker` or PATH, and refuses an image that is not pinned by
 digest. Every child goes through `run_isolated`; Kander runs under bwrap when it works, Moira's compose calls do not

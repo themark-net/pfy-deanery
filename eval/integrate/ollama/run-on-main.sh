@@ -6,10 +6,10 @@
 #   bash eval/integrate/ollama/run-on-main.sh eval/integrate/ollama/receipt.json
 #
 # Lane marker (this script does not create, remove, or write it):
-#   $HOME/DEVELOP/pfy-mentat/tmp/integrate2/ollama.dispatched
+#   $PFY_TMP/integrate2/ollama.dispatched
 # A second start exits 2.
 # The main push is a fast-forward under one flock on
-#   $HOME/DEVELOP/pfy-mentat/tmp/integrate2/push.lock
+#   $PFY_TMP/integrate2/push.lock
 # This script does not take that flock. scripts/model_lock.sh wraps only the GET.
 #
 # HEAD must be an ancestor of origin/main (git merge-base --is-ancestor).
@@ -17,6 +17,8 @@
 # A timeout or any other failed GET exits nonzero and writes no receipt.
 
 set -euo pipefail
+
+: "${PFY_TMP:=${TMPDIR:-/tmp}/pfy}"
 
 if [ "$#" -ne 1 ] || [ -z "${1:-}" ]; then
   printf '%s\n' "usage: eval/integrate/ollama/run-on-main.sh RECEIPT.json" >&2

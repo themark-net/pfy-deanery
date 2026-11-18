@@ -21,7 +21,7 @@ target) sets checks.real_home_untouched false, lists the dirs in real_home_chang
 is unavailable. Only those dirs are watched: a write elsewhere in HOME is not seen. checks.body_completed is false and
 `exception` names it when the run raised.
 
-  jah       $JAH_BIN, else ~/DEVELOP/pfy-mentat/tmp/jevagentharness/.venv/bin/jah, else PATH (a venv with the
+  jah       $JAH_BIN, else $PFY_TMP/jevagentharness/.venv/bin/jah, else PATH (a venv with the
             clone at the pinned commit installed, `pip install .`); the driver runs on system python3. `jah --version` pinned to 0.1.0 ($JAH_VERSION overrides). The driver serves a stub
             OpenAI-compatible upstream (models stub-strong / stub-fast, no key) and a stub Jev System-One endpoint
             (POST /v1/systemone, the wire format Laya serves, Entry 086) on 127.0.0.1, writes two configs into the temp
@@ -31,7 +31,7 @@ is unavailable. Only those dirs are watched: a write elsewhere in HOME is not se
             backend: strong, fast (stub says routine), strong (stub says hard), strong (stub returns HTTP 400:
             decision_error fail-safe). The stub Jev must see model agentdecision-4b, the hard/routine options and no
             Authorization header; no upstream call may carry one; no log file may contain the task or tool text.
-  aimemory  $AI_MEMORY_BIN, else ~/DEVELOP/pfy-mentat/tmp/ai-memory/ai-memory, else PATH (the unpacked release
+  aimemory  $AI_MEMORY_BIN, else $PFY_TMP/ai-memory/ai-memory, else PATH (the unpacked release
             tarball, ai-memory-linux-x86_64.tar.gz). `ai-memory --version` pinned to 3.1.1 ($AI_MEMORY_VERSION
             overrides). The driver runs `--data-dir <temp> init`, then `serve --transport http` on a free loopback port
             with AI_MEMORY_EMBEDDING_PROVIDER=none (otherwise the first start fetches an ~87 MB embedding model), waits
@@ -39,7 +39,7 @@ is unavailable. Only those dirs are watched: a write elsewhere in HOME is not se
             `message send` to the second project and `message pop` twice. The page must be found and read back, also be
             a markdown file under the data dir's wiki/, the first pop must return the message (state claimed, with the
             untrusted-input notice) and the second pop must return nothing (claim once).
-  headson   $HSON_BIN, else ~/DEVELOP/pfy-mentat/tmp/headson/hson, else PATH (release tarball
+  headson   $HSON_BIN, else $PFY_TMP/headson/hson, else PATH (release tarball
             hson-x86_64-unknown-linux-musl.tar.gz). `hson --version` pinned to 0.17.1 ($HSON_VERSION overrides). On a
             ~300 KB JSON fixture (3000 results, one FAIL): `-c 600 -f json -t strict` must parse, fit 600 bytes, keep
             every top-level key and the first result; a rerun must be byte-identical; `--tail` must keep the last

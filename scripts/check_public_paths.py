@@ -11,7 +11,11 @@ Fails (exit 1) when the tracked tree has:
      fine), a .log file, or a prose REPORT.md / notes.md;
   6. an absolute /home/<user> path (the agent-cage container user is fine);
   7. the owner's first name in text (LICENSE files are exempt; "Mark the" and
-     "Mark it" as verbs and one cited third-party author are fine).
+     "Mark it" as verbs and one cited third-party author are fine);
+  8. an operator-private DEVELOP checkout path (tilde or $HOME or %h
+     plus DEVELOP, /home/<user>/DEVELOP, or Path.home() / "DEVELOP").
+     Use $PFY_ROOT, $PFY_TMP, $PFY_LOOP_REPO and the other PFY_* env
+     vars, or a generic $HOME/... / repo-relative path.
 
 Those files belong in the private ops checkout named by PFY_OPS_ROOT.
 Exit 2 on a usage or git error. Runs in scripts/pregate.sh (lint), the
@@ -92,6 +96,14 @@ EVAL_PROSE_NAMES = {"report.md", "notes.md"}
 # Rule 6: /home/<user>. Not preceded by a path or word char, so a cache dir
 # like .../tools/x/home/.local and $HOME/... do not match.
 HOME_RE = re.compile(r"(?<![\w.~$}/-])/home/(?!agent\b)([A-Za-z_][A-Za-z0-9_-]*)")
+
+# Rule 8: operator-private DEVELOP checkout paths (pfy-deanery #9).
+# Tilde, $HOME, ${HOME}, absolute /home/<user>, and Path.home() / "DEVELOP".
+DEVELOP_RE = re.compile(
+    r"(?:~/DEVELOP|\$\{?HOME\}?/DEVELOP|%h/DEVELOP|/home/(?!agent\b)[^/\s]+/DEVELOP|"
+    r"Path\.home\(\)\s*/\s*[\"']DEVELOP)"
+)
+
 # Rule 7: built from parts so the guard does not flag itself.
 _OWNER = "Ma" + "rk"
 OWNER_RE = re.compile(r"\b" + _OWNER + r"\b(?! Ritson\b)(?! (?:the|it)\b)")
@@ -163,16 +175,25 @@ def _text(root: Path, rel: str) -> str | None:
 
 
 def text_problems(root: Path, rel: str) -> list[str]:
-    """Rules 6 and 7: operator home paths and the owner's name."""
+    """Rules 6, 7 and 8: operator home paths, the owner's name, and DEVELOP paths."""
     if rel in EMPLOYER_EXEMPT or rel.split("/")[-1].startswith(TEXT_EXEMPT_PREFIXES):
         return []
     text = _text(root, rel)
-    if text is None or (not HOME_RE.search(text) and not OWNER_RE.search(text)):
+    if text is None or (
+        not HOME_RE.search(text)
+        and not OWNER_RE.search(text)
+        and not DEVELOP_RE.search(text)
+    ):
         return []
     found = []
     for number, line in enumerate(text.splitlines(), 1):
         if HOME_RE.search(line):
             found.append(f"{rel}:{number}: absolute /home/<user> path; use $HOME, ~, or a repo-relative path")
+        if DEVELOP_RE.search(line):
+            found.append(
+                f"{rel}:{number}: private DEVELOP checkout path; use $PFY_ROOT, $PFY_TMP, "
+                "a PFY_* env var, or a generic $HOME/... / repo-relative path"
+            )
         if OWNER_RE.search(line):
             found.append(f"{rel}:{number}: owner name in public text; say the operator or the maintainer")
     return found

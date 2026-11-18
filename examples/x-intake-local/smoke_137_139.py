@@ -20,7 +20,7 @@ changed entry FAILs (exit 1) and is listed in real_home_changed, even when bwrap
 watched: a write elsewhere in HOME is not seen. checks.body_completed is false and `exception` names it when the run
 raised.
 
-  neatroots     $NEATROOTS_APP, else ~/DEVELOP/pfy-mentat/tmp/neatroots/app (the unpacked v0.2.9 release bundle
+  neatroots     $NEATROOTS_APP, else $PFY_TMP/neatroots/app (the unpacked v0.2.9 release bundle
                 neatroots.tar.gz; its top dir holds neatroots/dist/cli.js). Node 22+: $NEATROOTS_NODE, else
                 tmp/neatroots/node/bin/node, else `node` on PATH. neatroots/package.json and `cli.js --version` pinned
                 to 0.2.9 ($NEATROOTS_VERSION overrides). Only `neatroots check` (rules over saved traces, no server, no
@@ -30,7 +30,7 @@ raised.
                 with no earlier lookup fires a project rule from --checks (requires_before) and only then; --only
                 narrows to one rule; an unparsable file exits 2. TMPDIR is a temp subdir (`check` makes a scratch dir
                 there and must remove it). Fixtures unchanged, temp HOME empty.
-  teammates     $HERMES_TEAMMATES_DIR, else ~/DEVELOP/pfy-mentat/tmp/hermes-teammates (a git clone). plugin.yaml version
+  teammates     $HERMES_TEAMMATES_DIR, else $PFY_TMP/hermes-teammates (a git clone). plugin.yaml version
                 pinned to 1.1.0 ($HT_VERSION) and `git rev-parse HEAD` to de85f5d4793e ($HT_COMMIT). A system-python3
                 driver imports only teammates_config.py and teammates_store.py (pure stdlib; no Hermes) with
                 PYTHONDONTWRITEBYTECODE=1: a valid two-teammate roster parses with no errors (absent toolsets inherit as
@@ -40,7 +40,7 @@ raised.
                 runs and refuses the third in one session while another session is admitted; finish() is a single
                 terminal CAS (second finish refused, a non-terminal status raises); unknown columns raise. Clone and
                 temp HOME unchanged. This is the config and ledger contract only, not a Hermes run.
-  skillcreator  $OSC_DIR, else ~/DEVELOP/pfy-mentat/tmp/opencode-skill-creator (an `npm install --prefix <dir>
+  skillcreator  $OSC_DIR, else $PFY_TMP/opencode-skill-creator (an `npm install --prefix <dir>
                 --ignore-scripts opencode-skill-creator@0.3.6` tree). Node 18+: $OSC_NODE, else
                 tmp/opencode-skill-creator/node/bin/node, else `node` on PATH.
                 node_modules/opencode-skill-creator/package.json pinned to 0.3.6 ($OSC_VERSION). A node driver loads the

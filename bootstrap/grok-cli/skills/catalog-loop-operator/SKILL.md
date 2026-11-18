@@ -11,7 +11,7 @@ A Build lane does not install systemd units and does not start the real loop. Th
 
 ## Inputs
 
-- State dir: `$PFY_LOOP_STATE`. When unset, the script uses `$HOME/DEVELOP/pfy-mentat/tmp/loop`.
+- State dir: `$PFY_LOOP_STATE`. When unset, the script uses `$PFY_TMP/loop`.
 - Worktree: `$PFY_LOOP_WT`. Repo: `$PFY_LOOP_REPO`.
 - Integrate markers also live under `$PFY_INTEGRATE_ROOT` and `$PFY_INTEGRATE2_ROOT`.
 - Eval markers from the old queue also live under `$PFY_EVQ_ROOT`.

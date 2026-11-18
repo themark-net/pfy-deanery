@@ -21,7 +21,7 @@ changed entry FAILs (exit 1) and is listed in real_home_changed, even when bwrap
 watched: a write elsewhere in HOME is not seen. checks.body_completed is false and `exception` names it when the run
 raised.
 
-  chiasmus   $CHIASMUS_DIR, else ~/DEVELOP/pfy-mentat/tmp/chiasmus (an `npm install --prefix <dir> --ignore-scripts
+  chiasmus   $CHIASMUS_DIR, else $PFY_TMP/chiasmus (an `npm install --prefix <dir> --ignore-scripts
              --omit=optional chiasmus@0.1.40` tree; node_modules/chiasmus/package.json pinned to 0.1.40,
              $CHIASMUS_VERSION overrides). Node 22+: $CHIASMUS_NODE, else tmp/chiasmus/node/bin/node, else `node` on
              PATH. The driver starts dist/mcp-server.js on stdio with CHIASMUS_HOME and CHIASMUS_CACHE_DIR in the temp
@@ -32,7 +32,7 @@ raised.
              impact(connect) = {query, handle}; chiasmus_lint reports the unbalanced parenthesis; chiasmus_skills finds
              a starter template for an access-control question. Its skill DB lands in the temp CHIASMUS_HOME only.
              Fixtures unchanged, temp HOME empty.
-  tracekit   $TRACEKIT_VENV, else ~/DEVELOP/pfy-mentat/tmp/tracekit/venv (a venv with `pip install tracekit-ai==1.4.1`;
+  tracekit   $TRACEKIT_VENV, else $PFY_TMP/tracekit/venv (a venv with `pip install tracekit-ai==1.4.1`;
              note `tracekit` on PyPI is an unrelated project). `tracekit --version` and tracekit.__version__ pinned
              to 1.4.1 ($TRACEKIT_VERSION). A driver run by the venv's python starts a same-user dev signer on a Unix
              socket in the temp dir with an in-process test witness (the pieces `tracekit demo --server` uses; that
@@ -45,7 +45,7 @@ raised.
              manifest re-hashed so only the signatures can catch it), and the real bundle against a trust file pinning
              another witness, must each exit non-zero with the named check failing. Signer data, client home, XDG
              dirs and runtime dir all in the temp dir. Temp HOME empty.
-  charlotte  $CHARLOTTE_DIR, else ~/DEVELOP/pfy-mentat/tmp/charlotte (an `npm install --prefix <dir>
+  charlotte  $CHARLOTTE_DIR, else $PFY_TMP/charlotte (an `npm install --prefix <dir>
              @ticktockbent/charlotte@0.8.0` tree with PUPPETEER_SKIP_DOWNLOAD=1; package.json pinned to 0.8.0,
              $CHARLOTTE_VERSION). Node 20+: $CHARLOTTE_NODE, else tmp/charlotte/node/bin/node, else PATH. A Chrome or
              Chromium binary: $CHARLOTTE_CHROME, else tmp/charlotte/chrome/chrome, else chromium, chromium-browser,

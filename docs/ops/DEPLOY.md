@@ -12,8 +12,8 @@ cd pfy-deanery
 Optional local folder rename if you still have the old path:
 
 ```bash
-mv ~/DEVELOP/local-llm-dev-tools ~/DEVELOP/pfy-mentat
-cd ~/DEVELOP/pfy-mentat
+mv $PFY_ROOT/local-llm-dev-tools $PFY_ROOT
+cd $PFY_ROOT
 git remote set-url origin git@github.com:themark-net/pfy-deanery.git
 git fetch origin && git checkout main && git pull
 ```

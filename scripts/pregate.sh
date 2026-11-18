@@ -26,6 +26,10 @@
 # deletes a folder whose pregate pid is still live.
 set -euo pipefail
 
+# Generic path defaults (no private checkout layout).
+: "${PFY_ROOT:=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)}"
+: "${PFY_TMP:=${TMPDIR:-/tmp}/pfy}"
+
 ALL_CHECKS="lint ci-parity ubuntu-parity eval-structural suite orphans gate-hash"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -123,7 +127,7 @@ fi
 # built under the run root and TMPDIR. Measured: 51-54 char roots pass, 76+ fail.
 for p in "$RUN_ROOT" "$SCRATCH"; do
   if [[ ${#p} -gt $MAX_ROOT_LEN ]]; then
-    die2 "path too long (${#p} > $MAX_ROOT_LEN chars): $p. Use a checkout whose git common dir is short (e.g. ~/DEVELOP/pfy-mentat) or set PREGATE_MAX_ROOT_LEN."
+    die2 "path too long (${#p} > $MAX_ROOT_LEN chars): $p. Use a checkout whose git common dir is short (e.g. $PFY_ROOT) or set PREGATE_MAX_ROOT_LEN."
   fi
 done
 [[ "$IN_PLACE" -eq 1 || ! -e "$RUN_ROOT" ]] || die2 "run root already exists: $RUN_ROOT"

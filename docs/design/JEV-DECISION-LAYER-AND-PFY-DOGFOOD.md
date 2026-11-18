@@ -31,7 +31,7 @@
 
 | Asset | Where | Notes |
 |-------|-------|-------|
-| `org-spinny-decide` package | `~/DEVELOP/org-spinny-decide` → `themark-net/org-spinny-decide` | Ollama Choice gates (`push_hold`, `nimo_yield`, `pm_route`); README: **Not cloud TypeSafe** |
+| `org-spinny-decide` package | `$PFY_ROOT/org-spinny-decide` → `themark-net/org-spinny-decide` | Ollama Choice gates (`push_hold`, `nimo_yield`, `pm_route`); README: **Not cloud TypeSafe** |
 | Org agent skill | `$HOME/agent-data/workflows/org-spinny-decide/SKILL.md` | Same: **No cloud TypeSafe** |
 | Bot coordination | `bots-coordinate-build-and-cursor-execute` | Explicitly: use org-spinny-decide for cheap gates; heavy implement → Grok Build / Cursor |
 | Grok Build | `use-grok-build-on-nimo` | Headless: `~/.local/bin/grok -p … --cwd <worktree> --always-approve` |
@@ -154,7 +154,7 @@ Can a **bot** (headless, nimo Shell) and a **human dev** each complete a real sl
 
 **Slice D1 — “Decision-aware docs/chore PR” (no product UI, no catalog HOLD lift)**
 
-1. Isolated worktree under `~/DEVELOP/pfy-mentat/tmp/<bot-slice>/`.  
+1. Isolated worktree under `$PFY_TMP/<bot-slice>/`.  
 2. `./pfy toolset apply jev --harness grok --lane local` (no TypeSafe key).  
 3. `./pfy decision smoke` + `python3 scripts/pfy_jev_230.py --selftest` must READY/ok.  
 4. Implement a **docs-only or script-comment** change already allowed by DoD (example: add a shadow-log stub design note, or wire `org-spinny-decide` README cross-link) — **not** Loop picker, **not** eval-auto harness.  

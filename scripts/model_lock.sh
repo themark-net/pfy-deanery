@@ -9,7 +9,7 @@
 # without taking the lock again, so a Make target can wrap a recipe that
 # itself calls model_lock.sh.
 #
-# The old ~/DEVELOP/pfy-mentat/tmp/heavy-1030.lock file is not used here.
+# The old $PFY_TMP/heavy-1030.lock file is not used here.
 # Light jobs must not flock that path either.
 set -eu
 if [ "$#" -lt 1 ]; then

@@ -24,9 +24,9 @@
       "lifecycle"
     ],
     [
-      "$HOME/DEVELOP/pfy-mentat/tmp/evq/wt/robrain/eval/evq1107/robrain/rank.mjs",
-      "$HOME/DEVELOP/pfy-mentat/tmp/evq/wt/robrain/eval/evq1107/robrain/corpus.json",
-      "$HOME/DEVELOP/pfy-mentat/tmp/evq/wt/robrain/eval/evq1107/robrain/scenarios.json"
+      "$PFY_TMP/evq/wt/robrain/eval/evq1107/robrain/rank.mjs",
+      "$PFY_TMP/evq/wt/robrain/eval/evq1107/robrain/corpus.json",
+      "$PFY_TMP/evq/wt/robrain/eval/evq1107/robrain/scenarios.json"
     ]
   ],
   "upstream": {

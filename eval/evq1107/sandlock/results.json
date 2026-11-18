@@ -66,8 +66,8 @@
     "timeout": false,
     "seconds": 0.1163,
     "permission_denied_lines": [
-      "sh: 10: cannot create $HOME/DEVELOP/pfy-mentat/tmp/evq/wt/sandlock/tmp/sandlock-probe/enforce/skills/SKILL.md: Permission denied",
-      "sh: 11: cannot create $HOME/DEVELOP/pfy-mentat/tmp/evq/wt/sandlock/tmp/sandlock-probe/enforce/sibling/escape.txt: Permission denied",
+      "sh: 10: cannot create $PFY_TMP/evq/wt/sandlock/tmp/sandlock-probe/enforce/skills/SKILL.md: Permission denied",
+      "sh: 11: cannot create $PFY_TMP/evq/wt/sandlock/tmp/sandlock-probe/enforce/sibling/escape.txt: Permission denied",
       "cat: $HOME/.cache/pfy/tools/sandlock/probe-secret/canary.txt: Permission denied",
       "PermissionError: [Errno 13] Permission denied"
     ]
@@ -95,8 +95,8 @@
     "timeout": false,
     "seconds": 0.0302,
     "permission_denied_lines": [
-      "sh: 10: cannot create $HOME/DEVELOP/pfy-mentat/tmp/evq/wt/sandlock/tmp/sandlock-probe/net-allow/skills/SKILL.md: Permission denied",
-      "sh: 11: cannot create $HOME/DEVELOP/pfy-mentat/tmp/evq/wt/sandlock/tmp/sandlock-probe/net-allow/sibling/escape.txt: Permission denied",
+      "sh: 10: cannot create $PFY_TMP/evq/wt/sandlock/tmp/sandlock-probe/net-allow/skills/SKILL.md: Permission denied",
+      "sh: 11: cannot create $PFY_TMP/evq/wt/sandlock/tmp/sandlock-probe/net-allow/sibling/escape.txt: Permission denied",
       "cat: $HOME/.cache/pfy/tools/sandlock/probe-secret/canary.txt: Permission denied"
     ]
   },

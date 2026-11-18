@@ -5,8 +5,8 @@
 # 20/day lane budget). PFY_LOOP_NO_PUSH=1 and --dry-run push nothing.
 # Optional command word: tick (same as no argument).
 #
-# State: ${PFY_CATALOG_STATE_DIR:-${PFY_LOOP_STATE:-$HOME/DEVELOP/pfy-mentat/tmp/loop}}
-# Worktree: ${PFY_LOOP_WT:-$HOME/DEVELOP/pfy-mentat/tmp/loop/wt}
+# State: ${PFY_CATALOG_STATE_DIR:-${PFY_LOOP_STATE:-$PFY_TMP/loop}}
+# Worktree: ${PFY_LOOP_WT:-$PFY_TMP/loop/wt}
 # Lock: STATE/loop.lock. A busy lock exits 0 with status busy.
 # STOP and QUOTA_STOP exit 0 with status stopped and launch nothing.
 # PFY_CATALOG_OFFLINE=1 skips fetch, regen writes, and push. Tests use it.
@@ -16,6 +16,10 @@
 # checkout. Unset, it goes to tmp/ops/ in the worktree (gitignored), uncommitted.
 set -euo pipefail
 
+# Generic path defaults (no private checkout layout).
+: "${PFY_ROOT:=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)}"
+: "${PFY_TMP:=${TMPDIR:-/tmp}/pfy}"
+
 export GIT_TERMINAL_PROMPT=0
 export PYTHONDONTWRITEBYTECODE=1
 
@@ -23,13 +27,13 @@ SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 if [ -n "${PFY_CATALOG_STATE_DIR:-}" ]; then
   STATE="$PFY_CATALOG_STATE_DIR"
 else
-  STATE="${PFY_LOOP_STATE:-$HOME/DEVELOP/pfy-mentat/tmp/loop}"
+  STATE="${PFY_LOOP_STATE:-$PFY_TMP/loop}"
 fi
-WT="${PFY_LOOP_WT:-$HOME/DEVELOP/pfy-mentat/tmp/loop/wt}"
-REPO="${PFY_LOOP_REPO:-$HOME/DEVELOP/pfy-mentat}"
-INTEGRATE_ROOT="${PFY_INTEGRATE_ROOT:-$HOME/DEVELOP/pfy-mentat/tmp/integrate}"
-INTEGRATE2_ROOT="${PFY_INTEGRATE2_ROOT:-$HOME/DEVELOP/pfy-mentat/tmp/integrate2}"
-EVQ_ROOT="${PFY_EVQ_ROOT:-$HOME/DEVELOP/pfy-mentat/tmp/evq}"
+WT="${PFY_LOOP_WT:-$PFY_TMP/loop/wt}"
+REPO="${PFY_LOOP_REPO:-$PFY_ROOT}"
+INTEGRATE_ROOT="${PFY_INTEGRATE_ROOT:-$PFY_TMP/integrate}"
+INTEGRATE2_ROOT="${PFY_INTEGRATE2_ROOT:-$PFY_TMP/integrate2}"
+EVQ_ROOT="${PFY_EVQ_ROOT:-$PFY_TMP/evq}"
 SYSTEMD_RUN="${PFY_SYSTEMD_RUN:-systemd-run}"
 DRY=0
 

@@ -15,6 +15,6 @@
 | Risk | How it fails | Recovery |
 |------|----------------|----------|
 | "Performs just as well" taken at face value | The X post's claim is cited as fact | Upstream's own numbers are 90.1% vs 93.2% for Jev on a narrow synthetic set. Quote those, not the post |
-| Hardware assumed | Someone tries the CUDA scorer on nimo | Smoke exits 2 before loading anything. A ROCm attempt needs its own slice and the operator's OK for anything outside `~/DEVELOP` |
+| Hardware assumed | Someone tries the CUDA scorer on nimo | Smoke exits 2 before loading anything. A ROCm attempt needs its own slice and the operator's OK for anything outside `$PFY_ROOT` |
 
 - **Status**: Cataloged I0. Can't run on nimo as documented upstream (smoke exits 2).

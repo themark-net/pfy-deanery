@@ -10,7 +10,7 @@ The system (the PFY) is sent out to discover candidates, apply strict local-firs
 
 Repository: https://github.com/themark-net/pfy-deanery
 
-Formerly **pfy-mentat** (renamed 2026-11-11; GitHub redirects the old URL). For one transition period some names keep the old spelling on purpose: the default state dir `~/.pfy-mentat` (`PFY_STATE_DIR` overrides), checkout paths such as `~/DEVELOP/pfy-mentat` used by the catalog loop units, the self-hosted runner label `pfy-mentat`, the agent-cage image tag and `/workspace/pfy-mentat`, and the `mentat` launcher alias that `./pfy install` still writes next to `deanery`.
+Formerly **pfy-mentat** (renamed 2026-11-11; GitHub redirects the old URL). For one transition period some names keep the old spelling on purpose: the default state dir `~/.pfy-mentat` (`PFY_STATE_DIR` overrides), checkout paths such as `$PFY_ROOT` used by the catalog loop units, the self-hosted runner label `pfy-mentat`, the agent-cage image tag and `/workspace/pfy-mentat`, and the `mentat` launcher alias that `./pfy install` still writes next to `deanery`.
 
 ## Simple path
 

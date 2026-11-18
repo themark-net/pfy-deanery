@@ -22,7 +22,7 @@ From **catalog repo root** (recommended):
 
 ```bash
 export PATH="$HOME/.local/bin:$PATH"
-cd ~/DEVELOP/pfy-mentat
+cd $PFY_ROOT
 git pull origin main   # or your feature branch
 
 make cage-doctor

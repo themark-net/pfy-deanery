@@ -51,7 +51,7 @@ Strata is an MIT local inference engine (C++, HIP, CUDA, Metal, SYCL) by Niko122
 ## 2026-10-06 ranking (history)
 
 **Scope:** what to integrate next, assuming **local models only on nimo** (Strix Halo, Ollama about 22 GB edge; `llama-server --no-mmap` edge ≥ 51 GB) and no paid keys besides Grok and Cursor. Active products: Leasegrid, pfy-deanery, Gom Jabbar (jobbar-master), Lotline, Practice Minder.
-**Read:** `TOOLS.md`, `data/tool_integration_stages.json`, `data/toolsets.json`, `sources/x-posts.md`, `sources/entries/066–092`, private ops notesLOCAL-BENCH-*`, `~/DEVELOP/_vendor/*` READMEs. Nothing was installed or run for this ranking.
+**Read:** `TOOLS.md`, `data/tool_integration_stages.json`, `data/toolsets.json`, `sources/x-posts.md`, `sources/entries/066–092`, private ops notesLOCAL-BENCH-*`, `$PFY_ROOT/_vendor/*` READMEs. Nothing was installed or run for this ranking.
 
 ## Already integrated (not re-recommended)
 

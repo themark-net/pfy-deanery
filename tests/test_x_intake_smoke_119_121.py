@@ -368,7 +368,7 @@ class XIntakeSmoke119121Tests(unittest.TestCase):
             repo = Path(td, "kenfold")
             repo.mkdir()
             (repo / "compose.yaml").write_text("services: {}\n", encoding="utf-8")
-            self.assertFalse((home / "DEVELOP/pfy-mentat/tmp/docker/docker").exists())
+            self.assertFalse((home / "tmp" / "pfy" / "docker" / "docker").exists())
             empty = Path(td, "emptybin")
             empty.mkdir()  # PATH with no docker, even on hosts that have one in /usr/bin
             p = _run("kenfold", _env(home, PATH=str(empty), KENFOLD_DIR=str(repo)))

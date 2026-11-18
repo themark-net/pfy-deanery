@@ -11,11 +11,11 @@ assay page run), HOME under a temp directory, a new session, and a process-group
 assay page runs use it, with --unshare-pid when that flag works. No parent environment variable reaches a child.
 No smoke calls a model. PFY_XINTAKE_TIMEOUT (float seconds, > 0) overrides the 600s per-command timeout.
 
-  openqodex $OPENQODEX_DIR, then ~/DEVELOP/pfy-mentat/tmp/openqodex (an `npm install --prefix <dir> --ignore-scripts
+  openqodex $OPENQODEX_DIR, then $PFY_TMP/openqodex (an `npm install --prefix <dir> --ignore-scripts
             openqodex@0.12.0`), package version pinned ($OPENQODEX_VERSION overrides). Node >= 22 from
-            $OPENQODEX_NODE, ~/DEVELOP/pfy-mentat/tmp/openqodex/node/bin/node, or PATH; older Node exits 2.
-            HOME is $OPENQODEX_HOME or ~/DEVELOP/pfy-mentat/tmp/openqodex/home. That path must resolve under
-            ~/DEVELOP/pfy-mentat/tmp or the system temp directory, otherwise the smoke exits 2. It is kept between
+            $OPENQODEX_NODE, $PFY_TMP/openqodex/node/bin/node, or PATH; older Node exits 2.
+            HOME is $OPENQODEX_HOME or $PFY_TMP/openqodex/home. That path must resolve under
+            $PFY_TMP or the system temp directory, otherwise the smoke exits 2. It is kept between
             runs because the first review downloads its scanners (semgrep, gitleaks, ruff, bandit; about 360 MB)
             into it; that first run needs network. Exits 2 if `claude` or `codex` is on the tool PATH, so no
             reviewer model can start.
@@ -24,9 +24,9 @@ No smoke calls a model. PFY_XINTAKE_TIMEOUT (float seconds, > 0) overrides the 6
             print a brief with the candidate ids and a findings path; `review --finalize` must accept a findings file
             that raises the shell=True candidate and drops the rest, and reject one whose `source` is made up.
             The real HOME's ~/.openqodex, ~/.claude, ~/.codex and ~/.cursor must not change.
-  assay     $ASSAY_BIN, then ~/DEVELOP/pfy-mentat/tmp/assay/venv/bin/assay (a venv with `pip install
+  assay     $ASSAY_BIN, then $PFY_TMP/assay/venv/bin/assay (a venv with `pip install
             assay-ui==0.3.0`), then PATH; `assay --version` pinned to 0.3.0 ($ASSAY_VERSION overrides). Chromium from
-            $PLAYWRIGHT_BROWSERS_PATH or ~/DEVELOP/pfy-mentat/tmp/assay/ms-playwright (must hold a
+            $PLAYWRIGHT_BROWSERS_PATH or $PFY_TMP/assay/ms-playwright (must hold a
             chromium_headless_shell-* build, else exit 2; the smoke never lets assay download one). Runs under bwrap
             with a read-only root and no network when it works. A working counter page must pass (exit 0, works,
             0 failed); a page whose button throws must fail (nonzero, a case naming the error, the repeat grouped as
@@ -165,7 +165,7 @@ def smoke_openqodex(r: dict) -> int:
     d = next((Path(c) for c in (os.environ.get("OPENQODEX_DIR"), str(TMP / "openqodex"))
               if c and (Path(c) / "node_modules/openqodex/dist/bin.js").is_file()), None)
     if not d:
-        r["reason"] = ("openqodex not staged: npm install --prefix ~/DEVELOP/pfy-mentat/tmp/openqodex --ignore-scripts "
+        r["reason"] = ("openqodex not staged: npm install --prefix $PFY_TMP/openqodex --ignore-scripts "
                        f"openqodex@{OPENQODEX_PIN} (or set $OPENQODEX_DIR)")
         return 2
     pkg = d / "node_modules/openqodex"
@@ -181,7 +181,7 @@ def smoke_openqodex(r: dict) -> int:
     r["node"] = nv
     if major < 22:
         r["reason"] = (f"Node >= 22 needed, found {nv}; unpack the nodejs.org latest-v22.x linux-x64 tarball "
-                       "(checked against SHASUMS256.txt) as ~/DEVELOP/pfy-mentat/tmp/openqodex/node or set $OPENQODEX_NODE")
+                       "(checked against SHASUMS256.txt) as $PFY_TMP/openqodex/node or set $OPENQODEX_NODE")
         return 2
     tool_path = f"{Path(node).parent}:/usr/bin:/bin"
     for rv in ("claude", "codex"):
@@ -281,8 +281,8 @@ def smoke_assay(r: dict) -> int:
     b = next((c for c in (os.environ.get("ASSAY_BIN"), str(TMP / "assay/venv/bin/assay"), shutil.which("assay"))
               if c and Path(c).is_file()), None)
     if not b:
-        r["reason"] = ("assay not staged: python3 -m venv ~/DEVELOP/pfy-mentat/tmp/assay/venv && "
-                       f"~/DEVELOP/pfy-mentat/tmp/assay/venv/bin/pip install assay-ui=={ASSAY_PIN} (or set $ASSAY_BIN)")
+        r["reason"] = ("assay not staged: python3 -m venv $PFY_TMP/assay/venv && "
+                       f"$PFY_TMP/assay/venv/bin/pip install assay-ui=={ASSAY_PIN} (or set $ASSAY_BIN)")
         return 2
     with tempfile.TemporaryDirectory(prefix="pfy-assay-ver-") as ver_home:
         v = run_isolated([b, "--version"], home=ver_home, timeout=30).stdout.strip()
@@ -294,7 +294,7 @@ def smoke_assay(r: dict) -> int:
     browsers = os.environ.get("PLAYWRIGHT_BROWSERS_PATH") or str(TMP / "assay/ms-playwright")
     if not list(Path(browsers).glob("chromium_headless_shell-*")):
         r["reason"] = (f"no Chromium under {browsers}; stage it once with PLAYWRIGHT_BROWSERS_PATH={browsers} "
-                       "~/DEVELOP/pfy-mentat/tmp/assay/venv/bin/playwright install chromium (the smoke never downloads)")
+                       "$PFY_TMP/assay/venv/bin/playwright install chromium (the smoke never downloads)")
         return 2
     with tempfile.TemporaryDirectory(prefix="pfy-assay-") as td:
         r["containment"] = containment(td, [td])

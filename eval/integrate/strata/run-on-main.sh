@@ -8,13 +8,13 @@
 # scripts/model_lock.sh wraps a generate call. This receipt uses status only.
 # A timeout is not a pass. Missing listener, error, or timeout writes no receipt.
 #
-# Lane marker: $HOME/DEVELOP/pfy-mentat/tmp/integrate2/strata.dispatched
+# Lane marker: $PFY_TMP/integrate2/strata.dispatched
 # An existing marker is a second start and exits 2, unless its pid line is an
 # ancestor of this process (the admitted lane). This script does not create
 # or remove the marker.
 #
 # The main push is a fast-forward under one flock:
-# $HOME/DEVELOP/pfy-mentat/tmp/integrate2/push.lock
+# $PFY_TMP/integrate2/push.lock
 # This script does not take that flock. No third global lock.
 #
 # Writes receipt.json only when HEAD is an ancestor of origin/main
@@ -22,7 +22,9 @@
 
 set -euo pipefail
 
-MARKER=${PFY_STRATA_LANE_MARKER:-$HOME/DEVELOP/pfy-mentat/tmp/integrate2/strata.dispatched}
+: "${PFY_TMP:=${TMPDIR:-/tmp}/pfy}"
+
+MARKER=${PFY_STRATA_LANE_MARKER:-$PFY_TMP/integrate2/strata.dispatched}
 
 if [ "$#" -ne 1 ] || [ -z "${1:-}" ]; then
   printf '%s\n' "usage: eval/integrate/strata/run-on-main.sh RECEIPT.json" >&2

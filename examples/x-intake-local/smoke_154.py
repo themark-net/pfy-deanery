@@ -10,7 +10,7 @@ downloads anything, never starts DeepSeek Harness, never talks to GitHub or Feis
 
 This is the upstream `pnpm check` (typecheck, vitest, tsdown build) run straight from the clone's node_modules/.bin,
 so neither pnpm nor corepack (which would fetch pnpm 11.7.0) is needed at smoke time.
-Clone: $DSH_SUPERAGENT_DIR, else ~/DEVELOP/pfy-mentat/tmp/dsh-superagent, checked out at DSH_SUPERAGENT_COMMIT
+Clone: $DSH_SUPERAGENT_DIR, else $PFY_TMP/dsh-superagent, checked out at DSH_SUPERAGENT_COMMIT
 (default the pinned commit below) with `pnpm install --frozen-lockfile` already done; otherwise exit 2.
 Node: $NODE_BIN, else `node` on PATH; must be ^22.19 or >=24 (upstream engines), else exit 2.
 Steps run with a temp HOME/TMPDIR, a clean env and a timeout ($PFY_XINTAKE_TIMEOUT, default 600 s per step), under
@@ -222,7 +222,7 @@ def main() -> int:
     except ValueError:
         rec["reason"] = "bad PFY_XINTAKE_TIMEOUT"
         return finish(2, rec)
-    repo = Path(os.environ.get("DSH_SUPERAGENT_DIR") or Path.home() / "DEVELOP/pfy-mentat/tmp/dsh-superagent")
+    repo = Path(os.environ.get("DSH_SUPERAGENT_DIR") or Path(os.environ.get("PFY_TMP", "/tmp/pfy")) / "dsh-superagent")
     rec["clone"] = str(repo)
     if not (repo / "package.json").is_file():
         rec["reason"] = f"dsh-superagent clone not staged at {repo}"

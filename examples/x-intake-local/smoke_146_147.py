@@ -13,7 +13,7 @@ agent's skill, MCP or systemd config. PFY_XINTAKE_TIMEOUT and explicit binary ov
 Real HOME: each entry fingerprints the real-HOME paths the tool could write before the run and again in a finally.
 Any change FAILs (exit 1) and is listed in real_home_changed. Only those paths are watched.
 
-  skill-up  $SKILLUP_BIN, else ~/DEVELOP/pfy-mentat/tmp/skill-up/skill-up, else `skill-up` on PATH (the v0.14.0
+  skill-up  $SKILLUP_BIN, else $PFY_TMP/skill-up/skill-up, else `skill-up` on PATH (the v0.14.0
             skill-up_0.14.0_linux_amd64.tar.gz release asset unpacked; binary sha256 pinned to SKILLUP_SHA256,
             `--version` to SKILLUP_VERSION). Needs python3 on the system PATH for the stub agent. The smoke writes a
             fixture skill in a temp dir: an eval.yaml (environment none, no skills, no MCP) whose engine is a custom
@@ -23,7 +23,7 @@ Any change FAILs (exit 1) and is listed in real_home_changed. Only those paths a
             response pong-7 and hello-fail FAIL with must_contain evidence; the stub got a SessionInput naming both
             case ids; skill-up's temp workspaces land in the temp TMPDIR; the temp HOME stays empty. Watched:
             ~/.skill-up, ~/.config/skill-up. No model, provider, docker or OpenSandbox runtime is used.
-  hiroute   $HIROUTE_DIR, else ~/DEVELOP/pfy-mentat/tmp/hiroute, holding the v0.3.1 linux x86_64 release archive
+  hiroute   $HIROUTE_DIR, else $PFY_TMP/hiroute, holding the v0.3.1 linux x86_64 release archive
             (hiroute-0.3.1-13856abd873d-x86_64-unknown-linux-gnu.tar.gz), its manifest (.tar.gz.json) and the
             standalone installer (standalone.py from hiroute.ai/install/), all three sha256-pinned
             (HIROUTE_ARCHIVE_SHA256, HIROUTE_MANIFEST_SHA256, HIROUTE_INSTALLER_SHA256). Needs bwrap (the gateway

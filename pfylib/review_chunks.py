@@ -1829,7 +1829,7 @@ def _tsa_map(worktree, paths):
     binary = _tool_bin(
         "PFY_TSA_BIN",
         "tree-sitter-analyzer",
-        [Path.home() / "DEVELOP/pfy-mentat/tmp/tree-sitter-analyzer/.venv/bin/tree-sitter-analyzer"],
+        [Path(os.environ.get("PFY_TMP", "/tmp/pfy")) / "tree-sitter-analyzer/.venv/bin/tree-sitter-analyzer"],
     )
     if binary is None:
         return ""

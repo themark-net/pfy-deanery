@@ -6,7 +6,7 @@ Usage: python3 examples/typed-decisions-local/smoke.py --entry laya|nimble|beaco
 Exit 0 = PASS. 1 = the tool ran but the check failed. 2 = can't run here (prereq missing; reason recorded).
 Writes pipelines/smoke/<entry>/latest.json every time. Never installs anything, never downloads into the repo.
 
-  laya    $LAYA_PYTHON or ~/DEVELOP/pfy-mentat/tmp/laya-venv/bin/python with `pip install laya`.
+  laya    $LAYA_PYTHON or $PFY_TMP/laya-venv/bin/python with `pip install laya`.
           Runs the upstream README billing example on CPU and expects department == billing.
   nimble  Needs an NVIDIA BF16 GPU (Linux) or Apple Silicon, plus $NIMBLE_DIR (prepared checkout with
           .cache/nimble-model.json) and $NIMBLE_PYTHON. Expects priority == HIGH, requires_review == true.
@@ -25,7 +25,7 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-TMP_VENV = Path.home() / "DEVELOP/pfy-mentat/tmp/laya-venv/bin/python"
+TMP_VENV = Path(os.environ.get("PFY_TMP", "/tmp/pfy")) / "laya-venv/bin/python"
 
 LAYA_CODE = r"""
 import json
@@ -97,8 +97,8 @@ def smoke_laya(r: dict) -> int:
     py = Path(os.environ.get("LAYA_PYTHON") or TMP_VENV)
     r["python"] = str(py)
     if not os.access(py, os.X_OK):
-        r["reason"] = (f"no Laya venv at {py}. Operator: python3 -m venv ~/DEVELOP/pfy-mentat/tmp/laya-venv && "
-                       "~/DEVELOP/pfy-mentat/tmp/laya-venv/bin/python -m pip install laya (inside ~/DEVELOP only)")
+        r["reason"] = (f"no Laya venv at {py}. Operator: python3 -m venv $PFY_TMP/laya-venv && "
+                       "$PFY_TMP/laya-venv/bin/python -m pip install laya (inside $PFY_ROOT only)")
         return 2
     t = time.time()
     try:
@@ -153,7 +153,7 @@ def smoke_beacon(r: dict) -> int:
     r["bin"] = b
     r["note"] = "install-only check; capture and learning are not exercised"
     if not b or not os.access(b, os.X_OK):
-        r["reason"] = ("no beacon binary. Use upstream's user-mode tarball under ~/DEVELOP/pfy-mentat/tmp "
+        r["reason"] = ("no beacon binary. Use upstream's user-mode tarball under $PFY_TMP "
                        "(no sudo), choose Local, no beacon.sh sign-in, skills install off")
         return 2
     for flag in ("--version", "--help"):

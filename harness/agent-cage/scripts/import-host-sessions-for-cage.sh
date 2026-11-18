@@ -9,8 +9,10 @@
 # Without this mapping, host "old" sessions never show in the cage.
 set -euo pipefail
 
+# HOST_CWD is the host catalog checkout. No private default path.
+: "${HOST_CWD:?set HOST_CWD to the host catalog checkout}"
+
 AGENTCAGE_DIR="${AGENTCAGE_DIR:-$HOME/.agentcage}"
-HOST_CWD="${HOST_CWD:-$HOME/DEVELOP/local-llm-dev-tools}"
 CAGE_CWD="${CAGE_CWD:-/workspace/pfy-mentat}"
 GROK_HOME_HOST="${GROK_HOME_HOST:-$HOME/.grok}"
 STATE_SESSIONS="${AGENTCAGE_DIR}/grok-state/sessions"

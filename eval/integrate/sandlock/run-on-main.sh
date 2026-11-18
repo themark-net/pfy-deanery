@@ -12,6 +12,8 @@
 
 set -euo pipefail
 
+: "${PFY_TMP:=${TMPDIR:-/tmp}/pfy}"
+
 if [ "$#" -ne 1 ] || [ -z "$1" ]; then
   echo "usage: eval/integrate/sandlock/run-on-main.sh RECEIPT.json" >&2
   exit 2

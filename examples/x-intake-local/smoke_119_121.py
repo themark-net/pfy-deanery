@@ -15,22 +15,22 @@ Real HOME: before each run the smoke snapshots the real-HOME dirs the tool write
 and compares them in a finally, also on timeout: checks.real_home_untouched, and a change FAILs (exit 1). On a
 timeout the receipt keeps the partial checks; a `compose down -v` timeout never replaces an earlier failure reason.
 
-  agentdescent  $AGENTDESCENT_BIN, then ~/DEVELOP/pfy-mentat/tmp/agentdescent/.venv/bin/agentdescent (a venv with
+  agentdescent  $AGENTDESCENT_BIN, then $PFY_TMP/agentdescent/.venv/bin/agentdescent (a venv with
                 `pip install agentdescent==0.5.1`), then PATH. The package version, read with the python next to the
                 binary, is pinned to 0.5.1 ($AGENTDESCENT_VERSION overrides). Runs the packaged offline demo
                 (`demo --dir`, with `--store` in the temp dir) under bwrap with a read-only root and no network when
                 that works: it must exit 0, print "held-out reward: 1.000" and learn rules.md -> 'COLUMN: amount',
                 and the demo skill on disk must still say 'COLUMN: id' (an evolved artifact only lands on `apply`).
-  kenfold       $KENFOLD_DIR, then ~/DEVELOP/pfy-mentat/tmp/kenfold: a checkout of jeonjw85/kenfold at tag v0.1.1
+  kenfold       $KENFOLD_DIR, then $PFY_TMP/kenfold: a checkout of jeonjw85/kenfold at tag v0.1.1
                 ($KENFOLD_REF overrides; checked with `git describe --tags --exact-match`) and commit dfc18f9f ($KENFOLD_COMMIT
                 overrides, `skip` disables; checked with `git rev-parse HEAD`), holding compose.yaml.
-                Needs docker ($DOCKER_BIN, ~/DEVELOP/pfy-mentat/tmp/docker/docker, or PATH) with the compose plugin;
+                Needs docker ($DOCKER_BIN, $PFY_TMP/docker/docker, or PATH) with the compose plugin;
                 exit 2 without them, or if 127.0.0.1:7077 is already answering. Builds and starts only the postgres and
                 kenfold services as compose project "pfy-kenfold-smoke" (no Ollama, no reranker, update check off),
                 then GET /healthz and /readyz must be 200, POST /mcp with no API key must be refused with 401, and
                 `kenfold healthcheck` inside the container must exit 0. Always runs `compose down -v` after. No API key
                 is minted and no memory is written. For a non-default socket set $KENFOLD_DOCKER_HOST.
-  tsa           $TSA_BIN, then ~/DEVELOP/pfy-mentat/tmp/tree-sitter-analyzer/.venv/bin/tree-sitter-analyzer (a
+  tsa           $TSA_BIN, then $PFY_TMP/tree-sitter-analyzer/.venv/bin/tree-sitter-analyzer (a
                 venv with `pip install "tree-sitter-analyzer[all]==2.2.0"`), then PATH; `miswire-audit` must sit
                 next to it. `--version` pinned to 2.2.0 ($TSA_VERSION overrides). In a temp fixture repo (three
                 Python files counting __init__.py, one JavaScript file; both languages define `total`), under bwrap

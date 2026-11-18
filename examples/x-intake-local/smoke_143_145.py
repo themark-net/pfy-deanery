@@ -16,7 +16,7 @@ Real HOME: each entry fingerprints the real-HOME paths the tool could write (tas
 ~/.config/graft, ~/.cache/graft; muxin: ~/.config/muxin, ~/.local/state/gh) before the run and again in a finally.
 Any change FAILs (exit 1) and is listed in real_home_changed. Only those paths are watched.
 
-  taste-skill  $TASTE_SKILL_DIR, else ~/DEVELOP/pfy-mentat/tmp/taste-skill (a `git clone` of
+  taste-skill  $TASTE_SKILL_DIR, else $PFY_TMP/taste-skill (a `git clone` of
                github.com/Leonxlnx/taste-skill; HEAD pinned to TASTE_SKILL_COMMIT, $TASTE_SKILL_COMMIT overrides).
                Node 22+ ($TASTE_NODE, else tmp/taste-skill/node/bin/node, else PATH) and a Chrome/Chromium
                ($TASTE_CHROME, else chromium, chromium-browser, google-chrome or google-chrome-stable on the system
@@ -28,7 +28,7 @@ Any change FAILs (exit 1) and is listed in real_home_changed. Only those paths a
                FAIL findings for gradient, emoji and eyebrow and saves at least one .jpg; no ad-chrome-* profile left
                in TASTE_SKILL_TMP. Fixtures unchanged. Chrome's own leftovers (XDG dirs, NSS pki, Singleton dirs in
                TMPDIR) go to temp dirs; the temp HOME may hold only .local/share/{applications,pki} from Chrome.
-  gitai        $GITAI_DIR, else ~/DEVELOP/pfy-mentat/tmp/gitai (a `git clone --branch v0.3.1` of
+  gitai        $GITAI_DIR, else $PFY_TMP/gitai (a `git clone --branch v0.3.1` of
                github.com/feder-cr/git-ai, HEAD pinned to GITAI_COMMIT) with `make build` already run there by hand
                (_build/bin/gitaly, gitaly-hooks, gitaly-ssh, graft, graft-cache; `gitaly --version` must print
                "Gitaly, version 0.3.1", $GITAI_VERSION overrides, else exit 2). The smoke runs the repo's own
@@ -38,7 +38,7 @@ Any change FAILs (exit 1) and is listed in real_home_changed. Only those paths a
                "hello graft" and not the denied "nope" line, and feature/demo holds feature.txt. Temp HOME empty.
                NOT verified on the box: it can't build Gitaly (Go 1.27.2 but no make, meson or ninja), so this path has
                only been exercised with stubs.
-  muxin        $MUXIN_BIN, else ~/DEVELOP/pfy-mentat/tmp/muxin/Muxin/muxin, else `muxin` on PATH (the v0.6.0
+  muxin        $MUXIN_BIN, else $PFY_TMP/muxin/Muxin/muxin, else `muxin` on PATH (the v0.6.0
                linux-x86_64 release tarball unpacked; never its install.sh). Binary sha256 pinned to MUXIN_SHA256
                and `muxin --version` to MUXIN_VERSION. $MUXIN_LIB_DIR, when set, becomes LD_LIBRARY_PATH (for hosts
                missing libxkbcommon-x11 or libxcb-xkb; a --version that fails exits 2). MUXIN_HOME, XDG_STATE_HOME and XDG_CONFIG_HOME point at temp

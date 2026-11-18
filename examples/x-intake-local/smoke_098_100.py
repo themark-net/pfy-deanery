@@ -11,15 +11,15 @@ PFY_XINTAKE_TIMEOUT (float seconds, must be > 0) overrides the sponsio, openstep
 timeouts. Empty keeps the defaults: 120s sponsio and repoharness, 60s opensteps hooks. Any other set value (abc, 0, -1, nan, inf) exits 2 before the entry runs. Git keeps the
 parent env. Sponsio, opensteps hooks, and repoharness drop paid-provider keys and token-like names and get a fresh temp HOME.
 
-  sponsio      $SPONSIO_PY or ~/DEVELOP/pfy-mentat/tmp/sponsio/.venv/bin/python with `sponsio` importable.
+  sponsio      $SPONSIO_PY or $PFY_TMP/sponsio/.venv/bin/python with `sponsio` importable.
                Arms the bundled sponsio:capability/shell pack in enforce mode and expects `ls -la` allowed while
                `rm -rf ~/` and curl-to-bash are blocked before execution. No LLM, no network, no account.
                The probe runs with HOME pointed at a temp dir.
-  opensteps    $OPEN_STEPS_DIR or ~/DEVELOP/pfy-mentat/tmp/open-steps (a clone). With HOME pointed at a temp dir:
+  opensteps    $OPEN_STEPS_DIR or $PFY_TMP/open-steps (a clone). With HOME pointed at a temp dir:
                session-start records a baseline, a clean stop exits 0, a stop after a file change exits 2 and
                asks for the os-done-or-not report, and a repeat stop with no new change exits 0 (no loop).
                A hook timeout is a recorded check failure (exit 1), not a traceback.
-  repoharness  $HARNESS_BIN or ~/DEVELOP/pfy-mentat/tmp/repository-harness/harness (release binary), then PATH.
+  repoharness  $HARNESS_BIN or $PFY_TMP/repository-harness/harness (release binary), then PATH.
                harness-linux-x64 for harness-v0.1.10 is pinned; $HARNESS_SHA256 overrides that pin. A mismatch
                exits 2 without exec. In a throwaway git repo with our own AGENTS.md: install must apply, leave
                AGENTS.md byte-identical, pass `doctor`, and `status` must flag a local edit to an installed file.
@@ -114,8 +114,8 @@ def smoke_sponsio(r: dict) -> int:
             break
     r["python"] = py
     if not py:
-        r["reason"] = ("no Python with sponsio. Operator: python3 -m venv ~/DEVELOP/pfy-mentat/tmp/sponsio/.venv && "
-                       "~/DEVELOP/pfy-mentat/tmp/sponsio/.venv/bin/pip install --pre sponsio (Apache-2.0, alpha). "
+        r["reason"] = ("no Python with sponsio. Operator: python3 -m venv $PFY_TMP/sponsio/.venv && "
+                       "$PFY_TMP/sponsio/.venv/bin/pip install --pre sponsio (Apache-2.0, alpha). "
                        "No `sponsio init` in a real repo, no `sponsio push` (hosted console)")
         return 2
     with tempfile.TemporaryDirectory(prefix="pfy-sponsio-") as d, tempfile.TemporaryDirectory(prefix="pfy-sponsio-home-") as home:
@@ -160,7 +160,7 @@ def smoke_opensteps(r: dict) -> int:
     r["dir"] = d
     if not d:
         r["reason"] = ("no Open Steps clone. Operator: git clone https://github.com/kharmanskyi/open-steps "
-                       "~/DEVELOP/pfy-mentat/tmp/open-steps (MIT). Do not copy skills into ~/.agents or wire hooks "
+                       "$PFY_TMP/open-steps (MIT). Do not copy skills into ~/.agents or wire hooks "
                        "into any harness config for this smoke")
         return 2
     for tool in ("bash", "git"):
@@ -225,7 +225,7 @@ def smoke_repoharness(r: dict) -> int:
         r["reason"] = ("no harness binary. Operator: download harness-linux-x64 and its .sha256 from "
                        "https://github.com/hoangnb24/repository-harness/releases (harness-v0.1.10, "
                        f"sha256 {HARNESS_V010_SHA256}), verify, "
-                       "save as ~/DEVELOP/pfy-mentat/tmp/repository-harness/harness. Not the curl|bash installer, and "
+                       "save as $PFY_TMP/repository-harness/harness. Not the curl|bash installer, and "
                        "never run it against a real product repo in this smoke")
         return 2
     expect = pinned(r, "HARNESS_SHA256", HARNESS_V010_SHA256, lower=True)

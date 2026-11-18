@@ -4,12 +4,12 @@ One stdlib smoke for three I0 catalog entries from the 2026-10-05 daily X intake
 
 | Entry | Tool | Command | Expected on nimo today |
 |------|------|---------|------------------------|
-| 086 | Laya | `python3 examples/typed-decisions-local/smoke.py --entry laya` | exit 2 until a venv exists at `~/DEVELOP/pfy-mentat/tmp/laya-venv` |
+| 086 | Laya | `python3 examples/typed-decisions-local/smoke.py --entry laya` | exit 2 until a venv exists at `$PFY_TMP/laya-venv` |
 | 087 | Bespoke Nimble | `python3 examples/typed-decisions-local/smoke.py --entry nimble` | exit 2 (no NVIDIA GPU, not Apple Silicon) |
 | 088 | Beacon | `python3 examples/typed-decisions-local/smoke.py --entry beacon` | exit 2 until a user-mode install exists |
 
 Exit 0 = PASS, 1 = ran but the check failed, 2 = can't run here. Each run writes `pipelines/smoke/<entry>/latest.json`.
-The script never installs packages or downloads weights itself. Installs go under `~/DEVELOP/pfy-mentat/tmp/` only.
+The script never installs packages or downloads weights itself. Installs go under `$PFY_TMP/` only.
 
 ## Entry 086 eval-auto trial (this worktree)
 
@@ -17,9 +17,9 @@ Head-to-head vs the ADR-0016 CUA-S1-FORMS lane on `data/decision-gates/laya-tria
 
 ```bash
 # Reuse the trial venv + HF cache (do not copy weights into this worktree).
-export LAYA_PYTHON=$HOME/DEVELOP/pfy-mentat/tmp/laya-trial/.venv-laya/bin/python
-export HF_HOME=$HOME/DEVELOP/pfy-mentat/tmp/laya-trial/.hf-cache
-export HF_HUB_CACHE=$HOME/DEVELOP/pfy-mentat/tmp/laya-trial/.hf-cache
+export LAYA_PYTHON=$PFY_TMP/laya-trial/.venv-laya/bin/python
+export HF_HOME=$PFY_TMP/laya-trial/.hf-cache
+export HF_HUB_CACHE=$PFY_TMP/laya-trial/.hf-cache
 python3 examples/typed-decisions-local/trial.py --check
 python3 examples/typed-decisions-local/trial.py
 python3 examples/typed-decisions-local/trial.py --shadow

@@ -1,6 +1,6 @@
 # atg-framework evaluation (2026-10-06)
 
-**Evaluated:** `~/DEVELOP/atg-framework` `main` @ `29bca8a` (v0.2.0). Read-only. The founder Build checkout had uncommitted edits in `docs/{NEXT,OPEN_QUESTIONS,TODO,USING}.md`; tests ran on a copy in `/tmp/atg-eval-copy`.
+**Evaluated:** `$PFY_ROOT/atg-framework` `main` @ `29bca8a` (v0.2.0). Read-only. The founder Build checkout had uncommitted edits in `docs/{NEXT,OPEN_QUESTIONS,TODO,USING}.md`; tests ran on a copy in `/tmp/atg-eval-copy`.
 **Paper:** Zhang, Chen, Huang, Cui, Ji, Wang (2026), *Atomic Task Graph: A Unified Framework for Agentic Planning and Execution*, arXiv:2607.01942. atg-framework is an independent reimplementation, not an author release (Decision 0020: no author SDK exists).
 **Verified here:** `uv run pytest -q -m "not integration"` → **35 passed, 1 deselected** (0.4 s). `examples/toy_parallel.py` (offline) → `mock total={'value': 25} waves=2 parallel=2`. No live model was loaded: the host is running a GLM-4.5-Air bench.
 
@@ -57,7 +57,7 @@ No paid key is needed anywhere. Everything above runs on local models.
 | 4 | `ToolRegistry` (JSON schema + callable) | `data/toolsets.json`, `data/harnesses.json`, `make smoke-*` targets | **Adapt** later: generate a registry from smoke and eval targets so a catalog stage probe (clone → install → smoke → score) is one DAG with frozen reuse on re-run | S–M | A plain make/cache gets most of the value. Do this only after #3 proves out |
 | 5 | History JSON + `Metrics` | Evidence receipts (`receipt.json`, `loop-evidence.json`) | **Adopt** as the evidence shape for #1 and #3 | S | None significant |
 | 6 | Parallel ready-queue executor | Bench and dogfood pipelines | **Skip** for model calls: nimo serves one large model at a time, so parallel width buys nothing and raises lockup risk. Fine for cheap non-LLM tools | — | — |
-| 7 | Package coupling (submodule / `pip -e`) | OQ-0004, `data/tool_integration_stages.json` (I1 `submodule_later`) | **Skip now.** Probe by path (`~/DEVELOP/atg-framework`, pinned SHA) | — | Embedding before the live gate violates the stage non-goals |
+| 7 | Package coupling (submodule / `pip -e`) | OQ-0004, `data/tool_integration_stages.json` (I1 `submodule_later`) | **Skip now.** Probe by path (`$PFY_ROOT/atg-framework`, pinned SHA) | — | Embedding before the live gate violates the stage non-goals |
 | 8 | Catalog card refresh | TOOLS.md ATG row, `tool_integration_stages.json` ("No runnable core"), `docs/ops/atg-coupling.md` | **Adopt now** (follow atg `docs/ops/pfy-mentat-handoff.md` gate table). Card text: "runnable, unit-green, live unproven". Stage stays I1 until a live pass | S | Triple-write gap: no `data/tools.json` ATG object |
 | 9 | LangGraph / DSPy adapters | Gom Jabbar uses DSPy. pfy core does not | **Skip** in pfy | — | — |
 

@@ -154,7 +154,7 @@ class McpScanTests(unittest.TestCase):
         no_args = self.run_scan([])
         self.assertEqual(no_args.returncode, 2, no_args.stdout + no_args.stderr)
 
-        project = self.home / "DEVELOP" / "proj"
+        project = self.home / "src" / "proj"
         project.mkdir(parents=True)
         self.write_mcp(project / ".cursor" / "mcp.json", {
             "mcpServers": {"local-notes": {"command": "node", "args": ["./server.js"]}},

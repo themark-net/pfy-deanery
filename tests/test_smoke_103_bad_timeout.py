@@ -15,9 +15,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = "examples/x-intake-local/smoke_103_105.py"
 BUGPATROL_MISS = (
-    "no bugpatrol. Operator: npm install --prefix ~/DEVELOP/pfy-mentat/tmp/bugpatrol bugpatrol@0.3.0 "
+    "no bugpatrol. Operator: npm install --prefix $PFY_TMP/bugpatrol bugpatrol@0.3.0 "
     "(Apache-2.0; needs Node 22+, e.g. the official node-v22 linux-x64 tarball unpacked to "
-    "~/DEVELOP/pfy-mentat/tmp/bugpatrol/node). Not `npx bugpatrol` in a product checkout, no "
+    "$PFY_TMP/bugpatrol/node). Not `npx bugpatrol` in a product checkout, no "
     "`skills add`, no GitHub, no fixer, no paid provider key"
 )
 

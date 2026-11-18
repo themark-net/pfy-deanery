@@ -16,7 +16,7 @@ or a network call fails the step. smolvm is never run under bwrap. Every tool co
 a timeout SIGKILLs its whole process group, so no forked child outlives the smoke. Without bwrap the smoke falls back to checking that the tool's real-HOME state dirs were not
 created or modified. The receipt records which mode ran (`containment`).
 
-  smolvm   $SMOLVM_BIN, then ~/DEVELOP/pfy-mentat/tmp/smolvm/smolvm (the wrapper script from the v1.26.1
+  smolvm   $SMOLVM_BIN, then $PFY_TMP/smolvm/smolvm (the wrapper script from the v1.26.1
            smolvm-1.26.1-linux-x86_64.tar.gz release, unpacked as-is), then PATH. The `smolvm-bin` next to the
            wrapper is pinned by sha256 ($SMOLVM_SHA256 overrides); a mismatch exits 2 without exec. Exits 2 if
            /dev/kvm is missing or not read/write for this user ($PFY_SMOLVM_KVM_PATH overrides that path).
@@ -33,7 +33,7 @@ created or modified. The receipt records which mode ran (`containment`).
            rewind: write gen1 in a persistent machine, `machine checkpoint`, write gen2, `machine create --from`
            the checkpoint, and the restored machine must read gen1 while the source reads gen2; both machines
            are deleted afterwards. Never uses the curl | bash installer.
-  brigade  $BRIGADE_BIN, then ~/DEVELOP/pfy-mentat/tmp/brigade/.venv/bin/brigade (a venv with
+  brigade  $BRIGADE_BIN, then $PFY_TMP/brigade/.venv/bin/brigade (a venv with
            `pip install brigade-cli==0.27.0`), then PATH; `brigade --version` must be 0.27.0 ($BRIGADE_VERSION
            overrides) or the smoke exits 2. Plus git. BRIGADE_NO_UPDATE_CHECK=1 is set (Brigade otherwise
            refreshes a version check against check.brigade.tools in a detached child). In a throwaway git repo:
@@ -42,10 +42,10 @@ created or modified. The receipt records which mode ran (`containment`).
            HEAD, a failing one records the real exit code (3), `receipts verify` reports every digest OK, and a
            tampered log makes it report a mismatch and exit nonzero. FAILs if the temp HOME gains an update-check
            cache.
-  runx     $RUNX_BIN, then ~/DEVELOP/pfy-mentat/tmp/runx/runx (from runx-0.9.1-x86_64-unknown-linux-musl.tar.gz),
+  runx     $RUNX_BIN, then $PFY_TMP/runx/runx (from runx-0.9.1-x86_64-unknown-linux-musl.tar.gz),
            then PATH. The v0.9.1 binary is pinned by sha256 ($RUNX_SHA256 overrides); a mismatch exits 2 without
-           exec. Plus the upstream example from $RUNX_SRC or ~/DEVELOP/pfy-mentat/tmp/runx/src (a clone at tag
-           cli-v0.9.1; main has a different example layout) and Node from $RUNX_NODE, ~/DEVELOP/pfy-mentat/tmp/
+           exec. Plus the upstream example from $RUNX_SRC or $PFY_TMP/runx/src (a clone at tag
+           cli-v0.9.1; main has a different example layout) and Node from $RUNX_NODE, $PFY_TMP/
            runx/node/bin/node, or PATH. A copy of examples/hello-world runs with a throwaway Ed25519 seed
            (issuer type `ci`), receipts go to the scratch dir, the run must be `sealed` with the input echoed,
            `runx verify` must find the receipt valid in production signature mode, and a different key or a
@@ -264,8 +264,8 @@ def smoke_smolvm(r: dict) -> int:
         r["reason"] = ("no smolvm. Operator: download smolvm-1.26.1-linux-x86_64.tar.gz and checksums.sha256 from "
                        "https://github.com/smol-machines/smolvm/releases/tag/v1.26.1, check the tarball sha256 "
                        "(bcae519f7dad3cead2deaa0362a42a1ad7bffce73ea7a28161dea6822c559654), and unpack it as "
-                       "~/DEVELOP/pfy-mentat/tmp/smolvm/ (wrapper `smolvm`, `smolvm-bin`, lib/, agent-rootfs/). Not "
-                       "the curl | bash installer (installs outside ~/DEVELOP), not brew")
+                       "$PFY_TMP/smolvm/ (wrapper `smolvm`, `smolvm-bin`, lib/, agent-rootfs/). Not "
+                       "the curl | bash installer (installs outside $PFY_ROOT), not brew")
         return 2
     real = os.path.realpath(b)
     payload = os.path.join(os.path.dirname(real), "smolvm-bin")
@@ -381,7 +381,7 @@ def smolvm_checkpoint(sv, d: str, image: str, r: dict) -> int:
 def smoke_brigade(r: dict) -> int:
     b = find_bin("BRIGADE_BIN", "brigade/.venv/bin/brigade", "brigade")
     r["bin"] = b
-    op = ("Operator: python3 -m venv ~/DEVELOP/pfy-mentat/tmp/brigade/.venv && ~/DEVELOP/pfy-mentat/tmp/brigade/.venv/"
+    op = ("Operator: python3 -m venv $PFY_TMP/brigade/.venv && $PFY_TMP/brigade/.venv/"
           f"bin/pip install brigade-cli=={BRIGADE_PIN} (MIT, Python 3.10+, no runtime deps). Not pipx/uv tool install "
           "into the real HOME, no `brigade setup`, no `brigade operator quickstart` in a product checkout")
     if not b:
@@ -512,7 +512,7 @@ def smoke_runx(r: dict) -> int:
         r["reason"] = ("no runx. Operator: download runx-0.9.1-x86_64-unknown-linux-musl.tar.gz and its .sha256 from "
                        "https://github.com/runxhq/runx/releases/tag/cli-v0.9.1, check it (sha256 59eee2af81d24d0f8b"
                        "a2416e2bac55d147ed93693e6a41ffe7c2cfd5cba98cc7), and unpack runx + runx-js-worker into "
-                       "~/DEVELOP/pfy-mentat/tmp/runx/. Not the curl | sh installer, not npm i -g, no `runx login`")
+                       "$PFY_TMP/runx/. Not the curl | sh installer, not npm i -g, no `runx login`")
         return 2
     expect = pinned(r, "RUNX_SHA256", RUNX_V091_SHA256, lower=True)
     digest = sha256_file(b)
@@ -528,7 +528,7 @@ def smoke_runx(r: dict) -> int:
     r["src"] = src
     if not src:
         r["reason"] = ("no runx example. Operator: git clone --depth 1 --branch cli-v0.9.1 https://github.com/runxhq/"
-                       "runx.git ~/DEVELOP/pfy-mentat/tmp/runx/src (main uses a different example layout)")
+                       "runx.git $PFY_TMP/runx/src (main uses a different example layout)")
         return 2
     node = None
     for c in (os.environ.get("RUNX_NODE"), str(TMP / "runx/node/bin/node"), shutil.which("node")):

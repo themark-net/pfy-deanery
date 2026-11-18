@@ -79,11 +79,11 @@ Seeds in every grill prompt: software-factory Q5 "What stops two runs doing the 
 
 ## Sandcastle
 
-`npx tsx src/lanes.mts --grill auto` (default) calls this script once per ticket before the exit-test commit. `--grill off` skips it. `PFY_MENTAT_DIR` selects the checkout (default `~/DEVELOP/pfy-mentat`). A failure blocks only that ticket. The lane receipt field `grill` has `count`, `turns`, and `costUsd`.
+`npx tsx src/lanes.mts --grill auto` (default) calls this script once per ticket before the exit-test commit. `--grill off` skips it. `PFY_MENTAT_DIR` selects the checkout (default `$PFY_ROOT`). A failure blocks only that ticket. The lane receipt field `grill` has `count`, `turns`, and `costUsd`.
 
 ## Real run (nimo)
 
-Samples are copies under `docs/ops/grill-samples/`. `tmp/TICKET-pk2.md` and `~/DEVELOP/pfy-mentat/tmp/fp1107/TICKET-s3.md` were not modified. Both runs used the embedded skill summary and the embedded Modular CI rule. Model `grok-4.7-build`. Each call was one turn and stopped with `end_turn`. The coordinator accepted every recommended answer.
+Samples are copies under `docs/ops/grill-samples/`. `tmp/TICKET-pk2.md` and `$PFY_TMP/fp1107/TICKET-s3.md` were not modified. Both runs used the embedded skill summary and the embedded Modular CI rule. Model `grok-4.7-build`. Each call was one turn and stopped with `end_turn`. The coordinator accepted every recommended answer.
 
 | Sample | Questions | Behavior changes | Turns | Wall | Cost |
 |---|---|---|---|---|---|

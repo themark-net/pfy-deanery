@@ -132,19 +132,19 @@
     "skill_chars_div_4": 36571,
     "ours": [
       {
-        "path": "$HOME/DEVELOP/pfy-mentat/tmp/evq/wt/anti-slop/bootstrap/grok-cli/skills/karpathy-guidelines/SKILL.md",
+        "path": "$PFY_TMP/evq/wt/anti-slop/bootstrap/grok-cli/skills/karpathy-guidelines/SKILL.md",
         "bytes": 2518,
         "chars_div_4": 626,
         "rel": "bootstrap/grok-cli/skills/karpathy-guidelines/SKILL.md"
       },
       {
-        "path": "$HOME/DEVELOP/pfy-mentat/tmp/evq/wt/anti-slop/bootstrap/grok-cli/skills/ui-is-the-app-design-in-loop/SKILL.md",
+        "path": "$PFY_TMP/evq/wt/anti-slop/bootstrap/grok-cli/skills/ui-is-the-app-design-in-loop/SKILL.md",
         "bytes": 3248,
         "chars_div_4": 806,
         "rel": "bootstrap/grok-cli/skills/ui-is-the-app-design-in-loop/SKILL.md"
       },
       {
-        "path": "$HOME/DEVELOP/pfy-mentat/tmp/evq/wt/anti-slop/bootstrap/grok-cli/skills-external/ponytail/ponytail/SKILL.md",
+        "path": "$PFY_TMP/evq/wt/anti-slop/bootstrap/grok-cli/skills-external/ponytail/ponytail/SKILL.md",
         "bytes": 6707,
         "chars_div_4": 1671,
         "rel": "bootstrap/grok-cli/skills-external/ponytail/ponytail/SKILL.md"

@@ -14,21 +14,21 @@ Real HOME: llmrouter and squadra snapshot the real-HOME dirs the tool writes by 
 ~/.local/state/squadra, ~/.cache/squadra and ~/.squadra; content-hashed) and compare them in a finally, also on timeout:
 checks.real_home_untouched, and any change FAILs (exit 1), even when bwrap is unavailable.
 
-  llmrouter      $LLMROUTER_BIN, then ~/DEVELOP/pfy-mentat/tmp/llm-router/.venv/bin/llm-router (a venv with
+  llmrouter      $LLMROUTER_BIN, then $PFY_TMP/llm-router/.venv/bin/llm-router (a venv with
                  `pip install llm-routing==15.4.0`), then PATH. The package version, read with the python next to
                  the binary, is pinned to 15.4.0 ($LLMROUTER_VERSION overrides). Under bwrap with no network when that
                  works: the offline heuristic classifier (`llm_router.classify.classify_signals`, no model) must call
                  "what does os.path.join do?" a confident simple query and "implement a Redis-backed rate limiter ..."
                  confident code; `llm-router demo` must exit 0 and print its routing table; the temp HOME must stay
                  empty (no ~/.llm-router written). `install` is never run, so no host config or hook is touched.
-  harnessrouter  Needs docker ($DOCKER_BIN, ~/DEVELOP/pfy-mentat/tmp/docker/docker, or PATH); exit 2 without it, or
+  harnessrouter  Needs docker ($DOCKER_BIN, $PFY_TMP/docker/docker, or PATH); exit 2 without it, or
                  if 127.0.0.1:$HR_SMOKE_PORT (default 3917) already answers. Runs the image pinned by digest
                  ($HR_IMAGE overrides, with a WARN) as container "pfy-hr-smoke" with volume "pfy-hr-smoke" bound to that loopback
                  port only (exit 2, removing nothing, if that container or volume already exists), waits for the Console to answer (< 500), then POST /api/harness/v1/responses with no key
                  must be refused (401 or 403). Always removes the container and the volume after, including when
                  SIGTERM arrives during docker run (exit 1, reason names SIGTERM). No provider key,
                  no CE API key, no task. For a non-default socket set $HR_DOCKER_HOST.
-  squadra        $SQUADRA_DIR, then ~/DEVELOP/pfy-mentat/tmp/squadra: a checkout of dagoSte/squadra at tag v3.10.1
+  squadra        $SQUADRA_DIR, then $PFY_TMP/squadra: a checkout of dagoSte/squadra at tag v3.10.1
                  holding scripts/squadra.py; `--version` pinned to 3.10.1 ($SQUADRA_VERSION overrides). Needs
                  python3 >= 3.12 and git. Under bwrap when it works, in a temp git repo with one commit and a registry
                  outside it: `init --temporary`, register a coordinator and a builder (client "manual"), record one

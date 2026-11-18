@@ -7,6 +7,10 @@
 # STATE/supersede/stale.txt before systemd-run. PFY_LANE_FROM_LOOP=1
 # continues when that marker already exists.
 set -euo pipefail
+
+# Generic path defaults (no private checkout layout).
+: "${PFY_ROOT:=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)}"
+: "${PFY_TMP:=${TMPDIR:-/tmp}/pfy}"
 export GIT_TERMINAL_PROMPT=0
 export PYTHONDONTWRITEBYTECODE=1
 
@@ -14,8 +18,8 @@ SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 GATE_CLOUD_ROOT="${GATE_CLOUD_ROOT:-$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)}"
 # shellcheck source=gate_cloud_call.sh
 . "$SCRIPT_DIR/gate_cloud_call.sh"
-STATE="${PFY_LOOP_STATE:-$HOME/DEVELOP/pfy-mentat/tmp/loop}"
-REPO="${PFY_LOOP_REPO:-$HOME/DEVELOP/pfy-mentat}"
+STATE="${PFY_LOOP_STATE:-$PFY_TMP/loop}"
+REPO="${PFY_LOOP_REPO:-$PFY_ROOT}"
 MARK_DIR="$STATE/supersede"
 WT="$MARK_DIR/wt"
 MARKER="$MARK_DIR/recheck.dispatched"
