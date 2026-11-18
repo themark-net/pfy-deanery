@@ -105,6 +105,12 @@ class VersionSoT(_Home):
         self.assertEqual(self.fingerprint(), before)
         self.assertFalse(self.state.joinpath("last-verb").exists())
 
+    def test_init_stays_import_light(self) -> None:
+        text = (ROOT / "pfylib" / "__init__.py").read_text()
+        head, _sep, _tail = text.partition("def __getattr__")
+        self.assertNotIn("from .version import", head)
+        self.assertIn("def __getattr__", text)
+
 
 class UpdateCheck(_Home):
     def test_update_without_check_does_not_apply_or_write(self) -> None:

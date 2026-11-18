@@ -27,6 +27,11 @@ from __future__ import annotations
 
 __all__ = ["registry", "toolsets", "hedge", "attach", "loop_paint", "cli", "setup", "adapters"]
 
-from .version import product_version
+def __getattr__(name: str):
+    # Keep import light: catalog-loop fixtures copy __init__.py without
+    # version.py, and `from pfylib.model_choice import ...` must still work.
+    if name == "__version__":
+        from .version import product_version
 
-__version__ = product_version()
+        return product_version()
+    raise AttributeError("module %r has no attribute %r" % (__name__, name))
