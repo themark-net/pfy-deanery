@@ -37,12 +37,17 @@ jobs:
               exit 1
               ;;
           esac
+      # The workflow file and checker live on the branch that dispatched the
+      # job. The tag is checked out into release-tag/ so notes and pyproject
+      # are read from that tag, even when the tag predates this workflow.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           ref: ${{ env.TAG }}
           fetch-depth: 1
+          path: release-tag
       - name: Verify release notes and pyproject version at this tag
-        run: python3 scripts/check_github_release.py "$TAG"
+        run: python3 scripts/check_github_release.py "$TAG" --root release-tag
       - name: Create the GitHub release if missing
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -54,4 +59,4 @@ jobs:
           fi
           gh release create "$TAG" \
             --title "Deanery $TAG" \
-            --notes-file "docs/release-notes/${TAG}.md"
+            --notes-file "release-tag/docs/release-notes/${TAG}.md"

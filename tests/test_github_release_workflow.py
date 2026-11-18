@@ -20,10 +20,10 @@ CHECKER = ROOT / "scripts" / "check_github_release.py"
 CHECKOUT_SHA = "11d5960a326750d5838078e36cf38b85af677262"
 
 
-def _run_checker(root: Path, tag: str) -> subprocess.CompletedProcess[str]:
+def _run_checker(root: Path, tag: str, *extra: str, cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        [sys.executable, str(CHECKER), tag],
-        cwd=str(root),
+        [sys.executable, str(CHECKER), tag, *extra],
+        cwd=str(cwd or root),
         capture_output=True,
         text=True,
         timeout=10,
@@ -92,7 +92,8 @@ class ReleaseWorkflowStructure(unittest.TestCase):
                 ref = step.get("uses")
                 if ref:
                     uses.append(ref)
-        self.assertEqual(uses, [f"actions/checkout@{CHECKOUT_SHA}"], uses)
+        self.assertTrue(uses, "workflow must check out the repo")
+        self.assertTrue(all(u == f"actions/checkout@{CHECKOUT_SHA}" for u in uses), uses)
 
 
 class ReleaseNotesGate(unittest.TestCase):
@@ -125,6 +126,23 @@ class ReleaseNotesGate(unittest.TestCase):
             _write_tree(root, version="0.5.0", notes_tag="v0.5.0")
             proc = _run_checker(root, "v0.5.0")
             self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+
+    def test_root_flag_reads_that_tree_not_cwd(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="pfy-release-root-") as raw:
+            base = Path(raw)
+            tagged = base / "tag"
+            other = base / "other"
+            tagged.mkdir()
+            other.mkdir()
+            _write_tree(tagged, version="0.5.0", notes_tag="v0.5.0")
+            _write_tree(other, version="0.4.0", notes_tag="v0.5.0")
+            ok = _run_checker(tagged, "v0.5.0", "--root", str(tagged), cwd=other)
+            self.assertEqual(ok.returncode, 0, ok.stdout + ok.stderr)
+            bad = _run_checker(other, "v0.5.0", "--root", str(other), cwd=tagged)
+            self.assertNotEqual(bad.returncode, 0, bad.stdout + bad.stderr)
+            self.assertIn("0.4.0", bad.stdout + bad.stderr)
+
+
 
 
 if __name__ == "__main__":

@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Fail unless this checkout has release notes and a matching pyproject version.
 
-Usage: python3 scripts/check_github_release.py v0.5.0
+Usage: python3 scripts/check_github_release.py v0.5.0 [--root DIR]
 
-Reads pyproject.toml and docs/release-notes/<tag>.md from the current
-working directory (the tag checkout in CI). No network and no GitHub writes.
+Reads pyproject.toml and docs/release-notes/<tag>.md from --root, or the
+current working directory. CI checks out the tag into a separate path
+because this script is not on older tags. No network and no GitHub writes.
 """
 from __future__ import annotations
 
@@ -43,11 +44,19 @@ def check(root: Path, tag: str) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
+    root = Path.cwd()
+    if "--root" in args:
+        idx = args.index("--root")
+        if idx + 1 >= len(args):
+            print("usage: check_github_release.py v0.5.0 [--root DIR]", file=sys.stderr)
+            return 2
+        root = Path(args[idx + 1])
+        del args[idx : idx + 2]
     if len(args) != 1:
-        print("usage: check_github_release.py v0.5.0", file=sys.stderr)
+        print("usage: check_github_release.py v0.5.0 [--root DIR]", file=sys.stderr)
         return 2
     try:
-        check(Path.cwd(), args[0])
+        check(root, args[0])
     except SystemExit as exc:
         if exc.code not in (0, None):
             print(exc.code if isinstance(exc.code, str) else exc, file=sys.stderr)
