@@ -7,7 +7,7 @@ Grok and Cursor are subscription execs with no model rewiring (Cursor is
 offers a local default of qwen3.6:35b and shows cloud estimates or a
 subscription label before a choice is accepted. Child-process env only:
 this never writes model or base-URL into harness config and never prompts
-for a paid vendor key. Claude Code and Codex only accept a local source.
+for a paid vendor key. Claude Code and Codex only accept a local source. `--yes` execs the planned argv locally (exit-code passthrough, inherited stdio, no shell, no auto-pull). `--dry-run --json` still only plans.
 """
 from __future__ import annotations
 
@@ -15,6 +15,7 @@ import json
 import os
 import shutil
 import socket
+import subprocess
 import sys
 import urllib.error
 import urllib.request
@@ -683,6 +684,123 @@ def _fail(exc: LaunchError, as_json: bool) -> int:
     return int(exc.code)
 
 
+
+def _ollama_name_matches(pulled: str, want: str) -> bool:
+    have = (pulled or "").strip()
+    tag = (want or "").strip()
+    if not tag or not have:
+        return False
+    if have == tag or have == tag + ":latest":
+        return True
+    if tag.endswith(":latest") and have == tag[: -len(":latest")]:
+        return True
+    return False
+
+
+def ollama_pulled_names(timeout: float = 0.4) -> list[str] | None:
+    """List local tags via GET /api/tags or /v1/models. None if unread. Never pulls."""
+    base = ollama_host()
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+    try:
+        with opener.open(base + "/api/tags", timeout=timeout) as resp:
+            data = json.loads(resp.read().decode())
+        names = []
+        for row in data.get("models") or []:
+            if isinstance(row, dict) and row.get("name"):
+                names.append(str(row["name"]))
+        return names
+    except (urllib.error.URLError, socket.timeout, TimeoutError, OSError, ValueError, json.JSONDecodeError):
+        pass
+    try:
+        with opener.open(base + "/v1/models", timeout=timeout) as resp:
+            data = json.loads(resp.read().decode())
+        names = []
+        for row in data.get("data") or []:
+            if isinstance(row, dict):
+                ident = row.get("id") or row.get("name")
+                if ident:
+                    names.append(str(ident))
+        return names
+    except (urllib.error.URLError, socket.timeout, TimeoutError, OSError, ValueError, json.JSONDecodeError):
+        return None
+
+
+def ollama_model_is_pulled(tag: str) -> bool | None:
+    """True/False when the list is readable; None when it is not. Never pulls."""
+    names = ollama_pulled_names()
+    if names is None:
+        return None
+    return any(_ollama_name_matches(name, tag) for name in names)
+
+
+def preflight_live(plan: LaunchPlan) -> None:
+    """Live-path only checks. Dry-run planning is unchanged."""
+    model = plan.model or ""
+    if model.startswith("ollama:"):
+        tag = model.split(":", 1)[1].strip()
+        pulled = ollama_model_is_pulled(tag)
+        if pulled is None:
+            raise LaunchError(
+                f"could not list pulled Ollama models; pfy launch will not pull {tag!r}",
+                next_step="confirm Ollama is up (ollama serve) and the model is already pulled",
+                code=1,
+            )
+        if not pulled:
+            raise LaunchError(
+                f"local model {tag!r} is not pulled; pfy launch will not pull it",
+                next_step="ollama pull %s  (operator-run; this command does not pull)" % tag,
+                code=1,
+            )
+
+
+def resolve_argv(plan: LaunchPlan) -> list[str]:
+    argv = list(plan.argv)
+    if not argv:
+        raise LaunchError(
+            "launch plan has no argv",
+            next_step="re-run with --dry-run --json to inspect the plan",
+            code=1,
+        )
+    bin_name = argv[0]
+    if os.path.sep in bin_name or (os.path.altsep and os.path.altsep in bin_name):
+        if not (os.path.isfile(bin_name) and os.access(bin_name, os.X_OK)):
+            raise LaunchError(
+                f"launch binary not found: {bin_name}",
+                next_step="install the harness binary or fix the path",
+                code=1,
+            )
+        return argv
+    found = shutil.which(bin_name)
+    if not found:
+        raise LaunchError(
+            f"launch binary {bin_name!r} is not on PATH",
+            next_step=f"install {bin_name} and add it to PATH",
+            code=1,
+        )
+    return [found, *argv[1:]]
+
+
+def exec_launch(plan: LaunchPlan) -> int:
+    """Run the planned argv. stdin/stdout/stderr are inherited. No shell."""
+    argv = resolve_argv(plan)
+    env = os.environ.copy()
+    env.update({str(k): str(v) for k, v in (plan.env or {}).items()})
+    try:
+        proc = subprocess.run(argv, env=env, shell=False)
+    except OSError as exc:
+        raise LaunchError(
+            f"failed to exec {argv[0]}: {exc}",
+            next_step="install the harness binary or fix the path",
+            code=1,
+        ) from exc
+    rc = proc.returncode
+    if rc is None:
+        return 1
+    if rc < 0:
+        return 128 + (-rc)
+    return int(rc)
+
+
 def cmd_launch(args: Any) -> int:
     as_json = bool(getattr(args, "json", False))
     hid = (getattr(args, "harness", None) or "").strip()
@@ -710,20 +828,18 @@ def cmd_launch(args: Any) -> int:
         plan = plan_launch(hid, model, dry_run=dry_run, passthrough=extra)
     except LaunchError as exc:
         return _fail(exc, as_json)
-    emit(plan.to_json(), as_json)
     if plan.dry_run:
+        emit(plan.to_json(), as_json)
         return 0
     if not yes:
+        emit(plan.to_json(), as_json)
         emit(
             {"ok": False, "reason": "refusing to exec without --yes", "next_step": "re-run with --yes or --dry-run"},
             as_json,
         )
         return 1
-    return _fail(
-        LaunchError(
-            "live exec is not in this Phase 3 slice",
-            next_step="use --dry-run --json, or a later gated live-smoke slice",
-            code=3,
-        ),
-        as_json,
-    )
+    try:
+        preflight_live(plan)
+        return exec_launch(plan)
+    except LaunchError as exc:
+        return _fail(exc, as_json)

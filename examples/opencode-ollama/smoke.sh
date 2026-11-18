@@ -154,39 +154,7 @@ ok "opencode.json generated"
 
 # --- 4) LiteLLM-style completion without OpenCode (always) ---
 log "OpenAI-compat completion (worker model)"
-python3 - <<PY
-import json, os, urllib.request
-base = os.environ["OLLAMA_OPENAI_BASE"].rstrip("/")
-model = os.environ["LOCAL_CODER_MODEL"]
-url = base + "/chat/completions"
-body = json.dumps({
-    "model": model,
-    "messages": [{"role": "user", "content": "Reply with exactly: OPENCODE_SMOKE_OK"}],
-    "max_tokens": 32,
-    "temperature": 0,
-}).encode()
-req = urllib.request.Request(
-    url, data=body,
-    headers={"Content-Type": "application/json", "Authorization": "Bearer ollama"},
-    method="POST",
-)
-# bypass proxy
-opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
-try:
-    with opener.open(req, timeout=120) as resp:
-        data = json.loads(resp.read().decode())
-except Exception as e:
-    print(f"error: completion failed: {e}", flush=True)
-    raise SystemExit(1)
-text = (data.get("choices") or [{}])[0].get("message", {}).get("content") or ""
-print(f"  response={text!r}")
-if "OPENCODE_SMOKE_OK" not in text and "OK" not in text.upper():
-    # local models sometimes paraphrase — accept non-empty short reply
-    if len(text.strip()) < 2:
-        raise SystemExit("empty completion")
-    print("  note: exact phrase missing; non-empty reply accepted for local model variance")
-print("  completion: OK")
-PY
+python3 "$ROOT/examples/opencode-ollama/compat_completion.py"
 ok "local worker completion"
 
 # --- 5) OpenCode CLI optional ---
