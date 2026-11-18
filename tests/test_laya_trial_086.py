@@ -9,6 +9,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from pfylib.paths import pfy_tmp
+
 ROOT = Path(__file__).resolve().parents[1]
 TRIAL = ROOT / "examples" / "typed-decisions-local" / "trial.py"
 
@@ -65,7 +67,7 @@ class LayaTrialFailClosedTests(unittest.TestCase):
         self.assertIn("127.0.0.1:1", p.stdout)
 
     def test_shadow_no_start_fails_closed_and_writes_receipt(self):
-        py = Path(os.environ.get("LAYA_PYTHON") or str(Path(os.environ.get("PFY_TMP", "/tmp/pfy")) / "laya-trial/.venv-laya/bin/python"))
+        py = Path(os.environ.get("LAYA_PYTHON") or str(pfy_tmp() / "laya-trial/.venv-laya/bin/python"))
         if not os.access(py, os.X_OK):
             py = ROOT / ".venv-laya" / "bin" / "python"
         if not os.access(py, os.X_OK):

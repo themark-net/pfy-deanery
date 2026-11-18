@@ -31,6 +31,16 @@ import tempfile
 import time
 from pathlib import Path
 
+
+def _pfy_tmp() -> Path:
+    raw = os.environ.get("PFY_TMP")
+    if raw:
+        return Path(raw)
+    cache = os.environ.get("XDG_CACHE_HOME")
+    base = Path(cache) if cache else Path.home() / ".cache"
+    return base / "pfy" / "tmp"
+
+
 ROOT = Path(__file__).resolve().parents[2]
 PIN = os.environ.get("SKILLSPECTOR_VERSION", "2.12.0")
 SYS_PATH = "/usr/local/bin:/usr/bin:/bin"
@@ -68,7 +78,7 @@ def find_bin() -> str | None:
     env = os.environ.get("SKILLSPECTOR_BIN")
     if env:
         return env if os.access(env, os.X_OK) else None
-    local = Path(os.environ.get("PFY_TMP", "/tmp/pfy")) / "skillspector/.venv/bin/skillspector"
+    local = _pfy_tmp() / "skillspector/.venv/bin/skillspector"
     if os.access(local, os.X_OK):
         return str(local)
     return shutil.which("skillspector")

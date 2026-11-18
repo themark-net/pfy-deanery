@@ -4,9 +4,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from pfylib.paths import pfy_tmp
+
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "eval" / "integrate" / "headson" / "run-on-main.sh"
-REAL_MARKER = (Path(os.environ.get("PFY_TMP", "/tmp/pfy")) / "integrate2/headson.dispatched")
+REAL_MARKER = (pfy_tmp() / "integrate2/headson.dispatched")
 
 
 def _run(marker: Path | None, receipt: Path):

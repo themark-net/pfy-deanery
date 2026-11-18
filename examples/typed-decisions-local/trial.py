@@ -31,11 +31,21 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
+
+def _pfy_tmp() -> Path:
+    raw = os.environ.get("PFY_TMP")
+    if raw:
+        return Path(raw)
+    cache = os.environ.get("XDG_CACHE_HOME")
+    base = Path(cache) if cache else Path.home() / ".cache"
+    return base / "pfy" / "tmp"
+
+
 ROOT = Path(__file__).resolve().parents[2]
 CASES_REL = Path("data/decision-gates/laya-trial.cases.v0.json")
 RECEIPT_REL = Path("pipelines/dogfood/laya-trial/receipt.json")
 SHADOW_RECEIPT_REL = Path("pipelines/dogfood/laya-shadow/receipt.json")
-SHARED_TRIAL_ROOT = (Path(os.environ.get("PFY_TMP", "/tmp/pfy")) / "laya-trial")
+SHARED_TRIAL_ROOT = (_pfy_tmp() / "laya-trial")
 DEFAULT_VENV = ROOT / ".venv-laya" / "bin" / "python"
 DEFAULT_HF = ROOT / ".hf-cache"
 DEFAULT_HOST = "127.0.0.1"

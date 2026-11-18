@@ -7,9 +7,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from pfylib.paths import pfy_tmp
+
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "eval/integrate/opencode-mem/run-on-main.sh"
-REAL_MARKER = (Path(os.environ.get("PFY_TMP", "/tmp/pfy")) / "integrate2/opencode-mem.dispatched")
+REAL_MARKER = (pfy_tmp() / "integrate2/opencode-mem.dispatched")
 VERDICT = ROOT / "eval/integrate/opencode-mem/VERDICT.json"
 CARD = ROOT / "data/stages/opencode-mem.json"
 

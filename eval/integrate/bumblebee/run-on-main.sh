@@ -26,7 +26,7 @@
 
 set -euo pipefail
 
-: "${PFY_TMP:=${TMPDIR:-/tmp}/pfy}"
+: "${PFY_TMP:=${XDG_CACHE_HOME:-${HOME}/.cache}/pfy/tmp}"
 
 if [ "$#" -ne 1 ] || [ -z "${1:-}" ]; then
   printf '%s\n' "usage: eval/integrate/bumblebee/run-on-main.sh RECEIPT.json" >&2

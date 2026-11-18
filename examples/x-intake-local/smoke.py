@@ -36,7 +36,19 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-TMP = Path(os.environ.get("PFY_TMP", "/tmp/pfy"))
+
+
+def default_pfy_tmp() -> Path:
+    """Operator scratch. Never /tmp/pfy (tmp-cleanup treats that as a host leak)."""
+    raw = os.environ.get("PFY_TMP")
+    if raw:
+        return Path(raw)
+    cache = os.environ.get("XDG_CACHE_HOME")
+    base = Path(cache) if cache else Path.home() / ".cache"
+    return base / "pfy" / "tmp"
+
+
+TMP = default_pfy_tmp()
 # Env vars stripped from every x-intake tool subprocess (smoke_103_105/106_108/109_111 import this): paid model
 # keys and endpoints, cloud and forge tokens, so a third-party binary never sees them.
 PAID_KEYS = ("OPENROUTER_API_KEY", "AI_GATEWAY_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GOOGLE_APIKEY",

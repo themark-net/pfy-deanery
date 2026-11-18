@@ -13,7 +13,7 @@ dest=$1
 
 set -euo pipefail
 
-: "${PFY_TMP:=${TMPDIR:-/tmp}/pfy}"
+: "${PFY_TMP:=${XDG_CACHE_HOME:-${HOME}/.cache}/pfy/tmp}"
 
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   printf '%s\n' "not a git checkout" >&2

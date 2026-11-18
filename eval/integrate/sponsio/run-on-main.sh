@@ -21,7 +21,7 @@
 
 set -euo pipefail
 
-: "${PFY_TMP:=${TMPDIR:-/tmp}/pfy}"
+: "${PFY_TMP:=${XDG_CACHE_HOME:-${HOME}/.cache}/pfy/tmp}"
 
 work=
 receipt_tmp=

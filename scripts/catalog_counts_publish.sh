@@ -10,7 +10,7 @@ set -euo pipefail
 
 # Generic path defaults (no private checkout layout).
 : "${PFY_ROOT:=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)}"
-: "${PFY_TMP:=${TMPDIR:-/tmp}/pfy}"
+: "${PFY_TMP:=${XDG_CACHE_HOME:-${HOME}/.cache}/pfy/tmp}"
 
 export GIT_TERMINAL_PROMPT=0
 export GIT_AUTHOR_NAME=catalog-loop

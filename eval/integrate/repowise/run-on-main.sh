@@ -24,7 +24,7 @@
 
 set -euo pipefail
 
-: "${PFY_TMP:=${TMPDIR:-/tmp}/pfy}"
+: "${PFY_TMP:=${XDG_CACHE_HOME:-${HOME}/.cache}/pfy/tmp}"
 
 MARKER=${PFY_REPOWISE_LANE_MARKER:-$PFY_TMP/integrate2/repowise.dispatched}
 

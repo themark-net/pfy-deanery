@@ -24,8 +24,18 @@ import sys
 import time
 from pathlib import Path
 
+
+def _pfy_tmp() -> Path:
+    raw = os.environ.get("PFY_TMP")
+    if raw:
+        return Path(raw)
+    cache = os.environ.get("XDG_CACHE_HOME")
+    base = Path(cache) if cache else Path.home() / ".cache"
+    return base / "pfy" / "tmp"
+
+
 ROOT = Path(__file__).resolve().parents[2]
-TMP_VENV = Path(os.environ.get("PFY_TMP", "/tmp/pfy")) / "laya-venv/bin/python"
+TMP_VENV = _pfy_tmp() / "laya-venv/bin/python"
 
 LAYA_CODE = r"""
 import json

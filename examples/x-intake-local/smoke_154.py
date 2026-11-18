@@ -33,6 +33,16 @@ import tempfile
 import time
 from pathlib import Path
 
+
+def _pfy_tmp() -> Path:
+    raw = os.environ.get("PFY_TMP")
+    if raw:
+        return Path(raw)
+    cache = os.environ.get("XDG_CACHE_HOME")
+    base = Path(cache) if cache else Path.home() / ".cache"
+    return base / "pfy" / "tmp"
+
+
 ROOT = Path(__file__).resolve().parents[2]
 PIN = os.environ.get("DSH_SUPERAGENT_COMMIT", "6337fc823ce20251c8de8085948165c81aaa701e")
 SYS_PATH = "/usr/local/bin:/usr/bin:/bin"
@@ -222,7 +232,7 @@ def main() -> int:
     except ValueError:
         rec["reason"] = "bad PFY_XINTAKE_TIMEOUT"
         return finish(2, rec)
-    repo = Path(os.environ.get("DSH_SUPERAGENT_DIR") or Path(os.environ.get("PFY_TMP", "/tmp/pfy")) / "dsh-superagent")
+    repo = Path(os.environ.get("DSH_SUPERAGENT_DIR") or _pfy_tmp() / "dsh-superagent")
     rec["clone"] = str(repo)
     if not (repo / "package.json").is_file():
         rec["reason"] = f"dsh-superagent clone not staged at {repo}"

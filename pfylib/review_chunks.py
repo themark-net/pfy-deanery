@@ -18,6 +18,8 @@ import time
 import urllib.parse
 from pathlib import Path
 
+from pfylib.paths import pfy_tmp
+
 TAIL_CAP = 4000
 REVIEW_CHAR_CEILING = 2_000_000
 REVIEW_PROMPT_CEILING = 200
@@ -1829,7 +1831,7 @@ def _tsa_map(worktree, paths):
     binary = _tool_bin(
         "PFY_TSA_BIN",
         "tree-sitter-analyzer",
-        [Path(os.environ.get("PFY_TMP", "/tmp/pfy")) / "tree-sitter-analyzer/.venv/bin/tree-sitter-analyzer"],
+        [pfy_tmp() / "tree-sitter-analyzer/.venv/bin/tree-sitter-analyzer"],
     )
     if binary is None:
         return ""

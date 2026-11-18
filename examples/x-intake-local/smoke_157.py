@@ -22,7 +22,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from smoke import find_bin, pinned, run_isolated, timeout_reason, write
+from smoke import default_pfy_tmp, find_bin, pinned, run_isolated, timeout_reason, write
 
 PIN_COMMIT = "1b3aab98b878128a267368cd47b51c921cd31219"
 PIN_VERSION = "0.30.0"
@@ -156,7 +156,7 @@ def body(rec: dict, scratch: Path | None) -> tuple[int, Path | None]:
             return 2, scratch
         scratch = Path(tempfile.mkdtemp(prefix="sysknife-", dir=_scratch_root()))
         repo = Path(os.environ["SYSKNIFE_DIR"]) if os.environ.get("SYSKNIFE_DIR") else (
-            Path(os.environ.get("PFY_TMP", "/tmp/pfy")) / "sysknife"
+            default_pfy_tmp() / "sysknife"
         )
         built = _build(cargo, repo, commit, scratch, timeout, rec)
         if isinstance(built, int):

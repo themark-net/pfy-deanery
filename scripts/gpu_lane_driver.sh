@@ -44,7 +44,7 @@ set -u
 
 # Generic path defaults (no private checkout layout).
 : "${PFY_ROOT:=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)}"
-: "${PFY_TMP:=${TMPDIR:-/tmp}/pfy}"
+: "${PFY_TMP:=${XDG_CACHE_HOME:-${HOME}/.cache}/pfy/tmp}"
 
 ROOT=""
 STATE="${PFY_LOOP_STATE:-$PFY_TMP/loop}/eval"

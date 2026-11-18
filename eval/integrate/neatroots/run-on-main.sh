@@ -27,7 +27,7 @@
 
 set -euo pipefail
 
-: "${PFY_TMP:=${TMPDIR:-/tmp}/pfy}"
+: "${PFY_TMP:=${XDG_CACHE_HOME:-${HOME}/.cache}/pfy/tmp}"
 
 MARKER=${PFY_NEATROOTS_LANE_MARKER:-$PFY_TMP/integrate2/neatroots.dispatched}
 

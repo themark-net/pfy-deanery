@@ -7,10 +7,12 @@ import time
 import unittest
 from pathlib import Path
 
+from pfylib.paths import pfy_tmp
+
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "eval/integrate/atomic-task-graph-atg/run-on-main.sh"
-MARKER = (Path(os.environ.get("PFY_TMP", "/tmp/pfy")) / "integrate2/atomic-task-graph-atg.dispatched")
+MARKER = (pfy_tmp() / "integrate2/atomic-task-graph-atg.dispatched")
 
 
 class AtgSingleFlightTest(unittest.TestCase):

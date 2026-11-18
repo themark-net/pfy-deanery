@@ -32,6 +32,16 @@ import tempfile
 import time
 from pathlib import Path
 
+
+def _pfy_tmp() -> Path:
+    raw = os.environ.get("PFY_TMP")
+    if raw:
+        return Path(raw)
+    cache = os.environ.get("XDG_CACHE_HOME")
+    base = Path(cache) if cache else Path.home() / ".cache"
+    return base / "pfy" / "tmp"
+
+
 ROOT = Path(__file__).resolve().parents[2]
 PIN = os.environ.get("MEMPALACE_VERSION", "3.12.0")
 SYS_PATH = "/usr/local/bin:/usr/bin:/bin"
@@ -71,7 +81,7 @@ def find_bin() -> str | None:
     env = os.environ.get("MEMPALACE_BIN")
     if env:
         return env if os.access(env, os.X_OK) else None
-    local = Path(os.environ.get("PFY_TMP", "/tmp/pfy")) / "mempalace/.venv/bin/mempalace"
+    local = _pfy_tmp() / "mempalace/.venv/bin/mempalace"
     if os.access(local, os.X_OK):
         return str(local)
     return shutil.which("mempalace")
@@ -225,7 +235,7 @@ def main() -> int:
         rec["reason"] = "mempalace not staged (set MEMPALACE_BIN or stage $PFY_TMP/mempalace/.venv)"
         return finish(2, rec)
     rec["binary"] = binary
-    src_home = Path(os.environ.get("MEMPALACE_HOME") or Path(os.environ.get("PFY_TMP", "/tmp/pfy")) / "mempalace/home")
+    src_home = Path(os.environ.get("MEMPALACE_HOME") or _pfy_tmp() / "mempalace/home")
     if not (src_home / MODEL_REL).is_dir():
         rec["reason"] = f"embedding model not cached at {src_home / MODEL_REL} (warm it once inside DEVELOP)"
         return finish(2, rec)
