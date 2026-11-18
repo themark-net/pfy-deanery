@@ -85,7 +85,7 @@ class PregateConcurrentTests(unittest.TestCase):
 
     def _run(self, state: Path, only: str, keep: str) -> subprocess.Popen[str]:
         return subprocess.Popen(
-            [str(PREGATE), "--only", only, "HEAD"],
+            [str(PREGATE), "--only", only, "--base", "HEAD", "HEAD"],
             cwd=ROOT,
             env=self._env(state, keep),
             stdout=subprocess.PIPE,
