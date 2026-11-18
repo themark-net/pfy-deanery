@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from .claude_code import ClaudeCodeAdapter
 from .codex import CodexAdapter
+from .gemini import GeminiAdapter
 from .grok import GrokAdapter
+from .hermes import HermesAdapter
 from .opencode import OpenCodeAdapter
 
 ADAPTERS = (
@@ -12,6 +14,8 @@ ADAPTERS = (
     ClaudeCodeAdapter(),
     CodexAdapter(),
     OpenCodeAdapter(),
+    HermesAdapter(),
+    GeminiAdapter(),
 )
 
 

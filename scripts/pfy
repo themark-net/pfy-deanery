@@ -259,6 +259,7 @@ pfy — simple setup & launch for the pfy-deanery stack
   pfy launch lane|toolset|harness|decision|review|compose
   pfy launch [harness] [--model ollama:<tag>|llamacpp:<alias>] [--yes] [--dry-run] [--json] [--max-usd N]
                           TTY picker (local default qwen3.6:35b) or flags; grok and cursor are subscriptions;
+                          hermes and gemini take a local ollama:<tag> or llamacpp:<alias> only;
                           does not write model settings into harness config
   pfy decision            Jev-style typed Choice/Score (#230; CUA-S1-FORMS local)
   pfy decision off|cua-s1-forms|typesafe|mini-jev

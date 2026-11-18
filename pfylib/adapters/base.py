@@ -139,6 +139,51 @@ def render_toml_mcp(current: bytes | None, item_id: str, entry: dict) -> bytes:
     return (text + addition).encode("utf-8")
 
 
+def render_yaml_mcp(current: bytes | None, item_id: str, entry: dict) -> bytes:
+    """Append a managed mcp_servers entry. Never reserialize: comments stay."""
+    raw = current if current is not None else b""
+    text = raw.decode("utf-8")
+    name = str(entry["name"])
+    marker = "# managed-by: pfy item=%s" % item_id
+    if marker in text:
+        return raw
+    body = [
+        "%s:" % name,
+        "  command: %s" % json.dumps(str(entry["command"])),
+        "  enabled: true",
+    ]
+    if "args" in entry:
+        body.append("  args:")
+        for arg in list(entry.get("args") or []):
+            body.append("    - %s" % json.dumps(str(arg)))
+    if entry.get("startup_timeout_sec") is not None:
+        body.append("  startup_timeout_sec: %s" % int(entry["startup_timeout_sec"]))
+    if "mcp_servers:" in text:
+        lines = text.splitlines(keepends=True)
+        insert_at = len(lines)
+        in_mcp = False
+        mcp_indent = 0
+        for i, line in enumerate(lines):
+            stripped = line.lstrip(" ")
+            indent = len(line) - len(stripped)
+            if stripped.startswith("mcp_servers:"):
+                in_mcp = True
+                mcp_indent = indent
+                continue
+            if in_mcp:
+                if not line.strip() or stripped.startswith("#") or indent > mcp_indent:
+                    continue
+                insert_at = i
+                break
+        block = "  " + marker + "\n" + "\n".join("  " + ln for ln in body) + "\n"
+        if insert_at < len(lines) and lines and not "".join(lines[:insert_at]).endswith("\n"):
+            block = "\n" + block
+        return ("".join(lines[:insert_at]) + block + "".join(lines[insert_at:])).encode("utf-8")
+    prefix = "" if not text or text.endswith("\n") else "\n"
+    addition = prefix + marker + "\nmcp_servers:\n" + "\n".join("  " + ln for ln in body) + "\n"
+    return (text + addition).encode("utf-8")
+
+
 def render_json_mcp(current: bytes | None, item_id: str, entry: dict, parent_fn) -> bytes:
     obj = mcp_object(item_id, entry)
     if current:
@@ -168,9 +213,20 @@ def parse_config(path: Path, kind: str) -> str | None:
     try:
         if kind == "json":
             json.loads(text)
+        elif kind == "yaml":
+            try:
+                import yaml  # type: ignore
+            except ImportError:
+                # Hosted tests always have PyYAML; if it is absent, accept UTF-8 text.
+                if "\x00" in text:
+                    raise ValueError("NUL in YAML")
+            else:
+                data = yaml.safe_load(text) if text.strip() else {}
+                if data is not None and not isinstance(data, dict):
+                    raise ValueError("config is not a YAML mapping")
         else:
             tomllib.loads(text)
-    except (json.JSONDecodeError, tomllib.TOMLDecodeError, UnicodeError) as exc:
+    except (json.JSONDecodeError, tomllib.TOMLDecodeError, UnicodeError, ValueError) as exc:
         return "malformed %s (%s)\nnext: fix the file, then re-run pfy setup" % (path, exc)
     return None
 
@@ -259,6 +315,36 @@ def _strip_toml_item(text: str, item_id: str) -> str | None:
     return result
 
 
+def _strip_yaml_item(text: str, item_id: str) -> str | None:
+    marker = "# managed-by: pfy item=%s" % item_id
+    if marker not in text:
+        return text
+    lines = text.splitlines(keepends=True)
+    out: list[str] = []
+    i = 0
+    while i < len(lines):
+        if marker in lines[i]:
+            i += 1
+            if i < len(lines) and lines[i].rstrip().endswith(":") and not lines[i].lstrip().startswith("#"):
+                key_indent = len(lines[i]) - len(lines[i].lstrip(" "))
+                i += 1
+                while i < len(lines):
+                    if not lines[i].strip():
+                        i += 1
+                        continue
+                    indent = len(lines[i]) - len(lines[i].lstrip(" "))
+                    if indent <= key_indent and not lines[i].lstrip().startswith("#"):
+                        break
+                    i += 1
+            continue
+        out.append(lines[i])
+        i += 1
+    result = "".join(out)
+    if not result.strip():
+        return None
+    return result
+
+
 def remove_created_file(path: Path, sha: str, item_id: str, kind: str) -> str:
     """Drop a file pfy created, or only its entry when other content remains.
 
@@ -276,6 +362,9 @@ def remove_created_file(path: Path, sha: str, item_id: str, kind: str) -> str:
     raw = path.read_bytes()
     if kind == "json":
         new = _strip_json_item(raw, item_id)
+    elif kind == "yaml":
+        stripped = _strip_yaml_item(raw.decode("utf-8"), item_id)
+        new = None if stripped is None else stripped.encode("utf-8")
     else:
         stripped = _strip_toml_item(raw.decode("utf-8"), item_id)
         new = None if stripped is None else stripped.encode("utf-8")

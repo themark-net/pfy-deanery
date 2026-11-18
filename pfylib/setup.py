@@ -239,7 +239,7 @@ def _select(args, root: Path, records: list[dict]) -> tuple[list[str], list[dict
                         return [], [], err
     for hid in harnesses:
         if by_id(hid) is None:
-            return [], [], "unknown harness %s\nnext: use grok, claude-code, codex, or opencode" % hid
+            return [], [], "unknown harness %s\nnext: use grok, claude-code, codex, opencode, hermes, or gemini" % hid
     return harnesses, chosen, None
 
 
@@ -397,7 +397,7 @@ def _build_ops(root: Path, harnesses: list[str], items: list[dict]) -> tuple[lis
         for hid in harnesses:
             adapter = by_id(hid)
             if adapter is None:
-                return [], [], "unknown harness %s\nnext: use grok, claude-code, codex, or opencode" % hid
+                return [], [], "unknown harness %s\nnext: use grok, claude-code, codex, opencode, hermes, or gemini" % hid
             for skill in skills:
                 src = _skill_src(root, skill)
                 file_ops.extend(adapter.plan_skill(iid, skill, src))

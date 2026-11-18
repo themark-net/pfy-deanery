@@ -24,7 +24,7 @@ from typing import Any, TextIO
 from urllib.parse import urlparse
 
 LOCAL_DEFAULT = "ollama:qwen3.6:35b"
-HARNESS_BIN = {"claude-code": "claude", "codex": "codex", "opencode": "opencode", "grok": "grok", "cursor": "cursor-agent"}
+HARNESS_BIN = {"claude-code": "claude", "codex": "codex", "opencode": "opencode", "grok": "grok", "cursor": "cursor-agent", "hermes": "hermes", "gemini": "gemini"}
 SUBSCRIPTION_HARNESSES = frozenset({"grok", "cursor"})
 # Official Cursor CLI billing / on-demand surfaces we never pass through.
 # https://cursor.com/docs/cli/reference/parameters
@@ -36,6 +36,16 @@ CURSOR_BILLING_FLAGS = frozenset({
     "--use-on-demand",
 })
 CURSOR_BILLING_COMMANDS = frozenset({"worker"})
+# Official Hermes paid / cloud providers we never pass through.
+# https://hermes-agent.nousresearch.com/docs/integrations/providers
+HERMES_PAID_PROVIDERS = frozenset({
+    "openrouter", "nous", "anthropic", "openai-codex", "chatgpt", "chatgpt-codex",
+    "gemini", "ollama-cloud", "openai-api", "xai", "xai-oauth", "novita",
+    "fireworks", "zai", "kimi-coding", "minimax", "alibaba", "kilocode",
+    "bedrock", "huggingface", "openai",
+})
+HERMES_BILLING_FLAGS = frozenset({"--api-key"})
+GEMINI_BILLING_FLAGS = frozenset({"--api-key"})
 DEFAULT_LITELLM = "http://127.0.0.1:4000"
 # Shown-before-choose estimate only; local price table, no live fetch.
 ESTIMATE_PROMPT_TOKENS = 2000
@@ -192,7 +202,7 @@ def parse_model(spec: str) -> tuple[str, str]:
         raise LaunchError("missing --model", next_step="pass --model ollama:<tag> or llamacpp:<alias>")
     if ":" not in text:
         raise LaunchError(
-            "paid source refused: Claude Code and Codex only take a local ollama:<tag> or llamacpp:<alias> model",
+            "paid source refused: Claude Code, Codex, Hermes, and Gemini only take a local ollama:<tag> or llamacpp:<alias> model",
             next_step="use --model ollama:<tag> or llamacpp:<alias>",
         )
     kind, rest = text.split(":", 1)
@@ -212,7 +222,7 @@ def refuse_paid(harness: str, spec: str) -> None:
             raise LaunchError("missing llamacpp alias", next_step="pass --model llamacpp:<alias>")
         return
     raise LaunchError(
-        "paid source refused: Claude Code and Codex only take a local ollama:<tag> or llamacpp:<alias> model",
+        "paid source refused: Claude Code, Codex, Hermes, and Gemini only take a local ollama:<tag> or llamacpp:<alias> model",
         next_step="use --model ollama:<tag> or llamacpp:<alias>",
     )
 
@@ -251,6 +261,56 @@ def refuse_cursor_billing(passthrough: list[str] | None) -> None:
             )
 
 
+def _with_v1(url: str) -> str:
+    base = _normalize_host(url, url)
+    if base.endswith("/v1"):
+        return base
+    return base + "/v1"
+
+
+def _provider_value(args: list[str], index: int) -> str:
+    tok = args[index]
+    if "=" in tok:
+        return tok.split("=", 1)[1].strip()
+    if index + 1 < len(args):
+        return (args[index + 1] or "").strip()
+    return ""
+
+
+def refuse_hermes_billing(passthrough: list[str] | None) -> None:
+    extra = list(passthrough or [])
+    i = 0
+    while i < len(extra):
+        name = _flag_name(extra[i])
+        if name in HERMES_BILLING_FLAGS:
+            raise LaunchError(
+                "Hermes API-key billing is refused; pfy launch hermes uses a local custom endpoint only",
+                next_step="use --model ollama:<tag> or llamacpp:<alias> (no --api-key, no cloud --provider)",
+                code=1,
+            )
+        if name == "--provider":
+            value = _provider_value(extra, i).lower()
+            if value in HERMES_PAID_PROVIDERS:
+                raise LaunchError(
+                    "Hermes billed provider is refused; pfy launch hermes uses a local source only",
+                    next_step="use --model ollama:<tag> or llamacpp:<alias> with the official --provider custom path",
+                    code=1,
+                )
+        i += 1
+
+
+def refuse_gemini_billing(passthrough: list[str] | None) -> None:
+    extra = list(passthrough or [])
+    for tok in extra:
+        name = _flag_name(tok)
+        if name in GEMINI_BILLING_FLAGS or name in ("--vertexai", "--vertex"):
+            raise LaunchError(
+                "Gemini API-key / Vertex billing is refused; pfy launch gemini uses a local source only",
+                next_step="use --model ollama:<tag> or llamacpp:<alias> (no GEMINI_API_KEY, no --api-key)",
+                code=1,
+            )
+
+
 def plan_launch(harness: str, model: str, *, dry_run: bool, passthrough: list[str] | None = None) -> LaunchPlan:
     hid = (harness or "").strip()
     extra = list(passthrough or [])
@@ -268,15 +328,94 @@ def plan_launch(harness: str, model: str, *, dry_run: bool, passthrough: list[st
     if hid not in HARNESS_BIN:
         raise LaunchError(
             f"unknown harness {hid!r}",
-            next_step="use claude-code, grok, or cursor, or a reserved ./pfy launch wizard subcommand",
+            next_step="use claude-code, hermes, gemini, grok, or cursor, or a reserved ./pfy launch wizard subcommand",
             code=2,
         )
     refuse_paid(hid, model)
     kind, tag = parse_model(model)
+    if hid == "hermes":
+        refuse_hermes_billing(extra)
+        if kind == "ollama":
+            if not ollama_is_up():
+                raise LaunchError(
+                    "Ollama is down; pfy launch needs a running local daemon",
+                    next_step="ollama serve",
+                )
+            if ollama_launch_available():
+                return LaunchPlan(
+                    harness=hid,
+                    model=model,
+                    argv=["ollama", "launch", "hermes", "--model", tag, *extra],
+                    env={},
+                    dry_run=dry_run,
+                    delegate="ollama launch",
+                )
+            return LaunchPlan(
+                harness=hid,
+                model=model,
+                argv=["hermes", "--provider", "custom", "--base-url", _with_v1(ollama_host()), "--model", tag, *extra],
+                env={},
+                dry_run=dry_run,
+                delegate="",
+            )
+        spine = llamacpp_spine()
+        if spine.get("status") != "ready":
+            raise LaunchError(
+                "llama-swap / llama-server is down; llamacpp sources need the local spine",
+                next_step=SPINE_NEXT,
+            )
+        return LaunchPlan(
+            harness=hid,
+            model=model,
+            argv=["hermes", "--provider", "custom", "--base-url", _with_v1(spine.get("base_url") or ""), "--model", tag, *extra],
+            env={},
+            dry_run=dry_run,
+            delegate="",
+        )
+    if hid == "gemini":
+        refuse_gemini_billing(extra)
+        if kind == "ollama":
+            if not ollama_is_up():
+                raise LaunchError(
+                    "Ollama is down; pfy launch needs a running local daemon",
+                    next_step="ollama serve",
+                )
+            if ollama_launch_available():
+                return LaunchPlan(
+                    harness=hid,
+                    model=model,
+                    argv=["ollama", "launch", "gemini", "--model", tag, *extra],
+                    env={},
+                    dry_run=dry_run,
+                    delegate="ollama launch",
+                )
+        else:
+            spine = llamacpp_spine()
+            if spine.get("status") != "ready":
+                raise LaunchError(
+                    "llama-swap / llama-server is down; llamacpp sources need the local spine",
+                    next_step=SPINE_NEXT,
+                )
+        if not litellm_is_up():
+            raise LaunchError(
+                "LiteLLM is down; Gemini CLI has no official OpenAI-compatible flag and needs the local gateway",
+                next_step=LITELLM_NEXT,
+            )
+        return LaunchPlan(
+            harness=hid,
+            model=model,
+            argv=["gemini", "--model", tag, *extra],
+            env={
+                "GOOGLE_GEMINI_BASE_URL": _strip_v1(litellm_host()),
+                "GEMINI_MODEL": tag,
+            },
+            dry_run=dry_run,
+            delegate="litellm",
+        )
     if hid != "claude-code":
         raise LaunchError(
-            f"{hid} launch beyond paid-source refusal is not in this Phase 2 slice",
-            next_step="use: pfy launch claude-code --model ollama:<tag>|llamacpp:<alias> --yes --dry-run --json, or pfy launch grok|cursor --yes --dry-run --json",
+            f"{hid} launch beyond paid-source refusal is not in this Phase 3 slice",
+            next_step="use: pfy launch claude-code|hermes|gemini --model ollama:<tag>|llamacpp:<alias> --yes --dry-run --json, or pfy launch grok|cursor --yes --dry-run --json",
             code=3,
         )
     if kind == "ollama":
@@ -351,6 +490,8 @@ def harness_options() -> list[MenuOption]:
         MenuOption(key="1", kind="local", harness="claude-code", label="claude-code  (local models only)"),
         MenuOption(key="2", kind="subscription", harness="grok", model="subscription", label="grok  (subscription)", cost_label="subscription"),
         MenuOption(key="3", kind="subscription", harness="cursor", model="subscription", label="cursor  (subscription)", cost_label="subscription"),
+        MenuOption(key="4", kind="local", harness="hermes", label="hermes  (local models only)"),
+        MenuOption(key="5", kind="local", harness="gemini", label="gemini  (local models only)"),
     ]
 
 
@@ -366,6 +507,7 @@ def model_options(harness: str, *, root: Path | None = None, aliases: list[str] 
         harness=hid,
         model=LOCAL_DEFAULT,
         label=LOCAL_DEFAULT + "  [local default]",
+        cost_label=estimate_label(LOCAL_DEFAULT, root=root),
         selectable=bool(ollama_up) and hid not in SUBSCRIPTION_HARNESSES,
         reason=local_reason if hid not in SUBSCRIPTION_HARNESSES else "grok uses a subscription, not a local model",
     ))
@@ -388,6 +530,7 @@ def model_options(harness: str, *, root: Path | None = None, aliases: list[str] 
             harness=hid,
             model=spec,
             label=spec + "  [local]",
+            cost_label=estimate_label(spec, root=root),
             selectable=ok,
             reason=reason,
         ))
@@ -415,7 +558,7 @@ def model_options(harness: str, *, root: Path | None = None, aliases: list[str] 
             label=name + "  [cloud]",
             cost_label=estimate_label(name, root=root),
             selectable=False,
-            reason="paid source refused: Claude Code and Codex only take a local model",
+            reason="paid source refused: Claude Code, Codex, Hermes, and Gemini only take a local model",
         ))
         n += 1
     return rows
