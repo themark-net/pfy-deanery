@@ -93,6 +93,30 @@ def _blob_sub(match: re.Match[str]) -> str:
     return token
 
 
+# Literal token shapes only (PEM, sk-, xai-, ghp_, JWT, ...). Catalog
+# validate reuses these so it does not invent a second classifier and so it
+# does not use the high-entropy blob heuristic (long ids are not keys).
+_KEY_LITERAL_PATTERNS = _PATTERNS[:9]
+_ENV_REF = re.compile(r"^\$[A-Za-z_][A-Za-z0-9_]*$")
+_ENV_BRACE_REF = re.compile(r"^\$\{[A-Za-z_][A-Za-z0-9_]*\}$")
+
+
+def looks_like_key(value: str) -> bool:
+    """True when a catalog args/env *value* looks like a stored secret.
+
+    Env var *names* and env refs ($FOO, ${FOO}) are not keys. pfy never
+    stores a key; items read one from the environment at runtime.
+    """
+    if not value or not isinstance(value, str):
+        return False
+    text = value.strip()
+    if not text:
+        return False
+    if _ENV_REF.fullmatch(text) or _ENV_BRACE_REF.fullmatch(text):
+        return False
+    return any(pat.search(text) for pat in _KEY_LITERAL_PATTERNS)
+
+
 def secret_attr_key(key: str) -> bool:
     """True when an attribute name itself is secret-bearing and must be dropped.
 

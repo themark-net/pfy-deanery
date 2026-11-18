@@ -253,6 +253,7 @@ pfy — simple setup & launch for the pfy-deanery stack
   pfy models gab-sync     Gab open-weight → Ollama fit (#228; gab auto ≠ local ranking)
   pfy models gab-pull <tag> [--confirm] [--opt-in-huge]  gated ollama pull from Gab sync
   pfy catalog             usable catalog browse subset (not scores-only) (#209)
+  pfy catalog validate    catalog item v2 + no secret-looking args/env values
   pfy catalog ask [name]  ask attached TUI to implement for next launch
   pfy catalog queue [name] queue GitHub issue Design→DevBot (no operator git/npm/CI)
   pfy catalog status      queued catalog items
@@ -1971,10 +1972,11 @@ cmd_catalog() {
   local sub="${1:-browse}"; shift || true
   case "$sub" in
     browse|list|"") python3 "$ROOT/scripts/pfy_catalog_ask_queue_209.py" --browse "$@" ;;
+    validate) python3 "$ROOT/scripts/catalog_item_validate.py" "$@" ;;
     ask) python3 "$ROOT/scripts/pfy_catalog_ask_queue_209.py" --ask "$@" ;;
     queue) python3 "$ROOT/scripts/pfy_catalog_ask_queue_209.py" --queue "$@" ;;
     status) python3 "$ROOT/scripts/pfy_catalog_ask_queue_209.py" --status "$@" ;;
-    *) echo "catalog subcommands: browse|ask|queue|status" >&2; return 2 ;;
+    *) echo "catalog subcommands: browse|validate|ask|queue|status" >&2; return 2 ;;
   esac
 }
 

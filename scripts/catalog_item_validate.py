@@ -3,9 +3,15 @@
 
 Rows that declare ``kind``, plus code-graph, core-skills, and rea, must have
 the v2 required keys. Also runs pfylib.registry.validate.
+
+Rejects manifests whose args or env *values* look like a key (reuse
+pfylib.redact.looks_like_key). Fail text names the field path and does not
+print the secret. ``./pfy catalog validate`` is the operator verb; this
+script is also run by make eval-structural.
 """
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -14,11 +20,61 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from pfylib import registry  # noqa: E402
+from pfylib.redact import looks_like_key  # noqa: E402
 
 REQUIRED = ("id", "title", "kind", "provides", "install", "presets", "secrets")
 KINDS = frozenset({"skill", "mcp", "external", "env", "bundle"})
 STRATEGIES = frozenset({"native", "delegate"})
 MUST = ("code-graph", "core-skills", "rea")
+
+
+def secret_looking_problems(toolsets: dict) -> list[str]:
+    """Problems for args/env values that look like a stored key.
+
+    A provides.env list of names is not scanned. Env dict values and args
+    list entries are. The secret itself is never included in the message.
+    """
+    rows = toolsets.get("toolsets") if isinstance(toolsets, dict) else None
+    if not isinstance(rows, list):
+        return []
+    problems: list[str] = []
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            continue
+        tid = row.get("id")
+        label = tid if isinstance(tid, str) and tid else "toolsets[%d]" % index
+        problems.extend(_secret_walk(row, label, ""))
+    return problems
+
+
+def _secret_walk(obj: object, label: str, path: str) -> list[str]:
+    problems: list[str] = []
+    if isinstance(obj, dict):
+        for key, value in obj.items():
+            here = ("%s.%s" % (path, key)) if path else str(key)
+            low = str(key).lower()
+            if low in {"args", "argv"} and isinstance(value, list):
+                for i, item in enumerate(value):
+                    item_path = "%s[%d]" % (here, i)
+                    if isinstance(item, str) and looks_like_key(item):
+                        problems.append("%s: %s looks like a key" % (label, item_path))
+                    elif isinstance(item, (dict, list)):
+                        problems.extend(_secret_walk(item, label, item_path))
+                continue
+            if low in {"env", "environment"}:
+                if isinstance(value, dict):
+                    for env_key, env_val in value.items():
+                        if isinstance(env_val, str) and looks_like_key(env_val):
+                            problems.append(
+                                "%s: %s.%s looks like a key" % (label, here, env_key)
+                            )
+                # A list of env *names* is not a stored key.
+                continue
+            problems.extend(_secret_walk(value, label, here))
+    elif isinstance(obj, list):
+        for i, item in enumerate(obj):
+            problems.extend(_secret_walk(item, label, "%s[%d]" % (path, i)))
+    return problems
 
 
 def _check_item(item: dict, problems: list[str]) -> None:
@@ -43,13 +99,12 @@ def _check_item(item: dict, problems: list[str]) -> None:
         problems.append("%s: non-empty presets requires secrets == []" % label)
 
 
-def main() -> int:
-    path = ROOT / "data" / "toolsets.json"
+def validate_root(root: Path) -> list[str]:
+    path = root / "data" / "toolsets.json"
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
-        print("FAIL catalog-item-v2: %s" % exc)
-        return 1
+        return ["catalog-item-v2: %s" % exc]
     rows = data.get("toolsets") if isinstance(data, dict) else None
     problems: list[str] = []
     if not isinstance(rows, list):
@@ -68,8 +123,22 @@ def main() -> int:
     for iid in MUST:
         if iid not in seen:
             problems.append("missing required item %s" % iid)
-    for problem in registry.validate(root_dir=ROOT):
+    for problem in registry.validate(root_dir=root):
         problems.append("registry: %s" % problem)
+    problems.extend(secret_looking_problems(data if isinstance(data, dict) else {}))
+    return problems
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Validate catalog item v2 manifests.")
+    parser.add_argument(
+        "--root",
+        type=Path,
+        default=ROOT,
+        help="repo root containing data/toolsets.json (default: this repo)",
+    )
+    args = parser.parse_args(argv)
+    problems = validate_root(args.root.resolve())
     if problems:
         for problem in problems:
             print("FAIL %s" % problem)

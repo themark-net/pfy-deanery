@@ -20,6 +20,7 @@ Declares each **toolset** once (`data/toolsets.json`) and applies it to any **ha
 ./pfy toolset apply jev --harness grok             # dry-run (prints plan)
 ./pfy toolset apply jev --harness grok --yes       # writes GROK_HOME/skills/pfy-jev-decision/SKILL.md + brief
 ./pfy toolset validate                             # shape check (also run by scripts/catalog_check.py)
+./pfy catalog validate                            # catalog item v2 + no secret-looking args/env values
 ./pfy hedge decide --task bulk|hard|interactive    # lane=local|cloud or FAIL; --json; --record debits ledger
 ./pfy hedge ledger [--reset]  ·  ./pfy hedge record 3 --task hard --note "typesafe call"
 python3 -m pfylib toolset matrix --json            # same entry without the bash dispatcher
