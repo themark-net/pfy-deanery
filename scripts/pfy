@@ -257,8 +257,8 @@ pfy — simple setup & launch for the pfy-deanery stack
   pfy launch [--headless]   Launch session; headless with --headless or no display
   pfy launch status|stop    recorded headless session only
   pfy launch lane|toolset|harness|decision|review|compose
-  pfy launch <harness> --model ollama:<tag> [--yes] [--dry-run] [--json]
-                          Phase 2: plan (and later exec) a harness with a local model;
+  pfy launch [harness] [--model ollama:<tag>|llamacpp:<alias>] [--yes] [--dry-run] [--json] [--max-usd N]
+                          Phase 2: TTY picker (local default qwen3.6:35b) or flags; grok is a subscription;
                           does not write model settings into harness config
   pfy decision            Jev-style typed Choice/Score (#230; CUA-S1-FORMS local)
   pfy decision off|cua-s1-forms|typesafe|mini-jev
@@ -2415,10 +2415,11 @@ main() {
     launch)
       _pfy_lsub="${1:-}"
       case "$_pfy_lsub" in
-        session|status|stop|runtime|health|lane|toolset|toolsets|mode|harness|review|decision|jev|compose|paint|brief|go|--headless|"")
+        session|status|stop|runtime|health|lane|toolset|toolsets|mode|harness|review|decision|jev|compose|paint|brief|go|--headless)
           cmd_launch "$@"
           ;;
         *)
+          # bare `pfy launch` (no args) and Phase 2 harness launches go to pfylib.cli
           exec python3 "$ROOT/pfylib/cli.py" launch "$@"
           ;;
       esac
