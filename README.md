@@ -387,4 +387,4 @@ MIT for the catalog and documentation in this repository. Individual tools carry
 
 ---
 
-*v0.5.0 — see [docs/release-notes/v0.5.0.md](docs/release-notes/v0.5.0.md). Process backbone from earlier phases (DESIGN/ADR/TODO/OQ). Vision: receipts over vibes; beyond “it builds.”*
+*v0.5.0 - see [docs/release-notes/v0.5.0.md](docs/release-notes/v0.5.0.md). Process backbone from earlier phases (DESIGN/ADR/TODO/OQ). Vision: receipts over vibes; beyond “it builds.”*

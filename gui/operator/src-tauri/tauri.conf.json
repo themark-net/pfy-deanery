@@ -1,6 +1,6 @@
 {
   "productName": "pfy-operator",
-  "version": "0.1.0",
+  "version": "0.5.0",
   "identifier": "net.themark.pfy-operator",
   "build": {
     "frontendDist": "../frontend"

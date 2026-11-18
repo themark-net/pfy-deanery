@@ -4,7 +4,7 @@ All notable changes to the Deanery product surface are recorded here. The
 version is `[project] version` in `pyproject.toml`. There are no earlier
 git tags; 0.5.0 is the first numbered entry.
 
-## 0.5.0 — 2026-11-17
+## 0.5.0 - 2026-11-17
 
 See [docs/release-notes/v0.5.0.md](docs/release-notes/v0.5.0.md) for the
 user-facing note. Items below are taken from the git log and issue comments.

@@ -1,6 +1,6 @@
 [package]
 name = "pfy-operator"
-version = "0.1.0"
+version = "0.5.0"
 description = "pfy-deanery native operator GUI (Tauri 2)"
 authors = ["pfy-deanery"]
 edition = "2021"

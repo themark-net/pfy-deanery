@@ -155,7 +155,20 @@ class InstallRefTests(unittest.TestCase):
         share = self.home / ".local" / "share" / "pfy"
         leftovers = [p.name for p in share.iterdir()] if share.exists() else []
         self.assertEqual(leftovers, [], leftovers)
-        self.assertFalse((self.home / ".local" / "bin" / "pfy").exists())
+
+    def test_empty_or_whitespace_pfy_ref_fails_and_writes_nothing(self) -> None:
+        for value in ("", "   ", "\t"):
+            with self.subTest(PFY_REF=repr(value)):
+                proc = self.run_install("--no-setup", PFY_REF=value)
+                blob = proc.stdout + proc.stderr
+                self.assertNotEqual(proc.returncode, 0, blob)
+                self.assertIn("pfy install:", blob)
+                lower = blob.lower()
+                self.assertTrue("empty" in lower or "invalid ref" in lower, blob)
+                share = self.home / ".local" / "share" / "pfy"
+                leftovers = [p.name for p in share.iterdir()] if share.exists() else []
+                self.assertEqual(leftovers, [], leftovers)
+                self.assertFalse((self.home / ".local" / "bin" / "pfy").exists())
 
     def test_pfy_ref_sha_resolves_when_fake_allows_it(self) -> None:
         sha = "0123456789abcdef0123456789abcdef01234567"
@@ -167,3 +180,28 @@ class InstallRefTests(unittest.TestCase):
         fetches = [c for c in self.git_calls() if c["args"] and c["args"][0] == "fetch"]
         self.assertTrue(fetches)
         self.assertEqual(fetches[0]["args"][-1], sha)
+
+    def test_pfy_ref_v050_tag_resolves_offline_when_fake_allows_it(self) -> None:
+        proc = self.run_install("--no-setup", PFY_REF="v0.5.0", PFY_FAKE_GIT_REFS="v0.5.0")
+        blob = proc.stdout + proc.stderr
+        self.assertEqual(proc.returncode, 0, blob)
+        dest = self.home / ".local" / "share" / "pfy" / "v0.5.0"
+        self.assertTrue((dest / "pfy").is_file())
+        fetches = [c for c in self.git_calls() if c["args"] and c["args"][0] == "fetch"]
+        self.assertTrue(fetches, blob)
+        self.assertEqual(fetches[0]["args"][-1], "v0.5.0")
+        self.assertNotIn("ref: main", proc.stdout)
+
+    def test_missing_v050_tag_fails_closed_and_default_stays_main(self) -> None:
+        proc = self.run_install("--no-setup", PFY_REF="v0.5.0", PFY_FAKE_GIT_REFS="main")
+        blob = proc.stdout + proc.stderr
+        self.assertNotEqual(proc.returncode, 0, blob)
+        self.assertIn("does not exist", blob.lower())
+        self.assertIn("v0.5.0", blob)
+        share = self.home / ".local" / "share" / "pfy"
+        leftovers = [p.name for p in share.iterdir()] if share.exists() else []
+        self.assertEqual(leftovers, [], leftovers)
+        self.assertFalse((self.home / ".local" / "bin" / "pfy").exists())
+        proc = self.run_install("--dry-run")
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertIn("ref: main", proc.stdout)

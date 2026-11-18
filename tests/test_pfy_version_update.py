@@ -111,6 +111,20 @@ class VersionSoT(_Home):
         self.assertNotIn("from .version import", head)
         self.assertIn("def __getattr__", text)
 
+    def test_operator_gui_version_matches_pyproject(self) -> None:
+        import re
+
+        data = tomllib.loads((ROOT / "pyproject.toml").read_text())
+        sot = data["project"]["version"]
+        cargo = (ROOT / "gui" / "operator" / "src-tauri" / "Cargo.toml").read_text()
+        match = re.search(r"(?ms)^\[package\].*?^version\s*=\s*\"([^\"]+)\"", cargo)
+        self.assertIsNotNone(match, "gui/operator/src-tauri/Cargo.toml [package] version missing")
+        self.assertEqual(match.group(1), sot)
+        conf = json.loads((ROOT / "gui" / "operator" / "src-tauri" / "tauri.conf.json").read_text())
+        self.assertEqual(conf.get("version"), sot)
+        pkg = json.loads((ROOT / "gui" / "operator" / "package.json").read_text())
+        self.assertEqual(pkg.get("version"), sot)
+
 
 class UpdateCheck(_Home):
     def test_update_without_check_does_not_apply_or_write(self) -> None:
