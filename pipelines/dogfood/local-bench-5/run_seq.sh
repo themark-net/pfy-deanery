@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-: "${PFY_TMP:=${XDG_CACHE_HOME:-${HOME}/.cache}/pfy/tmp}"
+: "${PFY_TMP:=${PFY_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || printf %s "${XDG_CACHE_HOME:-${HOME}/.cache}/pfy")}/tmp}"
 cd $PFY_TMP/local-bench-5
 Q36="/usr/share/ollama/.ollama/models/blobs/sha256-d372de8e934898a59e6ccfabc3368474711384d8f1fd4d22d87a3f0a45400cdc"
 AIR="/usr/share/ollama/.ollama/models/blobs/sha256-a6a5f1eb99191da97aebe69aed2d53aa07c03236c082b9e5dfc1f6301cc88f16-partial"

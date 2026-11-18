@@ -39,13 +39,12 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def default_pfy_tmp() -> Path:
-    """Operator scratch. Never /tmp/pfy (tmp-cleanup treats that as a host leak)."""
+    """Operator scratch: $PFY_TMP, else this checkout's tmp/. Never host /tmp."""
     raw = os.environ.get("PFY_TMP")
     if raw:
         return Path(raw)
-    cache = os.environ.get("XDG_CACHE_HOME")
-    base = Path(cache) if cache else Path.home() / ".cache"
-    return base / "pfy" / "tmp"
+    root = os.environ.get("PFY_ROOT")
+    return (Path(root) if root else ROOT) / "tmp"
 
 
 TMP = default_pfy_tmp()

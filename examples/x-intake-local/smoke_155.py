@@ -39,9 +39,10 @@ def _pfy_tmp() -> Path:
     raw = os.environ.get("PFY_TMP")
     if raw:
         return Path(raw)
-    cache = os.environ.get("XDG_CACHE_HOME")
-    base = Path(cache) if cache else Path.home() / ".cache"
-    return base / "pfy" / "tmp"
+    root = os.environ.get("PFY_ROOT")
+    if root:
+        return Path(root) / "tmp"
+    return Path(__file__).resolve().parents[2] / "tmp"
 
 
 ROOT = Path(__file__).resolve().parents[2]
