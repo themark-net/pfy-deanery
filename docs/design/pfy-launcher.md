@@ -33,7 +33,7 @@ rea gets the same job (put tools + skills into whichever agent you already use) 
 
 ```bash
 # one line (no sudo, no clone needed):
-curl -fsSL https://raw.githubusercontent.com/themark-net/pfy-deanery/v0.4.17/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/themark-net/pfy-deanery/main/install.sh | bash
 #  → installs pfy to ~/.local/share/pfy (pinned tag) + shim ~/.local/bin/pfy, then runs `pfy setup` if a TTY exists
 
 pfy setup                         # interactive: harnesses → catalog items → plan → approve
@@ -166,7 +166,7 @@ The codes stay as they are in `pfylib/cli.py`: 0 READY, 1 FAIL, 2 usage, 3 STUB.
 
 ### Phase 1: `pfy setup` for core skills + MCP on Grok Build, Claude Code, Codex, OpenCode, with rea as a delegated item
 Scope:
-- `install.sh` at repo root: `{…}` guard, `--dry-run/--version/--no-setup`, installs a tagged tarball (or `git clone --depth 1` of a tag) into `~/.local/share/pfy/<ver>`, shim `~/.local/bin/pfy`, then `pfy setup` if TTY. Refuses root.
+- `install.sh` at repo root: `{…}` guard, `--dry-run/--version/--no-setup`, installs the `main` branch by default (optional `PFY_REF` for a branch, tag, or SHA; no tag is created here) into `~/.local/share/pfy/<ref>`, shim `~/.local/bin/pfy`, then `pfy setup` if TTY. Refuses root. Fails clearly if the ref does not exist.
 - `pfylib/adapters/{grok,claude_code,codex,opencode}.py` with `detect/paths/plan_mcp/plan_skill/remove`. No `launch` yet.
 - `data/toolsets.json` v2 fields (`kind`, `provides`, `install.strategy`, `presets`, `secrets`) plus a schema, and items `core-skills` (bundle from the one skill SoT), `code-graph` (MCP), and `rea` (delegate).
 - `pfylib/setup.py`: detection → selection (TTY multi-select, or `--harness/--item/--preset`) → plan → apply (transactional, backups, atomic, verify) → ledger. Also `pfy doctor` (read-only) and `pfy uninstall` (ledger-scoped).

@@ -18,8 +18,8 @@ ROOT = Path(__file__).resolve().parents[1]
 PFY = ROOT / "pfy"
 INSTALL = ROOT / "install.sh"
 SOT = ROOT / "bootstrap" / "grok-cli" / "skills"
-TAG = "v0.4.17"
-ONE_LINER = "https://raw.githubusercontent.com/themark-net/pfy-deanery/v0.4.17/install.sh"
+TAG = "main"
+ONE_LINER = "https://raw.githubusercontent.com/themark-net/pfy-deanery/main/install.sh"
 SETUP_ARGV = [
     "-y",
     "rea-agents@6.4.0",
@@ -201,7 +201,7 @@ def _by_id() -> dict[str, dict]:
 
 
 class InstallTests(_Home):
-    def test_dry_run_leaves_home_empty_and_pins_tag(self):
+    def test_dry_run_leaves_home_empty_and_pins_ref(self):
         text = INSTALL.read_text()
         self.assertIn(ONE_LINER, text)
         self.assertNotIn("pfy-mentat/main/", text)
@@ -219,13 +219,14 @@ class InstallTests(_Home):
         self.assertEqual(proc.returncode, 0, blob)
         self.assertIn(TAG, blob)
         self.assertIn("dry_run: true", blob)
-        self.assertIn("git clone", blob)
-        self.assertIn("--branch " + TAG, blob)
+        self.assertIn("git fetch", blob)
+        self.assertIn("origin " + TAG, blob)
+        self.assertIn("ref: " + TAG, blob)
         self.assertIn(".local/bin/pfy", blob)
         self.assertNotIn("pfy-mentat/main/", blob)
         self.assertEqual(list(self.home.iterdir()), [self.home / "bin"])
 
-    def test_version_prints_tag(self):
+    def test_version_prints_ref(self):
         proc = subprocess.run(
             ["bash", str(INSTALL), "--version"],
             cwd=str(self.home),
@@ -235,8 +236,7 @@ class InstallTests(_Home):
             timeout=15,
         )
         self.assertEqual(proc.returncode, 0, proc.stderr)
-        self.assertIn(TAG, proc.stdout)
-        self.assertNotIn("main", proc.stdout)
+        self.assertEqual(proc.stdout.strip(), TAG)
 
     def test_root_dry_run_exits_1(self):
         _write_exe(self.home / "bin" / "id", "#!/bin/sh\necho 0\n")

@@ -2,14 +2,16 @@
 {
 # User-level pfy installer. No sudo, no system packages.
 # One-liner:
-#   curl -fsSL https://raw.githubusercontent.com/themark-net/pfy-deanery/v0.4.17/install.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/themark-net/pfy-deanery/main/install.sh | sh
 # A missing closing brace makes a truncated pipe a syntax error, so nothing runs.
+# Optional PFY_REF pins a branch, tag, or SHA. Tags and releases stay gated;
+# the default is the main branch until a first real release.
 
 set -eu
 
-TAG=v0.4.17
-REPO_URL=https://github.com/themark-net/pfy-deanery.git
-DEST="${HOME:-}/.local/share/pfy/${TAG}"
+REPO=themark-net/pfy-deanery
+REPO_URL=https://github.com/${REPO}.git
+DEFAULT_REF=main
 SHIM="${HOME:-}/.local/bin/pfy"
 
 stage=
@@ -38,6 +40,26 @@ if [ -z "${HOME:-}" ]; then
   exit 1
 fi
 
+if [ "${PFY_REF+x}" = "x" ]; then
+  case "${PFY_REF}" in
+    *[![:space:]]*) ;;
+    *)
+      printf '%s\n' "pfy install: PFY_REF is empty" >&2
+      exit 1
+      ;;
+  esac
+fi
+REF=$(printf '%s' "${PFY_REF:-$DEFAULT_REF}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+case "$REF" in
+  ""|*..*|/*|*/|*'*'*|*['$`']*)
+    printf '%s\n' "pfy install: invalid ref" >&2
+    exit 1
+    ;;
+esac
+# Directory name for ~/.local/share/pfy/<ref>; slashes become dashes.
+REF_DIR=$(printf '%s' "$REF" | tr '/' '-')
+DEST="${HOME}/.local/share/pfy/${REF_DIR}"
+
 version=0
 dry_run=0
 no_setup=0
@@ -48,7 +70,8 @@ while [ $# -gt 0 ]; do
     --no-setup) no_setup=1 ;;
     -h|--help)
       printf '%s\n' "Usage: install.sh [--dry-run] [--version] [--no-setup]"
-      printf '%s\n' "Installs ${TAG} under \$HOME/.local/share/pfy and a shim at \$HOME/.local/bin/pfy."
+      printf '%s\n' "Installs ${REF} under \$HOME/.local/share/pfy and a shim at \$HOME/.local/bin/pfy."
+      printf '%s\n' "Default ref is ${DEFAULT_REF}. PFY_REF: pin a branch, tag, or SHA."
       printf '%s\n' "PFY_INSTALL_SOURCE: copy that directory instead of cloning."
       printf '%s\n' "PFY_ALLOW_ROOT=1: allow uid 0."
       exit 0
@@ -62,19 +85,19 @@ while [ $# -gt 0 ]; do
 done
 
 if [ "$version" = "1" ]; then
-  printf '%s\n' "$TAG"
+  printf '%s\n' "$REF"
   exit 0
 fi
 
 src="${PFY_INSTALL_SOURCE:-}"
 if [ "$dry_run" = "1" ]; then
-  printf '%s\n' "tag: ${TAG}"
+  printf '%s\n' "ref: ${REF}"
   printf '%s\n' "dry_run: true"
   if [ -n "$src" ] && [ -d "$src" ]; then
     printf '%s\n' "copy: ${src} -> ${DEST}"
-    printf '%s\n' "git clone --depth 1 --branch ${TAG} ${REPO_URL} ${DEST} (skipped; PFY_INSTALL_SOURCE is set)"
+    printf '%s\n' "git fetch --depth 1 origin ${REF} (skipped; PFY_INSTALL_SOURCE is set)"
   else
-    printf '%s\n' "git clone --depth 1 --branch ${TAG} ${REPO_URL} ${DEST}"
+    printf '%s\n' "git fetch --depth 1 origin ${REF} -> ${DEST}"
   fi
   printf '%s\n' "shim: ${SHIM}"
   exit 0
@@ -95,11 +118,18 @@ else
   fi
   GIT_TERMINAL_PROMPT=0
   export GIT_TERMINAL_PROMPT
-  git clone --depth 1 --branch "$TAG" "$REPO_URL" "$stage"
+  mkdir -p "$stage"
+  git init --quiet "$stage"
+  git -C "$stage" remote add origin "$REPO_URL"
+  if ! git -C "$stage" fetch --depth 1 origin "$REF"; then
+    printf '%s\n' "pfy install: ref '${REF}' does not exist on ${REPO}" >&2
+    exit 1
+  fi
+  git -C "$stage" checkout --force --quiet FETCH_HEAD
 fi
 
 if [ ! -f "${stage}/pfy" ]; then
-  printf '%s\n' "pfy install: ${TAG} has no pfy launcher" >&2
+  printf '%s\n' "pfy install: ${REF} has no pfy launcher" >&2
   exit 1
 fi
 chmod +x "${stage}/pfy"
@@ -121,7 +151,7 @@ chmod 755 "$shimtmp"
 mv "$shimtmp" "$SHIM"
 shimtmp=
 
-printf '%s\n' "installed: ${TAG}"
+printf '%s\n' "installed: ${REF}"
 printf '%s\n' "shim: ${SHIM}"
 
 if [ "$no_setup" = "0" ] && [ -t 0 ]; then
