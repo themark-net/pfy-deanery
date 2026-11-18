@@ -32,6 +32,8 @@ def _ticks(usd: str) -> int:
 
 class LaneSpendTests(unittest.TestCase):
     def setUp(self):
+        # Hosted checkouts do not have gitignored tmp/.
+        (ROOT / "tmp").mkdir(exist_ok=True)
         self.tmp = Path(tempfile.mkdtemp(prefix="lane-spend-", dir=str(ROOT / "tmp")))
         self.sessions = self.tmp / "sessions"
         self.sessions.mkdir()

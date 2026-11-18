@@ -695,14 +695,18 @@ class OpenCodeEnterableTests(_Tmp):
         )
         self.addCleanup(proc.wait, 2)
         self.addCleanup(_sure_kill, proc.pid)
+        def pid_ready(name: str) -> bool:
+            path = work / name
+            return path.is_file() and path.read_text(encoding="utf-8").strip().isdigit()
+
         deadline = time.monotonic() + 5
-        while not (work / "c2.pid").is_file():
+        while not all(pid_ready(n) for n in ("leader.pid", "c1.pid", "c2.pid")):
             if proc.poll() is not None:
                 self.fail("leader exited before the children were recorded: %s" % proc.returncode)
             if time.monotonic() > deadline:
                 self.fail("process group did not record its children")
             time.sleep(0.02)
-        pids = [int((work / name).read_text(encoding="utf-8")) for name in ("leader.pid", "c1.pid", "c2.pid")]
+        pids = [int((work / name).read_text(encoding="utf-8").strip()) for name in ("leader.pid", "c1.pid", "c2.pid")]
         for pid in pids:
             self.addCleanup(_sure_kill, pid)
             self.assertTrue(_running(pid), "pid %s was not running before the call" % pid)
