@@ -198,5 +198,5 @@ DoD: from tag N, `pfy update` moves to N+1 and verifies `pfy --version`. A tampe
 
 - OQ: Which skill dir is the single SoT: `.grok/skills/` or a new `skills/`? (Recommendation: `skills/`, with the others generated.)
 - OQ: Write ADR-0017 properly (it is cited in `pfylib/` but missing from `docs/adr/`) and add ADR-0018 "pfy launcher: setup/launch/adapters/ledger", superseding parts of `docs/adr/0012-simple-harness-agnostic-launch.md` (number 0012 is also used by `0012-voice-half-duplex-local-first.md`).
-- OQ: Cursor CLI skills location. Is it a native skills dir or rules only? Verify against current Cursor CLI docs before Phase 3.
+- OQ: Cursor CLI skills location. Official docs (https://cursor.com/docs/skills, 2026-11-17) load user-level skills from `~/.cursor/skills/` (and `~/.agents/skills/`). This slice uses `~/.cursor/skills/`. Project-level `.cursor/skills/` stays a later `--scope project`.
 - OQ: Is the minimum Ollama version with `launch` new enough on the operator's hosts to make delegation the default?
