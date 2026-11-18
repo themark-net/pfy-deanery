@@ -380,7 +380,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
     lp = verbs.add_parser("launch", help="launch a harness with a local or grok subscription source (Phase 2)")
-    lp.add_argument("harness", nargs="?", default="", help="claude-code, grok, or empty for the TTY picker")
+    lp.add_argument("harness", nargs="?", default="", help="claude-code, grok, cursor, or empty for the TTY picker")
     lp.add_argument("--model", default="", help="model source, for example ollama:qwen3.6:35b or llamacpp:<alias>")
     lp.add_argument("--max-usd", type=float, default=None, dest="max_usd", help="cap for a paid cloud choice; required with --yes for cloud")
     lp.add_argument("--dry-run", action="store_true")

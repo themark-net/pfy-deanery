@@ -258,7 +258,7 @@ pfy — simple setup & launch for the pfy-deanery stack
   pfy launch status|stop    recorded headless session only
   pfy launch lane|toolset|harness|decision|review|compose
   pfy launch [harness] [--model ollama:<tag>|llamacpp:<alias>] [--yes] [--dry-run] [--json] [--max-usd N]
-                          Phase 2: TTY picker (local default qwen3.6:35b) or flags; grok is a subscription;
+                          TTY picker (local default qwen3.6:35b) or flags; grok and cursor are subscriptions;
                           does not write model settings into harness config
   pfy decision            Jev-style typed Choice/Score (#230; CUA-S1-FORMS local)
   pfy decision off|cua-s1-forms|typesafe|mini-jev

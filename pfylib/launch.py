@@ -1,12 +1,13 @@
-"""Phase 2: plan `pfy launch <harness> --model ollama:<tag>|llamacpp:<alias>`.
+"""Plan `pfy launch <harness> --model ollama:<tag>|llamacpp:<alias>`.
 
 Delegates to `ollama launch` when that subcommand exists. llamacpp sources
 use the ADR-0014 spine and, for Claude Code, the local LiteLLM gateway.
-Grok is a subscription exec with no model rewiring. A TTY picker offers a
-local default of qwen3.6:35b and shows cloud estimates or a subscription
-label before a choice is accepted. Child-process env only: this never
-writes model or base-URL into harness config and never prompts for a paid
-vendor key. Claude Code and Codex only accept a local source.
+Grok and Cursor are subscription execs with no model rewiring (Cursor is
+`cursor-agent`; pfy never enables on-demand or `--api-key`). A TTY picker
+offers a local default of qwen3.6:35b and shows cloud estimates or a
+subscription label before a choice is accepted. Child-process env only:
+this never writes model or base-URL into harness config and never prompts
+for a paid vendor key. Claude Code and Codex only accept a local source.
 """
 from __future__ import annotations
 
@@ -23,7 +24,18 @@ from typing import Any, TextIO
 from urllib.parse import urlparse
 
 LOCAL_DEFAULT = "ollama:qwen3.6:35b"
-HARNESS_BIN = {"claude-code": "claude", "codex": "codex", "opencode": "opencode", "grok": "grok"}
+HARNESS_BIN = {"claude-code": "claude", "codex": "codex", "opencode": "opencode", "grok": "grok", "cursor": "cursor-agent"}
+SUBSCRIPTION_HARNESSES = frozenset({"grok", "cursor"})
+# Official Cursor CLI billing / on-demand surfaces we never pass through.
+# https://cursor.com/docs/cli/reference/parameters
+CURSOR_BILLING_FLAGS = frozenset({
+    "--api-key",
+    "--auth-token",
+    "--on-demand",
+    "--ondemand",
+    "--use-on-demand",
+})
+CURSOR_BILLING_COMMANDS = frozenset({"worker"})
 DEFAULT_LITELLM = "http://127.0.0.1:4000"
 # Shown-before-choose estimate only; local price table, no live fetch.
 ESTIMATE_PROMPT_TOKENS = 2000
@@ -188,7 +200,7 @@ def parse_model(spec: str) -> tuple[str, str]:
 
 
 def refuse_paid(harness: str, spec: str) -> None:
-    if harness == "grok":
+    if harness in SUBSCRIPTION_HARNESSES:
         return
     kind, rest = parse_model(spec)
     if kind == "ollama":
@@ -213,14 +225,42 @@ def _anthropic_base_from_ollama() -> str:
     return f"{parsed.scheme}://{parsed.netloc}"
 
 
+def _flag_name(tok: str) -> str:
+    text = (tok or "").strip()
+    if text.startswith("--") and "=" in text:
+        return text.split("=", 1)[0]
+    return text
+
+
+def refuse_cursor_billing(passthrough: list[str] | None) -> None:
+    """Adopt Cursor's official flags; refuse the ones that enable billing."""
+    extra = list(passthrough or [])
+    for tok in extra:
+        name = _flag_name(tok)
+        if name in CURSOR_BILLING_FLAGS:
+            raise LaunchError(
+                "Cursor on-demand / API-key billing is refused; pfy launch cursor uses the subscription only",
+                next_step="use cursor-agent login, then pfy launch cursor --yes --dry-run --json (no --api-key, no worker)",
+                code=1,
+            )
+        if tok in CURSOR_BILLING_COMMANDS:
+            raise LaunchError(
+                "Cursor cloud worker is refused; pfy launch cursor uses the local subscription CLI only",
+                next_step="use cursor-agent login, then pfy launch cursor --yes --dry-run --json (no worker)",
+                code=1,
+            )
+
+
 def plan_launch(harness: str, model: str, *, dry_run: bool, passthrough: list[str] | None = None) -> LaunchPlan:
     hid = (harness or "").strip()
     extra = list(passthrough or [])
-    if hid == "grok":
+    if hid in SUBSCRIPTION_HARNESSES:
+        if hid == "cursor":
+            refuse_cursor_billing(extra)
         return LaunchPlan(
-            harness="grok",
+            harness=hid,
             model="subscription",
-            argv=["grok", *extra],
+            argv=[HARNESS_BIN[hid], *extra],
             env={},
             dry_run=dry_run,
             delegate="",
@@ -228,7 +268,7 @@ def plan_launch(harness: str, model: str, *, dry_run: bool, passthrough: list[st
     if hid not in HARNESS_BIN:
         raise LaunchError(
             f"unknown harness {hid!r}",
-            next_step="use claude-code or grok, or a reserved ./pfy launch wizard subcommand",
+            next_step="use claude-code, grok, or cursor, or a reserved ./pfy launch wizard subcommand",
             code=2,
         )
     refuse_paid(hid, model)
@@ -236,7 +276,7 @@ def plan_launch(harness: str, model: str, *, dry_run: bool, passthrough: list[st
     if hid != "claude-code":
         raise LaunchError(
             f"{hid} launch beyond paid-source refusal is not in this Phase 2 slice",
-            next_step="use: pfy launch claude-code --model ollama:<tag>|llamacpp:<alias> --yes --dry-run --json, or pfy launch grok --yes --dry-run --json",
+            next_step="use: pfy launch claude-code --model ollama:<tag>|llamacpp:<alias> --yes --dry-run --json, or pfy launch grok|cursor --yes --dry-run --json",
             code=3,
         )
     if kind == "ollama":
@@ -310,6 +350,7 @@ def harness_options() -> list[MenuOption]:
     return [
         MenuOption(key="1", kind="local", harness="claude-code", label="claude-code  (local models only)"),
         MenuOption(key="2", kind="subscription", harness="grok", model="subscription", label="grok  (subscription)", cost_label="subscription"),
+        MenuOption(key="3", kind="subscription", harness="cursor", model="subscription", label="cursor  (subscription)", cost_label="subscription"),
     ]
 
 
@@ -325,8 +366,8 @@ def model_options(harness: str, *, root: Path | None = None, aliases: list[str] 
         harness=hid,
         model=LOCAL_DEFAULT,
         label=LOCAL_DEFAULT + "  [local default]",
-        selectable=bool(ollama_up) and hid != "grok",
-        reason=local_reason if hid != "grok" else "grok uses a subscription, not a local model",
+        selectable=bool(ollama_up) and hid not in SUBSCRIPTION_HARNESSES,
+        reason=local_reason if hid not in SUBSCRIPTION_HARNESSES else "grok uses a subscription, not a local model",
     ))
     n += 1
     spine = llamacpp_spine()
@@ -335,10 +376,10 @@ def model_options(harness: str, *, root: Path | None = None, aliases: list[str] 
         names = ["default"]
     for alias in names:
         spec = "llamacpp:" + alias
-        ok = spine.get("status") == "ready" and hid != "grok"
+        ok = spine.get("status") == "ready" and hid not in SUBSCRIPTION_HARNESSES
         reason = ""
-        if hid == "grok":
-            reason = "grok uses a subscription, not a local model"
+        if hid in SUBSCRIPTION_HARNESSES:
+            reason = "%s uses a subscription, not a local model" % hid
         elif not ok:
             reason = SPINE_NEXT
         rows.append(MenuOption(
@@ -351,17 +392,18 @@ def model_options(harness: str, *, root: Path | None = None, aliases: list[str] 
             reason=reason,
         ))
         n += 1
-    rows.append(MenuOption(
-        key=str(n),
-        kind="subscription",
-        harness="grok" if hid == "grok" else hid,
-        model="subscription",
-        label="grok  [subscription]",
-        cost_label="subscription",
-        selectable=hid == "grok",
-        reason="" if hid == "grok" else "subscription is the Grok harness; Claude Code and Codex stay local-only",
-    ))
-    n += 1
+    for sub in ("grok", "cursor"):
+        rows.append(MenuOption(
+            key=str(n),
+            kind="subscription",
+            harness=sub if hid == sub else hid,
+            model="subscription",
+            label="%s  [subscription]" % sub,
+            cost_label="subscription",
+            selectable=hid == sub,
+            reason="" if hid == sub else "subscription is the %s harness; Claude Code and Codex stay local-only" % sub,
+        ))
+        n += 1
     from . import model_choice
 
     for name in model_choice.priced_cloud_models(root):
@@ -425,7 +467,7 @@ def run_selector(
     if not isatty:
         raise LaunchError(
             "non-TTY falls back to flags",
-            next_step="pass --harness and --model (pfy launch grok needs no --model)",
+            next_step="pass --harness and --model (pfy launch grok|cursor needs no --model)",
             code=2,
         )
     hid = (harness or "").strip()
@@ -438,10 +480,10 @@ def run_selector(
         if not chosen_h.selectable:
             raise LaunchError(chosen_h.reason or "harness is not selectable", code=1)
         hid = chosen_h.harness
-        if hid == "grok":
-            return "grok", "subscription"
-    if hid == "grok":
-        return "grok", "subscription"
+        if hid in SUBSCRIPTION_HARNESSES:
+            return hid, "subscription"
+    if hid in SUBSCRIPTION_HARNESSES:
+        return hid, "subscription"
     mopts = model_options(hid, root=root, aliases=aliases)
     _print_menu("Model / source:", mopts, stdout)
     stdout.write("choose model (estimates and subscription labels are shown above): ")
@@ -458,7 +500,7 @@ def run_selector(
     if not chosen.selectable:
         raise LaunchError(
             chosen.reason or "option is not selectable",
-            next_step="pick a selectable local source, or grok for a subscription",
+            next_step="pick a selectable local source, or grok or cursor for a subscription",
             code=1,
         )
     return hid, chosen.model
@@ -508,7 +550,7 @@ def cmd_launch(args: Any) -> int:
     extra = list(getattr(args, "passthrough", None) or [])
     if extra and extra[0] == "--":
         extra = extra[1:]
-    needs_pick = (not hid) or (hid != "grok" and not model)
+    needs_pick = (not hid) or (hid not in SUBSCRIPTION_HARNESSES and not model)
     if needs_pick:
         try:
             hid, model = run_selector(
@@ -536,7 +578,7 @@ def cmd_launch(args: Any) -> int:
         return 1
     return _fail(
         LaunchError(
-            "live exec is not in this Phase 2 slice",
+            "live exec is not in this Phase 3 slice",
             next_step="use --dry-run --json, or a later gated live-smoke slice",
             code=3,
         ),

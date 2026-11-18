@@ -1,6 +1,6 @@
 """Phase 2: pfy launch with ollama/llamacpp sources, TTY picker, and grok (docs/design/pfy-launcher.md §13).
 
-Temp HOME, fake claude/ollama/grok on PATH, local loopback probes only. No public
+Temp HOME, fake claude/ollama/grok/cursor-agent on PATH, local loopback probes only. No public
 network, no paid keys, no real cloud calls, no harness-config writes.
 """
 from __future__ import annotations
@@ -115,6 +115,8 @@ class LaunchP2(unittest.TestCase):
         env.pop("ANTHROPIC_AUTH_TOKEN", None)
         env.pop("OPENAI_API_KEY", None)
         env.pop("XAI_API_KEY", None)
+        env.pop("CURSOR_API_KEY", None)
+        env.pop("CURSOR_AUTH_TOKEN", None)
         env.pop("PFY_TEST_OPENAI_BASE", None)
         env.pop("PFY_LOCAL_RUNTIME", None)
         env.pop("LITELLM_BASE_URL", None)
@@ -162,6 +164,9 @@ class LaunchP2(unittest.TestCase):
 
     def install_grok(self) -> None:
         _write_exe(self.bindir / "grok", "#!/bin/sh\necho 'unexpected grok exec' >&2\nexit 99\n")
+
+    def install_cursor(self) -> None:
+        _write_exe(self.bindir / "cursor-agent", "#!/bin/sh\necho 'unexpected cursor-agent exec' >&2\nexit 99\n")
 
     def fingerprint(self) -> tuple[str | None, dict[str, str | None]]:
         return _sha(self.claude), {str(p): _sha(p) for p in self.claude_dir.rglob("*") if p.is_file()}
@@ -383,7 +388,7 @@ class LaunchP2(unittest.TestCase):
     def test_tty_selector_shows_estimate_and_refuses_cloud(self) -> None:
         self.install_ollama(has_launch=False)
         host = self.start_ollama_http()
-        # Pick claude-code, then the first cloud row (after local default, one llamacpp alias, grok).
+        # Pick claude-code, then the first cloud row (after local default, one llamacpp alias, grok, cursor).
         proc = self.run_pfy(
             "launch",
             "--yes",
@@ -392,7 +397,7 @@ class LaunchP2(unittest.TestCase):
             "--max-usd",
             "9",
             ollama_host=host,
-            stdin="1\n4\n",
+            stdin="1\n5\n",
             PFY_LAUNCH_ISTTY="1",
             PFY_TEST_OPENAI_BASE="127.0.0.1:1",
         )
@@ -455,6 +460,101 @@ class LaunchP2(unittest.TestCase):
         self.assertEqual(rec["model"], "subscription")
         self.assertEqual(rec["argv"], ["grok"])
         self.assertNotIn("unexpected grok exec", proc.stderr)
+
+
+    def test_cursor_dry_run_json_does_not_exec_fake_binary(self) -> None:
+        self.install_ollama(has_launch=False)
+        self.install_cursor()
+        cursor_json = self.home / ".cursor" / "mcp.json"
+        cursor_json.parent.mkdir(parents=True)
+        cursor_json.write_text("{\"mcpServers\": {}}\n")
+        before = _sha(cursor_json)
+        proc = self.run_pfy(
+            "launch",
+            "cursor",
+            "--yes",
+            "--dry-run",
+            "--json",
+            "--",
+            "--print",
+            ollama_host="127.0.0.1:1",
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
+        self.assertNotIn("unexpected cursor-agent exec", proc.stderr)
+        rec = json.loads(proc.stdout)
+        self.assertEqual(rec["harness"], "cursor")
+        self.assertEqual(rec["model"], "subscription")
+        self.assertEqual(rec["argv"], ["cursor-agent", "--print"])
+        self.assertEqual(rec["env"], {})
+        self.assertTrue(rec["dry_run"])
+        self.assertEqual(_sha(cursor_json), before)
+        self.assertNotIn("CURSOR_API_KEY", rec["env"])
+        self.assertNotIn("--api-key", rec["argv"])
+
+    def test_cursor_api_key_passthrough_is_refused(self) -> None:
+        self.install_ollama(has_launch=False)
+        self.install_cursor()
+        proc = self.run_pfy(
+            "launch",
+            "cursor",
+            "--yes",
+            "--dry-run",
+            "--json",
+            "--",
+            "--api-key",
+            "placeholder",
+            ollama_host="127.0.0.1:1",
+        )
+        self.assertEqual(proc.returncode, 1, proc.stderr + proc.stdout)
+        self.assertNotIn("unexpected cursor-agent exec", proc.stderr)
+        text = proc.stdout + proc.stderr
+        self.assertIn("subscription", text.lower())
+        self.assertIn("--api-key", text)
+        self.assertNotIn("placeholder", text)
+        self.assertIn("cursor-agent login", text)
+
+    def test_cursor_worker_passthrough_is_refused(self) -> None:
+        self.install_ollama(has_launch=False)
+        self.install_cursor()
+        proc = self.run_pfy(
+            "launch",
+            "cursor",
+            "--yes",
+            "--dry-run",
+            "--json",
+            "--",
+            "worker",
+            "start",
+            ollama_host="127.0.0.1:1",
+        )
+        self.assertEqual(proc.returncode, 1, proc.stderr + proc.stdout)
+        self.assertNotIn("unexpected cursor-agent exec", proc.stderr)
+        text = (proc.stdout + proc.stderr).lower()
+        self.assertIn("worker", text)
+        self.assertIn("subscription", text)
+
+    def test_tty_selector_picks_cursor_subscription(self) -> None:
+        self.install_ollama(has_launch=False)
+        self.install_cursor()
+        proc = self.run_pfy(
+            "launch",
+            "--yes",
+            "--dry-run",
+            "--json",
+            ollama_host="127.0.0.1:1",
+            stdin="3\n",
+            PFY_LAUNCH_ISTTY="1",
+            PFY_TEST_OPENAI_BASE="127.0.0.1:1",
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
+        text = (proc.stdout + proc.stderr).lower()
+        self.assertIn("subscription", text)
+        rec = json.loads(proc.stdout.splitlines()[-1])
+        self.assertEqual(rec["harness"], "cursor")
+        self.assertEqual(rec["model"], "subscription")
+        self.assertEqual(rec["argv"], ["cursor-agent"])
+        self.assertEqual(rec["env"], {})
+        self.assertNotIn("unexpected cursor-agent exec", proc.stderr)
 
 
 
