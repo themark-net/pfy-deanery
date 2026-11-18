@@ -577,9 +577,15 @@ def model_options(harness: str, *, root: Path | None = None, aliases: list[str] 
     return rows
 
 
-def _pick(options: list[MenuOption], raw: str) -> MenuOption:
+def _pick(
+    options: list[MenuOption],
+    raw: str,
+    default: MenuOption | None = None,
+) -> MenuOption:
     text = (raw or "").strip()
     if not text:
+        if default is not None and default.selectable:
+            return default
         raise LaunchError("no selection", next_step="pick a listed number or name", code=2)
     for opt in options:
         if text == opt.key or text == opt.harness or text == opt.model or text == opt.label.split()[0]:
@@ -642,9 +648,15 @@ def run_selector(
         return hid, "subscription"
     mopts = model_options(hid, root=root, aliases=aliases)
     _print_menu("Model / source:", mopts, stdout)
-    stdout.write("choose model (estimates and subscription labels are shown above): ")
+    stdout.write(
+        "choose model (Enter keeps the local default; estimates and subscription labels are shown above): "
+    )
     stdout.flush()
-    chosen = _pick(mopts, stdin.readline())
+    local_default = next(
+        (opt for opt in mopts if opt.model == LOCAL_DEFAULT and opt.selectable),
+        None,
+    )
+    chosen = _pick(mopts, stdin.readline(), default=local_default)
     if chosen.kind == "cloud":
         require_cloud_cap(yes=yes, max_usd=max_usd, estimate=chosen.cost_label)
         if not chosen.selectable:
@@ -824,6 +836,10 @@ def cmd_launch(args: Any) -> int:
     if extra and extra[0] == "--":
         extra = extra[1:]
     needs_pick = (not hid) or (hid not in SUBSCRIPTION_HARNESSES and not model)
+    if needs_pick and hid and hid not in SUBSCRIPTION_HARNESSES and not model and not stdin_is_tty():
+        # 11/11: non-interactive with a harness and no --model stays local.
+        model = LOCAL_DEFAULT
+        needs_pick = False
     if needs_pick:
         try:
             hid, model = run_selector(

@@ -359,6 +359,30 @@ class LaunchP2(unittest.TestCase):
         self.assertIn("flags", text)
         self.assertTrue("--model" in text or "harness" in text)
 
+    def test_non_tty_harness_without_model_defaults_to_local(self) -> None:
+        """Fail: non-TTY `pfy launch claude-code` without --model exits 2.
+        Recover: it plans the local default and does not call a cloud source.
+        """
+        self.install_ollama(has_launch=False)
+        host = self.start_ollama_http()
+        proc = self.run_pfy(
+            "launch",
+            "claude-code",
+            "--yes",
+            "--dry-run",
+            "--json",
+            ollama_host=host,
+            PFY_LAUNCH_ISTTY="0",
+            PFY_TEST_OPENAI_BASE="127.0.0.1:1",
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
+        rec = json.loads(proc.stdout.splitlines()[-1])
+        self.assertEqual(rec["harness"], "claude-code")
+        self.assertEqual(rec["model"], "ollama:qwen3.6:35b")
+        self.assertTrue(rec["dry_run"])
+        blob = (proc.stdout + proc.stderr).lower()
+        self.assertNotIn("pb://", blob)
+
     def test_tty_selector_picks_local_default(self) -> None:
         self.install_ollama(has_launch=False)
         host = self.start_ollama_http()
@@ -384,6 +408,31 @@ class LaunchP2(unittest.TestCase):
         self.assertTrue(rec["dry_run"])
         self.assertEqual(_sha(self.claude), before)
         self.assertEqual({str(p): _sha(p) for p in self.claude_dir.rglob("*") if p.is_file()}, before_dir)
+
+    def test_tty_selector_enter_picks_local_default(self) -> None:
+        """Fail: empty Enter on the model menu is 'no selection'.
+        Recover: Enter keeps ollama:qwen3.6:35b, the local default.
+        """
+        self.install_ollama(has_launch=False)
+        host = self.start_ollama_http()
+        proc = self.run_pfy(
+            "launch",
+            "--yes",
+            "--dry-run",
+            "--json",
+            ollama_host=host,
+            stdin="1\n\n",
+            PFY_LAUNCH_ISTTY="1",
+            PFY_TEST_OPENAI_BASE="127.0.0.1:1",
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
+        menu = proc.stdout + proc.stderr
+        self.assertIn("qwen3.6:35b", menu)
+        self.assertRegex(menu.lower(), r"enter keeps")
+        rec = json.loads(proc.stdout.splitlines()[-1])
+        self.assertEqual(rec["harness"], "claude-code")
+        self.assertEqual(rec["model"], "ollama:qwen3.6:35b")
+        self.assertTrue(rec["dry_run"])
 
     def test_tty_selector_shows_estimate_and_refuses_cloud(self) -> None:
         self.install_ollama(has_launch=False)

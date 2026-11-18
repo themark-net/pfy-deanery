@@ -75,7 +75,7 @@ A cloud choice takes effect only on a LiteLLM transport. catalog-fit already swi
 2. They set catalog-fit to `cloud:grok-4.7` or leave it local.
 3. Later, status prints: it will cost about a few cents to check the last local catalog-fit run.
 4. They run `./pfy compare catalog-fit --against grok-4.7` or `./pfy compare decision-route --against gpt-6.1-sol`, or they pick that pair on Loop or Engine and click Compare last local run. The process prints the token line (with the counter name), the provider, the source, and the fetched date, then waits.
-5. `y`, `--yes --max-usd <limit>` (or `--max-cost`), or a covering cap alone runs one cloud call per case through LiteLLM. The diff lands in `./tmp` and records `choice` plus `actual`. `n`, a closed stdin, a stale price, an unknown model, or a cap below the estimate runs nothing. A second compare while the lock is held does not run. Paid compare never auto-runs.
+5. `y`, `--yes --max-usd <limit>` (or `--max-cost`), or a covering cap alone runs one cloud call per case through LiteLLM. After that yes, a missing provider key (`XAI_API_KEY` or `OPENAI_API_KEY`, already named in `config/litellm/*.yaml`) fails closed with a clear message, a non-zero exit, and no POST. Key values are never logged. The diff lands in `./tmp` and records `choice` plus `actual`. `n`, a closed stdin, a stale price, an unknown model, or a cap below the estimate runs nothing. A second compare while the lock is held does not run. Paid compare never auto-runs. `pfy launch` keeps the same local default (`ollama:qwen3.6:35b`): Enter on the model menu, or a non-TTY launch with a harness and no `--model`, stays local. Cloud rows stay refused for local-only harnesses. Compare stays `./pfy compare`.
 
 ## Deferred
 

@@ -74,11 +74,22 @@ class Isolated(unittest.TestCase):
         self.run_dir = self.tmp / "run"
         self.run_dir.mkdir()
         self.out = self.tmp / "compare-catalog-fit.json"
+        # Dummy values only, never logged. Required after a covering yes.
+        self._cloud_keys = {
+            key: os.environ.get(key) for key in ("XAI_API_KEY", "OPENAI_API_KEY")
+        }
+        os.environ["XAI_API_KEY"] = "test"
+        os.environ["OPENAI_API_KEY"] = "test"
 
     def tearDown(self) -> None:
         mc._TRANSPORT = self._transport
         mc._COUNTERS = self._counters
         mc.sys_isatty = self._isatty
+        for key, value in getattr(self, "_cloud_keys", {}).items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
         if self._home is None:
             os.environ.pop("HOME", None)
         else:
@@ -321,6 +332,83 @@ class ResolveTests(Isolated):
                 )
         self.assertIn("paid cloud call blocked", str(caught.exception))
         self.assertEqual(self.calls, [])
+
+    def test_cloud_call_without_a_key_fails_closed_after_the_estimate(self) -> None:
+        """Fail: a covering yes still posts when the provider key is unset.
+        Recover: the estimate prints first, the error names the env var
+        (never a value), no model is called, and the fake backend stays idle.
+        """
+        saved = {key: os.environ.get(key) for key in ("XAI_API_KEY", "OPENAI_API_KEY")}
+        try:
+            os.environ.pop("XAI_API_KEY", None)
+            os.environ.pop("OPENAI_API_KEY", None)
+            mc._TRANSPORT = self._cloud
+            err = io.StringIO()
+            with redirect_stderr(err):
+                with self.assertRaises(mc.ModelCallError) as caught:
+                    mc.call_model(
+                        "hello cloud",
+                        task="catalog-fit",
+                        model="cloud:grok-4.7",
+                        root=ROOT,
+                        yes=True,
+                        max_usd=50,
+                    )
+            self.assertEqual(self.calls, [])
+            text = str(caught.exception)
+            self.assertIn("no cloud key", text.lower())
+            self.assertIn("XAI_API_KEY", text)
+            self.assertIn("No model was called", text)
+            self.assertIn("cost estimate: $", err.getvalue())
+        finally:
+            for key, value in saved.items():
+                if value is None:
+                    os.environ.pop(key, None)
+                else:
+                    os.environ[key] = value
+
+    def test_compare_cli_without_a_key_exits_nonzero(self) -> None:
+        """Fail: compare --yes --max-usd still starts when the key is unset.
+        Recover: the CLI prints the estimate, names the env var, exits
+        non-zero, and does not send.
+        """
+        from tests._model_choice_isolation import isolate_env
+
+        env = isolate_env(os.environ.copy(), self.tmp / "cli-nokey")
+        env.pop("XAI_API_KEY", None)
+        env.pop("OPENAI_API_KEY", None)
+        env.pop("LITELLM_MASTER_KEY", None)
+        env["PFY_MODEL_NO_PAID"] = "1"
+        proc = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "pfylib",
+                "--root",
+                str(ROOT),
+                "compare",
+                "catalog-fit",
+                "--against",
+                "grok-4.7",
+                "--run",
+                str(self.run_dir),
+                "--yes",
+                "--max-usd",
+                "50",
+            ],
+            cwd=ROOT,
+            env=env,
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        blob = proc.stdout + proc.stderr
+        self.assertNotEqual(proc.returncode, 0, blob)
+        self.assertRegex(proc.stdout, LINE_RE)
+        self.assertIn("no cloud key", blob.lower())
+        self.assertIn("XAI_API_KEY", blob)
+        self.assertIn("No model was called", blob)
 
     def test_catalog_fit_call_path_uses_the_choice(self) -> None:
         # Local stays on catalog_fit_triage's own Ollama path (load errors and

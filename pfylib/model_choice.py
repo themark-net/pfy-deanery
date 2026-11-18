@@ -12,7 +12,10 @@ resolve(task) -> (backend, model, source)
 source is env, alias, user, default, or fallback.
 A cloud backend is returned only when the operator set it.
 A cloud call_model prints the estimate and does not send until the same
-yes rules as compare. paid_ok is for a caller that already did that.
+yes rules as compare. After a yes, a missing provider key (the env vars
+already named in config/litellm/*.yaml) fails closed with a clear
+message and no POST. Values are never logged. paid_ok is for a caller
+that already did that.
 """
 from __future__ import annotations
 
@@ -25,6 +28,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from collections.abc import Mapping
 from datetime import date, datetime, timezone
 from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
@@ -520,9 +524,67 @@ def call_model(
                 isatty=isatty,
                 answer=answer,
             )
-            return _call_cloud(prompt, chosen_model, max_tokens=CLOUD_COMPLETION_ALLOWANCE)
-        return _call_cloud(prompt, chosen_model)
+            return _call_cloud(
+                prompt,
+                chosen_model,
+                max_tokens=CLOUD_COMPLETION_ALLOWANCE,
+                root=root,
+            )
+        return _call_cloud(prompt, chosen_model, root=root)
     return _call_local(prompt, chosen_model, host=host, root=root, task=task)
+
+
+# Env vars already named in config/litellm/*.yaml. Values are never logged.
+PROVIDER_KEY_VARS = {
+    "xai": "XAI_API_KEY",
+    "openai": "OPENAI_API_KEY",
+}
+
+
+def _bare_cloud_model(model: str) -> str:
+    text = (model or "").strip()
+    if text.startswith("cloud:"):
+        return text.split(":", 1)[1].strip()
+    return text
+
+
+def cloud_key_var(model: str, root: Path | None = None) -> str | None:
+    """Return the LiteLLM provider env var for this cloud model, or None."""
+    name = _bare_cloud_model(model)
+    provider = ""
+    try:
+        row = _price_row(name, root)
+        provider = str(row.get("provider") or "").strip().lower()
+    except (UnknownModelPrice, PriceCoverageError, OSError, TypeError, KeyError, ValueError):
+        provider = ""
+    if provider in PROVIDER_KEY_VARS:
+        return PROVIDER_KEY_VARS[provider]
+    lowered = name.lower()
+    if lowered.startswith("grok") or "xai" in lowered:
+        return "XAI_API_KEY"
+    if lowered.startswith("gpt") or "openai" in lowered:
+        return "OPENAI_API_KEY"
+    return None
+
+
+def require_cloud_key(
+    model: str,
+    *,
+    root: Path | None = None,
+    env: Mapping[str, str] | None = None,
+) -> None:
+    """Fail closed before a cloud POST when the provider key is unset."""
+    src = os.environ if env is None else env
+    var = cloud_key_var(model, root)
+    name = _bare_cloud_model(model)
+    if not var:
+        raise ModelCallError(
+            "no cloud key; set the provider API key for %s. No model was called." % name
+        )
+    if not str(src.get(var) or "").strip():
+        raise ModelCallError(
+            "no cloud key; set %s in the environment. No model was called." % var
+        )
 
 
 def _gate_unapproved_cloud(
@@ -581,9 +643,17 @@ def _gate_unapproved_cloud(
     )
     if block:
         raise ModelCallError("%s. No model was called." % block)
+    require_cloud_key(model, root=root)
 
 
-def _call_cloud(prompt: str, model: str, *, max_tokens: int | None = None) -> tuple[str, dict]:
+def _call_cloud(
+    prompt: str,
+    model: str,
+    *,
+    max_tokens: int | None = None,
+    root: Path | None = None,
+) -> tuple[str, dict]:
+    require_cloud_key(model, root=root)
     base = litellm_base()
     url = base if base.endswith("/chat/completions") else base.rstrip("/") + "/chat/completions"
     body: dict = {

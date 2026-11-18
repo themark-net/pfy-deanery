@@ -25,6 +25,26 @@ if str(ROOT) not in sys.path:
 from pfylib.cloud_cost_gate import SKIP_EXIT, gate_cloud_prompt
 from tests.test_eval_lane import lane_env, make_fixture, write_grok, SCRIPT as EVAL_SCRIPT
 
+# Dummy values only, never logged. Required after a covering yes.
+_CLOUD_KEY_VARS = ("XAI_API_KEY", "OPENAI_API_KEY")
+
+
+def _install_dummy_cloud_keys(target: dict | None = None) -> dict:
+    src = os.environ if target is None else target
+    saved = {key: src.get(key) for key in _CLOUD_KEY_VARS}
+    for key in _CLOUD_KEY_VARS:
+        src[key] = "test"
+    return saved
+
+
+def _restore_cloud_keys(saved: dict, target: dict | None = None) -> None:
+    src = os.environ if target is None else target
+    for key, value in saved.items():
+        if value is None:
+            src.pop(key, None)
+        else:
+            src[key] = value
+
 # Import grill after path insert so call_grok is the real one.
 import importlib.util
 
@@ -77,6 +97,8 @@ class GatePromptTests(unittest.TestCase):
         self.assertIn("cost estimate:", buf.getvalue())
 
     def test_attended_yes_and_covering_cap_allow(self) -> None:
+        saved = _install_dummy_cloud_keys()
+        self.addCleanup(_restore_cloud_keys, saved)
         buf = io.StringIO()
         with redirect_stderr(buf):
             accepted = gate_cloud_prompt(
@@ -230,6 +252,7 @@ class EvalLaneSkipTests(unittest.TestCase):
                 "exit 0\n" % log,
             )
             env = lane_env(td, grok, approve=True)
+            _install_dummy_cloud_keys(env)
             state = td / "evalstate"
             proc = subprocess.run(
                 ["bash", str(EVAL_SCRIPT), "--root", str(clone), "--state", str(state), "--slug", "widget", "--date", "1108"],
@@ -269,6 +292,7 @@ class AttendedApproveInvokesGrok(unittest.TestCase):
             env["GROK_LOG"] = str(log)
             env.pop("PFY_CLOUD_YES", None)
             env.pop("PFY_CLOUD_MAX_USD", None)
+            _install_dummy_cloud_keys(env)
             saved = dict(os.environ)
             os.environ.clear()
             os.environ.update(env)
