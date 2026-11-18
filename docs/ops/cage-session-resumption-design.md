@@ -1,6 +1,6 @@
 # Design: Cage Grok session resumption (repo-isolated)
 
-**Status:** Implemented (T-0047) — sessions volume + host import + resume targets  
+**Status:** Implemented (T-0047) - sessions volume + host import + resume targets  
 **Related:** T-0045 (launch path), ADR-0002 (Grok primary), ADR-0010 (not AgenC)  
 **Upstream behavior:** Grok Build sessions under `$GROK_HOME/sessions/<url-encoded-cwd>/`
 
@@ -9,7 +9,7 @@
 Today:
 
 - Cage mounts **only** `auth.json` into `/home/agent/.grok/`.
-- Conversation sessions live under `/home/agent/.grok/sessions/` **inside the container filesystem** (ephemeral relative to host intent — lost or orphaned on image recreate / container wipe).
+- Conversation sessions live under `/home/agent/.grok/sessions/` **inside the container filesystem** (ephemeral relative to host intent - lost or orphaned on image recreate / container wipe).
 - Host Grok sessions live under `~/.grok/sessions/` keyed by **host** cwd (e.g. `$PFY_ROOT/…`), not cage cwd (`/workspace/pfy-mentat`).
 - `make cage-workspace-sync` can refresh code, but **does not** preserve agent chat continuity.
 
@@ -22,7 +22,7 @@ Operators need: **resume the same agent thread after re-entering the cage**, wit
 | G1 | Sessions **survive** `cage-down` / re-up / overlay rebuild (as long as host store is kept). |
 | G2 | Isolation by **repo identity** (not by host username path alone). |
 | G3 | Resume works **inside cage** via native Grok: `-c` / `--continue`, `-r` / `--resume`, `/resume`, `grok sessions list`. |
-| G4 | Auth stays separate (OIDC `auth.json` import) — never bake tokens into session tarballs. |
+| G4 | Auth stays separate (OIDC `auth.json` import) - never bake tokens into session tarballs. |
 | G5 | Works with multi-repo later: catalog + gom-jobbar + atg, etc. |
 
 ## Non-goals (v1)
@@ -47,7 +47,7 @@ $GROK_HOME/sessions/<url-encoded-absolute-cwd>/<session-uuid>/
 
 In cage today, cwd is `/workspace/pfy-mentat` → dir name `%2Fworkspace%2Fpfy-mentat`.
 
-**Implication:** If we keep a **stable absolute workspace path per repo** inside the cage and **persist `$GROK_HOME/sessions` on the host**, resume is native — no custom session engine.
+**Implication:** If we keep a **stable absolute workspace path per repo** inside the cage and **persist `$GROK_HOME/sessions` on the host**, resume is native - no custom session engine.
 
 ## Design
 
@@ -124,7 +124,7 @@ Inside TUI: `/resume` still works once sessions are on the persisted mount.
 
 ### 7. Security
 
-- Session transcripts may contain secrets — store under `~/.agentcage/grok-state` with `0700`, never commit.
+- Session transcripts may contain secrets - store under `~/.agentcage/grok-state` with `0700`, never commit.
 - Do not bind-mount entire host `~/.grok` (hides binary path; mixes host/cage skills).
 - Auth file mount remains **file-only** for `auth.json`.
 

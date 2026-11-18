@@ -4,7 +4,7 @@ This document defines the selective policy for embedding or tracking external re
 
 **Core Principle**: Embed or pin only what delivers clear integration value to the Grok CLI + agents + MCP code memory + DSPy/LiteLLM + continuous pipeline stack. Most tools stay as documented + pinned-SHA references.
 
-**Lifecycle first:** See [docs/ops/integration-stages.md](docs/ops/integration-stages.md) (I0–I4). Embed (this file) is **I4 only**, after staged evaluation (I1), optional lightweight probe (I2, <50 MB), and onboard (I3). **No symbolic first subtree** (OQ-0003: wait).
+**Lifecycle first:** See [docs/ops/integration-stages.md](docs/ops/integration-stages.md) (I0-I4). Embed (this file) is **I4 only**, after staged evaluation (I1), optional lightweight probe (I2, <50 MB), and onboard (I3). **No symbolic first subtree** (OQ-0003: wait).
 
 ## When to Use Subtree (Rare)
 
@@ -27,12 +27,12 @@ Subtree duplicates the entire child history under the prefix. This is powerful f
 
 ## When to Use Submodules (Preferred for Most Embedded Cases)
 
-Use git submodules when you want a lightweight pointer to a pinned commit but do not need to edit the child code inside this repo. Size impact is minimal. Still **I4** — prefer only after I3.
+Use git submodules when you want a lightweight pointer to a pinned commit but do not need to edit the child code inside this repo. Size impact is minimal. Still **I4** - prefer only after I3.
 
 - Good for small-to-medium tools you want versioned but not heavily customized here.
 - Also suitable for high-value *aggregate/list* repos (see sources/aggregates.md).
 
-**I2 probe (not embed):** For ambiguous potential + <50 MB, a throwaway or `tools/_probe/<name>/` copy may be used for ad-hoc eval without claiming submodule integration — see integration-stages.md.
+**I2 probe (not embed):** For ambiguous potential + <50 MB, a throwaway or `tools/_probe/<name>/` copy may be used for ad-hoc eval without claiming submodule integration - see integration-stages.md.
 
 Add with:
 ```bash
@@ -99,14 +99,14 @@ Every subtreed or submoduled repo must have an entry in this file (or linked sec
 
 ## Current Subtrees / Submodules
 
-*(None yet — OQ-0003: wait for first real I3→I4 candidate; do not force a symbolic embed.)*
+*(None yet - OQ-0003: wait for first real I3→I4 candidate; do not force a symbolic embed.)*
 
 ## Integration with Existing Rubric & Pipeline Vision
 
 Subtree/submodule decisions are **downstream** of:
-1. Stage 0–4 scoring in CATEGORIZATION.md (catalog quality).
-2. Integration stages I0–I4 in [docs/ops/integration-stages.md](docs/ops/integration-stages.md) (how deep we pull it in).
+1. Stage 0-4 scoring in CATEGORIZATION.md (catalog quality).
+2. Integration stages I0-I4 in [docs/ops/integration-stages.md](docs/ops/integration-stages.md) (how deep we pull it in).
 
 Only tools that clear value + modularity gates, reach I3, and then meet this file’s embed criteria qualify for I4. The default pinned-SHA + shallow-clone path satisfies "always available" for the rest without compromising repo health.
 
-This policy will be reviewed after the first 2–3 real embeddings or when repo size growth becomes measurable.
+This policy will be reviewed after the first 2-3 real embeddings or when repo size growth becomes measurable.

@@ -65,7 +65,7 @@ Assumptions: host only (no cage); Grok remains monitor
 /one-shot Phase 1 voice channel: STT edge hands text to Grok/OpenCode.
 
 DoD (wiring):
-1. make smoke-voice-stt exits 0 (mock/text only — does NOT record audio)
+1. make smoke-voice-stt exits 0 (mock/text only - does NOT record audio)
 2. examples/voice-stt-edge/.generated/ has last-transcript.txt + agent-prompt.md + handoff.sh
 3. smoke does not leave raw "ping" as default handoff
 
@@ -276,10 +276,10 @@ DoD:
 5. Optional: /agent-loops audit docs/ops/one-shot-workflow.md lists covered vs missing exits
 
 Assumptions:
-- Structural smoke is free; steps 2–5 cost cloud tokens
+- Structural smoke is free; steps 2-5 cost cloud tokens
 ```
 
-**Green:** operator ticks Layer 2–3 in docs/ops/skill-verification.md (matrix optional: `make eval-matrix`)
+**Green:** operator ticks Layer 2-3 in docs/ops/skill-verification.md (matrix optional: `make eval-matrix`)
 
 ---
 

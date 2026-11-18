@@ -17,15 +17,15 @@ Out-of-box README setup is a **menu of Make targets** (env, Grok install, cage, 
 | **Claude Code / Codex / Gemini** | One CLI, auth, go |
 | **Grok Build** | One CLI + login |
 
-Users want: **one command setup**, **one command start**, **any harness**, unfinished pieces **stubbed with issues** — not “call tooling separately.”
+Users want: **one command setup**, **one command start**, **any harness**, unfinished pieces **stubbed with issues** - not “call tooling separately.”
 
 ## Decision
 
-1. **Overarching product goal G8:** *Simple deploy path* — `./pfy setup` then `./pfy start` is the default story; eval pipeline remains first-class but not the UX front door.
+1. **Overarching product goal G8:** *Simple deploy path* - `./pfy setup` then `./pfy start` is the default story; eval pipeline remains first-class but not the UX front door.
 2. **Single launcher:** repo-root `./pfy` → `scripts/pfy` (also `make pfy ARGS='…'`).
 3. **Harness registry:** `data/harnesses.json` lists inference + harnesses with `ready|partial|stub` and setup notes.
 4. **Inference-first:** prefer Ollama up before launching a coding harness (Ollama→agent pattern).
-5. **Grok remains default harness** (ADR-0002) but is **not exclusive** — OpenCode, Hermes, Claude Code, Codex, Gemini, Exo, Continue are first-class *slots*, stubbed until adapters ship.
+5. **Grok remains default harness** (ADR-0002) but is **not exclusive** - OpenCode, Hermes, Claude Code, Codex, Gemini, Exo, Continue are first-class *slots*, stubbed until adapters ship.
 6. **Stubs are honest:** `pfy start hermes` exits 2 with setup text + issue pointer; no fake “ready.”
 7. **Track gaps as GitHub issues** labeled `harness-adapter` under epic “Simple launch surface.”
 

@@ -26,9 +26,9 @@ Do **not** store secrets or `auth.json` in-repo.
 
 Rejected alternatives:
 
-1. **Document-only setup (README steps, no scripts)** — Drift-prone; hard to re-run.
-2. **Subtree whole ponytail / codebase-memory repos** — Oversized vs skills snapshot + binary install; fails lean default (ADR-0003).
-3. **Only publish skills to a separate skills repo** — Extra hop; this catalog is the integration home for the stack.
+1. **Document-only setup (README steps, no scripts)** - Drift-prone; hard to re-run.
+2. **Subtree whole ponytail / codebase-memory repos** - Oversized vs skills snapshot + binary install; fails lean default (ADR-0003).
+3. **Only publish skills to a separate skills repo** - Extra hop; this catalog is the integration home for the stack.
 
 ## Consequences
 

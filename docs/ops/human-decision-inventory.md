@@ -20,7 +20,7 @@
 1. Optional tool → **I1 staged evaluation** (uses / features / potential / non-goals) + catalog tier.  
 2. Default = **no runtime install** unless smoke path is cheap and already green.  
 3. TODO may exist at **P3** (“eval if pain appears”); **do not** set Status=`blocked` on an OQ that is only preference.  
-4. OQ only if install/weights/embed would change disk, security, or primary stack — or operator explicitly escalates pain.
+4. OQ only if install/weights/embed would change disk, security, or primary stack - or operator explicitly escalates pain.
 
 Related: [integration-stages.md](integration-stages.md) · [evaluation-framework.md](../evaluation-framework.md) Phase 3.
 
@@ -29,12 +29,12 @@ Related: [integration-stages.md](integration-stages.md) · [evaluation-framework
 | Bucket | Count | Automation loop (instead of N chats) |
 |--------|------:|--------------------------------------|
 | **Blocked OQs (P2)** | **0** | Batch done 2026-07-30 |
-| **Optional tool adopt** | defaults below | **I1 + skip install**; lower priority in eval pipeline — **not** OQ |
+| **Optional tool adopt** | defaults below | **I1 + skip install**; lower priority in eval pipeline - **not** OQ |
 | **Cage/env polish** | **0 for this track** | Parked |
 | **Product forks needing ADR** | **0 open P1** | None until architecture pivot |
 | **Hybrid surfaces (ADR-0011)** | **0** | Defaults set |
 | **Voice channel (OQ-0010)** | **0** | ADR-0012 |
-| **Total decisions needed from you** | **0–1** | Only colibri weights if you care |
+| **Total decisions needed from you** | **0-1** | Only colibri weights if you care |
 
 **Bottom line:** Design/coding track needs **no** human input. Optional tools stay in catalog eval at appropriate priority. Do not recreate Antigravity-style blocking OQs.
 
@@ -42,7 +42,7 @@ Related: [integration-stages.md](integration-stages.md) · [evaluation-framework
 
 ## Branch maps
 
-### B1 — Optional catalog tool (coding assist)
+### B1 - Optional catalog tool (coding assist)
 
 ```text
 Phase0 gate: open-source + local + coding/design assist?
@@ -58,10 +58,10 @@ Phase0 gate: open-source + local + coding/design assist?
                          NO → P3 TODO or catalog note only; **no OQ**; no blocked TODO
 ```
 
-**Human decisions if high-blast runtime needed:** 1 (allow install/weights?) — OQ batch, not chat.  
+**Human decisions if high-blast runtime needed:** 1 (allow install/weights?) - OQ batch, not chat.  
 **Not a human decision:** “should we maybe eval this later?” → lower priority in pipeline.
 
-### B2 — New process skill (design/coding)
+### B2 - New process skill (design/coding)
 
 ```text
 Complex procedure ≥ threshold?
@@ -70,7 +70,7 @@ Complex procedure ≥ threshold?
         Pass? ship. Fail? fix until green. No human.
 ```
 
-### B3 — Implement-lane model eval (needs Ollama)
+### B3 - Implement-lane model eval (needs Ollama)
 
 ```text
 Ollama + gate model present?
@@ -78,7 +78,7 @@ Ollama + gate model present?
   YES → make eval-suite; fail → model/prompt fix loop (agent); no human unless infra missing on purpose
 ```
 
-### B4 — OQ batch (historical + remaining)
+### B4 - OQ batch (historical + remaining)
 
 | ID | Question | Status 2026-07-30 | Default if unanswered |
 |----|----------|-------------------|----------------------|
@@ -113,13 +113,13 @@ OQ-BATCH: 0003=wait 0004=submodule-later 0007=skip 0008=?
 ## Automation loops to build next
 
 1. **`make eval-structural`** in every design/coding PR (this repo).  
-2. **OQ-BATCH parser** — one message closes N OQs.  
-3. **Eval SKIP vs FAIL policy** — missing model = 2, not 1 (already for matrix cells).  
-4. **Night-shift TODO** — only pick rows with Open questions = `—`.  
+2. **OQ-BATCH parser** - one message closes N OQs.  
+3. **Eval SKIP vs FAIL policy** - missing model = 2, not 1 (already for matrix cells).  
+4. **Night-shift TODO** - only pick rows with Open questions = `-`.  
 5. **`make cage-code-sync PUSH=1`** on host after any cage agent session (import commits + rsync).  
-6. **OQ gate check** — before creating OQ, confirm no safe default and blast radius real (see table above).
+6. **OQ gate check** - before creating OQ, confirm no safe default and blast radius real (see table above).
 
-## HD #33 — Host-lab / close policy (answered 2026-07-30)
+## HD #33 - Host-lab / close policy (answered 2026-07-30)
 
 **Not** docs-vs-host binary. Use **G0 structural · G1 deploy-ready (build+smoke) · G2 UX UAT (human)**.
 

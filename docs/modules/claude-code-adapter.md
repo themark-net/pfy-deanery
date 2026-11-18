@@ -34,7 +34,7 @@ Official docs: [Claude Code](https://docs.anthropic.com/en/docs/claude-code)
 
 - Entry: `scripts/pfy_attach_usable_221.py` (`--prove` / `--selftest`); board `open_enterable_claude_session` / `start_sidecar("claude")` (`claude-code` alias).
 - Callers: HTML+tk Attach; `POST /start id=claude`; `./pfy start claude` / `claude-code` payload.
-- Invariants: prove models list + smoke before attached paint; SIDECAR_OK includes `claude` and `claude-code`; operate-or-FAIL on mode; catalog 70–75 HOLD; do not reopen #76; #198 parked; LIVE_HARD_OFF.
+- Invariants: prove models list + smoke before attached paint; SIDECAR_OK includes `claude` and `claude-code`; operate-or-FAIL on mode; catalog 70-75 HOLD; do not reopen #76; #198 parked; LIVE_HARD_OFF.
 - Issue **#221** only.
 
 ## Not yet

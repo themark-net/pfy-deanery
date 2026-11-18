@@ -1,6 +1,6 @@
 # Module: bootstrap/grok-cli
 
-**Purpose:** Replayable **operator environment** for Grok CLI — skills, MCP wiring, config fragment — so a new machine matches this catalog’s agent process.
+**Purpose:** Replayable **operator environment** for Grok CLI - skills, MCP wiring, config fragment - so a new machine matches this catalog’s agent process.
 
 ## Operator: how to run
 
@@ -37,7 +37,7 @@ CLI `./pfy start grok` uses the same honesty: no live engine → FAIL + next (do
 | Variable / file | Role |
 |-----------------|------|
 | `~/.grok/auth.json` | Primary OIDC session (not committed) |
-| `XAI_API_KEY` | Optional API fallback (CI / no session) — [REGISTRY](../../bootstrap/env/REGISTRY.md) |
+| `XAI_API_KEY` | Optional API fallback (CI / no session) - [REGISTRY](../../bootstrap/env/REGISTRY.md) |
 | `~/.grok/config.toml` | MCP servers, skills paths (owned by bootstrap merge) |
 | `~/.local/bin/codebase-memory-mcp` | Optional MCP binary on PATH |
 

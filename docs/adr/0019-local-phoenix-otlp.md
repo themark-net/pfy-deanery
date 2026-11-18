@@ -23,11 +23,11 @@ ADR-0017 is already cited for the toolset x harness package and is not this deci
 
 Rejected alternatives:
 
-1. **Vendor the SDK in the repo** — the pins move, and the repo stays free of wheels. The tool cache is the same place LiteLLM already lives.
-2. **Export to a hosted collector** — pipeline prompts and tool args are local operator data. A non-loopback URL is refused so a mis-set env cannot ship them.
-3. **OTLP/JSON or a hand-rolled span format** — Phoenix's HTTP ingest on this port accepts `application/x-protobuf`. The SDK exporter already speaks that.
-4. **Block the lane until Phoenix accepts the batch** — a down UI collector would stall eval. The probe-and-latch no-op keeps the pipeline independent of the UI.
-5. **A second copy of the Grok log redaction patterns** — the two paths would drift and leak. `pfylib.redact` is the single function.
+1. **Vendor the SDK in the repo** - the pins move, and the repo stays free of wheels. The tool cache is the same place LiteLLM already lives.
+2. **Export to a hosted collector** - pipeline prompts and tool args are local operator data. A non-loopback URL is refused so a mis-set env cannot ship them.
+3. **OTLP/JSON or a hand-rolled span format** - Phoenix's HTTP ingest on this port accepts `application/x-protobuf`. The SDK exporter already speaks that.
+4. **Block the lane until Phoenix accepts the batch** - a down UI collector would stall eval. The probe-and-latch no-op keeps the pipeline independent of the UI.
+5. **A second copy of the Grok log redaction patterns** - the two paths would drift and leak. `pfylib.redact` is the single function.
 
 ## Consequences
 

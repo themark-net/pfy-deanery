@@ -1,4 +1,4 @@
-# MUE-X patterns (extract only — no evolve runtime)
+# MUE-X patterns (extract only - no evolve runtime)
 
 **Source:** Entry 067 · TOOLS.md **MUE-X**  
 **Posture:** Pattern extract for self-modifying agent safety. **Do not** run unattended `evolve` in this lab without pin + safety note + operator batch OK.

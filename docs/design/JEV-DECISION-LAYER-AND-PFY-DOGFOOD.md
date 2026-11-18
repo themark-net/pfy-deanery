@@ -13,9 +13,9 @@
 
 | Asset | Path / surface | Calls cloud TypeSafe? |
 |-------|----------------|------------------------|
-| ADR | `docs/adr/0016-jev-decision-layer.md` | No — pins optional cloud |
+| ADR | `docs/adr/0016-jev-decision-layer.md` | No - pins optional cloud |
 | Ops / module | `docs/ops/jev-230.md`, `docs/modules/jev-230.md` | Documents optional key |
-| Design locks | `docs/design/JEV-230-*.md` | — |
+| Design locks | `docs/design/JEV-230-*.md` | - |
 | Implementation | `scripts/pfy_jev_230.py` (~1.1k LOC) | **Only if** `TYPESAFE_API_KEY` set; raw `POST https://api.typesafe.ai/v1/systemone` via `urllib` (**no** `typesafe-sdk` import) |
 | CLI | `./pfy decision` (`smoke` / `route` / `compact` / `queue` / path toggles) | Smoke = CUA-S1-FORMS, operator-free |
 | Toolset | `data/toolsets.json` id `jev` (`catalog_tool: null` by design) | Lane local = CUA / mini-jev; cloud = TypeSafe |
@@ -44,11 +44,11 @@
 | PyPI package | `typesafe-sdk` **0.7.2** (TypeSafe AI / Daniel Gafni); import `typesafe_sdk` |
 | Avoid | Third-party `typesafe-ai` shim; unrelated `typesafe` package |
 | Env | `TYPESAFE_API_KEY` (console.typesafe.ai/keys); client also reads `TYPESAFE_DEFAULT_MODEL`, `TYPESAFE_BASE_URL` |
-| Default model (SDK) | `jev-latest` (pfy pins `PFY_JEV_MODEL` default **`jev-1.13.0`** — keep pin in-repo) |
+| Default model (SDK) | `jev-latest` (pfy pins `PFY_JEV_MODEL` default **`jev-1.13.0`** - keep pin in-repo) |
 | API | `POST /v1/systemone` at `https://api.typesafe.ai` |
 | Question types | `Choice`, `Score` (ordered criteria list since 0.6), `Noul` |
 | Official skill | `npx skills add typesafe-ai/skills --skill typesafe-ai` / https://github.com/typesafe-ai/skills |
-| Early access | Blog still describes waitlist / early access — treat key absence as expected |
+| Early access | Blog still describes waitlist / early access - treat key absence as expected |
 
 **pfy already matches the “thin adapter, no SDK lock-in” goal:** questions/thresholds in `scripts/pfy_jev_230.py` + env; offline/local path is default; cloud is optional HTTP.
 
@@ -70,18 +70,18 @@ Pipeline reminder: bots coordinate (PM / DevBot / Tester / Reviewer / CEO) → h
 | Waive self-hosted CI wait | Med | Explicit allowlist of flake labels / known-green jobs | Noul `ci_wait_waive` in **shadow** only | No | Default = wait |
 | Route work: Build vs Cursor vs bot-only | High | Size/heuristics (diff LOC, eval length) | Choice over live options (org-spinny `pm_route` / pfy `route`) | Escalate ambiguous | Bot coordination skill already points here |
 | Which Tester / Reviewer to ping | Med | Round-robin / specialty labels in code | Choice when >1 eligible | No | |
-| PR touches GUI → needs launch proof? | Med | Path globs (`gui/`, `scripts/pfy-gui.py`, Loop) in code | Noul `needs_launch_proof` **shadow** | No | LOOP-243: Launch opens grok/OpenCode only — not a harness picker |
+| PR touches GUI → needs launch proof? | Med | Path globs (`gui/`, `scripts/pfy-gui.py`, Loop) in code | Noul `needs_launch_proof` **shadow** | No | LOOP-243: Launch opens grok/OpenCode only - not a harness picker |
 | Tool-call danger class | High (inside agent) | Deny-list in code / write-guard | Choice/Score danger class **beside** existing guards | No silent bypass | Align with ADR-0007 |
-| Compaction / model-tool route inside a Build session | High | — | **`./pfy decision compact` / `route`** (CUA primary) | Session chat only if escalate | Already implemented #230 |
+| Compaction / model-tool route inside a Build session | High | - | **`./pfy decision compact` / `route`** (CUA primary) | Session chat only if escalate | Already implemented #230 |
 | org-spinny `push_hold` / `nimo_yield` | High | Exit codes + threshold env | **Keep local Ollama/CUA**; optional later shadow vs TypeSafe | Escalate on exit 3 | Do not cloud-require |
-| Feature GO / money / legal / new cloud account | Rare | — | — | — | **Human / CEO only** |
+| Feature GO / money / legal / new cloud account | Rare | - | - | - | **Human / CEO only** |
 | Writing DoDs, ADRs, thesis | Low | Templates | Never | LLM ok | Spinny non-goal |
 
 ### Rollout
 
 1. **Shadow:** log `{gate, state_hash, choice, confidence, engine, would_auto}` beside current behavior; current path still acts.  
 2. **Safest auto:** only branches that today already auto-act on deterministic code (e.g. hold on `known_red`) and where shadow agreement ≥ threshold for N days.  
-3. **TypeSafe cloud:** off until a key exists; then one smoke + shadow parallel to CUA/Ollama — never block operator-free path.
+3. **TypeSafe cloud:** off until a key exists; then one smoke + shadow parallel to CUA/Ollama - never block operator-free path.
 
 ---
 
@@ -109,9 +109,9 @@ Pipeline reminder: bots coordinate (PM / DevBot / Tester / Reviewer / CEO) → h
 - **I3:** Grok CLI bootstrap  
 - **I2:** codebase-memory-mcp ↔ toolset `code-graph`  
 - **I1 + toolset implemented:** Finn Loop / orchestration (`agent-loops`)  
-- **Toolset `jev`:** implemented for grok/opencode/… with `catalog_tool: null` (ADR-0016 — not a TOOLS.md Stage-0 local-first row for TypeSafe SaaS)
+- **Toolset `jev`:** implemented for grok/opencode/… with `catalog_tool: null` (ADR-0016 - not a TOOLS.md Stage-0 local-first row for TypeSafe SaaS)
 
-**Do not dogfood on:** Kolibri-1 I0 (`FAIL_NO_BACKEND`), catalog 70–75 HOLD, PR #256 Loop agent-picker split, eval-auto `NameError: re` harness fix branches.
+**Do not dogfood on:** Kolibri-1 I0 (`FAIL_NO_BACKEND`), catalog 70-75 HOLD, PR #256 Loop agent-picker split, eval-auto `NameError: re` harness fix branches.
 
 ### Catalog entry recommendation (this PR)
 
@@ -123,7 +123,7 @@ Rationale (ADR-0016 + Stage 0):
 - First-party surface is already the **`jev` toolset** + `#230` scripts/skills (operator-integrated; treat as **I3-equivalent product middleware**, not a third-party catalog pin).  
 - Adding a half-linked row would either break `make catalog-check` or silently reverse ADR-0016.
 
-**When T-0123 opens:** either (a) keep null and document “first-party middleware”, or (b) add an **I1** awareness row for TypeSafe cloud + keep CUA/local as the I3 path — never require the key for smoke.
+**When T-0123 opens:** either (a) keep null and document “first-party middleware”, or (b) add an **I1** awareness row for TypeSafe cloud + keep CUA/local as the I3 path - never require the key for smoke.
 
 ### Thin decision adapter (already mostly true; tighten in follow-up code PRs)
 
@@ -133,14 +133,14 @@ Rationale (ADR-0016 + Stage 0):
 | Model pin in-repo | `PFY_JEV_MODEL` default `jev-1.13.0` | Confirm against `GET /v1/models` when key exists; do not chase article-only ids blindly |
 | Questions / criteria / thresholds versioned | Mostly inline in `pfy_jev_230.py` | Extract versioned JSON under e.g. `data/decision-gates/` (`schema_version`, gate id, criteria, conf gate) |
 | Offline fallback | No key / `PFY_JEV_OFFLINE` → FAIL+next or CUA/mini-jev | Unchanged; org bots keep `org-spinny-decide` Ollama path |
-| Org bridge | Separate repos | Optional: `ORG_DECIDE_BACKEND=pfy` shelling `./pfy decision` / CUA — **after** dogfood |
+| Org bridge | Separate repos | Optional: `ORG_DECIDE_BACKEND=pfy` shelling `./pfy decision` / CUA - **after** dogfood |
 
 ### Where it plugs in
 
-1. **Model / tool router** — `./pfy decision route` over live models/lane/harness/toolset (already).  
-2. **Eval triage** — shadow Choice on eval FAIL class (flake vs real vs env) using only I3/I2 green tools.  
-3. **Org merge / route gates** — shadow beside Tester/Reviewer; never replace.  
-4. **Tool-call danger** — classify beside write-guard; deny-list still code.
+1. **Model / tool router** - `./pfy decision route` over live models/lane/harness/toolset (already).  
+2. **Eval triage** - shadow Choice on eval FAIL class (flake vs real vs env) using only I3/I2 green tools.  
+3. **Org merge / route gates** - shadow beside Tester/Reviewer; never replace.  
+4. **Tool-call danger** - classify beside write-guard; deny-list still code.
 
 ---
 
@@ -152,12 +152,12 @@ Can a **bot** (headless, nimo Shell) and a **human dev** each complete a real sl
 
 ### First candidate slice (narrow, green deps only)
 
-**Slice D1 — “Decision-aware docs/chore PR” (no product UI, no catalog HOLD lift)**
+**Slice D1 - “Decision-aware docs/chore PR” (no product UI, no catalog HOLD lift)**
 
 1. Isolated worktree under `$PFY_TMP/<bot-slice>/`.  
 2. `./pfy toolset apply jev --harness grok --lane local` (no TypeSafe key).  
 3. `./pfy decision smoke` + `python3 scripts/pfy_jev_230.py --selftest` must READY/ok.  
-4. Implement a **docs-only or script-comment** change already allowed by DoD (example: add a shadow-log stub design note, or wire `org-spinny-decide` README cross-link) — **not** Loop picker, **not** eval-auto harness.  
+4. Implement a **docs-only or script-comment** change already allowed by DoD (example: add a shadow-log stub design note, or wire `org-spinny-decide` README cross-link) - **not** Loop picker, **not** eval-auto harness.  
 5. Optional wrap: instead of raw `grok -p`, run:
 
 ```bash
@@ -191,7 +191,7 @@ grok -p "$PROMPT" --cwd "$WT" --always-approve
 
 ### Second slice (only if D1 passes)
 
-**D2 — Bot implements a tiny I3-touching fix** (e.g. ops typo / smoke script comment) with `attach mode orchestration` or `code-graph` **if** those smokes are green on the host that day. Same metrics. If code-graph MCP missing → SKIP (honest), not FAIL of Jev.
+**D2 - Bot implements a tiny I3-touching fix** (e.g. ops typo / smoke script comment) with `attach mode orchestration` or `code-graph` **if** those smokes are green on the host that day. Same metrics. If code-graph MCP missing → SKIP (honest), not FAIL of Jev.
 
 ### Explicit non-goals for dogfood
 

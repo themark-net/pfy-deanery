@@ -1,4 +1,4 @@
-# OpenContext handoff (`oc`) — #205
+# OpenContext handoff (`oc`) - #205
 
 **Goal:** usable knowledge handoff into FreeToken-first Attach OpenCode | Hermes | Grok | Codex | Claude.  
 **Not:** a second bot product; **not** OpenContext GUI inside pfy chrome.
@@ -23,7 +23,7 @@ Painted control is **only** `./pfy context` (and `python3 scripts/pfy_opencontex
 
 ### Hello-world (CLI only)
 
-CLI hello-world — no embedding API, no `oc index build`, no `oc init` in this repo:
+CLI hello-world - no embedding API, no `oc index build`, no `oc init` in this repo:
 
 ```bash
 oc folder create pfy-205-hello -d "pfy #205 hello-world"
@@ -47,7 +47,7 @@ After a PASS prove, `./pfy start grok|opencode|hermes|codex|claude` and HTML+tk 
 
 Missing `oc` is a **skip** on Attach (Attach still proves models+smoke). The OpenContext verb is `./pfy context`, not Attach paint.
 
-MCP (optional; operator adds — bootstrap fragment stays codebase-memory only so a missing `oc` cannot break Grok):
+MCP (optional; operator adds - bootstrap fragment stays codebase-memory only so a missing `oc` cannot break Grok):
 
 ```toml
 [mcp_servers.opencontext]
@@ -68,7 +68,7 @@ Hermes: `oc` on PATH + the same env. No extra GUI.
 
 - Put OpenContext desktop/web UI into pfy chrome
 - Paint “integrated” / READY for OpenContext without `./pfy context` PASS
-- Triple-write TOOLS.md / `data/tools.json` while catalog 70–75 HOLD
+- Triple-write TOOLS.md / `data/tools.json` while catalog 70-75 HOLD
 - Reopen #76 · unpark #198
 - Auto-run `oc index build` (paid embeddings)
 

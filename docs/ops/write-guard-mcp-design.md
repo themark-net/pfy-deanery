@@ -1,7 +1,7 @@
-# Write-guard MCP — design
+# Write-guard MCP - design
 
 **Status:** Proposed design (implement on this branch as scaffold; full server can follow)  
-**Motivation:** Local file writes from agents are a blast-radius risk. Container isolation (agent-cage) helps; an MCP that **mediates filesystem writes** adds a second, policy-driven layer — useful on host *and* in-cage.
+**Motivation:** Local file writes from agents are a blast-radius risk. Container isolation (agent-cage) helps; an MCP that **mediates filesystem writes** adds a second, policy-driven layer - useful on host *and* in-cage.
 
 ## What you may have seen before
 
@@ -13,7 +13,7 @@ Likely sources (not mutually exclusive):
 | **Custom write interceptor** (allowlist paths, audit log, deny deletes) | Other harnesses / “sandbox agent” MCP bridges |
 | **OS sandbox** (bubblewrap, gVisor, Docker) | cleat, agent-cage, agent-infra/sandbox |
 
-agent-cage today: **full r/w to `/workspace`** via stock filesystem MCP — good boundary vs host home, **not** fine-grained write policy inside workspace.
+agent-cage today: **full r/w to `/workspace`** via stock filesystem MCP - good boundary vs host home, **not** fine-grained write policy inside workspace.
 
 ## Layered model (recommended)
 
@@ -30,9 +30,9 @@ agent-cage today: **full r/w to `/workspace`** via stock filesystem MCP — good
 └─────────────────────────────────────────────────────────┘
 ```
 
-Do **not** remove L0 if L2 exists — defense in depth.
+Do **not** remove L0 if L2 exists - defense in depth.
 
-## Write-guard MCP — behavior
+## Write-guard MCP - behavior
 
 ### Tools (conceptual)
 
@@ -76,7 +76,7 @@ audit_log: /workspace/.write-guard-audit.jsonl
 ### Deployment
 
 1. **In agent-cage:** add server to `mcp-servers.yaml` (overlay), prefer **replace** stock filesystem write tools or put write-guard **in front** as the only write path.
-2. **On host Grok:** optional MCP in `~/.grok/config.toml` pointing at `write-guard` stdio server with roots = repo path — higher friction for local ops; start with **cage-only**.
+2. **On host Grok:** optional MCP in `~/.grok/config.toml` pointing at `write-guard` stdio server with roots = repo path - higher friction for local ops; start with **cage-only**.
 3. **Image:** install server in a **versioned** cage overlay image when mature (same story as grok-in-image).
 
 ## Implementation plan (incremental)
@@ -101,6 +101,6 @@ audit_log: /workspace/.write-guard-audit.jsonl
 
 ## Security notes
 
-- Audit logs may include path names — keep under workspace; don't log file contents by default.
+- Audit logs may include path names - keep under workspace; don't log file contents by default.
 - `enforce` + secrets globs reduce accidental key commits from agents.
-- Still assume a malicious agent with shell can bypass MCP — L0 container + no host mounts for `$HOME` remains mandatory.
+- Still assume a malicious agent with shell can bypass MCP - L0 container + no host mounts for `$HOME` remains mandatory.

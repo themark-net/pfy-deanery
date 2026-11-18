@@ -1,4 +1,4 @@
-# Code-graph handoff (Axon preferred) — #215
+# Code-graph handoff (Axon preferred) - #215
 
 **Goal:** usable code-graph path into FreeToken-first Attach OpenCode | Hermes | Grok | Codex | Claude.  
 **Not:** catalog PR merge; **not** Axon UI inside pfy chrome.
@@ -7,7 +7,7 @@ Upstream: [harshkedia177/axon](https://github.com/harshkedia177/axon) (MIT) · P
 Stage-0 receipt: [sources/entries/082-axon.md](../../sources/entries/082-axon.md).  
 Nimo hello-world proof: [docs/sources/code-graph-215-hello.md](../sources/code-graph-215-hello.md). Live path on nimo at ship: **codebase-memory MCP** (Axon not installed).
 
-Catalog PR [#75](https://github.com/themark-net/pfy-deanery/pull/75) stays HOLD — this slice does **not** merge it.
+Catalog PR [#75](https://github.com/themark-net/pfy-deanery/pull/75) stays HOLD - this slice does **not** merge it.
 
 ## Operator
 
@@ -20,7 +20,7 @@ Catalog PR [#75](https://github.com/themark-net/pfy-deanery/pull/75) stays HOLD 
 | If | Next |
 |----|------|
 | `FAIL: axon missing` (and no MCP) | `pip install axoniq` then `./pfy catalog ask axon` |
-| Axon prove fails, MCP present | PASS `path=codebase-memory (not axon)` — do not claim Axon |
+| Axon prove fails, MCP present | PASS `path=codebase-memory (not axon)` - do not claim Axon |
 | prove PASS `path=axon` | Attach OpenCode / Hermes / Grok inherit `AXON_BIN` |
 | prove PASS `path=codebase-memory` | Attach OpenCode / Grok inherit MCP; Hermes still FAIL |
 
@@ -70,7 +70,7 @@ Hermes: Axon CLI on PATH (env). MCP-only is unwired for Hermes.
 ## Do not
 
 - Merge or cherry-pick catalog PR #75
-- Triple-write TOOLS.md / `data/tools.json` while catalog 70–75 HOLD
+- Triple-write TOOLS.md / `data/tools.json` while catalog 70-75 HOLD
 - Claim Axon when only `codebase-memory-mcp` is live
 - Put Axon web UI into pfy chrome
 - Reopen #76 · unpark #198 · start #214

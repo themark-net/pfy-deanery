@@ -1,6 +1,6 @@
-# Antigravity-Manager — catalog posture
+# Antigravity-Manager - catalog posture
 
-**Status:** T-0015 / issue #23 — OQ-0007 answered **skip for now**  
+**Status:** T-0015 / issue #23 - OQ-0007 answered **skip for now**  
 **Upstream:** https://github.com/lbjlaq/Antigravity-Manager  
 **Integration stage:** **I1** · opportunity priority **low**  
 **Default multi-backend path:** LiteLLM + API keys (not multi-account Tauri relay)

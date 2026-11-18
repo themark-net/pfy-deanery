@@ -5,7 +5,7 @@
 
 ## Context
 
-Operators sometimes want a single request executed to a **working product** with minimal back-and-forth. Unbounded agent autonomy is unsafe without a test lab and cost controls. We already have agent-cage, deployment profiles, and process docs — one-shot should **require** them, not ignore them.
+Operators sometimes want a single request executed to a **working product** with minimal back-and-forth. Unbounded agent autonomy is unsafe without a test lab and cost controls. We already have agent-cage, deployment profiles, and process docs - one-shot should **require** them, not ignore them.
 
 ## Decision
 
@@ -23,9 +23,9 @@ Operators sometimes want a single request executed to a **working product** with
 
 Rejected alternatives:
 
-1. **Always ask until fully specified** — high friction for mechanical delivery.
-2. **Unlimited YOLO** — unsafe; no lab requirement.
-3. **Cloud-first always** — expensive; contradicts local-first goals.
+1. **Always ask until fully specified** - high friction for mechanical delivery.
+2. **Unlimited YOLO** - unsafe; no lab requirement.
+3. **Cloud-first always** - expensive; contradicts local-first goals.
 
 ## Consequences
 

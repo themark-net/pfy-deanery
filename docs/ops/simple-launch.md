@@ -24,7 +24,7 @@ cd pfy-deanery
 ./pfy context               # OpenContext oc capture/search/reuse prove (#205)
 ./pfy code-graph            # Axon prove or codebase-memory equivalent (#215)
 ./pfy models recommend      # ranked host-fit models not yet pulled (#207)
-./pfy models try            # pull top recommendation — operate-or-FAIL (#207)
+./pfy models try            # pull top recommendation - operate-or-FAIL (#207)
 ./pfy catalog               # usable catalog browse (#209)
 ./pfy catalog ask <name>    # ask attached TUI to implement for next launch
 ./pfy catalog queue <name>  # REAL GitHub issue Design→DevBot (#214; FAIL if no auth)
@@ -79,7 +79,7 @@ When the detector selects llama-server (or `PFY_LOCAL_RUNTIME=llama-server`), th
 | **stub** | Slot reserved; `pfy start` prints setup + issue text |
 | **missing** | Not installed |
 | **detected-stub** | Binary found but adapter still stub |
-| **skip** | Honest skip (tape / unused engine) — never `unknown` |
+| **skip** | Honest skip (tape / unused engine) - never `unknown` |
 
 Registry: [`data/harnesses.json`](../../data/harnesses.json).
 
@@ -93,11 +93,11 @@ Continue is a **config recipe** at `bootstrap/continue/` (`LOCAL_OPENAI_BASE_URL
 
 `./pfy context` proves OpenContext `oc` capture / keyword search / manifest reuse and prints Attach handoff env (`OPENCONTEXT_*`). Missing node or `oc`: honest `FAIL` + `npm install -g @aicontextlab/cli`. Attach OpenCode|Hermes|Grok|Codex|Claude inherit that env when `oc` is on PATH. OpenContext GUI stays out of pfy chrome (#205).
 
-`./pfy models recommend` ranks local models that fit this host (VRAM/RAM/runtime) and are not already pulled. `./pfy models try` (Engine **Try recommended**) pulls one on the live FreeToken-first runtime — operate-or-FAIL. Honest FAIL if recommend/pull cannot run (no fake best list). Handoff when picking another model: engine pin, Attach re-probe, TUI reload (#207).
+`./pfy models recommend` ranks local models that fit this host (VRAM/RAM/runtime) and are not already pulled. `./pfy models try` (Engine **Try recommended**) pulls one on the live FreeToken-first runtime - operate-or-FAIL. Honest FAIL if recommend/pull cannot run (no fake best list). Handoff when picking another model: engine pin, Attach re-probe, TUI reload (#207).
 
 The native operator window **is** the main interface (`./pfy` with no args, `./pfy board`). Tauri 2 binary when `gui/operator/src-tauri/target/{release,debug}/pfy-operator` exists; else already-on-box webkit (`scripts/pfy-gui.py`) wrapping the same frontend; else stdlib tk with live chips from `./pfy status`. pywebview is PFY_GUI_DEV=1 only. The window always opens. Optional `./pfy board --open` is a browser hatch, not the main path. **Loop launch wizard (#225):** primary CTA is **Launch session** after compose (runtime · lane · toolsets · harness). Attach grok/opencode/hermes/codex/claude is secondary re-attach. In-window attach still spawns a sidecar. Attach Grok (HTML+tk) and `./pfy start grok` require a FreeToken-first live endpoint, inherit `LOCAL_OPENAI_BASE_URL` / `OPENAI_BASE_URL`, and prove models list + one smoke before painting attached or exec (#202). Attach Codex (HTML+tk) and `./pfy start codex` use the same bar (#220): prove before attached paint; missing Codex is FAIL + installer (never a silent stub). Attach Claude (HTML+tk) and `./pfy start claude` / `claude-code` use the same bar (#221): prove before attached paint; missing Claude is FAIL + `curl -fsSL https://claude.ai/install.sh | bash` (never a silent stub). No engine or prove fail: FAIL + next (`./pfy up`); inspect equivalent `./pfy models`. continue/agent-cage active: FAIL + copy `pfy harness use grok` (no fallback). Consultants should eval board chips against the `./pfy status` live column (same host; `missing` not `unknown`). Grok chip is PATH-only. nimo banner only if hostname contains `nimo`. Board is not a supervisor.
 
-**Attach mode (#208 / #213):** operator selects `bare` | `orchestration` | `code-graph` on Attach (HTML+tk). Loop and Attach paint `using: <mode>`. Orchestration Attach starts a multi-step agent loop on the FreeToken-first local endpoint (exit card + prove + monitor evidence) — not a thin skill inject. Loop paints last loop/monitor evidence. Unwired mode or missing runtime is FAIL + next — never a silent bare session claiming orchestration or code-graph. One attach / one mode. No Env nav tab. Runbook: [attach-mode.md](attach-mode.md).
+**Attach mode (#208 / #213):** operator selects `bare` | `orchestration` | `code-graph` on Attach (HTML+tk). Loop and Attach paint `using: <mode>`. Orchestration Attach starts a multi-step agent loop on the FreeToken-first local endpoint (exit card + prove + monitor evidence) - not a thin skill inject. Loop paints last loop/monitor evidence. Unwired mode or missing runtime is FAIL + next - never a silent bare session claiming orchestration or code-graph. One attach / one mode. No Env nav tab. Runbook: [attach-mode.md](attach-mode.md).
 
 `gemini` is a live adapter when `gemini` or `gemini-cli` is on PATH (`./pfy start gemini` execs it; missing: STUB + issue #59 + official install one-liner, exit 2). Login/credentials/2FA are owner-only.
 

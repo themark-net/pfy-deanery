@@ -33,7 +33,7 @@ Upstream: [openai/codex](https://github.com/openai/codex)
 
 - Entry: `scripts/pfy_attach_usable_220.py` (`--prove` / `--selftest`); board `open_enterable_codex_session` / `start_sidecar("codex")`.
 - Callers: HTML+tk Attach; `POST /start id=codex`; `./pfy start codex` payload.
-- Invariants: prove models list + smoke before attached paint; SIDECAR_OK includes `codex`; operate-or-FAIL on mode; catalog 70–75 HOLD; do not reopen #76; #198 parked; LIVE_HARD_OFF.
+- Invariants: prove models list + smoke before attached paint; SIDECAR_OK includes `codex`; operate-or-FAIL on mode; catalog 70-75 HOLD; do not reopen #76; #198 parked; LIVE_HARD_OFF.
 - Issue **#220** only.
 
 ## Not yet

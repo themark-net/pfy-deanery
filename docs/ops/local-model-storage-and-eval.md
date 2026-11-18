@@ -5,14 +5,14 @@
 
 ## Intent
 
-**Models are high-value** for this stack. We evaluate them seriously — not only via external leaderboards — using tasks this repo has already accomplished (human request → agent work). Storage is budgeted; downloads are gated by prior evidence + size class, not by a blanket “no weights.”
+**Models are high-value** for this stack. We evaluate them seriously - not only via external leaderboards - using tasks this repo has already accomplished (human request → agent work). Storage is budgeted; downloads are gated by prior evidence + size class, not by a blanket “no weights.”
 
 ## Storage budget
 
 | Limit | Value |
 |-------|-------|
 | **Total local model weights pool** | **≤ 250 GB** (operator-approved) |
-| Location | Host / external path only — **never** commit to catalog git |
+| Location | Host / external path only - **never** commit to catalog git |
 | Env knobs | `EVAL_DISK_BUDGET_GB` (fit selection), optional `MODEL_POOL_MAX_GB=250`, `MODEL_POOL_PATH` |
 | Concurrent residency | Enough headroom for **several mini / small** models loaded or hot alongside larger experiments |
 
@@ -22,14 +22,14 @@
 
 ## Pre-download suitability ladder
 
-Before `ollama pull` / HF download of a **large** model (roughly ≥ 15–20 GB class, e.g. colibri/GLM int4):
+Before `ollama pull` / HF download of a **large** model (roughly ≥ 15-20 GB class, e.g. colibri/GLM int4):
 
-1. **External evidence scan** — existing evals, blogs, SWE-bench-ish reports, day-one Ollama/llama.cpp notes (catalog entry + X post).  
-2. **X-post / operator-forward exception** — if the catalog seed already carries a **compelling, specific** argument to eval (flagship MoE, coding scores, day-one local path), may go to **direct lab eval** faster; still respect pool budget.  
-3. **Do not rely solely on external sources** — lab must still run **golden / implement** tasks.  
-4. **Mini models** — always evaluate for suitability as concurrent helpers (smoke, router, high-first low tier, cheap implement). Prefer keep several small coders hot under the same 250 GB pool.
+1. **External evidence scan** - existing evals, blogs, SWE-bench-ish reports, day-one Ollama/llama.cpp notes (catalog entry + X post).  
+2. **X-post / operator-forward exception** - if the catalog seed already carries a **compelling, specific** argument to eval (flagship MoE, coding scores, day-one local path), may go to **direct lab eval** faster; still respect pool budget.  
+3. **Do not rely solely on external sources** - lab must still run **golden / implement** tasks.  
+4. **Mini models** - always evaluate for suitability as concurrent helpers (smoke, router, high-first low tier, cheap implement). Prefer keep several small coders hot under the same 250 GB pool.
 
-Colibri specifically: **allowed within budget after steps 1–3**, not blocked as “never download.” Prefer external path; track size in an inventory note (not git LFS).
+Colibri specifically: **allowed within budget after steps 1-3**, not blocked as “never download.” Prefer external path; track size in an inventory note (not git LFS).
 
 ## Evaluation: golden tasks from this repo’s own work
 
@@ -51,7 +51,7 @@ Then score a candidate model on **proximity** to the original accomplished outco
 - **Do not** require logging every human turn.  
 - **Do** capture high-signal sessions: OQ resolutions, ADRs, P0/P1 TODOs, new eval lanes, product-surface changes.  
 - Prefer **structured golden cards** under `data/golden-tasks/` over full chat dumps.  
-- Optional later: session export tools (Grok cage sessions, OpenCode logs) — see catalog / tool queue below.
+- Optional later: session export tools (Grok cage sessions, OpenCode logs) - see catalog / tool queue below.
 
 ### Proximity scoring (lanes)
 
@@ -62,7 +62,7 @@ Then score a candidate model on **proximity** to the original accomplished outco
 | **Multi-step agent** | Golden task: prompt = human request; scorer checks required artifacts exist / shape (files, issue state, OQ status) |
 | **Orchestration** | Worker/monitor or voice-orchestrate smokes + golden “exit card” completeness |
 
-New lane id (planned): **`golden_replay`** in `data/eval-lanes.json` — may require LLM; missing model → SKIP (exit 2).
+New lane id (planned): **`golden_replay`** in `data/eval-lanes.json` - may require LLM; missing model → SKIP (exit 2).
 
 ## Immediate vs queued
 
@@ -73,7 +73,7 @@ New lane id (planned): **`golden_replay`** in `data/eval-lanes.json` — may req
 | Fit selection disk/RAM | **Exists** (`select_ollama_models.py`) | Wire default `MODEL_POOL_MAX_GB=250` docs in pins.env |
 | Mini concurrent suitability | Matrix + tools-model select | Explicit “mini set” pin list |
 | Colibri / large MoE lab | After evidence scan + free pool headroom | T-0016 unblocked as **eval when ready** |
-| Full chat→golden pipeline | Queue | Tools: session resume mounts, hermes memory patterns, codebase-memory — document only until implement |
+| Full chat→golden pipeline | Queue | Tools: session resume mounts, hermes memory patterns, codebase-memory - document only until implement |
 
 ## Catalog tools useful for capture (queue)
 
@@ -91,7 +91,7 @@ Document in entries / ops; implement when cheap:
 
 1. Before large download: write a short **suitability note** (external + why X-post is compelling) under golden-tasks or catalog entry.  
 2. Stay under **250 GB** total weights; prefer deleting demoted models over growing the pool.  
-3. Always keep **≥ 1–2 mini** coding models for concurrent low-tier work.  
+3. Always keep **≥ 1-2 mini** coding models for concurrent low-tier work.  
 4. Prefer golden_replay + implement over hype for “is this model good for *us*.”  
 5. Never commit weights.
 

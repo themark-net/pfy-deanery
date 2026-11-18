@@ -26,7 +26,7 @@ OpenCode **agent** mode needs tools (shell, multi-file). Without a tools-capable
 | Value | Meaning |
 |-------|---------|
 | `local_tools` | `LOCAL_TOOLS_MODEL` set and tools API accepted |
-| `split` | No tools model — completion local + tools on Grok/monitor |
+| `split` | No tools model - completion local + tools on Grok/monitor |
 
 ## Select + probe
 

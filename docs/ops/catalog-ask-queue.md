@@ -22,7 +22,7 @@ Tools: pick a row, **Ask TUI implement** (copy or auto-handoff `PFY_CATALOG_ASK_
 | Condition | Result | Next |
 |-----------|--------|------|
 | No grok/opencode/hermes/codex/claude attached | **FAIL ask** | Attach grok \| opencode \| hermes \| codex \| claude |
-| Entry X 070–075 / catalog PRs 70–75 | **SKIP** | catalog 70-75 HOLD (do not auto-lift) |
+| Entry X 070-075 / catalog PRs 70-75 | **SKIP** | catalog 70-75 HOLD (do not auto-lift) |
 | Incomplete (I0, skip install, no smoke, scores-only) | **SKIP** | pick a complete catalog entry |
 | Another item already asked/open | **FAIL** | finish or cancel the pending integration first |
 | `gh` and `GITHUB_TOKEN` both missing | **FAIL queue** | `gh issue create --repo themark-net/pfy-deanery` (draft in `$PFY_STATE_DIR/catalog-issue-draft.md`) |
@@ -53,8 +53,8 @@ Registry: [bootstrap/env/REGISTRY.md](../../bootstrap/env/REGISTRY.md).
 
 ## Do not
 
-- Reopen #76 · unpark #198 · catalog 70–75 HOLD (do not auto-lift)
+- Reopen #76 · unpark #198 · catalog 70-75 HOLD (do not auto-lift)
 - Add an Env nav tab
-- Dump S1–S4 scores as the Tools browse
+- Dump S1-S4 scores as the Tools browse
 - Auto-implement HOLD/incomplete entries
 - `LIVE_HARD_OFF`: no live catalog writes / no TOOLS.md triple-write from this path

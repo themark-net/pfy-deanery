@@ -11,7 +11,7 @@ HTTP API over Tailscale; **any** client that can POST works.
 
 | Client | When |
 |--------|------|
-| **Termux + termux-voice-send.sh** | **Recommended** — record + curl, clear errors |
+| **Termux + termux-voice-send.sh** | **Recommended** - record + curl, clear errors |
 | **HTTP Shortcuts** | GUI POSTs without Terminal |
 | Chrome to `http://100.x:8787/` | Optional; hangs usually mean bind/URL wrong |
 
@@ -55,7 +55,7 @@ curl -m 5 http://100.x.y.z:8787/ping
 # → pong
 ```
 
-If `/ping` hangs, the browser will hang too — fix Tailscale/bind/firewall, not STT.
+If `/ping` hangs, the browser will hang too - fix Tailscale/bind/firewall, not STT.
 
 ## Termux (recommended)
 
@@ -93,7 +93,7 @@ Only after `/ping` returns `pong`.
 ### Why Brave shows “getUserMedia undefined” / no mic prompt
 
 Browsers treat **plain `http://100.x.y.z` as insecure**. On insecure pages,
-`navigator.mediaDevices` is **undefined** — Brave/Chrome never show a mic
+`navigator.mediaDevices` is **undefined** - Brave/Chrome never show a mic
 permission dialog. This is expected, not a bug in our server.
 
 | Approach | Mic in browser? |
@@ -128,10 +128,10 @@ Brave’s **“Always use secure connections”** upgrades `http://` → `https:
 On the **host** (two terminals):
 
 ```bash
-# Terminal A — HTTP backend
+# Terminal A - HTTP backend
 VOICE_REMOTE_HOST=127.0.0.1 make voice-remote
 
-# Terminal B — HTTPS front door on :443 (helper prints the phone URL)
+# Terminal B - HTTPS front door on :443 (helper prints the phone URL)
 make voice-remote-serve
 # same as: ./examples/voice-stt-edge/tailscale-serve.sh
 ```
@@ -154,7 +154,7 @@ To stop Serve: `tailscale serve reset`
 
 ### Without HTTPS (works today)
 
-1. Reload the page after sync — use **“Pick / capture audio file”** (system mic UI).  
+1. Reload the page after sync - use **“Pick / capture audio file”** (system mic UI).  
 2. Or **Send text**.  
 3. Or Termux: `termux-voice-send.sh`.
 
@@ -162,7 +162,7 @@ To stop Serve: `tailscale serve reset`
 
 | Method | Path | Auth | Notes |
 |--------|------|------|-------|
-| GET | `/ping` | no | plain `pong` — use this to debug hangs |
+| GET | `/ping` | no | plain `pong` - use this to debug hangs |
 | GET | `/health` | no | JSON |
 | GET | `/` | no | mobile HTML UI |
 | POST | `/api/text` | Bearer | JSON `{"text","target"}` |
@@ -186,4 +186,4 @@ make smoke-voice-remote
 
 ## Later
 
-Auto-run Grok on upload, TTS back to phone, true VoIP — not this slice.
+Auto-run Grok on upload, TTS back to phone, true VoIP - not this slice.

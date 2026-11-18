@@ -14,22 +14,22 @@ MVP iteration may expose many targets. **Ship shape** collapses to the product l
 
 ## Absolute minimum levers (target)
 
-**Canonical CLI (G8 / ADR-0012):** `./pfy` — setup · status · start · harness · stage · ship · eval.
+**Canonical CLI (G8 / ADR-0012):** `./pfy` - setup · status · start · harness · stage · ship · eval.
 
 
 
 ```text
-1. onboard   — attach this stack to a project (process + skills + profile)
-2. stage     — bring up local env (pluggable local runtime + optional cage) green
-3. ship      — verify + push product code (not platform code)
+1. onboard   - attach this stack to a project (process + skills + profile)
+2. stage     - bring up local env (pluggable local runtime + optional cage) green
+3. ship      - verify + push product code (not platform code)
 ```
 
 Suggested final names (implementation: T-0090):
 
 | Lever | Make (eventual) | Does |
 |-------|-----------------|------|
-| onboard | `make project-onboard DIR=…` | `scripts/product-onboard.sh` — project-process init + `.env` example |
-| stage | `make env-stage` | `scripts/env-stage.sh` — env-check + eval-structural; local runtime soft |
+| onboard | `make project-onboard DIR=…` | `scripts/product-onboard.sh` - project-process init + `.env` example |
+| stage | `make env-stage` | `scripts/env-stage.sh` - env-check + eval-structural; local runtime soft |
 | ship | `make product-ship` | structural + golden; push if `PRODUCT_REMOTE` set |
 
 Everything else is **platform development** (`make help-platform`) and stays off the default `make help`.
@@ -37,7 +37,7 @@ Everything else is **platform development** (`make help-platform`) and stays off
 ## Local bulk vs cloud monitor (target behavior)
 
 ```text
-Worker (local OpenAI-compat coder — llama-swap / llama-server / Shimmy / Ollama)
+Worker (local OpenAI-compat coder - llama-swap / llama-server / Shimmy / Ollama)
   → implements, runs tests, cheap loops
 Monitor (Grok subscription / strong cloud)
   → sets DoD/exit card, reviews, escalates when worker stuck
@@ -51,10 +51,10 @@ Loop paints this split: **LOCAL COMPUTE** (engine/status/endpoint ON when a runt
 |------|-----------------------------------------------|
 | `make eval-suite` / `eval-auto` | **Yes** (when selected as gate) |
 | `make smoke-litellm-ollama` | Yes (Ollama adapter smoke) |
-| Grok Build interactive agent | **No** — Grok cloud/subscription (**monitor**) |
+| Grok Build interactive agent | **No** - Grok cloud/subscription (**monitor**) |
 | OpenCode pointed at `LOCAL_OPENAI_BASE_URL` | **Yes** if configured (T-0080) |
-| Dual session worker/monitor | **`make worker-stage`** + `/worker-monitor` (T-0085) — not a single daemon |
-| Voice → same agents (p1) | **`make smoke-voice-stt`** + `examples/voice-stt-edge/` (T-0091) — STT edge, not mobile-voice-stuck |
+| Dual session worker/monitor | **`make worker-stage`** + `/worker-monitor` (T-0085) - not a single daemon |
+| Voice → same agents (p1) | **`make smoke-voice-stt`** + `examples/voice-stt-edge/` (T-0091) - STT edge, not mobile-voice-stuck |
 
 Pick runtime: `./scripts/detect-local-runtime.sh` / `./pfy status` (ADR-0014). No new product CLI.
 
@@ -78,11 +78,11 @@ Audit checkpoint (2026-09-25): default `make help` lists three product Make targ
 
 ## Related TODOs
 
-- **T-0110** — Pluggable local runtime (doing/partial) · [#76](https://github.com/themark-net/pfy-deanery/issues/76)  
-- **T-0101** — Ollama adapter complete (kept)  
-- **T-0085** — Worker/monitor split: local worker, Grok monitor recipe  
-- **T-0080** — OpenCode host smoke (required for real offload)  
-- **T-0090** — Collapse product surface; audit Make levers  
+- **T-0110** - Pluggable local runtime (doing/partial) · [#76](https://github.com/themark-net/pfy-deanery/issues/76)  
+- **T-0101** - Ollama adapter complete (kept)  
+- **T-0085** - Worker/monitor split: local worker, Grok monitor recipe  
+- **T-0080** - OpenCode host smoke (required for real offload)  
+- **T-0090** - Collapse product surface; audit Make levers  
 
 ## Implemented targets (2026-07-30)
 
@@ -91,7 +91,7 @@ Public product surface:
 | Lever | CLI | Make |
 |-------|-----|------|
 | setup / onboard | `./pfy setup` | `project-onboard` / env-init |
-| status | `./pfy status` | — |
+| status | `./pfy status` | - |
 | start | `./pfy start` | harness-specific |
 | stage | `./pfy stage` | `env-stage` |
 | ship | `./pfy ship` | `product-ship` |
@@ -108,6 +108,6 @@ Platform remains on `make help-platform`. Harness registry: `data/harnesses.json
 |-------|----------------|
 | onboard / stage | G1 when changing deploy spine |
 | ship (verify) | G0+G1 before claiming ready |
-| User “it feels right” | **G2 UAT** — human, after simple deploy |
+| User “it feels right” | **G2 UAT** - human, after simple deploy |
 
 See [eval-gates-and-ux-uat.md](eval-gates-and-ux-uat.md).

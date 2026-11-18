@@ -54,7 +54,7 @@ Artifacts (gitignored under `.generated/` or local):
 
 ## Dual-session loop (manual, reliable)
 
-### Terminal A — Worker
+### Terminal A - Worker
 
 ```bash
 set -a; . examples/opencode-ollama/.generated/worker.env; set +a
@@ -65,7 +65,7 @@ opencode
 # implement against the DoD in monitor-brief.md
 ```
 
-### Terminal B — Monitor
+### Terminal B - Monitor
 
 ```bash
 grok
@@ -74,7 +74,7 @@ grok
 
 Paste or open `examples/opencode-ollama/.generated/monitor-brief.md`, then:
 
-1. `/agent-loops plan` — fill exit card for the **product** goal  
+1. `/agent-loops plan` - fill exit card for the **product** goal  
 2. `/one-shot` only if you take over implementation on Grok  
 3. Otherwise: review worker diffs (`git diff`), restate DoD, **escalate** only after 3 worker failures / no-progress  
 4. `/hermes-feedback memory` at end of session  
@@ -117,7 +117,7 @@ Future automation (post T-0085):
 - append worker progress / `git diff --stat` into monitor brief  
 - stop when DoD `make` targets exit 0  
 
-**Voice (T-0091 p1):** STT edge → same agents — `make smoke-voice-stt` · [voice-agent-channel.md](voice-agent-channel.md) · `examples/voice-stt-edge/`
+**Voice (T-0091 p1):** STT edge → same agents - `make smoke-voice-stt` · [voice-agent-channel.md](voice-agent-channel.md) · `examples/voice-stt-edge/`
 
 ```bash
 python3 examples/voice-stt-edge/stt_edge.py --text "Review worker diff and update DoD" --target monitor

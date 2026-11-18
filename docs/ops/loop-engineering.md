@@ -6,7 +6,7 @@
 
 ## Iron laws
 
-1. **Write exits before the loop** (Entry 068) — a loop with one exit hangs.  
+1. **Write exits before the loop** (Entry 068) - a loop with one exit hangs.  
 2. **No fix without root cause** when debugging (`/investigate`).  
 3. **DoD before unattended build** (`/one-shot`).
 4. **Grill before a CI, pipeline, or gate ticket is cut.** Tools off, turn cap 12, coordinator answers, behavior changes become exit tests. Command and the nimo flag check: [GRILL-STEP.md](GRILL-STEP.md).
@@ -32,21 +32,21 @@
 | Time | Schedule / interval | Prompt finished or exit fires | Future cage cron / host scheduler |
 | Proactive | Event (CI, ticket) | Workflow + review | Later; not default |
 
-## Eight exits (Entry 068) — checklist
+## Eight exits (Entry 068) - checklist
 
 Copy into any multi-iteration plan:
 
-1. **Goal met** — tests / `make smoke-*` / human rubric (not “model says done”)  
-2. **Turn cap** — default 8 (`/one-shot`)  
-3. **Budget cap** — tokens / $ / `DEPLOY_PROFILE` max tier  
-4. **Wall clock** — session or deploy window  
-5. **No progress** — identical state hash N times (default 3)  
-6. **Human interrupt** — always honor stop / approval  
-7. **Error threshold** — N consecutive same failures (default 3)  
-8. **External event** — work obsolete (merged, closed) or n/a  
+1. **Goal met** - tests / `make smoke-*` / human rubric (not “model says done”)  
+2. **Turn cap** - default 8 (`/one-shot`)  
+3. **Budget cap** - tokens / $ / `DEPLOY_PROFILE` max tier  
+4. **Wall clock** - session or deploy window  
+5. **No progress** - identical state hash N times (default 3)  
+6. **Human interrupt** - always honor stop / approval  
+7. **Error threshold** - N consecutive same failures (default 3)  
+8. **External event** - work obsolete (merged, closed) or n/a  
 
 Structural proof that skills exist: `make smoke-grok-skills`.  
-Behavioral proof: [skill-verification.md](skill-verification.md) Layer 2–3.
+Behavioral proof: [skill-verification.md](skill-verification.md) Layer 2-3.
 
 ## Finn phases (Entry 024)
 
@@ -60,7 +60,7 @@ Rubric first → draft → score → miss becomes permanent rubric/test line. Pr
 
 | Target | Role |
 |--------|------|
-| `make eval-structural` | Design/coding gates (no LLM) — **always run** |
+| `make eval-structural` | Design/coding gates (no LLM) - **always run** |
 | `make smoke-grok-skills` | Skills on disk + manifest |
 | `make cage-grok` | Full operator ladder (auth refresh + skills install) |
 | `make cage-grok-skills-install` | First-party skills → cage `GROK_HOME` only |

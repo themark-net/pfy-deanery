@@ -1,4 +1,4 @@
-# Quality hooks extract — claude-codex-settings (Entry 076)
+# Quality hooks extract - claude-codex-settings (Entry 076)
 
 **Source:** https://github.com/fcakyon/claude-codex-settings  
 **Status:** Pattern extract 2026-07-30 · **No** forced Claude Code runtime  

@@ -1,7 +1,7 @@
 # Decision note: codebase-memory-mcp vs Graphify
 
-**Date:** 2026-07-25 · **Status:** Accepted operator posture (not a full ADR — tooling choice under ADR-0002)  
-**Rubric:** [evaluation-framework.md](../evaluation-framework.md) S1–S4 · Cluster context: [knowledge-graph-cluster-overlap.md](knowledge-graph-cluster-overlap.md)
+**Date:** 2026-07-25 · **Status:** Accepted operator posture (not a full ADR - tooling choice under ADR-0002)  
+**Rubric:** [evaluation-framework.md](../evaluation-framework.md) S1-S4 · Cluster context: [knowledge-graph-cluster-overlap.md](knowledge-graph-cluster-overlap.md)
 
 ## Question
 
@@ -26,7 +26,7 @@ Is Graphify (X Entry 017) equivalent to **codebase-memory-mcp**, and should we r
 1. **Primary code memory for Grok + cage:** codebase-memory-mcp.  
 2. **Graphify:** catalog + comparison only until a scored head-to-head + in-cage smoke says otherwise.  
 3. **Do not** run two full code-graph runtimes by default (process cost, dual truth).  
-4. **Patterns** worth stealing from Graphify later: confidence-labeled edges (EXTRACTED/INFERRED/AMBIGUOUS), commit-trigger rebuild — without requiring Graphify as runtime.
+4. **Patterns** worth stealing from Graphify later: confidence-labeled edges (EXTRACTED/INFERRED/AMBIGUOUS), commit-trigger rebuild - without requiring Graphify as runtime.
 
 ## Rejected for now
 

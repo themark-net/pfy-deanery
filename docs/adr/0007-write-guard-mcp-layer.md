@@ -13,7 +13,7 @@ Agent-cage isolates the agent OS and network, but default MCP filesystem access 
 2. Add a **write-guard MCP (L2)** that mediates write/edit/delete with modes `off | audit | enforce`, roots, deny-globs for secrets, and JSONL audit.
 3. Prefer **cage-first** deployment of write-guard; optional host Grok MCP later.
 4. Do **not** treat stock filesystem MCP alone as sufficient for high-risk automation.
-5. Implement as a **thin owned server** under this catalog (`harness/write-guard-mcp/` when coded), not a wholesale switch to a different mega-sandbox product—unless write-guard + cage fail empirically.
+5. Implement as a **thin owned server** under this catalog (`harness/write-guard-mcp/` when coded), not a wholesale switch to a different mega-sandbox product-unless write-guard + cage fail empirically.
 
 ## Rationale
 
@@ -23,9 +23,9 @@ Agent-cage isolates the agent OS and network, but default MCP filesystem access 
 
 Rejected alternatives:
 
-1. **Stock FS MCP only** — no audit/secret globs.
-2. **Replace cage with agent-infra/sandbox only** — duplicates network/OS work we already standardized on PNNL agent-cage.
-3. **Host-only write-guard without container** — weaker for network and package installs.
+1. **Stock FS MCP only** - no audit/secret globs.
+2. **Replace cage with agent-infra/sandbox only** - duplicates network/OS work we already standardized on PNNL agent-cage.
+3. **Host-only write-guard without container** - weaker for network and package installs.
 
 ## Consequences
 

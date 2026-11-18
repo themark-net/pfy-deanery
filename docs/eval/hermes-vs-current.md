@@ -67,7 +67,7 @@ Ollama is 0.30.8. Hermes refused 32768 (`ValueError`: context 32,768 is under th
 | Metric | Hermes | opencode run | Margin |
 |---|---:|---:|---|
 | Task success | 26/27 = 96.30% | 25/27 = 92.59% | +3.70 pp, need ≥ +10 |
-| Wilson 95% | 81.7% – 99.3% | 76.6% – 97.9% | intervals overlap |
+| Wilson 95% | 81.7% - 99.3% | 76.6% - 97.9% | intervals overlap |
 | Valid tool-call rate | 38/46 = 82.61% | 45/46 = 97.83% | −15.2 pp, fail (> 2) |
 | Narrate rate | 0/24 = 0 | 0/24 = 0 | pass |
 | Latency p50 / p95 / mean | 8.75s / 13.65s / 9.63s | 47.38s / 60.98s / 46.27s | p50 is 0.18×, pass |

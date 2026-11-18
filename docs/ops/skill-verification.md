@@ -1,20 +1,20 @@
 # Verifying first-party Grok skills
 
-**Purpose:** Prove that new skills are **on disk, listed, installable, and usable** — not only mentioned in chat.  
+**Purpose:** Prove that new skills are **on disk, listed, installable, and usable** - not only mentioned in chat.  
 **Related:** `bootstrap/grok-cli/`, `/agent-loops`, `/hermes-feedback`, `/one-shot`
 
 Skills are prompt packs. There is no full unit-test of LLM behavior without an API call. We split verification into:
 
 | Layer | What it proves | Cost |
 |-------|----------------|------|
-| **0 — Structural smoke** | Files exist, frontmatter matches, manifest lists every skill, optional install dir | Free, CI-able |
-| **1 — Install** | `install.sh` copies skills to `~/.grok/skills` | Free |
-| **2 — Operator acceptance** | Grok loads skill; slash command / auto-invoke works | One Grok session |
-| **3 — Behavioral DoD** | Agent follows the skill’s iron law / checklist on a real task | Cloud tokens |
+| **0 - Structural smoke** | Files exist, frontmatter matches, manifest lists every skill, optional install dir | Free, CI-able |
+| **1 - Install** | `install.sh` copies skills to `~/.grok/skills` | Free |
+| **2 - Operator acceptance** | Grok loads skill; slash command / auto-invoke works | One Grok session |
+| **3 - Behavioral DoD** | Agent follows the skill’s iron law / checklist on a real task | Cloud tokens |
 
 ---
 
-## Layer 0 — Structural (required every skill PR)
+## Layer 0 - Structural (required every skill PR)
 
 From repo root:
 
@@ -46,7 +46,7 @@ python3 bootstrap/grok-cli/scripts/verify_skills.py --installed
 
 ---
 
-## Layer 1 — Install
+## Layer 1 - Install
 
 **Host:**
 
@@ -68,16 +68,16 @@ Project mirror: `make cage-workspace-sync` copies `bootstrap/grok-cli/skills/*` 
 
 ---
 
-## Layer 2 — Operator acceptance (new Grok session)
+## Layer 2 - Operator acceptance (new Grok session)
 
 Start **host** `grok` or cage `make cage-grok` / `cage-grok-run`.
 
 | Check | How |
 |-------|-----|
-| Skill appears | In TUI: `/skills` or slash menu — look for `agent-loops`, `hermes-feedback` |
+| Skill appears | In TUI: `/skills` or slash menu - look for `agent-loops`, `hermes-feedback` |
 | Explicit invoke | `/agent-loops exits` → should print/fill eight-exit card |
 | Explicit invoke | `/hermes-feedback memory` → should run Loop 1 discipline (not invent Hermes install) |
-| Auto-invoke | Plain: “write the eight exits for this build loop” — agent should load agent-loops patterns |
+| Auto-invoke | Plain: “write the eight exits for this build loop” - agent should load agent-loops patterns |
 | No runtime deps | Skill must **not** require cloning hermes-agent or extra binaries |
 
 If slash menu stale: restart Grok session (skills reload from disk; extreme cases re-run install).
@@ -93,13 +93,13 @@ make cage-workspace-sync   # if using workspace bind/rsync path
 
 ---
 
-## Layer 3 — Behavioral DoD (per feature)
+## Layer 3 - Behavioral DoD (per feature)
 
 Use these as **Definition of Done** in `/one-shot` or `/agent-loops run` when changing skill text.
 
 ### `/agent-loops` DoD
 
-1. On `/agent-loops plan <task>`, output includes a filled **LOOP EXIT CARD** with exits 1–7 non-empty.  
+1. On `/agent-loops plan <task>`, output includes a filled **LOOP EXIT CARD** with exits 1-7 non-empty.  
 2. On a forced thrash (same failing check 3×), agent **stops** citing exit 5 or 7 (not infinite retry).  
 3. On `audit` of `docs/ops/one-shot-workflow.md`, report which exits one-shot already covers vs gaps.  
 4. Does **not** claim Hermes/AgenC must be installed.
@@ -137,10 +137,10 @@ Structural proof is still `make smoke-grok-skills` (manifest + `SKILL.md` + fron
 For **any** new feature (skill, make target, cage path):
 
 1. **Name it** in TODO (`T-NNNN`) before or with the PR.  
-2. **Structural proof** — script or `make smoke-*` that fails if the feature is deleted.  
-3. **Operator proof** — one command or slash invocation documented under `docs/ops/` or module docs.  
-4. **Behavioral DoD** — 2–5 pass/fail checks (prefer commands over vibes).  
-5. **Re-run in the next session** — new iteration starts with `make smoke-grok-skills` (and relevant smokes) before claiming green.
+2. **Structural proof** - script or `make smoke-*` that fails if the feature is deleted.  
+3. **Operator proof** - one command or slash invocation documented under `docs/ops/` or module docs.  
+4. **Behavioral DoD** - 2-5 pass/fail checks (prefer commands over vibes).  
+5. **Re-run in the next session** - new iteration starts with `make smoke-grok-skills` (and relevant smokes) before claiming green.
 
 Skills cannot be fully regression-tested offline; **layer 0 + install + one manual slash** is the minimum bar for “implemented.”
 

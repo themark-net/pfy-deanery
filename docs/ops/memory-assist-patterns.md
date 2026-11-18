@@ -9,7 +9,7 @@
 |-------|----------------|------|
 | Code graph MCP | **codebase-memory-mcp** | Default Grok index/search |
 | Token-efficient retrieval | repowise | Complement CM, not replace |
-| Extreme index compression | LEANN (pattern) | If local RAG size becomes the bottleneck — spike later |
+| Extreme index compression | LEANN (pattern) | If local RAG size becomes the bottleneck - spike later |
 | Versioned blob memory | Memvid (pattern) | If need git-like memory snapshots outside git |
 | Process memory | TODO / OQ / hermes-feedback | Decisions and gotchas |
 

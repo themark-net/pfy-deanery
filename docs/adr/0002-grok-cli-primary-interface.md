@@ -19,16 +19,16 @@ Treat **Grok CLI** as the **primary** interface for operating this stack initial
 
 Rejected alternatives:
 
-1. **Agent-agnostic-only repo (no preferred CLI)** — Delays a working operator path; weakens “integrate” goal.
-2. **Continue.dev or Aider as primary** — Strong catalog candidates; not where current skills/MCP wiring live.
-3. **Custom greenfield agent harness first** — High cost before catalog value; YAGNI until gaps are scored.
+1. **Agent-agnostic-only repo (no preferred CLI)** - Delays a working operator path; weakens “integrate” goal.
+2. **Continue.dev or Aider as primary** - Strong catalog candidates; not where current skills/MCP wiring live.
+3. **Custom greenfield agent harness first** - High cost before catalog value; YAGNI until gaps are scored.
 
 ## Consequences
 
 - Bootstrap targets `~/.grok/` and Grok MCP config.
 - Integration notes in TOOLS.md prioritize Grok compatibility without ignoring other tags (`#ide-integration`, etc.).
 - Revisit if empirical pipeline work shows another harness consistently higher for core workflows (superseding ADR required).
-- **2026-07-12:** AgenC trial rejected as primary (TUI/UX) — [ADR-0010](0010-reject-agenc-as-primary-runtime.md) **affirms** this ADR; Grok CLI remains primary.
+- **2026-07-12:** AgenC trial rejected as primary (TUI/UX) - [ADR-0010](0010-reject-agenc-as-primary-runtime.md) **affirms** this ADR; Grok CLI remains primary.
 
 ## References
 

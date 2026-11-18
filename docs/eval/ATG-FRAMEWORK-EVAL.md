@@ -23,7 +23,7 @@
 | Dependency-driven parallel execution | `executor.py` ready queue + `runner.py` thread runner; metrics `waves`, `max_parallel`, `nodes_frozen_reused` | Implemented, tested (width, freeze reuse, failure isolation) |
 | Minimal subgraph repair (LCA in history) | `repair.py` `lowest_common_ancestor` + downstream cone; nodes outside the region are frozen; `max_repairs`=2 covers both thought and runtime failures | Implemented, tested with mock. Widening on a repeated failure is **not** implemented (OQ-0016, by decision) |
 | Node-local context (anti-hallucination) | Per-node prompts in planner and repair | Partial. Not measured |
-| Paper environments (ALFWorld / WebShop / ScienceWorld) | — | **Missing, deferred** (Decision 0018) |
+| Paper environments (ALFWorld / WebShop / ScienceWorld) | - | **Missing, deferred** (Decision 0018) |
 | Paper metrics (reward, steps, hallucinated-action rate) and baselines | `metrics.py` has waves, tool_calls, max_parallel, failures, repairs, frozen reuse and judge disagreements. No LLM-call count, steps or hallucination metric | **Missing** |
 | LangGraph / DSPy interop | `integrations/` one-way callables, no imports | Stub-level |
 
@@ -34,7 +34,7 @@
 | 0 offline | Two-branch sum, scripted model | MockLLM | `uv run python examples/toy_parallel.py` ✅ today |
 | 1 live toy | Same task, real compile | `qwen2.5:14b` (atg NEXT.md step 1) | `uv run python examples/toy_parallel.py --live --model qwen2.5:14b --only` (only when `ollama ps` is empty) |
 | 2 local worker | Same task | `qwen3.6:35b` (pfy bench: 79.2 % typed Choice, about 95 tok/s) | same command with `--model qwen3.6:35b`. atg NEXT.md currently says not to use 35b for the toy check. **That conflict needs a decision.** |
-| 3 paper-shaped PoC | 8–12 synthetic tool DAGs with injected tool failures. Compare ATG localized repair against a global-replan baseline (`max_repairs`, with the region forced to the whole graph) and against a sequential runner | best of step 1/2 | New `examples/poc_suite.py` (not in tree). It reports success, LLM calls, tool calls, frozen reuse and wall time per arm |
+| 3 paper-shaped PoC | 8-12 synthetic tool DAGs with injected tool failures. Compare ATG localized repair against a global-replan baseline (`max_repairs`, with the region forced to the whole graph) and against a sequential runner | best of step 1/2 | New `examples/poc_suite.py` (not in tree). It reports success, LLM calls, tool calls, frozen reuse and wall time per arm |
 
 Pass bar for "PoC for the paper": step 1 or 2 exits 0 with sink `{'value': 25}` and `max_parallel >= 2`, and step 3 shows fewer LLM and tool calls for localized repair than for global replan at equal success. Step 3 is not blocked by Decision 0018: it uses synthetic tools, not paper environments.
 
@@ -51,15 +51,15 @@ No paid key is needed anywhere. Everything above runs on local models.
 
 | # | atg piece | pfy-deanery counterpart | Call | Size | Risks |
 |---|---|---|---|---|---|
-| 1 | **Compile bench** (how often a model emits a valid DAG, sink correct, repairs used) | `examples/local-bench/bench.py`, `pipelines/dogfood/local-bench-*` (48-case #230 harness, PeakSampler, receipts) | **Adopt** the pfy harness pattern for an `atg-compile` case set (about 10 tasks). It answers blocker 1 with the same receipts and memory floor | S–M (~200 LOC + receipt) | Host contention: reuse the one-model-at-a-time and 16 GiB floor rules |
+| 1 | **Compile bench** (how often a model emits a valid DAG, sink correct, repairs used) | `examples/local-bench/bench.py`, `pipelines/dogfood/local-bench-*` (48-case #230 harness, PeakSampler, receipts) | **Adopt** the pfy harness pattern for an `atg-compile` case set (about 10 tasks). It answers blocker 1 with the same receipts and memory floor | S-M (~200 LOC + receipt) | Host contention: reuse the one-model-at-a-time and 16 GiB floor rules |
 | 2 | Thought-experiment judge (`judge_llm`) | Decision lane: `./pfy decision`, CUA-S1-FORMS, `scripts/pfy_jev_230.py` typed Choice/Score | **Adapt**: judge = typed Choice {execute, repair:<node-id>} through the decision lane instead of free-form text | M (~150 LOC + adapter in pfy, no atg core change) | CUA-S1-FORMS is a form-fill specialist. Measure it on judge cases before trusting it |
-| 3 | `run_task` loop (compile → check → execute → repair) | `orchestration` toolset (`/agent-loops`, `scripts/pfy_orchestration_213.py`, FreeToken :1919) | **Adapt**: opt-in `--loop-kind atg` that runs `run_task` against registered pfy tools. Off the default path (stage non-goal: no pipeline hard dependency) | M (~300–500 LOC + E2E) | Live compile unproven. Two loop engines to maintain |
-| 4 | `ToolRegistry` (JSON schema + callable) | `data/toolsets.json`, `data/harnesses.json`, `make smoke-*` targets | **Adapt** later: generate a registry from smoke and eval targets so a catalog stage probe (clone → install → smoke → score) is one DAG with frozen reuse on re-run | S–M | A plain make/cache gets most of the value. Do this only after #3 proves out |
+| 3 | `run_task` loop (compile → check → execute → repair) | `orchestration` toolset (`/agent-loops`, `scripts/pfy_orchestration_213.py`, FreeToken :1919) | **Adapt**: opt-in `--loop-kind atg` that runs `run_task` against registered pfy tools. Off the default path (stage non-goal: no pipeline hard dependency) | M (~300-500 LOC + E2E) | Live compile unproven. Two loop engines to maintain |
+| 4 | `ToolRegistry` (JSON schema + callable) | `data/toolsets.json`, `data/harnesses.json`, `make smoke-*` targets | **Adapt** later: generate a registry from smoke and eval targets so a catalog stage probe (clone → install → smoke → score) is one DAG with frozen reuse on re-run | S-M | A plain make/cache gets most of the value. Do this only after #3 proves out |
 | 5 | History JSON + `Metrics` | Evidence receipts (`receipt.json`, `loop-evidence.json`) | **Adopt** as the evidence shape for #1 and #3 | S | None significant |
-| 6 | Parallel ready-queue executor | Bench and dogfood pipelines | **Skip** for model calls: nimo serves one large model at a time, so parallel width buys nothing and raises lockup risk. Fine for cheap non-LLM tools | — | — |
-| 7 | Package coupling (submodule / `pip -e`) | OQ-0004, `data/tool_integration_stages.json` (I1 `submodule_later`) | **Skip now.** Probe by path (`$PFY_ROOT/atg-framework`, pinned SHA) | — | Embedding before the live gate violates the stage non-goals |
+| 6 | Parallel ready-queue executor | Bench and dogfood pipelines | **Skip** for model calls: nimo serves one large model at a time, so parallel width buys nothing and raises lockup risk. Fine for cheap non-LLM tools | - | - |
+| 7 | Package coupling (submodule / `pip -e`) | OQ-0004, `data/tool_integration_stages.json` (I1 `submodule_later`) | **Skip now.** Probe by path (`$PFY_ROOT/atg-framework`, pinned SHA) | - | Embedding before the live gate violates the stage non-goals |
 | 8 | Catalog card refresh | TOOLS.md ATG row, `tool_integration_stages.json` ("No runnable core"), `docs/ops/atg-coupling.md` | **Adopt now** (follow atg `docs/ops/pfy-mentat-handoff.md` gate table). Card text: "runnable, unit-green, live unproven". Stage stays I1 until a live pass | S | Triple-write gap: no `data/tools.json` ATG object |
-| 9 | LangGraph / DSPy adapters | Gom Jabbar uses DSPy. pfy core does not | **Skip** in pfy | — | — |
+| 9 | LangGraph / DSPy adapters | Gom Jabbar uses DSPy. pfy core does not | **Skip** in pfy | - | - |
 
 ## (c) Recommended next step (Grok Build prompt)
 

@@ -1,4 +1,4 @@
-# #243 Loop UX — information architecture
+# #243 Loop UX - information architecture
 
 **Cite:** #243 · T-0125 · head `3cb788a6ed5f76c13da356b6cd9ece3b9945d15d`
 
@@ -20,17 +20,17 @@ pfy (native window)
 
 ## Loop canvas (ordered)
 
-1. **Lede** — gathered catalog tools → Launch session proof
-2. **How-to** — 4 numbered steps
+1. **Lede** - gathered catalog tools → Launch session proof
+2. **How-to** - 4 numbered steps
 3. **Where work runs**
    - Local compute: ON/OFF · engine · status (`missing` not `unknown`) · endpoint · meaning
    - Cloud orchestration: STANDBY/SPENDING/OFF · budget/spent/left · profile · gab key · meaning
-4. **Live sentence** — `route` (+ `next_step` when not ok) · this-session chip
-5. **How hard** — Bulk / Interactive / Hard
-6. **MODULES** — wired / partial / not wired; stub cannot enable
-7. **Open** — Launch session (proof) · Launch env (model only) · copy helpers
+4. **Live sentence** - `route` (+ `next_step` when not ok) · this-session chip
+5. **How hard** - Bulk / Interactive / Hard
+6. **MODULES** - wired / partial / not wired; stub cannot enable
+7. **Open** - Launch session (proof) · Launch env (model only) · copy helpers
 
-Compose wizard (#225) runs **under** Launch — not Loop front door. No harness picker on Loop.
+Compose wizard (#225) runs **under** Launch - not Loop front door. No harness picker on Loop.
 
 ---
 
@@ -38,7 +38,7 @@ Compose wizard (#225) runs **under** Launch — not Loop front door. No harness 
 
 | Surface | Allowed tokens |
 |---------|----------------|
-| Local live | ready / partial / missing / skip / FAIL — never unknown |
+| Local live | ready / partial / missing / skip / FAIL - never unknown |
 | Local lane | ON / OFF |
 | Cloud lane | STANDBY / SPENDING / OFF |
 | Module (operator) | wired · partial · not wired |

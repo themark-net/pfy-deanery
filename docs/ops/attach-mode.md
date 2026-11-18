@@ -42,14 +42,14 @@ Named `./pfy start grok|opencode|hermes|codex|claude` prepares the selected mode
 | `PFY_LOOP_EVIDENCE` | child env / Loop | last loop/monitor evidence JSON |
 | `PFY_LOOP_PROMPT` | child env | continue-from-card prompt |
 | `PFY_GRAPH_PATH` | child env / Loop | `axon` \| `codebase-memory` (#215) |
-| `AXON_BIN` | child env | Axon CLI — only when path=axon |
+| `AXON_BIN` | child env | Axon CLI - only when path=axon |
 | `PFY_STATE_DIR` | `attach-mode`, `attach-mode-when`, `attach-mode-live`, `loop-evidence.json`, `monitor-note`, `graph-evidence.json` | one selected mode + last successful handoff + loop/graph evidence |
 
 Registry: [bootstrap/env/REGISTRY.md](../../bootstrap/env/REGISTRY.md).
 
 ## Do not
 
-- Reopen #76 · unpark #198 · catalog 70–75 HOLD (do not merge PR #75)
+- Reopen #76 · unpark #198 · catalog 70-75 HOLD (do not merge PR #75)
 - Add an Env nav tab
 - Paint `ok` / `using: orchestration` without skill handoff **and** loop start/evidence
 - Paint `using: code-graph` as Axon when only codebase-memory MCP is live

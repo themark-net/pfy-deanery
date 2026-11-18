@@ -1,6 +1,6 @@
 # Integration self-mod eval (Exo-inspired)
 
-**Purpose:** Before we treat a catalog/skill/smoke change as “ingested,” run a **self-change evaluation loop** — the portable part of Exo’s §8 without full RSI.
+**Purpose:** Before we treat a catalog/skill/smoke change as “ingested,” run a **self-change evaluation loop** - the portable part of Exo’s §8 without full RSI.
 
 **When to run:** after adding a tool, skill pack, Make target, or eval lane; or when an agent proposes self-mod of process docs/skills.
 
@@ -25,8 +25,8 @@
 | Label | Meaning |
 |-------|---------|
 | **adopt** | All hard gates pass; soft notes optional |
-| **hold** | Soft failures only — usable but needs follow-up issue |
-| **rollback** | Any hard gate fail — do not merge/promote |
+| **hold** | Soft failures only - usable but needs follow-up issue |
+| **rollback** | Any hard gate fail - do not merge/promote |
 
 Receipt: `pipelines/eval/integration-change.latest.md` (+ JSON).
 
@@ -34,12 +34,12 @@ Receipt: `pipelines/eval/integration-change.latest.md` (+ JSON).
 
 Mirrors Exo mutation principles:
 
-1. **Propose** — state reason (what integration, why).  
-2. **Snapshot** — work on a branch / list files to touch.  
-3. **Mutate** — only catalog, skills-external, examples smokes, docs/ops (not sealed kernel without ADR).  
-4. **Evaluate** — `make eval-integration-change`.  
-5. **Adopt or rollback** — commit only on adopt/hold; hard fail → restore.  
-6. **Remember** — leave receipt under `pipelines/eval/`; optional golden card for high-signal.
+1. **Propose** - state reason (what integration, why).  
+2. **Snapshot** - work on a branch / list files to touch.  
+3. **Mutate** - only catalog, skills-external, examples smokes, docs/ops (not sealed kernel without ADR).  
+4. **Evaluate** - `make eval-integration-change`.  
+5. **Adopt or rollback** - commit only on adopt/hold; hard fail → restore.  
+6. **Remember** - leave receipt under `pipelines/eval/`; optional golden card for high-signal.
 
 ### Sealed (do not self-mod without ADR)
 
@@ -52,9 +52,9 @@ Mirrors Exo mutation principles:
 
 | Gate | Maps to |
 |------|---------|
-| S1–S2 | **G0** structural |
+| S1-S2 | **G0** structural |
 | smoke soft | **G1** deploy-ready (partial) |
-| human UX | **G2** unchanged — still human UAT |
+| human UX | **G2** unchanged - still human UAT |
 
 ## CLI
 

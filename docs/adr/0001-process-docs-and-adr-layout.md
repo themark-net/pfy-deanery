@@ -37,9 +37,9 @@ Rules:
 
 Rejected alternatives:
 
-1. **Single-file `docs/DECISIONS.md` only** — Fine for tiny repos; this catalog will accumulate methodology and stack decisions; multi-file scales better and matches skill default for greenfield.
-2. **Chat / session memory only** — Not reviewable in PRs; not reliable across agents/machines.
-3. **GitHub Issues as sole ADR/TODO store** — Useful as optional mirror later; filesystem stays source of truth for offline and bootstrap reproducibility.
+1. **Single-file `docs/DECISIONS.md` only** - Fine for tiny repos; this catalog will accumulate methodology and stack decisions; multi-file scales better and matches skill default for greenfield.
+2. **Chat / session memory only** - Not reviewable in PRs; not reliable across agents/machines.
+3. **GitHub Issues as sole ADR/TODO store** - Useful as optional mirror later; filesystem stays source of truth for offline and bootstrap reproducibility.
 
 ## Consequences
 

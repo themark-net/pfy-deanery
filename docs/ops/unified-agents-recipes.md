@@ -4,7 +4,7 @@
 **Upstream:** https://github.com/stretchcloud/claude-code-unified-agents  
 **Pin:** see `bootstrap/grok-cli/skills-external/claude-unified-agents/manifest.json`  
 **Eval receipt:** `pipelines/eval/unified-agents-eval.latest.md`  
-**Stage:** **I1** paths pack (ADR-0009) — not Claude Code primary (ADR-0002)
+**Stage:** **I1** paths pack (ADR-0009) - not Claude Code primary (ADR-0002)
 
 ## Eval loop result (2026-07-31)
 
@@ -45,10 +45,10 @@ make eval-unified-agents   # if registered
 
 ## High-value paths skills (use when specialty needed)
 
-- **security-auditor** — OWASP-oriented review posture  
-- **e2e-test-specialist** — Playwright/Cypress strategies  
-- **accessibility-auditor** — WCAG  
-- **api-designer** — OpenAPI/REST  
+- **security-auditor** - OWASP-oriented review posture  
+- **e2e-test-specialist** - Playwright/Cypress strategies  
+- **accessibility-auditor** - WCAG  
+- **api-designer** - OpenAPI/REST  
 - **devops-engineer** / **incident-responder** / **performance-engineer**  
 - **backend-architect** / **database-specialist**  
 - **prompt-engineer** / **ai-engineer**  
@@ -64,7 +64,7 @@ make eval-unified-agents   # if registered
 ## Operator invoke examples
 
 ```text
-Use security-auditor posture on this diff — OWASP focus, no drive-by refactors.
+Use security-auditor posture on this diff - OWASP focus, no drive-by refactors.
 Use e2e-test-specialist: propose Playwright smoke for the voice remote path.
 Use backend-architect: sketch service boundaries for product-ship remote.
 ```

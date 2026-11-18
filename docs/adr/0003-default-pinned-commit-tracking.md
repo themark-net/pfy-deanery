@@ -22,9 +22,9 @@ Aggregates use handling tiers A/B/C in `sources/aggregates.md` rather than alway
 
 Rejected alternatives:
 
-1. **Subtree everything useful** — Unbounded growth; poor default for Ollama/llama.cpp-class projects.
-2. **Floating `main` only (no pins)** — Non-reproducible pipelines; silent breakage.
-3. **Submodules for all tools** — Better than full history copy, but still noisy for dozens of entries operators never edit in-tree.
+1. **Subtree everything useful** - Unbounded growth; poor default for Ollama/llama.cpp-class projects.
+2. **Floating `main` only (no pins)** - Non-reproducible pipelines; silent breakage.
+3. **Submodules for all tools** - Better than full history copy, but still noisy for dozens of entries operators never edit in-tree.
 
 ## Consequences
 

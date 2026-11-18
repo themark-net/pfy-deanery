@@ -1,6 +1,6 @@
 # Session compose (honest lane + enabled tools + in-TUI how-to)
 
-Cite **#224** only. Deepens **#225**. Catalog 70–75 HOLD. #198 parked. LIVE_HARD_OFF. Do not reopen #76. Do not re-merge #226.
+Cite **#224** only. Deepens **#225**. Catalog 70-75 HOLD. #198 parked. LIVE_HARD_OFF. Do not reopen #76. Do not re-merge #226.
 
 Loop/pre-launch paint must name:
 
@@ -41,7 +41,7 @@ Registry: [bootstrap/env/REGISTRY.md](../../bootstrap/env/REGISTRY.md).
 
 ## Do not
 
-- Reopen #76 · unpark #198 · catalog 70–75 HOLD
+- Reopen #76 · unpark #198 · catalog 70-75 HOLD
 - Re-merge #226
 - Label OpenCode-free as Grok-sub (or local as OpenCode-free)
 - Claim Axon when the live path is codebase-memory

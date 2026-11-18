@@ -1,14 +1,14 @@
-# Auto-Company patterns (extract only — not a runtime)
+# Auto-Company patterns (extract only - not a runtime)
 
 **Source:** X Entry 066 · TOOLS.md **Auto-Company** (S on company rubric)  
-**Posture:** Pattern goldmine for Grok skills / AGENTS — **not** primary company daemon (no ADR to adopt company runtimes).  
+**Posture:** Pattern goldmine for Grok skills / AGENTS - **not** primary company daemon (no ADR to adopt company runtimes).  
 **Related:** `/marketing-council`, gstack role recipes, Multica (watch), ADR-0005 light process
 
 ## What we take
 
 | Pattern | Use in pfy-deanery |
 |---------|-------------------|
-| **Named expert personas** with fixed jobs (CEO/critic/eng) | Role router in AGENTS.md; optional persona prompts in skills — not 14 concurrent agents by default |
+| **Named expert personas** with fixed jobs (CEO/critic/eng) | Role router in AGENTS.md; optional persona prompts in skills - not 14 concurrent agents by default |
 | **Shared consensus baton** (human-editable shared doc) | `docs/TODO.md` + OQ + short worksheets; avoid pure chat-only “agreement” |
 | **Pre-mortem GO/NO-GO gate** | `/adr` rejected alternatives + `/open-questions` before hard-to-reverse work |
 | **Forbidden pure discussion** without ship artifact | Prefer DoD (`/one-shot`) or exit card (`/agent-loops`) |

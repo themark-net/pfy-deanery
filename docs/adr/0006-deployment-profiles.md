@@ -12,7 +12,7 @@ The catalog integrates local inference, cloud APIs, and harnesses. A single fixe
 1. Introduce **named deployment profiles**: `local-only`, `balanced` (default), `max-performance`, plus optional custom files under `config/profiles/`.
 2. Select via `DEPLOY_PROFILE` (env / `.env`).
 3. Maintain a **variable registry** at `bootstrap/env/REGISTRY.md` and an `env.example`; `make env-init` / `make env-check` provision and validate.
-4. Secrets only in `.env` or process environment — never in git, never baked into container images.
+4. Secrets only in `.env` or process environment - never in git, never baked into container images.
 5. Tool integrations **must** register new vars in REGISTRY when added.
 
 ## Rationale
@@ -24,9 +24,9 @@ The catalog integrates local inference, cloud APIs, and harnesses. A single fixe
 
 Rejected alternatives:
 
-1. **Single hard-coded stack in README only** — not machine-checkable; secrets leak into docs.
-2. **Profile = separate git branches** — unmaintainable.
-3. **Secrets in docker-compose committed files** — unsafe.
+1. **Single hard-coded stack in README only** - not machine-checkable; secrets leak into docs.
+2. **Profile = separate git branches** - unmaintainable.
+3. **Secrets in docker-compose committed files** - unsafe.
 
 ## Consequences
 

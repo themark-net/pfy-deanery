@@ -16,7 +16,7 @@
 ./pfy models
 ./pfy models pull <name>    # live engine (FreeToken records; Ollama pulls; llama skip)
 ./pfy models recommend      # ranked host-fit models not yet pulled (#207)
-./pfy models try [name]     # pull top/named recommendation — operate-or-FAIL (#207)
+./pfy models try [name]     # pull top/named recommendation - operate-or-FAIL (#207)
 ./pfy catalog               # usable catalog browse subset (#209)
 ./pfy catalog ask [name]    # ask attached TUI to implement for next launch
 ./pfy catalog queue [name]  # REAL GitHub issue Design→DevBot (#214)
@@ -50,9 +50,9 @@ Root `./pfy` is a 100755 wrapper that execs `scripts/pfy`. Detector is invoked w
 
 **Recommend / try (#207):** Engine + `./pfy models recommend` ranks host-fit models not yet pulled. `try` pulls one FreeToken-first (operate-or-FAIL). Handoff: engine pin · Attach re-probe · TUI reload. [recommend-models.md](recommend-models.md).
 
-**Catalog ask / queue (#209 / #214):** Tools browse (usable subset, not scores-only). Ask attached TUI to implement for next launch (prompt/artifact). **Queue for org** creates a real GitHub issue and paints open/closed/PR. HOLD 70–75 not auto-lifted. [catalog-ask-queue.md](catalog-ask-queue.md) · [live-org-queue.md](live-org-queue.md).
+**Catalog ask / queue (#209 / #214):** Tools browse (usable subset, not scores-only). Ask attached TUI to implement for next launch (prompt/artifact). **Queue for org** creates a real GitHub issue and paints open/closed/PR. HOLD 70-75 not auto-lifted. [catalog-ask-queue.md](catalog-ask-queue.md) · [live-org-queue.md](live-org-queue.md).
 
-**Toolset handoff + hedge (ADR-0017):** `toolset` / `hedge` verbs are a thin `exec python3 "$ROOT/pfylib/cli.py"` dispatch; all logic and tests live in `pfylib/`. +2 top-level verbs against T-0090's ≤3-lever target — the tension is OQ-0012's to resolve. [pfylib.md](pfylib.md).
+**Toolset handoff + hedge (ADR-0017):** `toolset` / `hedge` verbs are a thin `exec python3 "$ROOT/pfylib/cli.py"` dispatch; all logic and tests live in `pfylib/`. +2 top-level verbs against T-0090's ≤3-lever target - the tension is OQ-0012's to resolve. [pfylib.md](pfylib.md).
 
 **Lane spend:** `./pfy lanes spend` sums local Grok session dollars (`usage.json` `costUsdTicks` / 1e10, and `updates.jsonl` while a session is still open) and projects the weekly Build percent from a baseline reading. One point defaults to 4.40 USD. Exit 1 at or above 75%. It does not read `auth.json` and it does not use the network. [lane-spend.md](lane-spend.md).
 

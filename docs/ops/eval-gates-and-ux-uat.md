@@ -12,10 +12,10 @@ Create **separate gates**:
 |------|-----|-----|--------------------|
 | **G0 Structural** | Agent/CI | `make eval-structural` (+ golden validate) | Yes for docs/skills schema |
 | **G1 Deploy-ready** | Agent/CI | **Build green + smoke** on a deploy that matches publish standards | Yes for runtime features |
-| **G2 UX / UAT** | **Human** | User acceptance tests against a real simple deploy (client + our env) | **No** — agents refine DoD until humans pass |
+| **G2 UX / UAT** | **Human** | User acceptance tests against a real simple deploy (client + our env) | **No** - agents refine DoD until humans pass |
 
 **Build green + smoke is sufficient** for agents to mark implementation **done-for-merge**.  
-**Human testing always reveals UX design issues** — that is expected, not a process failure.
+**Human testing always reveals UX design issues** - that is expected, not a process failure.
 
 ## Why another gate (not “always need human before close”)
 
@@ -23,7 +23,7 @@ Create **separate gates**:
 2. Shipping only “frameworks that test frameworks” without **deploying those tests** to the same standard as product leaves a false green.  
 3. UAT without a **simple, equivalent deploy** on both sides is not real UX testing.
 
-## G1 — Deploy-ready (agent close bar for runtime)
+## G1 - Deploy-ready (agent close bar for runtime)
 
 A change is deploy-ready when:
 
@@ -32,7 +32,7 @@ A change is deploy-ready when:
 3. **Deploy path is simple and dual-sided:**
    - **Our environment** (platform/catalog lab): documented one-liner / Make lever that brings the test env up.  
    - **Client / product side:** same class of simplicity (`project-onboard` → `env-stage` → exercise feature).  
-4. The **tests themselves** are part of that deployable surface — not a one-off script that only runs in the author’s shell state.
+4. The **tests themselves** are part of that deployable surface - not a one-off script that only runs in the author’s shell state.
 
 ### Publishing standards for the *development environment we sell*
 
@@ -47,7 +47,7 @@ Because this repo **is** a development environment product:
 
 `make env-stage` / `make product-ship` (verify) are the product-facing deploy spine; platform smokes remain advanced but must still be **callable** and **documented**.
 
-## G2 — UX eval stage (human only)
+## G2 - UX eval stage (human only)
 
 UX is an **eval stage**, not a Make checkbox that agents fake.
 
@@ -71,13 +71,13 @@ A DoD is **not eligible for G2** until:
 - [ ] UAT steps are written as **observable human actions** (click/run/see), not “run internal Python module X”  
 - [ ] Framework-only work is either productized (docs + Make) or dropped  
 
-If those fail, **keep iterating G1** — do not page a human.
+If those fail, **keep iterating G1** - do not page a human.
 
 ### UAT artifact shape (recommended)
 
 ```markdown
 ## UAT (human)
-Environment: [how staged — e.g. make env-stage]
+Environment: [how staged - e.g. make env-stage]
 1. [action] → expect [observable]
 2. …
 Result: pass | fail + notes
@@ -89,9 +89,9 @@ Store under `pipelines/uat/` or issue comment when run.
 
 | Old option | Mapping |
 |------------|---------|
-| docs+SKIP only | G0 only — OK for pure docs |
-| must green on host | G1 when runtime — smoke on deploy path |
-| always human first | **Wrong** — human is G2 after G1 |
+| docs+SKIP only | G0 only - OK for pure docs |
+| must green on host | G1 when runtime - smoke on deploy path |
+| always human first | **Wrong** - human is G2 after G1 |
 
 ## Agent rules (closing issues)
 
@@ -108,7 +108,7 @@ Store under `pipelines/uat/` or issue comment when run.
 | `structural` | G0 | `make eval-structural` |
 | `golden_replay` | G0 | `make eval-golden` |
 | `deploy_ready` | G1 | `make eval-deploy-ready` (structural + declared smokes) |
-| `ux_uat` | G2 | **human** — no agent auto-pass |
+| `ux_uat` | G2 | **human** - no agent auto-pass |
 
 ## Related issues unblocked by this policy
 

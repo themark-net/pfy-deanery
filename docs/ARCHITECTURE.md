@@ -55,7 +55,7 @@ sources (X / aggregates / papers)
 
 | Delivered | Not yet |
 |-----------|---------|
-| Methodology + catalog + Grok bootstrap | Honest harness stubs T-0103–T-0109 |
+| Methodology + catalog + Grok bootstrap | Honest harness stubs T-0103-T-0109 |
 | LiteLLM profiles + Ollama cage smoke | Ollama adapter complete (T-0101 health/default model) |
 | Process docs + structural eval | Automated dashboard from JSON |
 | ADR-0014 spine + `./pfy` start/up operator env | Default always-on LiteLLM daemon |

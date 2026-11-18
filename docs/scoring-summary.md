@@ -1,12 +1,12 @@
-# Scoring Summary — Major Clusters (July 2026)
+# Scoring Summary - Major Clusters (July 2026)
 
 This document provides systematic scoring of high-signal entries using the rubric defined in `docs/evaluation-framework.md` and, for full multi-agent orgs, [evaluation/autonomous-ai-companies-rubric.md](evaluation/autonomous-ai-companies-rubric.md).
 
 **Scoring Scale (standard tools)**:
-- Relevance, Integration Ease, Reproducibility, Unique Value: 1–5
+- Relevance, Integration Ease, Reproducibility, Unique Value: 1-5
 - Overall Priority: S-Tier (must act now), A-Tier (plan soon), B-Tier (useful reference), C-Tier (awareness)
 
-**Scoring Scale (AI companies)**: C1–C6 dimensions 1–5 → weighted avg → S/A/B/C (see company rubric).
+**Scoring Scale (AI companies)**: C1-C6 dimensions 1-5 → weighted avg → S/A/B/C (see company rubric).
 
 ---
 
@@ -23,13 +23,13 @@ This is currently one of the highest-value areas. Multiple entries reinforce sel
 | 027 | Four Types of Agent Loops (turn/goal/time/proactive) | 5 | 5 | 5 | 4 | **S-Tier** | Clean pedagogical breakdown. Directly maps to our 4-tier model. |
 | 031 | Iterative Feedback Loop (generate → test → update context) | 5 | 5 | 4 | 5 | **S-Tier** | Powerful self-healing pattern. High value for evaluator design. |
 | 032 | Eval Loop (rubric-driven verification) | 5 | 5 | 5 | 4 | **S-Tier** | Practical rubric + layered rigor approach. Easy to port. |
-| 048 | HERMES AGENT — Three Feedback Loops (Auto-Memory, Auto-Skill, Curator) | 5 | 5 | 4 | 5 | **S-Tier** | Best real-world self-improving system found. Direct blueprint for our skills + memory layer. |
+| 048 | HERMES AGENT - Three Feedback Loops (Auto-Memory, Auto-Skill, Curator) | 5 | 5 | 4 | 5 | **S-Tier** | Best real-world self-improving system found. Direct blueprint for our skills + memory layer. |
 
 **Cluster Recommendations**:
 - Prioritize integration of Hermes-style feedback loops into Loop Engineering pack. **Done (T-0048):** `/hermes-feedback`.
 - Adapt Finn Loop patterns (spec/build/review) as concrete examples.
 - Use rubric-driven eval loop (Entry 032) as a template for goal-based evaluators.
-- **Done (T-0050):** first-party `/agent-loops` skill — 4 types + 8 exits (068) + Finn phases + rubric layer.
+- **Done (T-0050):** first-party `/agent-loops` skill - 4 types + 8 exits (068) + Finn phases + rubric layer.
 - **Done (T-0054):** operator map `docs/ops/loop-engineering.md` + one-shot DoDs for skills/auth.
 - **Queued (T-0060):** scored eval task that requires an exit card in agent output.
 
@@ -52,20 +52,20 @@ Strong convergence on practical, local-first memory solutions.
 - Deeply evaluate Memvid and LEANN for memory layer. **Queued (T-0063).**
 - Consider hybrid approaches (versioned MP4 + compressed indexes).
 - Integrate persistent memory patterns into Loop Engineering where relevant.
-- **Done (T-0053):** codebase-memory-mcp remains primary code graph; Graphify B-tier reference only — [codebase-memory-vs-graphify.md](evaluation/codebase-memory-vs-graphify.md).
+- **Done (T-0053):** codebase-memory-mcp remains primary code graph; Graphify B-tier reference only - [codebase-memory-vs-graphify.md](evaluation/codebase-memory-vs-graphify.md).
 
 ---
 
 ## Cluster 3: Skills & Org Structures
 
-**Overall Cluster Assessment**: **Strong (A-Tier cluster)** — *partially superseded for full-company eval by Cluster 5*
+**Overall Cluster Assessment**: **Strong (A-Tier cluster)** - *partially superseded for full-company eval by Cluster 5*
 Good production validation of large-scale skill organization. Pure skill packs stay here; full closed-loop companies move to Cluster 5.
 
 | Entry | Title | Relevance | Integration Ease | Reproducibility | Unique Value | Overall Priority | Key Notes |
 |-------|-------|-----------|------------------|-----------------|--------------|------------------|-----------|
 | 016 | Claude Company Org Chart (42+ skills) | 4 | 4 | 4 | 4 | A-Tier | Early strong signal for org-chart thinking. |
 | 037 | Claude as Full Company (122 skills, 7 departments) | 5 | 5 | 5 | 4 | **S-Tier** | Excellent real-world $40k MRR example. High production value. Also scored under Cluster 5 when treated as company. |
-| 050 | paperclipai/companies (16 pre-built AI companies) | 4 | 5 | 5 | 4 | A-Tier | Ready-made templates — useful for rapid bootstrapping. Cluster 5 primary. |
+| 050 | paperclipai/companies (16 pre-built AI companies) | 4 | 5 | 5 | 4 | A-Tier | Ready-made templates - useful for rapid bootstrapping. Cluster 5 primary. |
 | 053 | awesome-hermes-skills (271 curated skills) | 5 | 5 | 5 | 4 | **S-Tier** | Best current curated library. Direct complement to Hermes (Entry 048). |
 
 **Cluster Recommendations**:
@@ -92,7 +92,7 @@ High practical value for making local agents faster.
 
 ---
 
-## Cluster 5: Autonomous AI Companies (NEW — 2026-07-20)
+## Cluster 5: Autonomous AI Companies (NEW - 2026-07-20)
 
 **Overall Cluster Assessment**: **Strong / emerging (S/A mix)**  
 Dedicated category + rubric: [evaluation/autonomous-ai-companies-rubric.md](evaluation/autonomous-ai-companies-rubric.md).  
@@ -106,7 +106,7 @@ These are full multi-agent orgs (personas, consensus, cycles), not skill packs a
 | Multica (012) | 3 | 4 | 4 | 3 | 3 | 4 | 3.5 | A | Board + agent teammates + skills; closer to PM platform than full company loop. |
 | gstack (010) | 4 | 3 | 3 | 4 | 2 | 3 | 3.2 | B | Role skills + workflow; not a 24/7 company daemon. |
 
-**Company-dimension key (1–5):**  
+**Company-dimension key (1-5):**  
 C1 Org Design & Role Fidelity · C2 Autonomy & Cycle Design · C3 Shared Memory & Consensus · C4 Safety & Blast Radius · C5 Economic Realism & Convergence · C6 Local / Operator Fit.
 
 **Cluster Recommendations**:
@@ -120,14 +120,14 @@ C1 Org Design & Role Fidelity · C2 Autonomy & Cycle Design · C3 Shared Memory 
 
 ## Summary of Top Priorities (S-Tier Items)
 
-1. **HERMES feedback loops** (Entry 048) — Core self-improvement architecture.
-2. **N-gram speculative decoding** (Entry 051) — Immediate performance win.
-3. **Memvid + LEANN** (Entries 044 + 052) — Next-generation memory/context layer.
-4. **Finn Loop + Eval Loop patterns** (Entries 024 + 032) — Concrete implementation examples.
-5. **awesome-hermes-skills + Company org patterns** (Entries 053 + 037) — Skill scale and organization.
-6. **Auto-Company** (Entry 066) — Best full autonomous company blueprint; extract patterns, do not adopt as primary runtime.
+1. **HERMES feedback loops** (Entry 048) - Core self-improvement architecture.
+2. **N-gram speculative decoding** (Entry 051) - Immediate performance win.
+3. **Memvid + LEANN** (Entries 044 + 052) - Next-generation memory/context layer.
+4. **Finn Loop + Eval Loop patterns** (Entries 024 + 032) - Concrete implementation examples.
+5. **awesome-hermes-skills + Company org patterns** (Entries 053 + 037) - Skill scale and organization.
+6. **Auto-Company** (Entry 066) - Best full autonomous company blueprint; extract patterns, do not adopt as primary runtime.
 
-These should drive **Grok+cage** ports (skills, eval tasks, optional smokes)—not AgenC (ADR-0010).  
+These should drive **Grok+cage** ports (skills, eval tasks, optional smokes)-not AgenC (ADR-0010).  
 Checker: `python3 bootstrap/setup-local-agent-env.py`. Catalog: T-0042 triple-write.
 
 ## Next Steps
@@ -139,9 +139,9 @@ Checker: `python3 bootstrap/setup-local-agent-env.py`. Catalog: T-0042 triple-wr
 
 ---
 
-## Aggregate synthesis rollup (2026-07-30) — T-0002
+## Aggregate synthesis rollup (2026-07-30) - T-0002
 
-**Diff vs prior (v0.4.x catalog):** Entries **073–076** absorbed (Laguna, Hyperframes cluster already in TOOLS; **asm**, **claude-codex-settings**). Process: integration stages I0–I4, golden-tasks, 250GB model pool.
+**Diff vs prior (v0.4.x catalog):** Entries **073-076** absorbed (Laguna, Hyperframes cluster already in TOOLS; **asm**, **claude-codex-settings**). Process: integration stages I0-I4, golden-tasks, 250GB model pool.
 
 | Cluster | Priority now | Action state |
 |---------|--------------|--------------|
@@ -153,7 +153,7 @@ Checker: `python3 bootstrap/setup-local-agent-env.py`. Catalog: T-0042 triple-wr
 
 **Top priorities (updated):**
 
-1. Product levers onboard/stage/ship (T-0090) — **shipped MVP**  
+1. Product levers onboard/stage/ship (T-0090) - **shipped MVP**  
 2. Local model pool discipline + golden proximity eval  
 3. Optional asm skill distribution (#26) when Node/lab ready  
 4. Keep structural always green; implement-lane when Ollama present  

@@ -1,10 +1,10 @@
-# #243 Loop UX — non-goals
+# #243 Loop UX - non-goals
 
 **Cite:** #243 only.
 
 ## Out of this slice
 
-- Catalog PRs **#70–#75** (do not lift HOLD; do not implement catalog work here)
+- Catalog PRs **#70-#75** (do not lift HOLD; do not implement catalog work here)
 - Reopening **#76**
 - operator ops / operator drip for smoke
 - Redesign of Engine / Attach / Tools beyond **one-line ledes**
@@ -19,6 +19,6 @@
 
 ## Still owned elsewhere (do not regress)
 
-- #225 Launch compose under Launch session — under Launch, not Loop front door
+- #225 Launch compose under Launch session - under Launch, not Loop front door
 - #228 Gab cloud lane honesty · #230 decision layer chips on Engine
 - FreeToken-first local spine

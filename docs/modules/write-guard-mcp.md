@@ -1,6 +1,6 @@
 # Module: harness/write-guard-mcp
 
-**Purpose:** Thin **MCP + CLI** that mediates agent filesystem writes (`off` / `audit` / `enforce`) with secret deny-globs and JSONL audit — defense-in-depth **above** cage workspace bind-mounts.
+**Purpose:** Thin **MCP + CLI** that mediates agent filesystem writes (`off` / `audit` / `enforce`) with secret deny-globs and JSONL audit - defense-in-depth **above** cage workspace bind-mounts.
 
 ## Operator: how to run
 
@@ -19,7 +19,7 @@ make smoke-write-guard        # in agent-cage
 
 | Mode | Behavior |
 |------|----------|
-| `audit` | **Default** (OQ-0009) — allow writes; log; flag secret globs |
+| `audit` | **Default** (OQ-0009) - allow writes; log; flag secret globs |
 | `enforce` | Deny outside roots / secrets / deny_write; delete default deny |
 | `off` | Pass-through |
 
@@ -40,7 +40,7 @@ Design: [docs/ops/write-guard-mcp-design.md](../ops/write-guard-mcp-design.md)
 | Concern | Detail |
 |---------|--------|
 | **Tools** | `list_roots`, `list_dir`, `read_file`, `write_file`, `delete_file`, `write_status` |
-| **Invariants** | Shell can still bypass MCP — keep cage L0; do not log file bodies |
+| **Invariants** | Shell can still bypass MCP - keep cage L0; do not log file bodies |
 | **ADR** | ADR-0007 |
 | **mcp-host** | Overlay fragment exists but entry **disabled** (T-0043 parked). Stock cage **filesystem** MCP already handles workspace r/w; write-guard is policy/audit only |
 

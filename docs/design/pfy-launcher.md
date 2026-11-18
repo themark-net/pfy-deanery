@@ -1,4 +1,4 @@
-# Design: `pfy` launcher — pick a harness, pick a model, install the catalog into it
+# Design: `pfy` launcher - pick a harness, pick a model, install the catalog into it
 
 Status: **Proposed** (design only; no code in this PR) · 2026-10-12 · base `main` @ `a5c0362`
 Owner: the operator · Related: [0012-simple-harness-agnostic-launch.md](../adr/0012-simple-harness-agnostic-launch.md) (simple `./pfy`; the number 0012 is also used by `0012-voice-half-duplex-local-first.md`, so cite this filename), ADR-0014 (inference spine), "ADR-0017" (toolset × harness; cited in `pfylib/` but **not yet in `docs/adr/`**), `data/harnesses.json`, `data/toolsets.json`, `pfylib/toolsets.py`, `scripts/pfy_launch_wizard_225.py` (#225).
@@ -78,7 +78,7 @@ Recommendation: **extend `data/toolsets.json` (v2) instead of adding a new tree*
 ```json
 {
   "id": "rea",
-  "title": "REA — reverse engineer anything",
+  "title": "REA - reverse engineer anything",
   "kind": "external",                       
   "version": "6.4.0",
   "source": {"npm": "rea-agents", "pin": "6.4.0", "repo": "morluto/rea", "license": "MIT"},
@@ -148,7 +148,7 @@ Adapters reuse rea's resolution rules as the reference (MIT) and cite them in a 
 - **Plan before write.** Every mutating verb has `--dry-run`. Non-TTY runs without `--yes` stop at `needs_confirmation` (exit 1). A bare `--yes` without `--harness` refreshes only already-owned entries, which is rea's rule.
 - **Pinned supply chain.** Every external item pins an exact version (npm semver or git SHA, per ADR-0003). The installer resolves a tagged pfy release and verifies the downloaded tarball SHA256 against the release manifest. The script uses rea's `{ … }` truncation guard.
 - **Scope:** user-level only. A project-level install (`.cursor/mcp.json`, `.claude/settings.json` in a repo) is a later opt-in `--scope project`.
-- Catalog HOLD entries (70–75) are never in presets and never auto-installed.
+- Catalog HOLD entries (70-75) are never in presets and never auto-installed.
 
 ## 11. Exit codes and output
 

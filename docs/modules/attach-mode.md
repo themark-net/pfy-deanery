@@ -4,7 +4,7 @@
 
 ## Human operator
 
-- What: pick a mode on Attach (HTML+tk), then Attach a harness — or pick the same toolset on the Loop launch wizard (#225) then **Launch session**. Loop/Attach show `using: <mode>`.
+- What: pick a mode on Attach (HTML+tk), then Attach a harness - or pick the same toolset on the Loop launch wizard (#225) then **Launch session**. Loop/Attach show `using: <mode>`.
 - How: [docs/ops/attach-mode.md](../ops/attach-mode.md)
 - Failures: unwired mode → FAIL + next (never silent bare).
 - Recovery: `bare` always; orchestration needs `./pfy setup`; code-graph needs Axon (`pip install axoniq`) or `codebase-memory-mcp` (painted as not Axon).

@@ -1,9 +1,9 @@
-# TODO — next steps
+# TODO - next steps
 
 **Purpose:** Single ordered work queue for humans and agents.  
 **Design:** [DESIGN.md](DESIGN.md) · **ADRs:** [adr/](adr/README.md) · **Open questions:** [OPEN_QUESTIONS.md](OPEN_QUESTIONS.md)
 
-## G8 — Simple harness-agnostic launch (2026-07-31)
+## G8 - Simple harness-agnostic launch (2026-07-31)
 
 | ID | Item | Status |
 |----|------|--------|
@@ -17,7 +17,7 @@
 | T-0107 | Exo optional lab path | **done** · [#60](https://github.com/themark-net/pfy-mentat/issues/60) |
 | T-0108 | Continue + Ollama recipe | **done** · [#61](https://github.com/themark-net/pfy-mentat/issues/61) |
 | T-0109 | Fold agent-cage into `pfy stage --lab` | **done** · [#62](https://github.com/themark-net/pfy-mentat/issues/62) |
-| T-0110 | Pluggable local runtime (llama-swap / Shimmy / Ollama) | **done** · [#76](https://github.com/themark-net/pfy-mentat/issues/76) stays closed — do not reopen |
+| T-0110 | Pluggable local runtime (llama-swap / Shimmy / Ollama) | **done** · [#76](https://github.com/themark-net/pfy-mentat/issues/76) stays closed - do not reopen |
 
 Authority: ADR-0012 · ADR-0014 · issues labeled `harness-adapter`.
 
@@ -59,14 +59,14 @@ Active work is also tracked as issues: https://github.com/themark-net/pfy-deaner
 |-------|--------|---------|
 | **Priority** | `P0` / `P1` / `P2` / `P3` | P0 = blocks current critical path · P1 = next milestone · P2 = important not blocking · P3 = someday |
 | **Status** | `todo` \| `doing` \| `blocked` \| `done` \| `cancelled` | Active work only in **Active** table; finished rows move to **Done** |
-| **Open questions** | `OQ-NNNN` or `—` | **Required** if Status is `blocked` or if work needs a human decision before P0/P1 can finish |
+| **Open questions** | `OQ-NNNN` or `-` | **Required** if Status is `blocked` or if work needs a human decision before P0/P1 can finish |
 | **Depends** | T-IDs | Optional ordering edges |
 
 **Rules**
 
 1. Every `blocked` row **must** cite an OQ (or external blocker named in Notes).
 2. Every OQ that blocks work should appear in at least one Active TODO’s **Open questions** column.
-3. Do not invent architecture in a TODO — settle with `/adr`.
+3. Do not invent architecture in a TODO - settle with `/adr`.
 4. Never delete history; move finished rows to **Done**.
 5. New tool integrations: register env vars in `bootstrap/env/REGISTRY.md`; prefer smokes **inside agent-cage**.
 
@@ -76,40 +76,40 @@ Active work is also tracked as issues: https://github.com/themark-net/pfy-deaner
 
 **Session (2026-07-26):** **T-0096** dual-tier orchestrator (high-first default). Smoke: `make smoke-voice-orchestrate`.
 
-### Active — design / coding + local path (agent may pick freely)
+### Active - design / coding + local path (agent may pick freely)
 
 | ID | Priority | Status | Item | Open questions | Depends | Notes |
 |----|----------|--------|------|----------------|---------|-------|
 
-| T-0091 | P1 | doing | **Voice path** polish (session sticky / MCP deep) | — | ADR-0012 | [#2](https://github.com/themark-net/pfy-mentat/issues/2) · Shelved. Orchestrator shipped; TTS and VoIP still open |
-| T-0092 | P1 | done | Voice auto-agent local opencode path | — | T-0091 4b | still: `VOICE_AUTO_AGENT=opencode` |
-| T-0093 | P1 | done | Tools-capable Ollama select + tool-split | — | T-0080 | `eval-select-tools-model` |
-| T-0096 | P1 | done | **Dual-tier orchestrator** high↔low (`VOICE_ROUTE=high-first` default) | — | T-0092, T-0093 | [voice-orchestrator.md](ops/voice-orchestrator.md); `smoke-voice-orchestrate` |
-| T-0094 | P3 | parked | Optional short **local TTS** status (not duplex) | — | T-0092 | [#9](https://github.com/themark-net/pfy-mentat/issues/9) · 2026-11-17: opt-in `VOICE_TTS=1` speaks a short local done/fail; `VOICE_TTS_MODE=reply` speaks a clipped agent reply (400 chars). Kokoro catalog-fit on qwen3.6:35b was confident `redundant` vs the piper/espeak path — not wired, no download ([kokoro-fit.md](../examples/voice-tts-status/kokoro-fit.md)). PM parked the rest: phone playback, a manual piper voice-model install |
+| T-0091 | P1 | doing | **Voice path** polish (session sticky / MCP deep) | - | ADR-0012 | [#2](https://github.com/themark-net/pfy-mentat/issues/2) · Shelved. Orchestrator shipped; TTS and VoIP still open |
+| T-0092 | P1 | done | Voice auto-agent local opencode path | - | T-0091 4b | still: `VOICE_AUTO_AGENT=opencode` |
+| T-0093 | P1 | done | Tools-capable Ollama select + tool-split | - | T-0080 | `eval-select-tools-model` |
+| T-0096 | P1 | done | **Dual-tier orchestrator** high↔low (`VOICE_ROUTE=high-first` default) | - | T-0092, T-0093 | [voice-orchestrator.md](ops/voice-orchestrator.md); `smoke-voice-orchestrate` |
+| T-0094 | P3 | parked | Optional short **local TTS** status (not duplex) | - | T-0092 | [#9](https://github.com/themark-net/pfy-mentat/issues/9) · 2026-11-17: opt-in `VOICE_TTS=1` speaks a short local done/fail; `VOICE_TTS_MODE=reply` speaks a clipped agent reply (400 chars). Kokoro catalog-fit on qwen3.6:35b was confident `redundant` vs the piper/espeak path - not wired, no download ([kokoro-fit.md](../examples/voice-tts-status/kokoro-fit.md)). PM parked the rest: phone playback, a manual piper voice-model install |
 
-| T-0075 | P2 | done | More structural scorers: ADR shape, open-question row shape | — | T-0070 | [#5](https://github.com/themark-net/pfy-mentat/issues/5) **done** |
-| T-0076 | P2 | done | Wire mattpocock to-spec/tdd checklist into structural or skill cross-links | — | — | [#6](https://github.com/themark-net/pfy-mentat/issues/6) · paths pack already installed |
-| T-0081 | P2 | todo | Optional OpenCode-in-cage smoke | — | T-0080 | [#7](https://github.com/themark-net/pfy-mentat/issues/7) · After host smoke green |
-| T-0040 | P2 | done | Broader multi-CLI parity notes (Claude Code) | — | T-0080 | [#8](https://github.com/themark-net/pfy-mentat/issues/8) · OpenCode first |
+| T-0075 | P2 | done | More structural scorers: ADR shape, open-question row shape | - | T-0070 | [#5](https://github.com/themark-net/pfy-mentat/issues/5) **done** |
+| T-0076 | P2 | done | Wire mattpocock to-spec/tdd checklist into structural or skill cross-links | - | - | [#6](https://github.com/themark-net/pfy-mentat/issues/6) · paths pack already installed |
+| T-0081 | P2 | todo | Optional OpenCode-in-cage smoke | - | T-0080 | [#7](https://github.com/themark-net/pfy-mentat/issues/7) · After host smoke green |
+| T-0040 | P2 | done | Broader multi-CLI parity notes (Claude Code) | - | T-0080 | [#8](https://github.com/themark-net/pfy-mentat/issues/8) · OpenCode first |
 
-### Active — parked (env / not this track)
+### Active - parked (env / not this track)
 
 | ID | Priority | Status | Item | Open questions | Depends | Notes |
 |----|----------|--------|------|----------------|---------|-------|
-| T-0064 | P3 | todo | Auth file-mount EBUSY (grok-home dir) | — | T-0045 | [#11](https://github.com/themark-net/pfy-mentat/issues/11) · Env polish |
-| T-0043 | P3 | todo | Write-guard mcp-host wiring | — | T-0031 | [#12](https://github.com/themark-net/pfy-mentat/issues/12) · Parked |
-| T-0062 | P3 | todo | Laguna local model DoD | — | — | [#13](https://github.com/themark-net/pfy-mentat/issues/13) · Hardware-gated |
+| T-0064 | P3 | todo | Auth file-mount EBUSY (grok-home dir) | - | T-0045 | [#11](https://github.com/themark-net/pfy-mentat/issues/11) · Env polish |
+| T-0043 | P3 | todo | Write-guard mcp-host wiring | - | T-0031 | [#12](https://github.com/themark-net/pfy-mentat/issues/12) · Parked |
+| T-0062 | P3 | todo | Laguna local model DoD | - | - | [#13](https://github.com/themark-net/pfy-mentat/issues/13) · Hardware-gated |
 | T-0046 | P3 | todo | Re-evaluate AgenC | [ADR-0010](adr/0010-reject-agenc-as-primary-runtime.md) | T-0044 | [#14](https://github.com/themark-net/pfy-mentat/issues/14) |
 
-### Active — follow-ups (OQs answered; not blocked)
+### Active - follow-ups (OQs answered; not blocked)
 
 | ID | Priority | Status | Item | Open questions | Depends | Notes |
 |----|----------|--------|------|----------------|---------|-------|
-| — | P2 | done | pfy-mentat [#309](https://github.com/themark-net/pfy-mentat/issues/309) MVP stack follow-ups (`./pfy build` quality) | — | — | 2026-11-17 first slice: retry implement prompt no longer silently cuts a previous diff over the cap (local + cloud); cloud `_non_utf8_file` treats a NUL as non-text, matching local `_strict_text`. 2026-11-17 slice (a): the line cap retries with feedback like the 3-file cap (same budget and message shape) and hard-stops when retries are spent. 2026-11-17 slice (b): integrity walks record unlistable dirs (tree_digest / tree_sig via onerror and errors=). 2026-11-17 slice (c): local `review-binary-change` recovery paragraph mirrors cloud. 2026-11-17 slice (d): `HANDOFF-mvp-land-1031.md` stays in pfy-mentat-ops (no public copy); pin run 41555509719, unshallow wording, and stale counts corrected; sloptrim corpus no longer points at the old public path. 2026-11-17 slice (e): overtime/festival timeout reasons include the entry name; tmp_cleanup fails a non-Python /tmp leak; dead BASH_ENV plant removed; pregate lint docstring names the tests that run pregate.sh. 2026-11-17 CORPUS cleanup: sloptrim (and repository-harness AUTHORITY) no longer name ops docs that live only in pfy-mentat-ops. g01/g04 recut parked (no paid review). Branch-delete list left per CEO. /var/tmp/pfyb-* clones left (cleanup outside $PFY_ROOT needs the maintainer). Issue closed 2026-11-17 (comment 6963180977) after green tip `3e180b12`. |
-| — | P2 | doing | pfy-mentat [#305](https://github.com/themark-net/pfy-mentat/issues/305) pregate / x-intake follow-ups | — | — | 2026-11-17 first slice: Entry 148 smoke no longer honors `PFY_SMOKE_REAL_HOME_BIND`; a leftover env value cannot remount the process HOME writable. The real-home write FAIL case passes the bind only from the test. 2026-11-17 non-nimo batch: gate-hash fails a mode change, a new or gitignored tests/*.pth, and ignored payloads (cache junk still excluded); Entry 148/149/154/155/156 bwrap probes time out instead of hanging; 148 version-pin test asserts the reason. Entry 149 date timezone and mutation table were already current. |
-| T-0016 | P2 | todo | colibri/large model lab under 250GB pool | — | OQ-0008 | [#24](https://github.com/themark-net/pfy-mentat/issues/24) |
-| T-0005 | P2 | doing | Apply integration-stages broadly | — | OQ-0003 | [#21](https://github.com/themark-net/pfy-mentat/issues/21) · 50 handoff cards. Facts recomputed by `scripts/catalog_stage_eval.py`. Stage letter still does not auto-promote |
-| T-0127 | P2 | done | Live atg-compile once the host is quiet (one model: `qwen3.6:35b`, then opt-in coder-next) | — | T-0004 | 2026-10-06: `qwen3.6:35b` exit 0, 2/10 sink-correct, wall 478s. Stage I2. coder-next blocked: 48.19 GiB blob + 25 GiB > 65.3 GiB MemAvailable. Not a Feature GO. Catalog HOLD 70–75. Do not touch eval-harness. |
+| - | P2 | done | pfy-mentat [#309](https://github.com/themark-net/pfy-mentat/issues/309) MVP stack follow-ups (`./pfy build` quality) | - | - | 2026-11-17 first slice: retry implement prompt no longer silently cuts a previous diff over the cap (local + cloud); cloud `_non_utf8_file` treats a NUL as non-text, matching local `_strict_text`. 2026-11-17 slice (a): the line cap retries with feedback like the 3-file cap (same budget and message shape) and hard-stops when retries are spent. 2026-11-17 slice (b): integrity walks record unlistable dirs (tree_digest / tree_sig via onerror and errors=). 2026-11-17 slice (c): local `review-binary-change` recovery paragraph mirrors cloud. 2026-11-17 slice (d): `HANDOFF-mvp-land-1031.md` stays in pfy-mentat-ops (no public copy); pin run 41555509719, unshallow wording, and stale counts corrected; sloptrim corpus no longer points at the old public path. 2026-11-17 slice (e): overtime/festival timeout reasons include the entry name; tmp_cleanup fails a non-Python /tmp leak; dead BASH_ENV plant removed; pregate lint docstring names the tests that run pregate.sh. 2026-11-17 CORPUS cleanup: sloptrim (and repository-harness AUTHORITY) no longer name ops docs that live only in pfy-mentat-ops. g01/g04 recut parked (no paid review). Branch-delete list left per CEO. /var/tmp/pfyb-* clones left (cleanup outside $PFY_ROOT needs the maintainer). Issue closed 2026-11-17 (comment 6963180977) after green tip `3e180b12`. |
+| - | P2 | doing | pfy-mentat [#305](https://github.com/themark-net/pfy-mentat/issues/305) pregate / x-intake follow-ups | - | - | 2026-11-17 first slice: Entry 148 smoke no longer honors `PFY_SMOKE_REAL_HOME_BIND`; a leftover env value cannot remount the process HOME writable. The real-home write FAIL case passes the bind only from the test. 2026-11-17 non-nimo batch: gate-hash fails a mode change, a new or gitignored tests/*.pth, and ignored payloads (cache junk still excluded); Entry 148/149/154/155/156 bwrap probes time out instead of hanging; 148 version-pin test asserts the reason. Entry 149 date timezone and mutation table were already current. |
+| T-0016 | P2 | todo | colibri/large model lab under 250GB pool | - | OQ-0008 | [#24](https://github.com/themark-net/pfy-mentat/issues/24) |
+| T-0005 | P2 | doing | Apply integration-stages broadly | - | OQ-0003 | [#21](https://github.com/themark-net/pfy-mentat/issues/21) · 50 handoff cards. Facts recomputed by `scripts/catalog_stage_eval.py`. Stage letter still does not auto-promote |
+| T-0127 | P2 | done | Live atg-compile once the host is quiet (one model: `qwen3.6:35b`, then opt-in coder-next) | - | T-0004 | 2026-10-06: `qwen3.6:35b` exit 0, 2/10 sink-correct, wall 478s. Stage I2. coder-next blocked: 48.19 GiB blob + 25 GiB > 65.3 GiB MemAvailable. Not a Feature GO. Catalog HOLD 70-75. Do not touch eval-harness. |
 
 ---
 
@@ -121,13 +121,13 @@ Active work is also tracked as issues: https://github.com/themark-net/pfy-deaner
 | T-0074 | P1 | done | Implement-lane via `make eval-auto` | Issue #4 closed completed 2026-07-29 PT (2026-07-30 UTC). `scripts/eval-auto.sh` is on main at `7197200` and still at `c0d9072`. Soft-SKIP when Ollama is down. This run did not re-run the host matrix (MVP-3 busy). |
 | T-0002 | P3 | done | Aggregate synthesis | Issue #16 was already closed on the 2026-07-30 rollup (closed 2026-07-29 PT, 2026-07-30 UTC). The 2026-10-30 section is the diff since then. No new scores. `sources/aggregates.md` still empty. Not a Feature GO. |
 | T-0095 | P3 | done | Catalog Stage 0: Pipecat / LiveKit / freeapp (ref only) | Entries 150-152. Issue #10 was already closed on the 2026-07-30 stub (closed 2026-07-29 PT, 2026-07-30 UTC). Receipts are Stage-0 FAIL / I0. No install. No TOOLS.md row. ADR-0012 primary unchanged. Not a Feature GO. |
-| — | P1 | done | pfy launcher phase 1: `install.sh`, catalog v2 (`core-skills`, `code-graph`, `rea`), setup/doctor/uninstall on grok, claude-code, codex, opencode | [#290](https://github.com/themark-net/pfy-mentat/issues/290) · PR 291 · `build/pfy-launcher-p1` · review fixes on the same branch (created-file uninstall, npx allowlist, shared-skill dedupe, backup delete, needs_human receipt) · suite 228 OK skipped=4 · `v0.4.17` tag still absent on origin · not a Feature GO · HOLD 70–75 untouched · phases 2–4 not started |
-| — | P1 | done | pfy launcher phase 4: GUI apply ledger | — | #53 / design §13 | 2026-11-17: Cursor MCP/skills setup stays. This slice: Loop Launch session and `pfy toolset apply` share one writer (`pfylib.ledger` via `toolsets.apply`) and write equivalent `$PFY_STATE_DIR/installed.json` entries. No new UI copy. An unwritable ledger is `FAIL apply` / `FAIL: …` (existing strings); files already landed stay, and a retry records the ledger. Setup's XDG uninstall ledger is unchanged. Droid/Pi adapters and presets are PARKED. Live smoke only if `qwen3.6:35b` is already resident and the GPU is idle; never pull. Remaining: update apply / tagged manifest (gated), gated live smoke if parked. |
-| — | P1 | done | `pfy catalog validate` rejects secret-looking args/env values | — | #53 / design § No secrets | 2026-11-17: after a full open-Deanery survey this was the highest-value unblocked product item. `./pfy catalog validate` runs `scripts/catalog_item_validate.py` (already in eval-structural). Reuses `pfylib.redact.looks_like_key` (literal token patterns only). Values only — `provides.env` name lists and `$FOO`/`${FOO}` refs pass. FAIL text names the field path and does not print the secret. |
-| — | P3 | done | X-intake receipt sha source, shared timeout text, har temp HOME, graphjin log close, pfylib tmp cleanup | `build/orch-fixes-1011` · 2026-10-11 · not a Feature GO · catalog HOLD untouched |
-| — | — | done | #230 Jev-style decision layer (CUA-S1-FORMS primary local; TypeSafe optional) | — |
-| — | — | done | #228 Gab cloud lane + local recommend sync | — |
-| T-0110 | P1 | done | Pluggable local runtime (FreeToken, llama-swap, llama-server, Ollama, Shimmy last) | ADR-0014 · [#76](https://github.com/themark-net/pfy-mentat/issues/76) stays closed — do not reopen |
+| - | P1 | done | pfy launcher phase 1: `install.sh`, catalog v2 (`core-skills`, `code-graph`, `rea`), setup/doctor/uninstall on grok, claude-code, codex, opencode | [#290](https://github.com/themark-net/pfy-mentat/issues/290) · PR 291 · `build/pfy-launcher-p1` · review fixes on the same branch (created-file uninstall, npx allowlist, shared-skill dedupe, backup delete, needs_human receipt) · suite 228 OK skipped=4 · `v0.4.17` tag still absent on origin · not a Feature GO · HOLD 70-75 untouched · phases 2-4 not started |
+| - | P1 | done | pfy launcher phase 4: GUI apply ledger | - | #53 / design §13 | 2026-11-17: Cursor MCP/skills setup stays. This slice: Loop Launch session and `pfy toolset apply` share one writer (`pfylib.ledger` via `toolsets.apply`) and write equivalent `$PFY_STATE_DIR/installed.json` entries. No new UI copy. An unwritable ledger is `FAIL apply` / `FAIL: …` (existing strings); files already landed stay, and a retry records the ledger. Setup's XDG uninstall ledger is unchanged. Droid/Pi adapters and presets are PARKED. Live smoke only if `qwen3.6:35b` is already resident and the GPU is idle; never pull. Remaining: update apply / tagged manifest (gated), gated live smoke if parked. |
+| - | P1 | done | `pfy catalog validate` rejects secret-looking args/env values | - | #53 / design § No secrets | 2026-11-17: after a full open-Deanery survey this was the highest-value unblocked product item. `./pfy catalog validate` runs `scripts/catalog_item_validate.py` (already in eval-structural). Reuses `pfylib.redact.looks_like_key` (literal token patterns only). Values only - `provides.env` name lists and `$FOO`/`${FOO}` refs pass. FAIL text names the field path and does not print the secret. |
+| - | P3 | done | X-intake receipt sha source, shared timeout text, har temp HOME, graphjin log close, pfylib tmp cleanup | `build/orch-fixes-1011` · 2026-10-11 · not a Feature GO · catalog HOLD untouched |
+| - | - | done | #230 Jev-style decision layer (CUA-S1-FORMS primary local; TypeSafe optional) | - |
+| - | - | done | #228 Gab cloud lane + local recommend sync | - |
+| T-0110 | P1 | done | Pluggable local runtime (FreeToken, llama-swap, llama-server, Ollama, Shimmy last) | ADR-0014 · [#76](https://github.com/themark-net/pfy-mentat/issues/76) stays closed - do not reopen |
 | T-0090 | P0 | done | Minimal product levers: default `make help` is onboard / stage / ship | `make help-platform` holds cage, smoke, eval · [#1](https://github.com/themark-net/pfy-mentat/issues/1) · [product-operator-surface.md](ops/product-operator-surface.md) |
 | T-0121 | P1 | done | Attach clones → `pfylib/attach.py` + remaining `plan()` bodies wrap legacy scripts (no rewrite) | `data/harnesses.json[].attach`; shims `pfy_attach_usable_{196,202,220,221}`; planners in `pfylib/toolsets.py`; leftover OpenCode 162 = T-0124 |
 | T-0124 | P2 | done | Fold OpenCode enterable (`pfy_enterable_162*`) behind `pfylib/attach.py`; retire `_legacy` as remaining scripts move | OpenCode open path is `attach.open_opencode_session`; `pfy_enterable_162_b.py` is a shim. `_legacy` still loads the other scripts. Depends on T-0121 |
@@ -139,18 +139,18 @@ Active work is also tracked as issues: https://github.com/themark-net/pfy-deaner
 | T-0007 | P3 | done | adr-tools companion docs | #15; docs/ops/adr-tools-companion.md |
 | T-0004 | P2 | done | ATG coupling I1 submodule-later | #22; docs/ops/atg-coupling.md. 2026-10-06 I2 probe at SHA 86d1b890 after a live pass. Not I3. |
 | T-0015 | P3 | done | Antigravity catalog-only skip install | #23; antigravity-catalog-posture.md |
-| — | P1 | done | golden_replay deterministic lane | #31; make eval-golden |
-| — | P1 | done | OpenContext `oc` usable handoff (Stage-0 + nimo hello-world + `./pfy context`) | [#205](https://github.com/themark-net/pfy-mentat/issues/205) · catalog HOLD · #198 parked |
-| — | P1 | done | Attach mode `bare` \| `orchestration` \| `code-graph` (using: paint + operate-or-FAIL handoff) | [#208](https://github.com/themark-net/pfy-mentat/issues/208) · catalog HOLD · #198 parked · do not reopen #76 |
-| — | P1 | done | Recommend / try local models beyond already-pulled (Engine + `./pfy models recommend\|try`) | [#207](https://github.com/themark-net/pfy-mentat/issues/207) · catalog HOLD · #198 parked · do not reopen #76 |
-| — | P1 | done | Catalog pick → ask attached TUI / queue org (Tools browse, not scores-only) | [#209](https://github.com/themark-net/pfy-mentat/issues/209) · catalog HOLD 70–75 · #198 parked · do not reopen #76 |
-| — | P1 | done | Live org queue from Tools: real GitHub issue + open/closed/PR status | [#214](https://github.com/themark-net/pfy-mentat/issues/214) · catalog HOLD 70–75 · #198 parked · #76 CLOSED |
-| — | P1 | done | Deepen Attach orchestration: multi-step local loops + Loop evidence (not thin inject) | [#213](https://github.com/themark-net/pfy-mentat/issues/213) · catalog HOLD 70–75 · #198 parked · do not reopen #76 |
-| — | P1 | done | Attach code-graph Axon usable path (or codebase-memory equivalent, painted) | [#215](https://github.com/themark-net/pfy-mentat/issues/215) · catalog HOLD 70–75 (do not merge PR #75) · #198 parked · #76 CLOSED |
-| — | P1 | done | Attach Codex usable FreeToken-first session (HTML+tk; prove models+smoke) | [#220](https://github.com/themark-net/pfy-mentat/issues/220) · catalog HOLD 70–75 · #198 parked · do not reopen #76 |
-| — | P1 | done | Attach Claude usable FreeToken-first session (HTML+tk; prove models+smoke) | [#221](https://github.com/themark-net/pfy-mentat/issues/221) · catalog HOLD 70–75 · #198 parked · do not reopen #76 |
-| — | P1 | done | Operator launch wizard on Loop: compose then Launch session (HTML+tk) | [#225](https://github.com/themark-net/pfy-mentat/issues/225) · catalog HOLD 70–75 · #198 parked · do not reopen #76 |
-| — | P1 | done | Session compose: honest lane + enabled toolsets + in-TUI how-to brief | [#224](https://github.com/themark-net/pfy-mentat/issues/224) · catalog HOLD 70–75 · #198 parked · do not reopen #76 |
+| - | P1 | done | golden_replay deterministic lane | #31; make eval-golden |
+| - | P1 | done | OpenContext `oc` usable handoff (Stage-0 + nimo hello-world + `./pfy context`) | [#205](https://github.com/themark-net/pfy-mentat/issues/205) · catalog HOLD · #198 parked |
+| - | P1 | done | Attach mode `bare` \| `orchestration` \| `code-graph` (using: paint + operate-or-FAIL handoff) | [#208](https://github.com/themark-net/pfy-mentat/issues/208) · catalog HOLD · #198 parked · do not reopen #76 |
+| - | P1 | done | Recommend / try local models beyond already-pulled (Engine + `./pfy models recommend\|try`) | [#207](https://github.com/themark-net/pfy-mentat/issues/207) · catalog HOLD · #198 parked · do not reopen #76 |
+| - | P1 | done | Catalog pick → ask attached TUI / queue org (Tools browse, not scores-only) | [#209](https://github.com/themark-net/pfy-mentat/issues/209) · catalog HOLD 70-75 · #198 parked · do not reopen #76 |
+| - | P1 | done | Live org queue from Tools: real GitHub issue + open/closed/PR status | [#214](https://github.com/themark-net/pfy-mentat/issues/214) · catalog HOLD 70-75 · #198 parked · #76 CLOSED |
+| - | P1 | done | Deepen Attach orchestration: multi-step local loops + Loop evidence (not thin inject) | [#213](https://github.com/themark-net/pfy-mentat/issues/213) · catalog HOLD 70-75 · #198 parked · do not reopen #76 |
+| - | P1 | done | Attach code-graph Axon usable path (or codebase-memory equivalent, painted) | [#215](https://github.com/themark-net/pfy-mentat/issues/215) · catalog HOLD 70-75 (do not merge PR #75) · #198 parked · #76 CLOSED |
+| - | P1 | done | Attach Codex usable FreeToken-first session (HTML+tk; prove models+smoke) | [#220](https://github.com/themark-net/pfy-mentat/issues/220) · catalog HOLD 70-75 · #198 parked · do not reopen #76 |
+| - | P1 | done | Attach Claude usable FreeToken-first session (HTML+tk; prove models+smoke) | [#221](https://github.com/themark-net/pfy-mentat/issues/221) · catalog HOLD 70-75 · #198 parked · do not reopen #76 |
+| - | P1 | done | Operator launch wizard on Loop: compose then Launch session (HTML+tk) | [#225](https://github.com/themark-net/pfy-mentat/issues/225) · catalog HOLD 70-75 · #198 parked · do not reopen #76 |
+| - | P1 | done | Session compose: honest lane + enabled toolsets + in-TUI how-to brief | [#224](https://github.com/themark-net/pfy-mentat/issues/224) · catalog HOLD 70-75 · #198 parked · do not reopen #76 |
 | T-0050 | P2 | done | First-party `/agent-loops` skill (8 exits + 4 types + Finn + rubric) | `bootstrap/grok-cli/skills/agent-loops/`; Entries 024/027/031/032/068; pairs with `/one-shot` |
 | T-0048 | P2 | done | Hermes feedback loops as first-party Grok skill | `bootstrap/grok-cli/skills/hermes-feedback/`; Entry 048 pattern port; not Hermes runtime |
 | T-0051 | P2 | done | First-party skill structural smoke + verification docs | `make smoke-grok-skills`; `bootstrap/grok-cli/scripts/verify_skills.py`; `docs/ops/skill-verification.md` |
@@ -169,10 +169,10 @@ Active work is also tracked as issues: https://github.com/themark-net/pfy-deaner
 | T-0073 | P2 | done | LEANN/Memvid memory assist patterns | `docs/ops/memory-assist-patterns.md` |
 | T-0030 | P0 | done | Env registry + profiles | merged main |
 | T-0022 | P1 | done | Grok-in-image overlay | feature/agent-cage-grok-image merged; OIDC auth import |
-| T-0000 | — | done | Process docs bootstrap | ADR-0001 |
-| T-B001 | — | done | Grok CLI bootstrap | ADR-0004 |
-| T-B002 | — | done | project-process scaffold | |
-| T-B003 | — | done | `/catalog-docs` skill + README v0.4 | |
+| T-0000 | - | done | Process docs bootstrap | ADR-0001 |
+| T-B001 | - | done | Grok CLI bootstrap | ADR-0004 |
+| T-B002 | - | done | project-process scaffold | |
+| T-B003 | - | done | `/catalog-docs` skill + README v0.4 | |
 | T-0010 | P0 | done | Catalog hygiene Phase 0 | |
 | T-0001 | P1 | done | Seed placeholder reconcile | OQ-0001 answered |
 | T-0020 | P0 | done | agent-cage lab baseline (up-mcp + policy tests pass) | Operator smoke 2026-07-12; UX on main |
@@ -190,7 +190,7 @@ Active work is also tracked as issues: https://github.com/themark-net/pfy-deaner
 | T-0044 | P1 | done | AgenC install experiment + smoke (then demoted) | Trial only; **ADR-0010** rejects as primary; host uninstalled; catalog B/watch |
 | T-0045 | P1 | done | Grok Build in agent-cage + filesystem MCP on catalog workspace | `make cage-workspace-sync` / `cage-grok-ready`; project `.grok` → mcp-host filesystem |
 | T-0047 | P1 | done | Cage Grok session resumption (persist + host→cage import) | `grok-state/sessions` mount; `cage-grok-sessions-import-host`; `cage-grok-resume` |
-| T-0042 | P2 | done | Catalog re-score + absorb S-tier clusters; recover sources 001–055 | TOOLS.md + tools.json v0.4.2; eval-framework Grok-first; setup-local-agent-env rewritten |
+| T-0042 | P2 | done | Catalog re-score + absorb S-tier clusters; recover sources 001-055 | TOOLS.md + tools.json v0.4.2; eval-framework Grok-first; setup-local-agent-env rewritten |
 
 
 ## How to use

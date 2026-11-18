@@ -3,7 +3,7 @@
 - **Date:** 2026-07-12
 - **Status:** Accepted
 - **Supersedes:** informal claims that AgenC is “primary host runtime” (bootstrap/integration READMEs, T-0044 narrative)
-- **Related:** [ADR-0002](0002-grok-cli-primary-interface.md) (Grok CLI primary — **affirmed**), OQ-0005
+- **Related:** [ADR-0002](0002-grok-cli-primary-interface.md) (Grok CLI primary - **affirmed**), OQ-0005
 
 ## Context
 
@@ -11,9 +11,9 @@ AgenC ([tetsuo-ai/agenc-core](https://github.com/tetsuo-ai/agenc-core), `get.age
 
 Operator trial (2026-07-12) found:
 
-- **TUI/UX unfit as daily driver** — approval prompts obscure (Enter/2/3 without clear session semantics), repeated prompts for reads and even `python` JSON tooling, options not always shown; friction vs Grok Build CLI, Claude Code, and OpenCode.
-- **Auth product surface confusing** — default remote/`agenc login` (often Google / managed keys) is not “use Grok Build subscription”; parallel OAuth stores; not aligned with Grok-first operator habit.
-- **Philosophy mismatch** — project goals require **easy to use**, **easy to deploy**, and alignment with **best-practice toolsets**. A jump-off point whose primary UI fails those tests is the wrong primary, regardless of interesting secondary features.
+- **TUI/UX unfit as daily driver** - approval prompts obscure (Enter/2/3 without clear session semantics), repeated prompts for reads and even `python` JSON tooling, options not always shown; friction vs Grok Build CLI, Claude Code, and OpenCode.
+- **Auth product surface confusing** - default remote/`agenc login` (often Google / managed keys) is not “use Grok Build subscription”; parallel OAuth stores; not aligned with Grok-first operator habit.
+- **Philosophy mismatch** - project goals require **easy to use**, **easy to deploy**, and alignment with **best-practice toolsets**. A jump-off point whose primary UI fails those tests is the wrong primary, regardless of interesting secondary features.
 
 Interesting capabilities **worth remembering** (not adopting as primary): web console, marketplace-style job intake, daemon/gateway patterns, ACP bridge to Grok Build composer models.
 
@@ -24,7 +24,7 @@ Interesting capabilities **worth remembering** (not adopting as primary): web co
 3. **Affirm agent-cage** as the primary **container isolation lab** (including Grok-in-image overlay when needed).
 4. **Keep AgenC in the catalog** as a **reference / watch** entry (not recommended default). Track gaps (console, marketplace jobs, daemon UX) for possible **re-creation** with our stack when valuable.
 5. **Uninstall** AgenC from operator hosts for this project’s default path; bootstrap scripts may remain for optional re-eval only.
-6. **Revisit** this ADR when AgenC (or a successor) meets explicit UX gates below — requires a **new superseding ADR**, not silent flip.
+6. **Revisit** this ADR when AgenC (or a successor) meets explicit UX gates below - requires a **new superseding ADR**, not silent flip.
 
 ## UX / fitness gates to revisit
 
@@ -50,10 +50,10 @@ Definition of success for ongoing operator work (not AgenC):
 
 ## Rejected alternatives
 
-1. **AgenC as primary despite TUI pain** — Violates easy-to-use; training tax permanently.
-2. **Dual-primary (Grok + AgenC)** — Two auth surfaces, two TUIs, two update stories; operator confusion without scored win.
-3. **Delete all AgenC mention** — Loses useful reference (console/marketplace patterns) and re-eval trail.
-4. **Immediate full port of AgenC features into this repo** — YAGNI; re-create only after gap is scored against Grok+cage.
+1. **AgenC as primary despite TUI pain** - Violates easy-to-use; training tax permanently.
+2. **Dual-primary (Grok + AgenC)** - Two auth surfaces, two TUIs, two update stories; operator confusion without scored win.
+3. **Delete all AgenC mention** - Loses useful reference (console/marketplace patterns) and re-eval trail.
+4. **Immediate full port of AgenC features into this repo** - YAGNI; re-create only after gap is scored against Grok+cage.
 
 ## Consequences
 

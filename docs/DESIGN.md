@@ -11,7 +11,7 @@ This is the **master design document**: primary goals, intended shape of the sys
 
 ## 1. Vision
 
-Build a **living, scored catalog** of local-first LLM development tools and a **reproducible operator stack** so humans and agents can evaluate, integrate, and run continuous local pipelines—with **Grok CLI** as the primary interface and MCP-style code memory in the loop.
+Build a **living, scored catalog** of local-first LLM development tools and a **reproducible operator stack** so humans and agents can evaluate, integrate, and run continuous local pipelines-with **Grok CLI** as the primary interface and MCP-style code memory in the loop.
 
 One-line purpose: **Track · Categorize · Rank · Integrate** tools for robust self-hosted agentic development.
 
@@ -26,7 +26,7 @@ The **product you ship** is the operator stack (`./pfy` onboard / stage / ship).
 | # | Goal | Success looks like |
 |---|------|--------------------|
 | G1 | Living catalog | `TOOLS.md` is the scored catalog (X/community + rubric). `data/tools.json` is a slim machine subset ([ADR-0015](adr/0015-catalog-json-slim-subset.md)), not a 1:1 dump of all ~79 rows |
-| G2 | Consistent evaluation | Stage 0 gate + weighted Stages 1–4 (see `CATEGORIZATION.md`); tiers S/A/B/C stay comparable over time |
+| G2 | Consistent evaluation | Stage 0 gate + weighted Stages 1-4 (see `CATEGORIZATION.md`); tiers S/A/B/C stay comparable over time |
 | G3 | Stack synergies | Clear recommended combos (Grok monitor + LiteLLM + **pluggable local inference** + MCP memory) documented with integration notes |
 | G4 | Rapid integration | Highest-value components installable/replayable without repo bloat (pins, rare subtree, bootstrap) |
 | G5 | Grok-first interface | Operator env and agent skills bootstrapped from this repo; hybrid/fallback to other harnesses when scored higher for a task |
@@ -34,7 +34,7 @@ The **product you ship** is the operator stack (`./pfy` onboard / stage / ship).
 | G7 | Durable process | Design + ADR + TODO + open questions keep multithreaded agents from re-litigating or losing TBDs |
 | **G8** | **Simple deploy path** | Bare clone → `./pfy setup` → `./pfy start` : **local inference up once** (FreeToken first, then llama-swap/llama-server, Ollama adapter), any harness attaches; stubs for unfinished adapters |
 
-### G8 detail — harness-agnostic simplicity
+### G8 detail - harness-agnostic simplicity
 
 **Inspiration:** FreeToken / llama.cpp / Ollama as *inference*, Hermes/OpenCode integrated installers, Exo `setup.sh`, one-CLI auth, Grok Build login.
 
@@ -117,10 +117,10 @@ Grok stays **default harness** (ADR-0002). Local **worker** uses `LOCAL_OPENAI_B
 - Process docs layout (this file + ADR + TODO + OQ)
 - **project-process bootstrap** (`bootstrap/project-process/`)
 - Phase 0 catalog sync + **agent-cage** as primary container harness
-- **Deployment profiles** — ADR-0006
-- **Write-guard MCP** — ADR-0007; **implemented** (T-0031)
-- **One-shot workflow** — ADR-0008 · `/one-shot`
-- **`./pfy` simple surface** — ADR-0012 (G8)
+- **Deployment profiles** - ADR-0006
+- **Write-guard MCP** - ADR-0007; **implemented** (T-0031)
+- **One-shot workflow** - ADR-0008 · `/one-shot`
+- **`./pfy` simple surface** - ADR-0012 (G8)
 
 ### Near-term (see TODO)
 

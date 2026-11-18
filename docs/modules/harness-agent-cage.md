@@ -1,6 +1,6 @@
 # Module: harness/agent-cage
 
-**Purpose:** **Primary integration lab** — versioned Docker sandbox (PNNL agent-cage) so catalog tools are proven **inside** isolation (network policy + MCP), not only on the host.
+**Purpose:** **Primary integration lab** - versioned Docker sandbox (PNNL agent-cage) so catalog tools are proven **inside** isolation (network policy + MCP), not only on the host.
 
 ## Operator: how to run
 
@@ -42,11 +42,11 @@ Package README: [harness/agent-cage/README.md](../../harness/agent-cage/README.m
 | `AGENTCAGE_DIR` | Runtime project (default `~/.agentcage`) |
 | `POLICY` | Policy file stem under `policies/` |
 | `DEPLOY_PROFILE` | Profile for env-check / recipes |
-| `OLLAMA_HOST` / `OPENAI_BASE_URL` | Host vs cage URLs — see [REGISTRY](../../bootstrap/env/REGISTRY.md) |
-| Cage Grok auth | `make cage-grok-auth-import` → `~/.agentcage/grok-home/auth.json` (agent-owned 0600; host cannot read after import — expected) |
-| Sessions store perms | `make -C harness/agent-cage fix-grok-state-perms` — dual host/agent write under `~/.agentcage/grok-state/sessions` (avoids import Permission denied) |
+| `OLLAMA_HOST` / `OPENAI_BASE_URL` | Host vs cage URLs - see [REGISTRY](../../bootstrap/env/REGISTRY.md) |
+| Cage Grok auth | `make cage-grok-auth-import` → `~/.agentcage/grok-home/auth.json` (agent-owned 0600; host cannot read after import - expected) |
+| Sessions store perms | `make -C harness/agent-cage fix-grok-state-perms` - dual host/agent write under `~/.agentcage/grok-state/sessions` (avoids import Permission denied) |
 | First-party skills in cage | `make cage-grok-skills-install` (also from `cage-grok`); project `.grok/skills` synced on workspace-sync |
-| Host ↔ cage code bridge | **`make cage-code-sync`** (from-cage then to-cage); [docs/ops/cage-code-sync.md](../ops/cage-code-sync.md) — run on host only |
+| Host ↔ cage code bridge | **`make cage-code-sync`** (from-cage then to-cage); [docs/ops/cage-code-sync.md](../ops/cage-code-sync.md) - run on host only |
 | Catalog in workspace | `make cage-workspace-sync` → `/workspace/pfy-mentat` |
 | Grok + filesystem MCP ready | `make cage-grok-ready` (T-0045) |
 | Launch Grok session | `make cage-grok` then `cage-grok-shell` or `cage-grok-run` |
@@ -55,7 +55,7 @@ Package README: [harness/agent-cage/README.md](../../harness/agent-cage/README.m
 
 | Concern | Detail |
 |---------|--------|
-| **Invariants** | Integration smokes for catalog tools run **in-cage** (ADR harness practice); `agentcage up` may ignore extra compose `-f` — Grok/local-ollama targets call compose explicitly |
+| **Invariants** | Integration smokes for catalog tools run **in-cage** (ADR harness practice); `agentcage up` may ignore extra compose `-f` - Grok/local-ollama targets call compose explicitly |
 | **Network** | Agent → mitmproxy whitelist only; host Ollama needs gateway + policy (`coding-agent-local`) |
 | **Do not** | Confuse runtime `~/.agentcage` with this git repo; commit secrets into compose |
 | **ADR** | ADR-0003 (pins), ADR-0006 (profiles), ADR-0007 (write-guard layer) |

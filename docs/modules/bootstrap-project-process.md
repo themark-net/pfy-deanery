@@ -31,7 +31,7 @@ No runtime secrets. Optional skill install uses Grok skills paths from grok-cli 
 | Concern | Detail |
 |---------|--------|
 | **Invariants** | ADR always includes **rejected alternatives**; TODO links OQs when blocked |
-| **Do not** | Invent architecture in TODO — promote via `/adr` |
+| **Do not** | Invent architecture in TODO - promote via `/adr` |
 | **ADR** | ADR-0001 (process docs bootstrap) |
 | **Skill** | `/project-process`, `/adr`, `/open-questions` |
 

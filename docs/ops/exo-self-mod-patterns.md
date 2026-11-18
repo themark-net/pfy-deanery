@@ -3,7 +3,7 @@
 **Upstream:** [exoharness/exo](https://github.com/exoharness/exo)  
 **Pin:** `372602d1b553af06e9843e19f31fa8a7f749ab6e`  
 **Primary sources:** `docs/RSI.md`, `examples/exo/docs/SELF-CONTROL.md`, `docs/design/skills-arch.md`  
-**Posture:** **I1 pattern extract** — not primary runtime (Grok + agent-cage remain).
+**Posture:** **I1 pattern extract** - not primary runtime (Grok + agent-cage remain).
 
 ## What Exo actually is
 
@@ -11,7 +11,7 @@ A complete long-running agent harness whose *differentiator* is **recursive self
 
 | Primitive | Role |
 |-----------|------|
-| **Repo mount** | Own source at `/workspace/exo` — agent can edit harness, prompts, tools |
+| **Repo mount** | Own source at `/workspace/exo` - agent can edit harness, prompts, tools |
 | **Canonical event log** | Append-only; **survives** sandbox rewind; answers “what did I already try?” |
 | **Sandbox snapshot/rewind** | Experiment FS without erasing identity |
 | **`rebuild_and_restart_exo`** | Guarded validate → build → drain restart (preserves `.exo` state) |
@@ -22,7 +22,7 @@ Immutable kernel (policy): event log + secret backend + (default) exo-harness co
 
 ## Do they have a formal self-change rubric?
 
-**No numeric scorecard.** Self-verification is **§8 practice + primitives**, not a 0–100 eval harness:
+**No numeric scorecard.** Self-verification is **§8 practice + primitives**, not a 0-100 eval harness:
 
 1. **Before:** `snapshot_sandbox` and/or clean git  
 2. **Validate:** run `cargo`/`pnpm` checks; call `rebuild_and_restart_exo(reason=…)`  
@@ -36,10 +36,10 @@ Immutable kernel (policy): event log + secret backend + (default) exo-harness co
 
 From SELF-CONTROL “Mutation and Transparency”:
 
-1. **Auditable** — event log + git + host logs reconstruct *what* and *why*  
-2. **Visible** — agent can see code, logs, events  
-3. **Named tools** — durable mutations go through schemas, not silent host file hacks  
-4. **Reversible by default** — disable/checkpoint > hard delete  
+1. **Auditable** - event log + git + host logs reconstruct *what* and *why*  
+2. **Visible** - agent can see code, logs, events  
+3. **Named tools** - durable mutations go through schemas, not silent host file hacks  
+4. **Reversible by default** - disable/checkpoint > hard delete  
 
 ## Map → pfy-deanery (safer, catalog-shaped)
 
@@ -50,7 +50,7 @@ From SELF-CONTROL “Mutation and Transparency”:
 | rebuild_and_restart | `make eval-structural` + `eval-deploy-ready` + restart only if needed |
 | Skills progressive disclosure | first-party + paths packs; `verify_skills` / structural |
 | Self-mod of harness | **ADR + PR**; hermes-feedback; **not** unattended kernel rewrite (MUE-X same rule) |
-| Self-mod for *ingest* | **`make eval-integration-change`** (below) — automated gates for catalog/skill ingestion |
+| Self-mod for *ingest* | **`make eval-integration-change`** (below) - automated gates for catalog/skill ingestion |
 
 We deliberately **do not** run full RSI on the catalog monorepo. We **do** adopt Exo’s loop shape for **integration ingestion**: propose → gate → receipt → adopt/rollback.
 
@@ -76,5 +76,5 @@ That is our portable “evaluate a change to ourselves (catalog/skills/smokes)�
 ## Related
 
 - [MUE-X patterns](mue-x-patterns.md) (self-rewrite caution)  
-- [integration-stages.md](integration-stages.md) (I0–I4)  
+- [integration-stages.md](integration-stages.md) (I0-I4)  
 - [eval-gates-and-ux-uat.md](eval-gates-and-ux-uat.md) (G0/G1/G2)  

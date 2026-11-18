@@ -20,7 +20,7 @@ Agents create/supersede ADRs via skill + markdown templates. **No hard dependenc
 Optional for teams that want **shell automation** outside Grok/OpenCode sessions:
 
 ```bash
-# example only — not installed by this repo
+# example only - not installed by this repo
 git clone https://github.com/npryce/adr-tools.git
 # or package manager; then:
 adr new "Title of decision"
@@ -43,4 +43,4 @@ If adopted: record `pinned_commit` / tag in `data/tools.json` (row already B-tie
 
 ## Integration stage
 
-**I1** catalog / optional pin — not I3 onboard for this monorepo.
+**I1** catalog / optional pin - not I3 onboard for this monorepo.

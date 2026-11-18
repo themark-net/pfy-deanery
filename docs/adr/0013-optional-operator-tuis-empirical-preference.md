@@ -9,7 +9,7 @@
 
 ADR-0010 correctly recorded an early operator trial (2026-07-12) in which the AgenC TUI showed high friction (obscure approval model, repeated prompts, auth surface mismatch with Grok Build subscription). That trial justified not making AgenC the default primary runtime and remains valid historical data.
 
-Subsequent framing clarified the higher-order goal: standardize measurement of *fit* for every component, including operator interfaces. Interfaces should be treated as optional, independently scoreable parts rather than binary accept/reject gates. Developer preference is real but empirical — it cannot be known until after actual deployment and repeated use.
+Subsequent framing clarified the higher-order goal: standardize measurement of *fit* for every component, including operator interfaces. Interfaces should be treated as optional, independently scoreable parts rather than binary accept/reject gates. Developer preference is real but empirical - it cannot be known until after actual deployment and repeated use.
 
 Making the TUI “just another part” allows the catalog to evaluate the full AgenC surface (protocol + MCP + worker + optional TUI) on the same terms as any other tool while preserving clear defaults for this repository.
 
@@ -25,7 +25,7 @@ Making the TUI “just another part” allows the catalog to evaluate the full A
 
 Add or formalize in CATEGORIZATION.md:
 
-**Operator Interface Fit / Preference (empirical, 0–100, post-deployment only)**  
+**Operator Interface Fit / Preference (empirical, 0-100, post-deployment only)**  
 Measured only after real operator hours or real tasks. Factors include:
 - Cognitive load of the approval / permission model
 - Session continuity and resumption friction
@@ -47,11 +47,11 @@ Explicitly marked as unknown until deployment. Initial catalog entries can leave
 
 ## Rejected alternatives
 
-1. Silent amendment of ADR-0010 — violates the “never silent overwrite” rule and loses decision history.
-2. Making AgenC co-primary or default — still lacks empirical preference data and would dilute the Grok CLI + cage baseline.
-3. Deleting the original trial observations — loses valuable historical receipts.
-4. Treating preference as a pre-deployment Stage 0 gate — preference is unknown until use.
-5. Treating AgenC isolation as superseding agent-cage — scopes differ; cage is general local lab, AgenC isolation is marketplace-tied.
+1. Silent amendment of ADR-0010 - violates the “never silent overwrite” rule and loses decision history.
+2. Making AgenC co-primary or default - still lacks empirical preference data and would dilute the Grok CLI + cage baseline.
+3. Deleting the original trial observations - loses valuable historical receipts.
+4. Treating preference as a pre-deployment Stage 0 gate - preference is unknown until use.
+5. Treating AgenC isolation as superseding agent-cage - scopes differ; cage is general local lab, AgenC isolation is marketplace-tied.
 
 ## References
 

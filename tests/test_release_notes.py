@@ -49,12 +49,40 @@ class ReleaseNotesFollowVersion(unittest.TestCase):
         )
 
 class ReleaseNotesUsePlainPunctuation(unittest.TestCase):
-    """README, CHANGELOG, and the current release notes use plain punctuation.
+    """Public product docs use plain punctuation.
 
-    These three files are the user-facing v0.5.0 surfaces. Catches em
-    (U+2014) and en (U+2013) dashes in the whole file. Other docs are
-    out of scope.
+    Catches em (U+2014) and en (U+2013) dashes in the whole file. Scope is
+    docs/*.md plus the top-level product markdown (README, CHANGELOG,
+    AGENTS, TOOLS, CONTRIBUTING, SUBTREES, CATEGORIZATION). The v0.5.0 pin
+    covered the three release surfaces; pfy-deanery #8 extends the same
+    rule to the rest of those docs.
     """
+
+    TOP_LEVEL = (
+        "README.md",
+        "CHANGELOG.md",
+        "AGENTS.md",
+        "TOOLS.md",
+        "CONTRIBUTING.md",
+        "SUBTREES.md",
+        "CATEGORIZATION.md",
+    )
+
+    def _public_doc_paths(self) -> list[Path]:
+        paths = [ROOT / name for name in self.TOP_LEVEL]
+        missing = [path for path in paths if not path.is_file()]
+        if missing:
+            raise AssertionError("missing product docs: %s" % ", ".join(str(p) for p in missing))
+        paths.extend(sorted((ROOT / "docs").rglob("*.md")))
+        return paths
+
+    def _offenders(self, paths: list[Path]) -> list[str]:
+        offenders: list[str] = []
+        for path in paths:
+            for i, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+                if "\u2014" in line or "\u2013" in line:
+                    offenders.append("%s:%d" % (path.relative_to(ROOT), i))
+        return offenders
 
     def test_release_files_have_no_em_or_en_dashes(self) -> None:
         version = _project_version()
@@ -63,14 +91,16 @@ class ReleaseNotesUsePlainPunctuation(unittest.TestCase):
             ROOT / "CHANGELOG.md",
             ROOT / "docs" / "release-notes" / f"v{version}.md",
         ]
-        offenders: list[str] = []
-        for path in paths:
-            self.assertTrue(path.is_file(), path)
-            for i, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-                if "\u2014" in line or "\u2013" in line:
-                    offenders.append("%s:%d" % (path.relative_to(ROOT), i))
+        self.assertEqual(
+            self._offenders(paths),
+            [],
+            "em or en dashes in release files: %s" % ", ".join(self._offenders(paths)),
+        )
+
+    def test_public_docs_have_no_em_or_en_dashes(self) -> None:
+        offenders = self._offenders(self._public_doc_paths())
         self.assertEqual(
             offenders,
             [],
-            "em or en dashes in release files: %s" % ", ".join(offenders),
+            "em or en dashes in public docs: %s" % ", ".join(offenders),
         )

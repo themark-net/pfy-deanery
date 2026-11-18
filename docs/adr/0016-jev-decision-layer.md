@@ -18,17 +18,17 @@ Coding sessions need a decision API beside Gab cloud (`model=auto`) and local re
 - Confidence gate default **~0.85**. Below gate → visible FAIL / escalate. No silent auto-act.
 - Rebuild Choice options from **live** wizard/engine state.
 - Honesty chip: `decision ≠ gab auto ≠ local`.
-- Catalog 70–75 stay HOLD. Do not reopen #76. No Env tab. #225 Launch and #228 Gab lane stay.
+- Catalog 70-75 stay HOLD. Do not reopen #76. No Env tab. #225 Launch and #228 Gab lane stay.
 
 ## Rationale
 
 Rejected alternatives:
 
-1. **Chat UI for Jev** — Jev is a decision API; a transcript pane lies about the product.
-2. **Browser-use / Jev Ultrafast as core** — not the coding-session value (compaction + routing middleware).
-3. **mini-jev as primary local** — additive lock names CUA-S1-FORMS (~706K / ~2.8MB, form-fill specialist) as the FreeToken/local attach.
-4. **Require TypeSafe key for smoke** — operator drip; default smoke must run on nimo without ops.
-5. **Equate decision with Gab `auto` or local recommend** — three different surfaces.
+1. **Chat UI for Jev** - Jev is a decision API; a transcript pane lies about the product.
+2. **Browser-use / Jev Ultrafast as core** - not the coding-session value (compaction + routing middleware).
+3. **mini-jev as primary local** - additive lock names CUA-S1-FORMS (~706K / ~2.8MB, form-fill specialist) as the FreeToken/local attach.
+4. **Require TypeSafe key for smoke** - operator drip; default smoke must run on nimo without ops.
+5. **Equate decision with Gab `auto` or local recommend** - three different surfaces.
 
 ## Consequences
 

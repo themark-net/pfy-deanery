@@ -1,10 +1,10 @@
-# UX school — pfy operator window
+# UX school - pfy operator window
 
 **Product:** local-first LLM orchestrator. Native window titled `pfy`. Compose wizard + Launch session. Jev-style decision layer (typed Choice/Score; compaction + routing) beside Gab cloud lane (`https://gab.ai/v1` auto/pin) + local recommend sync. Cite **#230** only on this PR. Do not reopen #76.
 
 **Not:** a leftover HTTP dump (`pfy board`, `:8765`, start via CLI, GitHub issue rail). Not Chrome. Not a localhost board URL. Not `NATIVE-SPEC.md` one-screen board as IA (see `DESKTOP-SPEC.md`). This file is curriculum for Design Bot PR scoring. Do not implement product code from it.
 
-**Sources:** Nielsen 10 heuristics ([NN/g](https://www.nngroup.com/articles/ten-usability-heuristics/), 1994 / reviewed 2024). Norman: affordance, signifier, mapping, feedback (*Design of Everyday Things*). Operator-desktop class: [Warp blocks](https://docs.warp.dev/terminal/blocks/) (session canvas, command runs, exit state on the block), [Raycast Action Panel](https://manual.raycast.com/action-panel) (selected item + Enter runs the primary action), [Linear desktop](https://linear.app/docs/get-the-app) (native window, sidebar place, work lives in the canvas — not “open Chrome”).
+**Sources:** Nielsen 10 heuristics ([NN/g](https://www.nngroup.com/articles/ten-usability-heuristics/), 1994 / reviewed 2024). Norman: affordance, signifier, mapping, feedback (*Design of Everyday Things*). Operator-desktop class: [Warp blocks](https://docs.warp.dev/terminal/blocks/) (session canvas, command runs, exit state on the block), [Raycast Action Panel](https://manual.raycast.com/action-panel) (selected item + Enter runs the primary action), [Linear desktop](https://linear.app/docs/get-the-app) (native window, sidebar place, work lives in the canvas - not “open Chrome”).
 
 ---
 
@@ -12,7 +12,7 @@
 
 A visible control must operate what it offers, or the window must show **FAIL**. Silent no-op is FAIL.
 
-**#230 decision layer (school add):** Jev is a **decision API** (typed Choice/Score), not chat. Confidence is a certainty **margin**, not a correctness %. Paint decision active vs Gab/Grok cloud vs local with honesty chip `decision ≠ gab auto ≠ local`. Core value = coding-session context compaction + model/tool middleware — not browser-use demo. Prefer local **CUA-S1-FORMS** FreeToken-first smoke on nimo without the operator (mini-jev teaching fallback).
+**#230 decision layer (school add):** Jev is a **decision API** (typed Choice/Score), not chat. Confidence is a certainty **margin**, not a correctness %. Paint decision active vs Gab/Grok cloud vs local with honesty chip `decision ≠ gab auto ≠ local`. Core value = coding-session context compaction + model/tool middleware - not browser-use demo. Prefer local **CUA-S1-FORMS** FreeToken-first smoke on nimo without the operator (mini-jev teaching fallback).
 
 
 ---
@@ -25,16 +25,16 @@ On this surface:
 
 | Signifier in the window | Must do | Else |
 |-------------------------|---------|------|
-| Sidebar Loop / Engine / Stage / Attach | Look like controls. Selected state is obvious. Click switches the canvas. | FAIL — labels, not nav |
+| Sidebar Loop / Engine / Stage / Attach | Look like controls. Selected state is obvious. Click switches the canvas. | FAIL - labels, not nav |
 | Launch env | Inference + env-stage (same as bare `./pfy`). Loop shows PASS env / FAIL env. No harness exec. | Silent no-op / missing button = FAIL |
-| Attach grok / Attach opencode | Spawn sidecar; Loop shows attached + pid / last verb. OpenCode is the operated bot; Grok optional monitor. | FAIL in-window (`pfy harness use grok`) — never mute `#attachmsg`, never fetch-throw-and-vanish |
+| Attach grok / Attach opencode | Spawn sidecar; Loop shows attached + pid / last verb. OpenCode is the operated bot; Grok optional monitor. | FAIL in-window (`pfy harness use grok`) - never mute `#attachmsg`, never fetch-throw-and-vanish |
 | Refresh status | Re-poll; chips/tape change or FAIL | Silent no-op is FAIL |
 | Copy stub one-liner | Clipboard gets the one-liner; in-window confirm | Silent no-op is FAIL |
 | Harness chip hit | Start / inspect | GitHub `issue` `<a>` as the only click is FAIL |
 
 False affordance is FAIL: a button that looks pressable and does nothing; nav that looks selected everywhere or nowhere; a chip that looks like an action but only opens GitHub.
 
-If JS never bound, `/start` is missing, or the toolkit path has no handler: the control still exists in chrome — so the window must FAIL visibly. “It would have worked if the script loaded” is not a product.
+If JS never bound, `/start` is missing, or the toolkit path has no handler: the control still exists in chrome - so the window must FAIL visibly. “It would have worked if the script loaded” is not a product.
 
 ---
 
@@ -65,7 +65,7 @@ Honesty tokens stay as **chips**, not prose: `ready` / `partial` / `stub` / `det
 
 A **status dump** is a poster: `pfy board` + `127.0.0.1:8765`, chip wall, GitHub issue rail, banners, “honest state,” **start via CLI**. The operator reads. Nothing runs. That is the #128 eval (leftover listener on `:8765`).
 
-An **app** (Grok Bot / Warp / Raycast / Linear class — the class, not clones):
+An **app** (Grok Bot / Warp / Raycast / Linear class - the class, not clones):
 
 | Class pattern | In those products | In `pfy` |
 |---------------|-------------------|----------|
@@ -84,14 +84,14 @@ If the only native hit is a GitHub issue link, it is a dump with a hyperlink. FA
 
 Credit: Jakob Nielsen, [10 Usability Heuristics](https://www.nngroup.com/articles/ten-usability-heuristics/). One line each, mapped.
 
-1. **Visibility of system status** — Header + tape + chips always say engine / attach / last verb now; every click paints success, working, or FAIL in-window before the operator wonders.
-2. **Match the real world** — Operator words: Launch env, Attach opencode, Attach grok, READY, FAIL. Not adapter, board, sidecar, honest-state, Actions-runner.
-3. **User control and freedom** — Window owns the process; Attach is a sidecar the operator starts; continue/cage shows FAIL + `pfy harness use grok` with buttons disabled — no surprise spawn, no trapping them in a dump.
-4. **Error prevention** — Do not offer a control that cannot run (or disable it with a reason); do not make issue URLs the only hit; do not print `127.0.0.1:8765` as the way in; do not load a leftover listener just because the port answered.
-5. **Recognition rather than recall** — Selected nav, live chips, attached id, last verb, and the four primary actions stay on screen. No lecture to memorize from a banner.
-6. **Help users recover** — FAIL copy is plain, in-window, next to the control, with the one-liner (`pfy harness use grok` / Copy stub). Never a silent miss, never an error code, never “open Chrome and see.”
+1. **Visibility of system status** - Header + tape + chips always say engine / attach / last verb now; every click paints success, working, or FAIL in-window before the operator wonders.
+2. **Match the real world** - Operator words: Launch env, Attach opencode, Attach grok, READY, FAIL. Not adapter, board, sidecar, honest-state, Actions-runner.
+3. **User control and freedom** - Window owns the process; Attach is a sidecar the operator starts; continue/cage shows FAIL + `pfy harness use grok` with buttons disabled - no surprise spawn, no trapping them in a dump.
+4. **Error prevention** - Do not offer a control that cannot run (or disable it with a reason); do not make issue URLs the only hit; do not print `127.0.0.1:8765` as the way in; do not load a leftover listener just because the port answered.
+5. **Recognition rather than recall** - Selected nav, live chips, attached id, last verb, and the four primary actions stay on screen. No lecture to memorize from a banner.
+6. **Help users recover** - FAIL copy is plain, in-window, next to the control, with the one-liner (`pfy harness use grok` / Copy stub). Never a silent miss, never an error code, never “open Chrome and see.”
 
-Also binds (do not score as extra essays): consistency (same IA on Tauri / tk / HTML host), aesthetic/minimalist (engine + chip, not banners), shortcuts later — not a substitute for visible controls.
+Also binds (do not score as extra essays): consistency (same IA on Tauri / tk / HTML host), aesthetic/minimalist (engine + chip, not banners), shortcuts later - not a substitute for visible controls.
 
 ---
 
@@ -118,4 +118,4 @@ pfy
  Attach          [ Attach opencode ]  [ Attach grok ]
 ```
 
-If Launch env cannot run: same chrome, FAIL env on the canvas — not a banner about boards, adapters, or nimo, not start via CLI.
+If Launch env cannot run: same chrome, FAIL env on the canvas - not a banner about boards, adapters, or nimo, not start via CLI.

@@ -4,16 +4,16 @@
 **GitHub:** https://github.com/exoharness/exo  
 **Pin:** `372602d1b553af06e9843e19f31fa8a7f749ab6e`
 
-## Phase 0–2 scores
+## Phase 0-2 scores
 
 | Dimension | Score | Notes |
 |-----------|------:|-------|
 | Relevance | 5 | Core harness / loop / long-running agent |
-| Integration ease (Grok+cage) | 2–3 | Heavy stack (Rust+TS+Docker); OpenAI/OpenRouter first; not drop-in |
-| Reproducibility | 4–5 | MIT, CI, docs, setup.sh |
+| Integration ease (Grok+cage) | 2-3 | Heavy stack (Rust+TS+Docker); OpenAI/OpenRouter first; not drop-in |
+| Reproducibility | 4-5 | MIT, CI, docs, setup.sh |
 | Unique value | 5 | True RSI: event log, rebuild guardian, sandbox rewind, skill artifacts |
 
-**Overall ~81 · Tier A** — high unique value; **do not** make primary runtime.
+**Overall ~81 · Tier A** - high unique value; **do not** make primary runtime.
 
 ## Self-mod evaluation (upstream)
 

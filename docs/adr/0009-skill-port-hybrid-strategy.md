@@ -13,9 +13,9 @@ External skill packs (mattpocock/skills, marketing-council, gstack) are high-val
 
 Use **hybrid (OQ-0006 option 4)**:
 
-1. **First-party core** — small number of skills we **own and edit** under `bootstrap/grok-cli/skills/` (and mirrored `.grok/skills/`). Installed into `~/.grok/skills/` by `install.sh`.
-2. **paths snapshots** — bulk/curated upstream packs under `bootstrap/grok-cli/skills-external/<name>/`, registered via Grok **`[skills].paths`** (scanned, not copied into `~/.grok/skills/`). Same mechanism as ponytail.
-3. **Docs-only** — role recipes / AGENTS patterns for material we will not install (e.g. most of gstack’s 23 skills) until a port earns first-party or snapshot status.
+1. **First-party core** - small number of skills we **own and edit** under `bootstrap/grok-cli/skills/` (and mirrored `.grok/skills/`). Installed into `~/.grok/skills/` by `install.sh`.
+2. **paths snapshots** - bulk/curated upstream packs under `bootstrap/grok-cli/skills-external/<name>/`, registered via Grok **`[skills].paths`** (scanned, not copied into `~/.grok/skills/`). Same mechanism as ponytail.
+3. **Docs-only** - role recipes / AGENTS patterns for material we will not install (e.g. most of gstack’s 23 skills) until a port earns first-party or snapshot status.
 
 ### What “ponytail method” means (apply to the rest)
 
@@ -31,10 +31,10 @@ Use **hybrid (OQ-0006 option 4)**:
 
 A skill is **core** only if **most** of the following hold:
 
-1. **Process backbone** — used across projects (adr, docs, open-questions, one-shot, catalog-docs, project-process).
-2. **We will edit it** — catalog- or Grok-specific; not a thin mirror of upstream.
-3. **Small surface** — one skill (or a tight set), not a 20-skill tree.
-4. **Default on every install** — every operator should get it without choosing a pack.
+1. **Process backbone** - used across projects (adr, docs, open-questions, one-shot, catalog-docs, project-process).
+2. **We will edit it** - catalog- or Grok-specific; not a thin mirror of upstream.
+3. **Small surface** - one skill (or a tight set), not a 20-skill tree.
+4. **Default on every install** - every operator should get it without choosing a pack.
 5. **No AGPL/license surprise** for embedding in first-party tree (prefer MIT/Apache-style; AGPL packs stay paths/docs).
 
 Otherwise: **paths snapshot** (curated) or **docs-only**.
@@ -45,7 +45,7 @@ Otherwise: **paths snapshot** (curated) or **docs-only**.
 |--------|-----------|--------|
 | marketing-council (core pattern) | **First-party** port of council/dissenter SKILL(s) | Small, process-shaped; rewrite for Grok |
 | mattpocock plan/review/TDD subset | **paths snapshot** curated subset | Like ponytail; pin + skills.paths |
-| gstack | **Docs + AGENTS recipes** first; optional **first-party method rewrite** only | Avoid full embed (T-0014). Eval: [gstack-skill-port-comparison.md](../ops/gstack-skill-port-comparison.md) — raw paths blocked; top candidate **investigate** method (T-0017) |
+| gstack | **Docs + AGENTS recipes** first; optional **first-party method rewrite** only | Avoid full embed (T-0014). Eval: [gstack-skill-port-comparison.md](../ops/gstack-skill-port-comparison.md) - raw paths blocked; top candidate **investigate** method (T-0017) |
 | ponytail | Already **paths snapshot** | Template for bulk packs |
 | karpathy-guidelines | Already **first-party** (vendored single skill) | Fits core criteria |
 

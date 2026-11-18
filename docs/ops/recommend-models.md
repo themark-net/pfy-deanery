@@ -22,15 +22,15 @@ Fits this host (VRAM via `nvidia-smi` if present, else RAM budget) and this live
 |---------|------------|
 | FreeToken `:1919` | Records `$PFY_STATE_DIR/ft-model` (same as `models pull`). Load happens at next `ft serve --model` / Launch env. |
 | Ollama | `ollama pull` |
-| llama-swap / llama-server | **FAIL** — no pull. Next: `set PFY_LLAMA_MODEL` to an existing GGUF |
+| llama-swap / llama-server | **FAIL** - no pull. Next: `set PFY_LLAMA_MODEL` to an existing GGUF |
 
 ### Model handoff (what switches)
 
 When picking another local model:
 
-1. **Engine pin** — FreeToken: `$PFY_STATE_DIR/ft-model` (and `pinned-model`). Ollama: pull + `pinned-model`. llama: `PFY_LLAMA_MODEL` path only.
-2. **Attach re-probe** — next Attach OpenCode | Hermes | Grok lists models + one smoke on the live detect base. A recorded FreeToken name is **not** attached until serve.
-3. **TUI reload** — Engine Refresh / snapshot poll. Paint models from the live endpoint only.
+1. **Engine pin** - FreeToken: `$PFY_STATE_DIR/ft-model` (and `pinned-model`). Ollama: pull + `pinned-model`. llama: `PFY_LLAMA_MODEL` path only.
+2. **Attach re-probe** - next Attach OpenCode | Hermes | Grok lists models + one smoke on the live detect base. A recorded FreeToken name is **not** attached until serve.
+3. **TUI reload** - Engine Refresh / snapshot poll. Paint models from the live endpoint only.
 
 Do not paint `READY` / live for a name that is only recorded. Next is always `Launch env or ./pfy up (engine pin) · Attach re-probe · TUI reload`.
 
@@ -61,7 +61,7 @@ Registry: [bootstrap/env/REGISTRY.md](../../bootstrap/env/REGISTRY.md).
 
 ## Do not
 
-- Reopen #76 · unpark #198 · catalog 70–75 HOLD
+- Reopen #76 · unpark #198 · catalog 70-75 HOLD
 - Invent a best list when engine/host/fit is unknown
 - Paint a recorded FreeToken name as live before `./pfy up`
 - `LIVE_HARD_OFF`: no cloud catalog writes / no HF API from this path

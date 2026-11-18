@@ -70,8 +70,8 @@ Details: [harness/agent-cage/overlays/grok/README.md](../../harness/agent-cage/o
 
 ## 6. Docs skills
 
-- `/catalog-docs` — keep this repo documented  
-- `/one-shot` — unattended-until-green (DoD + lab); example DoDs: [one-shot-example-dods.md](one-shot-example-dods.md)  
+- `/catalog-docs` - keep this repo documented  
+- `/one-shot` - unattended-until-green (DoD + lab); example DoDs: [one-shot-example-dods.md](one-shot-example-dods.md)  
 - Process: DESIGN / ADR / TODO / OQ  
 
 ## 7. Integration smokes (after cage up)
@@ -91,10 +91,10 @@ Prefer these over ad-hoc host-only checks ([harness framework](harness-integrati
 | Item | Status |
 |------|--------|
 | Write-guard MCP server | v0.1 implemented (`make smoke-write-guard`); mcp-host wiring optional |
-| LiteLLM profile recipes | **T-0012 done** — `config/litellm/{local-only,balanced,max-performance}.yaml` |
+| LiteLLM profile recipes | **T-0012 done** - `config/litellm/{local-only,balanced,max-performance}.yaml` |
 | Full eval harness | **MVP + v0.2:** `make eval-mvp` / `eval-v02` / `eval-matrix`; DSPy later |
 | OpenCode / Claude validation | TODO T-0040 (P3) |
-| AgenC host runtime | **Demoted (ADR-0010)** — catalog reference only; prefer Grok CLI + `make cage-grok-*` |
+| AgenC host runtime | **Demoted (ADR-0010)** - catalog reference only; prefer Grok CLI + `make cage-grok-*` |
 | Grok Build in cage | **T-0045 done:** `make cage-grok-up` + `make cage-grok-ready` (workspace sync + filesystem MCP) |
 
 ## Verify checklist

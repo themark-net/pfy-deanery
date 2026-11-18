@@ -1,4 +1,4 @@
-# #230 additive LOCK — CUA-S1-FORMS (2026-09-18)
+# #230 additive LOCK - CUA-S1-FORMS (2026-09-18)
 
 Fold into implement NOW (tip not yet READY).
 
@@ -15,4 +15,4 @@ Fold into implement NOW (tip not yet READY).
 
 ## Prior locks still stand
 
-Decision API not chat; confidence = margin chips; core = compaction + model/tool middleware (not browser-use demo); wizard honesty `decision ≠ gab auto ≠ local`; cite #230 only; catalog 70–75 HOLD; #76 closed.
+Decision API not chat; confidence = margin chips; core = compaction + model/tool middleware (not browser-use demo); wizard honesty `decision ≠ gab auto ≠ local`; cite #230 only; catalog 70-75 HOLD; #76 closed.

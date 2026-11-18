@@ -9,7 +9,7 @@ worktree `$PFY_TMP/agentdescent-trial`. Results: [REPORT.md](../../examples/agen
 Held-out accuracy (20 cases): **baseline 0.70, AgentDescent 0.95, DSPy MIPROv2-light 1.00**.
 AgentDescent: 201 s wall-clock (596.8 s summed across workers), 36 calls. DSPy: 686 s, 388 calls, ~338k tokens.
 
-**Recommendation: provisional — AgentDescent as the candidate, not adopted.** n=20 held-out; DSPy scored higher;
+**Recommendation: provisional - AgentDescent as the candidate, not adopted.** n=20 held-out; DSPy scored higher;
 exact McNemar baseline vs AgentDescent p=0.0625, baseline vs DSPy p=0.031, AgentDescent vs DSPy p=1.0; and the cases
 were written by the trial author from handoff rows. AgentDescent's case is cost and reviewability (about 1/3 the wall
 time, 1/10 the calls, a four-line diff to a SKILL.md), not accuracy. **Gate adoption on a rerun with raw post text and a

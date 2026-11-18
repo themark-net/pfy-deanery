@@ -12,7 +12,7 @@ We have working **half-duplex** voice I/O into tool-capable agents:
 - Desk STT (`make voice-listen`) and remote Tailscale STT (`make voice-remote`)
 - Opt-in agent runner (`VOICE_AUTO_AGENT`, T-0091 4b) → Grok headless with tools
 
-X/research shows mature **full-duplex** products (OpenAI GPT-Live + Codex desktop, Claude voice+tools, LiveKit/Pipecat media stacks, Hermes voice, freeapp-class Tailscale voice coding). Those systems are real—but they pull in one or more of:
+X/research shows mature **full-duplex** products (OpenAI GPT-Live + Codex desktop, Claude voice+tools, LiveKit/Pipecat media stacks, Hermes voice, freeapp-class Tailscale voice coding). Those systems are real-but they pull in one or more of:
 
 - Continuous cloud speech-to-speech tokens (often expensive per minute)
 - A non-Grok primary coding runtime (Codex, Hermes, Claude Code)
@@ -35,7 +35,7 @@ Question: which voice path should we **implement next**, given cost and local fo
 3. **Default tool brain for voice auto-runs = OpenCode → Ollama** (local), not Grok.  
    Grok remains **optional monitor / hard problems** when budget allows (ADR-0011 inverted for voice cost: local default, cloud escalate).
 4. **Tailscale** remains the remote access SoT (phone → host edge); no public internet voice agent.
-5. **Catalog-only** (no primary install): Pipecat/LiveKit duplex media, Hermes voice, freeapp, Codex desktop voice—score as references / optional later.
+5. **Catalog-only** (no primary install): Pipecat/LiveKit duplex media, Hermes voice, freeapp, Codex desktop voice-score as references / optional later.
 6. **Full duplex deferred** until either: local duplex media is cheap enough (Pipecat + local STT/TTS without continuous cloud S2S), or cloud budget returns.
 
 ## Economics (why this matches industry practice)
@@ -52,12 +52,12 @@ X/builder discourse often separates **“voice that feels alive”** (duplex med
 
 | Path | Duplex | Primary tools | $ sustainability | Aligns ADR-0011/local | Implement now? |
 |------|--------|---------------|------------------|----------------------|----------------|
-| **L1 — Half-duplex local (chosen)** | No | OpenCode+Ollama | High | Yes (local bulk) | **Yes** |
-| L2 — Half-duplex + Grok auto default | No | Grok | Low under new pricing | Grok-primary voice | No (opt-in only) |
-| D1 — Pipecat/LiveKit duplex + local STT/TTS + local agent | Partial→full media | OpenCode | Medium (GPU) | Yes if no cloud S2S | Later |
-| D2 — GPT-Live / Realtime / Codex desktop | Yes | OpenAI agents | Low / wrong SoT | No | Reject as primary |
-| H1 — Hermes voice primary | Yes-ish | Hermes | Medium | No (runtime pivot) | Reject as primary; catalog ref |
-| F1 — freeapp-class product | Varies | Their agent | Unknown | Eval only | Catalog Stage 0 |
+| **L1 - Half-duplex local (chosen)** | No | OpenCode+Ollama | High | Yes (local bulk) | **Yes** |
+| L2 - Half-duplex + Grok auto default | No | Grok | Low under new pricing | Grok-primary voice | No (opt-in only) |
+| D1 - Pipecat/LiveKit duplex + local STT/TTS + local agent | Partial→full media | OpenCode | Medium (GPU) | Yes if no cloud S2S | Later |
+| D2 - GPT-Live / Realtime / Codex desktop | Yes | OpenAI agents | Low / wrong SoT | No | Reject as primary |
+| H1 - Hermes voice primary | Yes-ish | Hermes | Medium | No (runtime pivot) | Reject as primary; catalog ref |
+| F1 - freeapp-class product | Varies | Their agent | Unknown | Eval only | Catalog Stage 0 |
 
 ## Consequences
 
@@ -73,7 +73,7 @@ X/builder discourse often separates **“voice that feels alive”** (duplex med
 
 - Build continuous WebRTC duplex that streams every second into cloud LLMs.
 - Make Hermes/Codex the primary coding runtime for this repo’s voice track.
-- Assume full duplex is required for “real” agentic coding—**tools + iteration** matter more than barge-in.
+- Assume full duplex is required for “real” agentic coding-**tools + iteration** matter more than barge-in.
 
 ### Follow-ups (TODO)
 

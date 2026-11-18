@@ -21,13 +21,13 @@ transcript / agent-prompt.md
   (phone: GET /api/last-run)
 ```
 
-## Opt-in (important) — ADR-0012 / T-0092
+## Opt-in (important) - ADR-0012 / T-0092
 
 | `VOICE_AUTO_AGENT` | Behavior | Cost |
 |--------------------|----------|------|
 | unset / `0` | STT only | $0 |
 | **`1` / `on` / `auto` / `opencode`** | **Local bulk:** OpenCode CLI → Ollama, or Ollama HTTP fallback | Local only |
-| `grok` | Grok headless with tools | **Cloud — escalate only** |
+| `grok` | Grok headless with tools | **Cloud - escalate only** |
 | `mock` | Fake agent (smokes) | $0 |
 
 **T-0096:** bare `VOICE_AUTO_AGENT=1` means **orchestrate** (default **high-first** dual-tier).  
@@ -35,7 +35,7 @@ Use `=opencode` for local-only cost control.
 
 | Value | Behavior |
 |-------|----------|
-| `1` / `orchestrate` | Dual-tier — see [voice-orchestrator.md](voice-orchestrator.md) |
+| `1` / `orchestrate` | Dual-tier - see [voice-orchestrator.md](voice-orchestrator.md) |
 | `opencode` | Local only |
 | `grok` | High only |
 
@@ -115,7 +115,7 @@ make smoke-voice-agent
 
 - Default **off**
 - Still require Tailscale + token for remote
-- `--always-approve` is off by default and is powerful — only set `VOICE_AGENT_ALWAYS_APPROVE=1` on a trusted host
+- `--always-approve` is off by default and is powerful - only set `VOICE_AGENT_ALWAYS_APPROVE=1` on a trusted host
 - Do not expose runner to the public internet
 
 ## Not in 4b
@@ -143,7 +143,7 @@ High tier (Grok) is the **tool-capable** path: filesystem MCP, write-guard, GitH
 | Surface | MCP depth |
 |---------|-----------|
 | Grok monitor | Full host/cage MCP stack (primary) |
-| OpenCode worker | Local tools/config only — not full GitHub MCP by default |
+| OpenCode worker | Local tools/config only - not full GitHub MCP by default |
 | Orchestrator high-first | Coordinator may use MCP; delegates bulk to local |
 
 Smoke: `make smoke-voice-agent` (mock) + G1 soft voice-stt. Human UAT (G2) for real mic/MCP feel.

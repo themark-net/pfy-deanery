@@ -11,23 +11,23 @@ Operator: Grok pricing rising; bulk work must be **local OpenCode + Ollama**. Ha
 
 | Default | Escalate only when needed |
 |---------|---------------------------|
-| Local Whisper STT | — |
+| Local Whisper STT | - |
 | OpenCode + local coder | Grok monitor / hard problems (`VOICE_AUTO_AGENT=grok`) |
 | Half-duplex (record → STT → agent → optional short TTS later) | Full duplex media (Pipecat) only if local and cheap |
 
 See **[ADR-0012](../adr/0012-voice-half-duplex-local-first.md)**.
 
-## Phase 1 (desk) — live
+## Phase 1 (desk) - live
 
 | Piece | Path |
 |-------|------|
 | STT edge CLI | `examples/voice-stt-edge/stt_edge.py` |
-| Wiring smoke | `make smoke-voice-stt` — **mock/text only; does not record audio** |
+| Wiring smoke | `make smoke-voice-stt` - **mock/text only; does not record audio** |
 | Real mic | `make voice-stt-install` then `make voice-listen` |
 | Operator README | `examples/voice-stt-edge/README.md` |
 | Handoff | `.generated/handoff.sh` after **successful** STT only (blocked if STT failed) |
 
-## Phase 4a (Android remote) — live
+## Phase 4a (Android remote) - live
 
 | Piece | Path |
 |-------|------|
@@ -49,10 +49,10 @@ VOICE_REMOTE_HOST=0.0.0.0 make voice-remote
 ```
 
 **Success (p1/p4a):** spoken intent → text prompt.  
-**Success (p4b):** same prompt **auto-runs tool-capable Grok** (opt-in) — no manual `handoff.sh`.
+**Success (p4b):** same prompt **auto-runs tool-capable Grok** (opt-in) - no manual `handoff.sh`.
 
 ```bash
-# Auto tools after remote STT (opt-in — spends Grok quota)
+# Auto tools after remote STT (opt-in - spends Grok quota)
 VOICE_AUTO_AGENT=1 VOICE_REMOTE_HOST=127.0.0.1 make voice-remote
 # phone: STT → poll /api/last-run for agent reply
 
@@ -71,8 +71,8 @@ make smoke-voice-agent
 
 | Surface | Voice? | Tool use / GitHub / pipelines? |
 |---------|--------|--------------------------------|
-| Grok **mobile voice** | Excellent UX | **No** — code stays in chat; no tools |
-| Grok mobile/web **text**, Grok CLI | Typing | Yes — tools, GitHub, codegen that lands |
+| Grok **mobile voice** | Excellent UX | **No** - code stays in chat; no tools |
+| Grok mobile/web **text**, Grok CLI | Typing | Yes - tools, GitHub, codegen that lands |
 | Local OpenCode worker (T-0080/85) | Typing | Partial (model tools vary) |
 | Desired | Phone/VoIP or hands-free voice | **Same** tools as CLI agent: edit, git, CI, iterate failures |
 
@@ -120,9 +120,9 @@ So: **useful scaffold**, not yet “hands-free agentic coding.” Gaps: shared s
 
 | Item | Relevance |
 |------|-----------|
-| Hermes **feedback loops** (Entry 048) | Patterns only (`/hermes-feedback`) — **not** voice |
-| awesome-hermes-skills (053) | Skills library — no voice channel scored |
-| Worker/monitor (T-0085) | Dual session for local/cloud — **text** |
+| Hermes **feedback loops** (Entry 048) | Patterns only (`/hermes-feedback`) - **not** voice |
+| awesome-hermes-skills (053) | Skills library - no voice channel scored |
+| Worker/monitor (T-0085) | Dual session for local/cloud - **text** |
 | Grok CLI + GitHub MCP | Tool path for monitor |
 | OpenCode + Ollama (T-0080) | Local worker path |
 

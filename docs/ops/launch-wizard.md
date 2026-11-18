@@ -1,8 +1,8 @@
 # Operator launch wizard (compose then Launch session)
 
-Cite **#225** only. Catalog 70–75 HOLD. #198 parked. LIVE_HARD_OFF. Do not reopen #76. Do not add an Env nav tab.
+Cite **#225** only. Catalog 70-75 HOLD. #198 parked. LIVE_HARD_OFF. Do not reopen #76. Do not add an Env nav tab.
 
-Loop is the primary path. The painted job is **catalog modules** plus a live **local compute | cloud orchestration** split. Hedge picks the lane (`bulk`/`interactive` stay local when a runtime is up; `hard` spends cloud credits when `PFY_CLOUD_BUDGET` remains). **Launch session** applies enabled modules into an enterable TUI — that grok/opencode session is the proof. Attach X stays on the Attach tab. The operator window stays open.
+Loop is the primary path. The painted job is **catalog modules** plus a live **local compute | cloud orchestration** split. Hedge picks the lane (`bulk`/`interactive` stay local when a runtime is up; `hard` spends cloud credits when `PFY_CLOUD_BUDGET` remains). **Launch session** applies enabled modules into an enterable TUI - that grok/opencode session is the proof. Attach X stays on the Attach tab. The operator window stays open.
 
 The compose wizard (#225) still runs under Launch (runtime health, child env, review). It is not the Loop front door.
 
@@ -12,7 +12,7 @@ The compose wizard (#225) still runs under Launch (runtime health, child env, re
 |------|------|-------------|
 | 1 runtime/health | FreeToken-first live engine | FAIL + `Launch env or ./pfy up` |
 | 2 model lane | `local` \| `cloud/subscription` \| `OpenCode free` | FAIL + pick lane. OpenCode free needs OpenCode. cloud/subscription needs Grok\|Claude\|Codex. LIVE_HARD_OFF: pfy does not call cloud APIs. |
-| 3 toolsets/skills/modes | `bare` · `orchestration` · `code-graph` · `catalog` | orchestration missing skill → FAIL + `./pfy setup`. code-graph missing Axon and codebase-memory → FAIL + `pip install axoniq`. catalog without prompt / HOLD 70–75 → honest SKIP (not auto-lifted). |
+| 3 toolsets/skills/modes | `bare` · `orchestration` · `code-graph` · `catalog` | orchestration missing skill → FAIL + `./pfy setup`. code-graph missing Axon and codebase-memory → FAIL + `pip install axoniq`. catalog without prompt / HOLD 70-75 → honest SKIP (not auto-lifted). |
 | 4 harness/TUI | OpenCode \| Grok \| Hermes \| Codex \| Claude | FAIL + pick harness. Reuses attach-usable paths (#193/#196/#202/#220/#221). |
 | 5 review paint | `runtime · lane · toolsets · harness` | Incomplete → FAIL + complete wizard |
 | decision (optional, #230) | `off` \| `CUA-S1-FORMS` \| `TypeSafe` \| `mini-jev` | Off does not block Launch. TypeSafe without key → FAIL+next. `conf low` → no silent auto-act. |
@@ -55,7 +55,7 @@ Registry: [bootstrap/env/REGISTRY.md](../../bootstrap/env/REGISTRY.md).
 
 ## Do not
 
-- Reopen #76 · unpark #198 · catalog 70–75 HOLD
+- Reopen #76 · unpark #198 · catalog 70-75 HOLD
 - Add an Env nav tab
 - Treat Attach X as the Loop front door
 - Paint Launch session ok without composed review

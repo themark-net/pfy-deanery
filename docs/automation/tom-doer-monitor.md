@@ -28,7 +28,7 @@ A post/repo is **relevant** for addition if it aligns with the repo purpose (Tra
 
 ## Daily / Regular Check Process
 
-1. Run the search query for the desired time window (daily = last 24–48h; or on-demand).
+1. Run the search query for the desired time window (daily = last 24-48h; or on-demand).
 2. For each post with a GitHub link:
    - Fetch basic repo info if needed.
    - Apply relevance criteria above.
@@ -56,7 +56,7 @@ A post/repo is **relevant** for addition if it aligns with the repo purpose (Tra
   - I will recommend switching the schedule from daily to **weekly**.
   - Option A: Update this document and memory to weekly (I can do this directly).
   - Option B: Notify you with the data and ask for confirmation to change the schedule (use this if you prefer manual control or if the change feels outside current automation scope).
-- If volume is consistently high (≥7–10+ unique relevant per week), keep daily or increase scrutiny on quality.
+- If volume is consistently high (≥7-10+ unique relevant per week), keep daily or increase scrutiny on quality.
 
 This prevents low-value daily noise while still capturing the good signal @tom_doerr provides.
 
@@ -81,7 +81,7 @@ This prevents low-value daily noise while still capturing the good signal @tom_d
 | (Start) | - | - | - | - | Procedure initialized |
 | 2026-07-20 | 2026-07-20 | 1 (MUE-X post) | 1 | 1 (Entry 067 MUE-X) | Self-evolving AST-mutation agent; high signal self-modifying + absorption. Stage 0 pass. |
 | 2026-07-21 | 2026-07-20/21 | 1 (hanakoxbt 8-exits) | 1 | 1 (Entry 068) | Pure high-value methodology: 8 mandatory agent-loop exits. Folded into Finn Loop / eval-loop patterns row; scores raised to 91 A. Canonical stop-condition checklist. |
-| 2026-07-22 | 2026-07-22 | 1 (5-repos list) | 3 strong + 2 noted | 3 cataloged (069–071) + 1 note (072) | Bumblebee (MCP/supply-chain scanner), Hyperframes (agent HTML→video, S), Camofox Browser (stealth agent browser). OpenMythos + map-anything lower priority (research/CV). |
+| 2026-07-22 | 2026-07-22 | 1 (5-repos list) | 3 strong + 2 noted | 3 cataloged (069-071) + 1 note (072) | Bumblebee (MCP/supply-chain scanner), Hyperframes (agent HTML→video, S), Camofox Browser (stealth agent browser). OpenMythos + map-anything lower priority (research/CV). |
 | 2026-07-22 | 2026-07-21/22 | 1 (Poolside Laguna S 2.1) | 1 | 1 (Entry 073) | Major open MoE: 118B/8B active, 1M ctx, agentic coding, OpenMDW-1.1, GGUF/MLX/Ollama/llama.cpp day-one. S-tier. High priority local eval. |
 | 2026-07-25 | 2026-07-25 | 1 (Ruben 3 Claude Skills) | 0 (methodology) | 1 examined/reject (Entry 074) | Claude Skills triad (/how-to, /about-me, /skill-creator) + free library. High-signal process advice; Stage 0 fail (Claude-proprietary, no self-hosted tool). Pattern-transferrable only. |
 | 2026-07-29 | 2026-07-29 | 1 (asm post) | 1 | 1 (Entry 075) | asm / agent-skill-manager: universal CLI skill manager across 19 agents. MIT, ~750★, security audit, --json for agents, 4.3k+ catalog. A-tier. High value for skill distribution. |

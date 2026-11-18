@@ -12,4 +12,4 @@ Upstream closes the gaps that drove demotion (TUI approval UX, Grok-equivalent p
 
 ## Current action
 
-**No re-eval this cycle** — document stance only. Catalog stays B/watch.
+**No re-eval this cycle** - document stance only. Catalog stays B/watch.

@@ -1,4 +1,4 @@
-# Ops notes — Entry 081 SmythOS Studio
+# Ops notes - Entry 081 SmythOS Studio
 
 ## Stage 0
 - Self-host <5 min: yes (`docker compose up -d` after clone + `.env` copy; UI at http://localhost:6060)

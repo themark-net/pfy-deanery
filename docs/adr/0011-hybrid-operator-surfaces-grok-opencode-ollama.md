@@ -36,15 +36,15 @@ ADR-0006 already defines **local-only / balanced / max-performance** profiles. T
 
 Rejected alternatives:
 
-1. **OpenCode becomes sole primary** — Throws away Grok cage/auth/skills depth; subscription path is a first-class product goal.
-2. **Grok-only forever** — Ignores local cost/latency and OpenCode flexibility.
-3. **Hermes Agent as third primary runtime** — Pattern already ported; full runtime is another TUI/daemon surface (same class of risk as AgenC).
-4. **Duplicate skill trees per CLI** — Drift hell; adapter + single SoT under bootstrap skills wins.
+1. **OpenCode becomes sole primary** - Throws away Grok cage/auth/skills depth; subscription path is a first-class product goal.
+2. **Grok-only forever** - Ignores local cost/latency and OpenCode flexibility.
+3. **Hermes Agent as third primary runtime** - Pattern already ported; full runtime is another TUI/daemon surface (same class of risk as AgenC).
+4. **Duplicate skill trees per CLI** - Drift hell; adapter + single SoT under bootstrap skills wins.
 
 ## Consequences
 
 - Document operator paths: Grok daily, OpenCode + local OpenAI-compat for local-heavy work, LiteLLM for routing.
-- `bootstrap/opencode/` holds install/config notes and skill-path mapping — not a second process doctrine.
+- `bootstrap/opencode/` holds install/config notes and skill-path mapping - not a second process doctrine.
 - Eval: structural stays CLI-agnostic; implement-lane uses the ADR-0014 spine when present (`make eval-suite`).
 - Cage remains Grok-image primary; OpenCode-in-cage is a later smoke (T-0040/T-0080), not a blocker for host OpenCode + local worker.
 - **Inference spine superseded by ADR-0014.** Surfaces (Grok monitor / OpenCode worker) still stand.

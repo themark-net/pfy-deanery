@@ -1,7 +1,7 @@
 # Architecture Decision Records (ADR)
 
 **Store layout:** multi-file under `docs/adr/` (preferred for this project).  
-**Process:** Grok skill `/adr` — full template and lifecycle in skill references.
+**Process:** Grok skill `/adr` - full template and lifecycle in skill references.
 
 ## Index
 
@@ -19,7 +19,7 @@
 | [0010](0010-reject-agenc-as-primary-runtime.md) | Reject AgenC as primary; Grok CLI + agent-cage; revisit if UX matures | Superseded by 0013 | 2026-07-12 |
 | [0011](0011-hybrid-operator-surfaces-grok-opencode-ollama.md) | Hybrid surfaces: Grok primary + OpenCode/Ollama local-cloud split | Accepted (surfaces); **inference spine superseded by 0014** | 2026-07-25 |
 | [0012](0012-voice-half-duplex-local-first.md) | Voice half-duplex local-first; no cloud full-duplex primary | Accepted | 2026-07-26 |
-| [0012](0012-simple-harness-agnostic-launch.md) | Simple harness-agnostic `./pfy` launch (G8) — **cite this file, do not reuse ID** | Accepted | 2026-07-31 |
+| [0012](0012-simple-harness-agnostic-launch.md) | Simple harness-agnostic `./pfy` launch (G8) - **cite this file, do not reuse ID** | Accepted | 2026-07-31 |
 | [0013](0013-optional-operator-tuis-empirical-preference.md) | Treat operator TUIs (incl. AgenC) as optional scored components; empirical preference dimension | Accepted | 2026-07-27 |
 | [0014](0014-pluggable-local-inference-spine.md) | Pluggable local inference spine (FreeToken → llama-swap/llama-server → Ollama) | Accepted | 2026-08-24 |
 | [0015](0015-catalog-json-slim-subset.md) | Catalog JSON is a slim machine subset of TOOLS.md (not a 1:1 dump) | Accepted | 2026-08-24 |

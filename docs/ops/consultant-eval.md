@@ -6,7 +6,7 @@ Read this first if you are evaluating **code against documentation**. Docs below
 
 | What | Path |
 |------|------|
-| Design (why / G1–G8) | [docs/DESIGN.md](../DESIGN.md) |
+| Design (why / G1-G8) | [docs/DESIGN.md](../DESIGN.md) |
 | Architecture snapshot | [docs/ARCHITECTURE.md](../ARCHITECTURE.md) |
 | ADR index (incl. 0014, 0015) | [docs/adr/README.md](../adr/README.md) |
 | Simple launch | [docs/ops/simple-launch.md](simple-launch.md) |
@@ -82,7 +82,7 @@ Detect order (ADR-0014, first live wins): **FreeToken :1919 → llama-swap :9292
 | claude-code | harness | **ready** if `claude` on PATH; else **missing**. json may stay `partial` | Named start: `exec claude`; `OPENAI_BASE_URL` from `LOCAL_OPENAI_BASE_URL` when runtime ready. No binary: FAIL + issue #57 + the registry installer (`setup` / `attach.next_install`), exit 2. Attach missing-binary `next_step` is that same line. Start does not run the installer. Login/credentials/2FA are owner-only |
 | codex | harness | **ready** if `codex` on PATH or `~/.local/bin/codex`; else **missing**. json may stay `partial` | Named start: `exec codex`; `OPENAI_BASE_URL` from `LOCAL_OPENAI_BASE_URL` when runtime ready. No binary: FAIL + issue #58 + the registry installer (`setup` / `attach.next_install`), exit 2. Attach missing-binary `next_step` is that same line. Start does not run the installer. Login/credentials/2FA are owner-only |
 | gemini | harness | **ready** if `gemini` or `gemini-cli` on PATH; else **missing**. json may stay `partial` | Named start: `exec` binary; `OPENAI_BASE_URL` from `LOCAL_OPENAI_BASE_URL` when runtime ready. No binary: STUB + issue #59 + the registry installer (`setup`), exit 2. Start does not run the installer. No Attach profile. Login/credentials/2FA are owner-only |
-| exo | harness | **ready** if `$ROOT/exo.sh`, `$HOME/exo/exo.sh`, or `exo.sh` on PATH; else **missing**. json may stay `partial`. Docker on PATH is not ready. | Named start: `exec` that script; `OPENAI_BASE_URL` from `LOCAL_OPENAI_BASE_URL` when runtime ready. No invented Exo flags. Missing: STUB + issue #60 + the registry installer (`setup`), exit 2. Start does not run it. Optional lab only — `./pfy harness use exo` does not change `default_harness` |
+| exo | harness | **ready** if `$ROOT/exo.sh`, `$HOME/exo/exo.sh`, or `exo.sh` on PATH; else **missing**. json may stay `partial`. Docker on PATH is not ready. | Named start: `exec` that script; `OPENAI_BASE_URL` from `LOCAL_OPENAI_BASE_URL` when runtime ready. No invented Exo flags. Missing: STUB + issue #60 + the registry installer (`setup`), exit 2. Start does not run it. Optional lab only - `./pfy harness use exo` does not change `default_harness` |
 | continue | harness | **always stub** (empty detect; never detected-stub even if continue is on PATH). Recipe at bootstrap/continue/. | Always STUB exit 2 + issue #61. Prints `filesystem: direct\|cage` and writes `$PFY_STATE_DIR/continue-config.json` with `apiBase` from `LOCAL_OPENAI_BASE_URL` (example `:1919/v1` when no engine is live). Do not exec the IDE. If this id is active, bare `./pfy` is FAIL with no grok/opencode fallback; copy `pfy harness use grok`. |
 | agent-cage | lab | live **stub** / **detected-stub** (Docker on PATH is **not** ready / not startable) | Always STUB exit 2 + issue #62 + `./pfy stage --lab`. If this id is active, bare `./pfy` is FAIL with no grok/opencode fallback; copy `pfy harness use grok`. `./pfy stage --lab` on the host runs `cage-doctor`, `cage-setup`, `cage-up-mcp` and names the cage bind (`~/.agentcage/workspace/pfy-mentat` → `/workspace/pfy-mentat`), which is not the host checkout. Inside `/workspace` it refuses. Missing Docker is honest skip, not product-ready. Do not sell cage. |
 
@@ -92,7 +92,7 @@ Detect order (ADR-0014, first live wins): **FreeToken :1919 → llama-swap :9292
 |---------|-------------|------------|------------------|
 | `make eval-structural` | No | No | G0 docs/schema scorers. Consultant default |
 | `make eval-golden` | No | Replay fixtures | Deterministic golden lane |
-| `make eval-deploy-ready` | Declared smokes | Mixed | G1 — skip if smoke needs lab you do not have; do not fake |
+| `make eval-deploy-ready` | Declared smokes | Mixed | G1 - skip if smoke needs lab you do not have; do not fake |
 | `./pfy eval` | No (Make target may skip) | No | Product structural gate (`eval-integration-change`). Not `scripts/eval_lane.sh` and not G0 |
 | `make cage-*` / in-cage smokes | **Yes** | Varies | Optional lab. Missing Docker is skip, not product-ready |
 

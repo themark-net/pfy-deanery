@@ -1,4 +1,4 @@
-# AGENTS.md — pfy-deanery
+# AGENTS.md - pfy-deanery
 
 Instructions for coding agents working in this repository.
 
@@ -8,10 +8,10 @@ pfy-deanery exists to **track, catalog, evaluate and integrate** outside tools, 
 
 ## Mandatory reads (before non-trivial design or multi-step work)
 
-1. [docs/DESIGN.md](docs/DESIGN.md) — goals, shape, non-goals, process model  
-2. [docs/adr/README.md](docs/adr/README.md) — decision index (open full ADRs that touch your area)  
-3. [docs/TODO.md](docs/TODO.md) — next steps  
-4. [docs/OPEN_QUESTIONS.md](docs/OPEN_QUESTIONS.md) — do not silently “solve” P0/P1 OQs  
+1. [docs/DESIGN.md](docs/DESIGN.md) - goals, shape, non-goals, process model  
+2. [docs/adr/README.md](docs/adr/README.md) - decision index (open full ADRs that touch your area)  
+3. [docs/TODO.md](docs/TODO.md) - next steps  
+4. [docs/OPEN_QUESTIONS.md](docs/OPEN_QUESTIONS.md) - do not silently “solve” P0/P1 OQs  
 
 Also use as needed: `CATEGORIZATION.md`, `SUBTREES.md`, `TOOLS.md`, `bootstrap/grok-cli/README.md`.
 
@@ -28,7 +28,7 @@ Also use as needed: `CATEGORIZATION.md`, `SUBTREES.md`, `TOOLS.md`, `bootstrap/g
 ## Do not
 
 - Re-propose designs rejected in ADRs without a superseding ADR and new context  
-- Leave P0–P2 questions only in chat  
+- Leave P0-P2 questions only in chat  
 - Embed large upstream repos without meeting `SUBTREES.md` (see ADR-0003)  
 - Commit secrets, API keys, or `auth.json`  
 - Create a second decision log outside `docs/adr/`  
@@ -41,7 +41,7 @@ Also use as needed: `CATEGORIZATION.md`, `SUBTREES.md`, `TOOLS.md`, `bootstrap/g
 #   ./pfy setup && ./pfy status && ./pfy start
 ./bootstrap/grok-cli/install.sh
 # optional: --with-codebase-memory
-# operator lab (Grok Build in agent-cage — primary path, ADR-0002/0010/0011):
+# operator lab (Grok Build in agent-cage - primary path, ADR-0002/0010/0011):
 #   make cage-grok && make cage-grok-net-smoke
 # local Ollama path (cost-aware; ADR-0011):
 #   ./examples/litellm-ollama/host-ollama-gateway.sh start && make smoke-litellm-ollama
@@ -50,20 +50,20 @@ Also use as needed: `CATEGORIZATION.md`, `SUBTREES.md`, `TOOLS.md`, `bootstrap/g
 #   python3 bootstrap/setup-local-agent-env.py
 ```
 
-Portable skills (SoT `bootstrap/grok-cli/skills/` — also for OpenCode): `adr`, `docs`, `open-questions`, `karpathy-guidelines`, `project-process`, `one-shot`, `marketing-council`, **`investigate`**, **`agent-loops`**, **`hermes-feedback`**, **`worker-monitor`** (local worker + Grok monitor), **`jev-decision`** (#230 typed Choice/Score), **`prefer-behavior-and-fail-recover-tests`** (Trophy / fail-recover), **`ui-is-the-app-design-in-loop`** (design pack before product UI), **`catalog-intake-dedupe`**, **`catalog-eval-lane`**, **`catalog-integrate-lane`**, **`catalog-apply-and-ceiling`**, **`catalog-fit-triage`**, **`catalog-loop-operator`** (catalog pipeline; each skill drives a script); ponytail + mattpocock via `skills.paths`.  
+Portable skills (SoT `bootstrap/grok-cli/skills/` - also for OpenCode): `adr`, `docs`, `open-questions`, `karpathy-guidelines`, `project-process`, `one-shot`, `marketing-council`, **`investigate`**, **`agent-loops`**, **`hermes-feedback`**, **`worker-monitor`** (local worker + Grok monitor), **`jev-decision`** (#230 typed Choice/Score), **`prefer-behavior-and-fail-recover-tests`** (Trophy / fail-recover), **`ui-is-the-app-design-in-loop`** (design pack before product UI), **`catalog-intake-dedupe`**, **`catalog-eval-lane`**, **`catalog-integrate-lane`**, **`catalog-apply-and-ceiling`**, **`catalog-fit-triage`**, **`catalog-loop-operator`** (catalog pipeline; each skill drives a script); ponytail + mattpocock via `skills.paths`.  
 Verify: `make eval-structural` (no LLM) · `make smoke-grok-skills` · [skill-verification.md](docs/ops/skill-verification.md).  
-**Surfaces:** Grok = **monitor** / hard tasks (subscription) · OpenCode+Ollama = **worker** / bulk — [local-cloud-split.md](docs/ops/local-cloud-split.md) · ADR-0011.  
-**Traces:** local Phoenix only — [tracing.md](docs/ops/tracing.md) · ADR-0019. `PFY_OTEL=0` turns spans off.  
+**Surfaces:** Grok = **monitor** / hard tasks (subscription) · OpenCode+Ollama = **worker** / bulk - [local-cloud-split.md](docs/ops/local-cloud-split.md) · ADR-0011.  
+**Traces:** local Phoenix only - [tracing.md](docs/ops/tracing.md) · ADR-0019. `PFY_OTEL=0` turns spans off.  
 **Local worker model:** `LOCAL_CODER_MODEL` (default `deepseek-coder:6.7b` after lab pass); set via `make eval-select-models`. Grok CLI does **not** auto-use it.  
-**Product UX target:** onboard / stage / ship only — [product-operator-surface.md](docs/ops/product-operator-surface.md) · T-0090.  
+**Product UX target:** onboard / stage / ship only - [product-operator-surface.md](docs/ops/product-operator-surface.md) · T-0090.  
 **Model choice:** per-task local or cloud, cost-gated compare. See [docs/design/MODEL-CHOICE-AND-COMPARE.md](docs/design/MODEL-CHOICE-AND-COMPARE.md). `./pfy compare catalog-fit|decision-route --against grok-4.7|gpt-6.1-sol` prints the price and runs only after an explicit yes. Loop and Engine offer the same pair.  
 Loop map: [loop-engineering.md](docs/ops/loop-engineering.md). Decisions: [human-decision-inventory.md](docs/ops/human-decision-inventory.md).  
 Code memory: CM primary ([vs Graphify](docs/evaluation/codebase-memory-vs-graphify.md)).  
 **Cage:** `make cage-grok` refreshes auth + installs first-party skills into container `GROK_HOME`.  
-**Code sync (host only):** `make cage-code-sync` / `PUSH=1` — [cage-code-sync.md](docs/ops/cage-code-sync.md).  
-**This repo:** `/catalog-docs` — document the catalog (README, triple-write, harness); source `.grok/skills/catalog-docs/`.
+**Code sync (host only):** `make cage-code-sync` / `PUSH=1` - [cage-code-sync.md](docs/ops/cage-code-sync.md).  
+**This repo:** `/catalog-docs` - document the catalog (README, triple-write, harness); source `.grok/skills/catalog-docs/`.
 
-### Role router (gstack patterns, docs-first — T-0014)
+### Role router (gstack patterns, docs-first - T-0014)
 
 Map **Think → Plan → Build → Review → Test → Ship → Reflect** without installing gstack:
 
@@ -72,10 +72,10 @@ Map **Think → Plan → Build → Review → Test → Ship → Reflect** withou
 | Product rethink (CEO) | Scope challenge → `/adr` or `/open-questions` |
 | Plan / eng manager | mattpocock **`to-spec`** (paths) + DoD list |
 | Build | Coding agent + karpathy / ponytail; **`/one-shot`** if DoD + lab ready; **`/agent-loops`** to set exits/type before long runs |
-| Debug / RCA | **`/investigate`** — Iron Law: no fix without root-cause hypothesis (T-0017) |
+| Debug / RCA | **`/investigate`** - Iron Law: no fix without root-cause hypothesis (T-0017) |
 | Review | mattpocock **`code-review`** (paths); optional second persona |
 | QA | `make cage-test`, `make smoke-*` (see [docs/modules/examples-smokes.md](docs/modules/examples-smokes.md)); **`prefer-behavior-and-fail-recover-tests`** |
-| UI / operator surface | **`ui-is-the-app-design-in-loop`** — design pack in `docs/design/` before product UI |
+| UI / operator surface | **`ui-is-the-app-design-in-loop`** - design pack in `docs/design/` before product UI |
 | Security | write-guard + cage policy; not full gstack `/cso` |
 | Ship | Feature branch → green checks → merge; [DEPLOY.md](docs/ops/DEPLOY.md) |
 | Reflect | **`/hermes-feedback`** (memory + optional skill/curator); TODO/OQ; `/docs` or `/catalog-docs` if modules changed |
@@ -171,8 +171,8 @@ Docs, skills, and reversible dogfood follow the best-effort rule: land on a name
 ### Verification, Benchmarks & Quality Gates
 - Agents must run and test their changes (build, targeted tests, end-to-end where applicable).
 - Prefer integration/E2E and behavior-level coverage over unit sprawl; unit tests only where behavior is shaky or non-obvious. Update test docs/lists when coverage meaningfully changes.
-- Custom linters/pre-commit with auto-fix (or LLM-assisted fix for complex cases) — focus on actually cleaning code, not just flagging.
-- Periodic audits: false-confidence test reviews (tests that don't actually test what they claim — including tautological and implementation-detail tests), performance benchmarks/profiling.
+- Custom linters/pre-commit with auto-fix (or LLM-assisted fix for complex cases) - focus on actually cleaning code, not just flagging.
+- Periodic audits: false-confidence test reviews (tests that don't actually test what they claim - including tautological and implementation-detail tests), performance benchmarks/profiling.
 - Visual regression (screenshots + agent review) and automatic performance degradation detection where relevant.
 - End-of-shift or major milestone full validations: run tests, reviews, sweeps, benchmarks, etc.
 
@@ -183,4 +183,4 @@ Docs, skills, and reversible dogfood follow the best-effort rule: land on a name
 
 These practices draw from production agentic setups and harness engineering resources. Adapt and extend via skills in `bootstrap/grok-cli/skills/` and project templates. Prioritize composable, controllable elements over monolithic frameworks.
 
-Reference related resources: Learn Harness Engineering site, Matt Pocock skills (planning/TDD/review via paths), gstack **role patterns** (docs only — [gstack-role-recipes.md](docs/ops/gstack-role-recipes.md)), and repo process docs for implementation.
+Reference related resources: Learn Harness Engineering site, Matt Pocock skills (planning/TDD/review via paths), gstack **role patterns** (docs only - [gstack-role-recipes.md](docs/ops/gstack-role-recipes.md)), and repo process docs for implementation.

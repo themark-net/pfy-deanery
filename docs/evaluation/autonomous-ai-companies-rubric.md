@@ -1,10 +1,10 @@
 # Evaluation Rubric: Autonomous AI Companies
 
-**Status:** v1.0 — 2026-07-20  
+**Status:** v1.0 - 2026-07-20  
 **Purpose:** Separate evaluation criteria for full multi-agent "AI company" systems (org charts, role personas, shared memory/consensus, cycle-based autonomous operation). These are **not** single tools or skill packs; they are complete simulated organizations.
 
 **Why separate?**  
-Standard Stage 1–4 scoring (LLM compatibility, tok/s, Docker glue, stars) underweights what matters here: role fidelity, consensus quality, safety under autonomy, economic realism, and whether the loop actually *converges* instead of thrashing. A 14-agent Bezos/Vogels/Munger company that burns tokens forever without shipping is a different failure mode than a slow Ollama server.
+Standard Stage 1-4 scoring (LLM compatibility, tok/s, Docker glue, stars) underweights what matters here: role fidelity, consensus quality, safety under autonomy, economic realism, and whether the loop actually *converges* instead of thrashing. A 14-agent Bezos/Vogels/Munger company that burns tokens forever without shipping is a different failure mode than a slow Ollama server.
 
 **Operator default:** Grok Build CLI + agent-cage. These systems are evaluated as **patterns + optional external runtimes**, not as replacements for the primary stack ([ADR-0010](../adr/0010-reject-agenc-as-primary-runtime.md)).
 
@@ -45,9 +45,9 @@ Fail any gate → track as D/Watch under Agent Frameworks, or reject.
 
 ---
 
-## Scoring Dimensions (1–5 each)
+## Scoring Dimensions (1-5 each)
 
-Use integer 1–5. Overall = weighted average (see weights). Map to S/A/B/C priority bands below.
+Use integer 1-5. Overall = weighted average (see weights). Map to S/A/B/C priority bands below.
 
 ### C1. Org Design & Role Fidelity (weight 20%)
 
@@ -116,8 +116,8 @@ Use integer 1–5. Overall = weighted average (see weights). Map to S/A/B/C prio
 | Band | Weighted avg | Meaning |
 |------|--------------|---------|
 | **S** | ≥4.4 | Study deeply; extract patterns into Grok skills/docs; optional external smoke |
-| **A** | 3.6–4.3 | Plan pattern ports; compare org design; no mandatory runtime |
-| **B** | 2.8–3.5 | Reference / inspiration |
+| **A** | 3.6-4.3 | Plan pattern ports; compare org design; no mandatory runtime |
+| **B** | 2.8-3.5 | Reference / inspiration |
 | **C** | <2.8 | Awareness only |
 
 **Integration posture (always):**
@@ -142,7 +142,7 @@ Use integer 1–5. Overall = weighted average (see weights). Map to S/A/B/C prio
 
 ## Related
 
-- [CATEGORIZATION.md](../../CATEGORIZATION.md) — primary taxonomy  
-- [evaluation-framework.md](../evaluation-framework.md) — general tool pipeline  
-- [scoring-summary.md](../scoring-summary.md) — cluster scores  
+- [CATEGORIZATION.md](../../CATEGORIZATION.md) - primary taxonomy  
+- [evaluation-framework.md](../evaluation-framework.md) - general tool pipeline  
+- [scoring-summary.md](../scoring-summary.md) - cluster scores  
 - Prior company-adjacent entries: 016, 037, 050, Multica (012), gstack (010), Hermes (048)  

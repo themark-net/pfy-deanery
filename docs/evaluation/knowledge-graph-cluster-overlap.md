@@ -1,8 +1,8 @@
-# Knowledge Graph / Second Brain Cluster — Overlap & Complementarity Matrix
+# Knowledge Graph / Second Brain Cluster - Overlap & Complementarity Matrix
 
 **Cluster Entries**:
 - **Entry 014**: Karpathy Second Brain / Obsidian + Claude Code Wiki (Personal Knowledge Compounding Workflow)
-- **Entry 017**: Graphify — Codebase Knowledge Graph for Agents (Tree-sitter Parsed, Queryable Graph)
+- **Entry 017**: Graphify - Codebase Knowledge Graph for Agents (Tree-sitter Parsed, Queryable Graph)
 - **Entry 020**: Live Obsidian Business Network Graph (500+ Businesses, Real-Time ERP Sync)
 
 This matrix analyzes overlap, complementarity, and recommended positioning for the three entries focused on turning complex information into structured, queryable, and visual knowledge graphs.
@@ -15,7 +15,7 @@ These three entries form a coherent cluster with **low overall redundancy** when
 - **Entry 017** delivers the most technically explicit graph construction focused on codebases.
 - **Entry 020** demonstrates production-scale live updating applied to business operations.
 
-Together they cover **personal knowledge**, **code understanding**, and **operational business intelligence** — three high-value domains for local LLM/agent workflows.
+Together they cover **personal knowledge**, **code understanding**, and **operational business intelligence** - three high-value domains for local LLM/agent workflows.
 
 ## Detailed Overlap & Complementarity Matrix
 

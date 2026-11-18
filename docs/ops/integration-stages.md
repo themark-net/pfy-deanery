@@ -5,10 +5,10 @@
 
 ## Intent
 
-Catalog scoring (S1–S4, S/A/B/C) answers **“is this tool interesting?”**  
+Catalog scoring (S1-S4, S/A/B/C) answers **“is this tool interesting?”**  
 This rubric answers **“how deep may we pull it into *this* repo / lab?”**
 
-No tool is forced to a symbolic first subtree. **Wait** until a stage gate is met. Until full onboard, tools live in staged evaluation that names uses, features, and potential — not assumed integration.
+No tool is forced to a symbolic first subtree. **Wait** until a stage gate is met. Until full onboard, tools live in staged evaluation that names uses, features, and potential - not assumed integration.
 
 ---
 
@@ -25,7 +25,7 @@ No tool is forced to a symbolic first subtree. **Wait** until a stage gate is me
 **Rule:** I1 → I3 is the normal happy path. I2 is a **temporary** fork of ambiguity, not a shortcut to I3/I4. I4 remains rare (ADR-0003).
 
 ```text
-Catalog Phase 0–2  →  I1 staged evaluation
+Catalog Phase 0-2  →  I1 staged evaluation
          │
          ├─ potential clear + value+modularity → plan I3 (skill/smoke)
          │
@@ -39,7 +39,7 @@ I3 + need in-tree edit / offline embed → I4 (submodule preferred; subtree rare
 
 ---
 
-## I1 — Staged evaluation (default)
+## I1 - Staged evaluation (default)
 
 Must identify and record:
 
@@ -61,23 +61,23 @@ If **potential is ambiguous**, do **not** pretend full onboard. Either stay I1 o
 
 Promote toward onboard only if **≥ 3 of 4**:
 
-1. **Gap fill** — closes a hole vs existing S/A tools or first-party skills (not pure overlap).
-2. **Operator leverage** — improves design/coding assist, cage safety, eval, or local bulk path within a day of glue.
-3. **Evidence** — runnable quickstart or in-lab smoke path exists (or is trivial to write).
-4. **Blast radius OK** — no forced multi-GB weights, no primary-runtime takeover without ADR, license OK for our use.
+1. **Gap fill** - closes a hole vs existing S/A tools or first-party skills (not pure overlap).
+2. **Operator leverage** - improves design/coding assist, cage safety, eval, or local bulk path within a day of glue.
+3. **Evidence** - runnable quickstart or in-lab smoke path exists (or is trivial to write).
+4. **Blast radius OK** - no forced multi-GB weights, no primary-runtime takeover without ADR, license OK for our use.
 
 ### Modularity gate (required for I2+ local code, and for I3/I4)
 
 Promote only if **all** true:
 
-1. **Local code needed** — cannot fully evaluate “use under different circumstances” from docs/API alone (e.g. hooks, CLI flags, MCP surface, patch surface).
-2. **Bounded surface** — clear package/CLI entrypoints; not a sprawling monorepo as the unit of eval.
-3. **Isolatable** — can sit under `tools/` or a cache path without becoming the product runtime by default.
-4. **Reversible** — deleting the copy/submodule does not strand catalog truth (pin + entry remain).
+1. **Local code needed** - cannot fully evaluate “use under different circumstances” from docs/API alone (e.g. hooks, CLI flags, MCP surface, patch surface).
+2. **Bounded surface** - clear package/CLI entrypoints; not a sprawling monorepo as the unit of eval.
+3. **Isolatable** - can sit under `tools/` or a cache path without becoming the product runtime by default.
+4. **Reversible** - deleting the copy/submodule does not strand catalog truth (pin + entry remain).
 
 ### Lightweight size gate (I2 only)
 
-| Metric | Limit (initial arbitrary — tune later) |
+| Metric | Limit (initial arbitrary - tune later) |
 |--------|----------------------------------------|
 | Working tree to copy / shallow clone | **< 50 MB** |
 | No model weights / large binaries | Required |
@@ -85,7 +85,7 @@ Promote only if **all** true:
 
 If > 50 MB or weight-bearing → **stay I1** (pin + shallow clone on demand in a throwaway dir, never call it “integrated”).
 
-### Embed gate (I4 — submodule/subtree)
+### Embed gate (I4 - submodule/subtree)
 
 All of SUBTREES.md **plus** already at **I3**, **plus**:
 
@@ -103,18 +103,18 @@ All of SUBTREES.md **plus** already at **I3**, **plus**:
 | S | I3 planned quickly; I4 still rare |
 | A | I1 default; I3 if value+modularity; I2 if ambiguous + light |
 | B | I1; I2 only if cheap probe; rarely I3 |
-| C / Watch | I0–I1 only |
+| C / Watch | I0-I1 only |
 
 **Do not** treat “S-tier catalog score” as automatic I4 embed.
 
 ---
 
-## What “not integrated” means (I1–I2)
+## What “not integrated” means (I1-I2)
 
 - No claim of production operator path.
 - No default Make target that assumes the tool is always installed.
 - No env registry “required” vars.
-- I2 copy may live under `tools/_probe/<name>/` or gitignored cache — document path; **not** a product surface lever.
+- I2 copy may live under `tools/_probe/<name>/` or gitignored cache - document path; **not** a product surface lever.
 
 ## What “integrated” means (I3)
 

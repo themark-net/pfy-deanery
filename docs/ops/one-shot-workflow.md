@@ -7,9 +7,9 @@
 
 A **one-shot** is an agent mode for a single user request where:
 
-1. **Questions back to the human are minimized** — only hard blockers that cannot be safely assumed.
-2. **Cheap iterations run automatically** — local/zero-cost loops until the request’s success criteria pass or a hard stop is hit.
-3. **Guardrails and prerequisites are mandatory** — no “yolo implement forever” without a test environment and a definition of done.
+1. **Questions back to the human are minimized** - only hard blockers that cannot be safely assumed.
+2. **Cheap iterations run automatically** - local/zero-cost loops until the request’s success criteria pass or a hard stop is hit.
+3. **Guardrails and prerequisites are mandatory** - no “yolo implement forever” without a test environment and a definition of done.
 
 This is complementary to normal collaborative mode (many clarifying questions OK).
 
@@ -25,7 +25,7 @@ Before one-shot starts, **all** of the following must hold or the agent must **s
 | Deploy profile selected | `DEPLOY_PROFILE` set; `make env-check` passes for that profile |
 | Isolation lab available **or** explicitly waived | Prefer: agent-cage `status` healthy **or** documented host-only smoke path in request |
 | Success criteria written | Agent writes a short **Definition of Done (DoD)** before coding |
-| Cost tier chosen | `local` / `cheap-cloud` / `allowed-cloud` — default from profile |
+| Cost tier chosen | `local` / `cheap-cloud` / `allowed-cloud` - default from profile |
 
 If cage is required by DoD (e.g. “integration test in container”) and cage is down: **one** question or a single automated `make cage-up-mcp` if docker is available and policy allows unattended up.
 
@@ -43,19 +43,19 @@ Run verification and repair loops **bottom-up**. Do not burn expensive cloud mod
 
 | Tier | Examples | Use for |
 |------|----------|---------|
-| **0 — free/local static** | `json.load`, `make catalog-json`, linters, unit tests, `make env-check` | Always first |
-| **1 — local model / Ollama** | Small coding models for generate/fix | bulk code, rewrites |
-| **2 — cage integration** | Install tool in `/workspace`, policy tests, compose smokes | isolation proof |
-| **3 — mid cloud** | Cheaper API models if profile allows | when local stuck |
-| **4 — heavy cloud** | Grok / strong models | only if DoD needs it or lower tiers exhausted |
+| **0 - free/local static** | `json.load`, `make catalog-json`, linters, unit tests, `make env-check` | Always first |
+| **1 - local model / Ollama** | Small coding models for generate/fix | bulk code, rewrites |
+| **2 - cage integration** | Install tool in `/workspace`, policy tests, compose smokes | isolation proof |
+| **3 - mid cloud** | Cheaper API models if profile allows | when local stuck |
+| **4 - heavy cloud** | Grok / strong models | only if DoD needs it or lower tiers exhausted |
 
 Profile mapping (default):
 
 | `DEPLOY_PROFILE` | Max auto tier without asking |
 |------------------|------------------------------|
-| `local-only` | 0–2 only (no cloud) |
-| `balanced` | 0–3; tier 4 only if DoD says “production quality” or 3 failed N times |
-| `max-performance` | 0–4 allowed; still try 0–2 first for mechanical checks |
+| `local-only` | 0-2 only (no cloud) |
+| `balanced` | 0-3; tier 4 only if DoD says “production quality” or 3 failed N times |
+| `max-performance` | 0-4 allowed; still try 0-2 first for mechanical checks |
 
 ---
 
@@ -102,8 +102,8 @@ Assumptions go in the final report under **Assumptions**.
 
 ## Guardrails
 
-1. **No silent scope creep** — DoD is the contract; extra polish only if free (tier 0–1) and small.
-2. **Write-guard / workspace** — prefer edits under repo or cage `/workspace`; respect `WRITE_GUARD_MODE` when MCP is on.
+1. **No silent scope creep** - DoD is the contract; extra polish only if free (tier 0-1) and small.
+2. **Write-guard / workspace** - prefer edits under repo or cage `/workspace`; respect `WRITE_GUARD_MODE` when MCP is on.
 3. **No secrets in git or images.**
 4. **Prefer pins** (ADR-0003); no huge subtrees in one-shot.
 5. **Triple-write catalog** if the request adds a tool seed (`/catalog-docs seed`).
@@ -157,4 +157,4 @@ Copy-paste contracts for LiteLLM, codebase-memory, repowise, write-guard, and fu
 | Collaborative (default) | Many OK | Human-paced |
 | **One-shot** | Minimal | Auto cheap→expensive |
 | Plan-only | Clarifying OK | No implement |
-| YOLO without lab | Forbidden here | — |
+| YOLO without lab | Forbidden here | - |

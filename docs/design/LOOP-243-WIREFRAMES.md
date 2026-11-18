@@ -1,10 +1,10 @@
-# #243 Loop UX — wireframes (ASCII)
+# #243 Loop UX - wireframes (ASCII)
 
 **Cite:** #243 · operator chrome only
 
 ---
 
-## Loop — local ON, interactive
+## Loop - local ON, interactive
 
 ```
 ┌─ pfy ─────────────────────────────────────────────────────────┐
@@ -35,9 +35,9 @@
 │ this session  READY                                           │
 │                                                               │
 │ 2. How hard?                                                  │
-│ [ Bulk — stay on this machine ]                               │
-│ [ Interactive — local first ]●                                │
-│ [ Hard — allow cloud ]                                        │
+│ [ Bulk - stay on this machine ]                               │
+│ [ Interactive - local first ]●                                │
+│ [ Hard - allow cloud ]                                        │
 │                                                               │
 │ 3. MODULES                                                    │
 │ [ jev     wired      click to include ]                       │
@@ -48,13 +48,13 @@
 │                                                               │
 │ 4. Open                                                       │
 │ [ Launch session ]  [ Launch env ]  [ Copy endpoint ]         │
-│ READY Launch session — grok · modules applied                 │
+│ READY Launch session - grok · modules applied                 │
 └───────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Loop — not ready
+## Loop - not ready
 
 ```
 │ Local compute: OFF · status missing                           │
@@ -66,22 +66,22 @@
 
 ---
 
-## Loop — Hard / SPENDING
+## Loop - Hard / SPENDING
 
 ```
-│ Hard — allow cloud ●                                          │
+│ Hard - allow cloud ●                                          │
 │ Cloud orchestration: SPENDING                                 │
 │ This session will spend one cloud credit.                     │
 ```
 
 ---
 
-## Other tabs — lede only
+## Other tabs - lede only
 
 ```
-ENGINE  — local model tab; Loop → Launch session is the coding session
-ATTACH  — open grok/OpenCode now without composing modules
-TOOLS   — skills + catalog; does not start a session
+ENGINE  - local model tab; Loop → Launch session is the coding session
+ATTACH  - open grok/OpenCode now without composing modules
+TOOLS   - skills + catalog; does not start a session
 ```
 
 ---
@@ -89,9 +89,9 @@ TOOLS   — skills + catalog; does not start a session
 ## FAIL+next (in-window)
 
 ```
-STUB module ghost — not implementable yet
+STUB module ghost - not implementable yet
 Next: <how from toolsets.json>
 
-FAIL Launch session — local missing
+FAIL Launch session - local missing
 Next: Launch env or ./pfy up
 ```

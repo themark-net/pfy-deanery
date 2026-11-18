@@ -1,6 +1,6 @@
 # Module: Continue config recipe
 
-**Purpose:** Point Continue at `LOCAL_OPENAI_BASE_URL` from the ADR-0014 detector. Recipe only — not a CLI harness. Do not exec the IDE. Do not vendor Continue sources.
+**Purpose:** Point Continue at `LOCAL_OPENAI_BASE_URL` from the ADR-0014 detector. Recipe only - not a CLI harness. Do not exec the IDE. Do not vendor Continue sources.
 
 ## Entry
 

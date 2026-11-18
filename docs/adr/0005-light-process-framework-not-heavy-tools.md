@@ -15,17 +15,17 @@ We package process best practices as replayable skills + scaffolds. X/community 
 
 ## Rationale
 
-- Agent practitioners on X report large gains from local ADR files agents must read/write—not from new products.
+- Agent practitioners on X report large gains from local ADR files agents must read/write-not from new products.
 - Templates already include **rejected alternatives**, matching industry ADR practice.
 - Open-question / parking-lot products are not dominant for agent workflows; markdown fills the gap.
 - Lean catalog principle (ADR-0003): avoid embedding platforms we do not customize.
 
 Rejected alternatives:
 
-1. **Replace with adr-tools only** — Numbers files well; no DESIGN/TODO/OQ, no agent skill workflow.
-2. **Confluence / Linear as sole ADR+TODO store** — Poor offline/agent read path; optional mirror only.
-3. **log4brains / full AKM platform** — Overhead for small multi-agent repos without proven need.
-4. **Chat memory only** — Already rejected in ADR-0001.
+1. **Replace with adr-tools only** - Numbers files well; no DESIGN/TODO/OQ, no agent skill workflow.
+2. **Confluence / Linear as sole ADR+TODO store** - Poor offline/agent read path; optional mirror only.
+3. **log4brains / full AKM platform** - Overhead for small multi-agent repos without proven need.
+4. **Chat memory only** - Already rejected in ADR-0001.
 
 ## Consequences
 

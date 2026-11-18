@@ -84,11 +84,11 @@ Modularity, if a later session copies or imports the repo: one Python package, e
 | **Potential** | Measured probe: 2/10 sinks correct on `qwen3.6:35b` |
 | **Non-goals** | Primary runtime; I3 from this probe; immediate I4 |
 
-## 2026-08-06 maturity snapshot (issue #30) — superseded
+## 2026-08-06 maturity snapshot (issue #30) - superseded
 
 The paragraph below described a tree with no `src/atg/`. That is no longer true. It stays as history. Do not use it as the current maturity statement.
 
-- atg-framework remains **docs-only**: ARCHITECTURE, DECISIONS 0001–0010, OPEN_QUESTIONS, TODO, attribution. No `src/atg/`, no pyproject, no tests, no examples.
+- atg-framework remains **docs-only**: ARCHITECTURE, DECISIONS 0001-0010, OPEN_QUESTIONS, TODO, attribution. No `src/atg/`, no pyproject, no tests, no examples.
 - Phase 0 complete; Phase 1 skeleton (graph/types/history/validation + green pytest) **not started**.
 - Working tree size trivial (≪ 50 MB). No open issues on the prototype repo.
 - **Decision:** stay **I1**. I2 probe has nothing executable to probe. Value + modularity gates for I3 unmet. Do not plan I4.

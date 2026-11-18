@@ -102,7 +102,7 @@ Typical pattern:
 
 - Point OpenCode at `LOCAL_OPENAI_BASE_URL` (detected OpenAI compat) for local models.
 - Ollama default remains `http://127.0.0.1:11434/v1` if that adapter is selected.
-- Optionally add cloud providers for hard tasks (operator keys in env — never git).
+- Optionally add cloud providers for hard tasks (operator keys in env - never git).
 - Load the **same** skill directories via OpenCode’s skill/config paths (adapter docs).
 
 ## Grok (primary surface / monitor)
@@ -123,22 +123,22 @@ Passing `eval-suite` with `deepseek-coder:6.7b` proves the **lab can drive that 
 | Mechanism | Offloads agent turns to local? |
 |-----------|--------------------------------|
 | Eval harness / LiteLLM smoke | Yes (test traffic only) |
-| OpenCode (or any client) with `OPENAI_BASE_URL` / `LOCAL_OPENAI_BASE_URL` | **Yes — this is the worker** |
-| Grok CLI session | No (subscription/cloud) — use as **monitor** |
-| Dual session: OpenCode implements, Grok reviews DoD | **`make worker-stage`** + two terminals — [worker-monitor.md](worker-monitor.md) (T-0085) |
+| OpenCode (or any client) with `OPENAI_BASE_URL` / `LOCAL_OPENAI_BASE_URL` | **Yes - this is the worker** |
+| Grok CLI session | No (subscription/cloud) - use as **monitor** |
+| Dual session: OpenCode implements, Grok reviews DoD | **`make worker-stage`** + two terminals - [worker-monitor.md](worker-monitor.md) (T-0085) |
 
 **Offload recipe (T-0085):**
 
 ```bash
 make worker-stage    # smoke + worker.env + monitor-brief.md
 
-# Terminal A — worker
+# Terminal A - worker
 set -a; . examples/opencode-ollama/.generated/worker.env; set +a
 # worker.env may still say Ollama; override if detect-local-runtime picked another engine
 export LOCAL_OPENAI_BASE_URL="${LOCAL_OPENAI_BASE_URL:-http://127.0.0.1:11434/v1}"
 opencode
 
-# Terminal B — monitor
+# Terminal B - monitor
 grok   # open monitor-brief.md · /worker-monitor · /agent-loops plan
 ```
 

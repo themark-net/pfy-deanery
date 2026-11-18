@@ -6,7 +6,7 @@
 
 ## Why
 
-Voice must reach **tools, MCP, git, and complex planning** — not only local completion.  
+Voice must reach **tools, MCP, git, and complex planning** - not only local completion.  
 Local-first alone is cheap but weak for hard tasks; Grok-only is expensive.  
 Orchestrator **coordinates both directions**:
 
