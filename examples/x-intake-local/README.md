@@ -335,3 +335,7 @@ book-to-skill and Evener. Each reads the pinned GitHub commit JSON through `$AIS
 Entries 194-196 (`smoke_194.py`, `smoke_195.py`, `smoke_196.py`) are commit-metadata receipts for multi-agents,
 Mycelium and GOAT. Each reads the pinned GitHub commit JSON through `$MULTIAGENTS_FETCH_BIN` / `$MYCELIUM_FETCH_BIN` /
 `$GOAT_FETCH_BIN` or a stdlib fetch, checks the SHA, and exits 2 without installing anything. `PFY_XINTAKE_TIMEOUT` overrides the timeout.
+
+Entries 197-199 (`smoke_197.py`, `smoke_198.py`, `smoke_199.py`) are commit-metadata receipts for decision-cascade,
+Miniforge and Speedrun. Each reads the pinned GitHub commit JSON through `$DECISION_CASCADE_FETCH_BIN` / `$MINIFORGE_FETCH_BIN` /
+`$SPEEDRUN_FETCH_BIN` or a stdlib fetch, checks the SHA, and exits 2 without installing anything. `PFY_XINTAKE_TIMEOUT` overrides the timeout.
