@@ -2,11 +2,11 @@ PFY Deanery finds, evaluates, and runs AI agent tools. It promotes only what pas
 
 # pfy-deanery (Deanery)
 
-**pfy-deanery (Deanery) — Your PFY. It gets sent out, finds the tools, applies the standards, and reports back with receipts.**
+**pfy-deanery (Deanery) - Your PFY. It gets sent out, finds the tools, applies the standards, and reports back with receipts.**
 
 pfy-deanery is both a high-standard catalog of local LLM development tools *and* an orientation toward building the software that actually deploys and runs them reliably.
 
-The system (the PFY) is sent out to discover candidates, apply strict local-first standards, reject what doesn’t meet them, and deliver only the components that are worth using. The goal is not merely “tools that exist,” but tooling that helps people ship working local LLM systems instead of fighting endless “it works on my machine” problems — both for the tools themselves and for the products built with them.
+The system (the PFY) is sent out to discover candidates, apply strict local-first standards, reject what doesn’t meet them, and deliver only the components that are worth using. The goal is not merely “tools that exist,” but tooling that helps people ship working local LLM systems instead of fighting endless “it works on my machine” problems - both for the tools themselves and for the products built with them.
 
 Repository: https://github.com/themark-net/pfy-deanery
 
@@ -14,7 +14,7 @@ Formerly **pfy-mentat** (renamed 2026-11-11; GitHub redirects the old URL). For 
 
 ## Simple path
 
-Operator environment: local inference, then product stage (honest skip if a piece is missing), then the native operator window. Loop paints **LOCAL COMPUTE | CLOUD ORCHESTRATION** plus gathered catalog **MODULES**. **Launch session** applies enabled modules into an enterable TUI — that session is the proof. Attach grok/opencode remains on the Attach tab. Do not exec a harness into the GUI process.
+Operator environment: local inference, then product stage (honest skip if a piece is missing), then the native operator window. Loop paints **LOCAL COMPUTE | CLOUD ORCHESTRATION** plus gathered catalog **MODULES**. **Launch session** applies enabled modules into an enterable TUI - that session is the proof. Attach grok/opencode remains on the Attach tab. Do not exec a harness into the GUI process.
 
 ```bash
 ./pfy           # env-stage → native window (no harness exec; no engine daemon unless opted in)
@@ -65,7 +65,7 @@ Operator card: [docs/ops/pfy-build-daily.md](docs/ops/pfy-build-daily.md). Modul
 
 - A living, gate-checked catalog of local LLM dev tools, frameworks, patterns, and methods.
 - An operator posture (the PFY) for discovery on X and elsewhere: apply non-negotiable criteria, log every decision with receipts, and keep the catalog current.
-- A deliberate focus on **reproducibility and deployment**, not just “it builds” — components and patterns that support shipping working systems.
+- A deliberate focus on **reproducibility and deployment**, not just “it builds” - components and patterns that support shipping working systems.
 - Practical operator stack: **Grok CLI**, custom agents, **MCP** code memory, LiteLLM routing, **containerized harnesses** (agent-cage), and process docs so multi-session agents stay aligned.
 
 ## Core principles
@@ -73,7 +73,7 @@ Operator card: [docs/ops/pfy-build-daily.md](docs/ops/pfy-build-daily.md). Modul
 - **Local first, always.** Tools must be self-hostable and runnable on normal developer hardware with minimal ceremony.
 - **Permissive and embeddable.** Licenses must allow real use and modification.
 - **Receipts over vibes.** Every inclusion or rejection is logged with explicit reasoning in [`sources/x-posts.md`](sources/x-posts.md) (and related sources).
-- **Beyond “it builds.”** While many projects struggle to even compile successfully, pfy-deanery orients toward components and practices that support working, deployable results — for the tools themselves and for the systems people build with them.
+- **Beyond “it builds.”** While many projects struggle to even compile successfully, pfy-deanery orients toward components and practices that support working, deployable results - for the tools themselves and for the systems people build with them.
 
 We recognize that perfect reproducibility is impossible in computing (just as Ansible’s idempotency guarantees can be broken by the environment). The intent is still to raise the baseline: tools and patterns that are more likely to result in something that actually runs and keeps running, rather than another local-only prototype.
 
@@ -101,11 +101,11 @@ Rejections are logged with short, explicit reasons. There is no silent ignoring 
 
 | Consume | Path |
 |---------|------|
-| Human catalog | [TOOLS.md](TOOLS.md) — categories, scores, tiers, notes |
-| Machine catalog | [data/tools.json](data/tools.json) — structured, must stay valid JSON |
-| Decision receipts | [sources/x-posts.md](sources/x-posts.md) — examined posts and decisions |
-| Taxonomy & rubric | [CATEGORIZATION.md](CATEGORIZATION.md) — Stage 0 + weighted stages → 0–100 → S/A/B/C |
-| Work queue | [docs/TODO.md](docs/TODO.md) — deeper eval and integration work |
+| Human catalog | [TOOLS.md](TOOLS.md) - categories, scores, tiers, notes |
+| Machine catalog | [data/tools.json](data/tools.json) - structured, must stay valid JSON |
+| Decision receipts | [sources/x-posts.md](sources/x-posts.md) - examined posts and decisions |
+| Taxonomy & rubric | [CATEGORIZATION.md](CATEGORIZATION.md) - Stage 0 + weighted stages → 0-100 → S/A/B/C |
+| Work queue | [docs/TODO.md](docs/TODO.md) - deeper eval and integration work |
 
 ### Lifecycle (track, catalog, eval, integrate, promote)
 
@@ -161,7 +161,7 @@ After `./bootstrap/grok-cli/install.sh`, these are available:
 | **catalog-docs** | `/catalog-docs` | **This repo’s** documentation skill (README, TOOLS/json/x-posts triple-write, harness, audit) |
 | **one-shot** | `/one-shot` | Min questions; cheap local→cage→cloud loops until DoD green (lab required) |
 | **marketing-council** | `/marketing-council` | First-party multi-advisor marketing council + dissenter (T-0011) |
-| **investigate** | `/investigate` | Root-cause debugging — no fix without confirmed hypothesis (T-0017) |
+| **investigate** | `/investigate` | Root-cause debugging - no fix without confirmed hypothesis (T-0017) |
 | docs | `/docs` | Portable module/ops docs for any project |
 | adr | `/adr` | Architecture decisions + rejected alternatives |
 | open-questions | `/open-questions` | TBD parking lot |
@@ -182,17 +182,17 @@ One-shot design: [docs/ops/one-shot-workflow.md](docs/ops/one-shot-workflow.md) 
 - Methodology: taxonomy, rubric, SUBTREES, aggregates intake.
 - Process layout: DESIGN + multi-file ADR + TODO + open questions (ADR-0001).
 - **Grok CLI bootstrap** + **project-process** scaffold (replayable operator + new-project process).
-- **Phase 0 catalog sync:** mobile X seeds Entries 001–010 + structured `data/tools.json` (18 tools); see [TOOLS.md](TOOLS.md).
+- **Phase 0 catalog sync:** mobile X seeds Entries 001-010 + structured `data/tools.json` (18 tools); see [TOOLS.md](TOOLS.md).
 - **agent-cage (PNNL)** as primary **container integration lab** under [`harness/agent-cage/`](harness/agent-cage/) (Make + pin + MCP).
 - **`/catalog-docs`** skill for repository documentation consistency.
 - Deploy runbook: [docs/ops/DEPLOY.md](docs/ops/DEPLOY.md).
 
 **Next steps** (authoritative: [docs/TODO.md](docs/TODO.md) · GitHub issues):
 
-1. ~~Cage smokes + tool integrations~~ (done) — see `make help-platform`  
-2. Write-guard MCP implement — T-0031  
-3. Skill ports (mattpocock / marketing-council / gstack patterns) — T-0011  
-4. Eval harness prototype — T-0003 / OQ-0002  
+1. ~~Cage smokes + tool integrations~~ (done) - see `make help-platform`  
+2. Write-guard MCP implement - T-0031  
+3. Skill ports (mattpocock / marketing-council / gstack patterns) - T-0011  
+4. Eval harness prototype - T-0003 / OQ-0002  
 
 Plans: [docs/ops/harness-integration-framework.md](docs/ops/harness-integration-framework.md).
 
@@ -202,7 +202,7 @@ Full new-machine path: **[docs/ops/DEPLOY.md](docs/ops/DEPLOY.md)**.
 
 ## Bootstrap (new machine + new projects)
 
-### Simple path (recommended — G8)
+### Simple path (recommended - G8)
 
 One launcher. Inference first, then product stage, then the native operator window.
 
@@ -262,7 +262,7 @@ Daily headless build is the [Daily build](#daily-build) section above. `make env
 | Profile | Intent |
 |---------|--------|
 | `local-only` | Local models only; no cloud keys required |
-| `balanced` | Default — local bulk + cloud (e.g. Grok) for hard tasks |
+| `balanced` | Default - local bulk + cloud (e.g. Grok) for hard tasks |
 | `max-performance` | Cloud-first; local optional |
 
 Registry of all vars: [bootstrap/env/REGISTRY.md](bootstrap/env/REGISTRY.md).  
@@ -295,9 +295,9 @@ Details: [bootstrap/project-process/README.md](bootstrap/project-process/README.
 ### Container harness (integration lab)
 
 **Prefer testing catalog integrations inside this cage** (versioned images), not only on the host.  
-**Filesystem writes:** stock cage MCP can r/w `/workspace`; **write-guard MCP** v0.1 adds audit/enforce policy — `make smoke-write-guard` · [docs/modules/write-guard-mcp.md](docs/modules/write-guard-mcp.md) · ADR-0007.
+**Filesystem writes:** stock cage MCP can r/w `/workspace`; **write-guard MCP** v0.1 adds audit/enforce policy - `make smoke-write-guard` · [docs/modules/write-guard-mcp.md](docs/modules/write-guard-mcp.md) · ADR-0007.
 
-From **repo root** (do not run bare `make test` expecting cage — use `cage-*` targets):
+From **repo root** (do not run bare `make test` expecting cage - use `cage-*` targets):
 
 ```bash
 export PATH="$HOME/.local/bin:$PATH"
@@ -355,7 +355,7 @@ pfy-mentat/
 
 ## Catalog & scoring (summary)
 
-See [CATEGORIZATION.md](CATEGORIZATION.md) and [TOOLS.md](TOOLS.md). Tools get Stage 0 gate + weighted Stages 1–4 → overall 0–100 → S/A/B/C tiers. Focus: Grok CLI, tool calling, MCP memory, pipeline extensibility, and deployability.
+See [CATEGORIZATION.md](CATEGORIZATION.md) and [TOOLS.md](TOOLS.md). Tools get Stage 0 gate + weighted Stages 1-4 → overall 0-100 → S/A/B/C tiers. Focus: Grok CLI, tool calling, MCP memory, pipeline extensibility, and deployability.
 
 ### Highlighted tools
 
@@ -366,7 +366,7 @@ See [CATEGORIZATION.md](CATEGORIZATION.md) and [TOOLS.md](TOOLS.md). Tools get S
 | **agent-cage (PNNL)** | 90 | S | pin + `harness/agent-cage/` |
 | codebase-memory-mcp | 91 | S | pin + bootstrap MCP |
 | LiteLLM / Ollama | 93 / 92 | S | pinned_commit |
-| repowise / gstack / Multica / mattpocock / marketing-skills | 85–88 | A | pin / skill snapshots |
+| repowise / gstack / Multica / mattpocock / marketing-skills | 85-88 | A | pin / skill snapshots |
 | colibri | 86 | A | pin (weights not in-repo) |
 
 Full table: [TOOLS.md](TOOLS.md). Seeds: [sources/x-posts.md](sources/x-posts.md).
@@ -374,7 +374,7 @@ Full table: [TOOLS.md](TOOLS.md). Seeds: [sources/x-posts.md](sources/x-posts.md
 ## How to contribute
 
 1. Read [CONTRIBUTING.md](CONTRIBUTING.md).
-2. High-signal tools that meet the Stage 0 gate are welcome — open an issue or PR with the link and a short justification.
+2. High-signal tools that meet the Stage 0 gate are welcome - open an issue or PR with the link and a short justification.
 3. New X/tool: apply rubric → **triple-write** x-posts + TOOLS.md + tools.json (or run `/catalog-docs seed`). Automation and operators will triage with receipts on the next pass.
 4. Integration experiment: prefer `harness/agent-cage` for isolation; record notes in TOOLS.md.
 5. Architecture pivot: `/adr`. Unsettled: `/open-questions`. Docs drift: `/catalog-docs audit`.

@@ -1,7 +1,12 @@
-# G0 gates — no LLM required.
+# G0 gates - no LLM required.
 # Branch landings and workflow_dispatch use the GitHub-hosted ubuntu job only.
 # The self-hosted nimo job runs on push to main or master, and on the schedule.
 # Nimo evidence for a branch landing is the pregate cache, not this runner.
+# The nimo job is gated on repository variable PFY_DEANERY_NIMO_RUNNER.
+# Set it to the string 'true' only after a pfy-deanery self-hosted runner is
+# registered (pfy-mentat #320 step 3). While the variable is unset the nimo
+# job skips (does not queue) and hosted G0 shards are unaffected. That skip
+# is not a hidden failure.
 name: eval-structural
 
 on:

@@ -49,17 +49,19 @@ class ReleaseNotesFollowVersion(unittest.TestCase):
         )
 
 class ReleaseNotesUsePlainPunctuation(unittest.TestCase):
-    """Release notes, CHANGELOG, and README version lines use plain punctuation.
+    """README, CHANGELOG, and the current release notes use plain punctuation.
 
-    Scoped to the current pyproject version so pre-existing README dashes
-    are out of scope. Catches em (U+2014) and en (U+2013) dashes.
+    These three files are the user-facing v0.5.0 surfaces. Catches em
+    (U+2014) and en (U+2013) dashes in the whole file. Other docs are
+    out of scope.
     """
 
     def test_release_files_have_no_em_or_en_dashes(self) -> None:
         version = _project_version()
         paths = [
-            ROOT / "docs" / "release-notes" / f"v{version}.md",
+            ROOT / "README.md",
             ROOT / "CHANGELOG.md",
+            ROOT / "docs" / "release-notes" / f"v{version}.md",
         ]
         offenders: list[str] = []
         for path in paths:
@@ -67,13 +69,6 @@ class ReleaseNotesUsePlainPunctuation(unittest.TestCase):
             for i, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
                 if "—" in line or "–" in line:
                     offenders.append("%s:%d" % (path.relative_to(ROOT), i))
-        readme = ROOT / "README.md"
-        self.assertTrue(readme.is_file())
-        for i, line in enumerate(readme.read_text(encoding="utf-8").splitlines(), 1):
-            if version not in line:
-                continue
-            if "—" in line or "–" in line:
-                offenders.append("README.md:%d" % i)
         self.assertEqual(
             offenders,
             [],
