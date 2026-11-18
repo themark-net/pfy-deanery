@@ -67,7 +67,7 @@ class ReleaseNotesUsePlainPunctuation(unittest.TestCase):
         for path in paths:
             self.assertTrue(path.is_file(), path)
             for i, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-                if "—" in line or "–" in line:
+                if "\u2014" in line or "\u2013" in line:
                     offenders.append("%s:%d" % (path.relative_to(ROOT), i))
         self.assertEqual(
             offenders,
