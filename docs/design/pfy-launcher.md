@@ -192,7 +192,7 @@ DoD: `pfy toolset matrix` shows no `stub` for the 6 primary harnesses on `core`.
 
 ### Phase 4: update, release, GUI
 Tagged releases with a SHA256 manifest. `pfy update` (self-update, then a printed scoped refresh). The Loop GUI "Launch session" calls the same plan/apply/launch API. An optional MCP Registry / skills.sh listing for pfy's own skills pack.
-DoD: from tag N, `pfy update` moves to N+1 and verifies `pfy --version`. A tampered tarball is refused. The GUI apply produces the same ledger as the CLI apply.
+DoD: from tag N, `pfy update` moves to N+1 and verifies `pfy --version`. A tampered tarball is refused. The GUI apply produces the same ledger as the CLI apply (`$PFY_STATE_DIR/installed.json` via the shared `toolsets.apply` writer; setup's XDG ledger is separate).
 
 ## 14. Open questions (to file as OQs)
 

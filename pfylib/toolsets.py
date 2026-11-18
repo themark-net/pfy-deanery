@@ -5,7 +5,8 @@ harness in ``data/harnesses.json``. ``matrix()`` is the honest status grid;
 ``plan()`` turns one cell into a concrete apply plan (env dict, files to
 write, MCP/config fragments, brief text) or an honest STUB / FAIL with a next
 step; ``apply()`` writes a plan only with ``yes=True`` and only under
-``$PFY_STATE_DIR`` or the harness's own config dir.
+``$PFY_STATE_DIR`` or the harness's own config dir, and records those
+writes in ``$PFY_STATE_DIR/installed.json`` through ``pfylib.ledger``.
 
 Every ``plan()`` body imports its issue-numbered script through ``_legacy``
 and translates that script's existing "apply env / write brief / MCP
@@ -24,7 +25,7 @@ import json
 import os
 from pathlib import Path
 
-from . import _legacy, registry
+from . import _legacy, ledger, registry
 
 STATUSES = registry.STATUSES
 LANES = registry.LANES
@@ -679,6 +680,12 @@ def apply(p: dict, *, yes: bool = False, state: Path | None = None, root_dir: Pa
     out["applied"] = applied
     out["failed"] = failed
     out["dry_run"] = False
+    if applied:
+        try:
+            out["ledger"] = str(ledger.record_apply(state, harness=hid, item=tid, applied=applied))
+        except (OSError, json.JSONDecodeError) as e:
+            failed.append({"path": str(ledger.path_for(state)), "result": "FAIL: %s" % str(e)[:160]})
+            out["failed"] = failed
     if failed:
         out["ok"] = False
         out["live"] = "FAIL"
