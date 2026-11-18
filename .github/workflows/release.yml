@@ -1,3 +1,4 @@
+# release.yml rule (PM 2026-11-17 8:35pm PT): only run or dispatch release.yml for a tag whose target SHA has both Tester PASS and Reviewer PASS at that exact SHA; Deanery tags also require Mark's approval; never use it to bypass the gate.
 # Publish a GitHub Release for an existing v* tag.
 # The tag is the source of truth: this job checks out that tag, requires
 # docs/release-notes/<tag>.md and a matching pyproject version, then creates
