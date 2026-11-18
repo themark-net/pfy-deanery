@@ -17,7 +17,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     __package__ = "pfylib"  # noqa: A001 -- PEP 366 so relative imports work when run by path
 
-from . import hedge, lane_spend, model_choice, registry, setup, toolsets  # noqa: E402
+from . import hedge, lane_spend, launch, model_choice, registry, setup, toolsets  # noqa: E402
 
 EXIT_READY, EXIT_FAIL, EXIT_USAGE, EXIT_STUB = 0, 1, 2, 3
 
@@ -199,6 +199,10 @@ def _hedge_ledger(args) -> int:
     return EXIT_READY
 
 
+
+def _launch_verb(args) -> int:
+    return launch.cmd_launch(args)
+
 def _setup_verb(args) -> int:
     return setup.cmd_setup(args)
 
@@ -373,6 +377,16 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--json", action="store_true")
     sp.add_argument("--dry-run", action="store_true")
     sp.set_defaults(fn=_uninstall_verb)
+
+
+    lp = verbs.add_parser("launch", help="launch a harness with a local model source (Phase 2)")
+    lp.add_argument("harness")
+    lp.add_argument("--model", default="", help="model source, for example ollama:qwen3.6:35b")
+    lp.add_argument("--dry-run", action="store_true")
+    lp.add_argument("--yes", action="store_true")
+    lp.add_argument("--json", action="store_true")
+    lp.add_argument("passthrough", nargs="*", help="args after -- are passed through")
+    lp.set_defaults(fn=_launch_verb)
 
     lane_spend.register(verbs)
     return ap

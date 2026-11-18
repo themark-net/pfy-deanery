@@ -1,4 +1,4 @@
-"""Claude Code adapter. No launch()."""
+"""Claude Code adapter. Launch planning is pfylib.launch (Phase 2 first slice)."""
 # resolution follows morluto/rea SupportedClients, MIT
 from __future__ import annotations
 

@@ -257,6 +257,9 @@ pfy — simple setup & launch for the pfy-deanery stack
   pfy launch [--headless]   Launch session; headless with --headless or no display
   pfy launch status|stop    recorded headless session only
   pfy launch lane|toolset|harness|decision|review|compose
+  pfy launch <harness> --model ollama:<tag> [--yes] [--dry-run] [--json]
+                          Phase 2: plan (and later exec) a harness with a local model;
+                          does not write model settings into harness config
   pfy decision            Jev-style typed Choice/Score (#230; CUA-S1-FORMS local)
   pfy decision off|cua-s1-forms|typesafe|mini-jev
   pfy decision smoke      operator-free CUA-S1-FORMS Choice (no TypeSafe key)
@@ -2409,7 +2412,17 @@ main() {
       exec python3 "$ROOT/pfylib/cli.py" compare "$@"
       ;;
     catalog) cmd_catalog "$@" ;;
-    launch) cmd_launch "$@" ;;
+    launch)
+      _pfy_lsub="${1:-}"
+      case "$_pfy_lsub" in
+        session|status|stop|runtime|health|lane|toolset|toolsets|mode|harness|review|decision|jev|compose|paint|brief|go|--headless|"")
+          cmd_launch "$@"
+          ;;
+        *)
+          exec python3 "$ROOT/pfylib/cli.py" launch "$@"
+          ;;
+      esac
+      ;;
     build) cmd_build "$@" ;;
     eval-local-build) exec python3 "$ROOT/scripts/pfy_local_build_eval.py" "$@" ;;
     decision|jev) cmd_decision "$@" ;;

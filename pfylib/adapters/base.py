@@ -1,4 +1,4 @@
-"""Shared adapter types. No launch() in phase 1."""
+"""Shared adapter types. Phase 2 launch planning lives in pfylib.launch."""
 # resolution follows morluto/rea SupportedClients, MIT
 from __future__ import annotations
 
