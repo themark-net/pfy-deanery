@@ -1,0 +1,57 @@
+# Publish a GitHub Release for an existing v* tag.
+# The tag is the source of truth: this job checks out that tag, requires
+# docs/release-notes/<tag>.md and a matching pyproject version, then creates
+# the release with those notes. It never moves or recreates the tag.
+# If the release already exists, the job exits 0 and leaves it unchanged.
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing git tag to publish, for example v0.5.0"
+        required: true
+        type: string
+
+jobs:
+  github-release:
+    name: GitHub release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+    steps:
+      - name: Require a v* tag
+        run: |
+          set -euo pipefail
+          tag="${TAG}"
+          case "$tag" in
+            v*) ;;
+            *)
+              echo "FAIL: tag must look like v0.5.0, got ${tag:-empty}"
+              exit 1
+              ;;
+          esac
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ env.TAG }}
+          fetch-depth: 1
+      - name: Verify release notes and pyproject version at this tag
+        run: python3 scripts/check_github_release.py "$TAG"
+      - name: Create the GitHub release if missing
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "release $TAG already exists; leaving it unchanged"
+            exit 0
+          fi
+          gh release create "$TAG" \
+            --title "Deanery $TAG" \
+            --notes-file "docs/release-notes/${TAG}.md"
