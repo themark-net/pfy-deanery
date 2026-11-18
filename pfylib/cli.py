@@ -394,9 +394,21 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    raw = list(sys.argv[1:] if argv is None else argv)
+    after = []
+    if "--" in raw:
+        idx = raw.index("--")
+        verbs = [tok for tok in raw[:idx] if not tok.startswith("-")]
+        if verbs and verbs[0] == "launch":
+            # Hosted CPython still reports `-- --quiet` as unrecognized when
+            # a remainder flag follows `--`; peel it off before parse_args.
+            after = raw[idx + 1 :]
+            raw = raw[:idx]
     ap = build_parser()
     try:
-        args = ap.parse_args(argv)
+        args = ap.parse_args(raw)
+        if after:
+            args.passthrough = list(getattr(args, "passthrough", None) or []) + after
     except SystemExit as e:
         return EXIT_USAGE if e.code not in (0, None) else 0
     try:

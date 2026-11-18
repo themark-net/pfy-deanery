@@ -506,6 +506,8 @@ def cmd_launch(args: Any) -> int:
     yes = bool(getattr(args, "yes", False))
     max_usd = getattr(args, "max_usd", None)
     extra = list(getattr(args, "passthrough", None) or [])
+    if extra and extra[0] == "--":
+        extra = extra[1:]
     needs_pick = (not hid) or (hid != "grok" and not model)
     if needs_pick:
         try:

@@ -207,7 +207,7 @@ class LaunchDefaultsE2E(unittest.TestCase):
         base = self._serve()
         self._harness("grok")
         env = self._env(LOCAL_OPENAI_BASE_URL=base)
-        launched = self._run(["launch"], env)
+        launched = self._run(["launch", "session"], env)
         self._assert_no_host_ollama()
         blob = launched.stdout + launched.stderr
         self.assertIn("defaults: lane local, toolsets bare, harness grok", blob)
@@ -240,7 +240,7 @@ class LaunchDefaultsE2E(unittest.TestCase):
         ):
             proc = self._run(args, env)
             self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
-        launched = self._run(["launch"], env)
+        launched = self._run(["launch", "session"], env)
         self._assert_no_host_ollama()
         blob = launched.stdout + launched.stderr
         self.assertNotIn("harness grok", blob)
@@ -257,7 +257,7 @@ class LaunchDefaultsE2E(unittest.TestCase):
         closed = "http://127.0.0.1:%d" % _closed_port()
         self._harness("grok")
         env = self._env(LOCAL_OPENAI_BASE_URL=closed)
-        proc = self._run(["launch"], env)
+        proc = self._run(["launch", "session"], env)
         self._assert_no_host_ollama()
         blob = proc.stdout + proc.stderr
         self.assertEqual(proc.returncode, 2, blob)
@@ -272,7 +272,7 @@ class LaunchDefaultsE2E(unittest.TestCase):
     def test_no_ready_harness_fails_with_install_hint(self):
         base = self._serve()
         env = self._env(LOCAL_OPENAI_BASE_URL=base)
-        proc = self._run(["launch"], env)
+        proc = self._run(["launch", "session"], env)
         self._assert_no_host_ollama()
         blob = proc.stdout + proc.stderr
         self.assertEqual(proc.returncode, 2, blob)
@@ -288,7 +288,7 @@ class LaunchDefaultsE2E(unittest.TestCase):
         self._harness("opencode")
         (self.state / "active-harness").write_text("opencode\n", encoding="utf-8")
         env = self._env(LOCAL_OPENAI_BASE_URL=base)
-        launched = self._run(["launch"], env)
+        launched = self._run(["launch", "session"], env)
         blob = launched.stdout + launched.stderr
         self.assertIn("defaults: lane local, toolsets bare, harness opencode", blob)
         self.assertNotIn("harness grok", blob)
@@ -300,7 +300,7 @@ class LaunchDefaultsE2E(unittest.TestCase):
         self._harness("grok")
         (self.state / "active-harness").write_text("hermes\n", encoding="utf-8")
         env = self._env(LOCAL_OPENAI_BASE_URL=base)
-        launched = self._run(["launch"], env)
+        launched = self._run(["launch", "session"], env)
         blob = launched.stdout + launched.stderr
         self.assertIn("defaults: lane local, toolsets bare, harness grok", blob)
         state = json.loads((self.state / "launch-wizard.json").read_text(encoding="utf-8"))
@@ -310,7 +310,7 @@ class LaunchDefaultsE2E(unittest.TestCase):
         base = self._serve()
         self._harness("opencode")
         env = self._env(LOCAL_OPENAI_BASE_URL=base)
-        launched = self._run(["launch"], env)
+        launched = self._run(["launch", "session"], env)
         blob = launched.stdout + launched.stderr
         self.assertIn("defaults: lane local, toolsets bare, harness opencode", blob)
         self.assertNotIn(INSTALL_HINT, blob)

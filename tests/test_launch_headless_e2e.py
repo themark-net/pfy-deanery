@@ -572,7 +572,7 @@ exec CURLBIN "$@"
 
     def test_bare_launch_without_display_setsid_falls_back(self):
         env = self._env()
-        body, _blob = self._launch_ok(["launch"], env)
+        body, _blob = self._launch_ok(["launch", "session"], env)
         pid = int(body.get("pid") or 0)
         self.assertEqual(body.get("session"), (self.state / "headless-session.name").read_text(encoding="utf-8").strip())
         self.assertTrue(str(body.get("session") or "").startswith("pfy-grok-"))
@@ -597,7 +597,7 @@ exec CURLBIN "$@"
         for name in TERMINAL_NAMES:
             os.symlink(shim, self.bindir / name)
         env = self._env({"DISPLAY": ":99"})
-        body, blob = self._launch_ok(["launch"], env)
+        body, blob = self._launch_ok(["launch", "session"], env)
         self.assertFalse(body.get("headless"), blob[-1500:])
         self.assertFalse((self.state / "headless-session.name").exists(), blob[-1500:])
         self.assertFalse(self.mux_log.exists())
@@ -706,7 +706,7 @@ exec CURLBIN "$@"
         before = set(_pid_list(self.pids_path))
         self.engine.mode = "empty"
         env = self._env()
-        proc = self._run(["launch"], env, 45)
+        proc = self._run(["launch", "session"], env, 45)
         blob = (proc.stdout or "") + (proc.stderr or "")
         body = _json_object(proc.stdout)
         self.assertNotEqual(proc.returncode, 0, blob[-2500:])

@@ -391,7 +391,7 @@ class LaunchSessionE2E(unittest.TestCase):
         self.engine.posts.clear()
         env = self._env(extra, terminal_exit=terminal_exit)
         self._compose(env)
-        proc = self._run(["launch"], env, 45)
+        proc = self._run(["launch", "session"], env, 45)
         return proc, _json_object(proc.stdout)
 
     def _assert_foreign_untouched(self):
