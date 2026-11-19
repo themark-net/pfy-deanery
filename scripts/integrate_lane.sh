@@ -301,7 +301,7 @@ run_grok() {
     set +e
     (
       cd "$WT"
-      run_checked bash "$SCRIPT_DIR/model_lock.sh" "${PFY_GROK_BIN:-grok}" --always-approve --output-format plain --prompt-file "$prompt"
+      run_checked bash "$SCRIPT_DIR/model_lock.sh" python3 "$SCRIPT_DIR/lane_cage.py" grok --kind integrate --wt "$WT" --prompt "$prompt" --grok "${PFY_GROK_BIN:-grok}"
     ) >"$log" 2>&1
     rc=$?
     set -e
@@ -314,6 +314,11 @@ run_grok() {
     if [ "$rc" -eq 0 ]; then
       progress "$SLUG grok $label ok"
       return 0
+    fi
+    if [ "$rc" -eq 2 ] && grep -q '^lane-cage: ' "$log"; then
+      progress "$SLUG grok $label: lane cage unavailable"
+      tail -n 5 "$log" >&2 || true
+      return 5
     fi
     progress "$SLUG grok $label attempt $try failed"
     try=$((try + 1))
@@ -344,14 +349,18 @@ preamble=$(python3 "$SCRIPT_DIR/../pfylib/untrusted_text.py" preamble) || park_e
 } > "$review"
 
 run_grok implement "$impl" || {
-  if [ "$?" -eq 4 ]; then park_exit "cloud cost gate skipped (\$0 spend)"; fi
+  rc=$?
+  if [ "$rc" -eq 4 ]; then park_exit "cloud cost gate skipped (\$0 spend)"; fi
+  if [ "$rc" -eq 5 ]; then park_exit "lane cage unavailable (no unconfined fallback)"; fi
   park_exit "grok implement failed"
 }
 if [ -f "$ROOT/tmp/STOP" ] || [ -f "$WT/tmp/STOP" ]; then
   park_exit "STOP file" 0
 fi
 run_grok review "$review" || {
-  if [ "$?" -eq 4 ]; then park_exit "cloud cost gate skipped (\$0 spend)"; fi
+  rc=$?
+  if [ "$rc" -eq 4 ]; then park_exit "cloud cost gate skipped (\$0 spend)"; fi
+  if [ "$rc" -eq 5 ]; then park_exit "lane cage unavailable (no unconfined fallback)"; fi
   park_exit "grok self-review failed"
 }
 if [ -f "$ROOT/tmp/STOP" ] || [ -f "$WT/tmp/STOP" ]; then
@@ -361,6 +370,25 @@ fi
 if [ -n "$(git -C "$WT" status --porcelain)" ]; then
   park_exit "dirty worktree after grok"
 fi
+
+# Fix 2: the lane's commits must stay inside its own slug's data. Anything
+# else goes to the full Tester + Reviewer gate. This runs before the driver
+# executes anything from the worktree on the host.
+path_guard() {
+  python3 "$SCRIPT_DIR/lane_path_guard.py" --kind integrate --slug "$SLUG" --wt "$WT" > "$MARK_DIR/${SLUG}.paths" 2>&1
+}
+set +e
+path_guard
+pg_rc=$?
+set -e
+if [ "$pg_rc" -ne 0 ]; then
+  cat "$MARK_DIR/${SLUG}.paths" >&2 || true
+  if [ "$pg_rc" -eq 3 ]; then
+    park_exit "path allowlist: full gate needed ($(grep -c 'full gate' "$MARK_DIR/${SLUG}.paths") path(s), see ${SLUG}.paths)"
+  fi
+  park_exit "path guard failed"
+fi
+progress "$SLUG path guard ok"
 
 # Operator records (prose report, traces, raw logs) go to the private ops
 # checkout. Public keeps the scrubbed VERDICT, receipt, probe, and fixtures.
@@ -463,7 +491,7 @@ progress "$SLUG test_select mode=$mode modules=${#modules[@]}"
 if [ "${#modules[@]}" -gt 0 ]; then
   (
     cd "$WT"
-    python3 scripts/run_tests.py "${modules[@]}"
+    python3 "$SCRIPT_DIR/lane_cage.py" exec --wt "$WT" -- python3 scripts/run_tests.py "${modules[@]}"
   ) || park_exit "run_tests failed"
 fi
 
@@ -473,6 +501,8 @@ land() {
   attempt=1
   while [ "$attempt" -le 3 ]; do
     run_checked git -C "$ROOT" fetch origin >&2 || return 1
+    # Re-check the allowlist on the exact commit that would land.
+    path_guard || return 1
     if run_checked git -C "$ROOT" merge-base --is-ancestor origin/main "$sha"; then
       if run_checked git -C "$ROOT" push origin "${sha}:refs/heads/main" >&2; then
         printf '%s\n' "$sha"
@@ -498,7 +528,7 @@ receipt_script="$WT/eval/integrate/${SLUG}/run-on-main.sh"
 if [ -f "$receipt_script" ]; then
   run_checked git -C "$WT" fetch origin >&2 || progress "$SLUG receipt fetch failed"
   receipt_path="$WT/eval/integrate/${SLUG}/receipt.json"
-  if (cd "$WT" && bash "$receipt_script" "$receipt_path"); then
+  if python3 "$SCRIPT_DIR/lane_cage.py" exec --wt "$WT" -- bash "$receipt_script" "$receipt_path"; then
     progress "$SLUG receipt wrote"
   else
     progress "$SLUG receipt refused"

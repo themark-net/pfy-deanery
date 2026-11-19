@@ -115,8 +115,10 @@ class LaneHookTest(unittest.TestCase):
                     if grep -q "Self-review" "$prompt"; then
                       exit 0
                     fi
-                    printf '%s\\n' 'print("landed")' > landed.py
-                    git add landed.py
+                    slug=$(grep -o 'TICKET-[a-z0-9-]*' "$prompt" | head -n 1 | sed 's/^TICKET-//')
+                    mkdir -p "eval/integrate/$slug"
+                    printf '%s\\n' 'print("landed")' > "eval/integrate/$slug/landed.py"
+                    git add "eval/integrate/$slug/landed.py"
                     git commit -m "land widget"
                     exit 0
                     """

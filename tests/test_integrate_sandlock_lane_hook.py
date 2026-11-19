@@ -83,8 +83,8 @@ class SandlockLaneHookTest(unittest.TestCase):
                 if grep -q "Self-review" "$prompt"; then
                   exit 0
                 fi
-                printf '%s\\n' 'print("hook")' > hook.py
-                git add hook.py
+                printf '%s\\n' 'print("hook")' > eval/integrate/hookslug/hook.py
+                git add eval/integrate/hookslug/hook.py
                 git commit -m "land hook"
                 exit 0
             """))
@@ -116,7 +116,7 @@ class SandlockLaneHookTest(unittest.TestCase):
             ).strip()
             self.assertEqual(remote, sha)
             showed = subprocess.check_output(
-                ["git", "--git-dir", str(bare), "show", "main:hook.py"], text=True
+                ["git", "--git-dir", str(bare), "show", "main:eval/integrate/hookslug/hook.py"], text=True
             )
             self.assertIn("hook", showed)
             missing = subprocess.run(

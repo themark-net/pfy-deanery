@@ -122,7 +122,7 @@ fi
 
 if ! (
   cd "$WT"
-  run_checked bash "$SCRIPT_DIR/model_lock.sh" "$GROK_BIN" --cwd "$WT" --always-approve --output-format plain --prompt-file "$prompt"
+  run_checked bash "$SCRIPT_DIR/model_lock.sh" python3 "$SCRIPT_DIR/lane_cage.py" grok --kind supersede --wt "$WT" --prompt "$prompt" --grok "$GROK_BIN"
 ) >"$MARK_DIR/recheck.log" 2>&1; then
   park_exit "grok failed"
 fi

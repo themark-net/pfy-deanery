@@ -4,6 +4,8 @@
 # into the runtime dir, then runs scripts/catalog_loop.sh in the loop worktree.
 # A credential prompt is off. Type=oneshot and Nice=10.
 # Set PFY_LOOP_REPO and PFY_OPS_ROOT in %h/.config/pfy/loop.env.
+# Optional PFY_LOOP_REF (full SHA or loop-reviewed-* tag already on origin/main)
+# pins the loop to a reviewed commit instead of whatever origin/main holds.
 # PFY_OPS_ROOT is the private ops checkout. The needs-mark queue is written and
 # committed there, never in the public repo.
 [Unit]
@@ -14,4 +16,4 @@ EnvironmentFile=-%h/.config/pfy/loop.env
 Type=oneshot
 Nice=10
 WorkingDirectory=%h
-ExecStart=/bin/bash -c 'GIT_DIR=${PFY_LOOP_REPO}/.git GIT_TERMINAL_PROMPT=0 git fetch -q origin && GIT_DIR=${PFY_LOOP_REPO}/.git GIT_TERMINAL_PROMPT=0 git show origin/main:scripts/loop_worktree.sh > %t/pfy-loop-worktree.sh && exec /bin/bash %t/pfy-loop-worktree.sh -- scripts/catalog_loop.sh'
+ExecStart=/bin/bash -c 'GIT_DIR=${PFY_LOOP_REPO}/.git GIT_TERMINAL_PROMPT=0 git fetch -q --tags origin && GIT_DIR=${PFY_LOOP_REPO}/.git GIT_TERMINAL_PROMPT=0 git show "${PFY_LOOP_REF:-origin/main}":scripts/loop_worktree.sh > %t/pfy-loop-worktree.sh && exec /bin/bash %t/pfy-loop-worktree.sh -- scripts/catalog_loop.sh'

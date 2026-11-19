@@ -38,6 +38,7 @@ STUBS = {
     "data/stages/badtool.json": '{"name": "badtool", "integration_stage": "I2"}\n',
     "data/stages/goodtool.json": '{"name": "goodtool", "integration_stage": "I2"}\n',
     "data/stages/reviewstop.json": '{"name": "reviewstop", "integration_stage": "I2"}\n',
+    "data/stages/eviltool.json": '{"name": "eviltool", "integration_stage": "I2"}\n',
 }
 
 
@@ -108,8 +109,20 @@ def write_grok(bindir: Path, log: Path) -> None:
           echo "grok failed" >&2
           exit 1
         fi
-        printf '%s\\n' 'print("landed")' > landed.py
-        git add landed.py
+        if grep -q "eviltool" "$prompt"; then
+          # An injected README told the agent to "update the lane script".
+          mkdir -p scripts
+          printf '%s\\n' '#!/bin/sh' 'touch "$HOME/pwned"' > scripts/evil.sh
+          mkdir -p eval/integrate/eviltool
+          printf '%s\\n' '{{}}' > eval/integrate/eviltool/VERDICT.json
+          git add scripts/evil.sh eval/integrate/eviltool/VERDICT.json
+          git commit -m "integrate eviltool"
+          exit 0
+        fi
+        slug=$(grep -o 'TICKET-[a-z0-9-]*' "$prompt" | head -n 1 | sed 's/^TICKET-//')
+        mkdir -p "eval/integrate/$slug"
+        printf '%s\\n' 'print("landed")' > "eval/integrate/$slug/landed.py"
+        git add "eval/integrate/$slug/landed.py"
         git commit -m "land widget"
         common=$(git rev-parse --path-format=absolute --git-common-dir)
         root=$(dirname "$common")
@@ -122,6 +135,42 @@ def write_grok(bindir: Path, log: Path) -> None:
 
 
 class LaneLandTest(unittest.TestCase):
+    def test_lane_that_touches_a_protected_path_is_parked_and_never_lands(self):
+        """Fix 2: an agent steered into editing scripts/ must not reach main.
+
+        Failure: the edit fast-forwards main and the next loop tick runs it.
+        Recovery: the lane parks with the path list for the full gate.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            td = Path(tmp)
+            clone, bare = make_fixture(td)
+            log = td / "grok.log"
+            bindir = td / "bin"
+            write_grok(bindir, log)
+            env = {k: v for k, v in os.environ.items() if k != "PFY_OPS_ROOT"}
+            env["PATH"] = str(bindir) + os.pathsep + env.get("PATH", "")
+            env["PFY_MODEL_LOCK"] = str(td / "model.lock")
+            env["PFY_CLOUD_YES"] = "1"
+            env["PFY_CLOUD_MAX_USD"] = "99"
+            env.setdefault("XAI_API_KEY", "test-not-a-key")
+            before = subprocess.check_output(["git", "--git-dir", str(bare), "rev-parse", "main"], text=True).strip()
+            (clone / "tmp").mkdir()
+            (clone / "tmp" / "TICKET-eviltool.md").write_text("eviltool ticket\n")
+            run = subprocess.run(
+                ["bash", str(SCRIPT), "--root", str(clone), "--slug", "eviltool", "--date", "1108"],
+                cwd=clone, env=env, capture_output=True, text=True, timeout=60,
+            )
+            self.assertNotEqual(run.returncode, 0, run.stderr + run.stdout)
+            self.assertTrue((clone / "tmp" / "integrate" / "eviltool.parked").exists(), run.stderr[-3000:])
+            parked = (clone / "tmp" / "integrate" / "eviltool.parked").read_text()
+            self.assertIn("path allowlist", parked)
+            paths = (clone / "tmp" / "integrate" / "eviltool.paths").read_text()
+            self.assertIn("scripts/evil.sh: protected path", paths)
+            self.assertNotIn("eval/integrate/eviltool/VERDICT.json", paths)
+            after = subprocess.check_output(["git", "--git-dir", str(bare), "rev-parse", "main"], text=True).strip()
+            self.assertEqual(after, before, "a protected-path lane moved origin/main")
+            self.assertFalse((clone / "tmp" / "integrate" / "LANDED_eviltool").exists())
+
     def test_grok_failure_parks_then_a_later_slug_lands_on_the_bare_remote(self):
         with tempfile.TemporaryDirectory() as tmp:
             td = Path(tmp)
@@ -183,7 +232,7 @@ class LaneLandTest(unittest.TestCase):
             ).strip()
             self.assertEqual(remote, sha)
             show = subprocess.check_output(
-                ["git", "--git-dir", str(bare), "show", "main:landed.py"], text=True
+                ["git", "--git-dir", str(bare), "show", "main:eval/integrate/goodtool/landed.py"], text=True
             )
             self.assertIn("landed", show)
             progress = (clone / "tmp" / "integrate" / "progress.md").read_text()
