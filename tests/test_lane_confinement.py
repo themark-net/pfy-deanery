@@ -121,6 +121,38 @@ class CageArgvTest(unittest.TestCase):
         self.assertIn(f"--volume={common / 'config'}:{common / 'config'}:ro", argv)
         self.assertIn(f"--volume={common / 'hooks'}:{common / 'hooks'}:ro", argv)
 
+    def test_git_common_dir_is_mounted_read_only(self):
+        argv = cage_print("eval", self.wt, self.prompt)["argv"]
+        common, _gitdir = lane_cage.git_paths(self.wt)
+        self.assertIsNotNone(common)
+        self.assertIn(f"--volume={common}:{common}:ro", argv)
+        self.assertNotIn(f"--volume={common}:{common}:rw", argv)
+        self.assertTrue(any(a.startswith("--env=GIT_OBJECT_DIRECTORY=") for a in argv), argv)
+
+    def test_worktree_common_dir_is_read_only_and_objects_are_private(self):
+        repo = self.td / "repo"
+        repo.mkdir()
+        git(repo, "init", "-q", "-b", "main")
+        git(repo, "config", "user.email", "t@example.com")
+        git(repo, "config", "user.name", "T")
+        (repo / "README").write_text("x\n", encoding="utf-8")
+        git(repo, "add", "README")
+        git(repo, "commit", "-qm", "base")
+        wt = self.td / "lane"
+        git(repo, "worktree", "add", "-q", "-b", "lane", str(wt), "main")
+        argv = cage_print("eval", wt, self.prompt)["argv"]
+        common, gitdir = lane_cage.git_paths(wt)
+        self.assertIsNotNone(common)
+        self.assertNotEqual(common, gitdir)
+        self.assertIn(f"--volume={common}:{common}:ro", argv)
+        self.assertNotIn(f"--volume={common}:{common}:rw", argv)
+        self.assertTrue(any(a.startswith("--env=GIT_OBJECT_DIRECTORY=") for a in argv), argv)
+        # The shared objects path itself is not remounted read-write.
+        self.assertFalse(any(
+            a.startswith(f"--volume={common / 'objects'}:") and a.endswith(":rw")
+            for a in argv
+        ), argv)
+
     def test_injected_readme_does_not_change_tools_or_egress(self):
         clean = cage_print("eval", self.wt, self.prompt)
         injected_prompt = self.td / "p2.txt"
@@ -222,6 +254,74 @@ def _real_cage_ready() -> bool:
     return subprocess.run(["podman", "image", "exists", lane_cage.DEFAULT_IMAGE], capture_output=True).returncode == 0
 
 
+
+class GitStoreIsolationTest(unittest.TestCase):
+    """Host-side store helpers: a commit made in the private object dir is
+    imported onto only the result ref, and other refs stay put."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.td = Path(self.tmp.name)
+        self.repo = self.td / "repo"
+        self.repo.mkdir()
+        git(self.repo, "init", "-q", "-b", "main")
+        git(self.repo, "config", "user.email", "t@example.com")
+        git(self.repo, "config", "user.name", "T")
+        (self.repo / "README").write_text("base\n", encoding="utf-8")
+        git(self.repo, "add", "README")
+        git(self.repo, "commit", "-qm", "base")
+        self.main_sha = git(self.repo, "rev-parse", "HEAD").strip()
+        self.wt = self.td / "lane"
+        git(self.repo, "worktree", "add", "-q", "-b", "lane", str(self.wt), "main")
+        self.cage = self.td / "cage"
+        self.cage.mkdir()
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_import_updates_only_the_result_ref(self):
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        self.assertIsNotNone(store)
+        self.assertEqual(store.start_ref, "refs/heads/lane")
+        (self.wt / "work.txt").write_text("from the lane\n", encoding="utf-8")
+        env = dict(os.environ, GIT_OBJECT_DIRECTORY=str(store.objects))
+        subprocess.run(
+            ["git", "--git-dir", str(store.overlay), "--work-tree", str(self.wt),
+             "add", "work.txt"],
+            check=True, capture_output=True, text=True, env=env,
+        )
+        subprocess.run(
+            ["git", "--git-dir", str(store.overlay), "--work-tree", str(self.wt),
+             "-c", "user.email=t@example.com", "-c", "user.name=T",
+             "commit", "-qm", "lane work"],
+            check=True, capture_output=True, text=True, env=env,
+        )
+        new = subprocess.run(
+            ["git", "--git-dir", str(store.overlay), "rev-parse", "HEAD"],
+            check=True, capture_output=True, text=True, env=env,
+        ).stdout.strip()
+        # Before import, the shared branch has not moved.
+        self.assertEqual(git(self.wt, "rev-parse", "HEAD").strip(), self.main_sha)
+        self.assertEqual(git(self.repo, "rev-parse", "main").strip(), self.main_sha)
+        lane_cage.finalize_git_store(store)
+        self.assertEqual(git(self.wt, "rev-parse", "HEAD").strip(), new)
+        self.assertEqual(git(self.wt, "rev-parse", "refs/heads/lane").strip(), new)
+        self.assertEqual(git(self.repo, "rev-parse", "main").strip(), self.main_sha)
+        self.assertNotEqual(new, self.main_sha)
+        self.assertIn("work.txt", git(self.wt, "ls-tree", "-r", "--name-only", "HEAD"))
+
+    def test_write_probe_against_the_shared_store_is_not_copied_back(self):
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        # A caged process that wrote a private ref or a junk file in the
+        # overlay must not move main or leave a new shared ref.
+        (store.overlay / "refs" / "heads").mkdir(parents=True, exist_ok=True)
+        (store.overlay / "refs" / "heads" / "evil").write_text(self.main_sha + "\n")
+        lane_cage.finalize_git_store(store)
+        refs = git(self.repo, "show-ref")
+        self.assertNotIn("refs/heads/evil", refs)
+        self.assertEqual(git(self.repo, "rev-parse", "main").strip(), self.main_sha)
+
+
 @unittest.skipUnless(_real_cage_ready(), "rootless podman and localhost/pfy-test:3.12 needed (make test-image)")
 class RealCageTest(unittest.TestCase):
     def test_cage_hides_ssh_and_grok_and_only_reaches_xai(self):
@@ -254,6 +354,70 @@ class RealCageTest(unittest.TestCase):
         self.assertTrue(out["wt_writable"])
         self.assertIn("deny github.com:443", egress)
         self.assertNotIn("--always-approve", out["argv"])
+
+    def _lane_repo(self, td: Path):
+        repo = td / "repo"
+        repo.mkdir()
+        git(repo, "init", "-q", "-b", "main")
+        git(repo, "config", "user.email", "t@example.com")
+        git(repo, "config", "user.name", "T")
+        (repo / "README").write_text("base\n", encoding="utf-8")
+        git(repo, "add", "README")
+        git(repo, "commit", "-qm", "base")
+        wt = td / "lane"
+        git(repo, "worktree", "add", "-q", "-b", "lane", str(wt), "main")
+        return repo, wt, git(repo, "rev-parse", "HEAD").strip()
+
+    def test_caged_exec_cannot_write_the_shared_git_store(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            td = Path(tmp)
+            repo, wt, main_sha = self._lane_repo(td)
+            common, _gitdir = lane_cage.git_paths(wt)
+            attack = common / "objects" / "aa" / "caged-write-probe"
+            env = dict(os.environ, PFY_PODMAN="podman")
+            env.pop("PFY_CAGE_FAKE", None)
+            # Try to write an object and a shared ref. Both must fail.
+            wrote = subprocess.run(
+                [sys.executable, str(CAGE), "exec", "--wt", str(wt), "--",
+                 "python3", "-c", "import os, sys; p=sys.argv[1]; os.makedirs(os.path.dirname(p), exist_ok=True); open(p,'w').write('pwned\\n')" ,
+                 str(attack)],
+                capture_output=True, text=True, env=env, timeout=300,
+            )
+            self.assertFalse(attack.exists(), wrote.stdout + wrote.stderr)
+            ref = subprocess.run(
+                [sys.executable, str(CAGE), "exec", "--wt", str(wt), "--",
+                 "git", "update-ref", "refs/heads/main", main_sha],
+                capture_output=True, text=True, env=env, timeout=300,
+            )
+            self.assertNotEqual(ref.returncode, 0, ref.stdout + ref.stderr)
+            self.assertEqual(git(repo, "rev-parse", "main").strip(), main_sha)
+            self.assertNotIn("refs/heads/evil", git(repo, "show-ref", "--heads"))
+
+    def test_caged_commit_lands_on_the_result_ref_only(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            td = Path(tmp)
+            repo, wt, main_sha = self._lane_repo(td)
+            env = dict(os.environ, PFY_PODMAN="podman")
+            env.pop("PFY_CAGE_FAKE", None)
+            script = (
+                "set -euo pipefail\n"
+                "printf 'lane work\\n' > work.txt\n"
+                "git add work.txt\n"
+                "git -c user.email=t@example.com -c user.name=T commit -qm 'lane work'\n"
+            )
+            r = subprocess.run(
+                [sys.executable, str(CAGE), "exec", "--wt", str(wt), "--",
+                 "bash", "-lc", script],
+                capture_output=True, text=True, env=env, timeout=300,
+            )
+            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+            new = git(wt, "rev-parse", "HEAD").strip()
+            self.assertNotEqual(new, main_sha)
+            self.assertEqual(git(wt, "rev-parse", "refs/heads/lane").strip(), new)
+            self.assertEqual(git(repo, "rev-parse", "main").strip(), main_sha)
+            self.assertIn("work.txt", git(wt, "ls-tree", "-r", "--name-only", "HEAD"))
+            porcelain = git(wt, "status", "--porcelain")
+            self.assertEqual(porcelain.strip(), "")
 
     def test_exec_mode_has_no_network(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -33,9 +33,9 @@ from pathlib import Path
 # Modules that fail when they share the machine with the pool.
 # Each entry is (dotted module, reason). They run after the pool, one at a time.
 # Found on this 32-core host: one -j16 run (3 failures), a second -j16 run
-# (4 more), then those modules with -j 1 (all passed). The cloud pair needs a
-# clean tmp/cloud-build-tests. A leftover init commit makes the next git
-# commit exit 1 with an empty stderr ("nothing to commit" is on stdout).
+# (4 more), then those modules with -j 1 (all passed). The cloud pair still
+# shares tmp/cloud-build-tests, so they stay serial. _init_repo now removes a
+# leftover fixture first, so an interrupted run does not break the next one.
 SERIAL: list[tuple[str, str]] = [
     (
         "tests.test_harness2_local_sandbox",

@@ -5,9 +5,10 @@ Outside code is data. A lane agent reads third-party READMEs, code and web
 text, so it runs as if that text were hostile:
 
 - Container: rootless podman, --network=none, cap-drop all, no-new-privileges,
-  pids and memory caps. Only the lane worktree is writable. The git common dir
-  is writable for objects and refs, but its config, hooks and info are
-  read-only and other lanes' worktree metadata is read-only. The quarantine
+  pids and memory caps. Only the lane worktree is writable. The git common
+  dir is mounted read-only. Commits go to a private object store; after the
+  cage exits the driver copies new objects and only the result ref back onto
+  the host. Other lanes' worktree metadata stays read-only. The quarantine
   root (scripts/quarantine_clone.py) is mounted read-only.
 - No ~/.ssh, no SSH agent, no other checkout, no real ~/.grok.
   A throwaway GROK_HOME per run has memory off and no MCP servers. The xAI
@@ -31,6 +32,7 @@ PFY_LANE_GROK_AUTH, PFY_QUARANTINE_DIR, PFY_LANE_CAGE_DIR.
 from __future__ import annotations
 
 import argparse
+from dataclasses import dataclass
 import json
 import os
 import shutil
@@ -188,11 +190,78 @@ def git_paths(wt: Path) -> tuple[Path | None, Path | None]:
     return Path(lines[0]), Path(lines[1])
 
 
-def git_mounts(wt: Path) -> list[str]:
+@dataclass
+class GitStore:
+    """Private git state for one cage run. The shared common dir stays read-only."""
+
+    wt: Path
+    common: Path
+    gitdir: Path
+    objects: Path
+    overlay: Path
+    kind: str
+    start_ref: str
+    start_sha: str
+    gitfile_orig: str | None = None
+
+
+def _head_info(wt: Path) -> tuple[str, str]:
+    ref_p = subprocess.run(["git", "-C", str(wt), "symbolic-ref", "-q", "HEAD"],
+                           capture_output=True, text=True)
+    ref = ref_p.stdout.strip() if ref_p.returncode == 0 else ""
+    sha_p = subprocess.run(["git", "-C", str(wt), "rev-parse", "HEAD"],
+                           capture_output=True, text=True)
+    sha = sha_p.stdout.strip() if sha_p.returncode == 0 else ""
+    return ref, sha
+
+
+def prepare_git_store(wt: Path, cage: Path) -> GitStore | None:
     common, gitdir = git_paths(wt)
-    if common is None:
+    if common is None or gitdir is None:
+        return None
+    common = common.resolve()
+    gitdir = gitdir.resolve()
+    root = cage / "git"
+    objects = root / "objects"
+    (objects / "info").mkdir(parents=True, exist_ok=True)
+    (objects / "pack").mkdir(parents=True, exist_ok=True)
+    (objects / "info" / "alternates").write_text(str(common / "objects") + "\n", encoding="utf-8")
+    start_ref, start_sha = _head_info(wt)
+    kind = "plain" if gitdir == common else "worktree"
+    overlay = root / "overlay"
+    if overlay.exists():
+        shutil.rmtree(overlay)
+    if kind == "worktree":
+        shutil.copytree(gitdir, overlay, symlinks=True, ignore=shutil.ignore_patterns("*.lock"))
+        (overlay / "commondir").write_text(str(common) + "\n", encoding="utf-8")
+    else:
+        overlay.mkdir(parents=True)
+        (overlay / "commondir").write_text(str(common) + "\n", encoding="utf-8")
+        for name in ("HEAD", "index", "COMMIT_EDITMSG", "ORIG_HEAD"):
+            src = gitdir / name
+            dst = overlay / name
+            if src.is_file():
+                shutil.copy2(src, dst)
+            else:
+                dst.write_bytes(b"")
+        logs_src = gitdir / "logs"
+        logs_dst = overlay / "logs"
+        if logs_src.is_dir():
+            shutil.copytree(logs_src, logs_dst, dirs_exist_ok=True, ignore=shutil.ignore_patterns("*.lock"))
+        else:
+            logs_dst.mkdir()
+            (logs_dst / "HEAD").write_bytes(b"")
+    if start_sha:
+        (overlay / "HEAD").write_text(start_sha + "\n", encoding="utf-8")
+    return GitStore(wt=wt, common=common, gitdir=gitdir, objects=objects, overlay=overlay,
+                    kind=kind, start_ref=start_ref, start_sha=start_sha)
+
+
+def git_mounts(wt: Path, store: GitStore | None = None) -> list[str]:
+    if store is None:
         return []
-    vols = [f"--volume={common}:{common}:rw"]
+    common, gitdir = store.common, store.gitdir
+    vols = [f"--volume={common}:{common}:ro"]
     for sub in ("config", "hooks", "info"):
         p = common / sub
         if p.exists():
@@ -200,12 +269,123 @@ def git_mounts(wt: Path) -> list[str]:
     wts = common / "worktrees"
     if wts.is_dir():
         vols.append(f"--volume={wts}:{wts}:ro")
-    if gitdir is not None and gitdir != common:
-        vols.append(f"--volume={gitdir}:{gitdir}:rw")
-        cw = gitdir / "config.worktree"
-        if cw.exists():
-            vols.append(f"--volume={cw}:{cw}:ro")
+    # Overlay is always mounted at its own path so GIT_DIR works. For a
+    # worktree, also remount it over the real gitdir so tools that ignore
+    # GIT_DIR still cannot write the host metadata.
+    vols.append(f"--volume={store.overlay}:{store.overlay}:rw")
+    if store.kind == "worktree":
+        vols.append(f"--volume={store.overlay}:{gitdir}:rw")
+    vols.append(f"--volume={store.objects}:{store.objects}:rw")
     return vols
+
+
+def git_store_envs(store: GitStore | None) -> list[str]:
+    if store is None:
+        return []
+    # GIT_DIR is only for a plain repo. It would leak into `git -C other`
+    # inside the lane, which the card-guard stubs (and real lane scripts)
+    # rely on. Worktrees instead retarget wt/.git at the overlay for the
+    # run (see activate_git_store), which fake_podman honors.
+    envs = [
+        f"--env=GIT_OBJECT_DIRECTORY={store.objects}",
+        f"--env=GIT_ALTERNATE_OBJECT_DIRECTORIES={store.common / 'objects'}",
+    ]
+    if store.kind == "plain":
+        envs += [
+            f"--env=GIT_DIR={store.overlay}",
+            f"--env=GIT_WORK_TREE={store.wt}",
+        ]
+    return envs
+
+
+def _copy_new_objects(src: Path, dest: Path) -> None:
+    dest.mkdir(parents=True, exist_ok=True)
+    for item in src.iterdir():
+        if item.name == "info":
+            continue
+        target = dest / item.name
+        if item.is_dir():
+            target.mkdir(exist_ok=True)
+            for sub in item.iterdir():
+                if sub.is_file():
+                    shutil.copy2(sub, target / sub.name)
+        elif item.is_file():
+            shutil.copy2(item, target)
+
+
+def _overlay_head_sha(store: GitStore) -> str:
+    head = store.overlay / "HEAD"
+    if head.is_file():
+        text = head.read_text(encoding="utf-8").strip()
+        if text and not text.startswith("ref:"):
+            return text
+    env = dict(os.environ, GIT_OBJECT_DIRECTORY=str(store.objects))
+    r = subprocess.run(["git", "--git-dir", str(store.overlay), "rev-parse", "HEAD"],
+                       capture_output=True, text=True, env=env)
+    return r.stdout.strip() if r.returncode == 0 else ""
+
+
+def activate_git_store(store: GitStore) -> None:
+    """Point the worktree at the overlay so host-side git (fake_podman) uses it.
+
+    A worktree's .git file is rewritten to `gitdir: <overlay>`. The original
+    text is restored in finalize_git_store before the result ref is copied
+    back. --print does not call this, so a dry argv print cannot leave the
+    worktree pointing at a cage directory that is about to be deleted.
+    """
+    if store.kind != "worktree":
+        return
+    gitfile = store.wt / ".git"
+    if gitfile.is_file():
+        store.gitfile_orig = gitfile.read_text(encoding="utf-8")
+        gitfile.write_text(f"gitdir: {store.overlay}\n", encoding="utf-8")
+
+
+def restore_git_pointer(store: GitStore) -> None:
+    if store.gitfile_orig is None:
+        return
+    gitfile = store.wt / ".git"
+    gitfile.write_text(store.gitfile_orig, encoding="utf-8")
+    store.gitfile_orig = None
+
+
+def _install_host_file(src: Path, dest: Path) -> None:
+    if not src.is_file():
+        return
+    try:
+        if dest.exists() and src.resolve() == dest.resolve():
+            return
+    except OSError:
+        pass
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    tmp = dest.with_name(dest.name + ".pfy-cage-tmp")
+    shutil.copy2(src, tmp)
+    try:
+        os.replace(tmp, dest)
+    except OSError as exc:
+        tmp.unlink(missing_ok=True)
+        print(f"lane-cage: failed to copy back {dest}: {exc}", file=sys.stderr)
+
+
+def finalize_git_store(store: GitStore) -> None:
+    """Copy new objects and only the result ref into the shared store."""
+    restore_git_pointer(store)
+    new = _overlay_head_sha(store)
+    _copy_new_objects(store.objects, store.common / "objects")
+    if new:
+        if store.start_ref:
+            r = subprocess.run(["git", "-C", str(store.wt), "update-ref", store.start_ref, new],
+                               capture_output=True, text=True)
+            if r.returncode != 0:
+                print(f"lane-cage: failed to copy back result ref {store.start_ref}: {r.stderr.strip()}",
+                      file=sys.stderr)
+        else:
+            (store.gitdir / "HEAD").write_text(new + "\n", encoding="utf-8")
+    _install_host_file(store.overlay / "index", store.gitdir / "index")
+    logs_head = store.overlay / "logs" / "HEAD"
+    if logs_head.is_file():
+        (store.gitdir / "logs").mkdir(parents=True, exist_ok=True)
+        _install_host_file(logs_head, store.gitdir / "logs" / "HEAD")
 
 
 def grok_args(kind: str, grok: str, wt: Path, prompt: Path, max_turns: int) -> list[str]:
@@ -227,7 +407,8 @@ def grok_args(kind: str, grok: str, wt: Path, prompt: Path, max_turns: int) -> l
     return argv
 
 
-def base_run(podman: str, image: str, wt: Path, cage: Path, network: str) -> list[str]:
+def base_run(podman: str, image: str, wt: Path, cage: Path, network: str,
+             store: GitStore | None = None) -> list[str]:
     home = cage / "home"
     argv = [podman, "run", "--rm", "--pull=never", f"--network={network}", "--userns=keep-id",
             "--cap-drop=all", "--security-opt=no-new-privileges", "--pids-limit=2048", "--memory=16g",
@@ -235,7 +416,8 @@ def base_run(podman: str, image: str, wt: Path, cage: Path, network: str) -> lis
             f"--volume={SCRIPT_DIR / 'lane_cage_entry.sh'}:{SCRIPT_DIR / 'lane_cage_entry.sh'}:ro",
             f"--workdir={wt}", f"--env=HOME={home}", "--env=GIT_TERMINAL_PROMPT=0",
             "--env=PYTHONDONTWRITEBYTECODE=1"]
-    argv += git_mounts(wt)
+    argv += git_mounts(wt, store)
+    argv += git_store_envs(store)
     # Commit identity for the agent's local commits (the cage has no ~/.gitconfig).
     for key, envs in (("user.name", ("GIT_AUTHOR_NAME", "GIT_COMMITTER_NAME")),
                       ("user.email", ("GIT_AUTHOR_EMAIL", "GIT_COMMITTER_EMAIL"))):
@@ -260,7 +442,7 @@ def preflight(podman: str, image: str) -> None:
         raise CageError(f"lane cage unavailable: image {image} missing (make test-image)")
 
 
-def build_grok_argv(args, cage: Path) -> tuple[list[str], dict]:
+def build_grok_argv(args, cage: Path, store: GitStore | None = None) -> tuple[list[str], dict]:
     podman = os.environ.get("PFY_PODMAN", "podman")
     image = os.environ.get("PFY_LANE_IMAGE", DEFAULT_IMAGE)
     wt = Path(args.wt).resolve()
@@ -271,7 +453,7 @@ def build_grok_argv(args, cage: Path) -> tuple[list[str], dict]:
     home = cage / "home"
     grok_home = home / ".grok"
     sock_dir = cage / "sock"
-    argv = base_run(podman, image, wt, cage, "none")
+    argv = base_run(podman, image, wt, cage, "none", store)
     argv += [f"--volume={prompt}:{prompt}:ro", f"--volume={grok_real}:{grok_real}:ro",
              f"--volume={SCRIPT_DIR / 'lane_uds_forward.py'}:{SCRIPT_DIR / 'lane_uds_forward.py'}:ro",
              f"--volume={sock_dir}:{sock_dir}:rw",
@@ -317,11 +499,15 @@ def cage_root(wt: Path) -> Path:
 def cmd_grok(args) -> int:
     wt = Path(args.wt).resolve()
     cage = prepare_cage(cage_root(wt))
+    store = None
     try:
-        argv, meta = build_grok_argv(args, cage)
+        store = prepare_git_store(wt, cage)
+        argv, meta = build_grok_argv(args, cage, store)
         if args.print:
             print(json.dumps({"argv": argv, **meta}))
             return 0
+        if store is not None:
+            activate_git_store(store)
         preflight(argv[0], meta["image"])
         allow = [a.strip().lower() for a in os.environ.get("PFY_LANE_EGRESS_ALLOW", DEFAULT_ALLOW).split(",") if a.strip()]
         egress_log = Path(args.egress_log) if args.egress_log else cage / "egress.log"
@@ -340,16 +526,22 @@ def cmd_grok(args) -> int:
         print(f"lane-cage: {exc}", file=sys.stderr)
         return 2
     finally:
-        shutil.rmtree(cage, ignore_errors=True)
+        try:
+            if store is not None and not getattr(args, "print", False):
+                finalize_git_store(store)
+        finally:
+            shutil.rmtree(cage, ignore_errors=True)
 
 
 def cmd_exec(args) -> int:
     wt = Path(args.wt).resolve()
     cage = prepare_cage(cage_root(wt))
+    store = None
     try:
         podman = os.environ.get("PFY_PODMAN", "podman")
         image = os.environ.get("PFY_LANE_IMAGE", DEFAULT_IMAGE)
-        argv = base_run(podman, image, wt, cage, "none")
+        store = prepare_git_store(wt, cage)
+        argv = base_run(podman, image, wt, cage, "none", store)
         for ro in args.ro:
             p = Path(ro).resolve()
             argv.append(f"--volume={p}:{p}:ro")
@@ -360,13 +552,19 @@ def cmd_exec(args) -> int:
         if args.print:
             print(json.dumps({"argv": argv}))
             return 0
+        if store is not None:
+            activate_git_store(store)
         preflight(podman, image)
         return subprocess.run(argv, timeout=args.timeout).returncode
     except CageError as exc:
         print(f"lane-cage: {exc}", file=sys.stderr)
         return 2
     finally:
-        shutil.rmtree(cage, ignore_errors=True)
+        try:
+            if store is not None and not getattr(args, "print", False):
+                finalize_git_store(store)
+        finally:
+            shutil.rmtree(cage, ignore_errors=True)
 
 
 def main(argv: list[str] | None = None) -> int:

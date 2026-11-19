@@ -9,12 +9,13 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import sys
 import unittest
 from pathlib import Path
 
 from tests.test_pfy_build_cloud import CloudBuildFailureTests as _CloudBuildFailureTests
-from tests.test_pfy_build_cloud import _git, _write_exe
+from tests.test_pfy_build_cloud import SCRATCH, _git, _init_repo, _write_exe
 
 ROOT = Path(__file__).resolve().parents[1]
 REAL_BIN = ROOT / "tmp" / "agentlint-venv" / "bin" / "agentlint"
@@ -46,6 +47,32 @@ def _fake_agentlint(side: Path) -> Path:
         "raise SystemExit(1)\n",
     )
 
+
+
+class LeftoverCloudBuildScratchTests(unittest.TestCase):
+    """An interrupted run leaves tmp/cloud-build-tests/<id> already committed.
+
+    Fail: the next setUp calls git commit -m init on that path and exits 1
+    with an empty stderr (nothing to commit is on stdout). Recover: _init_repo
+    starts from a clean directory, so a leftover fixture does not break the
+    next run.
+    """
+
+    def test_leftover_dir_does_not_break_the_next_run(self) -> None:
+        path = SCRATCH / "leftover-init-commit"
+        first = _init_repo(path)
+        self.addCleanup(shutil.rmtree, path, True)
+        self.assertTrue((first / "README.md").is_file())
+        # The leftover is a real repo with an init commit, as an interrupted
+        # run would leave it.
+        sha = _git(path, "rev-parse", "HEAD")
+        self.assertEqual(sha.returncode, 0, sha.stderr)
+        second = _init_repo(path)
+        again = _git(second, "rev-parse", "HEAD")
+        self.assertEqual(again.returncode, 0, again.stderr)
+        self.assertTrue((second / "README.md").is_file())
+        log = _git(second, "log", "--oneline")
+        self.assertIn("init", log.stdout)
 
 class AgentLintBuildGuardTests(_CloudBuildFailureTests):
     def _env(self, mode: str, binary: Path | None) -> dict:

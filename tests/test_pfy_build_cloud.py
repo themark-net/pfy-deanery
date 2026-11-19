@@ -91,7 +91,11 @@ def _drop_external_worktrees(repo: Path) -> None:
 
 
 def _init_repo(path: Path) -> Path:
-    path.mkdir(parents=True, exist_ok=True)
+    # An interrupted run leaves this path with an init commit already in it.
+    # git commit -m init then exits 1 with an empty stderr. Start clean.
+    if path.exists():
+        shutil.rmtree(path)
+    path.mkdir(parents=True)
     init = _git(path, "init", "-b", "main")
     if init.returncode != 0:
         raise RuntimeError(init.stderr)
