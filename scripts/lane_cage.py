@@ -222,10 +222,10 @@ def _head_info(wt: Path) -> tuple[str, str]:
     return ref, sha
 
 
-def prepare_git_store(wt: Path, cage: Path) -> GitStore | None:
+def prepare_git_store(wt: Path, cage: Path) -> GitStore:
     common, gitdir = git_paths(wt)
     if common is None or gitdir is None:
-        return None
+        raise GitStoreError("cannot resolve git dirs for the worktree")
     common = common.resolve()
     gitdir = gitdir.resolve()
     root = cage / "git"
@@ -258,8 +258,19 @@ def prepare_git_store(wt: Path, cage: Path) -> GitStore | None:
         else:
             logs_dst.mkdir()
             (logs_dst / "HEAD").write_bytes(b"")
+    hexlen, _hasher = _object_format(wt)
+    if start_sha and not _hex_name(start_sha, hexlen):
+        raise GitStoreError(f"lane start SHA is not an object name: {start_sha!r}")
+    if not start_ref:
+        # Detached HEAD: the overlay text must be a validated object name.
+        if not start_sha:
+            raise GitStoreError("detached HEAD is missing a valid object name")
     if start_sha:
         (overlay / "HEAD").write_text(start_sha + "\n", encoding="utf-8")
+    query = root / "query.git"
+    r = subprocess.run(["git", "init", "-q", "--bare", str(query)], capture_output=True, text=True)
+    if r.returncode != 0:
+        raise GitStoreError(f"cannot create query git dir: {r.stderr.strip()}")
     return GitStore(wt=wt, common=common, gitdir=gitdir, objects=objects, overlay=overlay,
                     kind=kind, start_ref=start_ref, start_sha=start_sha)
 
@@ -405,46 +416,78 @@ def _verify_packs(packdir: Path, hexlen: int) -> set[str]:
     return all_ids
 
 
-def _scan_private_objects(store: GitStore) -> tuple[dict[str, Path], set[str], int, object]:
-    """Validate every private-store entry. objects/info is skipped, never copied.
+def _lstat(path: Path):
+    try:
+        return os.lstat(path)
+    except OSError as exc:
+        raise GitStoreError(f"cannot lstat {path}: {exc}") from exc
 
-    Returns (loose sha->path, shas present in verified packs, hexlen, hasher).
-    Any non-regular entry or unexpected name refuses the whole copy-back.
+
+def _scan_private_objects(store: GitStore) -> tuple[dict[str, Path], set[str], int, object]:
+    """Validate every private-store entry.
+
+    objects/info is never copied: a real directory by that name is skipped,
+    and a symlink or other non-directory named info aborts the copy-back.
+    Walks with os.walk(followlinks=False) and lstat; any symlink or
+    non-regular entry (file or directory) refuses the whole copy-back.
+    Only objects/xx/<hex> loose names and objects/pack/pack-<hex>.{pack,idx}
+    are accepted.
     """
     hexlen, hasher = _object_format(store.wt)
     src = store.objects
     loose: dict[str, Path] = {}
     pack_ids: set[str] = set()
-    if not src.is_dir():
+    try:
+        top = os.lstat(src)
+    except FileNotFoundError:
         return loose, pack_ids, hexlen, hasher
-    for item in src.iterdir():
-        try:
-            st = os.lstat(item)
-        except OSError as exc:
-            raise GitStoreError(f"cannot lstat {item}: {exc}") from exc
-        if item.name == "info":
+    except OSError as exc:
+        raise GitStoreError(f"cannot lstat {src}: {exc}") from exc
+    if stat.S_ISLNK(top.st_mode) or not stat.S_ISDIR(top.st_mode):
+        raise GitStoreError("private object store is not a directory")
+    for dirpath, dirnames, filenames in os.walk(src, followlinks=False, topdown=True):
+        here = Path(dirpath)
+        # lstat every listed name first; abort on a symlink or a type mismatch
+        # so a linked directory is never treated as a real prefix or pack dir.
+        for name in list(dirnames) + list(filenames):
+            st = _lstat(here / name)
+            if stat.S_ISLNK(st.st_mode):
+                raise GitStoreError(f"symlink in object store: {here / name}")
+            if name in dirnames and not stat.S_ISDIR(st.st_mode):
+                raise GitStoreError(f"non-directory in object store: {here / name}")
+            if name in filenames and not stat.S_ISREG(st.st_mode):
+                raise GitStoreError(f"non-regular object store entry: {here / name}")
+        rel = Path(os.path.relpath(dirpath, src))
+        if rel == Path("."):
+            keep = []
+            for name in list(dirnames):
+                if name == "info":
+                    # Real directory only (symlink already refused). Do not copy.
+                    dirnames.remove(name)
+                    continue
+                if name == "pack" or _hex_name(name, 2):
+                    keep.append(name)
+                    continue
+                raise GitStoreError(f"unexpected object store entry: {name}")
+            dirnames[:] = keep
+            if filenames:
+                raise GitStoreError(f"unexpected object store file: {filenames[0]}")
             continue
-        if item.name == "pack":
-            if not stat.S_ISDIR(st.st_mode):
-                raise GitStoreError("objects/pack is not a directory")
-            pack_ids = _verify_packs(item, hexlen)
+        if rel.parts == ("pack",):
+            dirnames[:] = []
+            pack_ids = _verify_packs(here, hexlen)
             continue
-        if not stat.S_ISDIR(st.st_mode):
-            raise GitStoreError(f"unexpected object store entry: {item.name}")
-        if not _hex_name(item.name, 2):
-            raise GitStoreError(f"unexpected object store entry: {item.name}")
-        for sub in item.iterdir():
-            try:
-                sst = os.lstat(sub)
-            except OSError as exc:
-                raise GitStoreError(f"cannot lstat {sub}: {exc}") from exc
-            if not stat.S_ISREG(sst.st_mode):
-                raise GitStoreError(f"non-regular object: {sub}")
-            if not _hex_name(sub.name, hexlen - 2):
-                raise GitStoreError(f"unexpected loose object name: {sub}")
-            sha = item.name + sub.name
-            _verify_loose_file(sub, sha, hasher)
-            loose[sha] = sub
+        if len(rel.parts) == 1 and _hex_name(rel.parts[0], 2):
+            dirnames[:] = []
+            for name in filenames:
+                if not _hex_name(name, hexlen - 2):
+                    raise GitStoreError(f"unexpected loose object name: {here / name}")
+                sha = rel.parts[0] + name
+                sub = here / name
+                _verify_loose_file(sub, sha, hasher)
+                loose[sha] = sub
+            continue
+        raise GitStoreError(f"unexpected object store path: {rel}")
     return loose, pack_ids, hexlen, hasher
 
 
@@ -452,17 +495,60 @@ def _private_has(sha: str, loose: dict[str, Path], pack_ids: set[str]) -> bool:
     return sha in loose or sha in pack_ids
 
 
+def _query_git_dir(store: GitStore) -> Path:
+    return store.objects.parent / "query.git"
+
+
+def _safe_git(store: GitStore, git_args: list[str], **kwargs):
+    """Run git against a host-owned query dir, not the attacker-writable overlay.
+
+    Hooks and fsmonitor are disabled, system and global config are ignored,
+    and the overlay config is not read.
+    """
+    env = dict(os.environ)
+    env["GIT_CONFIG_NOSYSTEM"] = "1"
+    env["GIT_CONFIG_GLOBAL"] = os.devnull
+    env["GIT_CONFIG_SYSTEM"] = os.devnull
+    env.pop("GIT_CONFIG", None)
+    env["GIT_OBJECT_DIRECTORY"] = str(store.objects)
+    env["GIT_ALTERNATE_OBJECT_DIRECTORIES"] = str(store.common / "objects")
+    cmd = [
+        "git",
+        "-c", "core.fsmonitor=false",
+        "-c", "core.hooksPath=/dev/null",
+        "--git-dir", str(_query_git_dir(store)),
+        *git_args,
+    ]
+    return subprocess.run(cmd, env=env, **kwargs)
+
+
+def _safe_host_git(store: GitStore, git_args: list[str], **kwargs):
+    """Git in the worktree after the overlay pointer is restored.
+
+    Hooks and fsmonitor are disabled and system/global config is ignored.
+    The overlay config is not read.
+    """
+    env = dict(os.environ)
+    env["GIT_CONFIG_NOSYSTEM"] = "1"
+    env["GIT_CONFIG_GLOBAL"] = os.devnull
+    env["GIT_CONFIG_SYSTEM"] = os.devnull
+    env.pop("GIT_CONFIG", None)
+    cmd = [
+        "git",
+        "-c", "core.fsmonitor=false",
+        "-c", "core.hooksPath=/dev/null",
+        "-C", str(store.wt),
+        *git_args,
+    ]
+    return subprocess.run(cmd, env=env, **kwargs)
+
+
 def _raw_object(store: GitStore, sha: str) -> bytes:
-    env = dict(os.environ,
-               GIT_OBJECT_DIRECTORY=str(store.objects),
-               GIT_ALTERNATE_OBJECT_DIRECTORIES=str(store.common / "objects"))
-    typ = subprocess.run(["git", "--git-dir", str(store.overlay), "cat-file", "-t", sha],
-                         capture_output=True, text=True, env=env)
+    typ = _safe_git(store, ["cat-file", "-t", sha], capture_output=True, text=True)
     if typ.returncode != 0:
         raise GitStoreError(f"missing object {sha}: {typ.stderr.strip()}")
     kind = typ.stdout.strip()
-    body = subprocess.run(["git", "--git-dir", str(store.overlay), "cat-file", kind, sha],
-                          capture_output=True, env=env)
+    body = _safe_git(store, ["cat-file", kind, sha], capture_output=True)
     if body.returncode != 0:
         raise GitStoreError(f"cannot read object {sha}")
     return f"{kind} {len(body.stdout)}".encode() + b"\0" + body.stdout
@@ -532,11 +618,7 @@ def _accept_result_commit(store: GitStore, new: str, loose: dict[str, Path],
                           pack_ids: set[str], hexlen: int) -> None:
     if not _hex_name(new, hexlen):
         raise GitStoreError(f"overlay HEAD is not an object name: {new!r}")
-    env = dict(os.environ,
-               GIT_OBJECT_DIRECTORY=str(store.objects),
-               GIT_ALTERNATE_OBJECT_DIRECTORIES=str(store.common / "objects"))
-    typ = subprocess.run(["git", "--git-dir", str(store.overlay), "cat-file", "-t", new],
-                         capture_output=True, text=True, env=env)
+    typ = _safe_git(store, ["cat-file", "-t", new], capture_output=True, text=True)
     if typ.returncode != 0 or typ.stdout.strip() != "commit":
         raise GitStoreError(f"result {new} is not a commit")
     if new == store.start_sha:
@@ -544,10 +626,10 @@ def _accept_result_commit(store: GitStore, new: str, loose: dict[str, Path],
     if not _private_has(new, loose, pack_ids):
         raise GitStoreError("result commit was not created in the private store")
     if store.start_sha:
-        anc = subprocess.run(
-            ["git", "--git-dir", str(store.overlay), "merge-base", "--is-ancestor",
-             store.start_sha, new],
-            capture_output=True, text=True, env=env,
+        anc = _safe_git(
+            store,
+            ["merge-base", "--is-ancestor", store.start_sha, new],
+            capture_output=True, text=True,
         )
         if anc.returncode != 0:
             raise GitStoreError("result commit does not descend from the lane start")
@@ -589,16 +671,79 @@ def _copy_new_objects(store: GitStore, new: str) -> None:
         raise
 
 
+def _read_regular_text(path: Path, limit: int = 4096) -> bytes:
+    try:
+        st = os.lstat(path)
+    except FileNotFoundError:
+        raise
+    except OSError as exc:
+        raise GitStoreError(f"cannot lstat {path}: {exc}") from exc
+    if stat.S_ISLNK(st.st_mode) or not stat.S_ISREG(st.st_mode):
+        raise GitStoreError(f"not a regular file: {path}")
+    try:
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC)
+    except OSError as exc:
+        raise GitStoreError(f"cannot open {path}: {exc}") from exc
+    try:
+        return os.read(fd, limit)
+    finally:
+        os.close(fd)
+
+
+def _valid_ref_name(name: str) -> bool:
+    if not name.startswith("refs/") or ".." in name or "//" in name:
+        return False
+    if name.endswith("/") or name.endswith(".lock") or "\\" in name:
+        return False
+    allowed = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789/_-.")
+    return bool(name) and len(name) < 256 and all(c in allowed for c in name)
+
+
+def _read_sha_file(path: Path, hexlen: int) -> str:
+    data = _read_regular_text(path)
+    try:
+        text = data.decode("ascii")
+    except UnicodeDecodeError as exc:
+        raise GitStoreError(f"not an object name: {path}") from exc
+    if not text.endswith("\n") or text.count("\n") != 1:
+        raise GitStoreError(f"not an object name: {path}")
+    sha = text.strip()
+    if not _hex_name(sha, hexlen):
+        raise GitStoreError(f"not an object name: {path}")
+    return sha
+
+
 def _overlay_head_sha(store: GitStore) -> str:
+    """Read the overlay HEAD (and one ref, if it is a pointer) directly.
+
+    Do not run git against the overlay, so hooks, fsmonitor, and overlay
+    config cannot run.
+    """
+    hexlen, _hasher = _object_format(store.wt)
     head = store.overlay / "HEAD"
-    if head.is_file():
-        text = head.read_text(encoding="utf-8").strip()
-        if text and not text.startswith("ref:"):
-            return text
-    env = dict(os.environ, GIT_OBJECT_DIRECTORY=str(store.objects))
-    r = subprocess.run(["git", "--git-dir", str(store.overlay), "rev-parse", "HEAD"],
-                       capture_output=True, text=True, env=env)
-    return r.stdout.strip() if r.returncode == 0 else ""
+    try:
+        data = _read_regular_text(head)
+    except FileNotFoundError:
+        return ""
+    try:
+        text = data.decode("ascii")
+    except UnicodeDecodeError as exc:
+        raise GitStoreError("overlay HEAD is not an object name") from exc
+    if not text.endswith("\n") or text.count("\n") != 1:
+        raise GitStoreError(f"overlay HEAD is not an object name: {text!r}")
+    body = text.strip()
+    if _hex_name(body, hexlen):
+        return body
+    if body.startswith("ref:"):
+        ref = body[4:].strip()
+        if not _valid_ref_name(ref):
+            raise GitStoreError(f"overlay HEAD ref is not valid: {ref!r}")
+        ref_path = store.overlay.joinpath(*ref.split("/"))
+        try:
+            return _read_sha_file(ref_path, hexlen)
+        except FileNotFoundError:
+            return ""
+    raise GitStoreError(f"overlay HEAD is not an object name: {body!r}")
 
 
 def activate_git_store(store: GitStore) -> None:
@@ -655,20 +800,31 @@ def finalize_git_store(store: GitStore, *, cage_ok: bool = True) -> None:
         return
     new = _overlay_head_sha(store)
     _copy_new_objects(store, new)
-    if new and new != store.start_sha:
+    moved = bool(new and new != store.start_sha)
+    if moved:
         if store.start_ref:
-            r = subprocess.run(["git", "-C", str(store.wt), "update-ref", store.start_ref, new],
+            r = _safe_host_git(store, ["update-ref", store.start_ref, new],
                                capture_output=True, text=True)
             if r.returncode != 0:
                 raise GitStoreError(
                     f"failed to copy back result ref {store.start_ref}: {r.stderr.strip()}")
         else:
-            (store.gitdir / "HEAD").write_text(new + "\n", encoding="utf-8")
-    _install_host_file(store.overlay / "index", store.gitdir / "index")
-    logs_head = store.overlay / "logs" / "HEAD"
-    if logs_head.is_file():
-        (store.gitdir / "logs").mkdir(parents=True, exist_ok=True)
-        _install_host_file(logs_head, store.gitdir / "logs" / "HEAD")
+            dest = store.gitdir / "HEAD"
+            try:
+                st = os.lstat(dest)
+            except FileNotFoundError:
+                st = None
+            except OSError as exc:
+                raise GitStoreError(f"cannot lstat host HEAD: {exc}") from exc
+            if st is not None and (stat.S_ISLNK(st.st_mode) or not stat.S_ISREG(st.st_mode)):
+                raise GitStoreError("host HEAD is not a regular file")
+            dest.write_text(new + "\n", encoding="utf-8")
+        # Rebuild the host index from the result commit. Do not copy the
+        # overlay index or logs/HEAD; those files are attacker-writable.
+        r = _safe_host_git(store, ["reset", "-q", "--mixed", "HEAD"],
+                           capture_output=True, text=True)
+        if r.returncode != 0:
+            raise GitStoreError(f"failed to rebuild the host index: {r.stderr.strip()}")
 
 
 def grok_args(kind: str, grok: str, wt: Path, prompt: Path, max_turns: int) -> list[str]:

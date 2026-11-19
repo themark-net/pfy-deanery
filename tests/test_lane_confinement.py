@@ -14,9 +14,11 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
+import types
 import unittest
 from pathlib import Path
 
@@ -333,13 +335,19 @@ class GitStoreIsolationTest(unittest.TestCase):
     def _common_text(self) -> str:
         common, _ = lane_cage.git_paths(self.wt)
         chunks = []
-        for p in common.rglob("*"):
-            if p.is_symlink() or not p.is_file():
-                continue
-            try:
-                chunks.append(p.read_text(encoding="utf-8", errors="replace"))
-            except OSError:
-                chunks.append(p.read_bytes().decode("utf-8", "replace"))
+        for dirpath, dirnames, filenames in os.walk(common, followlinks=False):
+            for name in dirnames + filenames:
+                path = Path(dirpath) / name
+                try:
+                    st = os.lstat(path)
+                except OSError:
+                    continue
+                if stat.S_ISLNK(st.st_mode) or not stat.S_ISREG(st.st_mode):
+                    continue
+                try:
+                    chunks.append(path.read_bytes().decode("utf-8", "replace"))
+                except OSError:
+                    continue
         return "\n".join(chunks)
 
     def _lane_and_main(self):
@@ -612,6 +620,138 @@ class GitStoreIsolationTest(unittest.TestCase):
         self.assertFalse((info / "evil").exists())
         self.assertNotIn(marker, self._common_text())
 
+    def test_symlink_directory_to_a_fake_host_secret_is_not_copied_into_common(self):
+        """A caged process replaces a loose-object prefix with a linked dir.
+
+        Fail: a walk that follows directory links copies the fake secret into
+        common. Recover: the walk lstats, refuses the link, copies nothing,
+        and the secret bytes appear nowhere under common.
+        """
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        secret = self._secret_file()
+        secret_dir = self.td / "fake-secret-dir"
+        secret_dir.mkdir()
+        (secret_dir / ("ab" * 19)).write_text("FAKE-HOST-SECRET-NOT-A-CREDENTIAL\n", encoding="utf-8")
+        dest = store.objects / "aa"
+        if dest.exists():
+            if dest.is_symlink() or dest.is_file():
+                dest.unlink()
+            else:
+                shutil.rmtree(dest)
+        dest.symlink_to(secret_dir)
+        before_lane, before_main = self._lane_and_main()
+        raised = False
+        try:
+            lane_cage.finalize_git_store(store)
+        except self._err():
+            raised = True
+        self.assertNotIn("FAKE-HOST-SECRET-NOT-A-CREDENTIAL", self._common_text())
+        common_aa = store.common / "objects" / "aa"
+        if common_aa.exists():
+            self.assertFalse(common_aa.is_symlink())
+            for child in common_aa.iterdir():
+                self.assertNotIn("FAKE-HOST-SECRET-NOT-A-CREDENTIAL",
+                                 child.read_bytes().decode("utf-8", "replace"))
+        self.assertEqual(self._lane_and_main(), (before_lane, before_main))
+        self.assertTrue(raised, "finalize must refuse a planted directory symlink")
+
+    def test_detached_head_text_is_validated(self):
+        git(self.wt, "checkout", "--detach", "-q", "HEAD")
+        store = lane_cage.prepare_git_store(self.wt, self.cage / "detached")
+        self.assertEqual(store.start_ref, "")
+        self.assertEqual(store.start_sha, self.main_sha)
+        self.assertEqual((store.overlay / "HEAD").read_text(encoding="utf-8"),
+                         self.main_sha + "\n")
+
+    def test_invalid_detached_head_is_refused(self):
+        real = lane_cage._head_info
+        lane_cage._head_info = lambda wt: ("", "not-a-sha")
+        try:
+            with self.assertRaises(self._err()):
+                lane_cage.prepare_git_store(self.wt, self.cage / "bad-detached")
+        finally:
+            lane_cage._head_info = real
+
+    def test_overlay_index_and_logs_head_are_not_copied_back(self):
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        host_index = store.gitdir / "index"
+        host_logs = store.gitdir / "logs" / "HEAD"
+        before_index = host_index.read_bytes() if host_index.exists() else None
+        before_logs = host_logs.read_bytes() if host_logs.exists() else None
+        (store.overlay / "index").write_bytes(b"CRAFTED-INDEX-DO-NOT-COPY")
+        (store.overlay / "logs").mkdir(parents=True, exist_ok=True)
+        (store.overlay / "logs" / "HEAD").write_text("CRAFTED-LOGS-HEAD-DO-NOT-COPY\n",
+                                                    encoding="utf-8")
+        lane_cage.finalize_git_store(store)
+        if before_index is None:
+            self.assertFalse(host_index.exists() and host_index.read_bytes() == b"CRAFTED-INDEX-DO-NOT-COPY")
+        else:
+            self.assertEqual(host_index.read_bytes(), before_index)
+        if before_logs is None:
+            if host_logs.exists():
+                self.assertNotIn(b"CRAFTED-LOGS-HEAD-DO-NOT-COPY", host_logs.read_bytes())
+        else:
+            self.assertEqual(host_logs.read_bytes(), before_logs)
+        self.assertNotIn("CRAFTED-INDEX-DO-NOT-COPY", self._common_text())
+        self.assertNotIn("CRAFTED-LOGS-HEAD-DO-NOT-COPY", self._common_text())
+
+    def test_overlay_hooks_do_not_run_when_reading_the_result(self):
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        marker = self.td / "overlay-hook-fired"
+        hooks = store.overlay / "hooks"
+        hooks.mkdir(parents=True, exist_ok=True)
+        script = self.td / "fsmonitor.sh"
+        script.write_text(f"#!/bin/sh\necho fired > '{marker}'\nexit 0\n", encoding="utf-8")
+        script.chmod(0o755)
+        hook = hooks / "pre-commit"
+        hook.write_text(f"#!/bin/sh\necho fired > '{marker}'\nexit 0\n", encoding="utf-8")
+        hook.chmod(0o755)
+        (store.overlay / "config").write_text(
+            f"[core]\n\tfsmonitor = {script}\n\thooksPath = {hooks}\n",
+            encoding="utf-8",
+        )
+        sha = lane_cage._overlay_head_sha(store)
+        self.assertEqual(sha, store.start_sha)
+        lane_cage.finalize_git_store(store)
+        self.assertFalse(marker.exists(), "overlay hook or fsmonitor must not run")
+
+    def test_prepare_fails_closed_when_git_paths_fail(self):
+        empty = self.td / "not-a-repo"
+        empty.mkdir()
+        with self.assertRaises(self._err()):
+            lane_cage.prepare_git_store(empty, self.cage / "no-git")
+        cages = self.td / "cages-prep"
+        prev = os.environ.get("PFY_LANE_CAGE_DIR")
+        os.environ["PFY_LANE_CAGE_DIR"] = str(cages)
+        try:
+            ns = types.SimpleNamespace(wt=str(empty), ro=[], cmd=["--", "true"],
+                                       print=False, timeout=30)
+            self.assertEqual(lane_cage.cmd_exec(ns), 2)
+        finally:
+            if prev is None:
+                os.environ.pop("PFY_LANE_CAGE_DIR", None)
+            else:
+                os.environ["PFY_LANE_CAGE_DIR"] = prev
+
+    def test_copy_back_error_sets_a_nonzero_cage_exit(self):
+        secret = self._secret_file("fake-exit-secret.txt")
+        cages = self.td / "cages-exit"
+        env = dict(os.environ, PFY_LANE_CAGE_DIR=str(cages))
+        plant = (
+            "import os, sys\n"
+            "d = os.environ['GIT_OBJECT_DIRECTORY']\n"
+            "p = os.path.join(d, 'aa', '" + ("ab" * 19) + "')\n"
+            "os.makedirs(os.path.dirname(p), exist_ok=True)\n"
+            "os.symlink(sys.argv[1], p)\n"
+        )
+        r = subprocess.run(
+            [sys.executable, str(CAGE), "exec", "--wt", str(self.wt), "--",
+             "python3", "-c", plant, str(secret)],
+            capture_output=True, text=True, env=env, timeout=60,
+        )
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+        self.assertNotIn("FAKE-HOST-SECRET-NOT-A-CREDENTIAL", self._common_text())
+
 
 @unittest.skipUnless(_real_cage_ready(), "rootless podman and localhost/pfy-test:3.12 needed (make test-image)")
 class RealCageTest(unittest.TestCase):
@@ -714,6 +854,12 @@ class RealCageTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             wt = Path(tmp) / "wt"
             wt.mkdir()
+            git(wt, "init", "-q", "-b", "main")
+            git(wt, "config", "user.email", "t@example.com")
+            git(wt, "config", "user.name", "T")
+            (wt / "README").write_text("base\n", encoding="utf-8")
+            git(wt, "add", "README")
+            git(wt, "commit", "-qm", "base")
             env = dict(os.environ, PFY_PODMAN="podman")
             env.pop("PFY_CAGE_FAKE", None)
             code = ("import socket\ntry:\n socket.create_connection(('140.82.112.3',443),timeout=3); print('NET')\n"
