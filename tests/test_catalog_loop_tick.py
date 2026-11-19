@@ -44,6 +44,8 @@ COPY_REL = (
     "data/model-prices.json",
     "pfylib/stage_registry.py",
     "pfylib/registry.py",
+    "pfylib/untrusted_text.py",
+    "scripts/integrate_ticket.py",
 )
 
 

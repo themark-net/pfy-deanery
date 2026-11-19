@@ -89,6 +89,7 @@ def make_repo(td: Path):
         "scripts/supersede_check.py",
         "scripts/model_lock.sh",
         "scripts/gate_cloud_call.sh",
+        "pfylib/untrusted_text.py",
     ):
         dest = seed / rel
         dest.parent.mkdir(parents=True, exist_ok=True)

@@ -233,10 +233,19 @@ def parse_envelope(stdout: str) -> dict:
     }
 
 
+def _data_preamble() -> str:
+    root = str(Path(__file__).resolve().parents[1])
+    if root not in sys.path:
+        sys.path.insert(0, root)
+    from pfylib.untrusted_text import PREAMBLE
+
+    return PREAMBLE
+
+
 def call_grok(binary: str, max_turns: int, prompt: str, schema: dict, cwd: Path) -> dict:
     cwd.mkdir(parents=True, exist_ok=True)
     prompt_path = cwd / "prompt.txt"
-    prompt_path.write_text(prompt, encoding="utf-8")
+    prompt_path.write_text(_data_preamble() + "\n\n" + prompt, encoding="utf-8")
     argv = grok_argv(binary, max_turns, prompt_path, schema)
     started = time.monotonic()
     proc = subprocess.run(

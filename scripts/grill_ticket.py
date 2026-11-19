@@ -35,6 +35,7 @@ if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
 from pfylib.cloud_cost_gate import SKIP_EXIT, gate_cloud_prompt
+from pfylib.untrusted_text import PREAMBLE as DATA_PREAMBLE
 
 
 MAX_CAP = 12
@@ -395,7 +396,8 @@ def call_grok(
         raise GrillSkip(verdict["reason"])
     with tempfile.TemporaryDirectory(prefix="grill-", dir="/tmp") as tmp:
         prompt_path = Path(tmp) / "prompt.txt"
-        prompt_path.write_text(prompt, encoding="utf-8")
+        # Ticket text and cited excerpts may quote upstream docs: data, not instructions.
+        prompt_path.write_text(DATA_PREAMBLE + "\n\n" + prompt, encoding="utf-8")
         argv = grok_argv(max_turns, prompt_path, schema)
         try:
             proc = subprocess.run(

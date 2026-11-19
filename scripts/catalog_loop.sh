@@ -847,42 +847,7 @@ write_integrate_ticket() {
   local slug="$1"
   local dest="$WT/tmp/TICKET-${slug}.md"
   mkdir -p "$WT/tmp"
-  python3 - "$PWD" "$slug" "$dest" <<'PY'
-import json, sys
-from pathlib import Path
-root, slug, dest = sys.argv[1:]
-template = Path(root) / "docs" / "ops" / "integrate" / "TEMPLATE.md"
-card_path = Path(root) / "data" / "stages" / f"{slug}.json"
-card = {}
-if card_path.is_file():
-    loaded = json.loads(card_path.read_text(encoding="utf-8"))
-    if isinstance(loaded, dict):
-        card = loaded
-body = template.read_text(encoding="utf-8") if template.is_file() else "# Integration ticket: <slug>\n"
-body = body.replace("<slug>", slug)
-uses = card.get("uses", "")
-if not isinstance(uses, str):
-    uses = " ".join(item for item in uses if isinstance(item, str)) if isinstance(uses, list) else ""
-lines = [
-    "",
-    "## Card fields",
-    "",
-    f"- integration_stage: {card.get('integration_stage', '')}",
-    f"- tier_ceiling: {card.get('tier_ceiling', '')}",
-    f"- uses: {uses}",
-    f"- next_gate: {card.get('next_gate', '')}",
-    "",
-    "Do not raise tier_ceiling. Do not edit integration_stage by hand.",
-    "Read bootstrap/grok-cli/skills/catalog-intake-dedupe/SKILL.md.",
-    "Read bootstrap/grok-cli/skills/catalog-eval-lane/SKILL.md.",
-    "Read bootstrap/grok-cli/skills/catalog-integrate-lane/SKILL.md.",
-    "Read bootstrap/grok-cli/skills/catalog-apply-and-ceiling/SKILL.md.",
-    "Read bootstrap/grok-cli/skills/catalog-loop-operator/SKILL.md.",
-    "Follow those skills, then this ticket.",
-    "",
-]
-Path(dest).write_text(body + "\n".join(lines), encoding="utf-8")
-PY
+  python3 "$SCRIPT_DIR/integrate_ticket.py" "$PWD" "$slug" "$dest"
 }
 
 lock_env=()

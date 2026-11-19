@@ -222,6 +222,18 @@ def _license_of(local: Path) -> str:
     return ""
 
 
+def _instruction_like(text: str) -> bool:
+    from pfylib.untrusted_text import find_instruction_like
+
+    return bool(find_instruction_like(text))
+
+
+def _neutral(text: str) -> str:
+    from pfylib.untrusted_text import neutralize
+
+    return " ".join(neutralize(text, max_len=400).split())
+
+
 def _readme_claim(text: str) -> str:
     if not text:
         return ""
@@ -233,7 +245,11 @@ def _readme_claim(text: str) -> str:
         line = _plain(line).replace("/", " ").replace("\\", " ")
         line = " ".join(line.split())
         if line:
-            return line[:160]
+            # The claim lands in card evidence that lanes and triage read later.
+            # Instruction-like text is withheld, not paraphrased (data only).
+            if _instruction_like(raw) or _instruction_like(line):
+                return ""
+            return _neutral(line)[:160]
     return ""
 
 
