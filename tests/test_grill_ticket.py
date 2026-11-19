@@ -7,6 +7,7 @@ import subprocess
 import textwrap
 import unittest
 from pathlib import Path
+from tests.lane_key import setUpModule, tearDownModule  # noqa: F401  fake key, fix #53 gate
 
 REPO = Path(__file__).resolve().parents[1]
 SCRIPT = REPO / "scripts" / "grill_ticket.py"
