@@ -140,11 +140,42 @@ install_first_party_skills() {
 # Collect absolute dirs for [skills].paths (external packs; not copied into ~/.grok/skills)
 SKILLS_PATH_ABS=()
 
+# Precondition for every external pack: vendored third-party SKILL.md files
+# load as instructions, so they must match bootstrap/grok-cli/skills-external/
+# PINS.json and pass the SkillSpector static scan (no worse than the accepted
+# result) before any pack is wired into [skills].paths. Blocking.
+# PFY_SKILL_SCAN=pins-only skips only the scanner (hash pins still enforced);
+# use it when SkillSpector is not installed yet, and say so in the run log.
+EXT_PRECONDITION_DONE=0
+skills_external_precondition() {
+  [[ "$EXT_PRECONDITION_DONE" -eq 1 ]] && return 0
+  EXT_PRECONDITION_DONE=1
+  local check="$REPO_ROOT/scripts/check_skill_pins.py"
+  [[ -f "$check" ]] || die "skills-external precondition: $check missing"
+  python3 "$check" || die "skills-external precondition: pins do not match (drift). External packs not installed. Re-run with --no-ponytail --no-mattpocock --no-claude-ua to skip them."
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    log "dry-run: would run the SkillSpector scan on skills-external"
+    return 0
+  fi
+  if [[ "${PFY_SKILL_SCAN:-}" == "pins-only" ]]; then
+    warn "PFY_SKILL_SCAN=pins-only: SkillSpector scan skipped; hash pins verified"
+    return 0
+  fi
+  local rc=0
+  python3 "$check" --scan || rc=$?
+  case "$rc" in
+    0) log "skills-external scan ok" ;;
+    2) die "skills-external precondition: SkillSpector missing (docs/ops/skill-scan.md). Install it, or set PFY_SKILL_SCAN=pins-only, or skip external packs." ;;
+    *) die "skills-external precondition: scan worse than accepted. External packs not installed." ;;
+  esac
+}
+
 install_ponytail_path() {
   if [[ "$NO_PONYTAIL" -eq 1 ]]; then
     log "Skipping ponytail skills path (--no-ponytail)"
     return 0
   fi
+  skills_external_precondition
   [[ -d "$PONYTAIL_SRC" ]] || die "ponytail snapshot missing: $PONYTAIL_SRC"
   local abs
   abs="$(cd "$PONYTAIL_SRC" && pwd)"
@@ -158,6 +189,7 @@ install_claude_ua_path() {
     log "Skipping claude-unified-agents skills path (--no-claude-ua)"
     return 0
   fi
+  skills_external_precondition
   if [[ ! -d "$CLAUDE_UA_SRC" ]] || [[ ! -f "$CLAUDE_UA_SRC/security-auditor/SKILL.md" ]]; then
     warn "claude-unified-agents snapshot missing: $CLAUDE_UA_SRC"
     return 0
@@ -173,6 +205,7 @@ install_mattpocock_path() {
     log "Skipping mattpocock skills path (--no-mattpocock)"
     return 0
   fi
+  skills_external_precondition
   if [[ ! -d "$MATTPOCOCK_SRC/tdd" ]]; then
     warn "mattpocock snapshot missing or incomplete: $MATTPOCOCK_SRC"
     return 0

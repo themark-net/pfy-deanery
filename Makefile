@@ -93,7 +93,9 @@ help-platform:
 	@echo "  make smoke-codebase-memory / smoke-repowise / smoke-context-tools"
 	@echo "  make smoke-write-guard      # T-0031 write-guard MCP policy smoke"
 	@echo "  make smoke-grok-skills      # first-party skill structure (manifest + SKILL.md)"
-	@echo "  make skill-scan             # advisory static scan; also looks in ~/.cache/pfy/bin"
+	@echo "  make skill-scan             # static scan of all skill trees; also looks in ~/.cache/pfy/bin"
+	@echo "  make skill-pins             # BLOCKING: skills-external hash pins + scan no worse than accepted (CI, install.sh)"
+	@echo "  make untrusted-text-lint    # BLOCKING: no instruction-like text in cards or sources/entries (CI)"
 	@echo "  make test-image            # rootless podman image (python 3.12, git, rg, bwrap)"
 	@echo "  make test-in-container     # run_tests.py in that image, repo read-only"
 	@echo "  make smoke-grok-skills INSTALLED=1  # also check ~/.grok/skills"
@@ -277,7 +279,8 @@ smoke-write-guard:
 smoke-grok-skills:
 	@python3 bootstrap/grok-cli/scripts/verify_skills.py $(if $(filter 1,$(INSTALLED)),--installed,)
 
-# Advisory static scan of this repo's skill trees. Not a pregate or CI check.
+# Static scan of every skill tree in this repo (report). The blocking gate for
+# vendored third-party packs is skill-pins below (CI job + install.sh precondition).
 # .opencode/skills is included when that directory exists.
 skill-scan:
 	@set -e; \
@@ -286,6 +289,14 @@ skill-scan:
 	dirs="$$(find $$trees -name SKILL.md -printf '%h\n' | sort -u)"; \
 	if [ -z "$$dirs" ]; then echo "Next: no SKILL.md under the repo skill trees"; exit 2; fi; \
 	python3 scripts/pfy_skill_scan.py $$dirs
+
+# Blocking: vendored external skills match PINS.json and scan no worse than accepted.
+skill-pins:
+	@python3 scripts/check_skill_pins.py --scan
+
+# Blocking: outside text in cards and entries carries no instruction-like text.
+untrusted-text-lint:
+	@python3 scripts/check_untrusted_text.py
 
 # T-0080: host OpenCode + Ollama worker path (skills SoT + completion; opencode CLI optional)
 smoke-opencode-ollama:

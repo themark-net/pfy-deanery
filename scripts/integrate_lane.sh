@@ -324,8 +324,11 @@ run_grok() {
 
 impl="$MARK_DIR/${SLUG}-implement.prompt"
 review="$MARK_DIR/${SLUG}-review.prompt"
+preamble=$(python3 "$SCRIPT_DIR/../pfylib/untrusted_text.py" preamble) || park_exit "preamble failed"
 {
+  printf '%s\n\n' "$preamble"
   printf '%s\n' "$skill_reads"
+  printf '%s\n' "Clone outside code only with scripts/quarantine_clone.py (never into this worktree). Install its deps only with scripts/quarantine_install.py."
   printf '%s\n' "Follow those skills, then tmp/TICKET-${SLUG}.md."
   printf '%s\n' "Ticket path: $ticket"
   printf '%s\n' "Write notes, traces, and raw logs under tmp/ops/eval/integrate/${SLUG}/ (gitignored; the lane moves them to the private ops checkout). Commit only code, tests, VERDICT.json, and receipts, with no home paths or names."
@@ -333,6 +336,7 @@ review="$MARK_DIR/${SLUG}-review.prompt"
   cat "$ticket"
 } > "$impl"
 {
+  printf '%s\n\n' "$preamble"
   printf '%s\n' "Self-review the integration diff. Fix correctness, scope, secrets, and tests. Do not push."
   printf '%s\n' "$skill_reads"
   printf '%s\n' "Follow those skills, then tmp/TICKET-${SLUG}.md."

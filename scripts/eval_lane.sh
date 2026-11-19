@@ -232,7 +232,11 @@ elif [ -f "$MARK_DIR/tickets/TICKET-${SLUG}.md" ]; then
 elif [ -f "$ROOT/tmp/TICKET-${SLUG}.md" ]; then
   cp "$ROOT/tmp/TICKET-${SLUG}.md" "$WT/tmp/TICKET-${SLUG}.md"
 else
-  cat > "$WT/tmp/TICKET-${SLUG}.md" <<EOF
+  {
+    python3 "$SCRIPT_DIR/../pfylib/untrusted_text.py" preamble
+    printf '\n'
+  } > "$WT/tmp/TICKET-${SLUG}.md"
+  cat >> "$WT/tmp/TICKET-${SLUG}.md" <<EOF
 # Eval ticket: ${SLUG}
 
 Write eval/evals/${SLUG}/VERDICT.json that matches docs/ops/VERDICT.schema.json.
@@ -357,11 +361,15 @@ run_grok() {
 
 impl="$MARK_DIR/${SLUG}-implement.prompt"
 review="$MARK_DIR/${SLUG}-review.prompt"
+preamble=$(python3 "$SCRIPT_DIR/../pfylib/untrusted_text.py" preamble) || park_exit "preamble failed"
 {
+  printf '%s\n\n' "$preamble"
   printf '%s\n' "$skill_reads"
   printf '%s\n' "Follow those skills, then tmp/TICKET-${SLUG}.md."
+  printf '%s\n' "Clone outside code only with scripts/quarantine_clone.py (never into this worktree). Install its deps only with scripts/quarantine_install.py."
 } > "$impl"
 {
+  printf '%s\n\n' "$preamble"
   printf '%s\n' "$skill_reads"
   printf '%s\n' "Follow those skills, then tmp/TICKET-${SLUG}.md."
   printf '%s\n' "Self-review the diff. Fix correctness, scope, secrets, and tests. Do not push."

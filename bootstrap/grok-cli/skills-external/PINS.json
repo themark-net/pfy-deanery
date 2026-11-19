@@ -1,0 +1,132 @@
+{
+  "note": "Vendored external skills, pinned by content hash. Changing a pack or this file is a release-class change (Tester + Reviewer). See scripts/check_skill_pins.py.",
+  "reviewed": "2026-11-18 Grok Bot; CAUTION rows read and accepted pending Tester+Reviewer",
+  "skillspector": "e7172462caf367736645f66c1aa154ca5f9c64dc",
+  "packs": {
+    "claude-unified-agents": "f762a6118f8df63ae0cf24f86cc3bb1d970c54f3df3b751b577ea3661e6dd164",
+    "mattpocock": "ae025f5bddd8b6912c8edd6ad89fb9a1de174d82cac2a976e7e523f5b84243c0",
+    "ponytail": "2182d464df3e0b58ec7359c763c70c13ab5020b6cffc6eec7dd79aea1170da13"
+  },
+  "skills": {
+    "claude-unified-agents/accessibility-auditor": {
+      "tree_sha256": "ddfbfb5f5e74716de62999d97cc97e31af4bf57f5100186e8a1ab2613ab16434",
+      "accepted_scan": "CAUTION"
+    },
+    "claude-unified-agents/ai-engineer": {
+      "tree_sha256": "29e8c0a7376f95874e3d7ac1ca2b93c734c37bf989d6317b331a22f57e20c49c",
+      "accepted_scan": "SAFE"
+    },
+    "claude-unified-agents/api-designer": {
+      "tree_sha256": "fa61ccdf63fb7ee070911cb6ca86c9b59bc97781dc4d4e9b1bb50a0bed65abe5",
+      "accepted_scan": "CAUTION"
+    },
+    "claude-unified-agents/backend-architect": {
+      "tree_sha256": "97f64ed16f8b3975c70746239a5cdf1eb9a59313b353723aba1b7231905491a8",
+      "accepted_scan": "SAFE"
+    },
+    "claude-unified-agents/code-reviewer": {
+      "tree_sha256": "b125cb041e5cc44f3a583661f50c23516111b114c46bcbdacbb00c19f2e4b69f",
+      "accepted_scan": "SAFE"
+    },
+    "claude-unified-agents/database-specialist": {
+      "tree_sha256": "ba1bf89717fc837b7009a09f91984f96e94120321ece51098499b8f4b202c74d",
+      "accepted_scan": "SAFE"
+    },
+    "claude-unified-agents/devops-engineer": {
+      "tree_sha256": "107e4ecc0c2d1e51df7b094d7212394520510a045df2394e17cb74885e874bbc",
+      "accepted_scan": "SAFE"
+    },
+    "claude-unified-agents/e2e-test-specialist": {
+      "tree_sha256": "d572c30cc41b3d2d9e754f8d7e0c5575b472007189f40234df9223ba2655cf8e",
+      "accepted_scan": "CAUTION"
+    },
+    "claude-unified-agents/error-detective": {
+      "tree_sha256": "609fa292dfc20c670bd2d59f7a08b42cc8f524fdd1f659aca15dbe26d8df1d65",
+      "accepted_scan": "CAUTION"
+    },
+    "claude-unified-agents/incident-responder": {
+      "tree_sha256": "8ff8089f223b7af5e6c63e1dbdf6b32e0fcdebddbb11c79acdf4d667f77fb5c4",
+      "accepted_scan": "CAUTION"
+    },
+    "claude-unified-agents/monitoring-specialist": {
+      "tree_sha256": "4c0e65b4e7c6b6053ad0fd654e7ec1b7b50531ea7fbe42aba221f84bc99a0193",
+      "accepted_scan": "CAUTION"
+    },
+    "claude-unified-agents/orchestrator": {
+      "tree_sha256": "8873059821dd7e5329cc1ea27eca7e7c944e632e6ad233a5c24938d67e01d160",
+      "accepted_scan": "SAFE"
+    },
+    "claude-unified-agents/performance-engineer": {
+      "tree_sha256": "1ec07a353a68183274888bd40041bef295bddcba322d85df0f0cabb1fc782201",
+      "accepted_scan": "CAUTION"
+    },
+    "claude-unified-agents/prompt-engineer": {
+      "tree_sha256": "7bd5819fb11c74c066fdc651bd4c9dc7984d2f8125c45dfe08935bd69a386464",
+      "accepted_scan": "SAFE"
+    },
+    "claude-unified-agents/security-auditor": {
+      "tree_sha256": "31a3c3fbb35293c0d550a4e2773b6de02858c6d77f599cd015f523cded069b29",
+      "accepted_scan": "SAFE"
+    },
+    "claude-unified-agents/ux-designer": {
+      "tree_sha256": "db6efdcbae305d996c22a9138b6687058865cc93c88c100a8c84361d0f72d8cd",
+      "accepted_scan": "SAFE"
+    },
+    "mattpocock/code-review": {
+      "tree_sha256": "423bfe3422751a5d36a7b8f73a8df2acb9f5c1daeb8b4e1c5e2961505981700a",
+      "accepted_scan": "CAUTION"
+    },
+    "mattpocock/grill-me": {
+      "tree_sha256": "2ce90a0c186e1d1ee379d9133cea96d1a8ce9fcd110e4ca2968d5a7054df5cb2",
+      "accepted_scan": "SAFE"
+    },
+    "mattpocock/grilling": {
+      "tree_sha256": "610fc4b367c98e8b0f1de70ff1ec255384f83ab21dff9fabfb31fa0ec266f537",
+      "accepted_scan": "SAFE"
+    },
+    "mattpocock/implement": {
+      "tree_sha256": "0eaf89c130f2170d0977ed7c476a13b42ee0d406724cef532471a3cc9055c83f",
+      "accepted_scan": "SAFE"
+    },
+    "mattpocock/retro": {
+      "tree_sha256": "79c03d8ab8ffd0e2f8aa4f2266653a96295d6af5e9ac6266cfce853d2d1d9076",
+      "accepted_scan": "CAUTION"
+    },
+    "mattpocock/software-factory": {
+      "tree_sha256": "d8c92fc98fec4fc3e9ae41c7195617c36b164de9dfe1de81c549eba2c593718f",
+      "accepted_scan": "CAUTION"
+    },
+    "mattpocock/tdd": {
+      "tree_sha256": "435435669140094975aa03dbc705511187a54e7771dd47ed9d951d3dfb37c0e0",
+      "accepted_scan": "CAUTION"
+    },
+    "mattpocock/to-spec": {
+      "tree_sha256": "b4ae1851ae5b09e40019a5f6e7b55f7f45d688c81d1a03d63d9d7a25d62360fd",
+      "accepted_scan": "SAFE"
+    },
+    "ponytail/ponytail": {
+      "tree_sha256": "64913e8568150fd4b8d393682e637eda2dd10713639b295b15a2100e7d1a72ae",
+      "accepted_scan": "SAFE"
+    },
+    "ponytail/ponytail-audit": {
+      "tree_sha256": "f38b92de5333ecf0536cc07d73b4c8e1d9745715c970db3936951cb2d1aa392a",
+      "accepted_scan": "SAFE"
+    },
+    "ponytail/ponytail-debt": {
+      "tree_sha256": "fc69397f94e02c3d9d8ec69a520c4ae41cf26aea587f8c443b973686de8aceb3",
+      "accepted_scan": "CAUTION"
+    },
+    "ponytail/ponytail-gain": {
+      "tree_sha256": "160065eab2f68e8dded06c85948fc2f1b5227c4c1e152b72bf74aa6ea2b6546c",
+      "accepted_scan": "SAFE"
+    },
+    "ponytail/ponytail-help": {
+      "tree_sha256": "c492623d76e5252af38dd9a720414c1156eb2024e3bcda554b106a0688395b05",
+      "accepted_scan": "SAFE"
+    },
+    "ponytail/ponytail-review": {
+      "tree_sha256": "a0b5a1e5b2162d12475fb5355678c490443d8bdcf64f8f30e09ff4b5c595c7f5",
+      "accepted_scan": "SAFE"
+    }
+  }
+}

@@ -1,6 +1,6 @@
 # Skill scan (SkillSpector, static mode)
 
-Advisory check before a fetched skill is copied into a skills directory. It runs NVIDIA SkillSpector in static mode and writes one JSON receipt. It does not load the skill as instructions.
+Check before a fetched skill is copied into a skills directory. It runs NVIDIA SkillSpector in static mode and writes one JSON receipt. It does not load the skill as instructions.
 
 This sits with the other ops runbooks. It does not change the product surface in `docs/ARCHITECTURE.md`.
 
@@ -41,7 +41,7 @@ GNU make turns a failing recipe into make exit 2. The script's own exit code is 
 
 H2 rule: a fetched skill may be copied into a skills dir only after `scripts/pfy_skill_scan.py` exits 0 on it. Fetched skills stay data until that check passes. The discovery drop-in (a private ops note) does not load them.
 
-This check stays advisory. Do not wire it into pregate, CI, or any existing gate. A blocking security gate needs Tester and Reviewer, which is a separate step.
+Vendored external packs (`bootstrap/grok-cli/skills-external/`) are gated by `scripts/check_skill_pins.py` (2026-11-18, prompt-injection fixes): each pack and skill must match its content hash in `PINS.json` and scan no worse than the recommendation accepted at that hash. This is blocking in CI (`eval-structural`: the pins check in every shard and the `skills-external scan (blocking)` job) and a precondition in `bootstrap/grok-cli/install.sh` (`PFY_SKILL_SCAN=pins-only` skips only the scanner). A re-pin (`--write --receipt ... --reviewed ...`) is release-class and needs Tester and Reviewer. First-party trees stay advisory under `make skill-scan`.
 
 ### Install
 
