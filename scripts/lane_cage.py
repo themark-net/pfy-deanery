@@ -87,6 +87,54 @@ class GitStoreError(CageError):
     """Copy-back of the private git store was refused. The shared store is unchanged."""
 
 
+# Copy-back size caps, in bytes. Env values are integers and are clamped
+# to the ceiling. Invalid or sub-1 values fall back to the default.
+# PFY_CAGE_PACK_MAX_BYTES: pack and idx files; default 128 MiB, ceiling 1 GiB.
+# PFY_CAGE_LOOSE_MAX_BYTES: compressed loose objects; default 16 MiB, ceiling 256 MiB.
+# PFY_CAGE_LOOSE_MAX_INFLATE: decompressed loose objects; default 64 MiB, ceiling 1 GiB.
+PACK_MAX_BYTES_DEFAULT = 128 * 1024 * 1024
+PACK_MAX_BYTES_CEILING = 1024 * 1024 * 1024
+LOOSE_MAX_BYTES_DEFAULT = 16 * 1024 * 1024
+LOOSE_MAX_BYTES_CEILING = 256 * 1024 * 1024
+LOOSE_MAX_INFLATE_DEFAULT = 64 * 1024 * 1024
+LOOSE_MAX_INFLATE_CEILING = 1024 * 1024 * 1024
+ENV_PACK_MAX_BYTES = "PFY_CAGE_PACK_MAX_BYTES"
+ENV_LOOSE_MAX_BYTES = "PFY_CAGE_LOOSE_MAX_BYTES"
+ENV_LOOSE_MAX_INFLATE = "PFY_CAGE_LOOSE_MAX_INFLATE"
+
+
+def _env_cap(name: str, default: int, ceiling: int) -> int:
+    raw = (os.environ.get(name) or "").strip()
+    if not raw:
+        return default
+    try:
+        val = int(raw, 10)
+    except ValueError:
+        return default
+    if val < 1:
+        return default
+    return min(val, ceiling)
+
+
+def _pack_max_bytes() -> int:
+    return _env_cap(ENV_PACK_MAX_BYTES, PACK_MAX_BYTES_DEFAULT, PACK_MAX_BYTES_CEILING)
+
+
+def _loose_max_bytes() -> int:
+    return _env_cap(ENV_LOOSE_MAX_BYTES, LOOSE_MAX_BYTES_DEFAULT, LOOSE_MAX_BYTES_CEILING)
+
+
+def _loose_max_inflate() -> int:
+    return _env_cap(ENV_LOOSE_MAX_INFLATE, LOOSE_MAX_INFLATE_DEFAULT, LOOSE_MAX_INFLATE_CEILING)
+
+
+def _print_cage_error(exc: BaseException) -> None:
+    if isinstance(exc, GitStoreError):
+        print(f"lane-cage: copy-back refused: {exc}", file=sys.stderr)
+    else:
+        print(f"lane-cage: {exc}", file=sys.stderr)
+
+
 def allowed_host(host: str, allow: list[str]) -> bool:
     host = host.strip().lower().rstrip(".")
     if not host or any(c in host for c in "/@ ") or host.replace(".", "").isdigit():
@@ -258,7 +306,7 @@ def prepare_git_store(wt: Path, cage: Path) -> GitStore:
         else:
             logs_dst.mkdir()
             (logs_dst / "HEAD").write_bytes(b"")
-    hexlen, _hasher = _object_format(wt)
+    hexlen, _hasher, _kind = _object_format(wt)
     if start_sha and not _hex_name(start_sha, hexlen):
         raise GitStoreError(f"lane start SHA is not an object name: {start_sha!r}")
     if not start_ref:
@@ -320,13 +368,15 @@ def _hex_name(name: str, n: int) -> bool:
     return len(name) == n and all(c in "0123456789abcdef" for c in name)
 
 
-def _object_format(wt: Path) -> tuple[int, object]:
+def _object_format(wt: Path) -> tuple[int, object, str]:
     r = subprocess.run(["git", "-C", str(wt), "rev-parse", "--show-object-format"],
                        capture_output=True, text=True)
     kind = (r.stdout or "sha1").strip() or "sha1"
     if kind == "sha256":
-        return 64, hashlib.sha256
-    return 40, hashlib.sha1
+        return 64, hashlib.sha256, "sha256"
+    if kind != "sha1":
+        raise GitStoreError(f"unsupported object format: {kind}")
+    return 40, hashlib.sha1, "sha1"
 
 
 def _verify_loose_file(path: Path, expected_sha: str, hasher) -> bytes:
@@ -335,6 +385,8 @@ def _verify_loose_file(path: Path, expected_sha: str, hasher) -> bytes:
     A hardlink to an outside path would share bytes with that path. Acceptance
     is still bound to the decompressed hash, so a host secret cannot land
     unless those bytes already hash to this object name.
+    Compressed size is capped by PFY_CAGE_LOOSE_MAX_BYTES and decompressed
+    size by PFY_CAGE_LOOSE_MAX_INFLATE.
     """
     try:
         fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC)
@@ -344,21 +396,33 @@ def _verify_loose_file(path: Path, expected_sha: str, hasher) -> bytes:
         st = os.fstat(fd)
         if not stat.S_ISREG(st.st_mode):
             raise GitStoreError(f"object is not a regular file: {path}")
+        max_comp = _loose_max_bytes()
+        if st.st_size > max_comp:
+            raise GitStoreError(f"loose object exceeds size cap: {path}")
         chunks = []
+        got = 0
         while True:
             chunk = os.read(fd, 1024 * 1024)
             if not chunk:
                 break
+            got += len(chunk)
+            if got > max_comp:
+                raise GitStoreError(f"loose object exceeds size cap: {path}")
             chunks.append(chunk)
     finally:
         os.close(fd)
     data = b"".join(chunks)
+    max_raw = _loose_max_inflate()
     try:
         dec = zlib.decompressobj()
-        raw = dec.decompress(data)
+        raw = dec.decompress(data, max_length=max_raw)
+        if not dec.eof:
+            raise GitStoreError(f"loose object inflate exceeds size cap: {path}")
         raw += dec.flush()
     except zlib.error as exc:
         raise GitStoreError(f"loose object is not zlib data: {path}") from exc
+    if len(raw) > max_raw:
+        raise GitStoreError(f"loose object inflate exceeds size cap: {path}")
     if dec.unconsumed_tail or dec.unused_data:
         raise GitStoreError(f"loose object has trailing data: {path}")
     digest = hasher(raw).hexdigest()
@@ -367,9 +431,52 @@ def _verify_loose_file(path: Path, expected_sha: str, hasher) -> bytes:
     return zlib.compress(raw)
 
 
-def _pack_object_ids(idx: Path, hexlen: int) -> set[str]:
-    r = subprocess.run(["git", "verify-pack", "-v", str(idx)],
-                       capture_output=True, text=True)
+def _safe_pack_git(git_args: list[str], object_format: str) -> subprocess.CompletedProcess:
+    """Run verify-pack or index-pack outside any attacker-controlled git dir.
+
+    Uses a throwaway bare repo initialized with an explicit object format,
+    an empty HOME, and pinned -c flags. System and global config are ignored.
+    """
+    if object_format not in ("sha1", "sha256"):
+        raise GitStoreError(f"unsupported object format: {object_format}")
+    home = tempfile.mkdtemp(prefix="pfy-pack-home-")
+    scratch = Path(home) / "repo.git"
+    env = dict(os.environ)
+    env["GIT_CONFIG_NOSYSTEM"] = "1"
+    env["GIT_CONFIG_GLOBAL"] = os.devnull
+    env["GIT_CONFIG_SYSTEM"] = os.devnull
+    env["HOME"] = home
+    env.pop("GIT_CONFIG", None)
+    env.pop("GIT_DIR", None)
+    env.pop("GIT_WORK_TREE", None)
+    env.pop("GIT_OBJECT_DIRECTORY", None)
+    env.pop("GIT_ALTERNATE_OBJECT_DIRECTORIES", None)
+    env.pop("GIT_INDEX_FILE", None)
+    pinned = [
+        "git",
+        "-c", "advice.defaultBranchName=false",
+        "-c", "init.defaultBranch=main",
+        "-c", "core.hooksPath=/dev/null",
+        "-c", "core.fsmonitor=false",
+        "-c", "pack.threads=1",
+    ]
+    try:
+        r = subprocess.run(
+            [*pinned, "init", "--bare", f"--object-format={object_format}", str(scratch)],
+            env=env, capture_output=True, text=True, cwd=home,
+        )
+        if r.returncode != 0:
+            raise GitStoreError(f"cannot create pack-verify repo: {r.stderr.strip()}")
+        return subprocess.run(
+            [*pinned, "--git-dir", str(scratch), *git_args],
+            env=env, capture_output=True, text=True, cwd=home,
+        )
+    finally:
+        shutil.rmtree(home, ignore_errors=True)
+
+
+def _pack_object_ids(idx: Path, hexlen: int, object_format: str) -> set[str]:
+    r = _safe_pack_git(["verify-pack", "-v", str(idx)], object_format)
     if r.returncode != 0:
         raise GitStoreError(f"git verify-pack failed for {idx.name}: {r.stderr.strip()}")
     shas: set[str] = set()
@@ -380,9 +487,10 @@ def _pack_object_ids(idx: Path, hexlen: int) -> set[str]:
     return shas
 
 
-def _verify_packs(packdir: Path, hexlen: int) -> set[str]:
+def _verify_packs(packdir: Path, hexlen: int, object_format: str) -> set[str]:
     packs: dict[str, Path] = {}
     idxs: dict[str, Path] = {}
+    max_pack = _pack_max_bytes()
     for sub in packdir.iterdir():
         try:
             st = os.lstat(sub)
@@ -395,12 +503,22 @@ def _verify_packs(packdir: Path, hexlen: int) -> set[str]:
             hid = name[len("pack-"):-len(".pack")]
             if not _hex_name(hid, hexlen):
                 raise GitStoreError(f"unexpected pack name: {name}")
+            if st.st_size > max_pack:
+                raise GitStoreError(f"pack exceeds size cap: {name}")
             packs[hid] = sub
         elif name.startswith("pack-") and name.endswith(".idx"):
             hid = name[len("pack-"):-len(".idx")]
             if not _hex_name(hid, hexlen):
                 raise GitStoreError(f"unexpected pack idx name: {name}")
+            if st.st_size > max_pack:
+                raise GitStoreError(f"pack idx exceeds size cap: {name}")
             idxs[hid] = sub
+        elif name.startswith("pack-") and name.endswith(".rev"):
+            hid = name[len("pack-"):-len(".rev")]
+            if not _hex_name(hid, hexlen):
+                raise GitStoreError(f"unexpected pack rev name: {name}")
+            # git can regenerate pack-*.rev; do not copy, do not fail.
+            continue
         else:
             raise GitStoreError(f"unexpected pack entry: {name}")
     if set(packs) != set(idxs):
@@ -408,9 +526,11 @@ def _verify_packs(packdir: Path, hexlen: int) -> set[str]:
     all_ids: set[str] = set()
     for hid, pack in packs.items():
         idx = idxs[hid]
-        all_ids |= _pack_object_ids(idx, hexlen)
-        r = subprocess.run(["git", "index-pack", "--verify", "--strict", str(pack)],
-                           capture_output=True, text=True)
+        all_ids |= _pack_object_ids(idx, hexlen, object_format)
+        r = _safe_pack_git(
+            ["index-pack", "--verify", "--strict", f"--max-input-size={max_pack}", str(pack)],
+            object_format,
+        )
         if r.returncode != 0:
             raise GitStoreError(f"git index-pack --verify failed for {pack.name}: {r.stderr.strip()}")
     return all_ids
@@ -433,7 +553,7 @@ def _scan_private_objects(store: GitStore) -> tuple[dict[str, Path], set[str], i
     Only objects/xx/<hex> loose names and objects/pack/pack-<hex>.{pack,idx}
     are accepted.
     """
-    hexlen, hasher = _object_format(store.wt)
+    hexlen, hasher, kind = _object_format(store.wt)
     src = store.objects
     loose: dict[str, Path] = {}
     pack_ids: set[str] = set()
@@ -475,7 +595,7 @@ def _scan_private_objects(store: GitStore) -> tuple[dict[str, Path], set[str], i
             continue
         if rel.parts == ("pack",):
             dirnames[:] = []
-            pack_ids = _verify_packs(here, hexlen)
+            pack_ids = _verify_packs(here, hexlen, kind)
             continue
         if len(rel.parts) == 1 and _hex_name(rel.parts[0], 2):
             dirnames[:] = []
@@ -719,7 +839,7 @@ def _overlay_head_sha(store: GitStore) -> str:
     Do not run git against the overlay, so hooks, fsmonitor, and overlay
     config cannot run.
     """
-    hexlen, _hasher = _object_format(store.wt)
+    hexlen, _hasher, _kind = _object_format(store.wt)
     head = store.overlay / "HEAD"
     try:
         data = _read_regular_text(head)
@@ -768,24 +888,6 @@ def restore_git_pointer(store: GitStore) -> None:
     gitfile = store.wt / ".git"
     gitfile.write_text(store.gitfile_orig, encoding="utf-8")
     store.gitfile_orig = None
-
-
-def _install_host_file(src: Path, dest: Path) -> None:
-    if not src.is_file():
-        return
-    try:
-        if dest.exists() and src.resolve() == dest.resolve():
-            return
-    except OSError:
-        pass
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    tmp = dest.with_name(dest.name + ".pfy-cage-tmp")
-    shutil.copy2(src, tmp)
-    try:
-        os.replace(tmp, dest)
-    except OSError as exc:
-        tmp.unlink(missing_ok=True)
-        print(f"lane-cage: failed to copy back {dest}: {exc}", file=sys.stderr)
 
 
 def finalize_git_store(store: GitStore, *, cage_ok: bool = True) -> None:
@@ -965,7 +1067,7 @@ def cmd_grok(args) -> int:
             finally:
                 proxy.close()
     except CageError as exc:
-        print(f"lane-cage: {exc}", file=sys.stderr)
+        _print_cage_error(exc)
         rc = 2
     finally:
         try:
@@ -973,7 +1075,7 @@ def cmd_grok(args) -> int:
                 try:
                     finalize_git_store(store, cage_ok=(rc == 0))
                 except GitStoreError as exc:
-                    print(f"lane-cage: {exc}", file=sys.stderr)
+                    _print_cage_error(exc)
                     if rc == 0:
                         rc = 2
         finally:
@@ -1008,7 +1110,7 @@ def cmd_exec(args) -> int:
             preflight(podman, image)
             rc = subprocess.run(argv, timeout=args.timeout).returncode
     except CageError as exc:
-        print(f"lane-cage: {exc}", file=sys.stderr)
+        _print_cage_error(exc)
         rc = 2
     finally:
         try:
@@ -1016,7 +1118,7 @@ def cmd_exec(args) -> int:
                 try:
                     finalize_git_store(store, cage_ok=(rc == 0))
                 except GitStoreError as exc:
-                    print(f"lane-cage: {exc}", file=sys.stderr)
+                    _print_cage_error(exc)
                     if rc == 0:
                         rc = 2
         finally:

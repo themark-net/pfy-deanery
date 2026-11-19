@@ -753,6 +753,358 @@ class GitStoreIsolationTest(unittest.TestCase):
         self.assertNotIn("FAKE-HOST-SECRET-NOT-A-CREDENTIAL", self._common_text())
 
 
+
+    def _private_pack(self, store):
+        """Write a genuine pack+idx of the private store into objects/pack."""
+        packdir = store.objects / "pack"
+        packdir.mkdir(parents=True, exist_ok=True)
+        env = dict(
+            os.environ,
+            GIT_OBJECT_DIRECTORY=str(store.objects),
+            GIT_ALTERNATE_OBJECT_DIRECTORIES=str(store.common / "objects"),
+        )
+        listed = subprocess.run(
+            ["git", "--git-dir", str(store.overlay), "rev-list", "--objects", "HEAD"],
+            check=True, capture_output=True, text=True, env=env,
+        )
+        shas = "\n".join(line.split()[0] for line in listed.stdout.splitlines() if line) + "\n"
+        subprocess.run(
+            ["git", "--git-dir", str(store.overlay), "pack-objects", str(packdir / "pack")],
+            check=True, capture_output=True, text=True, env=env, input=shas,
+        )
+        packs = list(packdir.glob("pack-*.pack"))
+        self.assertTrue(packs, "pack-objects should have written a pack")
+        for sub in packdir.iterdir():
+            try:
+                sub.chmod(0o644)
+            except OSError:
+                pass
+        return packs[0]
+
+    def test_planted_overlay_config_does_not_affect_pack_verify(self):
+        """verify-pack and index-pack must ignore overlay config and hooks."""
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        self._commit_in_overlay(store)
+        pack = self._private_pack(store)
+        marker = self.td / "pack-verify-hook-fired"
+        hooks = store.overlay / "hooks"
+        hooks.mkdir(parents=True, exist_ok=True)
+        script = self.td / "pack-hook.sh"
+        script.write_text("#!/bin/sh\necho fired > '%s'\nexit 0\n" % marker, encoding="utf-8")
+        script.chmod(0o755)
+        hook = hooks / "pre-commit"
+        hook.write_text("#!/bin/sh\necho fired > '%s'\nexit 0\n" % marker, encoding="utf-8")
+        hook.chmod(0o755)
+        (store.overlay / "config").write_text(
+            "[core]\n\tfsmonitor = %s\n\thooksPath = %s\n"
+            "[alias]\n\tverify-pack = !touch '%s'\n"
+            "\tindex-pack = !touch '%s'\n" % (script, hooks, marker, marker),
+            encoding="utf-8",
+        )
+        evil_home = self.td / "evil-home"
+        tmpl = evil_home / "tmpl"
+        (tmpl / "hooks").mkdir(parents=True)
+        hook = tmpl / "hooks" / "reference-transaction"
+        hook.write_text("#!/bin/sh\necho fired > '%s'\nexit 0\n" % marker, encoding="utf-8")
+        hook.chmod(0o755)
+        (evil_home / ".config" / "git").mkdir(parents=True)
+        (evil_home / ".gitconfig").write_text(
+            "[init]\n\ttemplateDir = %s\n"
+            "[alias]\n\tverify-pack = !touch '%s'\n\tindex-pack = !touch '%s'\n"
+            % (tmpl, marker, marker),
+            encoding="utf-8",
+        )
+        before_lane, before_main = self._lane_and_main()
+        prev_home = os.environ.get("HOME")
+        os.environ["HOME"] = str(evil_home)
+        try:
+            lane_cage.finalize_git_store(store)
+        finally:
+            if prev_home is None:
+                os.environ.pop("HOME", None)
+            else:
+                os.environ["HOME"] = prev_home
+        self.assertFalse(marker.exists(), "overlay hook, fsmonitor, or alias must not run")
+        after_lane, after_main = self._lane_and_main()
+        self.assertEqual(after_main, before_main)
+        self.assertNotEqual(after_lane, before_lane)
+        # Copy-back installs pack contents as loose objects, not the pack file.
+        self.assertTrue(git(self.wt, "cat-file", "-e", after_lane) == "")
+        self.assertFalse((store.common / "objects" / "pack" / pack.name).exists())
+
+    def test_oversize_pack_is_refused(self):
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        self._commit_in_overlay(store)
+        pack = self._private_pack(store)
+        cap = str(max(1, pack.stat().st_size - 1))
+        before_lane, before_main = self._lane_and_main()
+        common_objects = store.common / "objects"
+        before = {p.relative_to(common_objects): p.read_bytes()
+                  for p in common_objects.rglob("*") if p.is_file()}
+        prev = os.environ.get("PFY_CAGE_PACK_MAX_BYTES")
+        os.environ["PFY_CAGE_PACK_MAX_BYTES"] = cap
+        try:
+            with self.assertRaises(self._err()) as ctx:
+                lane_cage.finalize_git_store(store)
+        finally:
+            if prev is None:
+                os.environ.pop("PFY_CAGE_PACK_MAX_BYTES", None)
+            else:
+                os.environ["PFY_CAGE_PACK_MAX_BYTES"] = prev
+        self.assertIn("size cap", str(ctx.exception).lower())
+        after = {p.relative_to(common_objects): p.read_bytes()
+                 for p in common_objects.rglob("*") if p.is_file()}
+        self.assertEqual(after, before)
+        self.assertEqual(self._lane_and_main(), (before_lane, before_main))
+        self.assertFalse((common_objects / "pack" / pack.name).exists())
+
+    def test_valid_zlib_loose_object_under_the_wrong_name_is_refused(self):
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        sha = self._commit_in_overlay(store)
+        src = store.objects / sha[:2] / sha[2:]
+        self.assertTrue(src.is_file(), "lane commit should write a loose object")
+        wrong = "ab" * 20
+        if wrong == sha:
+            wrong = "cd" * 20
+        planted = store.objects / wrong[:2] / wrong[2:]
+        planted.parent.mkdir(parents=True, exist_ok=True)
+        planted.write_bytes(src.read_bytes())
+        before_lane, before_main = self._lane_and_main()
+        common_objects = store.common / "objects"
+        before = {p.relative_to(common_objects): p.read_bytes()
+                  for p in common_objects.rglob("*") if p.is_file()}
+        with self.assertRaises(self._err()) as ctx:
+            lane_cage.finalize_git_store(store)
+        self.assertIn("hash mismatch", str(ctx.exception).lower())
+        after = {p.relative_to(common_objects): p.read_bytes()
+                 for p in common_objects.rglob("*") if p.is_file()}
+        self.assertEqual(after, before)
+        self.assertEqual(self._lane_and_main(), (before_lane, before_main))
+        self.assertFalse((common_objects / wrong[:2] / wrong[2:]).exists())
+
+    def test_pack_rev_sidecar_is_ignored(self):
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        self._commit_in_overlay(store)
+        pack = self._private_pack(store)
+        hid = pack.name[len("pack-"):-len(".pack")]
+        rev = pack.with_name("pack-%s.rev" % hid)
+        if not rev.exists():
+            rev.write_bytes(b"not-copied-rev-sidecar\n")
+        before_lane, before_main = self._lane_and_main()
+        lane_cage.finalize_git_store(store)
+        after_lane, after_main = self._lane_and_main()
+        self.assertEqual(after_main, before_main)
+        self.assertNotEqual(after_lane, before_lane)
+        dest_rev = store.common / "objects" / "pack" / rev.name
+        self.assertFalse(dest_rev.exists(), "pack-*.rev must not be copied")
+        # A .rev sidecar must not prevent the result commit from landing.
+        self.assertTrue(git(self.wt, "cat-file", "-e", after_lane) == "")
+
+    def test_oversize_loose_object_is_refused(self):
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        sha = self._commit_in_overlay(store)
+        planted = store.objects / sha[:2] / sha[2:]
+        self.assertTrue(planted.is_file())
+        cap = str(max(1, planted.stat().st_size - 1))
+        before_lane, before_main = self._lane_and_main()
+        common_objects = store.common / "objects"
+        before = {p.relative_to(common_objects): p.read_bytes()
+                  for p in common_objects.rglob("*") if p.is_file()}
+        prev = os.environ.get("PFY_CAGE_LOOSE_MAX_BYTES")
+        os.environ["PFY_CAGE_LOOSE_MAX_BYTES"] = cap
+        try:
+            with self.assertRaises(self._err()) as ctx:
+                lane_cage.finalize_git_store(store)
+        finally:
+            if prev is None:
+                os.environ.pop("PFY_CAGE_LOOSE_MAX_BYTES", None)
+            else:
+                os.environ["PFY_CAGE_LOOSE_MAX_BYTES"] = prev
+        self.assertIn("size cap", str(ctx.exception).lower())
+        after = {p.relative_to(common_objects): p.read_bytes()
+                 for p in common_objects.rglob("*") if p.is_file()}
+        self.assertEqual(after, before)
+        self.assertEqual(self._lane_and_main(), (before_lane, before_main))
+        self.assertFalse((common_objects / planted.parent.name / planted.name).exists())
+
+    def test_inflate_bomb_loose_object_is_refused(self):
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        sha = self._commit_in_overlay(store, text=("from the lane\n" + ("0" * 8000) + "\n"))
+        planted = store.objects / sha[:2] / sha[2:]
+        # The commit object is small; use the blob for the inflate cap.
+        import zlib
+        blob = None
+        for sub in (store.objects).rglob("*"):
+            if not sub.is_file() or sub.parent.name == "pack":
+                continue
+            try:
+                raw = zlib.decompress(sub.read_bytes())
+            except zlib.error:
+                continue
+            if len(raw) > 2000:
+                blob = sub
+                break
+        self.assertIsNotNone(blob, "expected a large loose blob in the private store")
+        planted = blob
+        before_lane, before_main = self._lane_and_main()
+        common_objects = store.common / "objects"
+        before = {p.relative_to(common_objects): p.read_bytes()
+                  for p in common_objects.rglob("*") if p.is_file()}
+        prev = os.environ.get("PFY_CAGE_LOOSE_MAX_INFLATE")
+        os.environ["PFY_CAGE_LOOSE_MAX_INFLATE"] = "1000"
+        try:
+            with self.assertRaises(self._err()) as ctx:
+                lane_cage.finalize_git_store(store)
+        finally:
+            if prev is None:
+                os.environ.pop("PFY_CAGE_LOOSE_MAX_INFLATE", None)
+            else:
+                os.environ["PFY_CAGE_LOOSE_MAX_INFLATE"] = prev
+        self.assertIn("size cap", str(ctx.exception).lower())
+        after = {p.relative_to(common_objects): p.read_bytes()
+                 for p in common_objects.rglob("*") if p.is_file()}
+        self.assertEqual(after, before)
+        self.assertEqual(self._lane_and_main(), (before_lane, before_main))
+        dest = common_objects / planted.parent.name / planted.name
+        self.assertFalse(dest.exists())
+
+    def test_index_pack_verify_runs_when_verify_pack_is_bypassed(self):
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        self._commit_in_overlay(store)
+        pack = self._private_pack(store)
+        data = pack.read_bytes()
+        self.assertGreater(len(data), 16)
+        pack.write_bytes(data[:-8] + bytes([data[-8] ^ 0xFF]) + data[-7:])
+        bindir = self.td / "git-wrap"
+        bindir.mkdir()
+        real = shutil.which("git")
+        self.assertIsNotNone(real)
+        wrapper = bindir / "git"
+        wrapper.write_text(
+            "#!/bin/sh\n"
+            "real=\"%s\"\n"
+            "for a in \"$@\"; do\n"
+            "  if [ \"$a\" = \"verify-pack\" ]; then exit 0; fi\n"
+            "done\n"
+            "exec \"$real\" \"$@\"\n" % real,
+            encoding="utf-8",
+        )
+        wrapper.chmod(0o755)
+        before_lane, before_main = self._lane_and_main()
+        common_objects = store.common / "objects"
+        before = {p.relative_to(common_objects): p.read_bytes()
+                  for p in common_objects.rglob("*") if p.is_file()}
+        old_path = os.environ["PATH"]
+        os.environ["PATH"] = str(bindir) + os.pathsep + old_path
+        try:
+            with self.assertRaises(self._err()) as ctx:
+                lane_cage.finalize_git_store(store)
+        finally:
+            os.environ["PATH"] = old_path
+        self.assertIn("index-pack", str(ctx.exception).lower())
+        after = {p.relative_to(common_objects): p.read_bytes()
+                 for p in common_objects.rglob("*") if p.is_file()}
+        self.assertEqual(after, before)
+        self.assertEqual(self._lane_and_main(), (before_lane, before_main))
+        self.assertFalse((common_objects / "pack" / pack.name).exists())
+
+    def test_object_walk_does_not_follow_directory_links(self):
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        self._commit_in_overlay(store)
+        secret = self._secret_file("fake-walk-secret.txt")
+        target = self.td / "outside-objects"
+        (target / "aa").mkdir(parents=True)
+        (target / "aa" / ("dd" * 19)).write_bytes(secret.read_bytes())
+        link = store.objects / "ee"
+        if link.exists() or link.is_symlink():
+            link.unlink()
+        os.symlink(target, link)
+        seen = []
+        real_walk = os.walk
+
+        def wrapped(*args, **kwargs):
+            if "followlinks" in kwargs:
+                seen.append(kwargs["followlinks"])
+            elif len(args) >= 4:
+                seen.append(args[3])
+            else:
+                seen.append(False)
+            return real_walk(*args, **kwargs)
+
+        before_lane, before_main = self._lane_and_main()
+        from unittest import mock
+        with mock.patch("os.walk", wrapped):
+            with self.assertRaises(self._err()):
+                lane_cage.finalize_git_store(store)
+        self.assertTrue(seen, "copy-back must walk the private object store")
+        self.assertNotIn(True, seen, "os.walk must pass followlinks=False")
+        self.assertEqual(self._lane_and_main(), (before_lane, before_main))
+        self.assertNotIn("FAKE-HOST-SECRET-NOT-A-CREDENTIAL", self._common_text())
+
+    def test_copy_back_refusal_is_not_logged_as_unavailable(self):
+        secret = self._secret_file("fake-reason-secret.txt")
+        cages = self.td / "cages-reason"
+        env = dict(os.environ, PFY_LANE_CAGE_DIR=str(cages))
+        plant = (
+            "import os, sys\n"
+            "d = os.environ['GIT_OBJECT_DIRECTORY']\n"
+            "p = os.path.join(d, 'aa', '" + ("ab" * 19) + "')\n"
+            "os.makedirs(os.path.dirname(p), exist_ok=True)\n"
+            "os.symlink(sys.argv[1], p)\n"
+        )
+        r = subprocess.run(
+            [sys.executable, str(CAGE), "exec", "--wt", str(self.wt), "--",
+             "python3", "-c", plant, str(secret)],
+            capture_output=True, text=True, env=env, timeout=60,
+        )
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+        err = r.stderr
+        self.assertIn("lane-cage: copy-back refused:", err)
+        self.assertNotIn("unavailable", err.lower())
+        self.assertNotIn("FAKE-HOST-SECRET-NOT-A-CREDENTIAL", self._common_text())
+
+    def test_lane_scripts_park_copy_back_apart_from_unavailable(self):
+        """rc=2 copy-back must not be parked as 'lane cage unavailable'."""
+        for rel in ("scripts/eval_lane.sh", "scripts/integrate_lane.sh"):
+            body = (ROOT / rel).read_text(encoding="utf-8")
+            self.assertIn("copy-back refused", body, rel)
+            self.assertIn("return 6", body, rel)
+            self.assertIn('park_exit "copy-back refused"', body, rel)
+            self.assertIn("lane cage unavailable", body, rel)
+
+        def classify(rc, line):
+            log = self.td / "cage.log"
+            log.write_text(line + "\n", encoding="utf-8")
+            classify_sh = (
+                "rc=$1\n"
+                "log=$2\n"
+                "if [ \"$rc\" -eq 2 ] && grep -q '^lane-cage: copy-back refused' \"$log\"; then\n"
+                "  echo \"copy-back refused\"\n"
+                "  exit 6\n"
+                "fi\n"
+                "if [ \"$rc\" -eq 2 ] && grep -q '^lane-cage: ' \"$log\"; then\n"
+                "  echo \"lane cage unavailable\"\n"
+                "  exit 5\n"
+                "fi\n"
+                "echo other\n"
+                "exit \"$rc\"\n"
+            )
+            r = subprocess.run(
+                ["bash", "-c", classify_sh, "classify", str(rc), str(log)],
+                capture_output=True, text=True,
+            )
+            return r.returncode, r.stdout.strip()
+
+        self.assertEqual(
+            classify(2, "lane-cage: copy-back refused: symlink in object store"),
+            (6, "copy-back refused"),
+        )
+        self.assertEqual(
+            classify(2, "lane-cage: lane cage unavailable: podman not found (no unconfined fallback)"),
+            (5, "lane cage unavailable"),
+        )
+
+
 @unittest.skipUnless(_real_cage_ready(), "rootless podman and localhost/pfy-test:3.12 needed (make test-image)")
 class RealCageTest(unittest.TestCase):
     def test_cage_hides_ssh_and_grok_and_only_reaches_xai(self):

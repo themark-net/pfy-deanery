@@ -315,6 +315,11 @@ run_grok() {
       progress "$SLUG grok $label ok"
       return 0
     fi
+    if [ "$rc" -eq 2 ] && grep -q '^lane-cage: copy-back refused' "$log"; then
+      progress "$SLUG grok $label: copy-back refused"
+      tail -n 5 "$log" >&2 || true
+      return 6
+    fi
     if [ "$rc" -eq 2 ] && grep -q '^lane-cage: ' "$log"; then
       progress "$SLUG grok $label: lane cage unavailable"
       tail -n 5 "$log" >&2 || true
@@ -351,6 +356,7 @@ preamble=$(python3 "$SCRIPT_DIR/../pfylib/untrusted_text.py" preamble) || park_e
 run_grok implement "$impl" || {
   rc=$?
   if [ "$rc" -eq 4 ]; then park_exit "cloud cost gate skipped (\$0 spend)"; fi
+  if [ "$rc" -eq 6 ]; then park_exit "copy-back refused"; fi
   if [ "$rc" -eq 5 ]; then park_exit "lane cage unavailable (no unconfined fallback)"; fi
   park_exit "grok implement failed"
 }
@@ -360,6 +366,7 @@ fi
 run_grok review "$review" || {
   rc=$?
   if [ "$rc" -eq 4 ]; then park_exit "cloud cost gate skipped (\$0 spend)"; fi
+  if [ "$rc" -eq 6 ]; then park_exit "copy-back refused"; fi
   if [ "$rc" -eq 5 ]; then park_exit "lane cage unavailable (no unconfined fallback)"; fi
   park_exit "grok self-review failed"
 }
