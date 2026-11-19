@@ -10,7 +10,7 @@ import os
 import socket
 import sys
 
-host_home = os.environ.get("PROBE_HOST_HOME", "/home/mark")
+host_home = os.environ.get("PROBE_HOST_HOME") or os.path.expanduser("~")
 out = {"argv": sys.argv[1:]}
 out["ssh_visible"] = os.path.exists(os.path.join(host_home, ".ssh"))
 out["real_grok_visible"] = os.path.exists(os.path.join(host_home, ".grok", "config.toml"))

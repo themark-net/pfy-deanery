@@ -9,7 +9,7 @@ text, so it runs as if that text were hostile:
   is writable for objects and refs, but its config, hooks and info are
   read-only and other lanes' worktree metadata is read-only. The quarantine
   root (scripts/quarantine_clone.py) is mounted read-only.
-- No ~/.ssh, no SSH agent, no other ~/DEVELOP checkout, no real ~/.grok.
+- No ~/.ssh, no SSH agent, no other checkout, no real ~/.grok.
   A throwaway GROK_HOME per run has memory off and no MCP servers. The xAI
   credential is XAI_API_KEY passed by name, or the host auth.json mounted
   read-only. It is never copied, printed or logged.

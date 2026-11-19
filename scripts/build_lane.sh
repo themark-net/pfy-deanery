@@ -1,6 +1,6 @@
 #!/bin/bash
 # Confined Grok Build lane: replaces `grok -p ... --always-approve` in
-# ~/DEVELOP/lanes-*/run-lane.sh. The agent runs in scripts/lane_cage.py
+# an operator's Build lane run-lane.sh scripts. The agent runs in scripts/lane_cage.py
 # (rootless podman, no ~/.ssh, throwaway GROK_HOME with memory off, egress
 # only to xAI, tool allowlist, web off). It can commit in its worktree; the
 # driver (the operator or Grok Bot) reviews and pushes.
@@ -21,9 +21,7 @@ while [ $# -gt 0 ]; do
   esac
 done
 [ -d "$WT" ] && [ -f "$PROMPT" ] || { echo "usage: build_lane.sh --wt DIR --prompt FILE" >&2; exit 2; }
-case "$(realpath "$WT")" in
-  */DEVELOP/pfy-mentat|*/DEVELOP/pfy-mentat/*) echo "refusing: never run a lane in ~/DEVELOP/pfy-mentat" >&2; exit 2 ;;
-esac
+git -C "$WT" rev-parse --is-inside-work-tree >/dev/null 2>&1 || { echo "refusing: $WT is not a git worktree" >&2; exit 2; }
 full=$(mktemp "${TMPDIR:-/tmp}/build-lane-prompt.XXXXXX")
 trap 'rm -f "$full"' EXIT
 {
