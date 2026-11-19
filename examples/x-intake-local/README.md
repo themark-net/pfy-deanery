@@ -339,3 +339,7 @@ Mycelium and GOAT. Each reads the pinned GitHub commit JSON through `$MULTIAGENT
 Entries 197-199 (`smoke_197.py`, `smoke_198.py`, `smoke_199.py`) are commit-metadata receipts for decision-cascade,
 Miniforge and Speedrun. Each reads the pinned GitHub commit JSON through `$DECISION_CASCADE_FETCH_BIN` / `$MINIFORGE_FETCH_BIN` /
 `$SPEEDRUN_FETCH_BIN` or a stdlib fetch, checks the SHA, and exits 2 without installing anything. `PFY_XINTAKE_TIMEOUT` overrides the timeout.
+
+Entries 200-202 (`smoke_200.py`, `smoke_201.py`, `smoke_202.py`) are commit-metadata receipts for Thermite,
+Agent of Empires and CompozyOS. Each reads the pinned GitHub commit JSON through `$THERMITE_FETCH_BIN` / `$AGENT_OF_EMPIRES_FETCH_BIN` /
+`$COMPOZY_FETCH_BIN` or a stdlib fetch, checks the SHA, and exits 2 without installing anything. `PFY_XINTAKE_TIMEOUT` overrides the timeout.
