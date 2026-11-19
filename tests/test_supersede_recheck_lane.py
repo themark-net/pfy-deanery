@@ -90,6 +90,9 @@ def make_repo(td: Path):
         "scripts/model_lock.sh",
         "scripts/gate_cloud_call.sh",
         "pfylib/untrusted_text.py",
+        "scripts/lane_cage.py",
+        "scripts/lane_cage_entry.sh",
+        "scripts/lane_uds_forward.py",
     ):
         dest = seed / rel
         dest.parent.mkdir(parents=True, exist_ok=True)

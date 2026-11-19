@@ -114,3 +114,7 @@ The five software-factory questions for this pipeline are answered in the privat
 ## GPU lanes
 
 Approved GPU and over-25 GB slugs (`eval/catalog-queue/approvals.tsv`) are not launched by the loop. Start `scripts/gpu_lane_driver.sh --root <worktree>` detached (systemd-run --user). It runs one eval lane at a time, waits for GPU and RAM headroom, parks a pull with `no disk` when space is short, and keeps its markers in `$PFY_LOOP_STATE/gpu/` (driver.pid, progress.md, current, `<slug>.started`, `.finished`, `.parked`, ALL_DONE). Touch `$PFY_LOOP_STATE/gpu/STOP` to stop it between lanes.
+
+## Pin the loop to a reviewed commit
+
+`PFY_LOOP_REF` (in `~/.config/pfy/loop.env`) pins each tick to a full SHA or a `loop-reviewed-*` tag that is already on `origin/main`; `scripts/loop_worktree.sh` refuses anything else. Unset keeps `origin/main`. The repo unit `ops/systemd/catalog-loop.service` reads `scripts/loop_worktree.sh` from that ref too.

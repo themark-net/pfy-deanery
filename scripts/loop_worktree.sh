@@ -1,5 +1,5 @@
 #!/bin/bash
-# Run a command in a detached worktree at origin/main.
+# Run a command in a detached worktree at origin/main, or at PFY_LOOP_REF when set.
 # Usage: scripts/loop_worktree.sh [--wt DIR] -- <command...>
 # DIR defaults to ${PFY_LOOP_WT:-$PFY_TMP/loop/wt}.
 # The repo defaults to ${PFY_LOOP_REPO:-$PFY_ROOT}.
@@ -15,6 +15,10 @@ export GIT_TERMINAL_PROMPT=0
 
 WT="${PFY_LOOP_WT:-$PFY_TMP/loop/wt}"
 REPO="${PFY_LOOP_REPO:-$PFY_ROOT}"
+# PFY_LOOP_REF pins the loop to a reviewed commit instead of origin/main.
+# It must be a full 40-hex SHA or a tag named loop-reviewed-*, and it must
+# already be on origin/main. Unset keeps the old behavior (origin/main).
+LOOP_REF="${PFY_LOOP_REF:-}"
 
 usage() {
   echo "usage: scripts/loop_worktree.sh [--wt DIR] -- <command...>" >&2
@@ -82,8 +86,25 @@ else
   git -C "$REPO_ABS" worktree add --detach "$WT_ABS" origin/main
 fi
 
-git -C "$WT_ABS" fetch -q origin
-git -C "$WT_ABS" reset -q --hard origin/main
+git -C "$WT_ABS" fetch -q --tags origin
+target=origin/main
+if [[ -n "$LOOP_REF" ]]; then
+  if [[ ! "$LOOP_REF" =~ ^[0-9a-f]{40}$ && ! "$LOOP_REF" =~ ^loop-reviewed-[A-Za-z0-9._-]+$ ]]; then
+    echo "refusing: PFY_LOOP_REF must be a full commit SHA or a loop-reviewed-* tag: $LOOP_REF" >&2
+    exit 2
+  fi
+  pinned=$(git -C "$WT_ABS" rev-parse --verify -q "${LOOP_REF}^{commit}") || {
+    echo "refusing: PFY_LOOP_REF not found: $LOOP_REF" >&2
+    exit 2
+  }
+  if ! git -C "$WT_ABS" merge-base --is-ancestor "$pinned" origin/main; then
+    echo "refusing: PFY_LOOP_REF $LOOP_REF is not on origin/main (not reviewed)" >&2
+    exit 2
+  fi
+  target=$pinned
+  echo "loop pinned to $pinned ($LOOP_REF)" >&2
+fi
+git -C "$WT_ABS" reset -q --hard "$target"
 git -C "$WT_ABS" clean -qfdx -e tmp/
 
 cd "$WT_ABS"
