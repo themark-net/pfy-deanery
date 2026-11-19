@@ -13,6 +13,7 @@ import tempfile
 import textwrap
 import unittest
 from pathlib import Path
+from tests.lane_key import setUpModule, tearDownModule  # noqa: F401  fake key, fix #53 gate
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "integrate_lane.sh"

@@ -17,6 +17,7 @@ import unittest
 from pathlib import Path
 
 from tests.test_integrate_lane_land import git, make_fixture
+from tests.lane_key import setUpModule, tearDownModule  # noqa: F401  fake key, fix #53 gate
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "integrate_lane.sh"
