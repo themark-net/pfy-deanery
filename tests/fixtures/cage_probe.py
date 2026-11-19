@@ -10,7 +10,9 @@ import os
 import socket
 import sys
 
-host_home = os.environ.get("PROBE_HOST_HOME") or os.path.expanduser("~")
+# The host home path comes from a file the test writes into the worktree
+# (cwd in the cage). The cage's own HOME is a throwaway, so it cannot be used.
+host_home = os.environ.get("PROBE_HOST_HOME") or open(".probe_host_home").read().strip()
 out = {"argv": sys.argv[1:]}
 out["ssh_visible"] = os.path.exists(os.path.join(host_home, ".ssh"))
 out["real_grok_visible"] = os.path.exists(os.path.join(host_home, ".grok", "config.toml"))

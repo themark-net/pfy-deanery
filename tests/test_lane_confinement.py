@@ -230,6 +230,7 @@ class RealCageTest(unittest.TestCase):
             wt = td / "wt"
             wt.mkdir()
             git(wt, "init", "-q")
+            (wt / ".probe_host_home").write_text(str(Path.home()), encoding="utf-8")
             prompt = td / "p.txt"
             prompt.write_text("Evaluate.\n" + INJECTED, encoding="utf-8")
             env = dict(os.environ, PFY_PODMAN="podman", PROBE_HOST_HOME=str(Path.home()),
