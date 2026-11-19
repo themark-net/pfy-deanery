@@ -33,14 +33,17 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import dataclass
+import hashlib
 import json
 import os
 import shutil
+import stat
 import socket
 import subprocess
 import sys
 import tempfile
 import threading
+import zlib
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -78,6 +81,10 @@ permission_mode = "default"
 
 class CageError(Exception):
     pass
+
+
+class GitStoreError(CageError):
+    """Copy-back of the private git store was refused. The shared store is unchanged."""
 
 
 def allowed_host(host: str, allow: list[str]) -> bool:
@@ -298,19 +305,288 @@ def git_store_envs(store: GitStore | None) -> list[str]:
     return envs
 
 
-def _copy_new_objects(src: Path, dest: Path) -> None:
-    dest.mkdir(parents=True, exist_ok=True)
+def _hex_name(name: str, n: int) -> bool:
+    return len(name) == n and all(c in "0123456789abcdef" for c in name)
+
+
+def _object_format(wt: Path) -> tuple[int, object]:
+    r = subprocess.run(["git", "-C", str(wt), "rev-parse", "--show-object-format"],
+                       capture_output=True, text=True)
+    kind = (r.stdout or "sha1").strip() or "sha1"
+    if kind == "sha256":
+        return 64, hashlib.sha256
+    return 40, hashlib.sha1
+
+
+def _verify_loose_file(path: Path, expected_sha: str, hasher) -> bytes:
+    """Read a loose object with O_NOFOLLOW and require hash(header+content) == name.
+
+    A hardlink to an outside path would share bytes with that path. Acceptance
+    is still bound to the decompressed hash, so a host secret cannot land
+    unless those bytes already hash to this object name.
+    """
+    try:
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC)
+    except OSError as exc:
+        raise GitStoreError(f"cannot open object {path}: {exc}") from exc
+    try:
+        st = os.fstat(fd)
+        if not stat.S_ISREG(st.st_mode):
+            raise GitStoreError(f"object is not a regular file: {path}")
+        chunks = []
+        while True:
+            chunk = os.read(fd, 1024 * 1024)
+            if not chunk:
+                break
+            chunks.append(chunk)
+    finally:
+        os.close(fd)
+    data = b"".join(chunks)
+    try:
+        dec = zlib.decompressobj()
+        raw = dec.decompress(data)
+        raw += dec.flush()
+    except zlib.error as exc:
+        raise GitStoreError(f"loose object is not zlib data: {path}") from exc
+    if dec.unconsumed_tail or dec.unused_data:
+        raise GitStoreError(f"loose object has trailing data: {path}")
+    digest = hasher(raw).hexdigest()
+    if digest != expected_sha:
+        raise GitStoreError(f"loose object hash mismatch: {path}")
+    return zlib.compress(raw)
+
+
+def _pack_object_ids(idx: Path, hexlen: int) -> set[str]:
+    r = subprocess.run(["git", "verify-pack", "-v", str(idx)],
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        raise GitStoreError(f"git verify-pack failed for {idx.name}: {r.stderr.strip()}")
+    shas: set[str] = set()
+    for line in r.stdout.splitlines():
+        parts = line.split()
+        if parts and _hex_name(parts[0], hexlen):
+            shas.add(parts[0])
+    return shas
+
+
+def _verify_packs(packdir: Path, hexlen: int) -> set[str]:
+    packs: dict[str, Path] = {}
+    idxs: dict[str, Path] = {}
+    for sub in packdir.iterdir():
+        try:
+            st = os.lstat(sub)
+        except OSError as exc:
+            raise GitStoreError(f"cannot lstat pack entry {sub}: {exc}") from exc
+        if not stat.S_ISREG(st.st_mode):
+            raise GitStoreError(f"non-regular pack entry: {sub}")
+        name = sub.name
+        if name.startswith("pack-") and name.endswith(".pack"):
+            hid = name[len("pack-"):-len(".pack")]
+            if not _hex_name(hid, hexlen):
+                raise GitStoreError(f"unexpected pack name: {name}")
+            packs[hid] = sub
+        elif name.startswith("pack-") and name.endswith(".idx"):
+            hid = name[len("pack-"):-len(".idx")]
+            if not _hex_name(hid, hexlen):
+                raise GitStoreError(f"unexpected pack idx name: {name}")
+            idxs[hid] = sub
+        else:
+            raise GitStoreError(f"unexpected pack entry: {name}")
+    if set(packs) != set(idxs):
+        raise GitStoreError("pack and idx names do not match")
+    all_ids: set[str] = set()
+    for hid, pack in packs.items():
+        idx = idxs[hid]
+        all_ids |= _pack_object_ids(idx, hexlen)
+        r = subprocess.run(["git", "index-pack", "--verify", "--strict", str(pack)],
+                           capture_output=True, text=True)
+        if r.returncode != 0:
+            raise GitStoreError(f"git index-pack --verify failed for {pack.name}: {r.stderr.strip()}")
+    return all_ids
+
+
+def _scan_private_objects(store: GitStore) -> tuple[dict[str, Path], set[str], int, object]:
+    """Validate every private-store entry. objects/info is skipped, never copied.
+
+    Returns (loose sha->path, shas present in verified packs, hexlen, hasher).
+    Any non-regular entry or unexpected name refuses the whole copy-back.
+    """
+    hexlen, hasher = _object_format(store.wt)
+    src = store.objects
+    loose: dict[str, Path] = {}
+    pack_ids: set[str] = set()
+    if not src.is_dir():
+        return loose, pack_ids, hexlen, hasher
     for item in src.iterdir():
+        try:
+            st = os.lstat(item)
+        except OSError as exc:
+            raise GitStoreError(f"cannot lstat {item}: {exc}") from exc
         if item.name == "info":
             continue
-        target = dest / item.name
-        if item.is_dir():
-            target.mkdir(exist_ok=True)
-            for sub in item.iterdir():
-                if sub.is_file():
-                    shutil.copy2(sub, target / sub.name)
-        elif item.is_file():
-            shutil.copy2(item, target)
+        if item.name == "pack":
+            if not stat.S_ISDIR(st.st_mode):
+                raise GitStoreError("objects/pack is not a directory")
+            pack_ids = _verify_packs(item, hexlen)
+            continue
+        if not stat.S_ISDIR(st.st_mode):
+            raise GitStoreError(f"unexpected object store entry: {item.name}")
+        if not _hex_name(item.name, 2):
+            raise GitStoreError(f"unexpected object store entry: {item.name}")
+        for sub in item.iterdir():
+            try:
+                sst = os.lstat(sub)
+            except OSError as exc:
+                raise GitStoreError(f"cannot lstat {sub}: {exc}") from exc
+            if not stat.S_ISREG(sst.st_mode):
+                raise GitStoreError(f"non-regular object: {sub}")
+            if not _hex_name(sub.name, hexlen - 2):
+                raise GitStoreError(f"unexpected loose object name: {sub}")
+            sha = item.name + sub.name
+            _verify_loose_file(sub, sha, hasher)
+            loose[sha] = sub
+    return loose, pack_ids, hexlen, hasher
+
+
+def _private_has(sha: str, loose: dict[str, Path], pack_ids: set[str]) -> bool:
+    return sha in loose or sha in pack_ids
+
+
+def _raw_object(store: GitStore, sha: str) -> bytes:
+    env = dict(os.environ,
+               GIT_OBJECT_DIRECTORY=str(store.objects),
+               GIT_ALTERNATE_OBJECT_DIRECTORIES=str(store.common / "objects"))
+    typ = subprocess.run(["git", "--git-dir", str(store.overlay), "cat-file", "-t", sha],
+                         capture_output=True, text=True, env=env)
+    if typ.returncode != 0:
+        raise GitStoreError(f"missing object {sha}: {typ.stderr.strip()}")
+    kind = typ.stdout.strip()
+    body = subprocess.run(["git", "--git-dir", str(store.overlay), "cat-file", kind, sha],
+                          capture_output=True, env=env)
+    if body.returncode != 0:
+        raise GitStoreError(f"cannot read object {sha}")
+    return f"{kind} {len(body.stdout)}".encode() + b"\0" + body.stdout
+
+
+def _dest_status(dest: Path, sha: str, hasher) -> str:
+    """Return 'missing' or 'skip'. Refuse if dest exists and does not hash to sha."""
+    try:
+        st = os.lstat(dest)
+    except FileNotFoundError:
+        return "missing"
+    except OSError as exc:
+        raise GitStoreError(f"cannot lstat shared object {dest}: {exc}") from exc
+    if not stat.S_ISREG(st.st_mode):
+        raise GitStoreError(f"shared object is not a regular file: {dest}")
+    try:
+        _verify_loose_file(dest, sha, hasher)
+    except GitStoreError as exc:
+        raise GitStoreError(f"refusing to overwrite existing object {sha}") from exc
+    return "skip"
+
+
+def _install_loose(dest: Path, compressed: bytes, installed: list[Path]) -> None:
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    tmp = dest.with_name(f"{dest.name}.pfy-cage-tmp-{os.getpid()}")
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW | os.O_CLOEXEC
+    try:
+        fd = os.open(tmp, flags, 0o644)
+        try:
+            view = memoryview(compressed)
+            while view:
+                n = os.write(fd, view)
+                view = view[n:]
+            os.fsync(fd)
+        finally:
+            os.close(fd)
+        try:
+            os.lstat(dest)
+        except FileNotFoundError:
+            os.rename(tmp, dest)
+            installed.append(dest)
+            return
+        raise GitStoreError(f"shared object appeared during copy: {dest}")
+    except GitStoreError:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+    except OSError as exc:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise GitStoreError(f"failed to copy object to {dest}: {exc}") from exc
+
+
+def _rollback(installed: list[Path]) -> None:
+    for path in reversed(installed):
+        try:
+            path.unlink()
+        except OSError:
+            pass
+
+
+def _accept_result_commit(store: GitStore, new: str, loose: dict[str, Path],
+                          pack_ids: set[str], hexlen: int) -> None:
+    if not _hex_name(new, hexlen):
+        raise GitStoreError(f"overlay HEAD is not an object name: {new!r}")
+    env = dict(os.environ,
+               GIT_OBJECT_DIRECTORY=str(store.objects),
+               GIT_ALTERNATE_OBJECT_DIRECTORIES=str(store.common / "objects"))
+    typ = subprocess.run(["git", "--git-dir", str(store.overlay), "cat-file", "-t", new],
+                         capture_output=True, text=True, env=env)
+    if typ.returncode != 0 or typ.stdout.strip() != "commit":
+        raise GitStoreError(f"result {new} is not a commit")
+    if new == store.start_sha:
+        return
+    if not _private_has(new, loose, pack_ids):
+        raise GitStoreError("result commit was not created in the private store")
+    if store.start_sha:
+        anc = subprocess.run(
+            ["git", "--git-dir", str(store.overlay), "merge-base", "--is-ancestor",
+             store.start_sha, new],
+            capture_output=True, text=True, env=env,
+        )
+        if anc.returncode != 0:
+            raise GitStoreError("result commit does not descend from the lane start")
+
+
+def _copy_new_objects(store: GitStore, new: str) -> None:
+    """Copy verified, reachable objects into common. No partial merge on failure."""
+    loose, pack_ids, hexlen, hasher = _scan_private_objects(store)
+    if new and new != store.start_sha:
+        _accept_result_commit(store, new, loose, pack_ids, hexlen)
+    # Copy every verified private object, not only those reachable from the
+    # result commit. GIT_OBJECT_DIRECTORY applies to `git -C` inside the
+    # cage, so a driver-side second repo may have written valid objects
+    # that the result ref does not name.
+    dest_root = store.common / "objects"
+    planned: list[tuple[str, bytes]] = []
+    for sha in sorted(set(loose) | pack_ids):
+        dest = dest_root / sha[:2] / sha[2:]
+        status = _dest_status(dest, sha, hasher)
+        if status == "skip":
+            continue
+        if sha in loose:
+            compressed = _verify_loose_file(loose[sha], sha, hasher)
+        else:
+            raw = _raw_object(store, sha)
+            if hasher(raw).hexdigest() != sha:
+                raise GitStoreError(f"pack object hash mismatch: {sha}")
+            compressed = zlib.compress(raw)
+        planned.append((sha, compressed))
+    installed: list[Path] = []
+    try:
+        for sha, compressed in planned:
+            dest = dest_root / sha[:2] / sha[2:]
+            if _dest_status(dest, sha, hasher) == "skip":
+                continue
+            _install_loose(dest, compressed, installed)
+    except GitStoreError:
+        _rollback(installed)
+        raise
 
 
 def _overlay_head_sha(store: GitStore) -> str:
@@ -367,18 +643,25 @@ def _install_host_file(src: Path, dest: Path) -> None:
         print(f"lane-cage: failed to copy back {dest}: {exc}", file=sys.stderr)
 
 
-def finalize_git_store(store: GitStore) -> None:
-    """Copy new objects and only the result ref into the shared store."""
+def finalize_git_store(store: GitStore, *, cage_ok: bool = True) -> None:
+    """Copy verified objects and only the result ref into the shared store.
+
+    On any copy-back error the shared objects and refs are left unchanged
+    and GitStoreError is raised so the cage result is marked failed.
+    A failed cage run (cage_ok=False) copies nothing.
+    """
     restore_git_pointer(store)
+    if not cage_ok:
+        return
     new = _overlay_head_sha(store)
-    _copy_new_objects(store.objects, store.common / "objects")
-    if new:
+    _copy_new_objects(store, new)
+    if new and new != store.start_sha:
         if store.start_ref:
             r = subprocess.run(["git", "-C", str(store.wt), "update-ref", store.start_ref, new],
                                capture_output=True, text=True)
             if r.returncode != 0:
-                print(f"lane-cage: failed to copy back result ref {store.start_ref}: {r.stderr.strip()}",
-                      file=sys.stderr)
+                raise GitStoreError(
+                    f"failed to copy back result ref {store.start_ref}: {r.stderr.strip()}")
         else:
             (store.gitdir / "HEAD").write_text(new + "\n", encoding="utf-8")
     _install_host_file(store.overlay / "index", store.gitdir / "index")
@@ -500,43 +783,54 @@ def cmd_grok(args) -> int:
     wt = Path(args.wt).resolve()
     cage = prepare_cage(cage_root(wt))
     store = None
+    rc = 0
+    printed = False
     try:
         store = prepare_git_store(wt, cage)
         argv, meta = build_grok_argv(args, cage, store)
         if args.print:
             print(json.dumps({"argv": argv, **meta}))
-            return 0
-        if store is not None:
-            activate_git_store(store)
-        preflight(argv[0], meta["image"])
-        allow = [a.strip().lower() for a in os.environ.get("PFY_LANE_EGRESS_ALLOW", DEFAULT_ALLOW).split(",") if a.strip()]
-        egress_log = Path(args.egress_log) if args.egress_log else cage / "egress.log"
-        proxy = EgressProxy(cage / "sock" / "egress.sock", allow, egress_log)
-        proxy.start()
-        print(f"lane-cage: kind={args.kind} image={meta['image']} network=none egress={','.join(allow)} "
-              f"credential={meta['credential']} tools={','.join(KIND_TOOLS[args.kind])}", file=sys.stderr)
-        try:
-            return subprocess.run(argv, timeout=args.timeout).returncode
-        except subprocess.TimeoutExpired:
-            print("lane-cage: timeout", file=sys.stderr)
-            return 124
-        finally:
-            proxy.close()
+            printed = True
+        else:
+            if store is not None:
+                activate_git_store(store)
+            preflight(argv[0], meta["image"])
+            allow = [a.strip().lower() for a in os.environ.get("PFY_LANE_EGRESS_ALLOW", DEFAULT_ALLOW).split(",") if a.strip()]
+            egress_log = Path(args.egress_log) if args.egress_log else cage / "egress.log"
+            proxy = EgressProxy(cage / "sock" / "egress.sock", allow, egress_log)
+            proxy.start()
+            print(f"lane-cage: kind={args.kind} image={meta['image']} network=none egress={','.join(allow)} "
+                  f"credential={meta['credential']} tools={','.join(KIND_TOOLS[args.kind])}", file=sys.stderr)
+            try:
+                rc = subprocess.run(argv, timeout=args.timeout).returncode
+            except subprocess.TimeoutExpired:
+                print("lane-cage: timeout", file=sys.stderr)
+                rc = 124
+            finally:
+                proxy.close()
     except CageError as exc:
         print(f"lane-cage: {exc}", file=sys.stderr)
-        return 2
+        rc = 2
     finally:
         try:
-            if store is not None and not getattr(args, "print", False):
-                finalize_git_store(store)
+            if store is not None and not printed:
+                try:
+                    finalize_git_store(store, cage_ok=(rc == 0))
+                except GitStoreError as exc:
+                    print(f"lane-cage: {exc}", file=sys.stderr)
+                    if rc == 0:
+                        rc = 2
         finally:
             shutil.rmtree(cage, ignore_errors=True)
+    return rc
 
 
 def cmd_exec(args) -> int:
     wt = Path(args.wt).resolve()
     cage = prepare_cage(cage_root(wt))
     store = None
+    rc = 0
+    printed = False
     try:
         podman = os.environ.get("PFY_PODMAN", "podman")
         image = os.environ.get("PFY_LANE_IMAGE", DEFAULT_IMAGE)
@@ -551,20 +845,27 @@ def cmd_exec(args) -> int:
         argv += [image, str(SCRIPT_DIR / "lane_cage_entry.sh"), *cmd]
         if args.print:
             print(json.dumps({"argv": argv}))
-            return 0
-        if store is not None:
-            activate_git_store(store)
-        preflight(podman, image)
-        return subprocess.run(argv, timeout=args.timeout).returncode
+            printed = True
+        else:
+            if store is not None:
+                activate_git_store(store)
+            preflight(podman, image)
+            rc = subprocess.run(argv, timeout=args.timeout).returncode
     except CageError as exc:
         print(f"lane-cage: {exc}", file=sys.stderr)
-        return 2
+        rc = 2
     finally:
         try:
-            if store is not None and not getattr(args, "print", False):
-                finalize_git_store(store)
+            if store is not None and not printed:
+                try:
+                    finalize_git_store(store, cage_ok=(rc == 0))
+                except GitStoreError as exc:
+                    print(f"lane-cage: {exc}", file=sys.stderr)
+                    if rc == 0:
+                        rc = 2
         finally:
             shutil.rmtree(cage, ignore_errors=True)
+    return rc
 
 
 def main(argv: list[str] | None = None) -> int:

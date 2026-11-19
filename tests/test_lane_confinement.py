@@ -321,6 +321,297 @@ class GitStoreIsolationTest(unittest.TestCase):
         self.assertNotIn("refs/heads/evil", refs)
         self.assertEqual(git(self.repo, "rev-parse", "main").strip(), self.main_sha)
 
+    def _err(self):
+        return getattr(lane_cage, "GitStoreError", Exception)
+
+    def _secret_file(self, name="fake-host-secret.txt") -> Path:
+        # A temp fixture only. Never a real credential path.
+        path = self.td / name
+        path.write_text("FAKE-HOST-SECRET-NOT-A-CREDENTIAL\n", encoding="utf-8")
+        return path
+
+    def _common_text(self) -> str:
+        common, _ = lane_cage.git_paths(self.wt)
+        chunks = []
+        for p in common.rglob("*"):
+            if p.is_symlink() or not p.is_file():
+                continue
+            try:
+                chunks.append(p.read_text(encoding="utf-8", errors="replace"))
+            except OSError:
+                chunks.append(p.read_bytes().decode("utf-8", "replace"))
+        return "\n".join(chunks)
+
+    def _lane_and_main(self):
+        return (
+            git(self.wt, "rev-parse", "refs/heads/lane").strip(),
+            git(self.repo, "rev-parse", "main").strip(),
+        )
+
+    def _commit_in_overlay(self, store, text="from the lane\n"):
+        (self.wt / "work.txt").write_text(text, encoding="utf-8")
+        env = dict(os.environ, GIT_OBJECT_DIRECTORY=str(store.objects))
+        subprocess.run(
+            ["git", "--git-dir", str(store.overlay), "--work-tree", str(self.wt),
+             "add", "work.txt"],
+            check=True, capture_output=True, text=True, env=env,
+        )
+        subprocess.run(
+            ["git", "--git-dir", str(store.overlay), "--work-tree", str(self.wt),
+             "-c", "user.email=t@example.com", "-c", "user.name=T",
+             "commit", "-qm", "lane work"],
+            check=True, capture_output=True, text=True, env=env,
+        )
+        return subprocess.run(
+            ["git", "--git-dir", str(store.overlay), "rev-parse", "HEAD"],
+            check=True, capture_output=True, text=True, env=env,
+        ).stdout.strip()
+
+    def test_symlink_to_a_fake_host_secret_is_not_copied_into_common(self):
+        """A caged process plants a loose-object symlink at a fake secret.
+
+        Fail: shutil.copy2 follows the link and the secret lands in
+        common/objects. Recover: lstat refuses non-regular files, nothing is
+        copied, and the secret bytes appear nowhere under common.
+        """
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        secret = self._secret_file()
+        planted = store.objects / "aa" / ("ab" * 19)
+        planted.parent.mkdir(parents=True, exist_ok=True)
+        planted.symlink_to(secret)
+        before_lane, before_main = self._lane_and_main()
+        raised = False
+        try:
+            lane_cage.finalize_git_store(store)
+        except self._err():
+            raised = True
+        self.assertNotIn("FAKE-HOST-SECRET-NOT-A-CREDENTIAL", self._common_text())
+        self.assertFalse((store.common / "objects" / "aa" / planted.name).exists())
+        self.assertEqual(self._lane_and_main(), (before_lane, before_main))
+        self.assertTrue(raised, "finalize must refuse a planted symlink")
+
+    def test_symlink_pack_is_not_copied_into_common(self):
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        secret = self._secret_file("fake-pack-secret.txt")
+        packdir = store.objects / "pack"
+        packdir.mkdir(parents=True, exist_ok=True)
+        name = "pack-" + ("ab" * 20)
+        (packdir / (name + ".pack")).symlink_to(secret)
+        (packdir / (name + ".idx")).write_bytes(b"not-an-idx")
+        before_lane, before_main = self._lane_and_main()
+        raised = False
+        try:
+            lane_cage.finalize_git_store(store)
+        except self._err():
+            raised = True
+        self.assertNotIn("FAKE-HOST-SECRET-NOT-A-CREDENTIAL", self._common_text())
+        self.assertFalse((store.common / "objects" / "pack" / (name + ".pack")).exists())
+        self.assertEqual(self._lane_and_main(), (before_lane, before_main))
+        self.assertTrue(raised, "finalize must refuse a planted pack symlink")
+
+    def test_identical_existing_object_is_skipped(self):
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        new = self._commit_in_overlay(store)
+        lane_cage.finalize_git_store(store)
+        self.assertEqual(git(self.wt, "rev-parse", "refs/heads/lane").strip(), new)
+        cage2 = self.td / "cage-ident"
+        cage2.mkdir()
+        store2 = lane_cage.prepare_git_store(self.wt, cage2)
+        common_objects = store.common / "objects"
+        # Put the already-imported loose objects into the new private store.
+        for p in common_objects.rglob("*"):
+            if not p.is_file() or p.parent.name in ("pack", "info") or len(p.parent.name) != 2:
+                continue
+            dest = store2.objects / p.parent.name / p.name
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_bytes(p.read_bytes())
+        before = {q.relative_to(common_objects): q.read_bytes()
+                  for q in common_objects.rglob("*") if q.is_file()}
+        lane_cage.finalize_git_store(store2)
+        after = {q.relative_to(common_objects): q.read_bytes()
+                 for q in common_objects.rglob("*") if q.is_file()}
+        self.assertEqual(after, before)
+        self.assertEqual(git(self.wt, "rev-parse", "refs/heads/lane").strip(), new)
+        self.assertEqual(git(self.repo, "rev-parse", "main").strip(), self.main_sha)
+
+    def test_existing_object_is_not_overwritten(self):
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        new = self._commit_in_overlay(store)
+        lane_cage.finalize_git_store(store)
+        self.assertEqual(git(self.wt, "rev-parse", "refs/heads/lane").strip(), new)
+        # Re-prepare in a fresh cage and plant different bytes at the same
+        # loose path as a copied object. The shared object must be left as it was.
+        cage2 = self.td / "cage2"
+        cage2.mkdir()
+        store2 = lane_cage.prepare_git_store(self.wt, cage2)
+        common_objects = store.common / "objects"
+        # find a loose object under common that came from the first commit
+        samples = [p for p in common_objects.rglob("*")
+                   if p.is_file() and p.parent.name != "pack" and p.parent.name != "info"
+                   and len(p.parent.name) == 2]
+        self.assertTrue(samples, "expected loose objects in common")
+        target = samples[0]
+        original = target.read_bytes()
+        planted = store2.objects / target.parent.name / target.name
+        planted.parent.mkdir(parents=True, exist_ok=True)
+        if planted.exists():
+            planted.chmod(0o644)
+            planted.unlink()
+        planted.write_bytes(original + b"tampered")
+        before_lane, before_main = self._lane_and_main()
+        with self.assertRaises(self._err()):
+            lane_cage.finalize_git_store(store2)
+        self.assertEqual(target.read_bytes(), original)
+        self.assertEqual(self._lane_and_main(), (before_lane, before_main))
+
+    def test_readonly_existing_pack_is_not_overwritten(self):
+        # Pack the fixture repo so common has a 0444 pack, then plant a
+        # different file at the same pack name in the private store.
+        subprocess.run(
+            ["git", "-C", str(self.repo), "repack", "-adq"],
+            check=True, capture_output=True, text=True,
+        )
+        common, _ = lane_cage.git_paths(self.wt)
+        packs = list((common / "objects" / "pack").glob("pack-*.pack"))
+        self.assertTrue(packs, "repack should have created a pack in the fixture")
+        pack = packs[0]
+        original = pack.read_bytes()
+        pack.chmod(0o444)
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        dest_pack_dir = store.objects / "pack"
+        dest_pack_dir.mkdir(parents=True, exist_ok=True)
+        planted = dest_pack_dir / pack.name
+        planted.write_bytes(original + b"NO")
+        idx = pack.with_suffix(".idx")
+        if idx.is_file():
+            (dest_pack_dir / idx.name).write_bytes(idx.read_bytes())
+        before_lane, before_main = self._lane_and_main()
+        with self.assertRaises(self._err()):
+            lane_cage.finalize_git_store(store)
+        self.assertEqual(pack.read_bytes(), original)
+        self.assertEqual(self._lane_and_main(), (before_lane, before_main))
+
+    def test_copy_error_midway_leaves_common_and_refs_unchanged(self):
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        self._commit_in_overlay(store)
+        common_objects = store.common / "objects"
+        before = {p.relative_to(common_objects): p.read_bytes()
+                  for p in common_objects.rglob("*") if p.is_file()}
+        before_lane, before_main = self._lane_and_main()
+        # New loose objects live under store.objects/<aa>/<rest>. Pick one
+        # prefix and make the matching dest dir unwritable so a later copy fails.
+        new_loose = []
+        for p in store.objects.iterdir():
+            if p.name in ("info", "pack") or not p.is_dir():
+                continue
+            for sub in p.iterdir():
+                if (common_objects / p.name / sub.name).exists():
+                    continue
+                new_loose.append(sub)
+        self.assertGreaterEqual(len(new_loose), 2, new_loose)
+        new_loose.sort()
+        blocked = common_objects / new_loose[-1].parent.name
+        blocked.mkdir(exist_ok=True)
+        blocked.chmod(0o555)
+        try:
+            with self.assertRaises(self._err()):
+                lane_cage.finalize_git_store(store)
+        finally:
+            blocked.chmod(0o755)
+        after = {p.relative_to(common_objects): p.read_bytes()
+                 for p in common_objects.rglob("*") if p.is_file()}
+        self.assertEqual(after, before)
+        self.assertEqual(self._lane_and_main(), (before_lane, before_main))
+
+    def test_failed_cage_run_copies_back_nothing(self):
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        new = self._commit_in_overlay(store)
+        before_lane, before_main = self._lane_and_main()
+        common_objects = store.common / "objects"
+        before = {p.relative_to(common_objects): p.read_bytes()
+                  for p in common_objects.rglob("*") if p.is_file()}
+        lane_cage.finalize_git_store(store, cage_ok=False)
+        after = {p.relative_to(common_objects): p.read_bytes()
+                 for p in common_objects.rglob("*") if p.is_file()}
+        self.assertEqual(after, before)
+        self.assertEqual(self._lane_and_main(), (before_lane, before_main))
+        self.assertNotEqual(new, before_lane)
+
+    def test_invalid_loose_object_is_refused(self):
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        self._commit_in_overlay(store)
+        junk = store.objects / "dd" / ("ee" * 19)
+        junk.parent.mkdir(parents=True, exist_ok=True)
+        junk.write_bytes(b"not-a-git-object")
+        before_lane, before_main = self._lane_and_main()
+        common_objects = store.common / "objects"
+        before = {p.relative_to(common_objects): p.read_bytes()
+                  for p in common_objects.rglob("*") if p.is_file()}
+        with self.assertRaises(self._err()):
+            lane_cage.finalize_git_store(store)
+        after = {p.relative_to(common_objects): p.read_bytes()
+                 for p in common_objects.rglob("*") if p.is_file()}
+        self.assertEqual(after, before)
+        self.assertEqual(self._lane_and_main(), (before_lane, before_main))
+        self.assertFalse((common_objects / "dd" / junk.name).exists())
+
+    def test_forged_overlay_head_does_not_move_the_lane_branch(self):
+        # A second commit on main exists only in the shared store. Pointing
+        # overlay HEAD at it must not move the lane branch: the SHA is not a
+        # commit created in the private store.
+        (self.repo / "other.txt").write_text("other lane\n", encoding="utf-8")
+        git(self.repo, "add", "other.txt")
+        git(self.repo, "commit", "-qm", "other")
+        other = git(self.repo, "rev-parse", "HEAD").strip()
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        (store.overlay / "HEAD").write_text(other + "\n", encoding="utf-8")
+        before_lane = git(self.wt, "rev-parse", "refs/heads/lane").strip()
+        self.assertEqual(before_lane, self.main_sha)
+        with self.assertRaises(self._err()):
+            lane_cage.finalize_git_store(store)
+        self.assertEqual(git(self.wt, "rev-parse", "refs/heads/lane").strip(), before_lane)
+        self.assertEqual(git(self.repo, "rev-parse", "main").strip(), other)
+
+    def test_result_commit_must_descend_from_the_start(self):
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        # Orphan commit in the private store: valid objects, but not a
+        # descendant of the lane's starting commit.
+        env = dict(os.environ, GIT_OBJECT_DIRECTORY=str(store.objects),
+                   GIT_DIR=str(store.overlay), GIT_WORK_TREE=str(self.wt))
+        (self.wt / "orphan.txt").write_text("orphan\n", encoding="utf-8")
+        subprocess.run(["git", "checkout", "--orphan", "tmp-orphan"],
+                       check=True, capture_output=True, text=True, env=env, cwd=self.wt)
+        subprocess.run(["git", "rm", "-rf", "--cached", "."],
+                       check=False, capture_output=True, text=True, env=env, cwd=self.wt)
+        subprocess.run(["git", "add", "orphan.txt"],
+                       check=True, capture_output=True, text=True, env=env, cwd=self.wt)
+        subprocess.run(["git", "-c", "user.email=t@example.com", "-c", "user.name=T",
+                        "commit", "-qm", "orphan root"],
+                       check=True, capture_output=True, text=True, env=env, cwd=self.wt)
+        orphan = subprocess.run(["git", "rev-parse", "HEAD"],
+                                check=True, capture_output=True, text=True, env=env, cwd=self.wt).stdout.strip()
+        (store.overlay / "HEAD").write_text(orphan + "\n", encoding="utf-8")
+        before_lane, before_main = self._lane_and_main()
+        with self.assertRaises(self._err()):
+            lane_cage.finalize_git_store(store)
+        self.assertEqual(self._lane_and_main(), (before_lane, before_main))
+
+    def test_objects_info_is_not_copied_back(self):
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        marker = "CAGE-INFO-MARKER-DO-NOT-COPY"
+        (store.objects / "info").mkdir(parents=True, exist_ok=True)
+        (store.objects / "info" / "evil").write_text(marker + "\n", encoding="utf-8")
+        new = self._commit_in_overlay(store)
+        lane_cage.finalize_git_store(store)
+        self.assertEqual(git(self.wt, "rev-parse", "refs/heads/lane").strip(), new)
+        info = store.common / "objects" / "info"
+        if info.exists():
+            for p in info.rglob("*"):
+                if p.is_file():
+                    self.assertNotIn(marker, p.read_text(encoding="utf-8", errors="replace"), p)
+        self.assertFalse((info / "evil").exists())
+        self.assertNotIn(marker, self._common_text())
+
 
 @unittest.skipUnless(_real_cage_ready(), "rootless podman and localhost/pfy-test:3.12 needed (make test-image)")
 class RealCageTest(unittest.TestCase):
