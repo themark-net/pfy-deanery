@@ -23,7 +23,8 @@ done
 [ -d "$WT" ] && [ -f "$PROMPT" ] || { echo "usage: build_lane.sh --wt DIR --prompt FILE" >&2; exit 2; }
 git -C "$WT" rev-parse --is-inside-work-tree >/dev/null 2>&1 || { echo "refusing: $WT is not a git worktree" >&2; exit 2; }
 full=$(mktemp "${TMPDIR:-/tmp}/build-lane-prompt.XXXXXX")
-trap 'rm -f "$full"' EXIT
+cage_log=$(mktemp "${TMPDIR:-/tmp}/build-lane-cage.XXXXXX")
+trap 'rm -f "$full" "$cage_log"' EXIT
 {
   python3 "$SCRIPT_DIR/../pfylib/untrusted_text.py" preamble
   printf '\n'
@@ -31,5 +32,9 @@ trap 'rm -f "$full"' EXIT
 } > "$full"
 rc=0
 python3 "$SCRIPT_DIR/lane_cage.py" grok --kind build --wt "$WT" --prompt "$full" \
-  --max-turns "$TURNS" --timeout "$TIMEOUT" > "$LOG" 2>&1 || rc=$?
+  --max-turns "$TURNS" --timeout "$TIMEOUT" > "$cage_log" 2>&1 || rc=$?
+cat "$cage_log" > "$LOG" || true
+if [ "$rc" -eq 2 ] && grep -q '^lane-cage: copy-back refused' "$cage_log"; then
+  exit 6
+fi
 exit "$rc"

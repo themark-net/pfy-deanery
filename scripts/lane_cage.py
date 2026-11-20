@@ -92,15 +92,35 @@ class GitStoreError(CageError):
 # PFY_CAGE_PACK_MAX_BYTES: pack and idx files; default 128 MiB, ceiling 1 GiB.
 # PFY_CAGE_LOOSE_MAX_BYTES: compressed loose objects; default 16 MiB, ceiling 256 MiB.
 # PFY_CAGE_LOOSE_MAX_INFLATE: decompressed loose objects; default 64 MiB, ceiling 1 GiB.
+# PFY_CAGE_PACK_GIT_TIMEOUT_SECS: git init/verify-pack/index-pack; default 120, ceiling 600.
 PACK_MAX_BYTES_DEFAULT = 128 * 1024 * 1024
 PACK_MAX_BYTES_CEILING = 1024 * 1024 * 1024
 LOOSE_MAX_BYTES_DEFAULT = 16 * 1024 * 1024
 LOOSE_MAX_BYTES_CEILING = 256 * 1024 * 1024
 LOOSE_MAX_INFLATE_DEFAULT = 64 * 1024 * 1024
 LOOSE_MAX_INFLATE_CEILING = 1024 * 1024 * 1024
+PACK_GIT_TIMEOUT_DEFAULT = 120
+PACK_GIT_TIMEOUT_CEILING = 600
 ENV_PACK_MAX_BYTES = "PFY_CAGE_PACK_MAX_BYTES"
 ENV_LOOSE_MAX_BYTES = "PFY_CAGE_LOOSE_MAX_BYTES"
 ENV_LOOSE_MAX_INFLATE = "PFY_CAGE_LOOSE_MAX_INFLATE"
+ENV_PACK_GIT_TIMEOUT = "PFY_CAGE_PACK_GIT_TIMEOUT_SECS"
+_GIT_DIR_ENV = (
+    "GIT_DIR",
+    "GIT_WORK_TREE",
+    "GIT_OBJECT_DIRECTORY",
+    "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+    "GIT_INDEX_FILE",
+    "GIT_COMMON_DIR",
+)
+_GIT_CONFIG_INJECT_ENV = (
+    "GIT_CONFIG",
+    "GIT_CONFIG_PARAMETERS",
+    "GIT_CONFIG_COUNT",
+    "GIT_TEMPLATE_DIR",
+    "GIT_EXEC_PATH",
+    "XDG_CONFIG_HOME",
+)
 
 
 def _env_cap(name: str, default: int, ceiling: int) -> int:
@@ -114,6 +134,45 @@ def _env_cap(name: str, default: int, ceiling: int) -> int:
     if val < 1:
         return default
     return min(val, ceiling)
+
+
+def _pack_git_timeout() -> int:
+    return _env_cap(ENV_PACK_GIT_TIMEOUT, PACK_GIT_TIMEOUT_DEFAULT, PACK_GIT_TIMEOUT_CEILING)
+
+
+def _scrub_git_env(env: dict, *, drop_dir_vars: bool = False) -> dict:
+    """Pin safe git config paths and drop caller-controlled git env vars."""
+    env["GIT_CONFIG_NOSYSTEM"] = "1"
+    env["GIT_CONFIG_GLOBAL"] = os.devnull
+    env["GIT_CONFIG_SYSTEM"] = os.devnull
+    for key in list(env):
+        if key.startswith("GIT_CONFIG_KEY_") or key.startswith("GIT_CONFIG_VALUE_"):
+            env.pop(key, None)
+    for key in _GIT_CONFIG_INJECT_ENV:
+        env.pop(key, None)
+    if drop_dir_vars:
+        for key in _GIT_DIR_ENV:
+            env.pop(key, None)
+    return env
+
+
+def _copy_regular_nofollow(src: Path, dest: Path) -> None:
+    try:
+        fd = os.open(src, os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC)
+    except OSError as exc:
+        raise GitStoreError(f"cannot open pack input {src}: {exc}") from exc
+    try:
+        st = os.fstat(fd)
+        if not stat.S_ISREG(st.st_mode):
+            raise GitStoreError(f"pack input is not a regular file: {src}")
+        with open(dest, "wb") as out:
+            while True:
+                chunk = os.read(fd, 1024 * 1024)
+                if not chunk:
+                    break
+                out.write(chunk)
+    finally:
+        os.close(fd)
 
 
 def _pack_max_bytes() -> int:
@@ -431,27 +490,23 @@ def _verify_loose_file(path: Path, expected_sha: str, hasher) -> bytes:
     return zlib.compress(raw)
 
 
-def _safe_pack_git(git_args: list[str], object_format: str) -> subprocess.CompletedProcess:
+def _safe_pack_git(git_args: list[str], object_format: str, inputs: list[Path]) -> subprocess.CompletedProcess:
     """Run verify-pack or index-pack outside any attacker-controlled git dir.
 
-    Uses a throwaway bare repo initialized with an explicit object format,
-    an empty HOME, and pinned -c flags. System and global config are ignored.
+    Copies only the given inputs (the pack and idx) into a throwaway
+    directory so sibling files cannot affect the check. Uses a throwaway
+    bare repo initialized with an explicit object format, an empty HOME,
+    a scrubbed env, pinned -c flags, and a bounded timeout.
     """
     if object_format not in ("sha1", "sha256"):
         raise GitStoreError(f"unsupported object format: {object_format}")
+    if not inputs:
+        raise GitStoreError("pack verify is missing pack inputs")
     home = tempfile.mkdtemp(prefix="pfy-pack-home-")
     scratch = Path(home) / "repo.git"
-    env = dict(os.environ)
-    env["GIT_CONFIG_NOSYSTEM"] = "1"
-    env["GIT_CONFIG_GLOBAL"] = os.devnull
-    env["GIT_CONFIG_SYSTEM"] = os.devnull
+    isolated = Path(home) / "inputs"
+    env = _scrub_git_env(dict(os.environ), drop_dir_vars=True)
     env["HOME"] = home
-    env.pop("GIT_CONFIG", None)
-    env.pop("GIT_DIR", None)
-    env.pop("GIT_WORK_TREE", None)
-    env.pop("GIT_OBJECT_DIRECTORY", None)
-    env.pop("GIT_ALTERNATE_OBJECT_DIRECTORIES", None)
-    env.pop("GIT_INDEX_FILE", None)
     pinned = [
         "git",
         "-c", "advice.defaultBranchName=false",
@@ -460,23 +515,39 @@ def _safe_pack_git(git_args: list[str], object_format: str) -> subprocess.Comple
         "-c", "core.fsmonitor=false",
         "-c", "pack.threads=1",
     ]
+    timeout = _pack_git_timeout()
     try:
-        r = subprocess.run(
-            [*pinned, "init", "--bare", f"--object-format={object_format}", str(scratch)],
-            env=env, capture_output=True, text=True, cwd=home,
-        )
+        isolated.mkdir()
+        rewrite: dict[str, str] = {}
+        for src in inputs:
+            dest = isolated / src.name
+            if dest.exists():
+                raise GitStoreError(f"duplicate pack input name: {src.name}")
+            _copy_regular_nofollow(src, dest)
+            rewrite[str(src)] = str(dest)
+        rewritten = [rewrite.get(a, a) for a in git_args]
+        try:
+            r = subprocess.run(
+                [*pinned, "init", "--bare", f"--object-format={object_format}", str(scratch)],
+                env=env, capture_output=True, text=True, cwd=home, timeout=timeout,
+            )
+        except subprocess.TimeoutExpired as exc:
+            raise GitStoreError("pack verify timed out") from exc
         if r.returncode != 0:
             raise GitStoreError(f"cannot create pack-verify repo: {r.stderr.strip()}")
-        return subprocess.run(
-            [*pinned, "--git-dir", str(scratch), *git_args],
-            env=env, capture_output=True, text=True, cwd=home,
-        )
+        try:
+            return subprocess.run(
+                [*pinned, "--git-dir", str(scratch), *rewritten],
+                env=env, capture_output=True, text=True, cwd=home, timeout=timeout,
+            )
+        except subprocess.TimeoutExpired as exc:
+            raise GitStoreError("pack verify timed out") from exc
     finally:
         shutil.rmtree(home, ignore_errors=True)
 
 
-def _pack_object_ids(idx: Path, hexlen: int, object_format: str) -> set[str]:
-    r = _safe_pack_git(["verify-pack", "-v", str(idx)], object_format)
+def _pack_object_ids(idx: Path, pack: Path, hexlen: int, object_format: str) -> set[str]:
+    r = _safe_pack_git(["verify-pack", "-v", str(idx)], object_format, inputs=[idx, pack])
     if r.returncode != 0:
         raise GitStoreError(f"git verify-pack failed for {idx.name}: {r.stderr.strip()}")
     shas: set[str] = set()
@@ -526,10 +597,11 @@ def _verify_packs(packdir: Path, hexlen: int, object_format: str) -> set[str]:
     all_ids: set[str] = set()
     for hid, pack in packs.items():
         idx = idxs[hid]
-        all_ids |= _pack_object_ids(idx, hexlen, object_format)
+        all_ids |= _pack_object_ids(idx, pack, hexlen, object_format)
         r = _safe_pack_git(
             ["index-pack", "--verify", "--strict", f"--max-input-size={max_pack}", str(pack)],
             object_format,
+            inputs=[idx, pack],
         )
         if r.returncode != 0:
             raise GitStoreError(f"git index-pack --verify failed for {pack.name}: {r.stderr.strip()}")
@@ -625,11 +697,7 @@ def _safe_git(store: GitStore, git_args: list[str], **kwargs):
     Hooks and fsmonitor are disabled, system and global config are ignored,
     and the overlay config is not read.
     """
-    env = dict(os.environ)
-    env["GIT_CONFIG_NOSYSTEM"] = "1"
-    env["GIT_CONFIG_GLOBAL"] = os.devnull
-    env["GIT_CONFIG_SYSTEM"] = os.devnull
-    env.pop("GIT_CONFIG", None)
+    env = _scrub_git_env(dict(os.environ), drop_dir_vars=True)
     env["GIT_OBJECT_DIRECTORY"] = str(store.objects)
     env["GIT_ALTERNATE_OBJECT_DIRECTORIES"] = str(store.common / "objects")
     cmd = [
@@ -646,13 +714,11 @@ def _safe_host_git(store: GitStore, git_args: list[str], **kwargs):
     """Git in the worktree after the overlay pointer is restored.
 
     Hooks and fsmonitor are disabled and system/global config is ignored.
-    The overlay config is not read.
+    The overlay config is not read. Caller git dir and config-injection
+    variables are dropped so a planted env cannot divert the result ref
+    or the host index rebuild.
     """
-    env = dict(os.environ)
-    env["GIT_CONFIG_NOSYSTEM"] = "1"
-    env["GIT_CONFIG_GLOBAL"] = os.devnull
-    env["GIT_CONFIG_SYSTEM"] = os.devnull
-    env.pop("GIT_CONFIG", None)
+    env = _scrub_git_env(dict(os.environ), drop_dir_vars=True)
     cmd = [
         "git",
         "-c", "core.fsmonitor=false",
