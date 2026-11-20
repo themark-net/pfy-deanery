@@ -343,3 +343,7 @@ Miniforge and Speedrun. Each reads the pinned GitHub commit JSON through `$DECIS
 Entries 200-202 (`smoke_200.py`, `smoke_201.py`, `smoke_202.py`) are commit-metadata receipts for Thermite,
 Agent of Empires and CompozyOS. Each reads the pinned GitHub commit JSON through `$THERMITE_FETCH_BIN` / `$AGENT_OF_EMPIRES_FETCH_BIN` /
 `$COMPOZY_FETCH_BIN` or a stdlib fetch, checks the SHA, and exits 2 without installing anything. `PFY_XINTAKE_TIMEOUT` overrides the timeout.
+
+Entries 203-205 (`smoke_203.py`, `smoke_204.py`, `smoke_205.py`) are commit-metadata receipts for LoopForge,
+agent-custody and vibecosystem. Each reads the pinned GitHub commit JSON through `$LOOPFORGE_FETCH_BIN` / `$AGENT_CUSTODY_FETCH_BIN` /
+`$VIBECOSYSTEM_FETCH_BIN` or a stdlib fetch, checks the SHA, and exits 2 without installing anything. `PFY_XINTAKE_TIMEOUT` overrides the timeout.

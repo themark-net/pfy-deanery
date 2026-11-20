@@ -1,0 +1,29 @@
+{
+  "name": "CompozyOS",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/202-compozyos.md",
+  "github": "https://github.com/compozy/compozy",
+  "pin": "29cf4a69b0e207f4ffbf0decd468264cd8f4b611",
+  "license": "MIT",
+  "uses": "Local control plane that keeps existing agent CLIs running as long-lived sessions that check in on their own and surface only when a human is needed.",
+  "features": [
+    "always-on agent sessions",
+    "self check-in and needs-human surfacing",
+    "schedules and approvals in one place"
+  ],
+  "potential": "low",
+  "next_gate": "Design reference against Deanery's loop and operator queue; trial only if a local-only path without an account exists. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys"
+  ],
+  "evidence": [
+    "entry:sources/entries/202-compozyos.md",
+    "pin:29cf4a69b0e207f4ffbf0decd468264cd8f4b611"
+  ],
+  "handoff_by": "llm"
+}

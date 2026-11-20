@@ -1,0 +1,31 @@
+{
+  "name": "LoopForge",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/203-loopforge.md",
+  "github": "https://github.com/Tencent/LoopForge",
+  "pin": "6f606cf2a7354f05d1dbf2085f4eb832b7e89ccb",
+  "license": "MIT (LICENSE file; third-party parts under their own licenses)",
+  "uses": "Self-hosted workspace that runs coding-agent CLIs through SOPs of Agent, Script and Human-gate nodes with separate plan, implement, review and test roles in Docker sandboxes.",
+  "features": [
+    "SOP nodes: agent, script, human gate",
+    "send work back to a chosen step",
+    "per-node artifacts, logs and rerun",
+    "role-specific prompt, model, skills and MCP tools",
+    "OpenCode listed as an executor"
+  ],
+  "potential": "medium",
+  "next_gate": "Design reference: compare its SOP node and send-back model with Deanery's lane stages and operator queue. No install, no service on 0.0.0.0, no account. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys"
+  ],
+  "evidence": [
+    "entry:sources/entries/203-loopforge.md",
+    "pin:6f606cf2a7354f05d1dbf2085f4eb832b7e89ccb"
+  ],
+  "handoff_by": "llm"
+}

@@ -1,0 +1,31 @@
+{
+  "name": "agent-custody",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/204-agent-custody.md",
+  "github": "https://github.com/svayatta/agent-custody",
+  "pin": "065a02fcc455f4217cd4d10792caf744c7a7b8e7",
+  "license": "Apache-2.0",
+  "uses": "Gateway between agents and their tools that checks each MCP, REST or A2A call against a Cedar or Rego policy and writes a signed, offline-verifiable receipt for allowed and denied calls.",
+  "features": [
+    "Cedar or Rego policy gateway",
+    "signed time-limited grants",
+    "Merkle transparency log of receipts",
+    "offline receipt verification",
+    "observe-mode coding-agent hook"
+  ],
+  "potential": "medium",
+  "next_gate": "Trial in observe mode on one sandboxed lane's MCP calls under $PFY_TMP, receipts compared with the lane cage logs; audit only, never a replacement for the cage. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys"
+  ],
+  "evidence": [
+    "entry:sources/entries/204-agent-custody.md",
+    "pin:065a02fcc455f4217cd4d10792caf744c7a7b8e7"
+  ],
+  "handoff_by": "llm"
+}

@@ -1,0 +1,31 @@
+{
+  "name": "Thermite",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/200-thermite.md",
+  "github": "https://github.com/iammrduncan/thermite",
+  "pin": "3c27889fe017a05560aaa62952b172c9db870fce",
+  "license": "Apache-2.0",
+  "uses": "Autoresearch harness: agents only propose a change and a claim, a separate judge the agents never see measures it against the current champion and keeps a ledger of losses.",
+  "features": [
+    "parallel experiment lanes",
+    "hidden judge kit",
+    "champion comparison on the same device",
+    "re-confirmation on fresh runs and held-out cases",
+    "loss ledger with reasons"
+  ],
+  "potential": "medium",
+  "next_gate": "Trial under $PFY_TMP against a local OpenAI-compatible endpoint only if workers run without paid keys; compare its judge and champion rule with Deanery eval-auto. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys"
+  ],
+  "evidence": [
+    "entry:sources/entries/200-thermite.md",
+    "pin:3c27889fe017a05560aaa62952b172c9db870fce"
+  ],
+  "handoff_by": "llm"
+}

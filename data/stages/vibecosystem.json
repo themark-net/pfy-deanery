@@ -1,0 +1,30 @@
+{
+  "name": "vibecosystem",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/205-vibecosystem.md",
+  "github": "https://github.com/vibeeval/vibecosystem",
+  "pin": "9ef6d7266b2d4e9ee1d3460a3e2f3bda8a9c187a",
+  "license": "MIT",
+  "uses": "Profile-based package of agents, skills and hooks for Claude Code and Codex with a small default profile, explicit opt-ins and per-event context caps.",
+  "features": [
+    "core profile with opt-in profiles",
+    "per-event and per-session context caps",
+    "dry-run install",
+    "effective-config, doctor and stats diagnostics"
+  ],
+  "potential": "low",
+  "next_gate": "Design reference: read the profile manifest and context caps against Deanery's skill packs. No install, no hooks in a real agent home, no skills loaded into lanes. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys"
+  ],
+  "evidence": [
+    "entry:sources/entries/205-vibecosystem.md",
+    "pin:9ef6d7266b2d4e9ee1d3460a3e2f3bda8a9c187a"
+  ],
+  "handoff_by": "llm"
+}

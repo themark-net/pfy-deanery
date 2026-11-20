@@ -1,0 +1,31 @@
+{
+  "name": "Agent of Empires",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/201-agent-of-empires.md",
+  "github": "https://github.com/agent-of-empires/agent-of-empires",
+  "pin": "d24c1274d1458bfbd161412ade8488957e763b82",
+  "license": "MIT",
+  "uses": "tmux-backed session manager that runs each coding agent in its own persistent session with optional git worktree and Podman isolation, with a TUI, web dashboard, CLI and HTTP API.",
+  "features": [
+    "one tmux session per agent",
+    "git worktree per session",
+    "Docker or Podman isolation",
+    "status detection and notifications",
+    "HTTP API and web dashboard"
+  ],
+  "potential": "medium",
+  "next_gate": "Trial the single binary under $PFY_TMP with OpenCode in one worktree, dashboard bound to localhost; compare with the lane runner's session bookkeeping and 186 Agent Cockpit and 195 Mycelium. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys"
+  ],
+  "evidence": [
+    "entry:sources/entries/201-agent-of-empires.md",
+    "pin:d24c1274d1458bfbd161412ade8488957e763b82"
+  ],
+  "handoff_by": "llm"
+}
