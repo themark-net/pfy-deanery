@@ -265,6 +265,7 @@ class EnvCapTest(unittest.TestCase):
             (lane_cage.ENV_PACK_MAX_BYTES, lane_cage.PACK_MAX_BYTES_DEFAULT, lane_cage.PACK_MAX_BYTES_CEILING),
             (lane_cage.ENV_LOOSE_MAX_BYTES, lane_cage.LOOSE_MAX_BYTES_DEFAULT, lane_cage.LOOSE_MAX_BYTES_CEILING),
             (lane_cage.ENV_LOOSE_MAX_INFLATE, lane_cage.LOOSE_MAX_INFLATE_DEFAULT, lane_cage.LOOSE_MAX_INFLATE_CEILING),
+            (lane_cage.ENV_PACK_GIT_TIMEOUT, lane_cage.PACK_GIT_TIMEOUT_DEFAULT, lane_cage.PACK_GIT_TIMEOUT_CEILING),
         )
         for name, default, ceiling in cases:
             with self.subTest(name=name):
@@ -1030,12 +1031,17 @@ class GitStoreIsolationTest(unittest.TestCase):
         before = {p.relative_to(common_objects): p.read_bytes()
                   for p in common_objects.rglob("*") if p.is_file()}
         old_path = os.environ["PATH"]
+        old_safe = getattr(lane_cage, "_SAFE_GIT_PATH", None)
         os.environ["PATH"] = str(bindir) + os.pathsep + old_path
+        if old_safe is not None:
+            lane_cage._SAFE_GIT_PATH = str(bindir)
         try:
             with self.assertRaises(self._err()) as ctx:
                 lane_cage.finalize_git_store(store)
         finally:
             os.environ["PATH"] = old_path
+            if old_safe is not None:
+                lane_cage._SAFE_GIT_PATH = old_safe
         self.assertIn("index-pack", str(ctx.exception).lower())
         after = {p.relative_to(common_objects): p.read_bytes()
                  for p in common_objects.rglob("*") if p.is_file()}
@@ -1178,7 +1184,7 @@ class GitStoreIsolationTest(unittest.TestCase):
             "real=\"@@REAL@@\"\n"
             "for a in \"$@\"; do\n"
             "  if [ \"$a\" = \"verify-pack\" ] || [ \"$a\" = \"index-pack\" ]; then\n"
-            "    sleep 5\n"
+            "    /bin/sleep 5\n"
             "    break\n"
             "  fi\n"
             "done\n"
@@ -1189,14 +1195,19 @@ class GitStoreIsolationTest(unittest.TestCase):
         before = {p.relative_to(common_objects): p.read_bytes()
                   for p in common_objects.rglob("*") if p.is_file()}
         old_path = os.environ["PATH"]
+        old_safe = getattr(lane_cage, "_SAFE_GIT_PATH", None)
         prev = os.environ.get("PFY_CAGE_PACK_GIT_TIMEOUT_SECS")
         os.environ["PATH"] = str(bindir) + os.pathsep + old_path
+        if old_safe is not None:
+            lane_cage._SAFE_GIT_PATH = str(bindir)
         os.environ["PFY_CAGE_PACK_GIT_TIMEOUT_SECS"] = "1"
         try:
             with self.assertRaises(self._err()) as ctx:
                 lane_cage.finalize_git_store(store)
         finally:
             os.environ["PATH"] = old_path
+            if old_safe is not None:
+                lane_cage._SAFE_GIT_PATH = old_safe
             if prev is None:
                 os.environ.pop("PFY_CAGE_PACK_GIT_TIMEOUT_SECS", None)
             else:
@@ -1346,6 +1357,278 @@ class GitStoreIsolationTest(unittest.TestCase):
             planted_index = self.td / "planted.index"
             _run_with(trio)
 
+    def test_planted_git_config_key_value_are_dropped_without_count(self):
+        """GIT_CONFIG_KEY_*/VALUE_* must not reach pack or host git on their own.
+
+        Fail: coverage only plants COUNT, or relies on COUNT being dropped so
+        git ignores leftover KEY/VALUE. Recover: a git on the helper PATH
+        that exits if KEY or VALUE is set is not tripped, and a valid pack
+        still lands on the lane ref.
+        """
+        bindir = self._git_path_wrapper(
+            "#!/bin/sh\n"
+            "if [ -n \"${GIT_CONFIG_KEY_0:-}\" ] || [ -n \"${GIT_CONFIG_VALUE_0:-}\" ]; then\n"
+            "  echo \"inherited GIT_CONFIG_KEY/VALUE\" >&2\n"
+            "  exit 99\n"
+            "fi\n"
+            "exec \"@@REAL@@\" \"$@\"\n"
+        )
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        self._commit_in_overlay(store)
+        self._private_pack(store)
+        before_lane, before_main = self._lane_and_main()
+        planted = {
+            "GIT_CONFIG_KEY_0": "core.compression",
+            "GIT_CONFIG_VALUE_0": "bogus",
+        }
+        saved = {k: os.environ.get(k) for k in planted}
+        old_path = os.environ["PATH"]
+        old_safe = getattr(lane_cage, "_SAFE_GIT_PATH", None)
+        os.environ["PATH"] = str(bindir) + os.pathsep + old_path
+        if old_safe is not None:
+            lane_cage._SAFE_GIT_PATH = str(bindir)
+        try:
+            os.environ.update(planted)
+            lane_cage.finalize_git_store(store)
+        finally:
+            os.environ["PATH"] = old_path
+            if old_safe is not None:
+                lane_cage._SAFE_GIT_PATH = old_safe
+            for k, prev in saved.items():
+                if prev is None:
+                    os.environ.pop(k, None)
+                else:
+                    os.environ[k] = prev
+        after_lane, after_main = self._lane_and_main()
+        self.assertEqual(after_main, before_main)
+        self.assertNotEqual(after_lane, before_lane)
+
+    def test_pack_and_host_git_ignore_caller_env_outside_the_allowlist(self):
+        """Pack and host git must not inherit caller tracing, PATH, or preload.
+
+        Fail: GIT_TRACE* writes a caller-chosen file, a git wrapper on the
+        caller's PATH runs, or LD_PRELOAD stops git. Recover: copy-back
+        still lands on the lane ref and planted files stay absent.
+        """
+        traces = {
+            "GIT_TRACE": self.td / "planted-git-trace",
+            "GIT_TRACE_PACKET": self.td / "planted-git-trace-packet",
+            "GIT_TRACE_PERFORMANCE": self.td / "planted-git-trace-perf",
+            "GIT_TRACE2": self.td / "planted-git-trace2",
+            "GIT_TRACE2_EVENT": self.td / "planted-git-trace2-event",
+        }
+        marker = self.td / "caller-path-git-invoked"
+        bindir = self._git_path_wrapper(
+            "#!/bin/sh\n"
+            "echo invoked > '%s'\n"
+            "exec \"@@REAL@@\" \"$@\"\n" % marker
+        )
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        self._commit_in_overlay(store)
+        self._private_pack(store)
+        before_lane, before_main = self._lane_and_main()
+        planted = {name: str(path) for name, path in traces.items()}
+        planted.update({
+            "GIT_SSH_COMMAND": "touch '%s-ssh'" % (self.td / "planted"),
+            "GIT_ASKPASS": str(self.td / "planted-askpass"),
+            "GIT_PAGER": "cat",
+            "GIT_EDITOR": "true",
+            "GIT_ATTR_SOURCE": str(self.td / "planted-attr"),
+            "GIT_REPLACE_REF_BASE": "refs/replace",
+            "GIT_EXTERNAL_DIFF": str(self.td / "planted-diff"),
+            "GIT_CEILING_DIRECTORIES": str(self.td),
+            "GIT_PROXY_COMMAND": str(self.td / "planted-proxy"),
+            "GIT_NAMESPACE": "planted",
+            "LD_PRELOAD": str(self.td / "missing-preload.so"),
+        })
+        saved = {k: os.environ.get(k) for k in planted}
+        old_path = os.environ["PATH"]
+        old_home = os.environ.get("HOME")
+        planted_home = self.td / "planted-home"
+        planted_home.mkdir()
+        os.environ["PATH"] = str(bindir) + os.pathsep + old_path
+        os.environ["HOME"] = str(planted_home)
+        try:
+            os.environ.update(planted)
+            lane_cage.finalize_git_store(store)
+        finally:
+            os.environ["PATH"] = old_path
+            if old_home is None:
+                os.environ.pop("HOME", None)
+            else:
+                os.environ["HOME"] = old_home
+            for k, prev in saved.items():
+                if prev is None:
+                    os.environ.pop(k, None)
+                else:
+                    os.environ[k] = prev
+        after_lane, after_main = self._lane_and_main()
+        self.assertEqual(after_main, before_main)
+        self.assertNotEqual(after_lane, before_lane)
+        self.assertFalse(marker.exists(), "caller's PATH git must not run")
+        for name, path in traces.items():
+            self.assertFalse(path.exists(), "%s must not write a caller file" % name)
+
+    def test_remaining_host_git_sites_ignore_planted_caller_env(self):
+        """git_paths, HEAD, object-format, query init, and base_run must not follow planted env.
+
+        Fail: GIT_DIR diverts path or HEAD resolution, GIT_TEMPLATE_DIR
+        installs hooks in query.git, or GIT_CONFIG_PARAMETERS changes the
+        cage author. Recover: those helpers still describe this worktree,
+        query.git has no template hook, and base_run uses the repo identity.
+        """
+        other = self.td / "other-repo"
+        other.mkdir()
+        git(other, "init", "-q", "-b", "main")
+        git(other, "config", "user.email", "t@example.com")
+        git(other, "config", "user.name", "T")
+        (other / "README").write_text("other\n", encoding="utf-8")
+        git(other, "add", "README")
+        git(other, "commit", "-qm", "other")
+        expected_common, expected_gitdir = lane_cage.git_paths(self.wt)
+        expected_ref, expected_sha = lane_cage._head_info(self.wt)
+        expected_fmt = lane_cage._object_format(self.wt)
+        sha256_repo = self.td / "sha256-repo"
+        sha256_repo.mkdir()
+        git(sha256_repo, "init", "-q", "-b", "main", "--object-format=sha256")
+        tmpl = self.td / "evil-template"
+        (tmpl / "hooks").mkdir(parents=True)
+        hook = tmpl / "hooks" / "update"
+        hook.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        hook.chmod(0o755)
+
+        planted_dir = {"GIT_DIR": str(other / ".git")}
+        saved_dir = {k: os.environ.get(k) for k in planted_dir}
+        try:
+            os.environ.update(planted_dir)
+            with self.subTest(site="git_paths"):
+                common, gitdir = lane_cage.git_paths(self.wt)
+                self.assertEqual(common, expected_common)
+                self.assertEqual(gitdir, expected_gitdir)
+            with self.subTest(site="_head_info"):
+                ref, sha = lane_cage._head_info(self.wt)
+                self.assertEqual(ref, expected_ref)
+                self.assertEqual(sha, expected_sha)
+        finally:
+            for k, prev in saved_dir.items():
+                if prev is None:
+                    os.environ.pop(k, None)
+                else:
+                    os.environ[k] = prev
+
+        prev_sha_dir = os.environ.get("GIT_DIR")
+        os.environ["GIT_DIR"] = str(sha256_repo / ".git")
+        try:
+            with self.subTest(site="_object_format"):
+                self.assertEqual(lane_cage._object_format(self.wt), expected_fmt)
+                self.assertEqual(expected_fmt[2], "sha1")
+        finally:
+            if prev_sha_dir is None:
+                os.environ.pop("GIT_DIR", None)
+            else:
+                os.environ["GIT_DIR"] = prev_sha_dir
+
+        prev_tmpl = os.environ.get("GIT_TEMPLATE_DIR")
+        os.environ["GIT_TEMPLATE_DIR"] = str(tmpl)
+        try:
+            with self.subTest(site="query.git init"):
+                store = lane_cage.prepare_git_store(self.wt, self.cage)
+                query_hook = store.objects.parent / "query.git" / "hooks" / "update"
+                self.assertFalse(query_hook.exists(), "query.git must not receive the template hook")
+        finally:
+            if prev_tmpl is None:
+                os.environ.pop("GIT_TEMPLATE_DIR", None)
+            else:
+                os.environ["GIT_TEMPLATE_DIR"] = prev_tmpl
+
+        prev_params = os.environ.get("GIT_CONFIG_PARAMETERS")
+        os.environ["GIT_CONFIG_PARAMETERS"] = "'user.name=PlantedName'"
+        try:
+            with self.subTest(site="base_run config"):
+                argv = lane_cage.base_run(
+                    "podman", "localhost/pfy-test:3.12", self.wt, self.cage, "none",
+                )
+                joined = "\n".join(argv)
+                self.assertIn("--env=GIT_AUTHOR_NAME=T", joined)
+                self.assertIn("--env=GIT_COMMITTER_NAME=T", joined)
+                self.assertNotIn("PlantedName", joined)
+        finally:
+            if prev_params is None:
+                os.environ.pop("GIT_CONFIG_PARAMETERS", None)
+            else:
+                os.environ["GIT_CONFIG_PARAMETERS"] = prev_params
+
+    def test_pack_git_timeout_kills_the_process_group(self):
+        """A pack-git timeout must kill the whole process group.
+
+        Fail: timeout kills only the direct child and a grandchild keeps
+        running. Recover: the copy-back is refused and the grandchild is
+        gone.
+        """
+        pidfile = self.td / "pack-git-grandchild.pid"
+        bindir = self._git_path_wrapper(
+            "#!/bin/sh\n"
+            "real=\"@@REAL@@\"\n"
+            "for a in \"$@\"; do\n"
+            "  if [ \"$a\" = \"verify-pack\" ] || [ \"$a\" = \"index-pack\" ]; then\n"
+            "    /bin/sleep 30 &\n"
+            "    echo $! > '%s'\n"
+            "    wait\n"
+            "    exit 0\n"
+            "  fi\n"
+            "done\n"
+            "exec \"$real\" \"$@\"\n" % pidfile
+        )
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        self._commit_in_overlay(store)
+        self._private_pack(store)
+        before_lane, before_main = self._lane_and_main()
+        common_objects = store.common / "objects"
+        before = {p.relative_to(common_objects): p.read_bytes()
+                  for p in common_objects.rglob("*") if p.is_file()}
+        old_path = os.environ["PATH"]
+        old_safe = getattr(lane_cage, "_SAFE_GIT_PATH", None)
+        prev = os.environ.get("PFY_CAGE_PACK_GIT_TIMEOUT_SECS")
+        os.environ["PATH"] = str(bindir) + os.pathsep + old_path
+        if old_safe is not None:
+            lane_cage._SAFE_GIT_PATH = str(bindir)
+        os.environ["PFY_CAGE_PACK_GIT_TIMEOUT_SECS"] = "1"
+        grandchild = None
+        alive = None
+        try:
+            with self.assertRaises(self._err()) as ctx:
+                lane_cage.finalize_git_store(store)
+            if pidfile.is_file():
+                raw = pidfile.read_text(encoding="utf-8").strip()
+                if raw.isdigit():
+                    grandchild = int(raw)
+            if grandchild is not None:
+                try:
+                    os.kill(grandchild, 0)
+                    alive = True
+                except OSError:
+                    alive = False
+        finally:
+            os.environ["PATH"] = old_path
+            if old_safe is not None:
+                lane_cage._SAFE_GIT_PATH = old_safe
+            if prev is None:
+                os.environ.pop("PFY_CAGE_PACK_GIT_TIMEOUT_SECS", None)
+            else:
+                os.environ["PFY_CAGE_PACK_GIT_TIMEOUT_SECS"] = prev
+            if grandchild is not None:
+                try:
+                    os.kill(grandchild, 9)
+                except OSError:
+                    pass
+        self.assertIn("timed out", str(ctx.exception).lower())
+        self.assertIsNotNone(grandchild, "the hung git must have started a grandchild")
+        after = {p.relative_to(common_objects): p.read_bytes()
+                 for p in common_objects.rglob("*") if p.is_file()}
+        self.assertEqual(after, before)
+        self.assertEqual(self._lane_and_main(), (before_lane, before_main))
+        self.assertFalse(alive, "grandchild must not survive the pack-git timeout")
+
     def test_index_pack_is_invoked_with_the_size_cap(self):
         """index-pack must get --max-input-size at the pack cap.
 
@@ -1376,12 +1659,17 @@ class GitStoreIsolationTest(unittest.TestCase):
         before_lane, before_main = self._lane_and_main()
         prev = os.environ.get("PFY_CAGE_PACK_MAX_BYTES")
         old_path = os.environ["PATH"]
+        old_safe = getattr(lane_cage, "_SAFE_GIT_PATH", None)
         os.environ["PATH"] = str(bindir) + os.pathsep + old_path
+        if old_safe is not None:
+            lane_cage._SAFE_GIT_PATH = str(bindir)
         os.environ["PFY_CAGE_PACK_MAX_BYTES"] = str(cap)
         try:
             lane_cage.finalize_git_store(store)
         finally:
             os.environ["PATH"] = old_path
+            if old_safe is not None:
+                lane_cage._SAFE_GIT_PATH = old_safe
             if prev is None:
                 os.environ.pop("PFY_CAGE_PACK_MAX_BYTES", None)
             else:
@@ -1543,6 +1831,29 @@ class GitStoreIsolationTest(unittest.TestCase):
             reason2 = parked2.read_text(encoding="utf-8")
             self.assertIn("lane cage unavailable", reason2)
             self.assertNotIn("copy-back refused", reason2)
+
+    def test_build_lane_log_stderr_still_classifies_refusal(self):
+        """build_lane.sh --log /dev/stderr must still map a refusal to exit 6.
+
+        Fail: classify reads only the log path, so /dev/stderr cannot be
+        grepped and a refusal stays raw rc 2. Recover: the script still
+        exits 6 and the refusal line reaches stderr.
+        """
+        bindir = self.td / "py-stub"
+        self._python3_cage_stub(bindir)
+        prompt = self.td / "build-prompt.txt"
+        prompt.write_text("Follow the ticket.\n", encoding="utf-8")
+        env = dict(os.environ)
+        env["PATH"] = str(bindir) + os.pathsep + env.get("PATH", "")
+        env["PFY_TEST_CAGE_STUB"] = "refused"
+        env["PYTHONDONTWRITEBYTECODE"] = "1"
+        proc = subprocess.run(
+            ["bash", str(ROOT / "scripts" / "build_lane.sh"),
+             "--wt", str(self.wt), "--prompt", str(prompt), "--log", "/dev/stderr"],
+            capture_output=True, text=True, env=env, timeout=30,
+        )
+        self.assertEqual(proc.returncode, 6, proc.stdout + proc.stderr)
+        self.assertIn("lane-cage: copy-back refused:", proc.stderr)
 
 
 @unittest.skipUnless(_real_cage_ready(), "rootless podman and localhost/pfy-test:3.12 needed (make test-image)")

@@ -32,11 +32,13 @@ PFY_LANE_GROK_AUTH, PFY_QUARANTINE_DIR, PFY_LANE_CAGE_DIR.
 from __future__ import annotations
 
 import argparse
+from contextlib import contextmanager
 from dataclasses import dataclass
 import hashlib
 import json
 import os
 import shutil
+import signal
 import stat
 import socket
 import subprocess
@@ -105,22 +107,85 @@ ENV_PACK_MAX_BYTES = "PFY_CAGE_PACK_MAX_BYTES"
 ENV_LOOSE_MAX_BYTES = "PFY_CAGE_LOOSE_MAX_BYTES"
 ENV_LOOSE_MAX_INFLATE = "PFY_CAGE_LOOSE_MAX_INFLATE"
 ENV_PACK_GIT_TIMEOUT = "PFY_CAGE_PACK_GIT_TIMEOUT_SECS"
-_GIT_DIR_ENV = (
-    "GIT_DIR",
-    "GIT_WORK_TREE",
-    "GIT_OBJECT_DIRECTORY",
-    "GIT_ALTERNATE_OBJECT_DIRECTORIES",
-    "GIT_INDEX_FILE",
-    "GIT_COMMON_DIR",
-)
-_GIT_CONFIG_INJECT_ENV = (
-    "GIT_CONFIG",
-    "GIT_CONFIG_PARAMETERS",
-    "GIT_CONFIG_COUNT",
-    "GIT_TEMPLATE_DIR",
-    "GIT_EXEC_PATH",
-    "XDG_CONFIG_HOME",
-)
+# Fixed PATH for host and pack git. Caller PATH is never inherited.
+_SAFE_GIT_PATH = "/usr/bin:/bin:/usr/local/bin:/opt/homebrew/bin"
+
+
+def _safe_git_env(*, home: str, extra: dict | None = None) -> dict:
+    """Allowlist-only env for host and pack git helpers.
+
+    Caller tracing, ssh/askpass/pager/editor, preload, PATH, HOME, and
+    other git configuration variables are not inherited.
+    """
+    env = {
+        "PATH": _SAFE_GIT_PATH,
+        "LANG": "C",
+        "LC_ALL": "C",
+        "HOME": home,
+        "GIT_CONFIG_NOSYSTEM": "1",
+        "GIT_CONFIG_GLOBAL": os.devnull,
+    }
+    if extra:
+        env.update(extra)
+    return env
+
+
+@contextmanager
+def _host_git_env(*, extra: dict | None = None):
+    home = tempfile.mkdtemp(prefix="pfy-git-home-")
+    try:
+        yield _safe_git_env(home=home, extra=extra)
+    finally:
+        shutil.rmtree(home, ignore_errors=True)
+
+
+def _host_git(args: list[str], **kwargs) -> subprocess.CompletedProcess:
+    """Run git on the host with an allowlisted env and an empty HOME."""
+    kwargs.setdefault("capture_output", True)
+    kwargs.setdefault("text", True)
+    with _host_git_env() as env:
+        kwargs.setdefault("cwd", env["HOME"])
+        return subprocess.run(["git", *args], env=env, **kwargs)
+
+
+def _run_timed_pack_git(
+    cmd: list[str], *, env: dict, cwd: str, timeout: int,
+) -> subprocess.CompletedProcess:
+    """Run a pack-git command and kill the whole process group on timeout."""
+    proc = subprocess.Popen(
+        cmd,
+        env=env,
+        cwd=cwd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        start_new_session=True,
+    )
+    try:
+        stdout, stderr = proc.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired as exc:
+        try:
+            os.killpg(proc.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        except OSError:
+            try:
+                proc.kill()
+            except OSError:
+                pass
+        try:
+            proc.communicate(timeout=2)
+        except Exception:
+            try:
+                proc.kill()
+            except OSError:
+                pass
+            try:
+                proc.wait(timeout=1)
+            except Exception:
+                pass
+        raise GitStoreError("pack verify timed out") from exc
+    return subprocess.CompletedProcess(cmd, proc.returncode, stdout, stderr)
 
 
 def _env_cap(name: str, default: int, ceiling: int) -> int:
@@ -138,22 +203,6 @@ def _env_cap(name: str, default: int, ceiling: int) -> int:
 
 def _pack_git_timeout() -> int:
     return _env_cap(ENV_PACK_GIT_TIMEOUT, PACK_GIT_TIMEOUT_DEFAULT, PACK_GIT_TIMEOUT_CEILING)
-
-
-def _scrub_git_env(env: dict, *, drop_dir_vars: bool = False) -> dict:
-    """Pin safe git config paths and drop caller-controlled git env vars."""
-    env["GIT_CONFIG_NOSYSTEM"] = "1"
-    env["GIT_CONFIG_GLOBAL"] = os.devnull
-    env["GIT_CONFIG_SYSTEM"] = os.devnull
-    for key in list(env):
-        if key.startswith("GIT_CONFIG_KEY_") or key.startswith("GIT_CONFIG_VALUE_"):
-            env.pop(key, None)
-    for key in _GIT_CONFIG_INJECT_ENV:
-        env.pop(key, None)
-    if drop_dir_vars:
-        for key in _GIT_DIR_ENV:
-            env.pop(key, None)
-    return env
 
 
 def _copy_regular_nofollow(src: Path, dest: Path) -> None:
@@ -294,8 +343,8 @@ def _pipe(a: socket.socket, b: socket.socket) -> None:
 
 def git_paths(wt: Path) -> tuple[Path | None, Path | None]:
     try:
-        out = subprocess.run(["git", "-C", str(wt), "rev-parse", "--path-format=absolute",
-                              "--git-common-dir", "--git-dir"], capture_output=True, text=True, check=True).stdout
+        out = _host_git(["-C", str(wt), "rev-parse", "--path-format=absolute",
+                         "--git-common-dir", "--git-dir"], check=True).stdout
     except (OSError, subprocess.CalledProcessError):
         return None, None
     lines = out.split()
@@ -320,11 +369,9 @@ class GitStore:
 
 
 def _head_info(wt: Path) -> tuple[str, str]:
-    ref_p = subprocess.run(["git", "-C", str(wt), "symbolic-ref", "-q", "HEAD"],
-                           capture_output=True, text=True)
+    ref_p = _host_git(["-C", str(wt), "symbolic-ref", "-q", "HEAD"])
     ref = ref_p.stdout.strip() if ref_p.returncode == 0 else ""
-    sha_p = subprocess.run(["git", "-C", str(wt), "rev-parse", "HEAD"],
-                           capture_output=True, text=True)
+    sha_p = _host_git(["-C", str(wt), "rev-parse", "HEAD"])
     sha = sha_p.stdout.strip() if sha_p.returncode == 0 else ""
     return ref, sha
 
@@ -375,7 +422,7 @@ def prepare_git_store(wt: Path, cage: Path) -> GitStore:
     if start_sha:
         (overlay / "HEAD").write_text(start_sha + "\n", encoding="utf-8")
     query = root / "query.git"
-    r = subprocess.run(["git", "init", "-q", "--bare", str(query)], capture_output=True, text=True)
+    r = _host_git(["init", "-q", "--bare", str(query)])
     if r.returncode != 0:
         raise GitStoreError(f"cannot create query git dir: {r.stderr.strip()}")
     return GitStore(wt=wt, common=common, gitdir=gitdir, objects=objects, overlay=overlay,
@@ -428,8 +475,7 @@ def _hex_name(name: str, n: int) -> bool:
 
 
 def _object_format(wt: Path) -> tuple[int, object, str]:
-    r = subprocess.run(["git", "-C", str(wt), "rev-parse", "--show-object-format"],
-                       capture_output=True, text=True)
+    r = _host_git(["-C", str(wt), "rev-parse", "--show-object-format"])
     kind = (r.stdout or "sha1").strip() or "sha1"
     if kind == "sha256":
         return 64, hashlib.sha256, "sha256"
@@ -496,7 +542,7 @@ def _safe_pack_git(git_args: list[str], object_format: str, inputs: list[Path]) 
     Copies only the given inputs (the pack and idx) into a throwaway
     directory so sibling files cannot affect the check. Uses a throwaway
     bare repo initialized with an explicit object format, an empty HOME,
-    a scrubbed env, pinned -c flags, and a bounded timeout.
+    an allowlisted env, pinned -c flags, and a bounded timeout.
     """
     if object_format not in ("sha1", "sha256"):
         raise GitStoreError(f"unsupported object format: {object_format}")
@@ -505,8 +551,7 @@ def _safe_pack_git(git_args: list[str], object_format: str, inputs: list[Path]) 
     home = tempfile.mkdtemp(prefix="pfy-pack-home-")
     scratch = Path(home) / "repo.git"
     isolated = Path(home) / "inputs"
-    env = _scrub_git_env(dict(os.environ), drop_dir_vars=True)
-    env["HOME"] = home
+    env = _safe_git_env(home=home)
     pinned = [
         "git",
         "-c", "advice.defaultBranchName=false",
@@ -526,22 +571,16 @@ def _safe_pack_git(git_args: list[str], object_format: str, inputs: list[Path]) 
             _copy_regular_nofollow(src, dest)
             rewrite[str(src)] = str(dest)
         rewritten = [rewrite.get(a, a) for a in git_args]
-        try:
-            r = subprocess.run(
-                [*pinned, "init", "--bare", f"--object-format={object_format}", str(scratch)],
-                env=env, capture_output=True, text=True, cwd=home, timeout=timeout,
-            )
-        except subprocess.TimeoutExpired as exc:
-            raise GitStoreError("pack verify timed out") from exc
+        r = _run_timed_pack_git(
+            [*pinned, "init", "--bare", f"--object-format={object_format}", str(scratch)],
+            env=env, cwd=home, timeout=timeout,
+        )
         if r.returncode != 0:
             raise GitStoreError(f"cannot create pack-verify repo: {r.stderr.strip()}")
-        try:
-            return subprocess.run(
-                [*pinned, "--git-dir", str(scratch), *rewritten],
-                env=env, capture_output=True, text=True, cwd=home, timeout=timeout,
-            )
-        except subprocess.TimeoutExpired as exc:
-            raise GitStoreError("pack verify timed out") from exc
+        return _run_timed_pack_git(
+            [*pinned, "--git-dir", str(scratch), *rewritten],
+            env=env, cwd=home, timeout=timeout,
+        )
     finally:
         shutil.rmtree(home, ignore_errors=True)
 
@@ -697,9 +736,6 @@ def _safe_git(store: GitStore, git_args: list[str], **kwargs):
     Hooks and fsmonitor are disabled, system and global config are ignored,
     and the overlay config is not read.
     """
-    env = _scrub_git_env(dict(os.environ), drop_dir_vars=True)
-    env["GIT_OBJECT_DIRECTORY"] = str(store.objects)
-    env["GIT_ALTERNATE_OBJECT_DIRECTORIES"] = str(store.common / "objects")
     cmd = [
         "git",
         "-c", "core.fsmonitor=false",
@@ -707,18 +743,21 @@ def _safe_git(store: GitStore, git_args: list[str], **kwargs):
         "--git-dir", str(_query_git_dir(store)),
         *git_args,
     ]
-    return subprocess.run(cmd, env=env, **kwargs)
+    with _host_git_env(extra={
+        "GIT_OBJECT_DIRECTORY": str(store.objects),
+        "GIT_ALTERNATE_OBJECT_DIRECTORIES": str(store.common / "objects"),
+    }) as env:
+        return subprocess.run(cmd, env=env, **kwargs)
 
 
 def _safe_host_git(store: GitStore, git_args: list[str], **kwargs):
     """Git in the worktree after the overlay pointer is restored.
 
     Hooks and fsmonitor are disabled and system/global config is ignored.
-    The overlay config is not read. Caller git dir and config-injection
-    variables are dropped so a planted env cannot divert the result ref
-    or the host index rebuild.
+    The overlay config is not read. The process env is an allowlist, so a
+    planted caller env cannot divert the result ref or the host index
+    rebuild.
     """
-    env = _scrub_git_env(dict(os.environ), drop_dir_vars=True)
     cmd = [
         "git",
         "-c", "core.fsmonitor=false",
@@ -726,7 +765,8 @@ def _safe_host_git(store: GitStore, git_args: list[str], **kwargs):
         "-C", str(store.wt),
         *git_args,
     ]
-    return subprocess.run(cmd, env=env, **kwargs)
+    with _host_git_env() as env:
+        return subprocess.run(cmd, env=env, **kwargs)
 
 
 def _raw_object(store: GitStore, sha: str) -> bytes:
@@ -1028,7 +1068,7 @@ def base_run(podman: str, image: str, wt: Path, cage: Path, network: str,
     # Commit identity for the agent's local commits (the cage has no ~/.gitconfig).
     for key, envs in (("user.name", ("GIT_AUTHOR_NAME", "GIT_COMMITTER_NAME")),
                       ("user.email", ("GIT_AUTHOR_EMAIL", "GIT_COMMITTER_EMAIL"))):
-        r = subprocess.run(["git", "-C", str(wt), "config", key], capture_output=True, text=True)
+        r = _host_git(["-C", str(wt), "config", key])
         val = r.stdout.strip() if r.returncode == 0 else ("Deanery lane" if key == "user.name" else "lane@localhost")
         for env in envs:
             argv.append(f"--env={env}={val}")
