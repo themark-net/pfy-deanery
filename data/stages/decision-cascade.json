@@ -1,0 +1,32 @@
+{
+  "name": "decision-cascade",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/197-decision-cascade.md",
+  "github": "https://github.com/slavabars/decision-cascade",
+  "pin": "3a48f955745ed5dbb136eebd36b46db6fdf749a4",
+  "license": "Apache-2.0",
+  "uses": "Local decision engine that returns typed, calibrated answers (yes/no, choice, score) from small local heads and escalates uncertain questions to a stronger model under an optional error budget.",
+  "features": [
+    "typed calibrated outputs: yes/no, choice, score",
+    "cheap local heads with escalation",
+    "optional error budget for escalation",
+    "FastAPI server, no GPU needed for the quick start"
+  ],
+  "potential": "medium",
+  "next_gate": "Trial under $PFY_TMP in shadow mode against the current local-LLM decider on logged gate decisions, scoring accuracy, calibration, latency and escalation rate. No remote escalation provider with paid keys, no server exposed off-host. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys",
+    "remote escalation provider with paid keys",
+    "server exposed off-host"
+  ],
+  "evidence": [
+    "entry:sources/entries/197-decision-cascade.md",
+    "pin:3a48f955745ed5dbb136eebd36b46db6fdf749a4"
+  ],
+  "handoff_by": "llm"
+}

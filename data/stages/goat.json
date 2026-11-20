@@ -1,0 +1,34 @@
+{
+  "name": "GOAT",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/196-goat.md",
+  "github": "https://github.com/goat-si/goat",
+  "pin": "56874cfafb49fe3f305a90ab0403daf36f7c132a",
+  "license": "MIT",
+  "uses": "Steer coding agents across your own machines: each host runs a GOAT server that owns projects, threads, provider sign-ins and memory, and a client can start or move a thread, including Grok Build and OpenCode providers.",
+  "features": [
+    "per-machine server for projects, threads and memory",
+    "start or move a thread, including uncommitted changes",
+    "Grok Build and OpenCode providers listed",
+    "Fleet view of what is running and what needs you"
+  ],
+  "potential": "medium",
+  "next_gate": "Trial a single-host run under $PFY_TMP driving one Grok Build and one OpenCode lane from GOAT versus the current per-lane session checks. No goat service install, no cross-host auto-download, no cloud providers, no computer-use add-on. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys",
+    "goat service install",
+    "cross-host auto-download",
+    "cloud providers",
+    "computer-use add-on"
+  ],
+  "evidence": [
+    "entry:sources/entries/196-goat.md",
+    "pin:56874cfafb49fe3f305a90ab0403daf36f7c132a"
+  ],
+  "handoff_by": "llm"
+}

@@ -1,0 +1,33 @@
+{
+  "name": "RustXNG",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/182-rustxng.md",
+  "github": "https://github.com/sahenjp/RustXNG",
+  "pin": "97d330a76597dbabdd3426679c061cd560cd2e1b",
+  "license": "AGPL-3.0",
+  "uses": "Self-hosted SearXNG rewrite that merges provider results as JSON and exposes read-only MCP tools search and read_page with token budgets, robots.txt checks and a refusal of non-public addresses.",
+  "features": [
+    "standard profile of keyless documented endpoints",
+    "clean profile limited to local indexes",
+    "read_page character and token budgets",
+    "robots.txt and non-public address refusal"
+  ],
+  "potential": "medium",
+  "next_gate": "Trial rustxng mcp --profile standard under $PFY_TMP, bound to 127.0.0.1, as a grounding tool for one catalog fit-check lane; measure hit rate, latency and token cost against no search. No full profile, no public bind, no vendored AGPL. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys",
+    "full profile or billed Exa",
+    "public bind",
+    "vendored AGPL code"
+  ],
+  "evidence": [
+    "entry:sources/entries/182-rustxng.md",
+    "pin:97d330a76597dbabdd3426679c061cd560cd2e1b"
+  ],
+  "handoff_by": "llm"
+}

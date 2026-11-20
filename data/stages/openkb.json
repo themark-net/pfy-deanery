@@ -1,0 +1,33 @@
+{
+  "name": "OpenKB",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/187-openkb.md",
+  "github": "https://github.com/VectifyAI/OpenKB",
+  "pin": "ff54396e575ee6feb0113b631a34caa082b441cc",
+  "license": "Apache-2.0",
+  "uses": "CLI and local workbench that compiles documents into an interlinked Markdown wiki of summaries, concept and entity pages, flags contradictions, and retrieves without a vector database.",
+  "features": [
+    "compile PDFs, Office, Markdown, HTML and URLs to a wiki",
+    "contradiction flags and incremental updates",
+    "local PageIndex tree indexing, no vector database"
+  ],
+  "potential": "medium",
+  "next_gate": "Trial under $PFY_TMP on a 30-entry slice of sources/entries with the local default model: answer ten known catalog questions from the compiled wiki versus plain grep, scoring accuracy and wall time. No cloud provider, no PAGEINDEX_API_KEY, no skill symlinks into real agent homes, workbench on loopback only. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys",
+    "cloud model provider",
+    "PAGEINDEX_API_KEY",
+    "skill symlinks into real agent homes",
+    "workbench exposed off loopback"
+  ],
+  "evidence": [
+    "entry:sources/entries/187-openkb.md",
+    "pin:ff54396e575ee6feb0113b631a34caa082b441cc"
+  ],
+  "handoff_by": "llm"
+}

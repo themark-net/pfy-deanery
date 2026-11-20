@@ -1,0 +1,32 @@
+{
+  "name": "Agent Cockpit",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/186-agent-cockpit.md",
+  "github": "https://github.com/chutingyean/Agent-Cockpit",
+  "pin": "a968c6bc2568a5036981f896939234aaac29c1cd",
+  "license": "AGPL-3.0",
+  "uses": "Local whiteboard and MCP server that ties each agent claim to the recorded experiment run and the code behind it, and flags affected claims when that code changes.",
+  "features": [
+    "claim-to-run evidence chain",
+    "recheck flags when scored code changes",
+    "local MCP server"
+  ],
+  "potential": "medium",
+  "next_gate": "Trial under $PFY_TMP on a scratch copy of one past eval: record arm runs and rubric scores as claims, change one scored file, and check whether the board flags exactly the affected scores. No global npm, no cockpit init in this repo or the real HOME, no vendored AGPL. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys",
+    "global npm install",
+    "cockpit init in this repo or the real HOME",
+    "vendored AGPL code"
+  ],
+  "evidence": [
+    "entry:sources/entries/186-agent-cockpit.md",
+    "pin:a968c6bc2568a5036981f896939234aaac29c1cd"
+  ],
+  "handoff_by": "llm"
+}

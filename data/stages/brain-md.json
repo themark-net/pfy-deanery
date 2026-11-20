@@ -1,0 +1,32 @@
+{
+  "name": "brain.md",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/184-brain-md.md",
+  "github": "https://github.com/mindmuxai/brain.md",
+  "pin": "5f7128dfd4c8635fa1f1678690d57d8bd3b1e770",
+  "license": "Apache-2.0",
+  "uses": "File-based project memory: decisions, requirements and constraints as Markdown in a brain/ directory, with every write going through a zero-dependency brain CLI so the layout stays valid.",
+  "features": [
+    "brain/ Markdown plus BRAIN.md protocol",
+    "all writes go through the brain CLI",
+    "agent-agnostic file layout"
+  ],
+  "potential": "low",
+  "next_gate": "Trial under $PFY_TMP on a scratch repo: a local-model lane resumes a task from brain/ versus from the current handoff file, scoring how many recorded decisions it honours. Compare with the ADR skill before adding structure. No global npm, no brain setup against the real HOME, no brain init in this repo. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys",
+    "global npm install",
+    "brain setup against the real HOME",
+    "brain init in this repo"
+  ],
+  "evidence": [
+    "entry:sources/entries/184-brain-md.md",
+    "pin:5f7128dfd4c8635fa1f1678690d57d8bd3b1e770"
+  ],
+  "handoff_by": "llm"
+}

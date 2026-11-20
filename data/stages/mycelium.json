@@ -1,0 +1,32 @@
+{
+  "name": "Mycelium",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/195-mycelium.md",
+  "github": "https://github.com/mycelium-io/mycelium",
+  "pin": "68906f2e23347b23452e9eb4771a699bded1fddb",
+  "license": "Apache-2.0",
+  "uses": "Shared room with chat, a task board and memory where the coding agents you already run on your own machines work tasks together and write what they learn for the next agent.",
+  "features": [
+    "room with chat, task board and shared memory",
+    "adds existing coding agents on your machines",
+    "agents write learned notes back to the room"
+  ],
+  "potential": "medium",
+  "next_gate": "Check for Grok Build or OpenCode adapters; if present, trial one two-lane task sharing a room under $PFY_TMP versus today's hand-off notes. No curl-to-bash installer, no agent-followed remote runbook, no hub beyond localhost. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys",
+    "curl-to-bash installer",
+    "agent-followed remote runbook",
+    "hub beyond localhost"
+  ],
+  "evidence": [
+    "entry:sources/entries/195-mycelium.md",
+    "pin:68906f2e23347b23452e9eb4771a699bded1fddb"
+  ],
+  "handoff_by": "llm"
+}

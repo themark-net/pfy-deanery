@@ -1,0 +1,31 @@
+{
+  "name": "AI Session Search",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/191-ai-session-search.md",
+  "github": "https://github.com/ahundt/ai-session-search",
+  "pin": "941c2a958ba3760dd07b278963ebcf59b2d7be1b",
+  "license": "Apache-2.0",
+  "uses": "One local index over coding-agent session transcripts, with a CLI, TUI, MCP server, and Python and Rust APIs.",
+  "features": [
+    "indexes local transcripts from several coding agents",
+    "CLI, TUI and MCP server",
+    "Python and Rust APIs"
+  ],
+  "potential": "medium",
+  "next_gate": "Trial under $PFY_TMP that indexes a copy of recent lane sessions and answers five post-mortem questions, timed against the current grep-the-logs method. No integrations install into real agent homes, no MCP registration in those homes. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys",
+    "integrations install into real agent homes",
+    "MCP registration in real agent homes"
+  ],
+  "evidence": [
+    "entry:sources/entries/191-ai-session-search.md",
+    "pin:941c2a958ba3760dd07b278963ebcf59b2d7be1b"
+  ],
+  "handoff_by": "llm"
+}

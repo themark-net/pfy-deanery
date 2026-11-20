@@ -1,0 +1,32 @@
+{
+  "name": "Speedrun",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/199-speedrun.md",
+  "github": "https://github.com/hubastard/speedrun",
+  "pin": "19bcdb7d5a073429595fd12bebbe547c82db31a4",
+  "license": "Apache-2.0",
+  "uses": "Black-box YAML end-to-end UI tests for Android, iOS and web that tap, type, scroll and assert from outside the app, in one binary, with an MCP mode for agents.",
+  "features": [
+    "Maestro-like YAML flows for Android, iOS and web",
+    "one binary, no JVM or WebDriver for web",
+    "MCP mode for agents"
+  ],
+  "potential": "medium",
+  "next_gate": "Trial one Deanery GUI launch flow (web) under $PFY_TMP in Speedrun versus the current launch check. No curl-to-bash, no Homebrew, no tests against production accounts. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys",
+    "curl-to-bash",
+    "Homebrew",
+    "tests against production accounts"
+  ],
+  "evidence": [
+    "entry:sources/entries/199-speedrun.md",
+    "pin:19bcdb7d5a073429595fd12bebbe547c82db31a4"
+  ],
+  "handoff_by": "llm"
+}

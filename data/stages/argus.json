@@ -1,0 +1,33 @@
+{
+  "name": "Argus",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/188-argus.md",
+  "github": "https://github.com/gy15901580825/Argus",
+  "pin": "1f052e3c86c380b312c0b59df4795d7125807a84",
+  "license": "Apache-2.0",
+  "uses": "Black-box red-team probes for agents, including a hostile MCP testbed and a scan-skill path that installs a skill in a throwaway container and watches recorded tool calls, with SARIF output.",
+  "features": [
+    "272 black-box adversarial probes",
+    "hostile MCP testbed with recorded-call verdicts",
+    "scan-skill in a throwaway container",
+    "SARIF output"
+  ],
+  "potential": "medium",
+  "next_gate": "Trial argus-probe quickstart and mcp-trap under $PFY_TMP in a container with the local judge, then scan-skill on two catalog skills, and compare findings with the current catalog checks. No cloud judge, no API keys, no probes against any live or external agent, no payment testbed. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys",
+    "cloud judge",
+    "probes against live or external agents",
+    "payment testbed"
+  ],
+  "evidence": [
+    "entry:sources/entries/188-argus.md",
+    "pin:1f052e3c86c380b312c0b59df4795d7125807a84"
+  ],
+  "handoff_by": "llm"
+}

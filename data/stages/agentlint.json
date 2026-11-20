@@ -1,0 +1,33 @@
+{
+  "name": "AgentLint",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/189-agentlint.md",
+  "github": "https://github.com/mauhpr/agentlint",
+  "pin": "1fff2d5990ede5895e3e0a4fe2d6ffd4e9883e1c",
+  "license": "MIT",
+  "uses": "Local pre-tool guardrails that inspect proposed file changes and shell commands, block secret and .env writes, force-pushes to main, CI edits and package publishing, and return a correction.",
+  "features": [
+    "pre-tool hooks on file changes and shell commands",
+    "blocks secret writes, .env writes and force-pushes to main",
+    "blocks CI pipeline edits and package publishing",
+    "returns a correction on a block"
+  ],
+  "potential": "medium",
+  "next_gate": "Trial agentlint ci --diff under $PFY_TMP over recent Deanery commits plus a seeded set of bad diffs, scored against check_public_paths.py and destructive-command-guard on catches, false positives and wall time. No hook installs into real agent homes, no settings edits, no blocking CI gate on main. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys",
+    "hook installs into real agent homes",
+    "settings edits",
+    "blocking CI gate on main"
+  ],
+  "evidence": [
+    "entry:sources/entries/189-agentlint.md",
+    "pin:1fff2d5990ede5895e3e0a4fe2d6ffd4e9883e1c"
+  ],
+  "handoff_by": "llm"
+}

@@ -1,0 +1,33 @@
+{
+  "name": "Commit Check",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/183-commit-check.md",
+  "github": "https://github.com/commit-check/commit-check",
+  "pin": "0659e65a4cd9d848b0f377aefb0382ad01666973",
+  "license": "MIT",
+  "uses": "Policy-as-code checks for commit messages, authors, branches, force pushes, file size and forbidden paths, with stable rule IDs in JSON, for hooks, CI, an API and an MCP server.",
+  "features": [
+    "one cchk.toml for hook, CI, API and MCP",
+    "author, message, branch and path rules",
+    "JSON output with stable rule IDs",
+    "optional mechanical --fix"
+  ],
+  "potential": "medium",
+  "next_gate": "Trial commit-check --message --author-name --author-email --files --format json under $PFY_TMP over recent main commits next to check_public_paths.py, counting real catches and false positives. No GitHub App, no hooks in the operator checkout, no --fix on pushed commits. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys",
+    "GitHub App install",
+    "hooks in the operator checkout",
+    "--fix on already pushed commits"
+  ],
+  "evidence": [
+    "entry:sources/entries/183-commit-check.md",
+    "pin:0659e65a4cd9d848b0f377aefb0382ad01666973"
+  ],
+  "handoff_by": "llm"
+}

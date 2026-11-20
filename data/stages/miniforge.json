@@ -1,0 +1,33 @@
+{
+  "name": "Miniforge",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/198-miniforge.md",
+  "github": "https://github.com/miniforge-ai/miniforge",
+  "pin": "fe703740b7e193561284329d7dc540687a989ec2",
+  "license": "Apache-2.0",
+  "uses": "Spec-to-PR software factory: from a plain-English or EDN spec it plans, writes code, tests, lints, reviews itself and opens a PR, with OpenCode, Claude Code or Codex as the LLM backend and work in an OCI container (Podman).",
+  "features": [
+    "spec-to-PR plan, implement, test, lint and review loop",
+    "OpenCode, Claude Code or Codex backends",
+    "work runs in an OCI container (Podman)"
+  ],
+  "potential": "medium",
+  "next_gate": "Trial one past Deanery lane spec through Miniforge under $PFY_TMP with OpenCode on the local model, versus the Deanery pipeline, on a scratch repo. No default bootstrap into HOME, no curl-to-bash, no PRs to real repos, no Claude or Codex paid backends. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys",
+    "default bootstrap into HOME",
+    "curl-to-bash",
+    "PRs to real repos",
+    "Claude or Codex paid backends"
+  ],
+  "evidence": [
+    "entry:sources/entries/198-miniforge.md",
+    "pin:fe703740b7e193561284329d7dc540687a989ec2"
+  ],
+  "handoff_by": "llm"
+}

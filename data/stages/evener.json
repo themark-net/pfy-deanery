@@ -1,0 +1,32 @@
+{
+  "name": "Evener",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/193-evener.md",
+  "github": "https://github.com/prime-radiant-inc/evener",
+  "pin": "965b90b51a1770afa14e52443bff29e70e8492d1",
+  "license": "MIT",
+  "uses": "Self-hosted coding-agent hub with a browser UI, a CLI for scripted sessions, and optional per-project launch files; Ollama is a supported backend.",
+  "features": [
+    "hub with browser, CLI and scripted sessions",
+    "Ollama supported",
+    "per-project launch files with content-hash trust approval"
+  ],
+  "potential": "medium",
+  "next_gate": "Trial one stalled-lane task through the Evener CLI under $PFY_TMP on the local Ollama default next to the current OpenCode lane, scored on pass/fail, wall time and tokens. No hub beyond localhost, no iPhone client, no cloud provider keys. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys",
+    "hub exposed beyond localhost",
+    "iPhone client",
+    "cloud provider keys"
+  ],
+  "evidence": [
+    "entry:sources/entries/193-evener.md",
+    "pin:965b90b51a1770afa14e52443bff29e70e8492d1"
+  ],
+  "handoff_by": "llm"
+}

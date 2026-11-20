@@ -1,0 +1,32 @@
+{
+  "name": "Learn Harness Engineering",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/190-learn-harness-engineering.md",
+  "github": "https://github.com/walkinglabs/learn-harness-engineering",
+  "pin": "a9342ff471f2c0e60be0c08b9f4a7c502df4e442",
+  "license": "MIT",
+  "uses": "Project-based course and harness-creator skill on the instructions, tools, environment, state and feedback that make coding-agent harnesses reliable, including loop and graph engineering patterns.",
+  "features": [
+    "14-lecture, 8-project course",
+    "five-subsystem checklist: instructions, tools, environment, state, feedback",
+    "loop and graph engineering lectures",
+    "harness-creator skill and audit-harness script"
+  ],
+  "potential": "low",
+  "next_gate": "Trial tools/audit-harness.sh under $PFY_TMP on a scratch Deanery worktree and map its five-subsystem checklist onto the current rubric to see which improvement vectors are missing. No skill symlinks into real agent homes, no rewriting this repo's AGENTS.md from the scaffold. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys",
+    "skill symlinks into real agent homes",
+    "rewriting this repo's AGENTS.md from the scaffold"
+  ],
+  "evidence": [
+    "entry:sources/entries/190-learn-harness-engineering.md",
+    "pin:a9342ff471f2c0e60be0c08b9f4a7c502df4e442"
+  ],
+  "handoff_by": "llm"
+}

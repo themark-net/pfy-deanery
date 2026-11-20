@@ -1,0 +1,34 @@
+{
+  "name": "multi-agents",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/194-multi-agents.md",
+  "github": "https://github.com/BichengWang/multi-agents",
+  "pin": "878a2f9a66829b4a48598bf57e82d6d61b4b1ed3",
+  "license": "MIT",
+  "uses": "Runs the same repository task as a solo agent or a team topology, records tokens, cost and seconds, and can stop new runs at a --max-cost cap, including a paired team-versus-solo benchmark.",
+  "features": [
+    "solo, coder/reviewer, best-of-N and plan topologies",
+    "SDK worker through LiteLLM, plus a check wrapper",
+    "--max-cost cap that refuses unpriced runs",
+    "paired team-versus-solo benchmark"
+  ],
+  "potential": "medium",
+  "next_gate": "Trial the existing python3 examples/multiagents-trial/trial.py --max-cost 0 path under $PFY_TMP (local LiteLLM to Ollama only). No Modal backend, no --apply on a real checkout, no Claude plugin, no catalog_loop.sh retarget. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys",
+    "Modal backend",
+    "--apply on a real checkout",
+    "Claude plugin install",
+    "catalog_loop.sh retarget"
+  ],
+  "evidence": [
+    "entry:sources/entries/194-multi-agents.md",
+    "pin:878a2f9a66829b4a48598bf57e82d6d61b4b1ed3"
+  ],
+  "handoff_by": "llm"
+}

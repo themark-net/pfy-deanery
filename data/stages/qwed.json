@@ -1,0 +1,32 @@
+{
+  "name": "QWED",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/185-qwed.md",
+  "github": "https://github.com/QWED-AI/qwed-verification",
+  "pin": "5d43b993d8a02348e4830eade60355e74d604126",
+  "license": "Apache-2.0",
+  "uses": "Deterministic, fail-closed checks of model claims with SymPy, Z3, SQLGlot and Python AST; a claim it cannot check is UNVERIFIABLE, never VERIFIED, and results carry a SHA-256 proof_ref.",
+  "features": [
+    "SymPy, Z3, SQLGlot and AST engines",
+    "fail-closed UNVERIFIABLE vs VERIFIED",
+    "SHA-256 proof_ref on results"
+  ],
+  "potential": "medium",
+  "next_gate": "Trial under $PFY_TMP, report-only: run SystemGuard and ConfigGuard over recent lane shell commands and changed config files next to the current in-house checks, and count real catches against false positives. No server or Docker deploy, no qwed init against the real HOME, no cloud provider. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys",
+    "server or Docker deploy",
+    "qwed init against the real HOME",
+    "cloud model provider"
+  ],
+  "evidence": [
+    "entry:sources/entries/185-qwed.md",
+    "pin:5d43b993d8a02348e4830eade60355e74d604126"
+  ],
+  "handoff_by": "llm"
+}

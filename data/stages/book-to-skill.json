@@ -1,0 +1,31 @@
+{
+  "name": "book-to-skill",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/192-book-to-skill.md",
+  "github": "https://github.com/virgiliojr94/book-to-skill",
+  "pin": "e7bb659d3261491c8b28793dcb9102fa64a46c22",
+  "license": "MIT",
+  "uses": "Distills a book or document folder into an on-demand agent skill with frameworks, decision rules, anti-patterns and per-chapter files.",
+  "features": [
+    "PDF, EPUB, DOCX, Markdown, HTML, RTF or MOBI sources",
+    "per-chapter skill files loaded on demand",
+    "upstream token-reduction claims in its performance doc"
+  ],
+  "potential": "medium",
+  "next_gate": "Trial under $PFY_TMP in a scratch HOME: convert the Deanery product docs into one skill, then answer ten fixed questions with the local default model, skill vs plain doc paste, scored on correctness and prompt tokens. No writes to real agent skill homes, no GitHub publish. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys",
+    "writes to real agent skill homes",
+    "GitHub publish"
+  ],
+  "evidence": [
+    "entry:sources/entries/192-book-to-skill.md",
+    "pin:e7bb659d3261491c8b28793dcb9102fa64a46c22"
+  ],
+  "handoff_by": "llm"
+}
