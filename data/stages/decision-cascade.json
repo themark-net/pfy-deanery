@@ -28,5 +28,40 @@
     "entry:sources/entries/197-decision-cascade.md",
     "pin:3a48f955745ed5dbb136eebd36b46db6fdf749a4"
   ],
-  "handoff_by": "llm"
+  "handoff_by": "llm",
+  "promotion_history": [
+    {
+      "kind": "ceiling",
+      "from": "",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "R-not-excluded",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable",
+        "R-catalog-fit"
+      ],
+      "failed": [
+        {
+          "rule": "HS-gpu-unapproved",
+          "detail": "card text names a GPU run; no gpu row in approvals.tsv"
+        },
+        {
+          "rule": "R-modularity-gate",
+          "detail": "no verdict"
+        },
+        {
+          "rule": "R-value-gate",
+          "detail": "no verdict"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-19"
+    }
+  ]
 }

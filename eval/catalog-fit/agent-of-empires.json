@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "High blast radius: introduces HTTP API and web dashboard (runtime takeover/network exposure) and requires account sign-up/paid API keys per non_goals. Conflicts with local-first isolation mission.",
+  "slug": "agent-of-empires",
+  "verdict": "awareness"
+}

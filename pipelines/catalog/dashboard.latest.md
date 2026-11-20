@@ -2,15 +2,15 @@
 
 Stage cards are the source of truth.
 
-Coverage: 139 tools registered.
+Coverage: 163 tools registered.
 
-Cards: 139. I2+: 23.
+Cards: 163. I2+: 23.
 
 ## Stage counts
 
 | Stage | Count |
 |-------|------:|
-| I0 | 47 |
+| I0 | 71 |
 | I1 | 69 |
 | I2 | 3 |
 | I3 | 20 |
@@ -23,7 +23,7 @@ Cards: 139. I2+: 23.
 | ad_hoc_probe | 5 |
 | adhoc_probe | 4 |
 | advisory_skill_scan | 1 |
-| awareness | 34 |
+| awareness | 58 |
 | awareness_fit_gate_failed | 1 |
 | blocked_on_hermes_wiring | 1 |
 | catalog_default | 24 |
@@ -62,7 +62,7 @@ Cards: 139. I2+: 23.
 | non_goals | 2 |
 | next_gate | 2 |
 | evidence | 3 |
-| tier_ceiling | 6 |
+| tier_ceiling | 30 |
 
 ## Tools
 
@@ -72,15 +72,21 @@ Cards: 139. I2+: 23.
 | AgenC | I0 | demoted_adr0010 |
 | Agent Autoloop | I1 | awareness |
 | Agent Beacon | I0 | awareness |
+| Agent Cockpit | I0 | awareness |
+| Agent of Empires | I0 | awareness |
 | Agent Substrate | I0 | awareness |
 | agent-cage (PNNL) | I3 | primary_harness |
+| agent-custody | I0 | awareness |
 | agent-manager | I1 | (missing) |
 | agentgg | I0 | awareness |
+| AgentLint | I0 | awareness |
 | agentplay | I0 | design_reference |
+| AI Session Search | I0 | awareness |
 | ai-memory | I1 | staged_evaluation |
 | Aider | I1 | catalog_default |
 | anti-slop | I0 | awareness |
 | Antigravity-Manager | I1 | skip_install |
+| Argus | I0 | awareness |
 | Arize Phoenix | I1 | (missing) |
 | asm (agent-skill-manager) | I1 | evq1107_probe |
 | assay | I1 | staged_evaluation |
@@ -88,6 +94,8 @@ Cards: 139. I2+: 23.
 | Auto-Company | I1 | catalog_default |
 | awesome-hermes-skills | I1 | catalog_default |
 | Axon | I1 | staged_evaluation |
+| book-to-skill | I0 | awareness |
+| brain.md | I0 | awareness |
 | Bricks | I1 | (missing) |
 | Brigade | I0 | awareness |
 | BugPatrol | I1 | staged_evaluation |
@@ -105,7 +113,10 @@ Cards: 139. I2+: 23.
 | codebase-memory-mcp | I3 | smoke_path |
 | CodeGuard | I0 | awareness |
 | colibri | I1 | local_probe_stayed_i1 |
+| Commit Check | I0 | awareness |
+| CompozyOS | I0 | awareness |
 | Continue.dev | I1 | catalog_default |
+| decision-cascade | I0 | awareness |
 | DeepSeek-V4.1-Flash-1017 GGUF | I0 | awareness_fit_gate_failed |
 | destructive_command_guard | I3 | adhoc_probe |
 | dsh-superagent | I0 | design_reference |
@@ -113,12 +124,14 @@ Cards: 139. I2+: 23.
 | Elephant-Goldfish Model | I1 | staged_eval |
 | Emdash | I0 | awareness |
 | eval-harness (pfy) | I1 | catalog_default |
+| Evener | I0 | awareness |
 | Exo (exoharness) | I1 | pattern_extract_self_mod |
 | Festival | I1 | staged_evaluation |
 | Finn Loop / eval-loop / 8-exits patterns | I1 | catalog_default |
 | Foremerge | I1 | staged_eval |
 | freeapp | I0 | ref_only |
 | gitai | I1 | staged_eval |
+| GOAT | I0 | awareness |
 | Graphify | I0 | watch |
 | GraphJin | I0 | watch |
 | Grok CLI bootstrap | I3 | first_party |
@@ -147,24 +160,29 @@ Cards: 139. I2+: 23.
 | Langfuse | I0 | (missing) |
 | LangGraph (LangChain) | I1 | catalog_default |
 | LEANN | I1 | catalog_default |
+| Learn Harness Engineering | I0 | awareness |
 | LiteLLM | I3 | smoke_path |
 | LiveKit | I0 | ref_only |
 | llama.cpp (server mode) | I1 | catalog_default |
 | llama.cpp ngram-mod | I3 | speed_probe |
 | llm-router | I0 | awareness |
 | LocalHarness | I1 | staged_evaluation |
+| LoopForge | I0 | awareness |
 | magpie | I1 | awareness |
 | marketing-skills (marketing-council) | I1 | catalog_default |
 | mattpocock/skills | I1 | catalog_default |
 | MCO | I1 | staged_evaluation |
 | MemPalace | I1 | staged_evaluation |
 | Memvid | I1 | catalog_default |
+| Miniforge | I0 | awareness |
 | MLX + MLX-LM | I1 | catalog_default |
 | Moira | I1 | staged_evaluation |
 | MUE-X | I1 | pattern_only |
 | multi-agent-generator | I0 | design_reference |
+| multi-agents | I0 | awareness |
 | Multica | I1 | reference |
 | Muxin | I0 | awareness |
+| Mycelium | I0 | awareness |
 | neatroots | I3 | ad_hoc_probe |
 | Neuronto ARD Registry | I1 | (missing) |
 | odai | I0 | design_reference |
@@ -175,6 +193,7 @@ Cards: 139. I2+: 23.
 | OpenCode Skill Creator | I0 | awareness |
 | opencode-mem | I3 | ad_hoc_probe |
 | OpenContext | I1 | staged_evaluation |
+| OpenKB | I0 | awareness |
 | OpenLore | I1 | staged_evaluation |
 | OpenQodex | I1 | staged_eval |
 | Overtime | I0 | awareness |
@@ -182,6 +201,7 @@ Cards: 139. I2+: 23.
 | Pipecat | I0 | ref_only |
 | ponytail (skills pack) | I1 | catalog_default |
 | project-process bootstrap | I3 | first_party |
+| QWED | I0 | awareness |
 | Reasonix | I0 | awareness |
 | repository-harness | I0 | awareness |
 | repowise | I3 | smoke_path |
@@ -189,6 +209,7 @@ Cards: 139. I2+: 23.
 | Ruben Hassid context/token hacks | I0 | awareness |
 | Rulora | I1 | staged_eval |
 | runx | I0 | awareness |
+| RustXNG | I0 | awareness |
 | Sandlock | I3 | adhoc_probe |
 | skill-up | I3 | trial_1107 |
 | Skills Manager | I0 | awareness |
@@ -196,6 +217,7 @@ Cards: 139. I2+: 23.
 | Sloptrim | I1 | staged_evaluation |
 | smolvm | I1 | staged_eval |
 | SmythOS Studio | I1 | reference |
+| Speedrun | I0 | awareness |
 | Sponsio | I3 | adhoc_probe |
 | Squadra | I1 | staged_evaluation |
 | StarSling Skills | I2 | ad_hoc_probe |
@@ -203,7 +225,9 @@ Cards: 139. I2+: 23.
 | SysKnife | I0 | awareness |
 | taste-skill | I3 | ad_hoc_probe |
 | TeaQL Agent Kit | I0 | awareness |
+| Thermite | I0 | awareness |
 | Tracekit | I0 | awareness |
 | trailofbits-skills | I0 | awareness |
 | Tree-sitter Analyzer | I1 | staged_evaluation |
+| vibecosystem | I0 | awareness |
 | write-guard-mcp | I3 | first_party |
