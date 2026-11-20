@@ -257,6 +257,41 @@ def _real_cage_ready() -> bool:
 
 
 
+class EnvCapTest(unittest.TestCase):
+    """_env_cap clamp and fallback: invalid values must not raise the ceiling."""
+
+    def test_ceiling_clamp_and_non_numeric_fallback(self):
+        cases = (
+            (lane_cage.ENV_PACK_MAX_BYTES, lane_cage.PACK_MAX_BYTES_DEFAULT, lane_cage.PACK_MAX_BYTES_CEILING),
+            (lane_cage.ENV_LOOSE_MAX_BYTES, lane_cage.LOOSE_MAX_BYTES_DEFAULT, lane_cage.LOOSE_MAX_BYTES_CEILING),
+            (lane_cage.ENV_LOOSE_MAX_INFLATE, lane_cage.LOOSE_MAX_INFLATE_DEFAULT, lane_cage.LOOSE_MAX_INFLATE_CEILING),
+        )
+        for name, default, ceiling in cases:
+            with self.subTest(name=name):
+                prev = os.environ.get(name)
+                try:
+                    os.environ.pop(name, None)
+                    self.assertEqual(lane_cage._env_cap(name, default, ceiling), default)
+                    os.environ[name] = "nope"
+                    self.assertEqual(lane_cage._env_cap(name, default, ceiling), default)
+                    os.environ[name] = "0"
+                    self.assertEqual(lane_cage._env_cap(name, default, ceiling), default)
+                    os.environ[name] = "-5"
+                    self.assertEqual(lane_cage._env_cap(name, default, ceiling), default)
+                    os.environ[name] = str(ceiling + 1)
+                    self.assertEqual(lane_cage._env_cap(name, default, ceiling), ceiling)
+                    os.environ[name] = str(ceiling)
+                    self.assertEqual(lane_cage._env_cap(name, default, ceiling), ceiling)
+                    mid = max(1, default // 2) if default > 2 else 1
+                    os.environ[name] = str(mid)
+                    self.assertEqual(lane_cage._env_cap(name, default, ceiling), mid)
+                finally:
+                    if prev is None:
+                        os.environ.pop(name, None)
+                    else:
+                        os.environ[name] = prev
+
+
 class GitStoreIsolationTest(unittest.TestCase):
     """Host-side store helpers: a commit made in the private object dir is
     imported onto only the result ref, and other refs stay put."""
@@ -1063,46 +1098,451 @@ class GitStoreIsolationTest(unittest.TestCase):
         self.assertNotIn("unavailable", err.lower())
         self.assertNotIn("FAKE-HOST-SECRET-NOT-A-CREDENTIAL", self._common_text())
 
+    def _python3_cage_stub(self, bindir: Path) -> Path:
+        """PATH python3 that stubs only lane_cage.py; everything else is real."""
+        bindir.mkdir(parents=True, exist_ok=True)
+        wrapper = bindir / "python3"
+        real = sys.executable
+        wrapper.write_text(
+            "#!/bin/bash\n"
+            "real=%r\n"
+            "for a in \"$@\"; do\n"
+            "  case \"$a\" in\n"
+            "    *lane_cage.py)\n"
+            "      if [ \"${PFY_TEST_CAGE_STUB:-}\" = \"refused\" ]; then\n"
+            "        echo \"lane-cage: copy-back refused: planted fixture\" >&2\n"
+            "        exit 2\n"
+            "      fi\n"
+            "      if [ \"${PFY_TEST_CAGE_STUB:-}\" = \"unavailable\" ]; then\n"
+            "        echo \"lane-cage: lane cage unavailable: podman not found (no unconfined fallback)\" >&2\n"
+            "        exit 2\n"
+            "      fi\n"
+            "      ;;\n"
+            "  esac\n"
+            "done\n"
+            "exec \"$real\" \"$@\"\n" % real,
+            encoding="utf-8",
+        )
+        wrapper.chmod(0o755)
+        return wrapper
+
+    def _git_path_wrapper(self, body: str) -> Path:
+        bindir = self.td / "git-wrap"
+        bindir.mkdir(exist_ok=True)
+        real = shutil.which("git")
+        self.assertIsNotNone(real)
+        wrapper = bindir / "git"
+        wrapper.write_text(body.replace("@@REAL@@", real), encoding="utf-8")
+        wrapper.chmod(0o755)
+        return bindir
+
+    def test_truncated_pack_rev_does_not_fail_copy_back(self):
+        """A planted or truncated pack-*.rev must not fail a valid pack.
+
+        Fail: verify-pack reads the sibling .rev in the private pack dir and
+        refuses the copy-back. Recover: only .pack and .idx reach the
+        throwaway verify repo, the result commit lands, and the .rev is not
+        copied.
+        """
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        self._commit_in_overlay(store)
+        pack = self._private_pack(store)
+        hid = pack.name[len("pack-"):-len(".pack")]
+        rev = pack.with_name("pack-%s.rev" % hid)
+        if rev.exists():
+            rev.chmod(0o644)
+            data = rev.read_bytes()
+            rev.write_bytes(data[:8] if len(data) > 8 else b"RIDX\x00trunc")
+        else:
+            rev.write_bytes(b"RIDX\x00\x00\x00\x01truncated")
+        before_lane, before_main = self._lane_and_main()
+        lane_cage.finalize_git_store(store)
+        after_lane, after_main = self._lane_and_main()
+        self.assertEqual(after_main, before_main)
+        self.assertNotEqual(after_lane, before_lane)
+        dest_rev = store.common / "objects" / "pack" / rev.name
+        self.assertFalse(dest_rev.exists(), "pack-*.rev must not be copied")
+        self.assertTrue(git(self.wt, "cat-file", "-e", after_lane) == "")
+
+    def test_pack_git_timeout_refuses_and_copies_nothing(self):
+        """A hung pack-verify must refuse and leave the shared store unchanged.
+
+        Fail: verify-pack or index-pack can block forever. Recover: a bounded
+        timeout becomes GitStoreError, nothing is copied, and refs stay put.
+        """
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        self._commit_in_overlay(store)
+        self._private_pack(store)
+        bindir = self._git_path_wrapper(
+            "#!/bin/sh\n"
+            "real=\"@@REAL@@\"\n"
+            "for a in \"$@\"; do\n"
+            "  if [ \"$a\" = \"verify-pack\" ] || [ \"$a\" = \"index-pack\" ]; then\n"
+            "    sleep 5\n"
+            "    break\n"
+            "  fi\n"
+            "done\n"
+            "exec \"$real\" \"$@\"\n"
+        )
+        before_lane, before_main = self._lane_and_main()
+        common_objects = store.common / "objects"
+        before = {p.relative_to(common_objects): p.read_bytes()
+                  for p in common_objects.rglob("*") if p.is_file()}
+        old_path = os.environ["PATH"]
+        prev = os.environ.get("PFY_CAGE_PACK_GIT_TIMEOUT_SECS")
+        os.environ["PATH"] = str(bindir) + os.pathsep + old_path
+        os.environ["PFY_CAGE_PACK_GIT_TIMEOUT_SECS"] = "1"
+        try:
+            with self.assertRaises(self._err()) as ctx:
+                lane_cage.finalize_git_store(store)
+        finally:
+            os.environ["PATH"] = old_path
+            if prev is None:
+                os.environ.pop("PFY_CAGE_PACK_GIT_TIMEOUT_SECS", None)
+            else:
+                os.environ["PFY_CAGE_PACK_GIT_TIMEOUT_SECS"] = prev
+        self.assertIn("timed out", str(ctx.exception).lower())
+        after = {p.relative_to(common_objects): p.read_bytes()
+                 for p in common_objects.rglob("*") if p.is_file()}
+        self.assertEqual(after, before)
+        self.assertEqual(self._lane_and_main(), (before_lane, before_main))
+
+    def test_planted_git_env_does_not_affect_pack_or_host_git(self):
+        """Each inherited git env var must be ignored during copy-back.
+
+        Fail: pack verify or update-ref/reset follows the planted value and
+        either refuses a valid pack or writes the result to the wrong repo.
+        Recover: copy-back still lands on the lane ref, main is unchanged,
+        and planted paths are not written.
+        """
+        other = self.td / "other-repo"
+        other.mkdir()
+        git(other, "init", "-q", "-b", "main")
+        git(other, "config", "user.email", "t@example.com")
+        git(other, "config", "user.name", "T")
+        (other / "README").write_text("other\n", encoding="utf-8")
+        git(other, "add", "README")
+        git(other, "commit", "-qm", "other")
+        other_sha = git(other, "rev-parse", "HEAD").strip()
+        tmpl = self.td / "evil-template"
+        (tmpl / "hooks").mkdir(parents=True)
+        (tmpl / "config").write_text("[core]\n\tcompression = bogus\n", encoding="utf-8")
+        xdg = self.td / "evil-xdg"
+        (xdg / "git").mkdir(parents=True)
+        (xdg / "git" / "config").write_text("[core]\n\tcompression = bogus\n", encoding="utf-8")
+        planted_index = self.td / "planted.index"
+        exec_dir = self.td / "empty-git-exec"
+        exec_dir.mkdir()
+        cases = [
+            ("GIT_CONFIG_PARAMETERS", "'core.compression=bogus'"),
+            ("GIT_CONFIG_COUNT", "not-a-number"),
+            ("GIT_TEMPLATE_DIR", str(tmpl)),
+            ("XDG_CONFIG_HOME", str(xdg)),
+            ("GIT_EXEC_PATH", str(exec_dir)),
+            ("GIT_DIR", str(other / ".git")),
+            ("GIT_WORK_TREE", str(other)),
+            ("GIT_OBJECT_DIRECTORY", str(other / ".git" / "objects")),
+            ("GIT_ALTERNATE_OBJECT_DIRECTORIES", str(other / ".git" / "objects")),
+            ("GIT_INDEX_FILE", str(planted_index)),
+            ("GIT_COMMON_DIR", str(other / ".git")),
+        ]
+        trio = {
+            "GIT_CONFIG_COUNT": "1",
+            "GIT_CONFIG_KEY_0": "core.compression",
+            "GIT_CONFIG_VALUE_0": "bogus",
+        }
+
+        def _run_with(env_extra, use_exec_wrapper=False):
+            if planted_index.exists():
+                planted_index.unlink()
+            store = lane_cage.prepare_git_store(self.wt, self.cage)
+            self._commit_in_overlay(store)
+            self._private_pack(store)
+            before_lane, before_main = self._lane_and_main()
+            saved = {k: os.environ.get(k) for k in env_extra}
+            old_path = os.environ["PATH"]
+            bindir = None
+            if use_exec_wrapper:
+                bindir = self._git_path_wrapper(
+                    "#!/bin/sh\n"
+                    "if [ -n \"${GIT_EXEC_PATH:-}\" ]; then\n"
+                    "  echo \"inherited GIT_EXEC_PATH\" >&2\n"
+                    "  exit 99\n"
+                    "fi\n"
+                    "exec \"@@REAL@@\" \"$@\"\n"
+                )
+                os.environ["PATH"] = str(bindir) + os.pathsep + old_path
+            try:
+                os.environ.update(env_extra)
+                lane_cage.finalize_git_store(store)
+            finally:
+                os.environ["PATH"] = old_path
+                for k, prev in saved.items():
+                    if prev is None:
+                        os.environ.pop(k, None)
+                    else:
+                        os.environ[k] = prev
+            after_lane, after_main = self._lane_and_main()
+            self.assertEqual(after_main, before_main)
+            self.assertNotEqual(after_lane, before_lane)
+            self.assertTrue(git(self.wt, "cat-file", "-e", after_lane) == "")
+            self.assertEqual(git(other, "rev-parse", "HEAD").strip(), other_sha)
+            self.assertFalse(planted_index.exists(), "GIT_INDEX_FILE must not receive the host reset")
+            # The worktree is single-use after a successful finalize; callers
+            # must make a fresh one per case.
+
+        # Each var in its own subTest. GIT_EXEC_PATH is checked with a PATH
+        # wrapper because some git builds ignore an empty exec-path for builtins.
+        for name, value in cases:
+            with self.subTest(var=name):
+                # A successful finalize moves HEAD; use a fresh worktree.
+                self.tearDown()
+                self.setUp()
+                other = self.td / "other-repo"
+                other.mkdir()
+                git(other, "init", "-q", "-b", "main")
+                git(other, "config", "user.email", "t@example.com")
+                git(other, "config", "user.name", "T")
+                (other / "README").write_text("other\n", encoding="utf-8")
+                git(other, "add", "README")
+                git(other, "commit", "-qm", "other")
+                other_sha = git(other, "rev-parse", "HEAD").strip()
+                tmpl = self.td / "evil-template"
+                (tmpl / "hooks").mkdir(parents=True)
+                (tmpl / "config").write_text("[core]\n\tcompression = bogus\n", encoding="utf-8")
+                xdg = self.td / "evil-xdg"
+                (xdg / "git").mkdir(parents=True)
+                (xdg / "git" / "config").write_text("[core]\n\tcompression = bogus\n", encoding="utf-8")
+                planted_index = self.td / "planted.index"
+                exec_dir = self.td / "empty-git-exec"
+                exec_dir.mkdir()
+                values = {
+                    "GIT_CONFIG_PARAMETERS": "'core.compression=bogus'",
+                    "GIT_CONFIG_COUNT": "not-a-number",
+                    "GIT_TEMPLATE_DIR": str(tmpl),
+                    "XDG_CONFIG_HOME": str(xdg),
+                    "GIT_EXEC_PATH": str(exec_dir),
+                    "GIT_DIR": str(other / ".git"),
+                    "GIT_WORK_TREE": str(other),
+                    "GIT_OBJECT_DIRECTORY": str(other / ".git" / "objects"),
+                    "GIT_ALTERNATE_OBJECT_DIRECTORIES": str(other / ".git" / "objects"),
+                    "GIT_INDEX_FILE": str(planted_index),
+                    "GIT_COMMON_DIR": str(other / ".git"),
+                }
+                _run_with({name: values[name]}, use_exec_wrapper=(name == "GIT_EXEC_PATH"))
+
+        with self.subTest(var="GIT_CONFIG_COUNT/KEY/VALUE"):
+            self.tearDown()
+            self.setUp()
+            other = self.td / "other-repo"
+            other.mkdir()
+            git(other, "init", "-q", "-b", "main")
+            git(other, "config", "user.email", "t@example.com")
+            git(other, "config", "user.name", "T")
+            (other / "README").write_text("other\n", encoding="utf-8")
+            git(other, "add", "README")
+            git(other, "commit", "-qm", "other")
+            other_sha = git(other, "rev-parse", "HEAD").strip()
+            planted_index = self.td / "planted.index"
+            _run_with(trio)
+
+    def test_index_pack_is_invoked_with_the_size_cap(self):
+        """index-pack must get --max-input-size at the pack cap.
+
+        Fail: dropping the flag leaves only the lstat cap. Recover: a PATH
+        wrapper records the flag and still runs real git so a valid pack lands.
+        """
+        store = lane_cage.prepare_git_store(self.wt, self.cage)
+        self._commit_in_overlay(store)
+        pack = self._private_pack(store)
+        idx = pack.with_suffix(".idx")
+        cap = max(pack.stat().st_size, idx.stat().st_size, 64)
+        log = self.td / "index-pack.args"
+        bindir = self._git_path_wrapper(
+            "#!/bin/sh\n"
+            "real=\"@@REAL@@\"\n"
+            "for a in \"$@\"; do\n"
+            "  if [ \"$a\" = \"index-pack\" ]; then\n"
+            "    printf '%s\\n' \"$*\" > @@LOG@@\n"
+            "    break\n"
+            "  fi\n"
+            "done\n"
+            "exec \"$real\" \"$@\"\n"
+        )
+        (bindir / "git").write_text(
+            (bindir / "git").read_text(encoding="utf-8").replace("@@LOG@@", str(log)),
+            encoding="utf-8",
+        )
+        before_lane, before_main = self._lane_and_main()
+        prev = os.environ.get("PFY_CAGE_PACK_MAX_BYTES")
+        old_path = os.environ["PATH"]
+        os.environ["PATH"] = str(bindir) + os.pathsep + old_path
+        os.environ["PFY_CAGE_PACK_MAX_BYTES"] = str(cap)
+        try:
+            lane_cage.finalize_git_store(store)
+        finally:
+            os.environ["PATH"] = old_path
+            if prev is None:
+                os.environ.pop("PFY_CAGE_PACK_MAX_BYTES", None)
+            else:
+                os.environ["PFY_CAGE_PACK_MAX_BYTES"] = prev
+        after_lane, after_main = self._lane_and_main()
+        self.assertEqual(after_main, before_main)
+        self.assertNotEqual(after_lane, before_lane)
+        self.assertTrue(log.is_file(), "index-pack should have been invoked")
+        args = log.read_text(encoding="utf-8")
+        self.assertIn("--max-input-size=%s" % cap, args)
+
+    def test_non_numeric_and_zero_caps_fall_back_so_a_valid_pack_lands(self):
+        """Invalid PFY_CAGE_* size env values must not refuse a normal pack."""
+        for raw in ("nope", "0", "-5", ""):
+            with self.subTest(raw=raw):
+                self.tearDown()
+                self.setUp()
+                store = lane_cage.prepare_git_store(self.wt, self.cage)
+                self._commit_in_overlay(store)
+                self._private_pack(store)
+                before_lane, before_main = self._lane_and_main()
+                names = (
+                    "PFY_CAGE_PACK_MAX_BYTES",
+                    "PFY_CAGE_LOOSE_MAX_BYTES",
+                    "PFY_CAGE_LOOSE_MAX_INFLATE",
+                )
+                saved = {n: os.environ.get(n) for n in names}
+                try:
+                    for n in names:
+                        if raw == "":
+                            os.environ.pop(n, None)
+                        else:
+                            os.environ[n] = raw
+                    lane_cage.finalize_git_store(store)
+                finally:
+                    for n, prev in saved.items():
+                        if prev is None:
+                            os.environ.pop(n, None)
+                        else:
+                            os.environ[n] = prev
+                after_lane, after_main = self._lane_and_main()
+                self.assertEqual(after_main, before_main)
+                self.assertNotEqual(after_lane, before_lane)
+
     def test_lane_scripts_park_copy_back_apart_from_unavailable(self):
-        """rc=2 copy-back must not be parked as 'lane cage unavailable'."""
-        for rel in ("scripts/eval_lane.sh", "scripts/integrate_lane.sh"):
-            body = (ROOT / rel).read_text(encoding="utf-8")
-            self.assertIn("copy-back refused", body, rel)
-            self.assertIn("return 6", body, rel)
-            self.assertIn('park_exit "copy-back refused"', body, rel)
-            self.assertIn("lane cage unavailable", body, rel)
+        """Real lane scripts must map a copy-back refusal to parked 6.
 
-        def classify(rc, line):
-            log = self.td / "cage.log"
-            log.write_text(line + "\n", encoding="utf-8")
-            classify_sh = (
-                "rc=$1\n"
-                "log=$2\n"
-                "if [ \"$rc\" -eq 2 ] && grep -q '^lane-cage: copy-back refused' \"$log\"; then\n"
-                "  echo \"copy-back refused\"\n"
-                "  exit 6\n"
-                "fi\n"
-                "if [ \"$rc\" -eq 2 ] && grep -q '^lane-cage: ' \"$log\"; then\n"
-                "  echo \"lane cage unavailable\"\n"
-                "  exit 5\n"
-                "fi\n"
-                "echo other\n"
-                "exit \"$rc\"\n"
-            )
-            r = subprocess.run(
-                ["bash", "-c", classify_sh, "classify", str(rc), str(log)],
-                capture_output=True, text=True,
-            )
-            return r.returncode, r.stdout.strip()
+        Fail: build_lane.sh exits raw rc 2, or eval/integrate park the
+        refusal as 'lane cage unavailable'. Recover: a refused cage line
+        becomes exit 6 from build_lane and a 'copy-back refused' park from
+        eval and integrate; a generic cage rc 2 stays unavailable.
+        """
+        bindir = self.td / "py-stub"
+        self._python3_cage_stub(bindir)
+        prompt = self.td / "build-prompt.txt"
+        prompt.write_text("Follow the ticket.\n", encoding="utf-8")
+        log = self.td / "build-lane.log"
 
-        self.assertEqual(
-            classify(2, "lane-cage: copy-back refused: symlink in object store"),
-            (6, "copy-back refused"),
+        def run_build(stub: str) -> subprocess.CompletedProcess:
+            env = dict(os.environ)
+            env["PATH"] = str(bindir) + os.pathsep + env.get("PATH", "")
+            env["PFY_TEST_CAGE_STUB"] = stub
+            env["PYTHONDONTWRITEBYTECODE"] = "1"
+            return subprocess.run(
+                ["bash", str(ROOT / "scripts" / "build_lane.sh"),
+                 "--wt", str(self.wt), "--prompt", str(prompt), "--log", str(log)],
+                capture_output=True, text=True, env=env, timeout=30,
+            )
+
+        refused = run_build("refused")
+        self.assertEqual(refused.returncode, 6, refused.stdout + refused.stderr)
+        self.assertIn("lane-cage: copy-back refused:", log.read_text(encoding="utf-8"))
+        unavailable = run_build("unavailable")
+        self.assertEqual(unavailable.returncode, 2, unavailable.stdout + unavailable.stderr)
+        self.assertNotEqual(unavailable.returncode, 6)
+
+        from tests.test_eval_lane import (
+            make_fixture as eval_fixture,
+            card as eval_card,
+            lane_env as eval_env,
+            write_grok as eval_grok,
+            SCRIPT as EVAL_SCRIPT,
         )
-        self.assertEqual(
-            classify(2, "lane-cage: lane cage unavailable: podman not found (no unconfined fallback)"),
-            (5, "lane cage unavailable"),
+        from tests.test_integrate_lane_land import (
+            make_fixture as integ_fixture,
+            SCRIPT as INTEG_SCRIPT,
         )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            td = Path(tmp)
+            clone, _bare = eval_fixture(td, {"widget": eval_card("widget")})
+            grok = td / "bin" / "grok"
+            eval_grok(grok, "#!/bin/sh\nexit 0\n")
+            py = self._python3_cage_stub(td / "py-stub")
+            env = eval_env(td, grok, approve=True)
+            env["PATH"] = str(py.parent) + os.pathsep + env.get("PATH", "")
+            env["PFY_TEST_CAGE_STUB"] = "refused"
+            env["XAI_API_KEY"] = "dummy-not-a-key"
+            state = td / "evalstate"
+            proc = subprocess.run(
+                ["bash", str(EVAL_SCRIPT), "--root", str(clone), "--state", str(state),
+                 "--slug", "widget", "--date", "1108"],
+                cwd=clone, env=env, capture_output=True, text=True, timeout=60,
+            )
+            self.assertNotEqual(proc.returncode, 0, proc.stderr + proc.stdout)
+            parked = state / "widget.parked"
+            self.assertTrue(parked.is_file(), proc.stderr + proc.stdout)
+            self.assertIn("copy-back refused", parked.read_text(encoding="utf-8"))
+            self.assertNotIn("unavailable", parked.read_text(encoding="utf-8").lower())
+
+            env["PFY_TEST_CAGE_STUB"] = "unavailable"
+            state2 = td / "evalstate2"
+            proc2 = subprocess.run(
+                ["bash", str(EVAL_SCRIPT), "--root", str(clone), "--state", str(state2),
+                 "--slug", "widget", "--date", "1109"],
+                cwd=clone, env=env, capture_output=True, text=True, timeout=60,
+            )
+            self.assertNotEqual(proc2.returncode, 0, proc2.stderr + proc2.stdout)
+            parked2 = state2 / "widget.parked"
+            self.assertTrue(parked2.is_file(), proc2.stderr + proc2.stdout)
+            reason2 = parked2.read_text(encoding="utf-8")
+            self.assertIn("lane cage unavailable", reason2)
+            self.assertNotIn("copy-back refused", reason2)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            td = Path(tmp)
+            clone, _bare = integ_fixture(td)
+            py = self._python3_cage_stub(td / "py-stub")
+            env = {k: v for k, v in os.environ.items() if k != "PFY_OPS_ROOT"}
+            env["PATH"] = str(py.parent) + os.pathsep + env.get("PATH", "")
+            env["PFY_MODEL_LOCK"] = str(td / "model.lock")
+            env["PFY_CLOUD_YES"] = "1"
+            env["PFY_CLOUD_MAX_USD"] = "99"
+            env["PFY_TEST_CAGE_STUB"] = "refused"
+            env["XAI_API_KEY"] = "dummy-not-a-key"
+            (clone / "tmp").mkdir()
+            (clone / "tmp" / "TICKET-goodtool.md").write_text("goodtool ticket\n")
+            proc = subprocess.run(
+                ["bash", str(INTEG_SCRIPT), "--root", str(clone), "--slug", "goodtool",
+                 "--date", "1108"],
+                cwd=clone, env=env, capture_output=True, text=True, timeout=60,
+            )
+            self.assertNotEqual(proc.returncode, 0, proc.stderr + proc.stdout)
+            parked = clone / "tmp" / "integrate" / "goodtool.parked"
+            self.assertTrue(parked.is_file(), proc.stderr + proc.stdout)
+            self.assertIn("copy-back refused", parked.read_text(encoding="utf-8"))
+            self.assertNotIn("unavailable", parked.read_text(encoding="utf-8").lower())
+
+            env["PFY_TEST_CAGE_STUB"] = "unavailable"
+            (clone / "tmp" / "TICKET-badtool.md").write_text("badtool ticket\n")
+            proc2 = subprocess.run(
+                ["bash", str(INTEG_SCRIPT), "--root", str(clone), "--slug", "badtool",
+                 "--date", "1109"],
+                cwd=clone, env=env, capture_output=True, text=True, timeout=60,
+            )
+            self.assertNotEqual(proc2.returncode, 0, proc2.stderr + proc2.stdout)
+            parked2 = clone / "tmp" / "integrate" / "badtool.parked"
+            self.assertTrue(parked2.is_file(), proc2.stderr + proc2.stdout)
+            reason2 = parked2.read_text(encoding="utf-8")
+            self.assertIn("lane cage unavailable", reason2)
+            self.assertNotIn("copy-back refused", reason2)
 
 
 @unittest.skipUnless(_real_cage_ready(), "rootless podman and localhost/pfy-test:3.12 needed (make test-image)")
