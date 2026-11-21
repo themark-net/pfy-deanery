@@ -466,6 +466,40 @@ class LaneGitEnvTest(unittest.TestCase):
         reads = _bash_read_commands(text, script_name)
         self.assertEqual(reads, [], "driver worktree check used the caller git: %s" % reads)
 
+    def test_lane_git_alone_ignores_caller_git_env(self):
+        """lane_git is its own layer, even without lane_git_scrub_env.
+
+        Fail: a driver that forgets the scrub reads a caller GIT_DIR /
+        GIT_WORK_TREE repo, or git writes a planted trace file. Recover: the
+        same call reports the real worktree head.
+        """
+        repo = self.td / "wt"
+        sha = _init_repo(repo)
+        other = self.td / "other"
+        _init_repo(other)
+        (other / "README").write_text("other\n", encoding="utf-8")
+        _git(other, "commit", "-qam", "other")
+        other_sha = _git(other, "rev-parse", "HEAD").strip()
+        self.assertNotEqual(sha, other_sha)
+        trace = self.td / "lane-git-trace"
+        env = os.environ.copy()
+        env.update({
+            "GIT_DIR": str(other / ".git"),
+            "GIT_WORK_TREE": str(other),
+            "GIT_TRACE": str(trace),
+            "GIT_CONFIG_COUNT": "1",
+            "GIT_CONFIG_KEY_0": "core.hooksPath",
+            "GIT_CONFIG_VALUE_0": str(self.td / "hooks"),
+        })
+        helper = ROOT / "scripts" / "lane_git_env.sh"
+        proc = subprocess.run(
+            ["bash", "-c", '. "$1"; lane_git -C "$2" rev-parse HEAD', "x", str(helper), str(repo)],
+            capture_output=True, text=True, env=env, timeout=30,
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(proc.stdout.strip(), sha)
+        self.assertFalse(trace.exists(), "planted GIT_TRACE reached lane_git")
+
     def test_build_lane_checks_ignore_planted_git_env(self):
         """build_lane.sh must check the real worktree, not the caller git env.
 
