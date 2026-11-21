@@ -1,4 +1,5 @@
 import os
+import signal
 import subprocess
 import tempfile
 import time
@@ -45,6 +46,9 @@ class BusyLockTest(unittest.TestCase):
                 ["flock", "-n", str(lock), "sleep", "60"],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
+                # flock forks the command; kill the whole group afterwards
+                # so the held sleep does not outlive the test.
+                start_new_session=True,
             )
             try:
                 time.sleep(0.3)
@@ -66,5 +70,8 @@ class BusyLockTest(unittest.TestCase):
                 self.assertFalse(marker.exists())
                 self.assertIn("lock", (r.stdout + r.stderr).lower())
             finally:
-                holder.kill()
+                try:
+                    os.killpg(holder.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
                 holder.wait(timeout=5)
