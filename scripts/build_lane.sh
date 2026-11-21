@@ -9,6 +9,9 @@
 # The prompt gets the fixed data-not-instructions preamble prepended.
 set -euo pipefail
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+# shellcheck source=lane_git_env.sh
+. "$SCRIPT_DIR/lane_git_env.sh"
+lane_git_scrub_env
 WT="" PROMPT="" LOG="/dev/stderr" TURNS=250 TIMEOUT=7200
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -21,7 +24,7 @@ while [ $# -gt 0 ]; do
   esac
 done
 [ -d "$WT" ] && [ -f "$PROMPT" ] || { echo "usage: build_lane.sh --wt DIR --prompt FILE" >&2; exit 2; }
-git -C "$WT" rev-parse --is-inside-work-tree >/dev/null 2>&1 || { echo "refusing: $WT is not a git worktree" >&2; exit 2; }
+lane_git -C "$WT" rev-parse --is-inside-work-tree >/dev/null 2>&1 || { echo "refusing: $WT is not a git worktree" >&2; exit 2; }
 full=$(mktemp "${TMPDIR:-/tmp}/build-lane-prompt.XXXXXX")
 cage_log=$(mktemp "${TMPDIR:-/tmp}/build-lane-cage.XXXXXX")
 trap 'rm -f "$full" "$cage_log"' EXIT

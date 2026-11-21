@@ -8,6 +8,7 @@ docs/ops/CBM-SHADOW-1107.md
 docs/ops/DEPLOY.md
 docs/ops/GRILL-STEP.md
 docs/ops/INTEGRATE.md
+docs/ops/LANE-CAGE.md
 docs/ops/MODULAR-CI.md
 docs/ops/PREGATE.md
 docs/ops/VERDICT.schema.json

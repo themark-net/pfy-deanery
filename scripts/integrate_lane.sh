@@ -22,6 +22,9 @@
 set -euo pipefail
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+# shellcheck source=lane_git_env.sh
+. "$SCRIPT_DIR/lane_git_env.sh"
+lane_git_scrub_env
 DEFAULT_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 GATE_CLOUD_ROOT="${GATE_CLOUD_ROOT:-$DEFAULT_ROOT}"
 # shellcheck source=gate_cloud_call.sh
@@ -253,7 +256,7 @@ skill_reads=""
 for skill_name in catalog-intake-dedupe catalog-eval-lane catalog-integrate-lane catalog-apply-and-ceiling catalog-loop-operator; do
   skill_rel="bootstrap/grok-cli/skills/${skill_name}/SKILL.md"
   if [ -f "$WT/$skill_rel" ]; then
-    skill_sha=$(git -C "$WT" hash-object "$skill_rel")
+    skill_sha=$(lane_git -C "$WT" hash-object "$skill_rel")
   else
     skill_sha="missing"
   fi
@@ -374,7 +377,7 @@ if [ -f "$ROOT/tmp/STOP" ] || [ -f "$WT/tmp/STOP" ]; then
   park_exit "STOP file" 0
 fi
 
-if [ -n "$(git -C "$WT" status --porcelain)" ]; then
+if [ -n "$(lane_git -C "$WT" status --porcelain)" ]; then
   park_exit "dirty worktree after grok"
 fi
 
@@ -407,7 +410,7 @@ progress "$SLUG ops $(tail -n 1 "$MARK_DIR/${SLUG}.ops" 2>/dev/null)"
 
 sanity() {
   local rel suffix changed
-  changed=$(run_checked git -C "$WT" diff --name-only --diff-filter=ACMR origin/main...HEAD) || return 1
+  changed=$(lane_git_checked -C "$WT" diff --name-only --diff-filter=ACMR origin/main...HEAD) || return 1
   while IFS= read -r rel; do
     [ -n "$rel" ] || continue
     [ -f "$WT/$rel" ] || continue
@@ -472,7 +475,7 @@ progress "$SLUG sanity ok"
 sel="$MARK_DIR/${SLUG}-select.json"
 # Three-dot, not `git diff origin/main HEAD`. A lane that is behind main
 # must not select files that only changed on main (that forces mode full).
-if ! select_list=$(run_checked git -C "$WT" diff --name-only --diff-filter=ACMR origin/main...HEAD); then
+if ! select_list=$(lane_git_checked -C "$WT" diff --name-only --diff-filter=ACMR origin/main...HEAD); then
   park_exit "test_select failed"
 fi
 select_paths=()
@@ -504,13 +507,13 @@ fi
 
 land() {
   local sha attempt
-  sha=$(run_checked git -C "$WT" rev-parse HEAD)
+  sha=$(lane_git_checked -C "$WT" rev-parse HEAD)
   attempt=1
   while [ "$attempt" -le 3 ]; do
     run_checked git -C "$ROOT" fetch origin >&2 || return 1
     # Re-check the allowlist on the exact commit that would land.
     path_guard || return 1
-    if run_checked git -C "$ROOT" merge-base --is-ancestor origin/main "$sha"; then
+    if lane_git_checked -C "$ROOT" merge-base --is-ancestor origin/main "$sha"; then
       if run_checked git -C "$ROOT" push origin "${sha}:refs/heads/main" >&2; then
         printf '%s\n' "$sha"
         return 0
@@ -521,7 +524,7 @@ land() {
       run_checked git -C "$WT" rebase --abort >&2 || true
       return 1
     fi
-    sha=$(run_checked git -C "$WT" rev-parse HEAD)
+    sha=$(lane_git_checked -C "$WT" rev-parse HEAD)
     attempt=$((attempt + 1))
   done
   return 1

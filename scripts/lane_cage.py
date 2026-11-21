@@ -108,7 +108,35 @@ ENV_LOOSE_MAX_BYTES = "PFY_CAGE_LOOSE_MAX_BYTES"
 ENV_LOOSE_MAX_INFLATE = "PFY_CAGE_LOOSE_MAX_INFLATE"
 ENV_PACK_GIT_TIMEOUT = "PFY_CAGE_PACK_GIT_TIMEOUT_SECS"
 # Fixed PATH for host and pack git. Caller PATH is never inherited.
+# The git binary is resolved once from this path and invoked by absolute
+# path. There is no environment override. The cache key is the path string,
+# so a test that patches the constant resolves again on the next call.
 _SAFE_GIT_PATH = "/usr/bin:/bin:/usr/local/bin:/opt/homebrew/bin"
+_git_bin_cache: tuple[str, str] | None = None
+
+
+def _reset_git_bin_cache() -> None:
+    global _git_bin_cache
+    _git_bin_cache = None
+
+
+def _git_bin() -> str:
+    """Return the absolute git binary from _SAFE_GIT_PATH."""
+    global _git_bin_cache
+    if _git_bin_cache is None or _git_bin_cache[0] != _SAFE_GIT_PATH:
+        found = shutil.which("git", path=_SAFE_GIT_PATH)
+        if not found:
+            raise GitStoreError("git cannot be executed")
+        _git_bin_cache = (_SAFE_GIT_PATH, found)
+    return _git_bin_cache[1]
+
+
+def _run_git(cmd: list[str], **kwargs) -> subprocess.CompletedProcess:
+    """Run an absolute git. A missing binary is a copy-back refusal."""
+    try:
+        return subprocess.run(cmd, **kwargs)
+    except OSError as exc:
+        raise GitStoreError("git cannot be executed") from exc
 
 
 def _safe_git_env(*, home: str, extra: dict | None = None) -> dict:
@@ -145,22 +173,25 @@ def _host_git(args: list[str], **kwargs) -> subprocess.CompletedProcess:
     kwargs.setdefault("text", True)
     with _host_git_env() as env:
         kwargs.setdefault("cwd", env["HOME"])
-        return subprocess.run(["git", *args], env=env, **kwargs)
+        return _run_git([_git_bin(), *args], env=env, **kwargs)
 
 
 def _run_timed_pack_git(
     cmd: list[str], *, env: dict, cwd: str, timeout: int,
 ) -> subprocess.CompletedProcess:
     """Run a pack-git command and kill the whole process group on timeout."""
-    proc = subprocess.Popen(
-        cmd,
-        env=env,
-        cwd=cwd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        start_new_session=True,
-    )
+    try:
+        proc = subprocess.Popen(
+            cmd,
+            env=env,
+            cwd=cwd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            start_new_session=True,
+        )
+    except OSError as exc:
+        raise GitStoreError("git cannot be executed") from exc
     try:
         stdout, stderr = proc.communicate(timeout=timeout)
     except subprocess.TimeoutExpired as exc:
@@ -345,8 +376,12 @@ def git_paths(wt: Path) -> tuple[Path | None, Path | None]:
     try:
         out = _host_git(["-C", str(wt), "rev-parse", "--path-format=absolute",
                          "--git-common-dir", "--git-dir"], check=True).stdout
-    except (OSError, subprocess.CalledProcessError):
+    except GitStoreError:
+        raise
+    except subprocess.CalledProcessError:
         return None, None
+    except OSError as exc:
+        raise GitStoreError("git cannot be executed") from exc
     lines = out.split()
     if len(lines) < 2:
         return None, None
@@ -548,12 +583,13 @@ def _safe_pack_git(git_args: list[str], object_format: str, inputs: list[Path]) 
         raise GitStoreError(f"unsupported object format: {object_format}")
     if not inputs:
         raise GitStoreError("pack verify is missing pack inputs")
+    git_bin = _git_bin()
     home = tempfile.mkdtemp(prefix="pfy-pack-home-")
     scratch = Path(home) / "repo.git"
     isolated = Path(home) / "inputs"
     env = _safe_git_env(home=home)
     pinned = [
-        "git",
+        git_bin,
         "-c", "advice.defaultBranchName=false",
         "-c", "init.defaultBranch=main",
         "-c", "core.hooksPath=/dev/null",
@@ -737,7 +773,7 @@ def _safe_git(store: GitStore, git_args: list[str], **kwargs):
     and the overlay config is not read.
     """
     cmd = [
-        "git",
+        _git_bin(),
         "-c", "core.fsmonitor=false",
         "-c", "core.hooksPath=/dev/null",
         "--git-dir", str(_query_git_dir(store)),
@@ -747,7 +783,7 @@ def _safe_git(store: GitStore, git_args: list[str], **kwargs):
         "GIT_OBJECT_DIRECTORY": str(store.objects),
         "GIT_ALTERNATE_OBJECT_DIRECTORIES": str(store.common / "objects"),
     }) as env:
-        return subprocess.run(cmd, env=env, **kwargs)
+        return _run_git(cmd, env=env, **kwargs)
 
 
 def _safe_host_git(store: GitStore, git_args: list[str], **kwargs):
@@ -759,14 +795,14 @@ def _safe_host_git(store: GitStore, git_args: list[str], **kwargs):
     rebuild.
     """
     cmd = [
-        "git",
+        _git_bin(),
         "-c", "core.fsmonitor=false",
         "-c", "core.hooksPath=/dev/null",
         "-C", str(store.wt),
         *git_args,
     ]
     with _host_git_env() as env:
-        return subprocess.run(cmd, env=env, **kwargs)
+        return _run_git(cmd, env=env, **kwargs)
 
 
 def _raw_object(store: GitStore, sha: str) -> bytes:
@@ -1056,6 +1092,18 @@ def grok_args(kind: str, grok: str, wt: Path, prompt: Path, max_turns: int) -> l
 
 def base_run(podman: str, image: str, wt: Path, cage: Path, network: str,
              store: GitStore | None = None) -> list[str]:
+    # Rootless podman with --userns=keep-id. Processes run as the invoking
+    # operator's uid and gid, mapped into a user namespace, with every
+    # capability dropped and no-new-privileges set. The network is limited
+    # to the egress proxy socket. HOME is a throwaway directory created for
+    # this run. The process is not root on the host and has no access to the
+    # operator's real HOME, ssh directory, or global gitconfig.
+    # Commit identity comes only from repo-local user.name and user.email,
+    # read through the host git helper (global and system config are ignored).
+    # When those keys are unset the fallback is "Deanery lane" / lane@localhost.
+    # keep-id keeps file ownership on the bind-mounted worktree correct
+    # without granting root. Pinning identity to repo-local config means a
+    # lane commit never carries an identity the repository did not opt into.
     home = cage / "home"
     argv = [podman, "run", "--rm", "--pull=never", f"--network={network}", "--userns=keep-id",
             "--cap-drop=all", "--security-opt=no-new-privileges", "--pids-limit=2048", "--memory=16g",

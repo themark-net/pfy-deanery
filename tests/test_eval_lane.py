@@ -197,6 +197,8 @@ class EvalLaneTest(unittest.TestCase):
             script = script_dir / "eval_lane.sh"
             shutil.copy2(SCRIPT, script)
             script.chmod(script.stat().st_mode | stat.S_IEXEC)
+            helper = script_dir / "lane_git_env.sh"
+            shutil.copy2(ROOT / "scripts" / "lane_git_env.sh", helper)
             self.assertFalse((script_dir / "integrations" / "dcg" / "guard.sh").exists())
             log = td / "git.log"
             bindir = td / "bin"

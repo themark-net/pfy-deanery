@@ -291,7 +291,7 @@ class I2BeforeMarkerTest(unittest.TestCase):
             td = Path(raw)
             scripts = td / "driver" / "scripts"
             scripts.mkdir(parents=True)
-            for name in ("integrate_lane.sh", "catalog_eval_queue.py"):
+            for name in ("integrate_lane.sh", "catalog_eval_queue.py", "lane_git_env.sh"):
                 dest = scripts / name
                 shutil.copy2(ROOT / "scripts" / name, dest)
                 dest.chmod(dest.stat().st_mode | stat.S_IEXEC)

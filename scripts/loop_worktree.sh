@@ -13,6 +13,11 @@ set -euo pipefail
 
 export GIT_TERMINAL_PROMPT=0
 
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+# shellcheck source=lane_git_env.sh
+. "$SCRIPT_DIR/lane_git_env.sh"
+lane_git_scrub_env
+
 WT="${PFY_LOOP_WT:-$PFY_TMP/loop/wt}"
 REPO="${PFY_LOOP_REPO:-$PFY_ROOT}"
 # PFY_LOOP_REF pins the loop to a reviewed commit instead of origin/main.
@@ -69,10 +74,10 @@ fi
 
 is_our_worktree() {
   local top common repo_common
-  top=$(git -C "$WT_ABS" rev-parse --path-format=absolute --show-toplevel 2>/dev/null) || return 1
+  top=$(lane_git -C "$WT_ABS" rev-parse --path-format=absolute --show-toplevel 2>/dev/null) || return 1
   [[ "$top" == "$WT_ABS" ]] || return 1
-  common=$(git -C "$WT_ABS" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || return 1
-  repo_common=$(git -C "$REPO_ABS" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || return 1
+  common=$(lane_git -C "$WT_ABS" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || return 1
+  repo_common=$(lane_git -C "$REPO_ABS" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || return 1
   [[ "$common" == "$repo_common" ]]
 }
 

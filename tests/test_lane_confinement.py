@@ -752,22 +752,28 @@ class GitStoreIsolationTest(unittest.TestCase):
         self.assertFalse(marker.exists(), "overlay hook or fsmonitor must not run")
 
     def test_prepare_fails_closed_when_git_paths_fail(self):
-        empty = self.td / "not-a-repo"
-        empty.mkdir()
-        with self.assertRaises(self._err()):
-            lane_cage.prepare_git_store(empty, self.cage / "no-git")
-        cages = self.td / "cages-prep"
-        prev = os.environ.get("PFY_LANE_CAGE_DIR")
-        os.environ["PFY_LANE_CAGE_DIR"] = str(cages)
+        # The process TMPDIR sits inside this checkout. A plain directory
+        # there is discovered as this repo, so the fixture lives outside it.
+        outside = Path(tempfile.mkdtemp(prefix="pfyb11-notrepo-", dir="/var/tmp"))
         try:
-            ns = types.SimpleNamespace(wt=str(empty), ro=[], cmd=["--", "true"],
-                                       print=False, timeout=30)
-            self.assertEqual(lane_cage.cmd_exec(ns), 2)
+            empty = outside / "not-a-repo"
+            empty.mkdir()
+            with self.assertRaises(self._err()):
+                lane_cage.prepare_git_store(empty, self.cage / "no-git")
+            cages = self.td / "cages-prep"
+            prev = os.environ.get("PFY_LANE_CAGE_DIR")
+            os.environ["PFY_LANE_CAGE_DIR"] = str(cages)
+            try:
+                ns = types.SimpleNamespace(wt=str(empty), ro=[], cmd=["--", "true"],
+                                           print=False, timeout=30)
+                self.assertEqual(lane_cage.cmd_exec(ns), 2)
+            finally:
+                if prev is None:
+                    os.environ.pop("PFY_LANE_CAGE_DIR", None)
+                else:
+                    os.environ["PFY_LANE_CAGE_DIR"] = prev
         finally:
-            if prev is None:
-                os.environ.pop("PFY_LANE_CAGE_DIR", None)
-            else:
-                os.environ["PFY_LANE_CAGE_DIR"] = prev
+            shutil.rmtree(outside, ignore_errors=True)
 
     def test_copy_back_error_sets_a_nonzero_cage_exit(self):
         secret = self._secret_file("fake-exit-secret.txt")
