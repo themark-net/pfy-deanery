@@ -16,6 +16,8 @@
 # so the check has to see git even though the read itself is lane_git.
 
 LANE_GIT_SAFE_PATH="/usr/bin:/bin:/usr/local/bin:/opt/homebrew/bin"
+# The resolver cache starts empty; a value from the caller env is never used.
+unset _LANE_GIT_BIN _LANE_GIT_BIN_KEY
 
 _lane_git_bin() {
   if [ "${_LANE_GIT_BIN_KEY-}" = "$LANE_GIT_SAFE_PATH" ] && [ -n "${_LANE_GIT_BIN-}" ] && [ -x "${_LANE_GIT_BIN}" ]; then

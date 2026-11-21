@@ -504,6 +504,9 @@ class LaneGitEnvTest(unittest.TestCase):
         control = run(clean)
         planted = _plant_env(clean, self.td, other, home, trace)
         planted["PATH"] = str(bindir) + os.pathsep + str(grok.parent) + os.pathsep + os.environ.get("PATH", "")
+        # A preset resolver cache must not pick the binary.
+        planted["_LANE_GIT_BIN"] = str(bindir / "git")
+        planted["_LANE_GIT_BIN_KEY"] = "/usr/bin:/bin:/usr/local/bin:/opt/homebrew/bin"
         poisoned = run(planted)
         self.assertEqual(control.returncode, 0, control.stderr + control.stdout)
         self.assertEqual(poisoned.returncode, control.returncode, poisoned.stderr + poisoned.stdout)
