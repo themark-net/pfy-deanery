@@ -1,0 +1,30 @@
+{
+  "name": "Qwen3.8-27B OpenCode LoRA",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/206-qwen3.8-27b-opencode-lora.md",
+  "github": "https://huggingface.co/harness-hub/Qwen3.8-27B-opencode-adapted-GGUF",
+  "pin": "53ffbb1c789b1129eaed809c4be89f0bdd5ed0a8",
+  "license": "Apache-2.0",
+  "uses": "RL-trained LoRA adapter (F16 GGUF) that tunes Qwen3.8-27B for the OpenCode harness, reported to raise SWE-bench Pro and Terminal-Bench scores with fewer turns and tokens per task.",
+  "features": [
+    "LoRA adapter on Qwen3.8-27B",
+    "trained inside OpenCode",
+    "thinking-off operation",
+    "llama.cpp --lora serving"
+  ],
+  "potential": "high",
+  "next_gate": "Eval-auto trial in the OpenCode lane against qwen3.6:35b on the same small task set, Q8_0 base, thinking off, downloads and config under $PFY_TMP. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys"
+  ],
+  "evidence": [
+    "entry:sources/entries/206-qwen3.8-27b-opencode-lora.md",
+    "pin:53ffbb1c789b1129eaed809c4be89f0bdd5ed0a8"
+  ],
+  "handoff_by": "llm"
+}

@@ -347,3 +347,8 @@ Agent of Empires and CompozyOS. Each reads the pinned GitHub commit JSON through
 Entries 203-205 (`smoke_203.py`, `smoke_204.py`, `smoke_205.py`) are commit-metadata receipts for LoopForge,
 agent-custody and vibecosystem. Each reads the pinned GitHub commit JSON through `$LOOPFORGE_FETCH_BIN` / `$AGENT_CUSTODY_FETCH_BIN` /
 `$VIBECOSYSTEM_FETCH_BIN` or a stdlib fetch, checks the SHA, and exits 2 without installing anything. `PFY_XINTAKE_TIMEOUT` overrides the timeout.
+
+Entries 206-207 (`smoke_206.py`, `smoke_207.py`) are metadata receipts for the Qwen3.8-27B OpenCode LoRA adapter
+and llamafile. 206 reads the pinned Hugging Face revision through `$QWEN38_OPENCODE_FETCH_BIN` or a stdlib fetch of the
+models API; 207 reads the pinned GitHub commit through `$LLAMAFILE_FETCH_BIN` or a stdlib fetch. Each checks the SHA and
+exits 2 without downloading or installing anything. `PFY_XINTAKE_TIMEOUT` overrides the timeout.

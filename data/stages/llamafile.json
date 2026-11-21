@@ -1,0 +1,30 @@
+{
+  "name": "llamafile",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/207-llamafile.md",
+  "github": "https://github.com/mozilla-ai/llamafile",
+  "pin": "334e66444a96d5429fd2d667301bd067029b1eb5",
+  "license": "Apache-2.0",
+  "uses": "Single-file local LLM runner that packages a model and its llama.cpp runtime into one executable, with a decision-model endpoint in recent commits.",
+  "features": [
+    "single executable per model",
+    "llama.cpp based",
+    "no daemon",
+    "decision-model endpoint /v1/systemone"
+  ],
+  "potential": "medium",
+  "next_gate": "Trial one pinned GGUF under $PFY_TMP against the same model in Ollama for tokens per second and GPU backend; read the decision-model endpoint against the local decision layer. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys"
+  ],
+  "evidence": [
+    "entry:sources/entries/207-llamafile.md",
+    "pin:334e66444a96d5429fd2d667301bd067029b1eb5"
+  ],
+  "handoff_by": "llm"
+}
