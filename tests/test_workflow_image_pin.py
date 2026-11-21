@@ -81,6 +81,9 @@ def run_pregate_lint(limit: int, timeout: int) -> subprocess.CompletedProcess[st
     env = os.environ.copy()
     env["TMPDIR"] = str(SCRATCH)
     env["PREGATE_MAX_ROOT_LEN"] = str(limit)
+    # in_place_root_limit() measures the default state root; an inherited
+    # PREGATE_STATE_ROOT (set by an operator running pregate) moves scratch.
+    env.pop("PREGATE_STATE_ROOT", None)
     return subprocess.run(
         ["nice", "-n", "19", "scripts/pregate.sh", "--in-place", "--allow-dirty", "--base", "HEAD", "--only", "lint"],
         cwd=ROOT,

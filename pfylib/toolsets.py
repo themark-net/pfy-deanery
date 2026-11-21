@@ -636,6 +636,14 @@ def _apply_legacy(f: dict, root_dir: Path | None, state: Path | None) -> str:
     return "FAIL: unknown legacy applier %s" % (via or "(none)")
 
 
+def _clip_error(e: BaseException, limit: int = 160) -> str:
+    """Cap error text but keep its end, where an OS error names the file."""
+    text = str(e)
+    if len(text) <= limit:
+        return text
+    return "..." + text[-(limit - 3):]
+
+
 def apply(p: dict, *, yes: bool = False, state: Path | None = None, root_dir: Path | None = None) -> dict:
     """Write a plan's files. Without ``yes`` returns the plan marked dry_run."""
     out = dict(p)
@@ -675,7 +683,7 @@ def apply(p: dict, *, yes: bool = False, state: Path | None = None, root_dir: Pa
             else:
                 res = "FAIL: unknown mode %s" % mode
         except OSError as e:
-            res = "FAIL: %s" % str(e)[:160]
+            res = "FAIL: %s" % _clip_error(e)
         (failed if res.startswith("FAIL") else applied).append({"path": str(path), "result": res})
     out["applied"] = applied
     out["failed"] = failed
@@ -684,7 +692,7 @@ def apply(p: dict, *, yes: bool = False, state: Path | None = None, root_dir: Pa
         try:
             out["ledger"] = str(ledger.record_apply(state, harness=hid, item=tid, applied=applied))
         except (OSError, json.JSONDecodeError) as e:
-            failed.append({"path": str(ledger.path_for(state)), "result": "FAIL: %s" % str(e)[:160]})
+            failed.append({"path": str(ledger.path_for(state)), "result": "FAIL: %s" % _clip_error(e)})
             out["failed"] = failed
     if failed:
         out["ok"] = False

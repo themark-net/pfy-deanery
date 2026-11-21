@@ -18,6 +18,7 @@ import shutil
 import socket
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 import unittest
@@ -409,6 +410,14 @@ class BoardEndToEndTests(unittest.TestCase):
         self.assertTrue(any(step["kind"] == "LLM" for step in cli["steps"]))
 
 
+def _short_socket_base() -> str | None:
+    """A writable temp base short enough for a unix socket path."""
+    for cand in (os.environ.get("XDG_RUNTIME_DIR"), tempfile.gettempdir(), "/tmp"):
+        if cand and len(cand) <= 40 and os.path.isdir(cand) and os.access(cand, os.W_OK):
+            return cand
+    return None
+
+
 class FrontendRenderTests(unittest.TestCase):
     def test_headless_chrome_paints_nodes_edges_and_tabs(self):
         chrome = CHROME if Path(CHROME).is_file() else shutil.which("google-chrome")
@@ -463,11 +472,17 @@ class FrontendRenderTests(unittest.TestCase):
         thread = threading.Thread(target=httpd.serve_forever, daemon=True)
         thread.start()
         url = f"http://127.0.0.1:{httpd.server_address[1]}/harness.html"
+        # Chrome puts its singleton socket under TMPDIR and the profile dir.
+        # A long TMPDIR (pregate scratch) overflows the 108-byte AF_UNIX
+        # sun_path, so give Chrome a short private dir.
+        short = tempfile.mkdtemp(prefix="lg-", dir=_short_socket_base())
+        chrome_env = dict(os.environ, TMPDIR=short)
         try:
             proc = subprocess.run(
                 [
                     chrome,
                     "--headless=new",
+                    f"--user-data-dir={short}/profile",
                     "--disable-gpu",
                     "--no-sandbox",
                     "--virtual-time-budget=8000",
@@ -477,10 +492,12 @@ class FrontendRenderTests(unittest.TestCase):
                 capture_output=True,
                 text=True,
                 timeout=60,
+                env=chrome_env,
             )
         finally:
             httpd.shutdown()
             httpd.server_close()
+            shutil.rmtree(short, ignore_errors=True)
         self.assertEqual(proc.returncode, 0, proc.stderr[-500:])
         dom = proc.stdout
         start = dom.find('<pre id="lane-graph-summary">')

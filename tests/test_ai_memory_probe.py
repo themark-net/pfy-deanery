@@ -227,6 +227,8 @@ class AiMemoryProbeTests(unittest.TestCase):
                 "PATH": os.environ.get("PATH", "/usr/bin:/bin"),
                 "LANG": "C.UTF-8",
                 "AIM_MODE": mode,
+                # The probe allows work dirs under the caller's temp dir.
+                "TMPDIR": tempfile.gettempdir(),
             },
             text=True,
             capture_output=True,

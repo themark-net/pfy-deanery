@@ -155,6 +155,8 @@ class SquadraProbeTest(unittest.TestCase):
                 "HOME": str(folder / "home"),
                 "LANG": "C.UTF-8",
                 "PYTHONDONTWRITEBYTECODE": "1",
+                # The probe allows work dirs under the caller's temp dir.
+                "TMPDIR": tempfile.gettempdir(),
             },
         )
 
