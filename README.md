@@ -2,6 +2,8 @@ PFY Deanery finds, evaluates, and runs AI agent tools. It promotes only what pas
 
 # pfy-deanery (Deanery)
 
+> **Status: active** (Nov 2026). Active development.
+
 **pfy-deanery (Deanery) - Your PFY. It gets sent out, finds the tools, applies the standards, and reports back with receipts.**
 
 pfy-deanery is both a high-standard catalog of local LLM development tools *and* an orientation toward building the software that actually deploys and runs them reliably.
