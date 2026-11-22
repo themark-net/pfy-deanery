@@ -60,7 +60,7 @@ Also use as needed: `CATEGORIZATION.md`, `SUBTREES.md`, `TOOLS.md`, `bootstrap/g
 #   python3 bootstrap/setup-local-agent-env.py
 ```
 
-Portable skills (SoT `bootstrap/grok-cli/skills/` - also for OpenCode): `adr`, `docs`, `open-questions`, `karpathy-guidelines`, `project-process`, `one-shot`, `marketing-council`, **`investigate`**, **`agent-loops`**, **`hermes-feedback`**, **`worker-monitor`** (local worker + Grok monitor), **`jev-decision`** (#230 typed Choice/Score), **`prefer-behavior-and-fail-recover-tests`** (Trophy / fail-recover), **`ui-is-the-app-design-in-loop`** (design pack before product UI), **`catalog-intake-dedupe`**, **`catalog-eval-lane`**, **`catalog-integrate-lane`**, **`catalog-apply-and-ceiling`**, **`catalog-fit-triage`**, **`catalog-loop-operator`** (catalog pipeline; each skill drives a script); ponytail + mattpocock via `skills.paths`.  
+Portable skills (SoT `bootstrap/grok-cli/skills/` - also for OpenCode): `adr`, `docs`, `open-questions`, `karpathy-guidelines`, `project-process`, `one-shot`, `marketing-council`, **`investigate`**, **`agent-loops`**, **`hermes-feedback`**, **`worker-monitor`** (local worker + Grok monitor), **`jev-decision`** (#230 typed Choice/Score), **`prefer-behavior-and-fail-recover-tests`** (Trophy / fail-recover), **`tests-in-main-evals-in-ops`** (main vs ops test split), **`ui-is-the-app-design-in-loop`** (design pack before product UI), **`catalog-intake-dedupe`**, **`catalog-eval-lane`**, **`catalog-integrate-lane`**, **`catalog-apply-and-ceiling`**, **`catalog-fit-triage`**, **`catalog-loop-operator`** (catalog pipeline; each skill drives a script); ponytail + mattpocock via `skills.paths`.  
 Verify: `make eval-structural` (no LLM) · `make smoke-grok-skills` · [skill-verification.md](docs/ops/skill-verification.md).  
 **Surfaces:** Grok = **monitor** / hard tasks (subscription) · OpenCode+Ollama = **worker** / bulk - [local-cloud-split.md](docs/ops/local-cloud-split.md) · ADR-0011.  
 **Traces:** local Phoenix only - [tracing.md](docs/ops/tracing.md) · ADR-0019. `PFY_OTEL=0` turns spans off.  
@@ -84,7 +84,7 @@ Map **Think → Plan → Build → Review → Test → Ship → Reflect** withou
 | Build | Coding agent + karpathy / ponytail; **`/one-shot`** if DoD + lab ready; **`/agent-loops`** to set exits/type before long runs |
 | Debug / RCA | **`/investigate`** - Iron Law: no fix without root-cause hypothesis (T-0017) |
 | Review | mattpocock **`code-review`** (paths); optional second persona |
-| QA | `make cage-test`, `make smoke-*` (see [docs/modules/examples-smokes.md](docs/modules/examples-smokes.md)); **`prefer-behavior-and-fail-recover-tests`** |
+| QA | `make cage-test`, `make smoke-*` (see [docs/modules/examples-smokes.md](docs/modules/examples-smokes.md)); **`prefer-behavior-and-fail-recover-tests`**; **`tests-in-main-evals-in-ops`** (synthetic tests in main, dogfood and real-data evals in ops) |
 | UI / operator surface | **`ui-is-the-app-design-in-loop`** - design pack in `docs/design/` before product UI |
 | Security | write-guard + cage policy; not full gstack `/cso` |
 | Ship | Feature branch → green checks → merge; [DEPLOY.md](docs/ops/DEPLOY.md) |
@@ -141,6 +141,8 @@ This repo supports robust, production-like agentic coding setups inspired by hig
 Prefer the Testing Trophy: mostly integration/E2E for product confidence. Unit tests only for shaky/non-obvious behavior. Forbidden: tautological tests and implementation-detail tests. Prefer sociable tests; doubles only at awkward boundaries + contract tests for externals. Every non-trivial change: How could this fail? How do we recover?
 
 Skill and verbatim DoD paste line: **`prefer-behavior-and-fail-recover-tests`**.
+
+Built-in, unit, and general does-the-code-work tests on synthetic fixtures stay in the product repo. Dogfood, real-data or end-to-end evals, personal fixtures, and Tester evidence live in the product's ops repo. Skill and DoD paste line: **`tests-in-main-evals-in-ops`**.
 
 ## Modular CI (standing rule)
 

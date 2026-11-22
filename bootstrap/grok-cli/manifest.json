@@ -102,6 +102,11 @@
         "purpose": "Operator UI: design pack before product chrome; contextual levers; never ask known facts"
       },
       {
+        "name": "tests-in-main-evals-in-ops",
+        "origin": "first-party port of org bot standing (2026-11-22); org skill is a pointer",
+        "purpose": "Product main repo keeps built-in, unit, and synthetic does-the-code-work tests; dogfood, real-data evals, personal fixtures, and Tester evidence go in the ops repo"
+      },
+      {
         "name": "catalog-intake-dedupe",
         "origin": "first-party catalog pipeline (2026-11-08)",
         "purpose": "Source string to an I0 card, or a duplicate match, via scripts/catalog_intake_dedupe.py"

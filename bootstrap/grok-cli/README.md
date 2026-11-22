@@ -35,6 +35,7 @@ This is the first concrete integration under `pfy-deanery` — not another third
 | `hermes-feedback` | Self-improvement: auto-memory, auto-skill, curator (`/hermes-feedback`, T-0048) |
 | `jev-decision` | Typed Choice/Score locks: CUA-S1-FORMS primary local, TypeSafe optional (`/jev-decision`, #230) |
 | `prefer-behavior-and-fail-recover-tests` | Testing Trophy: sociable integration/E2E, no tautological units, fail and recover (`/prefer-behavior-and-fail-recover-tests`) |
+| `tests-in-main-evals-in-ops` | Built-in and synthetic tests stay in the product repo; dogfood, real-data evals, and Tester evidence go in the ops repo (`/tests-in-main-evals-in-ops`) |
 | `ui-is-the-app-design-in-loop` | Operator UI is the app; design pack before product chrome (`/ui-is-the-app-design-in-loop`) |
 
 ### External skills path (not copied into `~/.grok/skills`)
@@ -149,6 +150,7 @@ rsync -a --delete /path/to/ponytail/skills/ bootstrap/grok-cli/skills-external/p
 **T-0050:** `agent-loops` first-party loop engineering (8 exits + 4 types + Finn + rubric; Entries 024/027/031/032/068).  
 **T-0048:** `hermes-feedback` first-party pattern port (Hermes three loops → Grok memory/skills/curator; not Hermes runtime).  
 **T-0126:** founder standings — `prefer-behavior-and-fail-recover-tests`, `ui-is-the-app-design-in-loop` (org skills are pointers).  
+**2026-11-22 standing:** `tests-in-main-evals-in-ops` (built-in and synthetic tests in the product repo; dogfood, real-data evals, and Tester evidence in the ops repo; org skill is a pointer).  
 **Catalog pipeline:** `catalog-intake-dedupe`, `catalog-eval-lane`, `catalog-integrate-lane`, `catalog-apply-and-ceiling`, `catalog-fit-triage`, `catalog-loop-operator` (first-party; the loop and the lanes load them).  
 **Verify skills:** `make smoke-grok-skills` · `make smoke-grok-skills INSTALLED=1` · [docs/ops/skill-verification.md](../../docs/ops/skill-verification.md)
 

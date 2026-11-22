@@ -117,6 +117,7 @@ Structural proof is still `make smoke-grok-skills` (manifest + `SKILL.md` + fron
 | Skill | Behavioral check |
 |-------|------------------|
 | `prefer-behavior-and-fail-recover-tests` | A test review names a failure mode and recovery. Tautological or implementation-detail units are a FAIL. |
+| `tests-in-main-evals-in-ops` | A real-data, dogfood, or personal-fixture test is in the product ops repo, with a synthetic does-the-code-work test left in main. |
 | `ui-is-the-app-design-in-loop` | Product UI cites a `docs/design/` pack. A docs/skills PR that adds no product chrome passes without a new design pack. |
 
 ### Regression template (paste into PR)
