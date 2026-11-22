@@ -352,3 +352,7 @@ Entries 206-207 (`smoke_206.py`, `smoke_207.py`) are metadata receipts for the Q
 and llamafile. 206 reads the pinned Hugging Face revision through `$QWEN38_OPENCODE_FETCH_BIN` or a stdlib fetch of the
 models API; 207 reads the pinned GitHub commit through `$LLAMAFILE_FETCH_BIN` or a stdlib fetch. Each checks the SHA and
 exits 2 without downloading or installing anything. `PFY_XINTAKE_TIMEOUT` overrides the timeout.
+
+Entry 208 (`smoke_208.py`) is a metadata receipt for Inkling 2 Mini. It reads the pinned Hugging Face revision of
+the ggml-org GGUF repo through `$INKLING2_MINI_FETCH_BIN` or a stdlib fetch of the models API, checks the SHA and exits 2
+without downloading or installing anything. `PFY_XINTAKE_TIMEOUT` overrides the timeout.

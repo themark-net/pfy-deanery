@@ -1,0 +1,30 @@
+{
+  "name": "Inkling 2 Mini",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/208-inkling-2-mini.md",
+  "github": "https://huggingface.co/ggml-org/Inkling-2-Mini-GGUF",
+  "pin": "e8a2cecf0e78914f07cc27b9be711a9b2c7561d9",
+  "license": "Apache-2.0",
+  "uses": "Open-weights 26.4B looped MoE multimodal model (3.4B active) from Thinking Machines with llama.cpp GGUFs, a fast local candidate for the coding fallback lane and image or document reading.",
+  "features": [
+    "looped MoE decoder, 3.4B active",
+    "text and image input",
+    "up to 1M context",
+    "llama.cpp GGUF (Q8_0, IQ4_NL)"
+  ],
+  "potential": "high",
+  "next_gate": "Eval-auto trial in the OpenCode lane against qwen3.6:35b and the entry 206 adapter on the same small task set, Q8_0 GGUF, downloads and config under $PFY_TMP. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys"
+  ],
+  "evidence": [
+    "entry:sources/entries/208-inkling-2-mini.md",
+    "pin:e8a2cecf0e78914f07cc27b9be711a9b2c7561d9"
+  ],
+  "handoff_by": "llm"
+}
