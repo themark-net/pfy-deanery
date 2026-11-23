@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "High blast radius: introduces tmux session management, Docker/Podman isolation, and HTTP API/web dashboard which constitutes runtime takeover and potential config rewrite. Off-mission for a local-first catalog focused on evaluation/integration rather than providing a competing agent runtime environment.",
+  "slug": "agent-of-empires",
+  "verdict": "awareness"
+}

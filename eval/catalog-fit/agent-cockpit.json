@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "The subject explicitly lists 'install outside $PFY_TMP' and 'global npm install' as non-goals. It requires running in a scratch copy under $PFY_TMP with no persistent installation or config rewrites. This aligns with the skip_install verdict criteria: it is optional, adds no unique gap requiring permanent integration, and a safe default (scratch run) exists without installing.",
+  "slug": "agent-cockpit",
+  "verdict": "skip_install"
+}

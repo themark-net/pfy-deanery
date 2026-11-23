@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "High blast radius: acts as a policy gateway intercepting MCP/REST/A2A calls (runtime takeover) and managing signed receipts/secrets. While non_goals restrict installation scope, the core function of intercepting agent tool calls constitutes high-risk runtime intervention outside the local-first catalog's safe evaluation scope.",
+  "slug": "agent-custody",
+  "verdict": "awareness"
+}

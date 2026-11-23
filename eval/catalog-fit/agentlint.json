@@ -1,0 +1,12 @@
+{
+  "chip_conf": "conf ok",
+  "confidence": 0.95,
+  "exit": 0,
+  "fit": false,
+  "gate": 0.85,
+  "model": "qwen3.6:35b",
+  "overlap_with": null,
+  "reason": "High blast radius: blocks secret writes, .env writes, force-pushes to main, CI pipeline edits, and package publishing. These actions constitute runtime takeover and secrets/account pool management, which are explicitly listed as high-risk criteria for the 'awareness' verdict in the triage logic.",
+  "slug": "agentlint",
+  "verdict": "awareness"
+}

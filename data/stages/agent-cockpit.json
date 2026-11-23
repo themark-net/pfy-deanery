@@ -28,5 +28,40 @@
     "entry:sources/entries/186-agent-cockpit.md",
     "pin:a968c6bc2568a5036981f896939234aaac29c1cd"
   ],
-  "handoff_by": "llm"
+  "handoff_by": "llm",
+  "promotion_history": [
+    {
+      "kind": "ceiling",
+      "from": "",
+      "to": "I3",
+      "result": "refuse",
+      "passed": [
+        "R-not-excluded",
+        "HS-live-money",
+        "HS-release-deploy",
+        "HS-secrets",
+        "HS-runtime-takeover",
+        "HS-gpu-unapproved",
+        "HS-pull-over-25gb-unapproved",
+        "R-classifiable"
+      ],
+      "failed": [
+        {
+          "rule": "R-modularity-gate",
+          "detail": "no verdict"
+        },
+        {
+          "rule": "R-value-gate",
+          "detail": "no verdict"
+        },
+        {
+          "rule": "R-catalog-fit",
+          "detail": "catalog-fit skip_install caps I1"
+        }
+      ],
+      "rules": "data/promotion-rules.json@v1",
+      "by": "rules",
+      "date": "2026-11-22"
+    }
+  ]
 }
