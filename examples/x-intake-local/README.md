@@ -356,3 +356,7 @@ exits 2 without downloading or installing anything. `PFY_XINTAKE_TIMEOUT` overri
 Entry 208 (`smoke_208.py`) is a metadata receipt for Inkling 2 Mini. It reads the pinned Hugging Face revision of
 the ggml-org GGUF repo through `$INKLING2_MINI_FETCH_BIN` or a stdlib fetch of the models API, checks the SHA and exits 2
 without downloading or installing anything. `PFY_XINTAKE_TIMEOUT` overrides the timeout.
+
+Entry 209 (`smoke_209.py`) is a metadata receipt for Ternary Bonsai 2.5 27B. It reads the pinned Hugging Face revision of
+the prism-ml GGUF repo through `$TERNARY_BONSAI25_FETCH_BIN` or a stdlib fetch of the models API, checks the SHA and exits 2
+without downloading or installing anything. `PFY_XINTAKE_TIMEOUT` overrides the timeout.

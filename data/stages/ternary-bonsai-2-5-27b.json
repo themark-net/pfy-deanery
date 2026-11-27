@@ -1,0 +1,30 @@
+{
+  "name": "Ternary Bonsai 2.5 27B",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/209-ternary-bonsai-2.5-27b.md",
+  "github": "https://huggingface.co/prism-ml/Ternary-Bonsai-2.5-27B-GGUF",
+  "pin": "28a7093cc25bc151cc2b284c5570f12ce343fdcf",
+  "license": "Apache-2.0",
+  "uses": "Ternary 27B agent model on Qwen3.8 27B from PrismML (1.76 bits/weight, about 6 GB), a cheap local candidate for offloading small tasks in the fallback lane.",
+  "features": [
+    "ternary weights, 1.76 bits/weight",
+    "agentic coding and multi-turn tool use focus",
+    "MTP draft-head GGUF variants",
+    "Q2_0 GGUF runs on stock llama.cpp"
+  ],
+  "potential": "medium",
+  "next_gate": "Eval-auto trial on nimo with stock llama.cpp and the Q2_0 GGUF on a small task set against qwen3.6:35b and the entry 206 adapter, downloads under $PFY_TMP; Q2_0 on Vulkan or ROCm is unverified. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys"
+  ],
+  "evidence": [
+    "entry:sources/entries/209-ternary-bonsai-2.5-27b.md",
+    "pin:28a7093cc25bc151cc2b284c5570f12ce343fdcf"
+  ],
+  "handoff_by": "llm"
+}
