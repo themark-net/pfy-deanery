@@ -1,0 +1,30 @@
+{
+  "name": "Council of High Intelligence",
+  "integration_stage": "I0",
+  "intent": "awareness",
+  "entry": "sources/entries/210-council-of-high-intelligence.md",
+  "github": "https://github.com/0xNyk/council-of-high-intelligence",
+  "pin": "2a2fd011d6cf89240a3d7ceba35ac559b67caa20",
+  "license": "MIT",
+  "uses": "Structured multi-persona deliberation skill (/council) with forced dissent and kill criteria, a design reference for high-stakes calls in the decision layer.",
+  "features": [
+    "independent first positions then forced disagreement",
+    "full council, quick panel and duo modes",
+    "verdict keeps dissent, kill criteria and next action",
+    "Ollama seat routing and OpenCode host mirror"
+  ],
+  "potential": "medium",
+  "next_gate": "Eval-auto trial: --duo on local models over a few logged Deanery decisions against the current single-pass decision layer, installer dirs under $PFY_TMP. No Feature GO.",
+  "non_goals": [
+    "feature_go",
+    "catalog_hold_70_75",
+    "install outside $PFY_TMP",
+    "account sign-up",
+    "paid API keys"
+  ],
+  "evidence": [
+    "entry:sources/entries/210-council-of-high-intelligence.md",
+    "pin:2a2fd011d6cf89240a3d7ceba35ac559b67caa20"
+  ],
+  "handoff_by": "llm"
+}

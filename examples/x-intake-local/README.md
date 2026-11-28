@@ -360,3 +360,7 @@ without downloading or installing anything. `PFY_XINTAKE_TIMEOUT` overrides the 
 Entry 209 (`smoke_209.py`) is a metadata receipt for Ternary Bonsai 2.5 27B. It reads the pinned Hugging Face revision of
 the prism-ml GGUF repo through `$TERNARY_BONSAI25_FETCH_BIN` or a stdlib fetch of the models API, checks the SHA and exits 2
 without downloading or installing anything. `PFY_XINTAKE_TIMEOUT` overrides the timeout.
+
+Entry 210 (`smoke_210.py`) is a metadata receipt for Council of High Intelligence. It reads the pinned GitHub commit of
+0xNyk/council-of-high-intelligence through `$COUNCIL_HI_FETCH_BIN` or a stdlib fetch of the commits API, checks the SHA and
+exits 2 without cloning or installing anything. `PFY_XINTAKE_TIMEOUT` overrides the timeout.
